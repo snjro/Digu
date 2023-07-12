@@ -38,7 +38,7 @@
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 
   $: colorHexWithSharp = getColorHexWithSharpFromTailwindColor(
-    colorDefinitions[themeColor][colorCategoryProgress].text
+    colorDefinitions[themeColor][colorCategoryProgress].bg
   );
   $: colorHexWithoutSharp = colorHexWithSharp.replace("#", "");
 

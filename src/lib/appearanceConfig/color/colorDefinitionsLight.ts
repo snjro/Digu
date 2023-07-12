@@ -42,12 +42,12 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     fillOpacity: "fill-blue-600/50",
     fillEmphasis: "fill-blue-700",
     fillHover: "hover:fill-blue-700",
-    bg: "bg-blue-600",
-    bgOpacity: "bg-blue-600/50",
+    bg: "bg-blue-500",
+    bgOpacity: "bg-blue-500/50",
     bgEmphasis: "bg-blue-700",
     bgHover: "hover:bg-blue-700",
-    shadow: "shadow-blue-600",
-    border: "border-blue-600",
+    shadow: "shadow-blue-500",
+    border: "border-blue-500",
   },
   primary: {
     text: "text-zinc-600", //leftsidebar(header/footer) text
