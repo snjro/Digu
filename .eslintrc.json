@@ -2,7 +2,7 @@
   "extends": ["plugin:svelte/recommended"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": "./tsconfig.json",
+    // "project": "./tsconfig.json",
     "extraFileExtensions": [".svelte"]
   },
   "overrides": [
