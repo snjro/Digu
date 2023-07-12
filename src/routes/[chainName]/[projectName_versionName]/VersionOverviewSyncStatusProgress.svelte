@@ -27,7 +27,8 @@
   <BaseProgressCircle
     startValue={targetVersionSyncStatus.creationBlockNumber}
     currentValue={fetchedBlockNumber}
-    goalValue={latestBlockNumber}
+    goalValue={latestBlockNumber *
+      targetVersionSyncStatus.numOfSyncTargetContract}
     detailsPosition="none"
     circleSize={changeSize(sizeSettings.itemMember, 1)}
   />
