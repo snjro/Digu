@@ -1,0 +1,104 @@
+{
+  "name": "FillOrder",
+  "address": "0x39c230f89981274177e79708c921582bd4bd0303",
+  "creation": {
+    "tx": "0xa0d4ec04979b69470fdfb9e84876d4cfc817e362054fcb07daceca55bcfa8f58",
+    "blockNumber": 5926253,
+    "creator": "0xd82369aaeC27C7a749AFDb4eb71ADD9E64154cd6",
+    "timestamp": 1531036947
+  },
+  "sourceCodeUrl": "https://github.com/AugurProject/augur-core/blob/master/source/contracts/trading/FillOrder.sol",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_filler",
+          "type": "address"
+        },
+        {
+          "name": "_orderId",
+          "type": "bytes32"
+        },
+        {
+          "name": "_amountFillerWants",
+          "type": "uint256"
+        },
+        {
+          "name": "_tradeGroupId",
+          "type": "bytes32"
+        }
+      ],
+      "name": "fillOrder",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getController",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_controller",
+          "type": "address"
+        }
+      ],
+      "name": "setController",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_orderId",
+          "type": "bytes32"
+        },
+        {
+          "name": "_amountFillerWants",
+          "type": "uint256"
+        },
+        {
+          "name": "_tradeGroupId",
+          "type": "bytes32"
+        }
+      ],
+      "name": "publicFillOrder",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+    }
+  ]
+}

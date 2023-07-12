@@ -1,0 +1,80 @@
+{
+  "name": "Orders",
+  "address": "0xd7a14019aeeba25e676a1b596bb19b6f37db74d2",
+  "creation": {
+    "tx": "0x83768e14bce63c2545bf9944356f294b20358627c553587cae45125ead386319",
+    "blockNumber": 5926292,
+    "creator": "0xd82369aaeC27C7a749AFDb4eb71ADD9E64154cd6",
+    "timestamp": 1531037442
+  },
+  "sourceCodeUrl": "https://github.com/AugurProject/augur-core/blob/master/source/contracts/trading/Orders.sol",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getController",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_controller",
+          "type": "address"
+        }
+      ],
+      "name": "setController",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "controllerLookupName",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "name": "_controller",
+          "type": "address"
+        },
+        {
+          "name": "_controllerLookupName",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "fallback"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "BuyParticipationTokens",
+  "address": "0x1aaCc93f3Ee47D7DE20171468D9C2458D5602483",
+  "creation": {
+    "tx": "0x557134519a4907ec48c7c9f95f35123c471bf8733dd3b3fb1f657cb3b83a1b8c",
+    "blockNumber": 10543939,
+    "creator": "0x4925DC0BAF2Bcf7D20b19f5b2Fc2be44E3806931",
+    "timestamp": 1595885672
+  },
+  "sourceCodeUrl": "https://github.com/AugurProject/augur/blob/dev/packages/augur-core/src/contracts/utility/BuyParticipationTokens.sol",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "contract IUniverse",
+          "name": "_universe",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_attotokens",
+          "type": "uint256"
+        }
+      ],
+      "name": "buyParticipationTokens",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ]
+}

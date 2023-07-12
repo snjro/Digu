@@ -1,0 +1,50 @@
+<script lang="ts">
+  import { page } from "$app/stores";
+  import type { LoadEventsData } from "./+page";
+  import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
+  import BaseTab from "$lib/base/BaseTab.svelte";
+  import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
+  import { gridRows, type EventRow } from "./gridRows";
+  import { columnDefs } from "./columnDefs";
+  import type { Contract } from "@constants/chains/types";
+
+  export let data: LoadEventsData;
+
+  let selectedTab: undefined = undefined;
+  const contractName: Contract["name"] = data.targetContract.name;
+
+  const titleCategoryLabelText: string = "Events";
+  let rows: EventRow[] = [];
+  $: rows = gridRows(data.targetEventAbiFragments);
+
+  const maxLengthOfEventInputsParams = (): number => {
+    let maxIndex: number = 0;
+    rows.forEach((row: EventRow) => {
+      if (row.eventInputs.length > maxIndex) {
+        maxIndex = row.eventInputs.length;
+      }
+    });
+    return maxIndex;
+  };
+</script>
+
+<BasePageContainer titleText={contractName} {titleCategoryLabelText}>
+  <BaseTab bind:selectedTab groupName="contractEventssInfo">
+    <BaseGrid
+      {rows}
+      paramColumnDefs={columnDefs(
+        $page.url.pathname,
+        maxLengthOfEventInputsParams(),
+        {
+          chainName: data.targetChain.name,
+          projectName: data.targetProject.name,
+          versionName: data.targetVersion.name,
+          contractName: data.targetContract.name,
+        }
+      )}
+      titleText={contractName}
+      {titleCategoryLabelText}
+      hidden={false}
+    />
+  </BaseTab>
+</BasePageContainer>

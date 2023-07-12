@@ -1,0 +1,144 @@
+{
+  "name": "CreateOrder",
+  "address": "0x7f27b0598949dbf9e539bbd217f15bf3f5e97999",
+  "creation": {
+    "tx": "0x01ccdffbb1bc8e454a1296ecf39614874b217a9fafa87f21f03789944a627fe1",
+    "blockNumber": 5926253,
+    "creator": "0xd82369aaeC27C7a749AFDb4eb71ADD9E64154cd6",
+    "timestamp": 1531036947
+  },
+  "sourceCodeUrl": "https://github.com/AugurProject/augur-core/blob/master/source/contracts/trading/CreateOrder.sol",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getController",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_type",
+          "type": "uint8"
+        },
+        {
+          "name": "_attoshares",
+          "type": "uint256"
+        },
+        {
+          "name": "_displayPrice",
+          "type": "uint256"
+        },
+        {
+          "name": "_market",
+          "type": "address"
+        },
+        {
+          "name": "_outcome",
+          "type": "uint256"
+        },
+        {
+          "name": "_betterOrderId",
+          "type": "bytes32"
+        },
+        {
+          "name": "_worseOrderId",
+          "type": "bytes32"
+        },
+        {
+          "name": "_tradeGroupId",
+          "type": "bytes32"
+        }
+      ],
+      "name": "publicCreateOrder",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_controller",
+          "type": "address"
+        }
+      ],
+      "name": "setController",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_creator",
+          "type": "address"
+        },
+        {
+          "name": "_type",
+          "type": "uint8"
+        },
+        {
+          "name": "_attoshares",
+          "type": "uint256"
+        },
+        {
+          "name": "_displayPrice",
+          "type": "uint256"
+        },
+        {
+          "name": "_market",
+          "type": "address"
+        },
+        {
+          "name": "_outcome",
+          "type": "uint256"
+        },
+        {
+          "name": "_betterOrderId",
+          "type": "bytes32"
+        },
+        {
+          "name": "_worseOrderId",
+          "type": "bytes32"
+        },
+        {
+          "name": "_tradeGroupId",
+          "type": "bytes32"
+        }
+      ],
+      "name": "createOrder",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ]
+}

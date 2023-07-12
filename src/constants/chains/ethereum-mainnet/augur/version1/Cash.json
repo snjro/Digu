@@ -1,0 +1,80 @@
+{
+  "name": "Cash",
+  "address": "0xd5524179cb7ae012f5b642c1d6d700bbaa76b96b",
+  "creation": {
+    "tx": "0xa0e19800907a0208af485f0ae566a0cde56f6534c026446feba2c05319f6d2b9",
+    "blockNumber": 5926292,
+    "creator": "0xd82369aaeC27C7a749AFDb4eb71ADD9E64154cd6",
+    "timestamp": 1531037442
+  },
+  "sourceCodeUrl": "https://github.com/AugurProject/augur-core/blob/master/source/contracts/trading/Cash.sol",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getController",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_controller",
+          "type": "address"
+        }
+      ],
+      "name": "setController",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "controllerLookupName",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "name": "_controller",
+          "type": "address"
+        },
+        {
+          "name": "_controllerLookupName",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "fallback"
+    }
+  ]
+}

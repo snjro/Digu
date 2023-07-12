@@ -1,0 +1,254 @@
+{
+  "name": "OrdersFinder",
+  "address": "0x01f2aba090b5fa26a64ea9e5afd32f6aab6ba3df",
+  "creation": {
+    "tx": "0x77e7c124386ebe39058c2ab2f016b1330abab51ec1652138264eca89cff6cb68",
+    "blockNumber": 5995935,
+    "creator": "0xd82369aaeC27C7a749AFDb4eb71ADD9E64154cd6",
+    "timestamp": 1532059114
+  },
+  "sourceCodeUrl": "https://github.com/AugurProject/augur-core/blob/master/source/contracts/external/OrdersFinder.sol",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_type",
+          "type": "uint8"
+        },
+        {
+          "name": "_market",
+          "type": "address"
+        },
+        {
+          "name": "_outcome",
+          "type": "uint256"
+        }
+      ],
+      "name": "getExistingOrders5",
+      "outputs": [
+        {
+          "name": "_results",
+          "type": "bytes32[5]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_type",
+          "type": "uint8"
+        },
+        {
+          "name": "_market",
+          "type": "address"
+        },
+        {
+          "name": "_outcome",
+          "type": "uint256"
+        }
+      ],
+      "name": "getExistingOrders20",
+      "outputs": [
+        {
+          "name": "_results",
+          "type": "bytes32[20]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "orders",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_type",
+          "type": "uint8"
+        },
+        {
+          "name": "_market",
+          "type": "address"
+        },
+        {
+          "name": "_outcome",
+          "type": "uint256"
+        }
+      ],
+      "name": "getExistingOrders1000",
+      "outputs": [
+        {
+          "name": "_results",
+          "type": "bytes32[1000]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_type",
+          "type": "uint8"
+        },
+        {
+          "name": "_market",
+          "type": "address"
+        },
+        {
+          "name": "_outcome",
+          "type": "uint256"
+        }
+      ],
+      "name": "getExistingOrders50",
+      "outputs": [
+        {
+          "name": "_results",
+          "type": "bytes32[50]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_type",
+          "type": "uint8"
+        },
+        {
+          "name": "_market",
+          "type": "address"
+        },
+        {
+          "name": "_outcome",
+          "type": "uint256"
+        }
+      ],
+      "name": "getExistingOrders500",
+      "outputs": [
+        {
+          "name": "_results",
+          "type": "bytes32[500]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_type",
+          "type": "uint8"
+        },
+        {
+          "name": "_market",
+          "type": "address"
+        },
+        {
+          "name": "_outcome",
+          "type": "uint256"
+        }
+      ],
+      "name": "getExistingOrders200",
+      "outputs": [
+        {
+          "name": "_results",
+          "type": "bytes32[200]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_type",
+          "type": "uint8"
+        },
+        {
+          "name": "_market",
+          "type": "address"
+        },
+        {
+          "name": "_outcome",
+          "type": "uint256"
+        }
+      ],
+      "name": "getExistingOrders100",
+      "outputs": [
+        {
+          "name": "_results",
+          "type": "bytes32[100]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_type",
+          "type": "uint8"
+        },
+        {
+          "name": "_market",
+          "type": "address"
+        },
+        {
+          "name": "_outcome",
+          "type": "uint256"
+        }
+      ],
+      "name": "getExistingOrders10",
+      "outputs": [
+        {
+          "name": "_results",
+          "type": "bytes32[10]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "name": "_orders",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    }
+  ]
+}

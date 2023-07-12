@@ -1,0 +1,12 @@
+{
+  "name": "Order",
+  "address": "0x75d789ef6344579fbe75a4d2d9217ec23b005f8f",
+  "creation": {
+    "tx": "0xedb9b294c6357f14518fd485debfc47521518a8ccb0649c739111082c19e6e95",
+    "blockNumber": 5926240,
+    "creator": "0xd82369aaeC27C7a749AFDb4eb71ADD9E64154cd6",
+    "timestamp": 1531036779
+  },
+  "sourceCodeUrl": "https://github.com/AugurProject/augur-core/blob/master/source/contracts/trading/Order.sol",
+  "abi": []
+}

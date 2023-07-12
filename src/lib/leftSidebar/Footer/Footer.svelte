@@ -1,0 +1,32 @@
+<script lang="ts">
+  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
+  import FooterButtons from "./FooterButtons.svelte";
+  import FooterVersion from "./FooterVersion.svelte";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+
+  let themeColor: ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+</script>
+
+<div
+  class={classNames(
+    "py-3",
+    "flex-none",
+    "sticky",
+    "bottom-0",
+    "w-full",
+    "shrink-0",
+    colorDefinitions[themeColor][colorSettings.leftSidebarFooter].bg,
+    "border-t",
+    colorDefinitions[themeColor][colorSettings.leftSidebarFooter].border,
+    ""
+  )}
+>
+  <div class={classNames("flex", "h-full", "w-full", "justify-evenly", "")}>
+    <FooterButtons />
+    <FooterVersion />
+  </div>
+</div>

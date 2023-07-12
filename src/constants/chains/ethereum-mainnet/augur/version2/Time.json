@@ -1,0 +1,43 @@
+{
+  "name": "Time",
+  "address": "0xd2a04E60A4b7f6077Ac2a87a8CfD81722B75B9cF",
+  "creation": {
+    "tx": "0x08e8abc8d44729b77b85e5d974d89531fa61c1fe6a7976bccdf81af9bc0e7f9a",
+    "blockNumber": 10543790,
+    "creator": "0x4925DC0BAF2Bcf7D20b19f5b2Fc2be44E3806931",
+    "timestamp": 1595883506
+  },
+  "sourceCodeUrl": "https://github.com/AugurProject/augur/blob/dev/packages/augur-core/src/contracts/Time.sol",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getTimestamp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getTypeName",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ]
+}
