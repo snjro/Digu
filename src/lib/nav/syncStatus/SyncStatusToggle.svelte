@@ -2,13 +2,14 @@
   import BaseToggle from "$lib/base/BaseToggle.svelte";
   import type { Chain, ChainName } from "@constants/chains/types";
   import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
-  import type { NodeStatus } from "@db/dbTypes";
+  import type { NodeStatus, SyncStatus } from "@db/dbTypes";
   import { fetchEventLogs } from "@eventLogs/eventLogs";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getTargetChain } from "@utils/utlisDb";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
 
   let toggleOn: boolean = false;
   let targetChainName: ChainName;
@@ -20,6 +21,8 @@
   let nodeStatus: NodeStatus;
   $: nodeStatus = $storeChainStatus[targetChainName].nodeStatus;
 
+  let targetChainSyncStatus: SyncStatus;
+  $: targetChainSyncStatus = $storeSyncStatus[targetChainName];
   const toggleChanged = (): void => {
     toggleOn = !toggleOn;
     if (toggleOn) {
@@ -31,7 +34,7 @@
   $: {
   }
   let disabled: boolean;
-  $: disabled = nodeStatus !== "SUCCESS";
+  $: disabled = nodeStatus !== "SUCCESS" || !targetChainSyncStatus.isSyncTarget;
 </script>
 
 <BaseToggle
