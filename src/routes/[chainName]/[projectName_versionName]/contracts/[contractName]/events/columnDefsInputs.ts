@@ -1,6 +1,6 @@
 import type { ColumnDef } from "$lib/base/BaseGrid/types";
 import type { EventRow } from "./gridRows";
-import { columnDefAbiParams } from "../../../../../../lib/gridColumnDefs/columnDefAbiParams";
+import { columnDefAbiParams } from "$lib/gridColumnDefs/columnDefAbiParams";
 
 export const columnDefsInputs = <T extends EventRow>(
   maxLengthOfEventInputsParams: number
