@@ -21,7 +21,7 @@
   import SequenceBodyCell from "$lib/base/BaseTable/SequenceBodyCell.svelte";
   import AbiParamComponentsDetailsButton from "./AbiParamComponentsDetailsButton.svelte";
   import BaseTableRow from "$lib/base/BaseTable/BaseTableRow.svelte";
-  import { getComponentsFromAbiFragmentParam } from "@gridColumnDefs/columnDefAbiParamsArgsChildren";
+  import { getComponentsFromAbiFragmentParam } from "$lib/gridColumnDefs/columnDefAbiParamsArgsChildren";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 

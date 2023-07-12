@@ -17,7 +17,7 @@ import {
   convertJsDateToIso8601,
   convertJsDateToTimestampSec,
 } from "@utils/utilsTime";
-import { columnDefChainExplorerLinkByKeyName } from "@gridColumnDefs/columnDefChainExplorerLinkByKeyName";
+import { columnDefChainExplorerLinkByKeyName } from "$lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 const cellClass: string = classNames("");
 const sortable = true;

@@ -1,7 +1,7 @@
 import type { ColumnDef } from "$lib/base/BaseGrid/types";
 import type { ContractRow } from "./gridRows";
-import { columnDefAbiParams } from "@gridColumnDefs/columnDefAbiParams";
-import { columnDefStateMutability } from "@gridColumnDefs/columnDefStateMutability";
+import { columnDefAbiParams } from "$lib/gridColumnDefs/columnDefAbiParams";
+import { columnDefStateMutability } from "$lib/gridColumnDefs/columnDefStateMutability";
 
 export const columnDefsConstructor = <T extends ContractRow>(
   maxLengthOfConstructorInputsParams: number

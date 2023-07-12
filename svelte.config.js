@@ -21,7 +21,6 @@ const config = {
       "@routes/*": "src/routes/*",
       "@static/*": "src/static/*",
       "@eventLogs": "src/eventLogs/*",
-      "@gridColumnDefs": "src/gridColumnDefs/*",
     },
   },
 };

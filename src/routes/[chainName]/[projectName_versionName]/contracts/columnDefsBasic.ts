@@ -10,7 +10,7 @@ import { NO_DATA } from "@utils/utilsCostants";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import classNames from "classnames";
 import type { ContractRow } from "./gridRows";
-import { columnDefChainExplorerLinkByKeyName } from "@gridColumnDefs/columnDefChainExplorerLinkByKeyName";
+import { columnDefChainExplorerLinkByKeyName } from "$lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
 

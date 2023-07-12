@@ -9,7 +9,7 @@ import type {
   ICellRendererParams,
 } from "ag-grid-community";
 import type { ContractRow } from "./gridRows";
-import { cellAlign } from "@gridColumnDefs/cellStyles";
+import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
 import type { Chain, Project, Version } from "@constants/chains/types";
 import GridCellSyncStatusTarget from "./GridCellSyncStatusTarget.svelte";
 

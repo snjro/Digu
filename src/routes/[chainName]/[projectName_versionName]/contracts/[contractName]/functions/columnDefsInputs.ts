@@ -1,6 +1,6 @@
 import type { ColumnDef } from "$lib/base/BaseGrid/types";
 import type { FunctionRow } from "./gridRows";
-import { columnDefAbiParams } from "../../../../../../gridColumnDefs/columnDefAbiParams";
+import { columnDefAbiParams } from "$lib/gridColumnDefs/columnDefAbiParams";
 
 export const columnDefsInputs = <T extends FunctionRow>(
   maxLengthOfFunctionInputsParams: number

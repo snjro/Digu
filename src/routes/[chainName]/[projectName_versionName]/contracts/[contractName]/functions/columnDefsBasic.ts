@@ -8,7 +8,7 @@ import BaseLabel from "$lib/base/BaseLabel.svelte";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import classNames from "classnames";
 import type { FunctionRow } from "./gridRows";
-import { columnDefStateMutability } from "@gridColumnDefs/columnDefStateMutability";
+import { columnDefStateMutability } from "$lib/gridColumnDefs/columnDefStateMutability";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
 

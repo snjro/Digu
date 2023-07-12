@@ -11,7 +11,7 @@ import BaseA from "$lib/base/BaseA.svelte";
 import BaseLabel from "$lib/base/BaseLabel.svelte";
 import type { EventRow } from "./gridRows";
 import type { AbiFragmentName } from "@constants/chains/types";
-import { cellAlign } from "@gridColumnDefs/cellStyles";
+import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
 
