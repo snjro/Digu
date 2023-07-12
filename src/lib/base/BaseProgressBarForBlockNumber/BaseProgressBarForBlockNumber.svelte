@@ -14,12 +14,12 @@
 <script lang="ts">
   import classNames from "classnames";
   import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { round } from "@utils/utilsMath";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import BaseProgressBarForBlockNumberBody from "./BaseProgressBarForBlockNumberBody.svelte";
   import BaseProgressBarForBlockNumberChainExplorerLink from "./BaseProgressBarForBlockNumberChainExplorerLink.svelte";
   import BaseProgressBarForBlocknumberPointer from "./BaseProgressBarForBlocknumberPointer.svelte";
   import BaseProgressBarForBlocknumberEdgePointer from "./BaseProgressBarForBlocknumberEdgePointer.svelte";
+  import { getProgressRate } from "./progressRate";
 
   export let size: BaseProgressBarForBlockNumberProps["size"] = "md";
   export let processing: BaseProgressBarForBlockNumberProps["processing"] =
@@ -38,11 +38,10 @@
 
   const blockNumberTextSize: BaseSize = changeSize(size, -1);
 
-  $: numOfProcessedBlock = fetchedBlockNumber - startBlockNumber;
-  $: numOfStartToEndBlock = endBlockNumber - startBlockNumber;
-  $: progressRate = round(
-    (numOfProcessedBlock * 100) / numOfStartToEndBlock,
-    3
+  $: progressRate = getProgressRate(
+    startBlockNumber,
+    endBlockNumber,
+    fetchedBlockNumber
   );
 </script>
 

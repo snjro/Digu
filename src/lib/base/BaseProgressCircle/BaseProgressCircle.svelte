@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { round } from "@utils/utilsMath";
   import classNames from "classnames";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { ThemeColor } from "@db/dbTypes";
@@ -12,6 +11,7 @@
   import BaseProgressCircleDetails from "./BaseProgressCircleDetails.svelte";
   import { changeSize, type BaseSize } from "../baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { getProgressRate } from "../BaseProgressBarForBlockNumber/progressRate";
 
   export let startValue: number;
   export let goalValue: number;
@@ -55,17 +55,10 @@
   $: circumference = 2 * Math.PI * radiusMinusStroke;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
-  let fullLength: number;
-  $: fullLength = goalValue - startValue;
-  let processedLength: number;
-  $: processedLength = currentValue - startValue;
-  let progressRate: () => number;
-  $: progressRate = (): number => {
-    let rate: number = round((processedLength * 100) / fullLength, 3);
-    return isNaN(rate) ? 0 : rate;
-  };
+  let progressRate: number;
+  $: progressRate = getProgressRate(startValue, goalValue, currentValue);
   let offset: number;
-  $: offset = (circumference * (100 - progressRate())) / 100;
+  $: offset = (circumference * (100 - progressRate)) / 100;
 </script>
 
 <div
@@ -142,9 +135,9 @@
             )}
           >
             <BaseLabel
-              text={progressRate() >= 100
-                ? progressRate().toFixed(0)
-                : progressRate().toFixed(1)}
+              text={progressRate >= 100
+                ? progressRate.toFixed(0)
+                : progressRate.toFixed(1)}
               textSize={detailsPosition === "inner"
                 ? changeSize(circleSize, 5)
                 : changeSize(circleSize, 5)}
