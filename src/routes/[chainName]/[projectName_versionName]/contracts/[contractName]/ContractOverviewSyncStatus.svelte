@@ -15,12 +15,6 @@
   export let targetContract: Contract;
 </script>
 
-<ContractOverviewSyncStatusCurrentState
-  {targetChain}
-  {targetProject}
-  {targetVersion}
-  {targetContract}
-/>
 <ContractOverviewSyncStatusTarget
   {targetChain}
   {targetProject}
@@ -28,6 +22,12 @@
   {targetContract}
 />
 <ContractOverviewSyncStatusProgress
+  {targetChain}
+  {targetProject}
+  {targetVersion}
+  {targetContract}
+/>
+<ContractOverviewSyncStatusCurrentState
   {targetChain}
   {targetProject}
   {targetVersion}
