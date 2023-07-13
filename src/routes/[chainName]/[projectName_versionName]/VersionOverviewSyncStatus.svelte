@@ -14,12 +14,12 @@
   {targetProject}
   {targetVersion}
 />
-<VersionOverviewSyncStatusCurrentState
+<VersionOverviewSyncStatusProgress
   {targetChain}
   {targetProject}
   {targetVersion}
 />
-<VersionOverviewSyncStatusProgress
+<VersionOverviewSyncStatusCurrentState
   {targetChain}
   {targetProject}
   {targetVersion}
