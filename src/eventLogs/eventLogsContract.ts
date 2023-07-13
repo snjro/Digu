@@ -49,8 +49,6 @@ export async function fetchEventLogsContract(
   );
   let doLoop = true;
 
-  // await resetNodeErrorCount(chainName);
-
   while (doLoop) {
     if (
       syncStatusContract({
