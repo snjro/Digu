@@ -18,7 +18,6 @@
   import type { ThemeColor } from "@db/dbTypes";
   import BaseSnackbar from "$lib/base/BaseSnackbar.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import ColorTest from "$lib/appearanceConfig/color/colorTest.svelte";
 
   export let data: LoadDataRoot;
   let themeColor: ThemeColor;
@@ -86,7 +85,6 @@
       <Nav />
       <div class={contentStyle}>
         <Breadcrumb />
-        <ColorTest />
         <slot />
         <BaseSnackbar />
       </div>
