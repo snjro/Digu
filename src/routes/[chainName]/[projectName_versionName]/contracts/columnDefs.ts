@@ -17,9 +17,9 @@ export const columnDefs = <T extends ContractRow>(
 ): ColumnDef[] => {
   const columnDefs: ColumnDef[] = [
     columnDefsBasic<T>(urlPathName),
+    columnDefsSyncStatus(targetChain, targetProject, targetVersion),
     columnDefsCreation<T>(),
     columnDefsEventsFunctions<T>("events", urlPathName),
-    columnDefsSyncStatus(targetChain, targetProject, targetVersion),
     columnDefsEventsFunctions<T>("functions", urlPathName),
     columnDefsFallback(),
     columnDefsConstructor<T>(maxLengthOfConstructorInputsParams),
