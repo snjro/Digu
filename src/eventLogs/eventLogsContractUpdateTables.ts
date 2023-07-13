@@ -15,7 +15,7 @@ import { setDbBlockTime } from "@db/dbBlockTimesDataHandlers";
 import Dexie from "dexie";
 import { isHexString } from "ethers";
 import type { NodeProvider } from "@utils/utilsEthers";
-import { resetNodeErrorCount } from "./eventLogsContract";
+import { resetNodeErrorCount } from "./nodeErrorCountHandler";
 import {
   fetchBlockTimesForEventLogs,
   type BlockTimeForEventLog,
