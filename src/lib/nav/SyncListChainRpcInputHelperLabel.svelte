@@ -1,5 +1,4 @@
 <script lang="ts">
-  import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
   import BaseLabel, { type BaseLabelProps } from "$lib/base/BaseLabel.svelte";
   import classNames from "classnames";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -23,7 +22,7 @@
             name: "checkBold",
             colorCategory: "success",
           },
-          text: "Connected. The latest block is ",
+          text: "Connected.",
           colorCategoryFront: colorSettings.navText,
         };
         break;
@@ -90,15 +89,5 @@
 </script>
 
 <div class={classNames("ml-2")}>
-  <BaseLabel {...helperLabelProps()}>
-    {#if nodeStatus === "SUCCESS"}
-      <CommonChainExplorerLink
-        subdirectory="block"
-        textSize={size}
-        value={$storeChainStatus[targetChainName].latestBlockNumber.toString()}
-        appendClass="ml-1.5"
-        showCopyButton={false}
-      />
-    {/if}
-  </BaseLabel>
+  <BaseLabel {...helperLabelProps()} />
 </div>
