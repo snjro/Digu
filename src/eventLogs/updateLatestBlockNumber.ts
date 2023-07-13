@@ -9,7 +9,7 @@ import { get } from "svelte/store";
 import {
   countupNodeErrorCount,
   resetNodeErrorCount,
-} from "./eventLogsContract";
+} from "./nodeErrorCountHandler";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 
 const functionName: string = "updateLatestBlocknumber";
