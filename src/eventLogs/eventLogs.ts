@@ -17,6 +17,7 @@ import { myLogger } from "@utils/logger";
 import { storeLogSettings } from "@stores/storeLogSettings";
 import { get } from "svelte/store";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 
 export async function fetchEventLogs(targetChain: Chain): Promise<void> {
   myLogger.info(`[START]logContractsEvents(). targetChain:`, targetChain);
@@ -34,6 +35,8 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
     await stopSyncingInChain(targetChain.name);
     return;
   }
+
+  await startUpdateLatestBlockNumber(targetChain.name, nodeProvider);
 
   for (const targetProject of targetChain.projects) {
     for (const targetVersion of targetProject.versions) {

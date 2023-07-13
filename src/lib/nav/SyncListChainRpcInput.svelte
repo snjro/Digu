@@ -5,22 +5,12 @@
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
-  import {
-    getAndUpdateLatestBlockNumber,
-    getNodeProvider,
-    type NodeProvider,
-  } from "@utils/utilsEthers";
   import { updateDbItemLogSettings } from "@db/dbSettingsDataHandlers";
   import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
   import type { ChainName } from "@constants/chains/types";
   import classNames from "classnames";
   import BaseIcon from "$lib/base/BaseIcon.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { myLogger } from "@utils/logger";
-  import {
-    countupNodeErrorCount,
-    resetNodeErrorCount,
-  } from "@eventLogs/eventLogsContract";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { changeSize } from "$lib/base/baseSizes";
@@ -32,8 +22,6 @@
   $: rpc = $storeLogSettings[targetChainName].rpc;
   let nodeStatus: NodeStatus;
   $: nodeStatus = $storeChainStatus[targetChainName].nodeStatus;
-  let nodeProvider: NodeProvider | undefined;
-  let intervalId: number | undefined = undefined;
   $: helperTextState = (): HelperTextState => {
     switch (nodeStatus) {
       case "SUCCESS":
@@ -55,13 +43,7 @@
     chainName: ChainName,
     newRpc: string = rpc
   ): Promise<void> {
-    stopPeriodicallyUpdateLatestBlockNumber(intervalId);
     await updateDbItemLogSettings(chainName, "rpc", newRpc);
-    nodeProvider = await getNodeProvider(targetChainName, newRpc);
-    if (nodeStatus === "SUCCESS" && nodeProvider) {
-      // start updating latest blocknumber
-      await startPeriodicallyUpdateLatestBlockNumber();
-    }
   }
   async function focusRpc(): Promise<void> {
     if (nodeStatus === "SUCCESS") {
@@ -88,48 +70,6 @@
       eyeIconName = "eyeOff";
       eyeIconTooltipText = "hide";
     }
-  }
-  async function startPeriodicallyUpdateLatestBlockNumber(): Promise<void> {
-    const blockIntervalMs: number =
-      $storeLogSettings[targetChainName].blockIntervalMs;
-    let latestBlockNumber: number;
-    myLogger.info("START Periodically update latest blocknumber");
-    intervalId = window.setInterval(async () => {
-      latestBlockNumber = 0;
-      console.log("intervalId", intervalId);
-      if (nodeStatus === "SUCCESS" && nodeProvider) {
-        try {
-          latestBlockNumber = await getAndUpdateLatestBlockNumber(
-            nodeProvider,
-            targetChainName
-          );
-        } catch (error) {
-          myLogger.error(
-            "error on periodicallyUpdateLatestBlockNumber:",
-            error
-          );
-          if (
-            await countupNodeErrorCount(
-              targetChainName,
-              "periodicallyUpdateLatestBlockNumber"
-            )
-          ) {
-            stopPeriodicallyUpdateLatestBlockNumber(intervalId);
-          }
-        }
-        if (latestBlockNumber) {
-          await resetNodeErrorCount(targetChainName);
-        }
-      } else {
-        stopPeriodicallyUpdateLatestBlockNumber(intervalId);
-      }
-    }, blockIntervalMs);
-  }
-  function stopPeriodicallyUpdateLatestBlockNumber(
-    intervalId: number | undefined
-  ) {
-    myLogger.info("STOPPED Periodically update latest blocknumber");
-    window.clearInterval(intervalId);
   }
 </script>
 
