@@ -12,7 +12,7 @@ import { storeSyncStatus } from "@stores/storeSyncStatus";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 export async function startSyncingInChain(chainName: ChainName): Promise<void> {
-  await setsSyncStatusInChain(
+  await setSyncStatusInChain(
     chainName,
     "isSyncTarget",
     true,
@@ -23,11 +23,11 @@ export async function startSyncingInChain(chainName: ChainName): Promise<void> {
 export async function startAbortingInChain(
   chainName: ChainName
 ): Promise<void> {
-  await setsSyncStatusInChain(chainName, "isSyncing", true, "isAbort", true);
+  await setSyncStatusInChain(chainName, "isSyncing", true, "isAbort", true);
 }
 export async function stopSyncingInChain(chainName: ChainName): Promise<void> {
-  await setsSyncStatusInChain(chainName, "isSyncing", true, "isAbort", false);
-  await setsSyncStatusInChain(chainName, "isSyncing", true, "isSyncing", false);
+  await setSyncStatusInChain(chainName, "isSyncing", true, "isAbort", false);
+  await setSyncStatusInChain(chainName, "isSyncing", true, "isSyncing", false);
 }
 export async function stopSyncingInContract(
   dbEventLogs: DbEventLogs,
@@ -43,7 +43,7 @@ export async function stopSyncingInContract(
   await Promise.all(promiseUpdate);
   myLogger.info(`done. stopSyncingInContract. contract:${contractName}`);
 }
-async function setsSyncStatusInChain<
+async function setSyncStatusInChain<
   T extends keyof SyncStatusContract,
   U extends keyof SyncStatusContract
 >(
