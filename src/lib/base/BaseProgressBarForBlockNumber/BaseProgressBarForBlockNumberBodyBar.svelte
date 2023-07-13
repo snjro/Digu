@@ -52,7 +52,7 @@
 <div
   class={classNames(
     "flex",
-    showLabel && "px-1",
+    showLabel && "pr-1",
     "bg-transparent",
     "items-center",
     isColoredBar ? "justify-end" : "justify-start",
