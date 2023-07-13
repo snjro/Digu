@@ -7,7 +7,7 @@
 
 <BaseA
   href={"/"}
-  text="Augur Logger"
+  text="Contract Viewer"
   appendClass={classNames("font-medium")}
   textSize={sizeSettings.leftSidebarLogo}
   colorCategory={colorSettings.leftSidebarHeader}
