@@ -4,7 +4,15 @@ import {
   stopSyncingInContract,
   startAbortingInChain,
 } from "@db/dbEventLogsDataHandlersSyncStatus";
-import type { ChainName, Contract } from "@constants/chains/types";
+import type {
+  ChainName,
+  Contract,
+  ContractName,
+  Project,
+  ProjectName,
+  Version,
+  VersionName,
+} from "@constants/chains/types";
 import { getEthersEventLogs, type NodeProvider } from "@utils/utilsEthers";
 import { myLogger } from "@utils/logger";
 import { syncStatusContract } from "./eventLogs";
@@ -17,8 +25,16 @@ import type { EthersEventLog } from "@db/dbTypes";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { beginEventListening } from "./eventLogsContractListener";
 
+type FetchingTargetInfo = {
+  project: ProjectName;
+  version: VersionName;
+  contract: ContractName;
+  blocks: { from: number; to: number; latest: number };
+};
 export async function fetchEventLogsContract(
   dbEventLogs: DbEventLogs,
+  targetProject: Project,
+  targetVersion: Version,
   targetContract: Contract,
   nodeProvider: NodeProvider
 ): Promise<void> {
@@ -68,12 +84,17 @@ export async function fetchEventLogsContract(
       toBlockNumber = latestBlockNumber;
       doLoop = false;
     }
-    myLogger.info({
-      from: fromBlockNumber.toLocaleString(),
-      to: toBlockNumber.toLocaleString(),
-      latest: latestBlockNumber.toLocaleString(),
+    const fetchingTargetInfo: FetchingTargetInfo = {
+      project: targetProject.name,
+      version: targetVersion.name,
       contract: targetContract.name,
-    });
+      blocks: {
+        from: fromBlockNumber,
+        to: toBlockNumber,
+        latest: latestBlockNumber,
+      },
+    };
+    myLogger.info({ fetchingTarget: fetchingTargetInfo });
 
     try {
       const ethersEventLogs: EthersEventLog[] = await getEthersEventLogs(
@@ -90,8 +111,14 @@ export async function fetchEventLogsContract(
         toBlockNumber
       );
     } catch (error) {
-      myLogger.error("error on queryFilter", error);
-      if (await countupNodeErrorCount(chainName, "logContractsEvent")) {
+      myLogger.error({ errorOn: "queryFilter", error: error });
+      if (
+        await countupNodeErrorCount(
+          chainName,
+          "fetchEventLogsContract",
+          fetchingTargetInfo
+        )
+      ) {
         await startAbortingInChain(chainName);
       }
       continue;
@@ -110,34 +137,39 @@ export async function resetNodeErrorCount(chainName: ChainName): Promise<void> {
 }
 export async function countupNodeErrorCount(
   chainName: ChainName,
-  methodName: string
+  methodName: string,
+  fetchingTargetInfo: FetchingTargetInfo | undefined = undefined
 ): Promise<boolean> {
-  await updateDbItemChainStatus(
-    chainName,
-    "nodeErrorCount",
-    get(storeChainStatus)[chainName].nodeErrorCount + 1
-  );
-  if (
-    get(storeChainStatus)[chainName].nodeErrorCount <=
-    get(storeLogSettings)[chainName].tryCount
-  ) {
-    myLogger.warn(
-      `errorCount(=${get(storeChainStatus)[chainName].nodeErrorCount}/${
-        get(storeLogSettings)[chainName].tryCount
-      }). Trying again.`
-    );
-    return false;
+  const currentErrorCount: number =
+    get(storeChainStatus)[chainName].nodeErrorCount + 1;
+  const maxErrorCount: number = get(storeLogSettings)[chainName].tryCount;
+  let isAbort: boolean = false;
+  await updateDbItemChainStatus(chainName, "nodeErrorCount", currentErrorCount);
+
+  type ConsoleMessage = {
+    errorOn: string;
+    errorCount: string;
+    fetchingTarget?: FetchingTargetInfo;
+    extraMessage?: string;
+  };
+  let consoleMessage: ConsoleMessage = {
+    errorOn: methodName,
+    errorCount: `${currentErrorCount}/${maxErrorCount}`,
+    fetchingTarget: fetchingTargetInfo,
+  };
+
+  if (currentErrorCount < maxErrorCount) {
+    if (fetchingTargetInfo) {
+      consoleMessage.fetchingTarget = fetchingTargetInfo;
+    }
+    myLogger.warn(consoleMessage);
+    isAbort = false;
   } else {
-    myLogger.error(
-      `Error on ${methodName} in chain ${chainName},
-      .errorCount(=${
-        get(storeChainStatus)[chainName].nodeErrorCount
-      }) is over tryCount(=${
-        get(storeLogSettings)[chainName].tryCount
-      }). The process is going to be aborted.`
-    );
-    return true;
+    consoleMessage.extraMessage = "The process is going to be aborted.";
+    myLogger.error(consoleMessage);
+    isAbort = true;
   }
+  return isAbort;
 }
 
 function getEthersContract(
