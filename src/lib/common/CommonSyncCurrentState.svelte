@@ -38,6 +38,7 @@
   } from "@db/dbTypes";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { NO_DATA } from "@utils/utilsCostants";
+  import classNames from "classnames";
 
   export let targetChain: Chain;
   export let targetProject: Project | undefined = undefined;
@@ -111,11 +112,18 @@
       }
     }
   }
+  let animatePulse: "animate-pulse" | undefined = undefined;
+  $: animatePulse =
+    currentSyncingState === "Stopping..." ? "animate-pulse" : undefined;
+  let animateSpin: "animate-spin" | undefined = undefined;
+  $: animateSpin =
+    currentSyncingState === "Syncing..." ? "animate-spin" : undefined;
+
   let prefixIcon: BaseIconProps | undefined;
   $: prefixIcon = showIcon
     ? {
         name: iconNameForCurrentSyncingState(currentSyncingState),
-        appendClass: currentSyncingState === "Syncing..." ? "animate-spin" : "",
+        appendClass: classNames(animateSpin, animatePulse),
       }
     : undefined;
 </script>
@@ -125,4 +133,5 @@
   {colorCategoryFront}
   textSize={size}
   {prefixIcon}
+  appendClass={animatePulse}
 />
