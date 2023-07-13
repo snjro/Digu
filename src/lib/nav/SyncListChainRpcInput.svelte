@@ -63,17 +63,12 @@
       await startPeriodicallyUpdateLatestBlockNumber();
     }
   }
-  // async function changeRpc(event: Event): Promise<void> {
-  //   const newRpc: string = (event.target as HTMLInputElement).value;
-  //   await updateRpc(targetChainName, newRpc);
-  // }
   async function focusRpc(): Promise<void> {
     if (nodeStatus === "SUCCESS") {
       await updateDbItemChainStatus(targetChainName, "nodeStatus", undefined);
     }
   }
   async function blurRpc(event: Event): Promise<void> {
-    // await changeRpc(event);
     const newRpc: string = (event.target as HTMLInputElement).value;
     await updateRpc(targetChainName, newRpc);
   }
