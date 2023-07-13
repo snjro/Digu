@@ -14,8 +14,7 @@
   import { createEventDispatcher } from "svelte";
   export let size: BaseSize = "md";
   // export let iconSize: BaseSize = "xl";
-  export let iconNameToggleOn: BaseIconProps["name"] | undefined = undefined;
-  export let iconNameToggleOff: BaseIconProps["name"] | undefined = undefined;
+  export let iconName: BaseIconProps["name"] | undefined = undefined;
   export let colorCategoryThumbToggleOn: ColorCategory = "interactive";
   export let colorCategoryThumbToggleOff: ColorCategory = "interactive";
   export let colorCategoryTrack: ColorCategory;
@@ -94,6 +93,7 @@
     "focus:outline-none",
     "shadow dark:shadow-none ",
     "dark:border",
+    cursorStyle,
     ""
   );
   let colorCategoryThumb: ColorCategory;
@@ -115,10 +115,12 @@
     colorDefinitions[themeColor][colorCategoryThumb].bg,
     "dark:border",
     colorDefinitions[themeColor][colorCategoryThumb].border,
-    disabled && "contrast-50"
+    disabled && "contrast-50",
+    cursorStyle
   );
-  let iconName: BaseIconProps["name"] | undefined;
-  $: iconName = toggleValue ? iconNameToggleOn : iconNameToggleOff;
+
+  let cursorStyle: `cursor-${string}`;
+  $: cursorStyle = disabled ? "cursor-not-allowed" : "cursor-pointer";
 </script>
 
 <div class={classNames(paddingX[size])}>
@@ -136,7 +138,8 @@
             appendClass={classNames(
               "fill-white",
               "hover:fill-white",
-              spinIcon && "animate-spin"
+              spinIcon && "animate-spin",
+              cursorStyle
             )}
           />
         {/if}

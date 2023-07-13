@@ -10,7 +10,10 @@
   import { getTargetChain } from "@utils/utlisDb";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import CommonSyncCurrentState from "$lib/common/CommonSyncCurrentState.svelte";
+  import CommonSyncCurrentState, {
+    iconNameForCurrentSyncingState,
+    type CurrentSyncingState,
+  } from "$lib/common/CommonSyncCurrentState.svelte";
   import classNames from "classnames";
 
   let toggleOn: boolean = false;
@@ -35,8 +38,13 @@
   };
   $: {
   }
+  let currentSyncingState: CurrentSyncingState;
+
+  let isAbleToSync: boolean;
+  $: isAbleToSync =
+    nodeStatus === "SUCCESS" && targetChainSyncStatus.isSyncTarget;
   let disabled: boolean;
-  $: disabled = nodeStatus !== "SUCCESS" || !targetChainSyncStatus.isSyncTarget;
+  $: disabled = !isAbleToSync || currentSyncingState === "Stopping...";
 </script>
 
 <div
@@ -46,8 +54,7 @@
     toggleValue={toggleOn}
     size={sizeSettings.navToggle}
     {disabled}
-    iconNameToggleOn="sync"
-    iconNameToggleOff={disabled ? undefined : "pause"}
+    iconName={iconNameForCurrentSyncingState(currentSyncingState)}
     tooltipText="syncing on/off"
     tooltipXPosition="right"
     tooltipYPosition="bottom"
@@ -61,5 +68,7 @@
     colorCategoryFront={colorSettings.navText}
     size={sizeSettings.navText}
     {targetChain}
+    showIcon={false}
+    bind:currentSyncingState
   />
 </div>

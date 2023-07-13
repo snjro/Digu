@@ -1,5 +1,27 @@
+<script lang="ts" context="module">
+  export type CurrentSyncingState =
+    | "Stopped"
+    | "Syncing..."
+    | "Stopping..."
+    | typeof NO_DATA;
+
+  export function iconNameForCurrentSyncingState(
+    currentSyncingState: CurrentSyncingState
+  ): BaseIconProps["name"] {
+    if (
+      currentSyncingState === "Stopping..." ||
+      currentSyncingState === "Syncing..."
+    ) {
+      return "sync";
+    } else {
+      return "pause";
+    }
+  }
+</script>
+
 <script lang="ts">
   import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
   import type {
@@ -21,8 +43,10 @@
   export let targetProject: Project | undefined = undefined;
   export let targetVersion: Version | undefined = undefined;
   export let targetContract: Contract | undefined = undefined;
+  export let showIcon: boolean = true;
   export let colorCategoryFront: ColorCategory;
   export let size: BaseSize;
+  export let currentSyncingState: CurrentSyncingState = NO_DATA;
 
   $: syncStatus = <
     CH extends Chain,
@@ -69,25 +93,36 @@
     targetContract
   );
 
-  let currentStateText: () => string;
-  $: currentStateText = (): string => {
+  $: {
     let isSyncing: boolean = targetSyncStatus.isSyncing;
     let isAbort: boolean = targetSyncStatus.isAbort;
 
     if (isSyncing) {
       if (isAbort) {
-        return "Stopping...";
+        currentSyncingState = "Stopping...";
       } else {
-        return "Syncing...";
+        currentSyncingState = "Syncing...";
       }
     } else {
       if (isAbort) {
-        return NO_DATA;
+        currentSyncingState = NO_DATA;
       } else {
-        return "Stopped";
+        currentSyncingState = "Stopped";
       }
     }
-  };
+  }
+  let prefixIcon: BaseIconProps | undefined;
+  $: prefixIcon = showIcon
+    ? {
+        name: iconNameForCurrentSyncingState(currentSyncingState),
+        appendClass: currentSyncingState === "Syncing..." ? "animate-spin" : "",
+      }
+    : undefined;
 </script>
 
-<BaseLabel text={currentStateText()} {colorCategoryFront} textSize={size} />
+<BaseLabel
+  text={currentSyncingState}
+  {colorCategoryFront}
+  textSize={size}
+  {prefixIcon}
+/>
