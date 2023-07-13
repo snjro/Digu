@@ -19,7 +19,7 @@
   export let listType: keyof Pick<Contract, "events" | "functions">;
   export let targetContract: Contract;
 
-  const textSize: BaseSize = sizeSettings.itemMember;
+  const textSize: BaseSize = sizeSettings.itemMemberTable;
   const iconName: BaseIconProps["name"] =
     listType === "events" ? "databaseOutline" : "function";
 

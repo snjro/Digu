@@ -28,7 +28,7 @@
   export let targetProject: Project;
   export let targetVersion: Version;
 
-  const textSize: BaseSize = sizeSettings.itemMember;
+  const textSize: BaseSize = sizeSettings.itemMemberTable;
   const warnningTextSize: BaseSize = sizeSettings.itemWarnningMessage;
   const hrefFrontPart: string = `${$page.url.pathname}/contracts`;
   const noListMessage: string = `No contracts.`;
