@@ -13,6 +13,8 @@
   import ContractOverviewBasic from "../../ContractOverviewBasic.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
+  import CommonSyncCurrentState from "$lib/common/CommonSyncCurrentState.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -38,6 +40,16 @@
   {targetContract}
   activateLinkOfContractName
 >
+  <CommonItemMember text="Sync Target">
+    <CommonToggleSyncTarget
+      size={sizeSettings.itemMember}
+      {targetChain}
+      {targetProject}
+      {targetVersion}
+      {targetContract}
+    />
+  </CommonItemMember>
+
   <CommonItemMember text="Sync Progress">
     <BaseProgressBarForBlockNumber
       startBlockNumber={targetContract.creation.blockNumber}
@@ -50,6 +62,17 @@
       size={sizeSettings.itemMember}
       shadowBar={false}
       processing={targetContractSyncStatus.isSyncing}
+    />
+  </CommonItemMember>
+
+  <CommonItemMember text="Sync State">
+    <CommonSyncCurrentState
+      colorCategoryFront={colorSettings.itemMemberText}
+      size={sizeSettings.itemMember}
+      {targetChain}
+      {targetProject}
+      {targetVersion}
+      {targetContract}
     />
   </CommonItemMember>
 </ContractOverviewBasic>
