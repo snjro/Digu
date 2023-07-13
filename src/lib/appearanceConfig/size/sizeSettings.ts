@@ -21,6 +21,7 @@ type SizeSettings = Record<
   | "title"
   | "itemGroup"
   | "itemMember"
+  | "itemMemberTable"
   | "itemWarnningMessage"
   | "itemViewAllButton"
   | "abiParamsTable"
@@ -61,6 +62,7 @@ export const sizeSettings: SizeSettings = {
   title: changeSize(sizeContent, 3),
   itemGroup: changeSize(sizeContent, 2),
   itemMember: changeSize(sizeContent, 0),
+  itemMemberTable: changeSize(sizeContent, -1),
   itemWarnningMessage: changeSize(sizeContent, -1),
   itemViewAllButton: changeSize(sizeContent, -1),
   abiParamsTable: changeSize(sizeContent, -1),
