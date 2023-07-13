@@ -10,6 +10,8 @@
   import { getTargetChain } from "@utils/utlisDb";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import CommonSyncCurrentState from "$lib/common/CommonSyncCurrentState.svelte";
+  import classNames from "classnames";
 
   let toggleOn: boolean = false;
   let targetChainName: ChainName;
@@ -37,18 +39,27 @@
   $: disabled = nodeStatus !== "SUCCESS" || !targetChainSyncStatus.isSyncTarget;
 </script>
 
-<BaseToggle
-  toggleValue={toggleOn}
-  size={sizeSettings.navToggle}
-  {disabled}
-  iconNameToggleOn="sync"
-  iconNameToggleOff={disabled ? undefined : "pause"}
-  tooltipText="syncing on/off"
-  tooltipXPosition="right"
-  tooltipYPosition="bottom"
-  colorCategoryTrack={colorSettings.navButton}
-  colorCategoryThumbToggleOff={disabled ? colorSettings.navBg : "interactive"}
-  colorCategoryThumbToggleOn="success"
-  spinIcon={toggleOn}
-  on:toggleChanged={toggleChanged}
-/>
+<div
+  class={classNames("flex", "flex-row", "items-center", "space-x-0.5", "w-32")}
+>
+  <BaseToggle
+    toggleValue={toggleOn}
+    size={sizeSettings.navToggle}
+    {disabled}
+    iconNameToggleOn="sync"
+    iconNameToggleOff={disabled ? undefined : "pause"}
+    tooltipText="syncing on/off"
+    tooltipXPosition="right"
+    tooltipYPosition="bottom"
+    colorCategoryTrack={colorSettings.navButton}
+    colorCategoryThumbToggleOff={disabled ? colorSettings.navBg : "interactive"}
+    colorCategoryThumbToggleOn="success"
+    spinIcon={toggleOn}
+    on:toggleChanged={toggleChanged}
+  />
+  <CommonSyncCurrentState
+    colorCategoryFront={colorSettings.navText}
+    size={sizeSettings.navText}
+    {targetChain}
+  />
+</div>

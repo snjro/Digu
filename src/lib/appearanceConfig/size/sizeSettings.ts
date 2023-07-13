@@ -14,6 +14,7 @@ type SizeSettings = Record<
   | "navInput"
   | "navInputHelperText"
   | "navSettings"
+  | "navText"
   | "grid"
   | "gridFunctionButton"
   | "gridFunctionQuickSearch"
@@ -50,6 +51,7 @@ export const sizeSettings: SizeSettings = {
   navInput: changeSize(sizeNav, -1),
   navInputHelperText: changeSize(sizeNav, -2),
   navSettings: changeSize(sizeNav, -1),
+  navText: changeSize(sizeNav, -2),
 
   // grid
   grid: changeSize(sizeGrid, -1),
