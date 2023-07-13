@@ -17,6 +17,7 @@
   import type { HelperTextState } from "./settings/rpcConfig/RpcConfigChanger.svelte";
   import type { NodeStatus } from "@db/dbTypes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { getNodeProvider } from "@utils/utilsEthers";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
   $: rpc = $storeLogSettings[targetChainName].rpc;
@@ -44,6 +45,9 @@
     newRpc: string = rpc
   ): Promise<void> {
     await updateDbItemLogSettings(chainName, "rpc", newRpc);
+
+    //By calling "getNodeProvider", nodeStatus is updated
+    await getNodeProvider(targetChainName, newRpc);
   }
   async function focusRpc(): Promise<void> {
     if (nodeStatus === "SUCCESS") {
