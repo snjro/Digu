@@ -21,6 +21,7 @@
   import { NO_DATA } from "@utils/utilsCostants";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import CommonSyncCurrentState from "$lib/common/CommonSyncCurrentState.svelte";
 
   // export let contracts: Contract[];
   export let targetChain: Chain;
@@ -45,6 +46,12 @@
         },
         {
           text: `Sync Target`,
+          align: "center",
+          textSize: textSize,
+          width: "w-full",
+        },
+        {
+          text: `Sync State`,
           align: "center",
           textSize: textSize,
           width: "w-full",
@@ -90,6 +97,25 @@
                   {targetVersion}
                   {targetContract}
                   size={changeSize(textSize, -1)}
+                />
+              {:else}
+                <BaseLabel text={NO_DATA} />
+              {/if}
+            </BaseTableBodyCell>
+            <BaseTableBodyCell
+              align={targetContract.events.abiFragments.length > 0
+                ? "left"
+                : "center"}
+              {textSize}
+            >
+              {#if targetContract.events.abiFragments.length > 0}
+                <CommonSyncCurrentState
+                  {targetChain}
+                  {targetProject}
+                  {targetVersion}
+                  {targetContract}
+                  size={changeSize(textSize, -1)}
+                  colorCategoryFront={colorSettings.itemMemberText}
                 />
               {:else}
                 <BaseLabel text={NO_DATA} />
