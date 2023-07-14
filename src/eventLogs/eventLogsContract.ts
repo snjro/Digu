@@ -122,6 +122,7 @@ export async function fetchEventLogsContract(
         errorOn: functionName,
         errorCount: `${errorCount}/${maxErrorCount}`,
         fetchingTarget: fetchingTargetInfo,
+        error: error,
       });
     }
     if (errorCount > maxErrorCount) {
