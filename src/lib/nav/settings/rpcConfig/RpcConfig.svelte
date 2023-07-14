@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
   type RpcConfigKeyName = keyof Pick<
-    LogSetting,
+    RpcSetting,
     "bulkUnit" | "tryCount" | "blockIntervalMs" | "abortWatchIntervalMs"
   >;
   export type RpcConfigParam = {
@@ -17,7 +17,7 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getTargetChain } from "@utils/utlisDb";
   import type { Chain, ChainName } from "@constants/chains/types";
-  import type { LogSetting } from "@db/dbTypes";
+  import type { RpcSetting } from "@db/dbTypes";
   import RpcConfigChanger from "./RpcConfigChanger.svelte";
 
   export let initializeValue: boolean;

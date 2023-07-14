@@ -1,11 +1,11 @@
 <script lang="ts">
   import BaseInput, { type BaseInputProps } from "$lib/base/BaseInput.svelte";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { storeLogSettings } from "@stores/storeLogSettings";
+  import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
-  import { updateDbItemLogSettings } from "@db/dbSettingsDataHandlers";
+  import { updateDbItemRpcSettings } from "@db/dbSettingsDataHandlers";
   import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
   import type { ChainName } from "@constants/chains/types";
   import classNames from "classnames";
@@ -20,7 +20,7 @@
   import { getNodeProvider } from "@utils/utilsEthers";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
-  $: rpc = $storeLogSettings[targetChainName].rpc;
+  $: rpc = $storeRpcSettings[targetChainName].rpc;
   let nodeStatus: NodeStatus;
   $: nodeStatus = $storeChainStatus[targetChainName].nodeStatus;
   $: helperTextState = (): HelperTextState => {
@@ -44,7 +44,7 @@
     chainName: ChainName,
     newRpc: string = rpc
   ): Promise<void> {
-    await updateDbItemLogSettings(chainName, "rpc", newRpc);
+    await updateDbItemRpcSettings(chainName, "rpc", newRpc);
 
     //By calling "getNodeProvider", nodeStatus is updated
     await getNodeProvider(targetChainName, newRpc);

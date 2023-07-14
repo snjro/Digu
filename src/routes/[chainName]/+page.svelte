@@ -1,11 +1,11 @@
 <script lang="ts">
   import BaseButton from "$lib/base/BaseButton.svelte";
   import {
-    updateDbItemLogSettings,
+    updateDbItemRpcSettings,
     updateDbItemUserSettings,
   } from "@db/dbSettingsDataHandlers";
   async function update() {
-    await updateDbItemLogSettings("matic", "tryCount", 3);
+    await updateDbItemRpcSettings("matic", "tryCount", 3);
     await updateDbItemUserSettings("themeColor", "dark");
     await updateDbItemUserSettings("devMode", true);
   }

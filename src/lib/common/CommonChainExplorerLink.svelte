@@ -18,7 +18,7 @@
   import { numberWithCommas } from "@utils/utilsCommon";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { storeLogSettings } from "@stores/storeLogSettings";
+  import { storeRpcSettings } from "@stores/storeRpcSettings";
 
   import { getTargetChain } from "@utils/utlisDb";
   import classNames from "classnames";
@@ -67,7 +67,7 @@
 
   $: chainExplorerUrl =
     targetChain.chainExplorers[
-      $storeLogSettings[targetChain.name].chainExplorerIndex
+      $storeRpcSettings[targetChain.name].chainExplorerIndex
     ].url;
   appendClass = classNames(appendClass, "tabular-nums");
 </script>

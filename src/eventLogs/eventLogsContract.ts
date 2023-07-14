@@ -17,12 +17,12 @@ import { getEthersEventLogs, type NodeProvider } from "@utils/utilsEthers";
 import { myLogger } from "@utils/logger";
 import { syncStatusContract } from "./eventLogs";
 import { get } from "svelte/store";
-import { storeLogSettings } from "@stores/storeLogSettings";
+import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import { ethers } from "ethers";
 import type {
   EthersEventLog,
-  LogSetting,
+  RpcSetting,
   SyncStatusContract,
 } from "@db/dbTypes";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
@@ -47,8 +47,8 @@ export async function fetchEventLogsContract(
     ...dbEventLogs.versionIdentifier,
     contractName: targetContract.name,
   });
-  const logSetting: LogSetting = get(storeLogSettings)[chainName];
-  const maxErrorCount: number = logSetting.tryCount;
+  const rpcSetting: RpcSetting = get(storeRpcSettings)[chainName];
+  const maxErrorCount: number = rpcSetting.tryCount;
   let errorCount: number = 0;
 
   if (!contractSyncStatus.isSyncTarget) {
@@ -80,7 +80,7 @@ export async function fetchEventLogsContract(
     const latestBlockNumber =
       get(storeChainStatus)[chainName].latestBlockNumber;
 
-    let toBlockNumber: number = fromBlockNumber + logSetting.bulkUnit - 1;
+    let toBlockNumber: number = fromBlockNumber + rpcSetting.bulkUnit - 1;
 
     if (toBlockNumber >= latestBlockNumber) {
       toBlockNumber = latestBlockNumber;
@@ -136,6 +136,8 @@ export async function fetchEventLogsContract(
 
   await beginEventListening(
     dbEventLogs,
+    targetProject,
+    targetVersion,
     targetContract,
     nodeProvider,
     ethersContract

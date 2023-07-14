@@ -2,8 +2,8 @@
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import BaseSelect from "$lib/base/BaseSelect.svelte";
   import CommonOpenLink from "$lib/common/CommonOpenLink.svelte";
-  import { updateDbItemLogSettings } from "@db/dbSettingsDataHandlers.js";
-  import { storeLogSettings } from "@stores/storeLogSettings";
+  import { updateDbItemRpcSettings } from "@db/dbSettingsDataHandlers.js";
+  import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getTargetChain } from "@utils/utlisDb";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
@@ -11,7 +11,7 @@
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
   $: targetChain = getTargetChain({ chainName: targetChainName });
   $: selectedChainExplorerIndex =
-    $storeLogSettings[targetChainName].chainExplorerIndex;
+    $storeRpcSettings[targetChainName].chainExplorerIndex;
   $: targetChainExplorers = targetChain.chainExplorers;
   $: targetChainExplorerUrl =
     targetChainExplorers[selectedChainExplorerIndex].url;
@@ -20,7 +20,7 @@
     const chainExplorerIndex: number = parseInt(
       (event.target as HTMLInputElement).value
     );
-    await updateDbItemLogSettings(
+    await updateDbItemRpcSettings(
       targetChainName,
       "chainExplorerIndex",
       chainExplorerIndex

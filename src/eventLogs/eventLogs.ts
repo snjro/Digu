@@ -15,7 +15,7 @@ import {
   stopSyncingInChain,
 } from "@db/dbEventLogsDataHandlersSyncStatus";
 import { myLogger } from "@utils/logger";
-import { storeLogSettings } from "@stores/storeLogSettings";
+import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { get } from "svelte/store";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
@@ -29,7 +29,7 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
 
   const nodeProvider: NodeProvider | undefined = await getNodeProvider(
     targetChain.name,
-    get(storeLogSettings)[targetChain.name].rpc
+    get(storeRpcSettings)[targetChain.name].rpc
   );
   const nodeStatus: NodeStatus =
     get(storeChainStatus)[targetChain.name].nodeStatus;

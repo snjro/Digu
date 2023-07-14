@@ -2,7 +2,7 @@ import { DbEventLogs } from "@db/dbEventLogs";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type {
   ChainStatus,
-  LogSetting,
+  RpcSetting,
   ContractIdentifier,
   VersionIdentifier,
   SyncStatusContract,
@@ -12,11 +12,11 @@ import { getDbRecordSyncStatusContract } from "@db/dbEventLogsDataHandlersSyncSt
 import type { ChainName, ContractName } from "@constants/chains/types";
 import { getDbRecordChainStatus } from "@db/dbChainStatusDataHandlers";
 import {
-  getDbRecordLogSettings,
+  getDbRecordRpcSettings,
   getDbRecordUserSettings,
 } from "@db/dbSettingsDataHandlers";
 import { myLogger } from "@utils/logger";
-import { storeLogSettings } from "@stores/storeLogSettings";
+import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { initialDataUserSettings } from "@db/dbSettings";
@@ -30,7 +30,7 @@ export async function initializeStore(): Promise<void> {
   for (const targetChain of TARGET_CHAINS) {
     promiseUpdateStores.push(syncStoreChainStatusWithDB(targetChain.name));
 
-    promiseUpdateStores.push(syncStoreLogSettingsWithDB(targetChain.name));
+    promiseUpdateStores.push(syncStoreRpcSettingsWithDB(targetChain.name));
 
     for (const targetProject of targetChain.projects) {
       for (const targetVersion of targetProject.versions) {
@@ -59,10 +59,10 @@ async function syncStoreChainStatusWithDB(chainName: ChainName): Promise<void> {
   myLogger.info(`chainStatus in store:`, chainStatus);
   storeChainStatus.updateState(chainName, chainStatus);
 }
-async function syncStoreLogSettingsWithDB(chainName: ChainName): Promise<void> {
-  const logSetting: LogSetting = await getDbRecordLogSettings(chainName);
-  myLogger.info(`LogSetting in store:`, logSetting);
-  storeLogSettings.updateState(chainName, logSetting);
+async function syncStoreRpcSettingsWithDB(chainName: ChainName): Promise<void> {
+  const rpcSetting: RpcSetting = await getDbRecordRpcSettings(chainName);
+  myLogger.info(`RpcSetting in store:`, rpcSetting);
+  storeRpcSettings.updateState(chainName, rpcSetting);
 }
 async function syncStoreUserSettingsWithDB(): Promise<void> {
   for (const initialUserSetting of initialDataUserSettings()) {

@@ -1,7 +1,7 @@
 import type { Transaction } from "dexie";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type {
-  LogSetting,
+  RpcSetting,
   SchemaDefinition,
   UserSetting,
   UserSettingDevMode,
@@ -12,13 +12,13 @@ import type {
 import { DB_NAME, DB_TABLE_NAMES, DB_VERSIONS } from "./constants";
 import { dbBase } from "./dbBase";
 import {
-  getDbRecordLogSettings,
+  getDbRecordRpcSettings,
   getDbRecordUserSettings,
 } from "./dbSettingsDataHandlers";
 import type { Chain } from "@constants/chains/types";
 
 export const TABLE_SETTINGS_COLUMN_NAMES = {
-  logSettings: {
+  RpcSettings: {
     chainName: "chainName",
     rpc: "rpc",
     bulkUnit: "bulkUnit",
@@ -46,43 +46,32 @@ export class DbSettings extends dbBase {
   }
   protected getSchemaDefinition(): SchemaDefinition {
     const schemaDefinition: SchemaDefinition = {
-      [DB_TABLE_NAMES.Settings.logSettings]:
-        TABLE_SETTINGS_COLUMN_NAMES.logSettings.chainName,
+      [DB_TABLE_NAMES.Settings.rpcSettings]:
+        TABLE_SETTINGS_COLUMN_NAMES.RpcSettings.chainName,
       [DB_TABLE_NAMES.Settings.userSettings]:
         TABLE_SETTINGS_COLUMN_NAMES.userSettings.userSettingsKey,
     };
     return schemaDefinition;
   }
-  // async addInitialData(tx: Transaction): Promise<void> {
-  //   const adds: LogSetting[] = [];
-  //   for (const targetChain of TARGET_CHAINS) {
-  //     if ((await getDbRecordLogSettings(targetChain.name)) === undefined) {
-  //       adds.push(initialDataLogSetting(targetChain));
-  //     }
-  //   }
-  //   if (adds.length > 0) {
-  //     await tx.table(DB_TABLE_NAMES.Settings.logSettings).bulkAdd(adds);
-  //   }
-  // }
   async addInitialData(tx: Transaction): Promise<void> {
     await Promise.all([
-      addInitialDataLogSettings(tx),
+      addInitialDataRpcSettings(tx),
       addInitialDataUserSettings(tx),
     ]);
   }
 }
-async function addInitialDataLogSettings(tx: Transaction) {
-  const adds: LogSetting[] = [];
+async function addInitialDataRpcSettings(tx: Transaction) {
+  const adds: RpcSetting[] = [];
   for (const targetChain of TARGET_CHAINS) {
-    if ((await getDbRecordLogSettings(targetChain.name)) === undefined) {
-      adds.push(initialDataLogSetting(targetChain));
+    if ((await getDbRecordRpcSettings(targetChain.name)) === undefined) {
+      adds.push(initialDataRpcSetting(targetChain));
     }
   }
   if (adds.length > 0) {
-    await tx.table(DB_TABLE_NAMES.Settings.logSettings).bulkAdd(adds);
+    await tx.table(DB_TABLE_NAMES.Settings.rpcSettings).bulkAdd(adds);
   }
 }
-export const initialDataLogSetting = (targetChain: Chain): LogSetting => {
+export const initialDataRpcSetting = (targetChain: Chain): RpcSetting => {
   return {
     chainName: targetChain.name,
     // rpc: targetChain.rpc[0], //TODO: TBD

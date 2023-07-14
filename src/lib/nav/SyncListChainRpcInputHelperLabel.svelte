@@ -3,7 +3,7 @@
   import classNames from "classnames";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { storeChainStatus } from "@stores/storeChainStatus";
-  import { storeLogSettings } from "@stores/storeLogSettings";
+  import { storeRpcSettings } from "@stores/storeRpcSettings";
   import type { BaseSize } from "$lib/base/baseSizes";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
@@ -11,7 +11,7 @@
   const size: BaseSize = sizeSettings.navInputHelperText;
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
   $: nodeStatus = $storeChainStatus[targetChainName].nodeStatus;
-  $: rpc = $storeLogSettings[targetChainName].rpc;
+  $: rpc = $storeRpcSettings[targetChainName].rpc;
 
   $: helperLabelProps = (): BaseLabelProps => {
     let labelProps: BaseLabelProps;

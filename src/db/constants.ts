@@ -19,7 +19,7 @@ export const DB_TABLE_NAMES = {
   EventLog: {
     syncStatus: "SyncStatus",
   },
-  Settings: { logSettings: "LogSettings", userSettings: "UserSettings" },
+  Settings: { rpcSettings: "RpcSettings", userSettings: "UserSettings" },
   ChainStatus: "ChainStatus",
 } as const;
 

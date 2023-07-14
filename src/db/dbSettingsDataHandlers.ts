@@ -1,46 +1,46 @@
 import type { ChainName } from "@constants/chains/types";
 import { DB_TABLE_NAMES } from "./constants";
 import { dbSettings } from "./dbSettings";
-import type { LogSetting, UserSetting } from "./dbTypes";
-import { storeLogSettings } from "@stores/storeLogSettings";
+import type { RpcSetting, UserSetting } from "./dbTypes";
+import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { storeUserSettings } from "@stores/storeUserSettings";
 
-const tableNameLogSettings = DB_TABLE_NAMES.Settings.logSettings;
+const tableNameRpcSettings = DB_TABLE_NAMES.Settings.rpcSettings;
 const tableNameUserSettings = DB_TABLE_NAMES.Settings.userSettings;
 
-export async function getDbRecordLogSettings(
+export async function getDbRecordRpcSettings(
   chainName: ChainName
-): Promise<LogSetting> {
-  return await dbSettings.transaction("r", tableNameLogSettings, async () => {
-    const logSetting: LogSetting = await dbSettings
-      .table(tableNameLogSettings)
+): Promise<RpcSetting> {
+  return await dbSettings.transaction("r", tableNameRpcSettings, async () => {
+    const rpcSetting: RpcSetting = await dbSettings
+      .table(tableNameRpcSettings)
       .get(chainName);
 
-    return logSetting;
+    return rpcSetting;
   });
 }
-export async function getDbItemLogSettings<T extends keyof LogSetting>(
+export async function getDbItemRpcSettings<T extends keyof RpcSetting>(
   chainName: ChainName,
   key: T
-): Promise<LogSetting[T]> {
-  const logSetting: LogSetting = await getDbRecordLogSettings(chainName);
-  return logSetting[key];
+): Promise<RpcSetting[T]> {
+  const rpcSetting: RpcSetting = await getDbRecordRpcSettings(chainName);
+  return rpcSetting[key];
 }
-export async function updateDbItemLogSettings<T extends keyof LogSetting>(
+export async function updateDbItemRpcSettings<T extends keyof RpcSetting>(
   chainName: ChainName,
   key: T,
-  newValue: LogSetting[T]
+  newValue: RpcSetting[T]
 ): Promise<void> {
   await dbSettings
-    .transaction("rw", tableNameLogSettings, async () => {
+    .transaction("rw", tableNameRpcSettings, async () => {
       //update table
       await dbSettings
-        .table(tableNameLogSettings)
+        .table(tableNameRpcSettings)
         .update(chainName, { [key]: newValue });
     })
     .then(() => {
       //update store
-      storeLogSettings.updateState(chainName, { [key]: newValue });
+      storeRpcSettings.updateState(chainName, { [key]: newValue });
     });
 }
 
@@ -83,7 +83,7 @@ export async function updateDbItemUserSettings(
 export async function addInitialData() {
   await dbSettings.transaction(
     "rw",
-    dbSettings.table(tableNameLogSettings),
+    dbSettings.table(tableNameRpcSettings),
     dbSettings.table(tableNameUserSettings),
     async (tx) => {
       await dbSettings.addInitialData(tx);

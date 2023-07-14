@@ -36,7 +36,7 @@ export type BlockTime = {
 };
 
 /////////////////////////////////////////////////////////
-export type LogSetting = {
+export type RpcSetting = {
   chainName: ChainName;
   rpc: string;
   bulkUnit: number;
