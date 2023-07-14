@@ -52,7 +52,6 @@
 <div
   class={classNames(
     "flex",
-    showLabel && "pr-1",
     "bg-transparent",
     "items-center",
     isColoredBar ? "justify-end" : "justify-start",
@@ -69,6 +68,7 @@
       textSize={size}
       {colorCategoryFront}
       {colorCategoryBg}
+      appendClass={classNames(roundedStyle(), "px-0.5")}
     />
   {/if}
 </div>
