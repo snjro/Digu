@@ -31,20 +31,18 @@ export async function startUpdateLatestBlockNumber(
       } catch (error) {
         myLogger.error(`Error on ${functionName}:`, error);
         if (await countupNodeErrorCount(targetChainName, functionName)) {
-          stopPeriodicallyUpdateLatestBlockNumber(intervalId);
+          stopUpdateLatestBlockNumber(intervalId);
         }
       }
       if (latestBlockNumber) {
         await resetNodeErrorCount(targetChainName);
       }
     } else {
-      stopPeriodicallyUpdateLatestBlockNumber(intervalId);
+      stopUpdateLatestBlockNumber(intervalId);
     }
   }, get(storeLogSettings)[targetChainName].blockIntervalMs);
 }
-function stopPeriodicallyUpdateLatestBlockNumber(
-  intervalId: number | undefined
-) {
+function stopUpdateLatestBlockNumber(intervalId: number | undefined) {
   window.clearInterval(intervalId);
   myLogger.info(`STOPPED ${functionName}. intervalId=${intervalId}`);
 }
