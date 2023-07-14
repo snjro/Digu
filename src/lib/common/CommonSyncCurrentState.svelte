@@ -82,33 +82,38 @@
       return $storeSyncStatus[targetChain.name];
     }
   };
-  let targetSyncStatus:
-    | SyncStatusChain
-    | SyncStatusProject
-    | SyncStatusVersion
-    | SyncStatusContract;
-  $: targetSyncStatus = syncStatus(
-    targetChain,
-    targetProject,
-    targetVersion,
-    targetContract
-  );
 
   $: {
-    let isSyncing: boolean = targetSyncStatus.isSyncing;
-    let isAbort: boolean = targetSyncStatus.isAbort;
-
+    let targetSyncStatus:
+      | SyncStatusChain
+      | SyncStatusProject
+      | SyncStatusVersion
+      | SyncStatusContract = syncStatus(
+      targetChain,
+      targetProject,
+      targetVersion,
+      targetContract
+    );
+    currentSyncingState = getCurrentSyncingState(
+      targetSyncStatus.isSyncing,
+      targetSyncStatus.isAbort
+    );
+  }
+  function getCurrentSyncingState(
+    isSyncing: boolean,
+    isAbort: boolean
+  ): CurrentSyncingState {
     if (isSyncing) {
       if (isAbort) {
-        currentSyncingState = "Stopping...";
+        return "Stopping...";
       } else {
-        currentSyncingState = "Syncing...";
+        return "Syncing...";
       }
     } else {
       if (isAbort) {
-        currentSyncingState = NO_DATA;
+        return NO_DATA;
       } else {
-        currentSyncingState = "Stopped";
+        return "Stopped";
       }
     }
   }
