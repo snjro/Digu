@@ -1,4 +1,3 @@
-// import { JsonRpcProvider, WebSocketProvider } from "@ethersproject/providers";
 import type {
   Chain,
   ChainName,
