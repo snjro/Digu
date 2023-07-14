@@ -2,6 +2,7 @@ import { fetchEventLogsContract } from "./eventLogsContract";
 import { DbEventLogs } from "@db/dbEventLogs";
 import type {
   ContractIdentifier,
+  NodeStatus,
   SyncStatusContract,
   VersionIdentifier,
 } from "@db/dbTypes";
@@ -18,6 +19,7 @@ import { storeLogSettings } from "@stores/storeLogSettings";
 import { get } from "svelte/store";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
+import { storeChainStatus } from "@stores/storeChainStatus";
 
 export async function fetchEventLogs(targetChain: Chain): Promise<void> {
   myLogger.info(`[START]logContractsEvents(). targetChain:`, targetChain);
@@ -29,7 +31,10 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
     targetChain.name,
     get(storeLogSettings)[targetChain.name].rpc
   );
-  if (nodeProvider === undefined) {
+  const nodeStatus: NodeStatus =
+    get(storeChainStatus)[targetChain.name].nodeStatus;
+
+  if (nodeProvider === undefined || nodeStatus !== "SUCCESS") {
     myLogger.error("provider error!");
     await startAbortingInChain(targetChain.name);
     await stopSyncingInChain(targetChain.name);

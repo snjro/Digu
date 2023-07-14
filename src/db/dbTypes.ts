@@ -81,7 +81,6 @@ export type ChainStatus = {
   chainName: ChainName;
   latestBlockNumber: number;
   nodeStatus: NodeStatus;
-  nodeErrorCount: number;
 };
 
 /////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
   import BaseToggle from "$lib/base/BaseToggle.svelte";
   import type { Chain, ChainName } from "@constants/chains/types";
   import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
-  import type { NodeStatus, SyncStatus } from "@db/dbTypes";
+  import type { ChainStatus, NodeStatus, SyncStatus } from "@db/dbTypes";
   import { fetchEventLogs } from "@eventLogs/eventLogs";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { storeChainStatus } from "@stores/storeChainStatus";
@@ -15,29 +15,38 @@
     type CurrentSyncingState,
   } from "$lib/common/CommonSyncCurrentState.svelte";
   import classNames from "classnames";
+  import { storeLogSettings } from "@stores/storeLogSettings";
 
   let toggleOn: boolean = false;
   let targetChainName: ChainName;
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
+
   let targetChain: Chain;
   $: targetChain = getTargetChain({
     chainName: targetChainName,
   });
+
+  let chainStatus: ChainStatus;
+  $: chainStatus = $storeChainStatus[targetChainName];
+
   let nodeStatus: NodeStatus;
-  $: nodeStatus = $storeChainStatus[targetChainName].nodeStatus;
+  $: nodeStatus = chainStatus.nodeStatus;
 
   let targetChainSyncStatus: SyncStatus;
   $: targetChainSyncStatus = $storeSyncStatus[targetChainName];
-  const toggleChanged = (): void => {
+
+  let maxErrorCount: number;
+  $: maxErrorCount = $storeLogSettings[targetChainName].tryCount;
+
+  const toggleChanged = async (): Promise<void> => {
     toggleOn = !toggleOn;
     if (toggleOn) {
       fetchEventLogs(targetChain);
     } else {
-      startAbortingInChain(targetChain.name);
+      await startAbortingInChain(targetChain.name);
     }
   };
-  $: {
-  }
+
   let currentSyncingState: CurrentSyncingState;
 
   let isAbleToSync: boolean;
@@ -45,8 +54,15 @@
     nodeStatus === "SUCCESS" && targetChainSyncStatus.isSyncTarget;
   let disabled: boolean;
   $: disabled = !isAbleToSync || currentSyncingState === "Stopping...";
+
+  $: (async () => {
+    if (currentSyncingState === "Stopped") {
+      toggleOn = false;
+    }
+  })();
 </script>
 
+{maxErrorCount}/{targetChainSyncStatus.isAbort}
 <div
   class={classNames("flex", "flex-row", "items-center", "space-x-0.5", "w-32")}
 >

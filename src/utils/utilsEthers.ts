@@ -56,8 +56,6 @@ export async function getNodeProvider(
       });
       const network: Network = await nodeProvider.getNetwork();
       if (network.chainId === BigInt(targetChain.chainId)) {
-        await getAndUpdateLatestBlockNumber(nodeProvider, chainName);
-        await updateDbItemChainStatus(chainName, "nodeErrorCount", 0);
         nodeStatus = "SUCCESS";
       } else {
         nodeStatus = "WRONG_CHAIN";
@@ -85,23 +83,6 @@ export async function getAndUpdateLatestBlockNumber(
   );
   return latestBlockNumber;
 }
-// export async function getEthersEventLogs(
-//   eventNames: EventAbiFragment["name"][],
-//   ethersContract: EthersContract,
-//   fromBlock: number,
-//   toBLock: number
-// ): Promise<EthersEventLog[]> {
-//   let promisesQueryFilter: Array<Promise<EthersEventLog[]>> = [];
-//   for (const eventName of eventNames) {
-//     promisesQueryFilter.push(
-//       queryFilter(ethersContract, eventName, fromBlock, toBLock)
-//     );
-//   }
-//   const ethersEventLogs: EthersEventLog[] = (
-//     await Promise.all(promisesQueryFilter)
-//   ).flat();
-//   return ethersEventLogs;
-// }
 
 export async function getEthersEventLogs(
   eventNames: EventAbiFragment["name"][],

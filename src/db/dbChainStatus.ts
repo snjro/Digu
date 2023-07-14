@@ -39,6 +39,5 @@ export const initialDataChainStatus = (chainName: ChainName): ChainStatus => {
     chainName: chainName,
     latestBlockNumber: 0,
     nodeStatus: undefined,
-    nodeErrorCount: 0,
   };
 };
