@@ -4,5 +4,5 @@ export function getProgressRate(start: number, end: number, current: number) {
   const processedLength: number = current - start;
   const totalLength: number = end - start;
   const progressRate: number = round((processedLength * 100) / totalLength, 3);
-  return isNaN(progressRate) ? 0 : progressRate;
+  return isNaN(progressRate) || progressRate < 0 ? 0 : progressRate;
 }
