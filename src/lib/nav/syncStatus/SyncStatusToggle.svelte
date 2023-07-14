@@ -62,7 +62,6 @@
   })();
 </script>
 
-{maxErrorCount}/{targetChainSyncStatus.isAbort}
 <div
   class={classNames("flex", "flex-row", "items-center", "space-x-0.5", "w-32")}
 >
