@@ -23,7 +23,7 @@ export async function startSyncingInChain(chainName: ChainName): Promise<void> {
 export async function startAbortingInChain(
   chainName: ChainName
 ): Promise<void> {
-  myLogger.warn("Start aborting sync process in chain");
+  myLogger.info("Start aborting sync process in chain");
   await setSyncStatusInChain(chainName, "isSyncing", true, "isAbort", true);
 }
 export async function stopSyncingInChain(chainName: ChainName): Promise<void> {
