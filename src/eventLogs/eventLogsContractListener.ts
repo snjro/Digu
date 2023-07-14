@@ -1,4 +1,4 @@
-import type { Contract } from "@constants/chains/types";
+import type { Contract, Project, Version } from "@constants/chains/types";
 import type { DbEventLogs } from "@db/dbEventLogs";
 import { stopSyncingInContract } from "@db/dbEventLogsDataHandlersSyncStatus";
 import type { Contract as EthersContract, Listener } from "ethers";
@@ -11,11 +11,13 @@ import {
 import { myLogger } from "@utils/logger";
 import { syncStatusContract } from "./eventLogs";
 import { get } from "svelte/store";
-import { storeLogSettings } from "@stores/storeLogSettings";
+import { storeRpcSettings } from "@stores/storeRpcSettings";
 import type { EthersEventLog } from "@db/dbTypes";
 
 export async function beginEventListening(
   dbEventLogs: DbEventLogs,
+  targetProject: Project,
+  targetVersion: Version,
   targetContract: Contract,
   nodeProvider: NodeProvider,
   ethersContract: EthersContract
@@ -39,7 +41,13 @@ export async function beginEventListening(
 
   if (fetchedBlockNumber < newLatestBlockNumber) {
     myLogger.info(`無限ループに戻る. contract:`, targetContract.name);
-    await fetchEventLogsContract(dbEventLogs, targetContract, nodeProvider);
+    await fetchEventLogsContract(
+      dbEventLogs,
+      targetProject,
+      targetVersion,
+      targetContract,
+      nodeProvider
+    );
   } else {
     myLogger.info(`イベントリスニング起動開始. contract:`, targetContract.name);
     //start event listenning
@@ -98,5 +106,5 @@ async function watchAbort(
       ethersContract.removeAllListeners();
       await stopSyncingInContract(dbEventLogs, targetContract.name);
     }
-  }, get(storeLogSettings)[dbEventLogs.versionIdentifier.chainName].abortWatchIntervalMs);
+  }, get(storeRpcSettings)[dbEventLogs.versionIdentifier.chainName].abortWatchIntervalMs);
 }
