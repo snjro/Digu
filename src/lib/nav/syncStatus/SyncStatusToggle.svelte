@@ -15,7 +15,6 @@
     type CurrentSyncingState,
   } from "$lib/common/CommonSyncCurrentState.svelte";
   import classNames from "classnames";
-  import { storeRpcSettings } from "@stores/storeRpcSettings";
 
   let toggleOn: boolean = false;
   let targetChainName: ChainName;
@@ -34,9 +33,6 @@
 
   let targetChainSyncStatus: SyncStatus;
   $: targetChainSyncStatus = $storeSyncStatus[targetChainName];
-
-  let maxErrorCount: number;
-  $: maxErrorCount = $storeRpcSettings[targetChainName].tryCount;
 
   const toggleChanged = async (): Promise<void> => {
     toggleOn = !toggleOn;
