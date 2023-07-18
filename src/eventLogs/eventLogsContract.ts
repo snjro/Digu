@@ -94,7 +94,7 @@ export async function fetchEventLogsContract(
     };
 
     try {
-      myLogger.start("Fetch event logs within a block of specified length.", {
+      myLogger.start("Fetch event logs within target blocks.", {
         fetchingTarget: fetchingTargetInfo,
       });
       const ethersEventLogs: EthersEventLog[] = await getEthersEventLogs(
@@ -103,7 +103,6 @@ export async function fetchEventLogsContract(
         fromBlockNumber,
         toBlockNumber
       );
-
       await registerEventLogsAndBlockTimes(
         dbEventLogs,
         targetContract,
@@ -111,12 +110,18 @@ export async function fetchEventLogsContract(
         ethersEventLogs,
         toBlockNumber
       );
-      myLogger.success(
-        "Event logs was successfully fetched & registered to DB.",
-        {
+      if (ethersEventLogs.length) {
+        myLogger.success(
+          "Event logs was successfully fetched & registered to DB.",
+          {
+            fetchingTarget: fetchingTargetInfo,
+          }
+        );
+      } else {
+        myLogger.success("No event logs within target blocks.", {
           fetchingTarget: fetchingTargetInfo,
-        }
-      );
+        });
+      }
       errorCount = 0;
     } catch (error) {
       errorCount++;
