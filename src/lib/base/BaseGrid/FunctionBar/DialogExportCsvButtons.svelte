@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+
   import { buttonHeight, type BaseSize } from "$lib/base/baseSizes";
 
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
@@ -17,7 +19,7 @@
   export let gridOptions: GridOptions<GridRow>;
   export let exportCsvRadioProps: ExportCsvRadioProps;
 
-  const size: BaseSize = "md";
+  const size: BaseSize = sizeSettings.dialogFooter;
   function copyToClipboard(): void {
     const csvData: string = exportCsvFile(
       gridOptions,
