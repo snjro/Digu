@@ -62,12 +62,7 @@ export async function fetchEventLogsContract(
   let doLoop: boolean = true;
 
   while (doLoop) {
-    if (
-      syncStatusContract({
-        ...dbEventLogs.versionIdentifier,
-        contractName: targetContract.name,
-      }).isAbort
-    ) {
+    if (syncStatusContract(contractIdentifier).isAbort) {
       await stopSyncingInContract(dbEventLogs, targetContract.name);
       return;
     }
