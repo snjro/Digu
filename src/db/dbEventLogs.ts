@@ -73,13 +73,14 @@ export class DbEventLogs extends dbBase {
 function getInitialDataOfSyncStatusContract(
   targetContract: Contract
 ): SyncStatusContract {
+  const creationBlockNumber: number = targetContract.creation.blockNumber;
   return {
     name: targetContract.name,
     isSyncTarget: true,
     isSyncing: false,
     isAbort: false,
-    fetchedBlockNumber: targetContract.creation.blockNumber - 1,
-    creationBlockNumber: targetContract.creation.blockNumber,
+    fetchedBlockNumber: creationBlockNumber - 1,
+    creationBlockNumber: creationBlockNumber,
     numOfSyncTargetContract: 1,
     subSyncStatuses: null,
     events: getInitialDataOfSyncStatusesEvent(targetContract.events.names),
