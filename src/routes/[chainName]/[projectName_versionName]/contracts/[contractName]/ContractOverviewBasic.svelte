@@ -53,10 +53,14 @@
   />
 </CommonItemMember>
 <CommonItemMember text="Source">
-  <CommonOpenLink
-    href={targetContract.sourceCodeUrl}
-    text={targetContract.sourceCodeUrl ?? NO_DATA}
-    {textSize}
-  />
+  {#if targetContract.sourceCodeUrl}
+    <CommonOpenLink
+      href={targetContract.sourceCodeUrl}
+      text={targetContract.sourceCodeUrl}
+      {textSize}
+    />
+  {:else}
+    <BaseLabel text={NO_DATA} {textSize} />
+  {/if}
 </CommonItemMember>
 <slot />
