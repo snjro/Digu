@@ -10,7 +10,6 @@ import {
 import { DB_TABLE_NAMES } from "./constants";
 import { myLogger } from "@utils/logger";
 import type {
-  ContractIdentifier,
   ConvertedEventLog,
   GroupedEventLogs,
   SyncStatusesEvent,
