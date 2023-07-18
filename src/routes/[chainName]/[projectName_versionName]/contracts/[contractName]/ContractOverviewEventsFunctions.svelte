@@ -11,10 +11,10 @@
   import BaseA from "$lib/base/BaseA.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import classNames from "classnames";
-  import BaseButton from "$lib/base/BaseButton.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { BaseSize } from "$lib/base/baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
 
   export let listType: keyof Pick<Contract, "events" | "functions">;
   export let targetContract: Contract;
@@ -83,12 +83,9 @@
 </CommonItemMember>
 {#if nameList.length > 0}
   <div class={classNames("h-full", "flex", "items-end", "justify-end")}>
-    <BaseButton
+    <CommonViewMoreDetailsButton
       size={sizeSettings.itemViewAllButton}
       href={hrefFrontPart}
-      colorCategoryFront="interactive"
-      label="View more details"
-      openNewTab={false}
     />
   </div>
 {/if}

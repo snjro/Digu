@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { buttonHeight, type BaseSize } from "$lib/base/baseSizes";
+
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   import type { ExportCsvRadioProps } from "./DialogExportCsv.svelte";
@@ -15,6 +17,7 @@
   export let gridOptions: GridOptions<GridRow>;
   export let exportCsvRadioProps: ExportCsvRadioProps;
 
+  const size: BaseSize = "md";
   function copyToClipboard(): void {
     const csvData: string = exportCsvFile(
       gridOptions,
@@ -54,9 +57,10 @@
     iconName="download"
     hoverEffect
     label="Export"
-    size="md"
+    {size}
     colorCategoryFront={"interactive"}
     colorCategoryBg={colorSettings.dialogBody}
+    appendClassButton={buttonHeight[size]}
     on:click={downloadCsvFile}
   />
   <BaseButtonIcon
@@ -64,9 +68,10 @@
     iconName="contentCopy"
     hoverEffect
     label="Copy"
-    size="md"
+    {size}
     colorCategoryFront={"interactive"}
     colorCategoryBg={colorSettings.dialogBody}
+    appendClassButton={buttonHeight[size]}
     on:click={copyToClipboard}
   />
 </div>

@@ -14,7 +14,6 @@
   import SequenceBodyCell from "$lib/base/BaseTable/SequenceBodyCell.svelte";
   import BaseTableBodyCell from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
   import BaseA from "$lib/base/BaseA.svelte";
-  import BaseButton from "$lib/base/BaseButton.svelte";
   import classNames from "classnames";
   import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
@@ -22,6 +21,7 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import CommonSyncCurrentState from "$lib/common/CommonSyncCurrentState.svelte";
+  import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
 
   // export let contracts: Contract[];
   export let targetChain: Chain;
@@ -131,12 +131,9 @@
 </CommonItemMember>
 {#if targetVersion.contracts.length > 0}
   <div class={classNames("h-full", "flex", "items-end", "justify-end")}>
-    <BaseButton
+    <CommonViewMoreDetailsButton
       size={sizeSettings.itemViewAllButton}
       href={hrefFrontPart}
-      colorCategoryFront="interactive"
-      label="View more details"
-      openNewTab={false}
     />
   </div>
 {/if}

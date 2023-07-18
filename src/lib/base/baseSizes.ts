@@ -34,6 +34,18 @@ export const baseTextHeight: { [key in BaseSize]: `h-${string}` } = {
   "4xl": "h-10",
   "5xl": "h-12",
 };
+export const buttonHeight: { [key in BaseSize]: `h-${string}` } = {
+  xs: "h-6",
+  sm: "h-7",
+  md: "h-8",
+  lg: "h-9",
+  xl: "h-9",
+  "2xl": "h-10",
+  "3xl": "h-11",
+  "4xl": "h-12",
+  "5xl": "h-14",
+};
+
 export const baseShadowSizes: { [key in BaseSize]: string } = {
   xs: "shadow-sm",
   sm: "shadow-sm",
