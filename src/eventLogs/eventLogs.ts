@@ -22,20 +22,23 @@ import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { storeChainStatus } from "@stores/storeChainStatus";
 
 export async function fetchEventLogs(targetChain: Chain): Promise<void> {
-  myLogger.info(`[START]logContractsEvents(). targetChain:`, targetChain);
+  myLogger.start(`Fetch event logs. Chain: ${targetChain.name}`);
 
   await startSyncingInChain(targetChain.name);
   const promiseFetchAndInsertEthersEvents: Promise<void>[] = [];
-
+  const rpc: string = get(storeRpcSettings)[targetChain.name].rpc;
   const nodeProvider: NodeProvider | undefined = await getNodeProvider(
     targetChain.name,
-    get(storeRpcSettings)[targetChain.name].rpc
+    rpc
   );
   const nodeStatus: NodeStatus =
     get(storeChainStatus)[targetChain.name].nodeStatus;
 
   if (nodeProvider === undefined || nodeStatus !== "SUCCESS") {
-    myLogger.error("provider error!");
+    myLogger.fail("Get provider.", {
+      chainName: targetChain.name,
+      rpc: rpc,
+    });
     await startAbortingInChain(targetChain.name);
     await stopSyncingInChain(targetChain.name);
     return;
@@ -68,7 +71,7 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
     }
   }
   await Promise.all(promiseFetchAndInsertEthersEvents);
-  myLogger.info(`[END]logContractsEvents`);
+  myLogger.info(`Terminated fetch event logs. Chain: ${targetChain.name}`);
 }
 
 export const syncStatusContract = (

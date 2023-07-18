@@ -21,16 +21,14 @@ import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import { ethers } from "ethers";
 import type {
+  ContractIdentifier,
   EthersEventLog,
   RpcSetting,
   SyncStatusContract,
 } from "@db/dbTypes";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { beginEventListening } from "./eventLogsContractListener";
-type FetchingTargetInfo = {
-  project: ProjectName;
-  version: VersionName;
-  contract: ContractName;
+type FetchingTargetInfo = ContractIdentifier & {
   blocks: { from: number; to: number; latest: number };
 };
 export async function fetchEventLogsContract(
@@ -40,9 +38,11 @@ export async function fetchEventLogsContract(
   targetContract: Contract,
   nodeProvider: NodeProvider
 ): Promise<void> {
-  const functionName: string = "fetchEventLogsContract";
   const chainName: ChainName = dbEventLogs.versionIdentifier.chainName;
-
+  const contractIdentifier: ContractIdentifier = {
+    ...dbEventLogs.versionIdentifier,
+    contractName: targetContract.name,
+  };
   const contractSyncStatus: SyncStatusContract = syncStatusContract({
     ...dbEventLogs.versionIdentifier,
     contractName: targetContract.name,
@@ -51,8 +51,8 @@ export async function fetchEventLogsContract(
   const maxErrorCount: number = rpcSetting.tryCount;
   let errorCount: number = 0;
 
+  // Skip sync process for a contract that is not sync target.
   if (!contractSyncStatus.isSyncTarget) {
-    myLogger.info(`Not sync target. Contract: ${targetContract.name}`);
     return;
   }
 
@@ -88,18 +88,18 @@ export async function fetchEventLogsContract(
     }
 
     const fetchingTargetInfo: FetchingTargetInfo = {
-      project: targetProject.name,
-      version: targetVersion.name,
-      contract: targetContract.name,
+      ...contractIdentifier,
       blocks: {
         from: fromBlockNumber,
         to: toBlockNumber,
         latest: latestBlockNumber,
       },
     };
-    myLogger.info({ fetchingTarget: fetchingTargetInfo });
 
     try {
+      myLogger.start("Fetch event logs within a block of specified length.", {
+        fetchingTarget: fetchingTargetInfo,
+      });
       const ethersEventLogs: EthersEventLog[] = await getEthersEventLogs(
         targetContract.events.names,
         ethersContract,
@@ -114,27 +114,40 @@ export async function fetchEventLogsContract(
         ethersEventLogs,
         toBlockNumber
       );
+      myLogger.success(
+        "Event logs was successfully fetched & registered to DB.",
+        {
+          fetchingTarget: fetchingTargetInfo,
+        }
+      );
       errorCount = 0;
     } catch (error) {
       errorCount++;
 
-      myLogger.warn({
-        errorOn: functionName,
-        errorCount: `${errorCount}/${maxErrorCount}`,
-        fetchingTarget: fetchingTargetInfo,
-        error: error,
-      });
+      myLogger.error(
+        "Error occurred in fetching event logs or registering those logs to DB.",
+        {
+          errorCount: `${errorCount}/${maxErrorCount}`,
+          fetchingTarget: fetchingTargetInfo,
+          errorObject: error,
+        }
+      );
     }
     if (errorCount > maxErrorCount) {
-      myLogger.error({
-        errorOn: functionName,
-        errorCount: `${errorCount}/${maxErrorCount}`,
-        errorMessage: "errorCount exceeded the limit. Start aborting.",
-      });
+      myLogger.fatal(
+        "Error count exceeded the limit. Start to abort sync process.",
+        {
+          errorCount: `${errorCount}/${maxErrorCount}`,
+          fetchingTarget: fetchingTargetInfo,
+        }
+      );
       await startAbortingInChain(chainName);
     }
   }
 
+  myLogger.success("Sync process up to the latest block is completed.", {
+    contract: contractIdentifier,
+  });
   await beginEventListening(
     dbEventLogs,
     targetProject,

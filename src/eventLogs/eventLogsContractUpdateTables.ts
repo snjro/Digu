@@ -42,7 +42,7 @@ export async function registerEventLogsAndBlockTimes(
     );
 
     const groupedEventLogs: GroupedEventLogs =
-      groupByEventName(convertedEventLogs);
+      groupEventLogsByEventName(convertedEventLogs);
 
     const unregisteredBlockTimes: BlockTime[] = getUnregisterdBlockTimes(
       blockTimesForEventLogs
@@ -57,8 +57,12 @@ export async function registerEventLogsAndBlockTimes(
       lastFetchedBlockNumber
     );
   } catch (error) {
-    myLogger.error("error on registerEventLogsAndBlockTimes", error);
-
+    myLogger.error("Error occurred in registering event logs.", {
+      ...dbEventLogs.versionIdentifier,
+      contractName: targetContract.name,
+      ethersEventLogs: ethersEventLogs,
+      errorObject: error,
+    });
     throw new Error();
   }
 }
@@ -172,7 +176,7 @@ function convertEthersEventToEventLog(
     throw new Error(errorMessage);
   }
 }
-function groupByEventName(
+function groupEventLogsByEventName(
   convertedEventLogs: ConvertedEventLog[]
 ): GroupedEventLogs {
   const groupedEventLogs: GroupedEventLogs = {};

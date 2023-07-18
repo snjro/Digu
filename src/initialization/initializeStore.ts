@@ -22,15 +22,15 @@ import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { initialDataUserSettings } from "@db/dbSettings";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { extractEventContracts } from "@utils/utilsEthers";
+import { get } from "svelte/store";
 
 export async function initializeStore(): Promise<void> {
   const promiseUpdateStores: Promise<void>[] = [];
-  // promiseUpdateStores.push(syncStoreUserSettingsWithDB());
-  await syncStoreUserSettingsWithDB();
+  await initializeStoreUserSettings();
   for (const targetChain of TARGET_CHAINS) {
-    promiseUpdateStores.push(syncStoreChainStatusWithDB(targetChain.name));
+    promiseUpdateStores.push(InitializeStoreChainStatus(targetChain.name));
 
-    promiseUpdateStores.push(syncStoreRpcSettingsWithDB(targetChain.name));
+    promiseUpdateStores.push(InitializeStoreRpcSettings(targetChain.name));
 
     for (const targetProject of targetChain.projects) {
       for (const targetVersion of targetProject.versions) {
@@ -46,7 +46,7 @@ export async function initializeStore(): Promise<void> {
           targetVersion.contracts
         )) {
           promiseUpdateStores.push(
-            syncStoreSyncStatusWithDB(dbEventLogs, targetContract.name)
+            InitializeStoreSyncStatus(dbEventLogs, targetContract.name)
           );
         }
       }
@@ -54,17 +54,23 @@ export async function initializeStore(): Promise<void> {
   }
   await Promise.all(promiseUpdateStores);
 }
-async function syncStoreChainStatusWithDB(chainName: ChainName): Promise<void> {
+async function InitializeStoreChainStatus(chainName: ChainName): Promise<void> {
   const chainStatus: ChainStatus = await getDbRecordChainStatus(chainName);
-  myLogger.info(`chainStatus in store:`, chainStatus);
   storeChainStatus.updateState(chainName, chainStatus);
+  myLogger.success(`Initialized "storeChainStatus"`, {
+    chainName: chainName,
+    storeChainStatus: get(storeChainStatus),
+  });
 }
-async function syncStoreRpcSettingsWithDB(chainName: ChainName): Promise<void> {
+async function InitializeStoreRpcSettings(chainName: ChainName): Promise<void> {
   const rpcSetting: RpcSetting = await getDbRecordRpcSettings(chainName);
-  myLogger.info(`RpcSetting in store:`, rpcSetting);
   storeRpcSettings.updateState(chainName, rpcSetting);
+  myLogger.success(`Initialized "storeRpcSetting"`, {
+    chainName: chainName,
+    storeRpcSettings: get(storeRpcSettings),
+  });
 }
-async function syncStoreUserSettingsWithDB(): Promise<void> {
+async function initializeStoreUserSettings(): Promise<void> {
   for (const initialUserSetting of initialDataUserSettings()) {
     const userSettingsKey: UserSetting["userSettingsKey"] =
       initialUserSetting.userSettingsKey;
@@ -73,8 +79,11 @@ async function syncStoreUserSettingsWithDB(): Promise<void> {
     );
     storeUserSettings.updateState(userSettingsKey, userSetting.value);
   }
+  myLogger.success(`Initialized "storeUserSetting"`, {
+    storeUserSettings: get(storeUserSettings),
+  });
 }
-async function syncStoreSyncStatusWithDB(
+async function InitializeStoreSyncStatus(
   dbEventLogs: DbEventLogs,
   contractName: ContractName
 ): Promise<void> {
@@ -90,4 +99,9 @@ async function syncStoreSyncStatusWithDB(
     );
 
   storeSyncStatus.updateState(contractIdentifier, syncStatusContract);
+  myLogger.success(`Initialized "storeSyncStatus"`, {
+    ...dbEventLogs.versionIdentifier,
+    contractName: contractName,
+    storeSyncStatus: get(storeSyncStatus),
+  });
 }

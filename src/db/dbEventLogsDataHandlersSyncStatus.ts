@@ -23,19 +23,21 @@ export async function startSyncingInChain(chainName: ChainName): Promise<void> {
 export async function startAbortingInChain(
   chainName: ChainName
 ): Promise<void> {
-  myLogger.info("Start aborting sync process in chain");
+  myLogger.start(`Abort sync process. Chain: ${chainName}`);
   await setSyncStatusInChain(chainName, "isSyncing", true, "isAbort", true);
 }
 export async function stopSyncingInChain(chainName: ChainName): Promise<void> {
-  myLogger.info("Start stopping sync process in chain");
+  myLogger.start(`Stop sync process. Chain: ${chainName}`);
   await setSyncStatusInChain(chainName, "isSyncing", true, "isAbort", false);
   await setSyncStatusInChain(chainName, "isSyncing", true, "isSyncing", false);
+  myLogger.success(`Stopped sync process. Chain: ${chainName}`);
 }
 export async function stopSyncingInContract(
   dbEventLogs: DbEventLogs,
   contractName: ContractName
 ): Promise<void> {
   const promiseUpdate: Promise<void>[] = [];
+  myLogger.start(`Stop sync process. Contract: ${contractName}`);
   promiseUpdate.push(
     updateDbItemSyncStatus(dbEventLogs, contractName, "isSyncing", false)
   );
@@ -43,7 +45,7 @@ export async function stopSyncingInContract(
     updateDbItemSyncStatus(dbEventLogs, contractName, "isAbort", false)
   );
   await Promise.all(promiseUpdate);
-  myLogger.info(`Stopped syncing of the contract:${contractName}`);
+  myLogger.success(`Stopped sync process. Contract: ${contractName}`);
 }
 async function setSyncStatusInChain<
   T extends keyof SyncStatusContract,

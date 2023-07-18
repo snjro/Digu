@@ -16,7 +16,10 @@ export async function startUpdateLatestBlockNumber(
   targetChainName: ChainName,
   nodeProvider: NodeProvider
 ): Promise<void> {
-  myLogger.info(`START ${functionName}`);
+  myLogger.start(`${functionName}()`, {
+    chainName: targetChainName,
+    nodeProvider: nodeProvider,
+  });
   const rpcSetting: RpcSetting = get(storeRpcSettings)[targetChainName];
   const maxErrorCount: number = rpcSetting.tryCount;
   let errorCount: number = 0;
@@ -51,5 +54,5 @@ export async function startUpdateLatestBlockNumber(
 }
 function stopUpdateLatestBlockNumber(intervalId: number | undefined) {
   window.clearInterval(intervalId);
-  myLogger.info(`STOPPED ${functionName}. intervalId=${intervalId}`);
+  myLogger.info(`Stopped ${functionName}(). intervalId=${intervalId}`);
 }

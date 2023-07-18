@@ -10,9 +10,11 @@ import {
 import { DB_TABLE_NAMES } from "./constants";
 import { myLogger } from "@utils/logger";
 import type {
+  ContractIdentifier,
   ConvertedEventLog,
   GroupedEventLogs,
   SyncStatusesEvent,
+  VersionIdentifier,
 } from "./dbTypes";
 //====================== table "eventLogs" =======================
 export async function addEventLogs_updateFetchedBlockNumber(
@@ -39,24 +41,33 @@ export async function addEventLogs_updateFetchedBlockNumber(
         "events"
       );
 
+      let bulkPutInfo: (VersionIdentifier & {
+        contractName: ContractName;
+        eventName: string;
+        tableName: string;
+        numOfRecords: number;
+      })[] = [];
       for (const eventName of Object.keys(groupedEventLogs)) {
         const tableName: string = getEventLogTableName(
           targetContract.name,
           eventName
         );
-
-        myLogger.info(
-          `addEvent. table:${tableName} records:${groupedEventLogs[eventName].length}`
-        );
-
+        const numOfRecords: number = groupedEventLogs[eventName].length;
         promiseBulkAdds.push(
           dbEventLogs.table(tableName).bulkPut(groupedEventLogs[eventName])
         );
-        syncStatusesEvent[eventName].recordCount +=
-          groupedEventLogs[eventName].length;
+        syncStatusesEvent[eventName].recordCount += numOfRecords;
+        bulkPutInfo.push({
+          ...dbEventLogs.versionIdentifier,
+          contractName: targetContract.name,
+          eventName: eventName,
+          tableName: tableName,
+          numOfRecords: numOfRecords,
+        });
       }
-
       await Promise.all(promiseBulkAdds);
+      if (bulkPutInfo.length)
+        myLogger.success("BulkPut Event Logs.", bulkPutInfo);
 
       await updateDbItemSyncStatus(
         dbEventLogs,
