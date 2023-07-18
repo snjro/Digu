@@ -7,11 +7,8 @@ import {
 import type {
   ChainName,
   Contract,
-  ContractName,
   Project,
-  ProjectName,
   Version,
-  VersionName,
 } from "@constants/chains/types";
 import { getEthersEventLogs, type NodeProvider } from "@utils/utilsEthers";
 import { myLogger } from "@utils/logger";
