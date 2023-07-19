@@ -77,18 +77,19 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
       cellStyle: cellAlign("center"),
       columnGroupShow: "open",
       filterValueGetter: undefined,
-      valueGetter: undefined,
+      valueGetter: (valueGetterParams: ValueGetterParams<T>): string => {
+        const components: readonly AbiFragmentParam[] | undefined =
+          getComponents(valueGetterParams, abiParamsKey, indexOfArgs);
+        return components ? JSON.stringify(components) : NO_DATA;
+      },
       cellRenderer: cellRendererFactory(
         (
           cell: AbstractCellRenderer,
           cellRendererParams: ICellRendererParams<T>
         ) => {
-          const abiFragmentParams: AbiFragmentParam[] =
-            getAbiParamsFromAbiRow<T>(cellRendererParams, abiParamsKey);
-          const abiFragmentParam: AbiFragmentParam =
-            abiFragmentParams[indexOfArgs];
           const components: readonly AbiFragmentParam[] | undefined =
-            getComponentsFromAbiFragmentParam(abiFragmentParam);
+            getComponents(cellRendererParams, abiParamsKey, indexOfArgs);
+
           if (components) {
             new AbiParamComponentsDetailsButton({
               target: cell.eGui,
@@ -112,6 +113,20 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
   ];
   return columnDefs;
 };
+function getComponents<T extends AbiRow>(
+  agGridParams: ValueGetterParams<T> | ICellRendererParams<T>,
+  abiParamsKey: keyof T,
+  indexOfArgs: number
+): readonly AbiFragmentParam[] | undefined {
+  const abiFragmentParams: AbiFragmentParam[] = getAbiParamsFromAbiRow<T>(
+    agGridParams,
+    abiParamsKey
+  );
+  const abiFragmentParam: AbiFragmentParam = abiFragmentParams[indexOfArgs];
+  const components: readonly AbiFragmentParam[] | undefined =
+    getComponentsFromAbiFragmentParam(abiFragmentParam);
+  return components;
+}
 export function getComponentsFromAbiFragmentParam(
   abiFragmentParam: AbiFragmentParam
 ): readonly AbiFragmentParam[] | undefined {
