@@ -32,7 +32,7 @@
   $: fetchedBlockNumber = targetContractSyncStatus
     ? targetContractSyncStatus.fetchedBlockNumber
     : undefined;
-  let blockNumber = (): string => {
+  $: blockNumber = (): string => {
     let targetBlockNumer: number;
     if (headerName === "Goal") {
       targetBlockNumer = latestBlockNumber;
