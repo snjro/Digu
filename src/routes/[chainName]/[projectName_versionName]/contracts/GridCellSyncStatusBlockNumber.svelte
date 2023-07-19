@@ -1,20 +1,21 @@
 <script lang="ts" context="module">
   type HeaderName = "Start" | "Current" | "Goal";
   export function getBlockNumberByHeaderName(
-    contract: Contract,
     headerName: HeaderName,
     latestBlockNumber: number,
-    fetchedBlockNumber: number | undefined
+    targetContractSyncStatus: SyncStatusContract
   ): number {
-    let targetBlockNumer: number;
-    if (headerName === "Goal") {
-      targetBlockNumer = latestBlockNumber;
-    } else if (headerName === "Current") {
-      targetBlockNumer = fetchedBlockNumber ? fetchedBlockNumber : 0;
-    } else {
-      targetBlockNumer = contract.creation.blockNumber;
+    if (!targetContractSyncStatus) {
+      // When a contract has no event, "targetContractSyncStatus" is undefined.
+      return 0;
     }
-    return targetBlockNumer;
+    if (headerName === "Goal") {
+      return latestBlockNumber;
+    } else if (headerName === "Current") {
+      return targetContractSyncStatus.fetchedBlockNumber;
+    } else {
+      return targetContractSyncStatus.creationBlockNumber;
+    }
   }
 </script>
 
@@ -49,17 +50,11 @@
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
       .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name];
 
-  let fetchedBlockNumber: number | undefined;
-  $: fetchedBlockNumber = targetContractSyncStatus
-    ? targetContractSyncStatus.fetchedBlockNumber
-    : undefined;
-
   let blockNumber: number;
   $: blockNumber = getBlockNumberByHeaderName(
-    targetContract,
     headerName,
     latestBlockNumber,
-    fetchedBlockNumber
+    targetContractSyncStatus
   );
 </script>
 

@@ -20,10 +20,12 @@ import type {
 import GridCellSyncStatusBlockNumber, {
   getBlockNumberByHeaderName,
 } from "./GridCellSyncStatusBlockNumber.svelte";
-import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
+import type { SyncStatusContract } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import type { StateChainStatuses } from "@stores/storeTypes";
+import { get } from "svelte/store";
+import { NO_DATA } from "@utils/utilsCostants";
 
 export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
   targetChain: Chain,
@@ -44,34 +46,27 @@ export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
     },
     columnGroupShow: "open",
     valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-      let targetContractSyncStatus: SyncStatusContract;
-      let fetchedBlockNumber: number | undefined;
-      let latestBlockNumber: number = 0;
       let targetContract: Contract = valueGetterParams.data!.contract;
-      storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
-        targetContractSyncStatus =
-          syncStatusesChain[targetChain.name].subSyncStatuses[
-            targetProject.name
-          ].subSyncStatuses[targetVersion.name].subSyncStatuses[
-            targetContract.name
-          ];
-        fetchedBlockNumber = targetContractSyncStatus
-          ? targetContractSyncStatus.fetchedBlockNumber
-          : undefined;
-      });
+      let targetContractSyncStatus: SyncStatusContract =
+        get(storeSyncStatus)[targetChain.name].subSyncStatuses[
+          targetProject.name
+        ].subSyncStatuses[targetVersion.name].subSyncStatuses[
+          targetContract.name
+        ];
+      let latestBlockNumber: number = 0;
       storeChainStatus.subscribe((storeChainStatus: StateChainStatuses) => {
         latestBlockNumber =
           storeChainStatus[targetChain.name].latestBlockNumber;
       });
 
-      return getBlockNumberByHeaderName(
-        targetContract,
+      const blockNumber: number = getBlockNumberByHeaderName(
         headerName,
         latestBlockNumber,
-        fetchedBlockNumber
+        targetContractSyncStatus
       );
+      // in order to sort the column, change type of "blockNumber"(=number) to string
+      return blockNumber === 0 ? NO_DATA : blockNumber.toString();
     },
-
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
