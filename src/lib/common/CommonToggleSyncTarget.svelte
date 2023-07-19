@@ -1,3 +1,46 @@
+<script lang="ts" context="module">
+  const isSyncTargetIndeterminate = (
+    subSyncStatuses: SubSyncStatuses
+  ): boolean => {
+    if (subSyncStatuses) {
+      let targetSubSyncStatusValues: SubSyncStatus[] =
+        Object.values(subSyncStatuses);
+      const isAllSubSyncStatusValuesSame: boolean =
+        targetSubSyncStatusValues.every(
+          (targetSubSyncStatusValue: SubSyncStatus) => {
+            return (
+              targetSubSyncStatusValue.isSyncTarget ===
+              targetSubSyncStatusValues[0].isSyncTarget
+            );
+          }
+        );
+      return !isAllSubSyncStatusValuesSame;
+    } else {
+      return false;
+    }
+  };
+
+  export type SyncTargetLabelText =
+    | "Partially"
+    | "All"
+    | "Nothing"
+    | "Yes"
+    | "No";
+  export const syncTargetLabelText = (
+    targetSyncStatus: SyncStatus
+  ): SyncTargetLabelText => {
+    if (targetSyncStatus.subSyncStatuses) {
+      if (isSyncTargetIndeterminate(targetSyncStatus.subSyncStatuses)) {
+        return "Partially";
+      } else {
+        return targetSyncStatus.isSyncTarget ? "All" : "Nothing";
+      }
+    } else {
+      return targetSyncStatus.isSyncTarget ? "Yes" : "No";
+    }
+  };
+</script>
+
 <script lang="ts">
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
@@ -8,12 +51,7 @@
     Version,
   } from "@constants/chains/types";
   import { toggleIsSyncTarget } from "./toggleSyncTarget";
-  import type {
-    SyncStatusChain,
-    SyncStatusContract,
-    SyncStatusProject,
-    SyncStatusVersion,
-  } from "@db/dbTypes";
+  import type { SubSyncStatus, SubSyncStatuses, SyncStatus } from "@db/dbTypes";
   import BaseCheckbox from "$lib/base/BaseCheckbox.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import classNames from "classnames";
@@ -34,11 +72,7 @@
     targetProject?: PR,
     targetVersion?: PR extends Project ? VE : undefined,
     targetContract?: VE extends Version ? CO : undefined
-  ):
-    | SyncStatusChain
-    | SyncStatusProject
-    | SyncStatusVersion
-    | SyncStatusContract => {
+  ): SyncStatus => {
     if (targetProject && targetVersion && targetContract) {
       return $storeSyncStatus[targetChain.name].subSyncStatuses[
         targetProject.name
@@ -57,11 +91,7 @@
       return $storeSyncStatus[targetChain.name];
     }
   };
-  let targetSyncStatus:
-    | SyncStatusChain
-    | SyncStatusProject
-    | SyncStatusVersion
-    | SyncStatusContract;
+  let targetSyncStatus: SyncStatus;
   $: targetSyncStatus = syncStatus(
     targetChain,
     targetProject,
@@ -77,45 +107,6 @@
       targetContract?.name
     );
   };
-  let indeterminate: () => boolean;
-  $: indeterminate = (): boolean => {
-    if (targetSyncStatus.subSyncStatuses) {
-      let targetSubSyncStatusValues: (
-        | SyncStatusProject
-        | SyncStatusVersion
-        | SyncStatusContract
-      )[] = Object.values(targetSyncStatus.subSyncStatuses);
-      const isAllSubSyncStatusValuesSame: boolean =
-        targetSubSyncStatusValues.every(
-          (
-            targetSubSyncStatusValue:
-              | SyncStatusProject
-              | SyncStatusVersion
-              | SyncStatusContract
-          ) => {
-            return (
-              targetSubSyncStatusValue.isSyncTarget ===
-              targetSubSyncStatusValues[0].isSyncTarget
-            );
-          }
-        );
-      return !isAllSubSyncStatusValuesSame;
-    } else {
-      return false;
-    }
-  };
-  let labelText: () => string;
-  $: labelText = () => {
-    if (targetSyncStatus.subSyncStatuses) {
-      if (indeterminate()) {
-        return "Partially";
-      } else {
-        return targetSyncStatus.isSyncTarget ? "All" : "Nothing";
-      }
-    } else {
-      return targetSyncStatus.isSyncTarget ? "Yes" : "No";
-    }
-  };
 </script>
 
 <div
@@ -123,10 +114,13 @@
 >
   <BaseCheckbox
     checked={targetSyncStatus.isSyncTarget}
-    indeterminate={indeterminate()}
+    indeterminate={isSyncTargetIndeterminate(targetSyncStatus.subSyncStatuses)}
     {size}
     disabled={syncStatus(targetChain).isSyncing}
     on:click={checkChanged}
   />
-  <BaseLabel textSize={changeSize(size, 1)} text={labelText()} />
+  <BaseLabel
+    textSize={changeSize(size, 1)}
+    text={syncTargetLabelText(targetSyncStatus)}
+  />
 </div>

@@ -7,11 +7,24 @@ import type {
   CellClassParams,
   CellStyle,
   ICellRendererParams,
+  ValueGetterParams,
 } from "ag-grid-community";
 import type { ContractRow } from "./gridRows";
 import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
-import type { Chain, Project, Version } from "@constants/chains/types";
+import type {
+  Chain,
+  ContractName,
+  Project,
+  Version,
+} from "@constants/chains/types";
 import GridCellSyncStatusTarget from "./GridCellSyncStatusTarget.svelte";
+import type { SyncStatus, SyncStatusesChain } from "@db/dbTypes";
+import { storeSyncStatus } from "@stores/storeSyncStatus";
+import {
+  syncTargetLabelText,
+  type SyncTargetLabelText,
+} from "$lib/common/CommonToggleSyncTarget.svelte";
+import { NO_DATA } from "@utils/utilsCostants";
 
 export const columnDefsSyncStatusTarget = <T extends ContractRow>(
   targetChain: Chain,
@@ -30,17 +43,21 @@ export const columnDefsSyncStatusTarget = <T extends ContractRow>(
       }
     },
     columnGroupShow: undefined,
-    //TODO: set "filterValueGetter" and "valueGetter".
-    // filterValueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-    //   return valueGetterParams.data
-    //     ? valueGetterParams.data.contractName
-    //     : 0;
-    // },
-    // valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-    //   return valueGetterParams.data
-    //     ? valueGetterParams.data.contractName
-    //     : 0;
-    // },
+    valueGetter: (
+      valueGetterParams: ValueGetterParams<T>
+    ): SyncTargetLabelText | typeof NO_DATA => {
+      let contractSyncStatus: SyncStatus | undefined = undefined;
+      let contractName: ContractName = valueGetterParams.data!.contract.name;
+      storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
+        contractSyncStatus =
+          syncStatusesChain[targetChain.name].subSyncStatuses[
+            targetProject.name
+          ].subSyncStatuses[targetVersion.name].subSyncStatuses[contractName];
+      });
+      return contractSyncStatus
+        ? syncTargetLabelText(contractSyncStatus)
+        : NO_DATA;
+    },
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
