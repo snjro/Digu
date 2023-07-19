@@ -17,6 +17,25 @@
       return "pause";
     }
   }
+  export function getCurrentSyncingState(
+    targetSyncStatus: SyncStatus
+  ): CurrentSyncingState {
+    const isSyncing: boolean = targetSyncStatus.isSyncing;
+    const isAbort: boolean = targetSyncStatus.isAbort;
+    if (isSyncing) {
+      if (isAbort) {
+        return "Stopping...";
+      } else {
+        return "Syncing...";
+      }
+    } else {
+      if (isAbort) {
+        return NO_DATA;
+      } else {
+        return "Stopped";
+      }
+    }
+  }
 </script>
 
 <script lang="ts">
@@ -30,12 +49,7 @@
     Project,
     Version,
   } from "@constants/chains/types";
-  import type {
-    SyncStatusChain,
-    SyncStatusContract,
-    SyncStatusProject,
-    SyncStatusVersion,
-  } from "@db/dbTypes";
+  import type { SyncStatus } from "@db/dbTypes";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { NO_DATA } from "@utils/utilsCostants";
   import classNames from "classnames";
@@ -59,11 +73,7 @@
     targetProject?: PR,
     targetVersion?: PR extends Project ? VE : undefined,
     targetContract?: VE extends Version ? CO : undefined
-  ):
-    | SyncStatusChain
-    | SyncStatusProject
-    | SyncStatusVersion
-    | SyncStatusContract => {
+  ): SyncStatus => {
     if (targetProject && targetVersion && targetContract) {
       return $storeSyncStatus[targetChain.name].subSyncStatuses[
         targetProject.name
@@ -83,40 +93,15 @@
     }
   };
 
-  $: {
-    let targetSyncStatus:
-      | SyncStatusChain
-      | SyncStatusProject
-      | SyncStatusVersion
-      | SyncStatusContract = syncStatus(
-      targetChain,
-      targetProject,
-      targetVersion,
-      targetContract
-    );
-    currentSyncingState = getCurrentSyncingState(
-      targetSyncStatus.isSyncing,
-      targetSyncStatus.isAbort
-    );
-  }
-  function getCurrentSyncingState(
-    isSyncing: boolean,
-    isAbort: boolean
-  ): CurrentSyncingState {
-    if (isSyncing) {
-      if (isAbort) {
-        return "Stopping...";
-      } else {
-        return "Syncing...";
-      }
-    } else {
-      if (isAbort) {
-        return NO_DATA;
-      } else {
-        return "Stopped";
-      }
-    }
-  }
+  let targetSyncStatus: SyncStatus;
+  $: targetSyncStatus = syncStatus(
+    targetChain,
+    targetProject,
+    targetVersion,
+    targetContract
+  );
+  $: currentSyncingState = getCurrentSyncingState(targetSyncStatus);
+
   let animatePulse: "animate-pulse" | undefined = undefined;
   $: animatePulse =
     currentSyncingState === "Stopping..." ? "animate-pulse" : undefined;

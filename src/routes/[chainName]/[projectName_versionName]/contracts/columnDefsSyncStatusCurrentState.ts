@@ -3,11 +3,23 @@ import {
   type AbstractCellRenderer,
 } from "$lib/base/BaseGrid/cellRenderFactory";
 import type { ColumnDef } from "$lib/base/BaseGrid/types";
-import type { ICellRendererParams } from "ag-grid-community";
+import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import type { ContractRow } from "./gridRows";
 import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
-import type { Chain, Project, Version } from "@constants/chains/types";
+import type {
+  Chain,
+  ContractName,
+  Project,
+  Version,
+} from "@constants/chains/types";
 import GridCellSyncStatusCurrentState from "./GridCellSyncStatusCurrentState.svelte";
+import {
+  getCurrentSyncingState,
+  type CurrentSyncingState,
+} from "$lib/common/CommonSyncCurrentState.svelte";
+import { storeSyncStatus } from "@stores/storeSyncStatus";
+import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
+import { NO_DATA } from "@utils/utilsCostants";
 
 export const columnDefsSyncstatusCurrentState = <T extends ContractRow>(
   targetChain: Chain,
@@ -21,17 +33,21 @@ export const columnDefsSyncstatusCurrentState = <T extends ContractRow>(
     cellStyle: cellAlign("center"),
 
     columnGroupShow: undefined,
-    //TODO: set "filterValueGetter" and "valueGetter".
-    // filterValueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-    //   return valueGetterParams.data
-    //     ? valueGetterParams.data.contractName
-    //     : 0;
-    // },
-    // valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-    //   return valueGetterParams.data
-    //     ? valueGetterParams.data.contractName
-    //     : 0;
-    // },
+    valueGetter: (
+      valueGetterParams: ValueGetterParams<T>
+    ): CurrentSyncingState => {
+      let contractSyncStatus: SyncStatusContract | undefined = undefined;
+      let contractName: ContractName = valueGetterParams.data!.contract.name;
+      storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
+        contractSyncStatus =
+          syncStatusesChain[targetChain.name].subSyncStatuses[
+            targetProject.name
+          ].subSyncStatuses[targetVersion.name].subSyncStatuses[contractName];
+      });
+      return contractSyncStatus
+        ? getCurrentSyncingState(contractSyncStatus)
+        : NO_DATA;
+    },
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
