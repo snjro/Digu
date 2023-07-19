@@ -9,6 +9,7 @@
   export let isFullScreen: boolean;
   export let titleCategoryLabelText: string;
   export let titleText: string;
+  export let csvFileNameHeader: string;
 
   let quickSearchText: string = "";
 </script>
@@ -25,5 +26,6 @@
     {gridOptions}
     {rows}
     bind:isFullScreen
+    {csvFileNameHeader}
   />
 </CommonFunctionBar>

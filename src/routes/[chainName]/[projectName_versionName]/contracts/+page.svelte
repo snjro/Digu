@@ -56,6 +56,7 @@
       titleText={titleText()}
       {titleCategoryLabelText}
       hidden={false}
+      csvFileNameHeader="contracts"
     />
   </BaseTab>
 </BasePageContainer>

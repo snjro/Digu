@@ -53,6 +53,7 @@
       titleText={titleText()}
       {titleCategoryLabelText}
       hidden={false}
+      csvFileNameHeader="functions"
     />
   </BaseTab>
 </BasePageContainer>

@@ -23,7 +23,7 @@
   export let titleCategoryLabelText: string;
   export let titleText: string;
   export let hidden: boolean;
-
+  export let csvFileNameHeader: string;
   let gridOptions: GridOptions<GridRow> = getGridOptions<GridRow>(
     suppressFieldDotNotation,
     suppressRowTransform,
@@ -43,6 +43,7 @@
     bind:isFullScreen
     {titleCategoryLabelText}
     {titleText}
+    {csvFileNameHeader}
   />
   <GridBody
     bind:gridOptions
