@@ -18,7 +18,7 @@ import type {
   Version,
 } from "@constants/chains/types";
 import GridCellSyncStatusTarget from "./GridCellSyncStatusTarget.svelte";
-import type { SyncStatus, SyncStatusesChain } from "@db/dbTypes";
+import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import {
   syncTargetLabelText,
@@ -46,7 +46,7 @@ export const columnDefsSyncStatusTarget = <T extends ContractRow>(
     valueGetter: (
       valueGetterParams: ValueGetterParams<T>
     ): SyncTargetLabelText | typeof NO_DATA => {
-      let contractSyncStatus: SyncStatus | undefined = undefined;
+      let contractSyncStatus: SyncStatusContract | undefined = undefined;
       let contractName: ContractName = valueGetterParams.data!.contract.name;
       storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
         contractSyncStatus =
