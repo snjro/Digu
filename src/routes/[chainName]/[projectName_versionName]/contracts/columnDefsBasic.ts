@@ -77,15 +77,8 @@ export const columnDefsBasic = <T extends ContractRow>(
         editable: editable,
         cellClass: cellClass,
         columnGroupShow: "open",
-        filterValueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-          return valueGetterParams.data
-            ? valueGetterParams.data.contractSourceCodeUrl
-            : "";
-        },
         valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-          return valueGetterParams.data
-            ? valueGetterParams.data.contractSourceCodeUrl
-            : "";
+          return valueGetterParams.data!.contractSourceCodeUrl ?? NO_DATA;
         },
         cellRenderer: cellRendererFactory(
           (
