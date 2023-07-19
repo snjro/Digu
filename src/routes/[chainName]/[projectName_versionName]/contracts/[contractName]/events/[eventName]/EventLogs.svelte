@@ -58,4 +58,5 @@
   titleText={targetEventAbiFragment.name}
   {titleCategoryLabelText}
   {hidden}
+  csvFileNameHeader={`eventLogs(${eventLogType})`}
 />

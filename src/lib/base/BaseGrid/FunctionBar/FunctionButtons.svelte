@@ -14,7 +14,7 @@
   export let rows: GridRow[];
   export let isFullScreen: boolean;
   export let quickSearchText: string;
-
+  export let csvFileNameHeader: string;
   $: buttonDefinitions = {
     columnWidthHandler: [
       {
@@ -99,5 +99,5 @@
   let dialogElement: HTMLDialogElement;
 </script>
 
-<DialogExportCsv {gridOptions} bind:dialogElement />
+<DialogExportCsv {gridOptions} bind:dialogElement {csvFileNameHeader} />
 <CommonFunctionButtons {buttonDefinitions} />

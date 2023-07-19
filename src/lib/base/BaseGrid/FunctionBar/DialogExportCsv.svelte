@@ -40,6 +40,7 @@
   type GridRow = $$Generic;
   export let gridOptions: GridOptions<GridRow>;
   export let dialogElement: HTMLDialogElement;
+  export let csvFileNameHeader: string;
 
   const colorCategory: ColorCategory = colorSettings.dialogHeader;
 
@@ -172,6 +173,10 @@
         </CommonItemMember>
       {/each}
     </ul>
-    <DialogExportCsvButtons {gridOptions} {exportCsvRadioProps} />
+    <DialogExportCsvButtons
+      {gridOptions}
+      {exportCsvRadioProps}
+      {csvFileNameHeader}
+    />
   </form>
 </BaseDialog>

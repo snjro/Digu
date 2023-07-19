@@ -18,6 +18,7 @@
   type GridRow = $$Generic;
   export let gridOptions: GridOptions<GridRow>;
   export let exportCsvRadioProps: ExportCsvRadioProps;
+  export let csvFileNameHeader: string;
 
   const size: BaseSize = sizeSettings.dialogFooter;
   function copyToClipboard(): void {
@@ -48,7 +49,7 @@
     const chainName: ChainName = $page.params.chainName;
     const projectVersionName: string = $page.params.projectName_versionName;
     const contractName: ContractName = $page.params.contractName;
-    const csvFileName: string = `ABI-${chainName}-${projectVersionName}-${contractName}.csv`;
+    const csvFileName: string = `${csvFileNameHeader}-${chainName}-${projectVersionName}-${contractName}.csv`;
     return csvFileName;
   }
 </script>
