@@ -7,11 +7,23 @@ import type {
   CellClassParams,
   CellStyle,
   ICellRendererParams,
+  ValueGetterParams,
 } from "ag-grid-community";
 import type { ContractRow } from "./gridRows";
 import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
-import type { Chain, Project, Version } from "@constants/chains/types";
+import type {
+  Chain,
+  ContractName,
+  Project,
+  Version,
+} from "@constants/chains/types";
 import GridCellSyncStatusProgressBar from "./GridCellSyncStatusProgressBar.svelte";
+import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
+import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { storeChainStatus } from "@stores/storeChainStatus";
+import type { StateChainStatuses } from "@stores/storeTypes";
+import { getProgressRate } from "$lib/base/BaseProgressBarForBlockNumber/progressRate";
+import { NO_DATA } from "@utils/utilsCostants";
 
 export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
   targetChain: Chain,
@@ -30,17 +42,36 @@ export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
       }
     },
     columnGroupShow: undefined,
-    //TODO: set "filterValueGetter" and "valueGetter".
-    // filterValueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-    //   return valueGetterParams.data
-    //     ? valueGetterParams.data.contractName
-    //     : 0;
-    // },
-    // valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-    //   return valueGetterParams.data
-    //     ? valueGetterParams.data.contractName
-    //     : 0;
-    // },
+    valueGetter: (valueGetterParams: ValueGetterParams<T>): string => {
+      let contractName: ContractName = valueGetterParams.data!.contract.name;
+
+      let contractSyncStatus: SyncStatusContract | undefined = undefined;
+      storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
+        contractSyncStatus =
+          syncStatusesChain[targetChain.name].subSyncStatuses[
+            targetProject.name
+          ].subSyncStatuses[targetVersion.name].subSyncStatuses[contractName];
+      });
+
+      let latestBlockNumber: number = 0;
+      storeChainStatus.subscribe((stateChainStatuses: StateChainStatuses) => {
+        latestBlockNumber =
+          stateChainStatuses[targetChain.name].latestBlockNumber;
+      });
+
+      let startBlockNumber: number =
+        valueGetterParams.data!.contract.creation.blockNumber;
+
+      let progressRate: string = contractSyncStatus
+        ? getProgressRate(
+            startBlockNumber,
+            latestBlockNumber,
+            (contractSyncStatus as SyncStatusContract).fetchedBlockNumber
+          ).toString() // in order to sort the column, change type of "progressRate"(=number) to string
+        : NO_DATA;
+
+      return progressRate;
+    },
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
