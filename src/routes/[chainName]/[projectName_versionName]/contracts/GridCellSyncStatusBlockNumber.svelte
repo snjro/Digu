@@ -1,3 +1,23 @@
+<script lang="ts" context="module">
+  type HeaderName = "Start" | "Current" | "Goal";
+  export function getBlockNumberByHeaderName(
+    contract: Contract,
+    headerName: HeaderName,
+    latestBlockNumber: number,
+    fetchedBlockNumber: number | undefined
+  ): number {
+    let targetBlockNumer: number;
+    if (headerName === "Goal") {
+      targetBlockNumer = latestBlockNumber;
+    } else if (headerName === "Current") {
+      targetBlockNumer = fetchedBlockNumber ? fetchedBlockNumber : 0;
+    } else {
+      targetBlockNumer = contract.creation.blockNumber;
+    }
+    return targetBlockNumer;
+  }
+</script>
+
 <script lang="ts">
   import type {
     Chain,
@@ -18,37 +38,35 @@
   export let targetProject: Project;
   export let targetVersion: Version;
   export let targetContract: Contract;
-  export let headerName: "Start" | "Current" | "Goal";
-
+  export let headerName: HeaderName;
   const girdSize: BaseSize = sizeSettings.grid;
 
   let latestBlockNumber: number;
   $: latestBlockNumber = $storeChainStatus[targetChain.name].latestBlockNumber;
+
   let targetContractSyncStatus: SyncStatusContract;
   $: targetContractSyncStatus =
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
       .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name];
+
   let fetchedBlockNumber: number | undefined;
   $: fetchedBlockNumber = targetContractSyncStatus
     ? targetContractSyncStatus.fetchedBlockNumber
     : undefined;
-  $: blockNumber = (): string => {
-    let targetBlockNumer: number;
-    if (headerName === "Goal") {
-      targetBlockNumer = latestBlockNumber;
-    } else if (headerName === "Current") {
-      targetBlockNumer = fetchedBlockNumber ? fetchedBlockNumber : 0;
-    } else {
-      targetBlockNumer = targetContract.creation.blockNumber;
-    }
-    return targetBlockNumer.toString();
-  };
+
+  let blockNumber: number;
+  $: blockNumber = getBlockNumberByHeaderName(
+    targetContract,
+    headerName,
+    latestBlockNumber,
+    fetchedBlockNumber
+  );
 </script>
 
 {#if targetContractSyncStatus}
   <CommonChainExplorerLink
     subdirectory="block"
-    value={blockNumber()}
+    value={blockNumber.toString()}
     textSize={girdSize}
   />
 {:else}

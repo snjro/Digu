@@ -7,11 +7,23 @@ import type {
   CellClassParams,
   CellStyle,
   ICellRendererParams,
+  ValueGetterParams,
 } from "ag-grid-community";
 import type { ContractRow } from "./gridRows";
 import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
-import type { Chain, Project, Version } from "@constants/chains/types";
-import GridCellSyncStatusBlockNumber from "./GridCellSyncStatusBlockNumber.svelte";
+import type {
+  Chain,
+  Contract,
+  Project,
+  Version,
+} from "@constants/chains/types";
+import GridCellSyncStatusBlockNumber, {
+  getBlockNumberByHeaderName,
+} from "./GridCellSyncStatusBlockNumber.svelte";
+import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
+import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { storeChainStatus } from "@stores/storeChainStatus";
+import type { StateChainStatuses } from "@stores/storeTypes";
 
 export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
   targetChain: Chain,
@@ -31,17 +43,35 @@ export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
       }
     },
     columnGroupShow: "open",
-    //TODO: set "filterValueGetter" and "valueGetter".
-    // filterValueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-    //   return valueGetterParams.data
-    //     ? valueGetterParams.data.contractName
-    //     : 0;
-    // },
-    // valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-    //   return valueGetterParams.data
-    //     ? valueGetterParams.data.contractName
-    //     : 0;
-    // },
+    valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
+      let targetContractSyncStatus: SyncStatusContract;
+      let fetchedBlockNumber: number | undefined;
+      let latestBlockNumber: number = 0;
+      let targetContract: Contract = valueGetterParams.data!.contract;
+      storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
+        targetContractSyncStatus =
+          syncStatusesChain[targetChain.name].subSyncStatuses[
+            targetProject.name
+          ].subSyncStatuses[targetVersion.name].subSyncStatuses[
+            targetContract.name
+          ];
+        fetchedBlockNumber = targetContractSyncStatus
+          ? targetContractSyncStatus.fetchedBlockNumber
+          : undefined;
+      });
+      storeChainStatus.subscribe((storeChainStatus: StateChainStatuses) => {
+        latestBlockNumber =
+          storeChainStatus[targetChain.name].latestBlockNumber;
+      });
+
+      return getBlockNumberByHeaderName(
+        targetContract,
+        headerName,
+        latestBlockNumber,
+        fetchedBlockNumber
+      );
+    },
+
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
