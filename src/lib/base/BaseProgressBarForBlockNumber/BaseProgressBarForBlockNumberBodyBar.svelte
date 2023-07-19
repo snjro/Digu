@@ -23,17 +23,17 @@
   $: barWidth = isColoredBar ? progressRate : 100 - progressRate;
   $: roundedStyle = (): `rounded${string}` => {
     if (isColoredBar) {
-      if (progressRate <= 0) {
+      if (progressRate <= 1) {
         return "rounded-none";
-      } else if (progressRate >= 100) {
+      } else if (progressRate >= 99) {
         return "rounded";
       } else {
         return "rounded-l";
       }
     } else {
-      if (progressRate <= 0) {
+      if (progressRate <= 1) {
         return "rounded";
-      } else if (progressRate >= 100) {
+      } else if (progressRate >= 99) {
         return "rounded-none";
       } else {
         return "rounded-r";
