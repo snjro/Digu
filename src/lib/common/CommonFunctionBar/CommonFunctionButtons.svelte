@@ -9,10 +9,9 @@
 </script>
 
 <script lang="ts">
+  import BaseDividerVertical from "$lib/base/BaseDividerVertical.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import type { BaseSize } from "$lib/base/baseSizes";
   import type { BaseTooltipProps } from "$lib/base/BaseTooltip.svelte";
@@ -38,11 +37,14 @@
     "flex",
     "flex-row",
     "items-center",
-    "space-x-5"
+    "space-x-3",
+    ""
   )}
 >
-  {#each buttonDefinitionKeys as buttonDefinitionKey}
-    <div class={classNames("flex", "flex-row", "items-center", "space-x-2")}>
+  {#each buttonDefinitionKeys as buttonDefinitionKey, buttonDefinitionIndex}
+    <div
+      class={classNames("flex", "flex-row", "items-center", "space-x-2", "")}
+    >
       {#each buttonDefinitions[buttonDefinitionKey] as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition }}
         <BaseButtonIcon
           size={buttonSize}
@@ -57,5 +59,10 @@
         />
       {/each}
     </div>
+    <BaseDividerVertical
+      size={buttonSize}
+      colorCategoryBg={colorSettings.gridFunctionButton}
+      hidden={buttonDefinitionIndex >= buttonDefinitionKeys.length - 1}
+    />
   {/each}
 </div>
