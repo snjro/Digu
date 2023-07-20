@@ -13,7 +13,7 @@ export const columnDefs = <T extends ContractRow>(
   targetProject: Project,
   targetVersion: Version,
   urlPathName: string,
-  maxLengthOfConstructorInputsParams: number
+  maxLengthOfConstructorInputsParams: number,
 ): ColumnDef[] => {
   const columnDefs: ColumnDef[] = [
     columnDefsBasic<T>(urlPathName),

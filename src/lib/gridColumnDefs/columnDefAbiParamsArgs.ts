@@ -7,7 +7,7 @@ export const columnDefAbiParamsArgs = <T extends AbiRow>(
   abiParamsKey: keyof T,
   paramTypeName: AbiFragmentParamTypeName,
   maxLengthOfArgs: number,
-  showAbiParamsInputIndexedField: boolean
+  showAbiParamsInputIndexedField: boolean,
 ): ColumnDef[] => {
   let columnDefs: ColumnDef[] = [];
   for (
@@ -23,7 +23,7 @@ export const columnDefAbiParamsArgs = <T extends AbiRow>(
         abiParamsKey,
         showAbiParamsInputIndexedField,
         abiParamArgHeaderName,
-        indexOfArgs
+        indexOfArgs,
       ),
     };
 
@@ -34,7 +34,7 @@ export const columnDefAbiParamsArgs = <T extends AbiRow>(
 
 const headerName = (
   paramTypeName: AbiFragmentParamTypeName,
-  indexOfArgs: number
+  indexOfArgs: number,
 ): string => {
   return `${capitalizeFirstLetter(paramTypeName.slice(0, -1))} ${
     indexOfArgs + 1

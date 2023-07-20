@@ -7,7 +7,7 @@ import { columnDefsOutputs } from "./columnDefsOutputs";
 export const columnDefs = <T extends FunctionRow>(
   urlPathName: string,
   maxLengthOfFunctionInputsParams: number,
-  maxLengthOfFunctionOutputsParams: number
+  maxLengthOfFunctionOutputsParams: number,
 ): ColumnDef[] => {
   const columnDefs: ColumnDef[] = [
     columnDefsBasic<T>(urlPathName),

@@ -24,7 +24,7 @@ export const columnDefChainExplorerLinkByKeyName = <T>(
   headerName: string,
   keyName: keyof T,
   subdirectory: keyof ChainExplorer["subdirectory"],
-  columnGroupShow: "open" | "closed" | undefined = undefined
+  columnGroupShow: "open" | "closed" | undefined = undefined,
 ): ColumnDef => {
   return {
     headerName: headerName,
@@ -63,7 +63,7 @@ export const columnDefChainExplorerLinkByKeyName = <T>(
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
-        cellRendererParams: ICellRendererParams<T>
+        cellRendererParams: ICellRendererParams<T>,
       ) => {
         if (cellRendererParams.data && cellRendererParams.data[keyName]) {
           new CommonChainExplorerLink({
@@ -87,7 +87,7 @@ export const columnDefChainExplorerLinkByKeyName = <T>(
             },
           });
         }
-      }
+      },
     ),
   };
 };

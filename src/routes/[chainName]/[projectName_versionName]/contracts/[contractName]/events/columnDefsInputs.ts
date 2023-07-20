@@ -3,13 +3,13 @@ import type { EventRow } from "./gridRows";
 import { columnDefAbiParams } from "$lib/gridColumnDefs/columnDefAbiParams";
 
 export const columnDefsInputs = <T extends EventRow>(
-  maxLengthOfEventInputsParams: number
+  maxLengthOfEventInputsParams: number,
 ): ColumnDef => {
   const columnDef: ColumnDef = columnDefAbiParams<T>(
     "eventInputs",
     "inputs",
     maxLengthOfEventInputsParams,
-    true
+    true,
   );
   return columnDef;
 };

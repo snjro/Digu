@@ -16,7 +16,7 @@ import { cellAlign } from "./cellStyles";
 export const columnDefAbiParamsNumOfParams = <T extends AbiRow>(
   abiParamsKey: keyof T,
   paramTypeName: AbiFragmentParamTypeName,
-  showAbiParamsInputIndexedField: boolean
+  showAbiParamsInputIndexedField: boolean,
 ): ColumnDef => {
   return {
     headerName: `Num of ${capitalizeFirstLetter(paramTypeName)}`,
@@ -33,26 +33,26 @@ export const columnDefAbiParamsNumOfParams = <T extends AbiRow>(
     cellRenderer: cellRenderer<T>(
       abiParamsKey,
       paramTypeName,
-      showAbiParamsInputIndexedField
+      showAbiParamsInputIndexedField,
     ),
   };
 };
 
 const abiParamsLength = <T extends AbiRow>(
   targetParams: ValueGetterParams<T> | ICellRendererParams<T>,
-  abiParamsKey: keyof T
+  abiParamsKey: keyof T,
 ): number => {
   return getAbiParamsFromAbiRow<T>(targetParams, abiParamsKey).length;
 };
 const cellRenderer = <T extends AbiRow>(
   abiParamsKey: keyof T,
   paramTypeName: AbiFragmentParamTypeName,
-  showAbiParamsInputIndexedField: boolean
+  showAbiParamsInputIndexedField: boolean,
 ) => {
   return cellRendererFactory(
     (
       cell: AbstractCellRenderer,
-      cellRendererParams: ICellRendererParams<T>
+      cellRendererParams: ICellRendererParams<T>,
     ) => {
       if (cellRendererParams.data) {
         new AbiParamsNumberButton({
@@ -60,15 +60,15 @@ const cellRenderer = <T extends AbiRow>(
           props: {
             paramTypes: getAbiParamsFromAbiRow<T>(
               cellRendererParams,
-              abiParamsKey
+              abiParamsKey,
             ),
             dialogHeaderText: `Params of ${capitalizeFirstLetter(
-              paramTypeName
+              paramTypeName,
             )}`,
             showAbiParamsInputIndexedField: showAbiParamsInputIndexedField,
           },
         });
       }
-    }
+    },
   );
 };

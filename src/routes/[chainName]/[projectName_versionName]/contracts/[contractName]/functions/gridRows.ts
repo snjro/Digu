@@ -8,7 +8,7 @@ export type FunctionRow = {
   functionOutputs: FunctionAbiFragment["outputs"];
 };
 export const gridRows = (
-  targetFunctionAbiFragments: FunctionAbiFragment[]
+  targetFunctionAbiFragments: FunctionAbiFragment[],
 ): FunctionRow[] => {
   let functionRows: FunctionRow[] = [];
   for (const functionAbiFragment of targetFunctionAbiFragments) {

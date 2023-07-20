@@ -14,7 +14,7 @@ import type { BaseSize } from "$lib/base/baseSizes";
 const gridSize: BaseSize = sizeSettings.grid;
 export const columnDefsEventsFunctions = <T extends ContractRow>(
   processType: "events" | "functions",
-  urlPathName: string
+  urlPathName: string,
 ): ColumnDef => {
   const keyOfContractRow: keyof T =
     processType === "events"
@@ -31,7 +31,7 @@ export const columnDefsEventsFunctions = <T extends ContractRow>(
         cellStyle: cellAlign("end"),
         columnGroupShow: undefined,
         filterValueGetter: (
-          valueGetterParams: ValueGetterParams<T>
+          valueGetterParams: ValueGetterParams<T>,
         ): number => {
           return valueGetterParams.data
             ? (valueGetterParams.data[keyOfContractRow] as number)
@@ -45,7 +45,7 @@ export const columnDefsEventsFunctions = <T extends ContractRow>(
         cellRenderer: cellRendererFactory(
           (
             cell: AbstractCellRenderer,
-            cellRendererParams: ICellRendererParams<T>
+            cellRendererParams: ICellRendererParams<T>,
           ) => {
             if (cellRendererParams.data) {
               const totalNumber: number = cellRendererParams.data[
@@ -74,7 +74,7 @@ export const columnDefsEventsFunctions = <T extends ContractRow>(
                 });
               }
             }
-          }
+          },
         ),
       },
     ],

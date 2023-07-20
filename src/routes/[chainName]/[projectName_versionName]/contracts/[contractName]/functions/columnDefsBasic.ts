@@ -17,7 +17,7 @@ const sortable = true;
 const editable = false;
 const gridSize: BaseSize = sizeSettings.grid;
 export const columnDefsBasic = <T extends FunctionRow>(
-  urlPathName: string
+  urlPathName: string,
 ): ColumnDef => {
   const columnDef: ColumnDef = {
     headerName: "Basic",
@@ -41,7 +41,7 @@ export const columnDefsBasic = <T extends FunctionRow>(
         cellRenderer: cellRendererFactory(
           (
             cell: AbstractCellRenderer,
-            cellRendererParams: ICellRendererParams<T>
+            cellRendererParams: ICellRendererParams<T>,
           ) => {
             if (cellRendererParams.data) {
               new BaseA({
@@ -58,7 +58,7 @@ export const columnDefsBasic = <T extends FunctionRow>(
                 },
               });
             }
-          }
+          },
         ),
       },
       columnDefStateMutability<T>("functionStateMutability"),
@@ -81,7 +81,7 @@ export const columnDefsBasic = <T extends FunctionRow>(
         cellRenderer: cellRendererFactory(
           (
             cell: AbstractCellRenderer,
-            cellRendererParams: ICellRendererParams<T>
+            cellRendererParams: ICellRendererParams<T>,
           ) => {
             if (cellRendererParams.data) {
               new BaseLabel({
@@ -94,7 +94,7 @@ export const columnDefsBasic = <T extends FunctionRow>(
                 },
               });
             }
-          }
+          },
         ),
       },
     ],

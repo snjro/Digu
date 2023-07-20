@@ -18,7 +18,7 @@ import type { BaseSize } from "$lib/base/baseSizes";
 const girdSize: BaseSize = sizeSettings.grid;
 export const columnDefsNumOfLogs = <T extends EventRow>(
   contractIdentifier: ContractIdentifier,
-  urlPathName: string
+  urlPathName: string,
 ): ColumnDef => {
   return {
     headerName: `Num of Logs`,
@@ -35,12 +35,12 @@ export const columnDefsNumOfLogs = <T extends EventRow>(
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
-        cellRendererParams: ICellRendererParams<T>
+        cellRendererParams: ICellRendererParams<T>,
       ) => {
         if (cellRendererParams.data) {
           const totalNumber: number = recordCount(
             contractIdentifier,
-            cellRendererParams.data?.eventName
+            cellRendererParams.data?.eventName,
           );
           if (totalNumber > 0) {
             {
@@ -65,14 +65,14 @@ export const columnDefsNumOfLogs = <T extends EventRow>(
             });
           }
         }
-      }
+      },
     ),
   };
 };
 
 const recordCount = (
   contractIdentifier: ContractIdentifier,
-  eventName: AbiFragmentName | undefined
+  eventName: AbiFragmentName | undefined,
 ): number => {
   let recordCount: number = 0;
   if (eventName) {

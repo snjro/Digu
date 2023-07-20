@@ -16,7 +16,7 @@ export async function toggleLeftSideBarWithCondition(): Promise<void> {
 
 export function isHrefParentOfPathname(
   href: string,
-  pathname: string
+  pathname: string,
 ): boolean {
   const splitHref: string[] = href.split("/");
   const splitPathname: string[] = pathname.split("/");

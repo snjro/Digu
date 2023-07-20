@@ -37,7 +37,7 @@ export const colorDefinitions: ColorDefinitions = {
   dark: colorDefinitionsDark,
 };
 export function getColorHexWithSharpFromTailwindColor(
-  tailWindColorClass: ColorDefinitionForParts[keyof ColorDefinitionForParts]
+  tailWindColorClass: ColorDefinitionForParts[keyof ColorDefinitionForParts],
 ): `#${string}` {
   const splitTailwindColorClass: string[] = tailWindColorClass.split("-");
   const colorName: keyof DefaultColors =
