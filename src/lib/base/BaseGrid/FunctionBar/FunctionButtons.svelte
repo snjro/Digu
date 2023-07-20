@@ -5,7 +5,10 @@
   } from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
   import type { GridOptions } from "ag-grid-community";
   // import classNames from "classnames";
-  import { setAutoColumnWidth } from "../GridBody/GridBody.svelte";
+  import {
+    setAllColumnGroupState,
+    setAutoColumnWidth,
+  } from "../GridBody/GridBody.svelte";
   import DialogExportCsv, {
     openDialogExportCsv,
   } from "./DialogExportCsv.svelte";
@@ -17,17 +20,35 @@
   export let quickSearchText: string;
   export let exportFilePrefix: ExportFilePrefix;
   $: buttonDefinitions = {
+    groupColumnHandler: [
+      {
+        iconName: "eye",
+        tooltipText: "Show all columns",
+        onClickEventFunction: () =>
+          setAllColumnGroupState(gridOptions.columnApi!, true),
+        tooltipXPosition: isFullScreen ? "left" : "right",
+        tooltipYPosition: isFullScreen ? "bottom" : "top",
+      } as CommonFunctionButtonDefinition,
+      {
+        iconName: "eyeOff",
+        tooltipText: "hide minor columns",
+        onClickEventFunction: () =>
+          setAllColumnGroupState(gridOptions.columnApi!, false),
+        tooltipXPosition: isFullScreen ? "left" : "right",
+        tooltipYPosition: isFullScreen ? "bottom" : "top",
+      } as CommonFunctionButtonDefinition,
+    ],
     columnWidthHandler: [
       {
         iconName: "arrowCollapseHorizontal",
-        tooltipText: "Fit all columns in frame",
+        tooltipText: "Fit columns in frame",
         onClickEventFunction: () => gridOptions.api!.sizeColumnsToFit(),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
       } as CommonFunctionButtonDefinition,
       {
         iconName: "arrowExpandHorizontal",
-        tooltipText: "Expand all columns",
+        tooltipText: "Auto fit columns",
         onClickEventFunction: () => setAutoColumnWidth(gridOptions.columnApi!),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
