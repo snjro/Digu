@@ -168,6 +168,9 @@ const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
           editable: editable,
           cellClass: cellClass,
           columnGroupShow: "open",
+          // ↓ In order to be disabled the data type inference, set "cellDataType" as "false"
+          // (https://www.ag-grid.com/javascript-data-grid/cell-data-types/#inferring-data-types)
+          cellDataType: false,
         },
       ],
     },
