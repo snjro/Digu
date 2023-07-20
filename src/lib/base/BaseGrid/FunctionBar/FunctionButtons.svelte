@@ -22,7 +22,7 @@
   $: buttonDefinitions = {
     groupColumnHandler: [
       {
-        iconName: "eye",
+        iconName: "arrowExpandHorizontal",
         tooltipText: "Show all columns",
         onClickEventFunction: () =>
           setAllColumnGroupState(gridOptions.columnApi!, true),
@@ -30,7 +30,7 @@
         tooltipYPosition: isFullScreen ? "bottom" : "top",
       } as CommonFunctionButtonDefinition,
       {
-        iconName: "eyeOff",
+        iconName: "arrowCollapseHorizontal",
         tooltipText: "hide minor columns",
         onClickEventFunction: () =>
           setAllColumnGroupState(gridOptions.columnApi!, false),
@@ -40,14 +40,14 @@
     ],
     columnWidthHandler: [
       {
-        iconName: "arrowCollapseHorizontal",
+        iconName: "fitToPage",
         tooltipText: "Fit columns in frame",
         onClickEventFunction: () => gridOptions.api!.sizeColumnsToFit(),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
       } as CommonFunctionButtonDefinition,
       {
-        iconName: "arrowExpandHorizontal",
+        iconName: "tableColumnWidth",
         tooltipText: "Auto fit columns",
         onClickEventFunction: () => setAutoColumnWidth(gridOptions.columnApi!),
         tooltipXPosition: isFullScreen ? "left" : "right",
