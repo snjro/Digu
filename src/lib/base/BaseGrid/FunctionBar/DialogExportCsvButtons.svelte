@@ -56,7 +56,9 @@
     const contractFileName: string = getFileNameFragment(contractName);
     const eventFileName: string = getFileNameFragment(eventName);
     const functionFileName: string = getFileNameFragment(functionName);
-    const timeIso8601: string = "-" + convertTimestampSecToIso8601();
+    const timeIso8601: string = getFileNameFragment(
+      convertTimestampSecToIso8601()
+    );
 
     const csvFileName: string = `${csvFileNameHeader}${chainFileName}${projectVersionFileName}${contractFileName}${eventFileName}${functionFileName}${timeIso8601}.csv`;
     return csvFileName;
