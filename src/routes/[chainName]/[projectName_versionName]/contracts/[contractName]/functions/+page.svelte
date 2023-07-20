@@ -53,7 +53,7 @@
       titleText={titleText()}
       {titleCategoryLabelText}
       hidden={false}
-      csvFileNameHeader="functions"
+      exportFilePrefix="functions"
     />
   </BaseTab>
 </BasePageContainer>

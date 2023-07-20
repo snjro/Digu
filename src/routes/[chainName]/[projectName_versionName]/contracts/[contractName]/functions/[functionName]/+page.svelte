@@ -33,6 +33,7 @@
       {titleCategoryLabelText}
       {titleText}
       hidden={selectedTab !== "ABI Fragment"}
+      fragment
     />
   </BaseTab>
 </BasePageContainer>

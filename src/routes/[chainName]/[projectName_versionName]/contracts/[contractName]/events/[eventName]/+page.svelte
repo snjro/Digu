@@ -56,6 +56,7 @@
       {titleCategoryLabelText}
       titleText={eventName}
       hidden={selectedTab !== "ABI Fragment"}
+      fragment
     />
   </BaseTab>
 </BasePageContainer>

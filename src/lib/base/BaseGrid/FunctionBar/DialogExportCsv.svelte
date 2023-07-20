@@ -20,8 +20,8 @@
 </script>
 
 <script lang="ts">
+  import type { ExportFilePrefix } from "@utils/utilsFile";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseDialog, {
@@ -40,7 +40,7 @@
   type GridRow = $$Generic;
   export let gridOptions: GridOptions<GridRow>;
   export let dialogElement: HTMLDialogElement;
-  export let csvFileNameHeader: string;
+  export let exportFilePrefix: ExportFilePrefix;
 
   const colorCategory: ColorCategory = colorSettings.dialogHeader;
 
@@ -176,7 +176,7 @@
     <DialogExportCsvButtons
       {gridOptions}
       {exportCsvRadioProps}
-      {csvFileNameHeader}
+      {exportFilePrefix}
     />
   </form>
 </BaseDialog>

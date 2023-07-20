@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { ExportFilePrefix } from "@utils/utilsFile";
   import CommonFunctionButtons, {
     type CommonFunctionButtonDefinition,
   } from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
@@ -14,7 +15,7 @@
   export let rows: GridRow[];
   export let isFullScreen: boolean;
   export let quickSearchText: string;
-  export let csvFileNameHeader: string;
+  export let exportFilePrefix: ExportFilePrefix;
   $: buttonDefinitions = {
     columnWidthHandler: [
       {
@@ -99,5 +100,5 @@
   let dialogElement: HTMLDialogElement;
 </script>
 
-<DialogExportCsv {gridOptions} bind:dialogElement {csvFileNameHeader} />
+<DialogExportCsv {gridOptions} bind:dialogElement {exportFilePrefix} />
 <CommonFunctionButtons {buttonDefinitions} />

@@ -45,7 +45,7 @@
       titleText={contractName}
       {titleCategoryLabelText}
       hidden={false}
-      csvFileNameHeader="events"
+      exportFilePrefix="events"
     />
   </BaseTab>
 </BasePageContainer>

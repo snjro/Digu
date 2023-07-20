@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { ExportFilePrefix } from "@utils/utilsFile";
+
   import "ag-grid-community/styles/ag-grid.css";
   import "ag-grid-community/styles/ag-theme-balham.css";
   // import "ag-grid-community/styles/ag-theme-balham-dark.css";
@@ -23,7 +25,7 @@
   export let titleCategoryLabelText: string;
   export let titleText: string;
   export let hidden: boolean;
-  export let csvFileNameHeader: string;
+  export let exportFilePrefix: ExportFilePrefix;
   let gridOptions: GridOptions<GridRow> = getGridOptions<GridRow>(
     suppressFieldDotNotation,
     suppressRowTransform,
@@ -43,7 +45,7 @@
     bind:isFullScreen
     {titleCategoryLabelText}
     {titleText}
-    {csvFileNameHeader}
+    {exportFilePrefix}
   />
   <GridBody
     bind:gridOptions
