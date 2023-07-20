@@ -69,8 +69,6 @@
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
       } as CommonFunctionButtonDefinition,
-    ],
-    export: [
       {
         iconName: "download",
         tooltipText: "Export CSV",
