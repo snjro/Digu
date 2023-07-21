@@ -11,11 +11,11 @@ export abstract class dbBase extends Dexie {
   }
   protected abstract getSchemaDefinition(
     targetContracts?: Contract[],
-    versionIdentifier?: VersionIdentifier,
+    versionIdentifier?: VersionIdentifier
   ): SchemaDefinition;
   protected abstract addInitialData(
     tx: Transaction,
-    targetContracts?: Contract[],
+    targetContracts?: Contract[]
   ): Promise<void>;
 }
 function getDbName(dbNameElement: string[] | string): string {

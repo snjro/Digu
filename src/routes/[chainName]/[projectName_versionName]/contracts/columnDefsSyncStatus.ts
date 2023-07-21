@@ -8,7 +8,7 @@ import { columnDefsSyncstatusCurrentState } from "./columnDefsSyncStatusCurrentS
 export const columnDefsSyncStatus = (
   targetChain: Chain,
   targetProject: Project,
-  targetVersion: Version,
+  targetVersion: Version
 ): ColumnDef => {
   const columnDef: ColumnDef = {
     headerName: "Sync Status",
@@ -18,30 +18,30 @@ export const columnDefsSyncStatus = (
       columnDefsSyncstatusCurrentState(
         targetChain,
         targetProject,
-        targetVersion,
+        targetVersion
       ),
       columnDefsSyncstatusProgressBar(
         targetChain,
         targetProject,
-        targetVersion,
+        targetVersion
       ),
       columnDefsSyncStatusBlockNumber(
         targetChain,
         targetProject,
         targetVersion,
-        "Start",
+        "Start"
       ),
       columnDefsSyncStatusBlockNumber(
         targetChain,
         targetProject,
         targetVersion,
-        "Current",
+        "Current"
       ),
       columnDefsSyncStatusBlockNumber(
         targetChain,
         targetProject,
         targetVersion,
-        "Goal",
+        "Goal"
       ),
     ],
   };

@@ -9,7 +9,7 @@ function store() {
   const { subscribe, set, update } = writable(state);
   const updateState = (
     chainName: ChainName,
-    newChainStatus: Partial<ChainStatus>,
+    newChainStatus: Partial<ChainStatus>
   ): void => {
     Object.assign(state[chainName], newChainStatus);
     set(state);

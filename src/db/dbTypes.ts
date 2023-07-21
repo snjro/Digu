@@ -179,7 +179,7 @@ type SyncStatusBaseBooleanItems = {
 };
 export type SyncStatusBase<
   T extends IdentifierName,
-  U extends SubSyncStatuses,
+  U extends SubSyncStatuses
 > = {
   name: T;
   subSyncStatuses: U;

@@ -25,7 +25,7 @@ export function extractEventContracts(targetContracts: Contract[]): Contract[] {
   const eventContracts: Contract[] = targetContracts.filter(
     (contract: Contract) => {
       return contract.events.abiFragments.length > 0 ? true : false;
-    },
+    }
   );
   return eventContracts;
 }
@@ -33,7 +33,7 @@ export type NodeProvider = JsonRpcProvider | WebSocketProvider;
 
 export async function getNodeProvider(
   chainName: ChainName,
-  rpc: string,
+  rpc: string
 ): Promise<NodeProvider | undefined> {
   const httpProtocols: string[] = ["http:", "https:"];
   const webSoketProtocols: string[] = ["ws:", "wss:"];
@@ -72,13 +72,13 @@ export async function getNodeProvider(
 }
 export async function getAndUpdateLatestBlockNumber(
   nodeProvider: NodeProvider,
-  chainName: ChainName,
+  chainName: ChainName
 ): Promise<number> {
   const latestBlockNumber: number = await nodeProvider.getBlockNumber();
   await updateDbItemChainStatus(
     chainName,
     "latestBlockNumber",
-    latestBlockNumber,
+    latestBlockNumber
   );
   return latestBlockNumber;
 }
@@ -87,7 +87,7 @@ export async function getEthersEventLogs(
   eventNames: EventAbiFragment["name"][],
   ethersContract: EthersContract,
   fromBlock: number,
-  toBLock: number,
+  toBLock: number
 ): Promise<EthersEventLog[]> {
   let ethersEventLogs: EthersEventLog[] = [];
   for (const eventName of eventNames) {
@@ -95,7 +95,7 @@ export async function getEthersEventLogs(
       ethersContract,
       eventName,
       fromBlock,
-      toBLock,
+      toBLock
     );
     ethersEventLogs.concat(fetchedEthersEventLogs);
   }
@@ -106,12 +106,12 @@ async function queryFilter(
   ethersContract: EthersContract,
   eventName: string,
   fromBlock: number,
-  toBLock: number,
+  toBLock: number
 ): Promise<EthersEventLog[]> {
   let ethersEventLog: Array<EventLog | Log> = await ethersContract.queryFilter(
     eventName,
     fromBlock,
-    toBLock,
+    toBLock
   );
   if (isEventLogs(ethersEventLog)) {
     return ethersEventLog;
@@ -120,7 +120,7 @@ async function queryFilter(
   }
 }
 function isEventLogs(
-  eventLogs: Array<EventLog | Log>,
+  eventLogs: Array<EventLog | Log>
 ): eventLogs is Array<EventLog> {
   let eventLog: EventLog | Log;
   for (eventLog of eventLogs) {

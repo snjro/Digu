@@ -17,11 +17,11 @@ export async function startSyncingInChain(chainName: ChainName): Promise<void> {
     "isSyncTarget",
     true,
     "isSyncing",
-    true,
+    true
   );
 }
 export async function startAbortingInChain(
-  chainName: ChainName,
+  chainName: ChainName
 ): Promise<void> {
   myLogger.start(`Abort sync process. Chain: ${chainName}`);
   await setSyncStatusInChain(chainName, "isSyncing", true, "isAbort", true);
@@ -34,28 +34,28 @@ export async function stopSyncingInChain(chainName: ChainName): Promise<void> {
 }
 export async function stopSyncingInContract(
   dbEventLogs: DbEventLogs,
-  contractName: ContractName,
+  contractName: ContractName
 ): Promise<void> {
   const promiseUpdate: Promise<void>[] = [];
   myLogger.start(`Stop sync process. Contract: ${contractName}`);
   promiseUpdate.push(
-    updateDbItemSyncStatus(dbEventLogs, contractName, "isSyncing", false),
+    updateDbItemSyncStatus(dbEventLogs, contractName, "isSyncing", false)
   );
   promiseUpdate.push(
-    updateDbItemSyncStatus(dbEventLogs, contractName, "isAbort", false),
+    updateDbItemSyncStatus(dbEventLogs, contractName, "isAbort", false)
   );
   await Promise.all(promiseUpdate);
   myLogger.success(`Stopped sync process. Contract: ${contractName}`);
 }
 async function setSyncStatusInChain<
   T extends keyof SyncStatusContract,
-  U extends keyof SyncStatusContract,
+  U extends keyof SyncStatusContract
 >(
   chainName: ChainName,
   targetKey: T,
   targetValue: SyncStatusContract[T],
   updateKey: U,
-  updateValue: SyncStatusContract[U],
+  updateValue: SyncStatusContract[U]
 ): Promise<void> {
   const targetChain: Chain = getTargetChain({ chainName: chainName });
   const promiseUpdate: Promise<void>[] = [];
@@ -70,15 +70,15 @@ async function setSyncStatusInChain<
       for (const targetSyncStatusContract of await getDbRecordsSyncStatusContractByKeyValue(
         dbEventLogs,
         targetKey,
-        targetValue,
+        targetValue
       )) {
         promiseUpdate.push(
           updateDbItemSyncStatus(
             dbEventLogs,
             targetSyncStatusContract.name,
             updateKey,
-            updateValue,
-          ),
+            updateValue
+          )
         );
       }
     }
@@ -89,13 +89,13 @@ async function setSyncStatusInChain<
 export async function updateDbIsSyncTarget(
   dbEventLogs: DbEventLogs,
   contractName: ContractName,
-  newValue: boolean,
+  newValue: boolean
 ) {
   await updateDbItemSyncStatus(
     dbEventLogs,
     contractName,
     "isSyncTarget",
-    newValue,
+    newValue
   );
 
   let numOfSyncTargetContract: number = newValue ? 1 : 0;
@@ -104,24 +104,24 @@ export async function updateDbIsSyncTarget(
     dbEventLogs,
     contractName,
     "numOfSyncTargetContract",
-    numOfSyncTargetContract,
+    numOfSyncTargetContract
   );
 }
 
 export async function getDbRecordSyncStatusContract(
   dbEventLogs: DbEventLogs,
-  contractName: ContractName,
+  contractName: ContractName
 ): Promise<SyncStatusContract> {
   return await dbEventLogs.transaction("r", tableNameSyncStatus, async () => {
     return await dbEventLogs.table(tableNameSyncStatus).get(contractName);
   });
 }
 export async function getDbRecordsSyncStatusContractByKeyValue<
-  T extends keyof SyncStatusContract,
+  T extends keyof SyncStatusContract
 >(
   dbEventLogs: DbEventLogs,
   key: T,
-  value: SyncStatusContract[T],
+  value: SyncStatusContract[T]
 ): Promise<SyncStatusContract[]> {
   return await dbEventLogs.transaction("r", tableNameSyncStatus, async () => {
     const syncingSyncStatusesContract: SyncStatusContract[] = (
@@ -137,7 +137,7 @@ export async function getDbRecordsSyncStatusContractByKeyValue<
 export async function getDbItemSyncStatus<T extends keyof SyncStatusContract>(
   dbEventLogs: DbEventLogs,
   contractName: ContractName,
-  key: T,
+  key: T
 ): Promise<SyncStatusContract[T]> {
   const syncStatusContract: SyncStatusContract =
     await getDbRecordSyncStatusContract(dbEventLogs, contractName);
@@ -145,12 +145,12 @@ export async function getDbItemSyncStatus<T extends keyof SyncStatusContract>(
 }
 
 export async function updateDbItemSyncStatus<
-  T extends keyof SyncStatusContract,
+  T extends keyof SyncStatusContract
 >(
   dbEventLogs: DbEventLogs,
   contractName: ContractName,
   key: T,
-  newValue: SyncStatusContract[T],
+  newValue: SyncStatusContract[T]
 ): Promise<void> {
   const contractIdentifier: ContractIdentifier = {
     ...dbEventLogs.versionIdentifier,

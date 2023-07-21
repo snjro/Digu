@@ -21,7 +21,7 @@ export async function initializeDB(): Promise<void> {
         };
         const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
         for (const targetContract of extractEventContracts(
-          targetVersion.contracts,
+          targetVersion.contracts
         )) {
           promises.push(initializeDBSyncStatus(dbEventLogs, targetContract));
         }
@@ -32,27 +32,22 @@ export async function initializeDB(): Promise<void> {
 }
 async function initializeDBSyncStatus(
   dbEventLogs: DbEventLogs,
-  targetContract: Contract,
+  targetContract: Contract
 ): Promise<void> {
   const promises: Promise<void>[] = [];
   promises.push(
-    updateDbItemSyncStatus(dbEventLogs, targetContract.name, "isAbort", false),
+    updateDbItemSyncStatus(dbEventLogs, targetContract.name, "isAbort", false)
   );
   promises.push(
-    updateDbItemSyncStatus(
-      dbEventLogs,
-      targetContract.name,
-      "isSyncing",
-      false,
-    ),
+    updateDbItemSyncStatus(dbEventLogs, targetContract.name, "isSyncing", false)
   );
   promises.push(
     updateDbItemSyncStatus(
       dbEventLogs,
       targetContract.name,
       "creationBlockNumber",
-      targetContract.creation.blockNumber,
-    ),
+      targetContract.creation.blockNumber
+    )
   );
   promises.push(updateRecordCount(dbEventLogs, targetContract));
   await Promise.all(promises);
@@ -71,7 +66,7 @@ async function initializeDBSettings(): Promise<void> {
 }
 async function updateRecordCount(
   dbEventLogs: DbEventLogs,
-  targetContract: Contract,
+  targetContract: Contract
 ): Promise<void> {
   const syncStatusesEvent: SyncStatusesEvent = {};
 
@@ -79,7 +74,7 @@ async function updateRecordCount(
     syncStatusesEvent[eventName] = {
       recordCount: await getEventLogTableRecordCount(
         dbEventLogs,
-        getEventLogTableName(targetContract.name, eventName),
+        getEventLogTableName(targetContract.name, eventName)
       ),
     };
   }
@@ -87,6 +82,6 @@ async function updateRecordCount(
     dbEventLogs,
     targetContract.name,
     "events",
-    syncStatusesEvent,
+    syncStatusesEvent
   );
 }

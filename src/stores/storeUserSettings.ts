@@ -8,7 +8,7 @@ function store() {
   const { subscribe, set, update } = writable(state);
   const updateState = (
     userSettingsKey: UserSetting["userSettingsKey"],
-    newValue: UserSetting["value"],
+    newValue: UserSetting["value"]
   ): void => {
     state[userSettingsKey] = newValue;
     set(state);

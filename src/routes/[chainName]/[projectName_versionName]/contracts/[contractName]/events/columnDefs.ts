@@ -9,7 +9,7 @@ import type { ContractIdentifier } from "@db/dbTypes";
 export const columnDefs = <T extends EventRow>(
   urlPathName: string,
   maxLengthOfFunctionInputsParams: number,
-  contractIdentifier: ContractIdentifier,
+  contractIdentifier: ContractIdentifier
 ): ColumnDef[] => {
   const columnDefs: ColumnDef[] = [
     columnDefsBasic<T>(urlPathName),

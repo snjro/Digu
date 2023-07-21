@@ -30,7 +30,7 @@ export type ExportFileExtention = keyof typeof dataTypes;
 export function ExportDataToFile(
   targetData: string,
   exportFileName: ExportFileName,
-  extention: ExportFileExtention,
+  extention: ExportFileExtention
 ): void {
   let fileLikeObject: Blob = new Blob([targetData], {
     type: dataTypes[extention].mimeType,
@@ -53,17 +53,17 @@ export type ExportFileName =
 export function getExportFileName(
   prefix: ExportFilePrefix,
   pageParams: Record<string, string>,
-  extention: ExportFileExtention,
+  extention: ExportFileExtention
 ): ExportFileName {
   const chainFileName: string = getFileNameFragment(pageParams.chainName);
   const projectVersionFileName: string = getFileNameFragment(
-    pageParams.projectName_versionName,
+    pageParams.projectName_versionName
   );
   const contractFileName: string = getFileNameFragment(pageParams.contractName);
   const eventFileName: string = getFileNameFragment(pageParams.eventName);
   const functionFileName: string = getFileNameFragment(pageParams.functionName);
   const timeIso8601: string = getFileNameFragment(
-    convertTimestampSecToIso8601(),
+    convertTimestampSecToIso8601()
   );
 
   const exportFileName: ExportFileName = `${prefix}${chainFileName}${projectVersionFileName}${contractFileName}${eventFileName}${functionFileName}${timeIso8601}.${extention}`;

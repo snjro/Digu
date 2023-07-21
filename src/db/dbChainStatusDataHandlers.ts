@@ -5,14 +5,14 @@ import { dbChainStatus } from "./dbChainStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
 const tableNameChainStatus = DB_TABLE_NAMES.ChainStatus;
 export async function getDbRecordChainStatus(
-  chainName: ChainName,
+  chainName: ChainName
 ): Promise<ChainStatus> {
   return await dbChainStatus.transaction(
     "r",
     tableNameChainStatus,
     async () => {
       return await dbChainStatus.table(tableNameChainStatus).get(chainName);
-    },
+    }
   );
 }
 // export async function getDbItemChainStatus<T extends keyof ChainStatus>(
@@ -26,7 +26,7 @@ export async function getDbRecordChainStatus(
 export async function updateDbItemChainStatus<T extends keyof ChainStatus>(
   chainName: ChainName,
   key: T,
-  newValue: ChainStatus[T],
+  newValue: ChainStatus[T]
 ): Promise<void> {
   await dbChainStatus
     .transaction("rw", tableNameChainStatus, async () => {

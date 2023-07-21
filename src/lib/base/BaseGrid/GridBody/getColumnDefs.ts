@@ -23,7 +23,7 @@ function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
       "grid",
       "justify-end",
       "text-right",
-      "",
+      ""
     ),
     type: "numericColumn",
     maxWidth: 70,
@@ -34,7 +34,7 @@ function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
     suppressMovable: true,
   };
   const concattedColumnDefs: ColumnDef[] = [columnDefRowNumber].concat(
-    paramColumnDefs,
+    paramColumnDefs
   );
   return concattedColumnDefs;
 }
@@ -54,7 +54,7 @@ function setGroupColumnClassHeader(groupColumnDef: ColGroupDef): void {
     // "border-r",
     // "border-white",
     // headerColorBg,
-    groupColumnDef.headerClass?.toString(),
+    groupColumnDef.headerClass?.toString()
   );
 }
 function setGroupColumnClassCell(groupColumnDef: ColGroupDef): void {
@@ -72,7 +72,7 @@ function setSingleColumnClassHeader(singleColumnDef: ColDef): void {
     // "border-y border-r",
     // "border-white",
     // headerColorBg,
-    singleColumnDef.headerClass?.toString(),
+    singleColumnDef.headerClass?.toString()
   );
 }
 function setSingleColumnClassCell(singleColumnDef: ColDef): void {
@@ -84,6 +84,6 @@ function setSingleColumnClassCell(singleColumnDef: ColDef): void {
     // "bg-black",
     // "border-l",
     // "border-gray-700",
-    singleColumnDef.cellClass ? singleColumnDef.cellClass.toString() : "",
+    singleColumnDef.cellClass ? singleColumnDef.cellClass.toString() : ""
   );
 }

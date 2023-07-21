@@ -10,7 +10,7 @@ export function setChildElementInScroll(
   parentElement: HTMLElement | null,
   childElement: HTMLElement | null,
   headerElement: HTMLElement | null,
-  storeNoDbOpenLeftSidebarAccordion: OpenStateLeftSidebarAccordion,
+  storeNoDbOpenLeftSidebarAccordion: OpenStateLeftSidebarAccordion
 ): void {
   if (
     browser &&
@@ -29,7 +29,7 @@ export function setChildElementInScroll(
         setChildElementTopInScroll(
           parentElement,
           childElement,
-          headerElement.offsetHeight,
+          headerElement.offsetHeight
         );
         break;
 
@@ -37,7 +37,7 @@ export function setChildElementInScroll(
         setChildElementBottomInScroll(
           parentElement,
           childElement,
-          headerElement.offsetHeight - childElement.clientHeight,
+          headerElement.offsetHeight - childElement.clientHeight
         );
         break;
 
@@ -49,14 +49,14 @@ export function setChildElementInScroll(
 function setChildElementTopInScroll(
   parentElement: HTMLElement,
   childElement: HTMLElement,
-  offsetHeight = 0,
+  offsetHeight = 0
 ): void {
   parentElement.scrollTop = childElement.offsetTop - offsetHeight;
 }
 function setChildElementBottomInScroll(
   parentElement: HTMLElement,
   childElement: HTMLElement,
-  offsetHeight = 0,
+  offsetHeight = 0
 ): void {
   parentElement.scrollTop =
     childElement.offsetTop - parentElement.clientHeight - offsetHeight;

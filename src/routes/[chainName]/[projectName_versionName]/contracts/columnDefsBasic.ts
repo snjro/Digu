@@ -19,7 +19,7 @@ const cellClass: string = classNames("");
 const sortable = true;
 const editable = false;
 export const columnDefsBasic = <T extends ContractRow>(
-  urlPathName: string,
+  urlPathName: string
 ): ColumnDef => {
   const columnDef: ColumnDef = {
     headerName: "Basics",
@@ -44,7 +44,7 @@ export const columnDefsBasic = <T extends ContractRow>(
         cellRenderer: cellRendererFactory(
           (
             cell: AbstractCellRenderer,
-            cellRendererParams: ICellRendererParams<T>,
+            cellRendererParams: ICellRendererParams<T>
           ) => {
             if (cellRendererParams.data) {
               new BaseA({
@@ -61,7 +61,7 @@ export const columnDefsBasic = <T extends ContractRow>(
                 },
               });
             }
-          },
+          }
         ),
       },
 
@@ -69,7 +69,7 @@ export const columnDefsBasic = <T extends ContractRow>(
         "contract address",
         "contractAddress",
         "address",
-        "open",
+        "open"
       ),
       {
         headerName: "Source URL",
@@ -83,7 +83,7 @@ export const columnDefsBasic = <T extends ContractRow>(
         cellRenderer: cellRendererFactory(
           (
             cell: AbstractCellRenderer,
-            cellRendererParams: ICellRendererParams<T>,
+            cellRendererParams: ICellRendererParams<T>
           ) => {
             if (cellRendererParams.data?.contractSourceCodeUrl) {
               new CommonOpenLink({
@@ -104,7 +104,7 @@ export const columnDefsBasic = <T extends ContractRow>(
                 },
               });
             }
-          },
+          }
         ),
       },
     ],

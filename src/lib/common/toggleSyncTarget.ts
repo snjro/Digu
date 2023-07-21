@@ -14,19 +14,19 @@ export async function toggleIsSyncTarget<
   CH extends ChainName,
   PR extends ProjectName | undefined = undefined,
   VE extends VersionName | undefined = undefined,
-  CO extends ContractName | undefined = undefined,
+  CO extends ContractName | undefined = undefined
 >(
   chainName: CH,
   projectName?: PR,
   versionName?: PR extends ProjectName ? VE : undefined,
-  contractName?: VE extends VersionName ? CO : undefined,
+  contractName?: VE extends VersionName ? CO : undefined
 ): Promise<void> {
   if (projectName && versionName && contractName) {
     await toggleIsSyncTargetContract(
       chainName,
       projectName,
       versionName,
-      contractName,
+      contractName
     );
   } else if (projectName && versionName && !contractName) {
     await toggleIsSyncTargetVersion(chainName, projectName, versionName);
@@ -41,7 +41,7 @@ async function toggleIsSyncTargetChain(chainName: ChainName) {
   const newValue = getNewValueOfIsSyncTarget(
     get(storeSyncStatus),
     undefined,
-    chainName,
+    chainName
   );
   for (const projectName in get(storeSyncStatus)[chainName].subSyncStatuses) {
     promises.push(toggleIsSyncTargetProject(chainName, projectName, newValue));
@@ -51,20 +51,20 @@ async function toggleIsSyncTargetChain(chainName: ChainName) {
 async function toggleIsSyncTargetProject(
   chainName: ChainName,
   projectName: ProjectName,
-  newValue?: boolean,
+  newValue?: boolean
 ) {
   const promises: Promise<void>[] = [];
   newValue = getNewValueOfIsSyncTarget(
     get(storeSyncStatus),
     newValue,
     chainName,
-    projectName,
+    projectName
   );
   for (const versionName in get(storeSyncStatus)[chainName].subSyncStatuses[
     projectName
   ].subSyncStatuses) {
     promises.push(
-      toggleIsSyncTargetVersion(chainName, projectName, versionName, newValue),
+      toggleIsSyncTargetVersion(chainName, projectName, versionName, newValue)
     );
   }
   await Promise.all(promises);
@@ -73,7 +73,7 @@ async function toggleIsSyncTargetVersion(
   chainName: ChainName,
   projectName: ProjectName,
   versionName: VersionName,
-  newValue?: boolean,
+  newValue?: boolean
 ) {
   const promises: Promise<void>[] = [];
   newValue = getNewValueOfIsSyncTarget(
@@ -81,7 +81,7 @@ async function toggleIsSyncTargetVersion(
     newValue,
     chainName,
     projectName,
-    versionName,
+    versionName
   );
   for (const contractName in get(storeSyncStatus)[chainName].subSyncStatuses[
     projectName
@@ -92,8 +92,8 @@ async function toggleIsSyncTargetVersion(
         projectName,
         versionName,
         contractName,
-        newValue,
-      ),
+        newValue
+      )
     );
   }
   await Promise.all(promises);
@@ -103,7 +103,7 @@ async function toggleIsSyncTargetContract(
   projectName: ProjectName,
   versionName: VersionName,
   contractName: ContractName,
-  newValue?: boolean,
+  newValue?: boolean
 ) {
   const dbEventLogs = new DbEventLogs({
     chainName: chainName,
@@ -116,7 +116,7 @@ async function toggleIsSyncTargetContract(
     chainName,
     projectName,
     versionName,
-    contractName,
+    contractName
   );
   await updateDbIsSyncTarget(dbEventLogs, contractName, newValue);
 }
@@ -124,14 +124,14 @@ function getNewValueOfIsSyncTarget<
   CH extends ChainName,
   PR extends ProjectName | undefined = undefined,
   VE extends VersionName | undefined = undefined,
-  CO extends ContractName | undefined = undefined,
+  CO extends ContractName | undefined = undefined
 >(
   syncStatuses: SyncStatusesChain,
   newValue: boolean | undefined,
   chainName: CH,
   projectName?: PR,
   versionName?: PR extends ProjectName ? VE : undefined,
-  contractName?: VE extends VersionName ? CO : undefined,
+  contractName?: VE extends VersionName ? CO : undefined
 ): boolean {
   if (newValue === undefined) {
     let currentValue: boolean = true;

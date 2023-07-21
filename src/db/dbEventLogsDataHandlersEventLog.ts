@@ -20,12 +20,12 @@ export async function addEventLogs_updateFetchedBlockNumber(
   dbEventLogs: DbEventLogs,
   targetContract: Contract,
   groupedEventLogs: GroupedEventLogs,
-  toBlockNumber: number,
+  toBlockNumber: number
 ): Promise<void> {
   const eventLogTables: Table[] = getUpdateTargetTables(
     dbEventLogs,
     targetContract.name,
-    groupedEventLogs,
+    groupedEventLogs
   );
 
   const eventLogTableNames = eventLogTables.map((eventLogTable: Table) => {
@@ -37,7 +37,7 @@ export async function addEventLogs_updateFetchedBlockNumber(
       const syncStatusesEvent: SyncStatusesEvent = await getDbItemSyncStatus(
         dbEventLogs,
         targetContract.name,
-        "events",
+        "events"
       );
 
       let bulkPutInfo: (VersionIdentifier & {
@@ -49,11 +49,11 @@ export async function addEventLogs_updateFetchedBlockNumber(
       for (const eventName of Object.keys(groupedEventLogs)) {
         const tableName: string = getEventLogTableName(
           targetContract.name,
-          eventName,
+          eventName
         );
         const numOfRecords: number = groupedEventLogs[eventName].length;
         promiseBulkAdds.push(
-          dbEventLogs.table(tableName).bulkPut(groupedEventLogs[eventName]),
+          dbEventLogs.table(tableName).bulkPut(groupedEventLogs[eventName])
         );
         syncStatusesEvent[eventName].recordCount += numOfRecords;
         bulkPutInfo.push({
@@ -72,14 +72,14 @@ export async function addEventLogs_updateFetchedBlockNumber(
         dbEventLogs,
         targetContract.name,
         "events",
-        syncStatusesEvent,
+        syncStatusesEvent
       );
     }
     await updateDbItemSyncStatus(
       dbEventLogs,
       targetContract.name,
       "fetchedBlockNumber",
-      toBlockNumber,
+      toBlockNumber
     );
   });
 }
@@ -87,7 +87,7 @@ export async function addEventLogs_updateFetchedBlockNumber(
 function getUpdateTargetTables(
   dbEventLogs: DbEventLogs,
   contractName: ContractName,
-  groupedEventLogs: GroupedEventLogs,
+  groupedEventLogs: GroupedEventLogs
 ): Table[] {
   const eventNames: string[] = Object.keys(groupedEventLogs);
   let updateTargetTables: Table[] = eventNames.map((eventName) => {
@@ -96,7 +96,7 @@ function getUpdateTargetTables(
   });
 
   updateTargetTables.push(
-    dbEventLogs.table(DB_TABLE_NAMES.EventLog.syncStatus),
+    dbEventLogs.table(DB_TABLE_NAMES.EventLog.syncStatus)
   );
 
   return updateTargetTables;
@@ -104,14 +104,14 @@ function getUpdateTargetTables(
 
 export async function getEventLogTableRecordCount(
   dbEventLogs: DbEventLogs,
-  tableName: string,
+  tableName: string
 ): Promise<number> {
   return await dbEventLogs.table(tableName).count();
 }
 export async function getEventLogTableRecords(
   dbEventLogs: DbEventLogs,
   tableName: string,
-  sortModifier: "asc" | "desc" | undefined,
+  sortModifier: "asc" | "desc" | undefined
 ): Promise<ConvertedEventLog[]> {
   let eventLogs: ConvertedEventLog[] = await dbEventLogs
     .table(tableName)
@@ -123,7 +123,7 @@ export async function getEventLogTableRecords(
 }
 function sortEventLogs(
   convertedEventLogs: ConvertedEventLog[],
-  sortModifier: "asc" | "desc",
+  sortModifier: "asc" | "desc"
 ): ConvertedEventLog[] {
   if (convertedEventLogs) {
     if (sortModifier === "asc") {

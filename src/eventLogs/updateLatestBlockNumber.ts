@@ -14,7 +14,7 @@ const functionName: string = "updateLatestBlocknumber";
 
 export async function startUpdateLatestBlockNumber(
   targetChainName: ChainName,
-  nodeProvider: NodeProvider,
+  nodeProvider: NodeProvider
 ): Promise<void> {
   myLogger.start(`${functionName}()`, {
     chainName: targetChainName,

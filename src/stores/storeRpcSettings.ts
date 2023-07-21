@@ -10,7 +10,7 @@ function store() {
   const { subscribe, set, update } = writable(state);
   const updateState = (
     chainName: ChainName,
-    newRpcSetting: Partial<RpcSetting>,
+    newRpcSetting: Partial<RpcSetting>
   ): void => {
     Object.assign(state[chainName], newRpcSetting);
     // update((newState) => newState)

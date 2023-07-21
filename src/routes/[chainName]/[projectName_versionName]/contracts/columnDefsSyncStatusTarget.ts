@@ -29,7 +29,7 @@ import { NO_DATA } from "@utils/utilsCostants";
 export const columnDefsSyncStatusTarget = <T extends ContractRow>(
   targetChain: Chain,
   targetProject: Project,
-  targetVersion: Version,
+  targetVersion: Version
 ): ColumnDef => {
   const columnDef: ColumnDef = {
     headerName: "target",
@@ -44,7 +44,7 @@ export const columnDefsSyncStatusTarget = <T extends ContractRow>(
     },
     columnGroupShow: undefined,
     valueGetter: (
-      valueGetterParams: ValueGetterParams<T>,
+      valueGetterParams: ValueGetterParams<T>
     ): SyncTargetLabelText | typeof NO_DATA => {
       let contractSyncStatus: SyncStatusContract | undefined = undefined;
       let contractName: ContractName = valueGetterParams.data!.contract.name;
@@ -61,7 +61,7 @@ export const columnDefsSyncStatusTarget = <T extends ContractRow>(
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
-        cellRendererParams: ICellRendererParams<T>,
+        cellRendererParams: ICellRendererParams<T>
       ) => {
         new GridCellSyncStatusTarget({
           target: cell.eGui,
@@ -72,7 +72,7 @@ export const columnDefsSyncStatusTarget = <T extends ContractRow>(
             targetContract: cellRendererParams.data!.contract,
           },
         });
-      },
+      }
     ),
   };
   return columnDef;

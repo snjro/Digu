@@ -29,7 +29,7 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
   const rpc: string = get(storeRpcSettings)[targetChain.name].rpc;
   const nodeProvider: NodeProvider | undefined = await getNodeProvider(
     targetChain.name,
-    rpc,
+    rpc
   );
   const nodeStatus: NodeStatus =
     get(storeChainStatus)[targetChain.name].nodeStatus;
@@ -55,7 +55,7 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
       };
       const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
       for (const targetContract of extractEventContracts(
-        targetVersion.contracts,
+        targetVersion.contracts
       )) {
         // await setSyncing(dbEventLogs, targetContract.name);
         promiseFetchAndInsertEthersEvents.push(
@@ -64,8 +64,8 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
             targetProject,
             targetVersion,
             targetContract,
-            nodeProvider,
-          ),
+            nodeProvider
+          )
         );
       }
     }
@@ -75,7 +75,7 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
 }
 
 export const syncStatusContract = (
-  contractIdentifier: ContractIdentifier,
+  contractIdentifier: ContractIdentifier
 ): SyncStatusContract => {
   const syncStatusContract: SyncStatusContract =
     get(storeSyncStatus)[contractIdentifier.chainName].subSyncStatuses[

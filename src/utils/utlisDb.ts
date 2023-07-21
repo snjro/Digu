@@ -19,7 +19,7 @@ import type {
 
 export function getEventLogTableName(
   contractName: ContractName,
-  eventName: AbiFragmentName,
+  eventName: AbiFragmentName
 ): string {
   return `${contractName}_${eventName}`;
 }
@@ -30,7 +30,7 @@ export function getTargetChain(chainIdentifier: ChainIdentifier): Chain {
   return targetChain!;
 }
 export function getTargetProject(
-  projectIdentifier: ProjectIdentifier,
+  projectIdentifier: ProjectIdentifier
 ): Project {
   const targetProject: Project | undefined = getTargetChain({
     chainName: projectIdentifier.chainName,
@@ -40,7 +40,7 @@ export function getTargetProject(
   return targetProject!;
 }
 export function getTargetVersion(
-  versionIdentifier: VersionIdentifier,
+  versionIdentifier: VersionIdentifier
 ): Version {
   const targetVersion: Version | undefined = getTargetProject({
     chainName: versionIdentifier.chainName,
@@ -52,7 +52,7 @@ export function getTargetVersion(
 }
 
 export function getTargetContract(
-  contractIdentifier: ContractIdentifier,
+  contractIdentifier: ContractIdentifier
 ): Contract {
   const targetContract: Contract | undefined = getTargetVersion({
     chainName: contractIdentifier.chainName,
@@ -64,7 +64,7 @@ export function getTargetContract(
   return targetContract!;
 }
 export function getTargetEventAbiFragment(
-  eventIdentifier: AbiFragmentIdentifier,
+  eventIdentifier: AbiFragmentIdentifier
 ): EventAbiFragment {
   const targetContract: Contract = getTargetContract({
     chainName: eventIdentifier.chainName,
@@ -78,7 +78,7 @@ export function getTargetEventAbiFragment(
   return eventAbiFragment;
 }
 export function getTargetFunctionAbiFragment(
-  functionIdentifier: AbiFragmentIdentifier,
+  functionIdentifier: AbiFragmentIdentifier
 ): FunctionAbiFragment {
   const targetContract: Contract = getTargetContract({
     chainName: functionIdentifier.chainName,
@@ -88,7 +88,7 @@ export function getTargetFunctionAbiFragment(
   });
   const functionAbiFragment: FunctionAbiFragment =
     targetContract.contractInterface.getFunction(
-      functionIdentifier.abiFragmentName,
+      functionIdentifier.abiFragmentName
     )!;
 
   return functionAbiFragment;

@@ -12,7 +12,7 @@ export const columnDefsCreation = <T extends ContractRow>(): ColumnDef => {
         "Creation Blocknumber",
         "contractCreationBlockNumber",
         "block",
-        undefined,
+        undefined
       ),
       {
         field: "contractCreationDatetime",
@@ -26,13 +26,13 @@ export const columnDefsCreation = <T extends ContractRow>(): ColumnDef => {
         "Creation Tx Hash",
         "contractCreationTx",
         "tx",
-        "open",
+        "open"
       ),
       columnDefChainExplorerLinkByKeyName<T>(
         "Creator Address",
         "contractCreationCreator",
         "address",
-        "open",
+        "open"
       ),
     ],
   };

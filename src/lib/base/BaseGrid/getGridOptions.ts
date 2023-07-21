@@ -19,7 +19,7 @@ export function getGridOptions<T>(
   suppressMovableColumns: boolean,
   suppressColumnVirtualisation: boolean,
   rowSelection: GridOptions["rowSelection"],
-  getRowClass: ((params: RowClassParams) => string) | undefined,
+  getRowClass: ((params: RowClassParams) => string) | undefined
   // rows: T[]
 ): GridOptions<T> {
   // const dispatch = createEventDispatcher();
@@ -52,7 +52,7 @@ export function getGridOptions<T>(
       refreshRowSeqenceNumber<T>(filterChangedEvent.api);
     },
     onGridColumnsChanged: (
-      gridColumnsChangedEvent: GridColumnsChangedEvent<T>,
+      gridColumnsChangedEvent: GridColumnsChangedEvent<T>
     ) => {
       setAutoColumnWidth(gridColumnsChangedEvent.columnApi);
     },

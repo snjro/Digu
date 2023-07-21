@@ -4,11 +4,11 @@ import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
 import { getEventLogTableName } from "@utils/utlisDb";
 
 export async function gridRows(
-  eventIdentifier: AbiFragmentIdentifier,
+  eventIdentifier: AbiFragmentIdentifier
 ): Promise<ConvertedEventLog[]> {
   const eventLogTableName: string = getEventLogTableName(
     eventIdentifier.contractName,
-    eventIdentifier.abiFragmentName,
+    eventIdentifier.abiFragmentName
   );
 
   const dbEventLogs: DbEventLogs = new DbEventLogs({
@@ -20,7 +20,7 @@ export async function gridRows(
   const eventLogRows: ConvertedEventLog[] = await getEventLogTableRecords(
     dbEventLogs,
     eventLogTableName,
-    "asc",
+    "asc"
   );
   return eventLogRows;
 }

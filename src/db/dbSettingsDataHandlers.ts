@@ -9,7 +9,7 @@ const tableNameRpcSettings = DB_TABLE_NAMES.Settings.rpcSettings;
 const tableNameUserSettings = DB_TABLE_NAMES.Settings.userSettings;
 
 export async function getDbRecordRpcSettings(
-  chainName: ChainName,
+  chainName: ChainName
 ): Promise<RpcSetting> {
   return await dbSettings.transaction("r", tableNameRpcSettings, async () => {
     const rpcSetting: RpcSetting = await dbSettings
@@ -21,7 +21,7 @@ export async function getDbRecordRpcSettings(
 }
 export async function getDbItemRpcSettings<T extends keyof RpcSetting>(
   chainName: ChainName,
-  key: T,
+  key: T
 ): Promise<RpcSetting[T]> {
   const rpcSetting: RpcSetting = await getDbRecordRpcSettings(chainName);
   return rpcSetting[key];
@@ -29,7 +29,7 @@ export async function getDbItemRpcSettings<T extends keyof RpcSetting>(
 export async function updateDbItemRpcSettings<T extends keyof RpcSetting>(
   chainName: ChainName,
   key: T,
-  newValue: RpcSetting[T],
+  newValue: RpcSetting[T]
 ): Promise<void> {
   await dbSettings
     .transaction("rw", tableNameRpcSettings, async () => {
@@ -46,7 +46,7 @@ export async function updateDbItemRpcSettings<T extends keyof RpcSetting>(
 
 ////////////////////////////////////////////////////
 export async function getDbRecordUserSettings(
-  userSettingsKey: UserSetting["userSettingsKey"],
+  userSettingsKey: UserSetting["userSettingsKey"]
 ): Promise<UserSetting> {
   return await dbSettings.transaction("r", tableNameUserSettings, async () => {
     const userSettings: UserSetting = await dbSettings
@@ -57,14 +57,14 @@ export async function getDbRecordUserSettings(
   });
 }
 export async function getDbItemUserSettings(
-  userSettingsKey: UserSetting["userSettingsKey"],
+  userSettingsKey: UserSetting["userSettingsKey"]
 ): Promise<UserSetting["value"]> {
   return (await getDbRecordUserSettings(userSettingsKey)).value;
 }
 
 export async function updateDbItemUserSettings(
   userSettingsKey: UserSetting["userSettingsKey"],
-  newValue: UserSetting["value"],
+  newValue: UserSetting["value"]
 ): Promise<void> {
   await dbSettings
     .transaction("rw", tableNameUserSettings, async () => {
@@ -87,6 +87,6 @@ export async function addInitialData() {
     dbSettings.table(tableNameUserSettings),
     async (tx) => {
       await dbSettings.addInitialData(tx);
-    },
+    }
   );
 }
