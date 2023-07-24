@@ -69,7 +69,7 @@
 <div class={classNames("flex", "flex-row", "pt-3", "space-x-3", "justify-end")}>
   {#each buttonIconProps as buttonIconProp}
     <BaseButtonIcon
-      prefixIcon={true}
+      prefixIcon
       iconName={buttonIconProp.iconName}
       hoverEffect
       label={buttonIconProp.label}
