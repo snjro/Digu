@@ -60,10 +60,10 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     fillHover: "hover:fill-zinc-100",
     bg: "bg-zinc-950",
     bgOpacity: "bg-zinc-950/50",
-    bgEmphasis: "bg-zinc-800",
-    bgHover: "hover:bg-zinc-800",
+    bgEmphasis: "bg-zinc-700",
+    bgHover: "hover:bg-zinc-700",
     shadow: "shadow-zinc-950",
-    border: "border-zinc-800",
+    border: "border-zinc-700",
   },
   secondary: {
     text: "text-zinc-300",
