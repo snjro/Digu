@@ -1,6 +1,8 @@
 <script lang="ts">
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import type { ThemeColor } from "@db/dbTypes";
   import { getExportFileName, type ExportFilePrefix } from "@utils/utilsFile";
-
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { buttonHeight, type BaseSize } from "$lib/base/baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
@@ -43,29 +45,40 @@
       getExportFileName(exportFilePrefix, $page.params, "csv")
     );
   }
+  let themeColor: ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  type ButtonIconProp = {
+    iconName: BaseIconProps["name"];
+    label: string;
+    onClick: () => void;
+  };
+  const buttonIconProps: ButtonIconProp[] = [
+    {
+      iconName: "download",
+      label: "Export",
+      onClick: downloadCsvFile,
+    },
+    {
+      iconName: "contentCopy",
+      label: "Copy",
+      onClick: copyToClipboard,
+    },
+  ];
 </script>
 
 <div class={classNames("flex", "flex-row", "pt-3", "space-x-3", "justify-end")}>
-  <BaseButtonIcon
-    prefixIcon={true}
-    iconName="download"
-    hoverEffect
-    label="Export"
-    {size}
-    colorCategoryFront={"interactive"}
-    colorCategoryBg={colorSettings.dialogBody}
-    appendClassButton={buttonHeight[size]}
-    on:click={downloadCsvFile}
-  />
-  <BaseButtonIcon
-    prefixIcon={true}
-    iconName="contentCopy"
-    hoverEffect
-    label="Copy"
-    {size}
-    colorCategoryFront={"interactive"}
-    colorCategoryBg={colorSettings.dialogBody}
-    appendClassButton={buttonHeight[size]}
-    on:click={copyToClipboard}
-  />
+  {#each buttonIconProps as buttonIconProp}
+    <BaseButtonIcon
+      prefixIcon={true}
+      iconName={buttonIconProp.iconName}
+      hoverEffect
+      label={buttonIconProp.label}
+      {size}
+      colorCategoryFront={"interactive"}
+      colorCategoryBg={colorSettings.dialogBody}
+      appendClassButton={buttonHeight[size]}
+      border={themeColor === "dark"}
+      on:click={buttonIconProp.onClick}
+    />
+  {/each}
 </div>
