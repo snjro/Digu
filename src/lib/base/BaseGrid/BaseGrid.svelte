@@ -54,7 +54,7 @@
     {hidden}
     isGridFullScreen={isFullScreen}
   />
-  <GridFooter rowsLength={rows.length} />
+  <GridFooter {gridOptions} {rows} />
 </BasePageFullScreenContainer>
 
 <!-- <style>

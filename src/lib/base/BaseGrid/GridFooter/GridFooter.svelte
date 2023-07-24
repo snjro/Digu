@@ -1,9 +1,21 @@
 <script lang="ts">
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { numberWithCommas } from "@utils/utilsCommon";
+  import type { GridOptions } from "ag-grid-community";
   import classNames from "classnames";
 
-  export let rowsLength: number;
+  type GridRow = $$Generic;
+  export let rows: GridRow[];
+  export let gridOptions: GridOptions<GridRow>;
+  let filteredRowCount = rows.length;
+  $: {
+    gridOptions.onFilterChanged = () => {
+      filteredRowCount = 0;
+      gridOptions.api!.forEachNodeAfterFilter(() => {
+        filteredRowCount++;
+      });
+    };
+  }
 </script>
 
 <div
@@ -15,6 +27,10 @@
     "space-x-1"
   )}
 >
-  <BaseLabel text="Rows:" />
-  <BaseLabel text={numberWithCommas(rowsLength)} />
+  <BaseLabel text="Rows (filtered/all) :" />
+  <BaseLabel
+    text={`${numberWithCommas(filteredRowCount)}/${numberWithCommas(
+      rows.length
+    )}`}
+  />
 </div>
