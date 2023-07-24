@@ -9,7 +9,7 @@
   import GridBody from "./GridBody/GridBody.svelte";
   import { getGridOptions } from "./getGridOptions";
   import type { GridOptions, RowClassParams } from "ag-grid-community";
-  import BasePageItemsContainer from "$lib/base/BasePage/BasePageItemsContainer.svelte";
+  import BasePageFullScreenContainer from "$lib/base/BasePage/BasePageFullScreenContainer.svelte";
   import GridFooter from "./GridFooter/GridFooter.svelte";
 
   type GridRow = $$Generic;
@@ -38,7 +38,7 @@
   let isFullScreen = false;
 </script>
 
-<BasePageItemsContainer {hidden} {isFullScreen}>
+<BasePageFullScreenContainer {hidden} {isFullScreen}>
   <FunctionBar
     {gridOptions}
     {rows}
@@ -55,7 +55,7 @@
     isGridFullScreen={isFullScreen}
   />
   <GridFooter rowsLength={rows.length} />
-</BasePageItemsContainer>
+</BasePageFullScreenContainer>
 
 <!-- <style>
   :global(.abi-row-border-only-first) {
