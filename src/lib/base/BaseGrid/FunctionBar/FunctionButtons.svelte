@@ -40,7 +40,7 @@
     ],
     columnWidthHandler: [
       {
-        iconName: "fitToPage",
+        iconName: "fitToPageOutline",
         tooltipText: "Fit columns in frame",
         onClickEventFunction: () => gridOptions.api!.sizeColumnsToFit(),
         tooltipXPosition: isFullScreen ? "left" : "right",
