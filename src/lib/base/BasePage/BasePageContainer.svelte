@@ -1,8 +1,15 @@
 <script lang="ts">
   import classNames from "classnames";
   import BasePageContainerTitle from "$lib/base/BasePage/BasePageContainerTitle.svelte";
+  import BasePageContainerContent from "./BasePageContainerContent.svelte";
+
   export let titleText: string;
   export let titleCategoryLabelText: string;
+
+  type TabValue = $$Generic;
+  export let selectedTab: TabValue | undefined = undefined;
+  export let tabValues: TabValue[] | undefined = undefined;
+  export let tabGroupName: string | undefined = undefined;
 </script>
 
 <div
@@ -19,5 +26,7 @@
     {titleCategoryLabelText}
     isVerticalTitle={false}
   />
-  <slot />
+  <BasePageContainerContent bind:selectedTab {tabValues} {tabGroupName}>
+    <slot />
+  </BasePageContainerContent>
 </div>
