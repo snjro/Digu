@@ -27,6 +27,7 @@
   export let justify: NonNullable<BaseButtonProps["justify"]> = "center";
   export let isHoverControledByParent: boolean = false;
   export let isHover: boolean = false;
+  export let border: boolean = false;
   const dispatch = createEventDispatcher();
   function onMouseEnter(event: CustomEvent) {
     if (!isHoverControledByParent) isHover = true;
@@ -57,6 +58,7 @@
   {disabled}
   {justify}
   {isHover}
+  {border}
   {isHoverControledByParent}
   appendClass={appendClassButton}
   on:click
