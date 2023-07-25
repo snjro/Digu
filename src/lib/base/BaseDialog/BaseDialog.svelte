@@ -42,6 +42,7 @@
   import { storeNoDbCountShowingDialog } from "@stores/storeNoDb";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { get } from "svelte/store";
+  import { scrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
 
   export let dialogElement: NonNullable<BaseDialogProps["dialogElement"]>;
   export let fullScreen: NonNullable<BaseDialogProps["fullScreen"]> = false;
@@ -96,7 +97,7 @@
         class={classNames(
           "h-full",
           "overflow-y-auto",
-          "scroll-smooth",
+          scrollbarStyle(colorSettings.dialogBody).thick,
           colorDefinitions[themeColor][colorSettings.dialogBody].bg,
           "p-3",
           ""
