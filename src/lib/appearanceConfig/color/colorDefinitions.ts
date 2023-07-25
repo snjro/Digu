@@ -19,6 +19,9 @@ export type ColorDefinitionForParts = {
   bgHover: `hover:bg-${string}`;
   shadow: `shadow-${string}`;
   border: `border-${string}`;
+  scrollbarThumb: `scrollbar-thumb-${string}`;
+  scrollbarTrack: `scrollbar-track-${string}`;
+  scrollbarCorner: `scrollbar-corner-${string}`;
 };
 export type ColorCategory =
   | "success"

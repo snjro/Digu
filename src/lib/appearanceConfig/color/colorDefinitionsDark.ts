@@ -16,6 +16,9 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     bgHover: "hover:bg-green-700",
     shadow: "shadow-green-50",
     border: "border-green-600",
+    scrollbarThumb: "scrollbar-thumb-green-600",
+    scrollbarTrack: "scrollbar-track-green-400",
+    scrollbarCorner: "scrollbar-corner-green-400",
   },
   error: {
     text: "text-red-400",
@@ -32,6 +35,9 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     bgHover: "hover:bg-red-700",
     shadow: "shadow-red-50",
     border: "border-red-600",
+    scrollbarThumb: "scrollbar-thumb-red-600",
+    scrollbarTrack: "scrollbar-track-red-400",
+    scrollbarCorner: "scrollbar-corner-red-400",
   },
   interactive: {
     text: "text-blue-500",
@@ -48,6 +54,9 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     bgHover: "hover:bg-blue-500",
     shadow: "shadow-blue-500",
     border: "border-blue-500",
+    scrollbarThumb: "scrollbar-thumb-blue-600",
+    scrollbarTrack: "scrollbar-track-blue-400",
+    scrollbarCorner: "scrollbar-corner-blue-400",
   },
   primary: {
     text: "text-zinc-300",
@@ -64,6 +73,9 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     bgHover: "hover:bg-zinc-700",
     shadow: "shadow-zinc-950",
     border: "border-zinc-700",
+    scrollbarThumb: "scrollbar-thumb-zinc-700",
+    scrollbarTrack: "scrollbar-track-zinc-300",
+    scrollbarCorner: "scrollbar-corner-zinc-300",
   },
   secondary: {
     text: "text-zinc-300",
@@ -80,5 +92,8 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     bgHover: "hover:bg-zinc-500",
     shadow: "shadow-zinc-700",
     border: "border-zinc-500",
+    scrollbarThumb: "scrollbar-thumb-zinc-500",
+    scrollbarTrack: "scrollbar-track-zinc-700",
+    scrollbarCorner: "scrollbar-corner-zinc-700",
   },
 };
