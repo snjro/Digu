@@ -32,6 +32,7 @@ type ColorSettings = Record<
   | "snackBarBg"
   | "dialogHeader"
   | "dialogBody"
+  | "errorPage"
   | "progressCircleBg"
   | "tooltip",
   ColorCategory
@@ -80,6 +81,8 @@ export const colorSettings: ColorSettings = {
   //dialog
   dialogHeader: colorSub,
   dialogBody: colorMain,
+  //errorPage
+  errorPage: colorMain,
   //progressCircle
   progressCircleBg: colorSub,
   //tooltip
