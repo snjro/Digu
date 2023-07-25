@@ -29,8 +29,8 @@
     "h-screen",
     "w-screen",
     $storeNoDbCountShowingDialog > 0 && "blur-sm",
-    colorDefinitions[themeColor].primary.bg,
-    colorDefinitions[themeColor].primary.text,
+    colorDefinitions[themeColor][colorSettings.main].bg,
+    colorDefinitions[themeColor][colorSettings.main].text,
     ""
   );
   $: mainContainerStyle = classNames(
