@@ -65,7 +65,7 @@
 </script>
 
 <nav
-  class={classNames("flex", "mb-1.5", $page.status === 404 && "hidden")}
+  class={classNames("flex", "mb-1.5", $page.status !== 200 && "hidden")}
   aria-label="Breadcrumb"
 >
   <ol class={classNames("")}>
