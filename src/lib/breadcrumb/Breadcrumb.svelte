@@ -64,7 +64,10 @@
   };
 </script>
 
-<nav class={classNames("flex", "mb-1.5")} aria-label="Breadcrumb">
+<nav
+  class={classNames("flex", "mb-1.5", $page.status === 404 && "hidden")}
+  aria-label="Breadcrumb"
+>
   <ol class={classNames("")}>
     {#each crumbs() as crumb, i}
       {#if i === crumbs().length - 1}
