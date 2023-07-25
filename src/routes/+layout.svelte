@@ -11,7 +11,7 @@
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import {
     storeNoDbCurrentWidth,
-    storeNoDbShowDialog,
+    storeNoDbCountShowingDialog,
   } from "@stores/storeNoDb";
   import { breakPointWidths, getScreenWidth } from "@utils/utilsDom";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -28,7 +28,7 @@
     "flex-row",
     "h-screen",
     "w-screen",
-    $storeNoDbShowDialog && "blur-sm",
+    $storeNoDbCountShowingDialog > 0 && "blur-sm",
     colorDefinitions[themeColor].primary.bg,
     colorDefinitions[themeColor].primary.text,
     ""
