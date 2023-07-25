@@ -16,9 +16,7 @@ const config = {
   },
 
   plugins: [
-    //  require("flowbite/plugin"),
-    // require("tailwind-scrollbar")({ nocompatible: true }),
-    // require("@tailwindcss/forms"),
+    require("tailwind-scrollbar")({ nocompatible: true }),
     plugin(function ({ matchUtilities, theme }) {
       matchUtilities(
         {
