@@ -16,6 +16,9 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     bgHover: "hover:bg-green-700",
     shadow: "shadow-green-900",
     border: "border-green-900",
+    scrollbarThumb: "scrollbar-thumb-green-900",
+    scrollbarTrack: "scrollbar-track-green-600",
+    scrollbarCorner: "scrollbar-corner-green-600",
   },
   error: {
     text: "text-red-600",
@@ -32,6 +35,9 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     bgHover: "hover:bg-red-700",
     shadow: "shadow-red-900",
     border: "border-red-900",
+    scrollbarThumb: "scrollbar-thumb-red-900",
+    scrollbarTrack: "scrollbar-track-red-600",
+    scrollbarCorner: "scrollbar-corner-red-600",
   },
   interactive: {
     text: "text-blue-600",
@@ -48,6 +54,9 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     bgHover: "hover:bg-blue-700",
     shadow: "shadow-blue-500",
     border: "border-blue-500",
+    scrollbarThumb: "scrollbar-thumb-blue-500",
+    scrollbarTrack: "scrollbar-track-blue-300",
+    scrollbarCorner: "scrollbar-corner-blue-300",
   },
   primary: {
     text: "text-zinc-600", //leftsidebar(header/footer) text
@@ -63,7 +72,10 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     bgEmphasis: "bg-zinc-200",
     bgHover: "hover:bg-zinc-200",
     shadow: "shadow-zinc-600", //leftsidebar/Nav(Body/Buttons) shadow
-    border: "border-zinc-300", //breadcrumb border
+    border: "border-zinc-300", //breadcrumb border,
+    scrollbarThumb: "scrollbar-thumb-zinc-300",
+    scrollbarTrack: "scrollbar-track-zinc-100",
+    scrollbarCorner: "scrollbar-corner-zinc-100",
   },
   secondary: {
     text: "text-zinc-600", //leftsidebar(header/footer) text
@@ -80,5 +92,8 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     bgHover: "hover:bg-zinc-200",
     shadow: "shadow-zinc-800", //leftsidebar/Nav(Body/Buttons) shadow
     border: "border-zinc-400", //breadcrumb border
+    scrollbarThumb: "scrollbar-thumb-zinc-400",
+    scrollbarTrack: "scrollbar-track-zinc-600",
+    scrollbarCorner: "scrollbar-corner-zinc-600",
   },
 };

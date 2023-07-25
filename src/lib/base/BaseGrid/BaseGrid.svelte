@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { ExportFilePrefix } from "@utils/utilsFile";
+
   import "ag-grid-community/styles/ag-grid.css";
   import "ag-grid-community/styles/ag-theme-balham.css";
   // import "ag-grid-community/styles/ag-theme-balham-dark.css";
@@ -7,7 +9,7 @@
   import GridBody from "./GridBody/GridBody.svelte";
   import { getGridOptions } from "./getGridOptions";
   import type { GridOptions, RowClassParams } from "ag-grid-community";
-  import BasePageItemsContainer from "$lib/base/BasePage/BasePageItemsContainer.svelte";
+  import BasePageFullScreenContainer from "$lib/base/BasePage/BasePageFullScreenContainer.svelte";
   import GridFooter from "./GridFooter/GridFooter.svelte";
 
   type GridRow = $$Generic;
@@ -23,7 +25,7 @@
   export let titleCategoryLabelText: string;
   export let titleText: string;
   export let hidden: boolean;
-  export let csvFileNameHeader: string;
+  export let exportFilePrefix: ExportFilePrefix;
   let gridOptions: GridOptions<GridRow> = getGridOptions<GridRow>(
     suppressFieldDotNotation,
     suppressRowTransform,
@@ -36,14 +38,14 @@
   let isFullScreen = false;
 </script>
 
-<BasePageItemsContainer {hidden} {isFullScreen}>
+<BasePageFullScreenContainer {hidden} {isFullScreen}>
   <FunctionBar
     {gridOptions}
     {rows}
     bind:isFullScreen
     {titleCategoryLabelText}
     {titleText}
-    {csvFileNameHeader}
+    {exportFilePrefix}
   />
   <GridBody
     bind:gridOptions
@@ -52,8 +54,8 @@
     {hidden}
     isGridFullScreen={isFullScreen}
   />
-  <GridFooter rowsLength={rows.length} />
-</BasePageItemsContainer>
+  <GridFooter {gridOptions} {rows} />
+</BasePageFullScreenContainer>
 
 <!-- <style>
   :global(.abi-row-border-only-first) {

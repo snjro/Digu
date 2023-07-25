@@ -8,7 +8,6 @@
   export let targetChain: Chain;
   export let targetProject: Project;
   export let targetVersion: Version;
-  export let hidden: boolean;
 
   const gridMain: string = classNames(
     "grid",
@@ -25,7 +24,7 @@
   );
 </script>
 
-<div class={classNames(gridMain, "w-full", "h-full", hidden && "hidden", "")}>
+<div class={classNames(gridMain, "w-full", "h-full", "")}>
   <CommonItemGroup text="Contracts" gridTrack={gridTrackContracts}>
     <VersionOverviewContracts {targetChain} {targetProject} {targetVersion} />
   </CommonItemGroup>

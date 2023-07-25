@@ -4,13 +4,13 @@
   import CommonFunctionButtons, {
     type CommonFunctionButtonDefinition,
   } from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
-  import type { ChainName, ContractName } from "@constants/chains/types";
-  import { downloadDataToFile } from "@utils/utilsFile";
+  import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
   export let titleCategoryLabelText: string;
   export let titleText: string;
   export let isExpanded: boolean;
   export let isFullScreen: boolean;
   export let abiText: string;
+  export let fragment: boolean;
 
   let buttonDefinitions: {
     textFormatter: CommonFunctionButtonDefinition[];
@@ -45,7 +45,15 @@
         iconName: "download",
         tooltipText: "Export ABI",
         onClickEventFunction: () =>
-          downloadDataToFile(abiText, getAbiFileName(), "json"),
+          ExportDataToFile(
+            abiText,
+            getExportFileName(
+              fragment ? "ABIfragment" : "ABI",
+              $page.params,
+              "json"
+            ),
+            "json"
+          ),
         tooltipXPosition: "left",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
       },
@@ -62,13 +70,6 @@
       },
     ],
   };
-  function getAbiFileName(): string {
-    const chainName: ChainName = $page.params.chainName;
-    const projectVersionName: string = $page.params.projectName_versionName;
-    const contractName: ContractName = $page.params.contractName;
-    const abiFileName: string = `ABI-${chainName}-${projectVersionName}-${contractName}`;
-    return abiFileName;
-  }
 </script>
 
 <CommonFunctionBar

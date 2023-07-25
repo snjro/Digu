@@ -1,3 +1,7 @@
+<script lang="ts" context="module">
+  export type EventLogType = "hex" | "decoded";
+</script>
+
 <script lang="ts">
   // import { afterNavigate } from "$app/navigation";
 
@@ -10,7 +14,7 @@
   export let targetEventIdentifier: AbiFragmentIdentifier;
   export let targetEventAbiFragment: EventAbiFragment;
   export let titleCategoryLabelText: string;
-  export let eventLogType: "hex" | "decoded";
+  export let eventLogType: EventLogType;
   export let hidden: boolean;
 
   let rows: ConvertedEventLog[] = [];
@@ -58,5 +62,5 @@
   titleText={targetEventAbiFragment.name}
   {titleCategoryLabelText}
   {hidden}
-  csvFileNameHeader={`eventLogs(${eventLogType})`}
+  exportFilePrefix={`eventLogs(${eventLogType})`}
 />

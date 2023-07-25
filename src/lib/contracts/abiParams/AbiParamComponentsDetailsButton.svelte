@@ -27,6 +27,7 @@
   noPadding
   shadowEffect={false}
   prefixIcon
+  popupEffect={false}
   colorCategoryFront={"interactive"}
   on:click={showDialog}
 />

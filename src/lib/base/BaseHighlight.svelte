@@ -31,6 +31,7 @@
 </script>
 
 <svelte:head>
+  <!-- eslint-disable svelte/no-at-html-tags -->
   {@html highlightStyle}
 </svelte:head>
 <Highlight

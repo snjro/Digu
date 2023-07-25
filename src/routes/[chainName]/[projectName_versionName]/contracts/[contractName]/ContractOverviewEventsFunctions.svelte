@@ -42,7 +42,6 @@
           width: "w-full",
         },
       ]}
-      colorCategoryBorder={colorSettings.itemMemberTableBorderAndHover}
       {textSize}
       numOfTableRows={nameList.length}
       borderBottom={false}

@@ -11,8 +11,9 @@
   import BaseTableHeaderCell from "./BaseTableHeaderCell.svelte";
   import SequenceHeaderCell from "./SequenceHeaderCell.svelte";
   import type { BaseSize } from "../baseSizes";
+  import { scrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
-  export let colorCategoryBorder: ColorCategory;
   export let tableHeaderCellProps: BaseTableHeaderCellProps[];
   export let borderX: boolean = false;
   export let borderTop: boolean = false;
@@ -22,16 +23,22 @@
   export let numOfTableRows: number;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+
+  const colorCategoryBorder: ColorCategory =
+    colorSettings.itemMemberTableBorderAndHover;
+  const colorCategoryBg: ColorCategory = colorSettings.itemMemberTableBg;
 </script>
 
-<div class={classNames("overflow-x-auto")}>
+<div
+  class={classNames(
+    "overflow-x-auto",
+    scrollbarStyle(colorCategoryBg).thin,
+    ""
+  )}
+>
   <table
     class={classNames(
-      // "table-auto",
-      // "overflow-scroll",
       "table-fixed",
-      // "w-full",
-
       "h-auto",
       borderX && "border-x",
       borderTop && "border-t",

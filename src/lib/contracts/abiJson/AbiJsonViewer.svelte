@@ -17,8 +17,8 @@
     FunctionAbiFragment,
   } from "@constants/chains/types";
 
-  import BasePageItemsContainer from "$lib/base/BasePage/BasePageItemsContainer.svelte";
-  import AbiJsonViewerFunctionBar from "./AbiJsonViewrFunctionBar.svelte";
+  import BasePageFullScreenContainer from "$lib/base/BasePage/BasePageFullScreenContainer.svelte";
+  import AbiJsonViewerFunctionBar from "./AbiJsonViewerFunctionBar.svelte";
   import BaseHighlight from "$lib/base/BaseHighlight.svelte";
   import type { AbiFormatType } from "@utils/utilsEthers";
   import { jsonStringifyFormatted } from "@utils/utilsCommon";
@@ -28,6 +28,7 @@
   export let hidden: boolean;
   export let titleCategoryLabelText: string;
   export let titleText: string;
+  export let fragment: boolean = false;
 
   let formattedAbi: string[] | string;
   $: {
@@ -53,13 +54,14 @@
   let isFullScreen: boolean = false;
 </script>
 
-<BasePageItemsContainer {hidden} {isFullScreen}>
+<BasePageFullScreenContainer {hidden} {isFullScreen}>
   <AbiJsonViewerFunctionBar
     bind:isExpanded
     bind:isFullScreen
     {abiText}
     {titleCategoryLabelText}
     {titleText}
+    {fragment}
   />
   <BaseHighlight code={abiText} targetLanguageName="json" />
-</BasePageItemsContainer>
+</BasePageFullScreenContainer>

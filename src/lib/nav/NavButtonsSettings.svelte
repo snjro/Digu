@@ -2,7 +2,6 @@
   import BaseDialog, {
     openDialog,
   } from "$lib/base/BaseDialog/BaseDialog.svelte";
-  import BaseTab from "$lib/base/BaseTab.svelte";
   import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
   import classNames from "classnames";
   import BaseNavButton from "./BaseNavButton.svelte";
@@ -39,14 +38,12 @@
   headerIconName="cogOutline"
   on:close={closeDialog}
 >
-  <BaseTab selectedTab={true} groupName="settings" slot="dialogBody">
-    <div class={classNames(gridMain, "w-full", "h-full", "")}>
-      <CommonItemGroup text="Chain Explorer" gridTrack={gridTrackRpc}>
-        <ChainExplorer />
-      </CommonItemGroup>
-      <CommonItemGroup text="RPC configuration" gridTrack={gridTrackRpc}>
-        <RpcConfig {initializeValue} />
-      </CommonItemGroup>
-    </div>
-  </BaseTab>
+  <div class={classNames(gridMain, "w-full", "h-full", "")} slot="dialogBody">
+    <CommonItemGroup text="Chain Explorer" gridTrack={gridTrackRpc}>
+      <ChainExplorer />
+    </CommonItemGroup>
+    <CommonItemGroup text="RPC configuration" gridTrack={gridTrackRpc}>
+      <RpcConfig {initializeValue} />
+    </CommonItemGroup>
+  </div>
 </BaseDialog>

@@ -2,7 +2,6 @@
   import { page } from "$app/stores";
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
-  import BaseTab from "$lib/base/BaseTab.svelte";
   import type { ProjectName, VersionName } from "@constants/chains/types";
   import { gridRows, type ContractRow } from "./gridRows";
   import { columnDefs } from "./columnDefs";
@@ -15,7 +14,6 @@
   export let data: LoadVersionData;
 
   const projectVersionName: string = $page.params.projectName_versionName;
-  let selectedTab: undefined = undefined;
   const titleText = (): string => {
     const splitProjectVersionName: {
       projectName: ProjectName;
@@ -43,20 +41,18 @@
 </script>
 
 <BasePageContainer titleText={titleText()} {titleCategoryLabelText}>
-  <BaseTab bind:selectedTab groupName="projectVersionContractsInfo">
-    <BaseGrid
-      {rows}
-      paramColumnDefs={columnDefs(
-        data.targetChain,
-        data.targetProject,
-        data.targetVersion,
-        $page.url.pathname,
-        maxLengthOfConstructorInputsParams()
-      )}
-      titleText={titleText()}
-      {titleCategoryLabelText}
-      hidden={false}
-      csvFileNameHeader="contracts"
-    />
-  </BaseTab>
+  <BaseGrid
+    {rows}
+    paramColumnDefs={columnDefs(
+      data.targetChain,
+      data.targetProject,
+      data.targetVersion,
+      $page.url.pathname,
+      maxLengthOfConstructorInputsParams()
+    )}
+    titleText={titleText()}
+    {titleCategoryLabelText}
+    hidden={false}
+    exportFilePrefix="contracts"
+  />
 </BasePageContainer>

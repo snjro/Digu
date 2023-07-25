@@ -7,13 +7,6 @@
   import Footer from "./Footer/Footer.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  let isHoverOnLeftSidebar: boolean = false;
-  function onMouseEnter(): void {
-    isHoverOnLeftSidebar = true;
-  }
-  function onMouseLeave(): void {
-    isHoverOnLeftSidebar = false;
-  }
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 </script>
@@ -33,10 +26,8 @@
     "cursor-default",
     ""
   )}
-  on:mouseenter={onMouseEnter}
-  on:mouseleave={onMouseLeave}
 >
   <Header />
-  <Body {isHoverOnLeftSidebar} />
+  <Body />
   <Footer />
 </button>

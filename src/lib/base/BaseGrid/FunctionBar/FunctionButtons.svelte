@@ -1,10 +1,14 @@
 <script lang="ts">
+  import type { ExportFilePrefix } from "@utils/utilsFile";
   import CommonFunctionButtons, {
     type CommonFunctionButtonDefinition,
   } from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
   import type { GridOptions } from "ag-grid-community";
   // import classNames from "classnames";
-  import { setAutoColumnWidth } from "../GridBody/GridBody.svelte";
+  import {
+    setAllColumnGroupState,
+    setAutoColumnWidth,
+  } from "../GridBody/GridBody.svelte";
   import DialogExportCsv, {
     openDialogExportCsv,
   } from "./DialogExportCsv.svelte";
@@ -14,19 +18,37 @@
   export let rows: GridRow[];
   export let isFullScreen: boolean;
   export let quickSearchText: string;
-  export let csvFileNameHeader: string;
+  export let exportFilePrefix: ExportFilePrefix;
   $: buttonDefinitions = {
-    columnWidthHandler: [
+    groupColumnHandler: [
+      {
+        iconName: "arrowExpandHorizontal",
+        tooltipText: "Show all columns",
+        onClickEventFunction: () =>
+          setAllColumnGroupState(gridOptions.columnApi!, true),
+        tooltipXPosition: isFullScreen ? "left" : "right",
+        tooltipYPosition: isFullScreen ? "bottom" : "top",
+      } as CommonFunctionButtonDefinition,
       {
         iconName: "arrowCollapseHorizontal",
-        tooltipText: "Fit all columns in frame",
+        tooltipText: "hide minor columns",
+        onClickEventFunction: () =>
+          setAllColumnGroupState(gridOptions.columnApi!, false),
+        tooltipXPosition: isFullScreen ? "left" : "right",
+        tooltipYPosition: isFullScreen ? "bottom" : "top",
+      } as CommonFunctionButtonDefinition,
+    ],
+    columnWidthHandler: [
+      {
+        iconName: "fitToPageOutline",
+        tooltipText: "Fit columns in frame",
         onClickEventFunction: () => gridOptions.api!.sizeColumnsToFit(),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
       } as CommonFunctionButtonDefinition,
       {
-        iconName: "arrowExpandHorizontal",
-        tooltipText: "Expand all columns",
+        iconName: "tableColumnWidth",
+        tooltipText: "Auto fit columns",
         onClickEventFunction: () => setAutoColumnWidth(gridOptions.columnApi!),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
@@ -47,8 +69,6 @@
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
       } as CommonFunctionButtonDefinition,
-    ],
-    export: [
       {
         iconName: "download",
         tooltipText: "Export CSV",
@@ -99,5 +119,5 @@
   let dialogElement: HTMLDialogElement;
 </script>
 
-<DialogExportCsv {gridOptions} bind:dialogElement {csvFileNameHeader} />
+<DialogExportCsv {gridOptions} bind:dialogElement {exportFilePrefix} />
 <CommonFunctionButtons {buttonDefinitions} />

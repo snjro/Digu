@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { getExportFileName, type ExportFilePrefix } from "@utils/utilsFile";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { buttonHeight, type BaseSize } from "$lib/base/baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { ExportCsvRadioProps } from "./DialogExportCsv.svelte";
-  import type { ChainName, ContractName } from "@constants/chains/types";
   import { page } from "$app/stores";
   import type { GridOptions } from "ag-grid-community";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
@@ -16,7 +18,7 @@
   type GridRow = $$Generic;
   export let gridOptions: GridOptions<GridRow>;
   export let exportCsvRadioProps: ExportCsvRadioProps;
-  export let csvFileNameHeader: string;
+  export let exportFilePrefix: ExportFilePrefix;
 
   const size: BaseSize = sizeSettings.dialogFooter;
   function copyToClipboard(): void {
@@ -40,55 +42,43 @@
       exportCsvRadioProps.suppressDoubleQuotes.selectedValue,
       exportCsvRadioProps.filteredSorted.selectedValue,
       exportCsvRadioProps.skipColumnHeaders.selectedValue,
-      getCsvFileName()
+      getExportFileName(exportFilePrefix, $page.params, "csv")
     );
   }
-  function getCsvFileName(): string {
-    const chainName: ChainName = $page.params.chainName;
-    const projectVersionName: string = $page.params.projectName_versionName;
-    const contractName: ContractName = $page.params.contractName;
-    const eventName: string = $page.params.eventName;
-    const functionName: string = $page.params.functionName;
-
-    const chainFileName: string = getFileNameFragment(chainName);
-    const projectVersionFileName: string =
-      getFileNameFragment(projectVersionName);
-    const contractFileName: string = getFileNameFragment(contractName);
-    const eventFileName: string = getFileNameFragment(eventName);
-    const functionFileName: string = getFileNameFragment(functionName);
-    const timeIso8601: string = getFileNameFragment(
-      convertTimestampSecToIso8601()
-    );
-
-    const csvFileName: string = `${csvFileNameHeader}${chainFileName}${projectVersionFileName}${contractFileName}${eventFileName}${functionFileName}${timeIso8601}.csv`;
-    return csvFileName;
-  }
-  function getFileNameFragment(fileNameFragment: string): string {
-    return fileNameFragment ? `-${fileNameFragment}` : "";
-  }
+  let themeColor: ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  type ButtonIconProp = {
+    iconName: BaseIconProps["name"];
+    label: string;
+    onClick: () => void;
+  };
+  const buttonIconProps: ButtonIconProp[] = [
+    {
+      iconName: "download",
+      label: "Export",
+      onClick: downloadCsvFile,
+    },
+    {
+      iconName: "contentCopy",
+      label: "Copy",
+      onClick: copyToClipboard,
+    },
+  ];
 </script>
 
 <div class={classNames("flex", "flex-row", "pt-3", "space-x-3", "justify-end")}>
-  <BaseButtonIcon
-    prefixIcon={true}
-    iconName="download"
-    hoverEffect
-    label="Export"
-    {size}
-    colorCategoryFront={"interactive"}
-    colorCategoryBg={colorSettings.dialogBody}
-    appendClassButton={buttonHeight[size]}
-    on:click={downloadCsvFile}
-  />
-  <BaseButtonIcon
-    prefixIcon={true}
-    iconName="contentCopy"
-    hoverEffect
-    label="Copy"
-    {size}
-    colorCategoryFront={"interactive"}
-    colorCategoryBg={colorSettings.dialogBody}
-    appendClassButton={buttonHeight[size]}
-    on:click={copyToClipboard}
-  />
+  {#each buttonIconProps as buttonIconProp}
+    <BaseButtonIcon
+      prefixIcon
+      iconName={buttonIconProp.iconName}
+      hoverEffect
+      label={buttonIconProp.label}
+      {size}
+      colorCategoryFront={"interactive"}
+      colorCategoryBg={colorSettings.dialogBody}
+      appendClassButton={buttonHeight[size]}
+      border={themeColor === "dark"}
+      on:click={buttonIconProp.onClick}
+    />
+  {/each}
 </div>

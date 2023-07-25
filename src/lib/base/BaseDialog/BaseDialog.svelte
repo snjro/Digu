@@ -8,7 +8,11 @@
   };
   export function openDialog(dialogElement: HTMLDialogElement): void {
     dialogElement.showModal();
-    storeNoDbShowDialog.set(true);
+    let currentCountShowingDialog: number = get(storeNoDbCountShowingDialog);
+    if (currentCountShowingDialog < 0) {
+      currentCountShowingDialog = 0;
+    }
+    storeNoDbCountShowingDialog.set(currentCountShowingDialog + 1);
     dialogElement.addEventListener("click", (mouseEvent: MouseEvent) => {
       if (mouseEvent.target === dialogElement) {
         closeDialog(dialogElement);
@@ -17,7 +21,11 @@
   }
   export function closeDialog(dialogElement: HTMLDialogElement): void {
     dialogElement.close();
-    storeNoDbShowDialog.set(false);
+    let currentCountShowingDialog: number = get(storeNoDbCountShowingDialog);
+    if (currentCountShowingDialog < 1) {
+      currentCountShowingDialog = 1;
+    }
+    storeNoDbCountShowingDialog.set(currentCountShowingDialog - 1);
   }
 </script>
 
@@ -31,8 +39,10 @@
   import type { BaseSize } from "../baseSizes";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { storeNoDbShowDialog } from "@stores/storeNoDb";
+  import { storeNoDbCountShowingDialog } from "@stores/storeNoDb";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { get } from "svelte/store";
+  import { scrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
 
   export let dialogElement: NonNullable<BaseDialogProps["dialogElement"]>;
   export let fullScreen: NonNullable<BaseDialogProps["fullScreen"]> = false;
@@ -87,7 +97,7 @@
         class={classNames(
           "h-full",
           "overflow-y-auto",
-          "scroll-smooth",
+          scrollbarStyle(colorSettings.dialogBody).thick,
           colorDefinitions[themeColor][colorSettings.dialogBody].bg,
           "p-3",
           ""

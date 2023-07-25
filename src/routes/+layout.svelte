@@ -11,13 +11,14 @@
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import {
     storeNoDbCurrentWidth,
-    storeNoDbShowDialog,
+    storeNoDbCountShowingDialog,
   } from "@stores/storeNoDb";
   import { breakPointWidths, getScreenWidth } from "@utils/utilsDom";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import BaseSnackbar from "$lib/base/BaseSnackbar.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { scrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
 
   export let data: LoadDataRoot;
   let themeColor: ThemeColor;
@@ -28,9 +29,9 @@
     "flex-row",
     "h-screen",
     "w-screen",
-    $storeNoDbShowDialog && "blur-sm",
-    colorDefinitions[themeColor].primary.bg,
-    colorDefinitions[themeColor].primary.text,
+    $storeNoDbCountShowingDialog > 0 && "blur-sm",
+    colorDefinitions[themeColor][colorSettings.main].bg,
+    colorDefinitions[themeColor][colorSettings.main].text,
     ""
   );
   $: mainContainerStyle = classNames(
@@ -42,28 +43,22 @@
           "flex-col",
           "w-screen",
           "h-screen",
-          "overflow-x-auto",
           $storeUserSettings.isOpenSidebar && "pl-[328px]",
+          "overflow-x-auto",
+          "overflow-y-auto",
+          scrollbarStyle(colorSettings.main).thick,
           ""
         )
   );
   $: contentStyle = classNames(
     "overflow-y-auto",
-    // "overflow-x-hidden",
+    scrollbarStyle(colorSettings.main).thick,
     "flex-1",
     "flex-col",
-    // "self-center",
     "h-full",
     "w-full",
-    // "max-w-7xl",
     "border-none",
     "px-3 pb-3 ",
-    // $storeUserSettings.isOpenSidebar && "pl-[386px]",
-    // "p-5"
-    // "p-2"
-    // "sm:w-full",
-    // "overflow-x-auto",
-
     colorDefinitions[themeColor][colorSettings.main].bg,
     ""
   );
@@ -72,11 +67,11 @@
   }
 </script>
 
-<svelte:head>
-  <title>monju2</title>
-</svelte:head>
 <svelte:window on:resize={onResize} />
-<body class={bodyStyle}>
+<svelte:head>
+  <title>Contract Viewer</title>
+</svelte:head>
+<div class={bodyStyle}>
   {#if data.initializing}
     <BaseSpinner size="3xl" />
   {:else}
@@ -90,4 +85,4 @@
       </div>
     </div>
   {/if}
-</body>
+</div>

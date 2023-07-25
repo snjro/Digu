@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { breakPointWidths } from "@utils/utilsDom";
   import classNames from "classnames";
   import ItemHome from "./ItemHome.svelte";
   import ItemProjectVersion from "./ItemProjectVersion.svelte";
@@ -8,17 +6,8 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { scrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
 
-  export let isHoverOnLeftSidebar: boolean;
-
-  $: scrollbarHidden = classNames(
-    $storeNoDbCurrentWidth < breakPointWidths.sm
-      ? "overflow-y-scroll"
-      : isHoverOnLeftSidebar
-      ? "overflow-y-scroll"
-      : "overflow-y-hidden"
-  );
-  $: scrollStyle = classNames("scroll-smooth", scrollbarHidden, "pr-3");
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 </script>
@@ -26,14 +15,15 @@
 <div
   id="leftSidebarBody"
   class={classNames(
-    scrollStyle,
     "w-full",
     "flex",
     "flex-col",
     "flex-grow",
-    "py-2",
-    !isHoverOnLeftSidebar && "pr-[27px]",
+    "pt-2",
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
+    "overflow-y-scroll",
+    scrollbarStyle(colorSettings.leftSidebarBodyBg).thick,
+    "h-full",
     ""
   )}
 >

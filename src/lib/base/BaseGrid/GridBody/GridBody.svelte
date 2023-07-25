@@ -10,6 +10,22 @@
     }, waitMilliSecond);
     // columnApi.autoSizeAllColumns(skipHeader);
   }
+  export function setAllColumnGroupState(
+    columnApi: ColumnApi,
+    open: boolean
+  ): void {
+    let stateItems: {
+      groupId: string;
+      open: boolean;
+    }[] = [];
+    for (const columnGroupState of columnApi.getColumnGroupState()) {
+      stateItems.push({ groupId: columnGroupState.groupId, open: open });
+    }
+    columnApi.setColumnGroupState(stateItems);
+    if (open) {
+      setAutoColumnWidth(columnApi);
+    }
+  }
 </script>
 
 <script lang="ts">

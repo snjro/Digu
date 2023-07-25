@@ -17,6 +17,7 @@ type ColorSettings = Record<
   | "itemGroupContent"
   | "itemGroupTitle"
   | "itemMemberText"
+  | "itemMemberTableBg"
   | "itemMemberTableBorderAndHover"
   | "itemMemberProgressBarFront"
   | "itemMemberProgressBarBg"
@@ -31,6 +32,7 @@ type ColorSettings = Record<
   | "snackBarBg"
   | "dialogHeader"
   | "dialogBody"
+  | "errorPage"
   | "progressCircleBg"
   | "tooltip",
   ColorCategory
@@ -61,6 +63,7 @@ export const colorSettings: ColorSettings = {
   itemGroupContent: colorMain,
   itemGroupTitle: colorSub,
   itemMemberText: colorMain,
+  itemMemberTableBg: colorMain,
   itemMemberTableBorderAndHover: colorSub,
   itemMemberProgressBarBg: colorSub,
   itemMemberProgressBarFront: colorMain,
@@ -78,6 +81,8 @@ export const colorSettings: ColorSettings = {
   //dialog
   dialogHeader: colorSub,
   dialogBody: colorMain,
+  //errorPage
+  errorPage: colorMain,
   //progressCircle
   progressCircleBg: colorSub,
   //tooltip

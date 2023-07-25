@@ -2,14 +2,12 @@
   import { page } from "$app/stores";
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
-  import BaseTab from "$lib/base/BaseTab.svelte";
   import type { LoadFunctionsData } from "./+page";
   import { columnDefs } from "./columnDefs";
   import { gridRows, type FunctionRow } from "./gridRows";
 
   export let data: LoadFunctionsData;
 
-  let selectedTab: undefined = undefined;
   const titleText = (): string => {
     return data.targetContract.name;
   };
@@ -42,18 +40,16 @@
   titleText={data.targetContract.name}
   {titleCategoryLabelText}
 >
-  <BaseTab bind:selectedTab groupName="contractFunctionsInfo">
-    <BaseGrid
-      {rows}
-      paramColumnDefs={columnDefs(
-        $page.url.pathname,
-        maxLengthOfFunctionInputsParams(),
-        maxLengthOfFunctionOutputsParams()
-      )}
-      titleText={titleText()}
-      {titleCategoryLabelText}
-      hidden={false}
-      csvFileNameHeader="functions"
-    />
-  </BaseTab>
+  <BaseGrid
+    {rows}
+    paramColumnDefs={columnDefs(
+      $page.url.pathname,
+      maxLengthOfFunctionInputsParams(),
+      maxLengthOfFunctionOutputsParams()
+    )}
+    titleText={titleText()}
+    {titleCategoryLabelText}
+    hidden={false}
+    exportFilePrefix="functions"
+  />
 </BasePageContainer>
