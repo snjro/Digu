@@ -57,7 +57,6 @@
           width: "w-full",
         },
       ]}
-      colorCategoryBorder={colorSettings.itemMemberTableBorderAndHover}
       {textSize}
       numOfTableRows={targetVersion.contracts.length}
       borderBottom={false}

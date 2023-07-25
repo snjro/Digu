@@ -19,7 +19,6 @@
   import type { BaseTableBodyCellProps } from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
   import AbiParamsTableRow from "./AbiParamsTableRow.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   export let paramTypes: CommonAbiParamsTableProps["paramTypes"];
   export let dialogHeaderText: CommonAbiParamsTableProps["dialogHeaderText"];
@@ -59,7 +58,6 @@
 
 <BaseTable
   tableHeaderCellProps={tableHeaderCellProps()}
-  colorCategoryBorder={colorSettings.itemMemberTableBorderAndHover}
   textSize={abiParamTabelSize}
   numOfTableRows={paramTypes.length}
 >
