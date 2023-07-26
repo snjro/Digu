@@ -2,24 +2,7 @@
 
 <script lang="ts" context="module">
   export type BaseInputProps = {
-    type?:
-      | "color"
-      | "date"
-      | "datetime-local"
-      | "email"
-      | "file"
-      | "hidden"
-      | "image"
-      | "month"
-      | "number"
-      | "password"
-      | "reset"
-      | "submit"
-      | "tel"
-      | "text"
-      | "time"
-      | "url"
-      | "week";
+    type: HTMLInputTypeAttribute;
     value?: string | number;
     size?: BaseSize;
     forcedClass?: string;
@@ -46,8 +29,9 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { HelperTextState } from "$lib/nav/settings/rpcConfig/RpcConfigChanger.svelte";
+  import type { HTMLInputTypeAttribute } from "svelte/elements";
 
-  export let type: NonNullable<BaseInputProps["type"]> = "text";
+  export let type: BaseInputProps["type"];
   export let value: BaseInputProps["value"] = undefined;
   export let size: NonNullable<BaseInputProps["size"]> = "md";
   export let forcedClass: BaseInputProps["forcedClass"] = undefined;
