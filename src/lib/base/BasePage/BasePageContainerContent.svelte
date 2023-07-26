@@ -31,7 +31,7 @@
       const selectedTabValueByUrl = labelAndValues.find((labelAndValue) => {
         return labelAndValue.href === $page.url.hash;
       })?.value;
-      if (selectedTabValue === $page.url.hash) {
+      if (selectedTabValue === selectedTabValueByUrl) {
         // There is nothing to do.
         // Because a selected tab and a URL hash match.
       } else {
@@ -43,7 +43,9 @@
           // Add hash to URL.
           // Because a tab is selected but that is not reflected in URL.
           goto(
-            `${$page.url}#${convertToKebabCase(selectedTabValue as string)}`
+            `${$page.url.pathname}#${convertToKebabCase(
+              selectedTabValue as string
+            )}`
           );
         }
       }
