@@ -25,7 +25,6 @@
     "items-center",
     "border-b",
     colorDefinitions[themeColor][colorSettings.navBg].border,
-
     ""
   );
 </script>
@@ -34,9 +33,9 @@
   {#if !$storeUserSettings.isOpenSidebar}
     <NavButtonLeftSidebar />
   {/if}
-  <div class={classNames("flex", "flex-row", "space-x-3")}>
+  <div class={classNames("flex", "flex-row", "space-x-8", "items-center", "")}>
     <SyncListChainRpcInput />
     <SyncStatus />
-    <NavButtons />
   </div>
+  <NavButtons />
 </nav>
