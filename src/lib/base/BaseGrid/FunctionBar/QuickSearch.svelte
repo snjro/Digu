@@ -17,6 +17,7 @@
 
 <BaseInput
   placeholder="Quick search..."
+  type="text"
   {size}
   bind:value={quickSearchText}
   colorCategory={colorSettings.gridFunctionInput}
