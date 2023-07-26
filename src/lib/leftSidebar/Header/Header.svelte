@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-  export const leftSidebarHeaderHeight: string = "h-[96px]";
+  export const leftSidebarHeaderHeight: string = "h-[84px]";
 </script>
 
 <script lang="ts">
