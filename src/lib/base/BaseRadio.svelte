@@ -3,7 +3,7 @@
     labelText: string;
     value: RadioValue;
     inputId: string;
-    href: string | undefined;
+    href?: string | undefined;
   }[];
   export const radioSizes: { [key in BaseSize]: string } = {
     xs: "w-3 h-3",
