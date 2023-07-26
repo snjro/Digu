@@ -7,7 +7,7 @@
   export let titleCategoryLabelText: string;
 
   type TabValue = $$Generic;
-  export let selectedTab: TabValue | undefined = undefined;
+  export let selectedTabValue: TabValue | undefined = undefined;
   export let tabValues: TabValue[] | undefined = undefined;
   export let tabGroupName: string | undefined = undefined;
 </script>
@@ -26,7 +26,7 @@
     {titleCategoryLabelText}
     isVerticalTitle={false}
   />
-  <BasePageContainerContent bind:selectedTab {tabValues} {tabGroupName}>
+  <BasePageContainerContent bind:selectedTabValue {tabValues} {tabGroupName}>
     <slot />
   </BasePageContainerContent>
 </div>

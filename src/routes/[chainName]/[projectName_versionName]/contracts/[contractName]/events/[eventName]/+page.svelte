@@ -11,7 +11,7 @@
     | "Event Logs (Decoded)"
     | "Event Logs (Hex)"
     | "ABI Fragment";
-  let selectedTab: SelectetTabsForEventLogs = "Overview";
+  let selectedTabValue: SelectetTabsForEventLogs = "Overview";
   const titleCategoryLabelText: string = "Event";
   $: eventName = data.targetEventAbiFragment.name!;
 </script>
@@ -25,7 +25,7 @@
     "Event Logs (Hex)",
     "ABI Fragment",
   ]}
-  bind:selectedTab
+  bind:selectedTabValue
   tabGroupName="eventLogsInfo"
 >
   <EventOverview
@@ -34,19 +34,19 @@
     targetVersion={data.targetVersion}
     targetContract={data.targetContract}
     targetEventAbiFragment={data.targetEventAbiFragment}
-    hidden={selectedTab !== "Overview"}
+    hidden={selectedTabValue !== "Overview"}
   />
   <EventLogs
     targetEventIdentifier={data.targetEventIdentifier}
     targetEventAbiFragment={data.targetEventAbiFragment}
-    hidden={selectedTab !== "Event Logs (Decoded)"}
+    hidden={selectedTabValue !== "Event Logs (Decoded)"}
     {titleCategoryLabelText}
     eventLogType="decoded"
   />
   <EventLogs
     targetEventIdentifier={data.targetEventIdentifier}
     targetEventAbiFragment={data.targetEventAbiFragment}
-    hidden={selectedTab !== "Event Logs (Hex)"}
+    hidden={selectedTabValue !== "Event Logs (Hex)"}
     {titleCategoryLabelText}
     eventLogType="hex"
   />
@@ -55,7 +55,7 @@
     abiFormatType="json"
     {titleCategoryLabelText}
     titleText={eventName}
-    hidden={selectedTab !== "ABI Fragment"}
+    hidden={selectedTabValue !== "ABI Fragment"}
     fragment
   />
 </BasePageContainer>
