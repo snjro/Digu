@@ -20,11 +20,11 @@
   );
   async function change(event: Event) {
     //update DB data and stored value
-    const selectedChainName: ChainName = (event.target as HTMLInputElement)
+    const chaingedChainName: ChainName = (event.target as HTMLInputElement)
       .value;
-    await updateDbItemUserSettings("selectedChainName", selectedChainName);
+    await updateDbItemUserSettings("selectedChainName", chaingedChainName);
     //jump to home
-    const rootUrl = `${location.origin}/${selectedChainName}`;
+    const rootUrl = `${location.origin}/${chaingedChainName}`;
     goto(rootUrl);
   }
 </script>
