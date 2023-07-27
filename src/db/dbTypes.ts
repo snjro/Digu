@@ -9,6 +9,7 @@ import type {
   Chain,
 } from "@constants/chains/types";
 import type { EventLog as OriginalEthersEventLog } from "ethers";
+import type { HTMLInputTypeAttribute } from "svelte/elements";
 
 export type SchemaDefinition = {
   [key: string]: string;
@@ -37,6 +38,7 @@ export type BlockTime = {
 };
 
 /////////////////////////////////////////////////////////
+export type RpcInputType = Extract<HTMLInputTypeAttribute, "text" | "password">;
 export type RpcSetting = {
   chainName: ChainName;
   rpc: string;
@@ -45,6 +47,7 @@ export type RpcSetting = {
   blockIntervalMs: number;
   tryCount: number;
   abortWatchIntervalMs: number;
+  inputType: RpcInputType;
 };
 export const initialDataRpcSetting = (targetChain: Chain): RpcSetting => {
   return {
@@ -56,6 +59,7 @@ export const initialDataRpcSetting = (targetChain: Chain): RpcSetting => {
     blockIntervalMs: targetChain.blockIntervalMs,
     tryCount: targetChain.tryCount,
     abortWatchIntervalMs: targetChain.abortWatchIntervalMs,
+    inputType: "text",
   };
 };
 
