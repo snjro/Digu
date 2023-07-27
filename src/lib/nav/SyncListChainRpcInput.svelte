@@ -1,5 +1,5 @@
 <script lang="ts">
-  import BaseInput, { type BaseInputProps } from "$lib/base/BaseInput.svelte";
+  import BaseInput from "$lib/base/BaseInput.svelte";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
@@ -15,7 +15,7 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { changeSize } from "$lib/base/baseSizes";
   import type { HelperTextState } from "./settings/rpcConfig/RpcConfigChanger.svelte";
-  import type { NodeStatus } from "@db/dbTypes";
+  import type { NodeStatus, RpcInputType } from "@db/dbTypes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { getNodeProvider } from "@utils/utilsEthers";
 
@@ -58,22 +58,26 @@
     const newRpc: string = (event.target as HTMLInputElement).value;
     await updateRpc(targetChainName, newRpc);
   }
-  let inputType: BaseInputProps["type"] = "text";
+  let inputType: RpcInputType;
+  $: inputType = $storeRpcSettings[targetChainName].inputType;
   let truncate = true;
   let eyeIconName: BaseIconProps["name"] = "eyeOff";
   let eyeIconTooltipText: "show" | "hide" = "hide";
-  function toggleObscureText(): void {
+  $: {
     if (inputType === "text") {
-      inputType = "password";
-      truncate = false;
-      eyeIconName = "eye";
-      eyeIconTooltipText = "show";
-    } else {
-      inputType = "text";
       truncate = true;
       eyeIconName = "eyeOff";
       eyeIconTooltipText = "hide";
+    } else {
+      truncate = false;
+      eyeIconName = "eye";
+      eyeIconTooltipText = "show";
     }
+  }
+  async function toggleInputType(): Promise<void> {
+    const newInputType: RpcInputType =
+      inputType === "text" ? "password" : "text";
+    await updateDbItemRpcSettings(targetChainName, "inputType", newInputType);
   }
 </script>
 
@@ -99,7 +103,7 @@
     />
     <BaseButtonIcon
       slot="suffixIcon"
-      on:click={toggleObscureText}
+      on:click={toggleInputType}
       size={changeSize(sizeSettings.navInput, -1)}
       tooltipText={eyeIconTooltipText}
       tooltipXPosition="right"
