@@ -28,29 +28,6 @@
 
   let isSyncing: boolean;
   $: isSyncing = $storeSyncStatus[targetChainName].isSyncing;
-
-  // $: numOfBlocksMined = (): number => {
-  //   return latestBlockNumber * numOfSyncTargetContract - creationBlockNumber;
-  // };
-  // $: numOfBlocksFetched = (): number => {
-  //   return fetchedBlockNumber - creationBlockNumber;
-  // };
-  // $: progressRate = (): number => {
-  //   if (!numOfBlocksMined()) {
-  //     return 0;
-  //   } else {
-  //     let progressRate = round(
-  //       numOfBlocksFetched() / numOfBlocksMined(),
-  //       numOfDecimals
-  //     );
-  //     if (progressRate < 0) {
-  //       progressRate = 0;
-  //     } else if (progressRate > 1) {
-  //       progressRate = 1;
-  //     }
-  //     return progressRate;
-  //   }
-  // };
 </script>
 
 <BaseProgressBarForBlockNumber
