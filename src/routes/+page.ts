@@ -1,6 +1,4 @@
 import { goto } from "$app/navigation";
-import { get } from "svelte/store";
-import { storeUserSettings } from "@stores/storeUserSettings";
 import { browser } from "$app/environment";
 import { getDbItemUserSettings } from "@db/dbSettingsDataHandlers";
 import type { ChainName } from "@constants/chains/types";
