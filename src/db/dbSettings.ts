@@ -1,13 +1,11 @@
 import type { Transaction } from "dexie";
 import { TARGET_CHAINS } from "@constants/chains/_index";
-import type {
-  RpcSetting,
-  SchemaDefinition,
-  UserSetting,
-  UserSettingDevMode,
-  UserSettingIsOpenSidebar,
-  UserSettingSelectedChainName,
-  UserSettingThemeColor,
+import {
+  initialDataRpcSetting,
+  initialDataUserSettings,
+  type RpcSetting,
+  type SchemaDefinition,
+  type UserSetting,
 } from "./dbTypes";
 import { DB_NAME, DB_TABLE_NAMES, DB_VERSIONS } from "./constants";
 import { dbBase } from "./dbBase";
@@ -15,7 +13,6 @@ import {
   getDbRecordRpcSettings,
   getDbRecordUserSettings,
 } from "./dbSettingsDataHandlers";
-import type { Chain } from "@constants/chains/types";
 
 export const TABLE_SETTINGS_COLUMN_NAMES = {
   RpcSettings: {
@@ -25,8 +22,11 @@ export const TABLE_SETTINGS_COLUMN_NAMES = {
     blokIntervalMs: "blokIntervalMs",
   },
   userSettings: {
-    userSettingsKey: "userSettingsKey",
-    value: "value",
+    userSettingsId: "userSettingsId",
+    themeColor: "themeColor",
+    devMode: "devMode",
+    selectedChainName: "selectedChainName",
+    isOpenSidebar: "isOpenSidebar",
   },
 } as const;
 
@@ -49,7 +49,7 @@ export class DbSettings extends dbBase {
       [DB_TABLE_NAMES.Settings.rpcSettings]:
         TABLE_SETTINGS_COLUMN_NAMES.RpcSettings.chainName,
       [DB_TABLE_NAMES.Settings.userSettings]:
-        TABLE_SETTINGS_COLUMN_NAMES.userSettings.userSettingsKey,
+        TABLE_SETTINGS_COLUMN_NAMES.userSettings.userSettingsId,
     };
     return schemaDefinition;
   }
@@ -71,66 +71,15 @@ async function addInitialDataRpcSettings(tx: Transaction) {
     await tx.table(DB_TABLE_NAMES.Settings.rpcSettings).bulkAdd(adds);
   }
 }
-export const initialDataRpcSetting = (targetChain: Chain): RpcSetting => {
-  return {
-    chainName: targetChain.name,
-    // rpc: targetChain.rpc[0], //TODO: TBD
-    rpc: "",
-    bulkUnit: 1000, //TODO: TBD
-    chainExplorerIndex: 0, //TODO: TBD
-    blockIntervalMs: targetChain.blockIntervalMs,
-    tryCount: targetChain.tryCount,
-    abortWatchIntervalMs: targetChain.abortWatchIntervalMs,
-  };
-};
 async function addInitialDataUserSettings(tx: Transaction) {
   const adds: UserSetting[] = [];
-  for (const userSetting of initialDataUserSettings()) {
-    if (
-      (await getDbRecordUserSettings(userSetting.userSettingsKey)) === undefined
-    ) {
-      adds.push(userSetting);
-    }
+
+  if ((await getDbRecordUserSettings("userSetting01")) === undefined) {
+    adds.push(initialDataUserSettings());
   }
+
   if (adds.length > 0) {
     await tx.table(DB_TABLE_NAMES.Settings.userSettings).bulkAdd(adds);
   }
 }
 export const dbSettings: DbSettings = new DbSettings();
-export const initialDataUserSettings = (): UserSetting[] => {
-  const userSettingThemeColor: UserSettingThemeColor = {
-    userSettingsKey: "themeColor",
-    value: "light",
-  };
-  const userSettingDevMode: UserSettingDevMode = {
-    userSettingsKey: "devMode",
-    value: false,
-  };
-  const userSettingSelectedChainName: UserSettingSelectedChainName = {
-    userSettingsKey: "selectedChainName",
-    value: "eth",
-  };
-  const userSettingIsOpenSidebar: UserSettingIsOpenSidebar = {
-    userSettingsKey: "isOpenSidebar",
-    value: true,
-  };
-  return [
-    userSettingThemeColor,
-    userSettingDevMode,
-    userSettingSelectedChainName,
-    userSettingIsOpenSidebar,
-  ];
-};
-
-// export const initialDataUserSettings = () => {
-//   return [
-//     {
-//       userSettingsKey: "themeColor",
-//       value: "light",
-//     },
-//     {
-//       userSettingsKey: "notifications",
-//       value: { screen1: true, screen2: true },
-//     },
-//   ];
-// };

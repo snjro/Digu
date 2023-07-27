@@ -6,6 +6,7 @@ import type {
   AbiFragmentName,
   HexString,
   ContractInterface,
+  Chain,
 } from "@constants/chains/types";
 import type { EventLog as OriginalEthersEventLog } from "ethers";
 
@@ -45,28 +46,36 @@ export type RpcSetting = {
   tryCount: number;
   abortWatchIntervalMs: number;
 };
+export const initialDataRpcSetting = (targetChain: Chain): RpcSetting => {
+  return {
+    chainName: targetChain.name,
+    // rpc: targetChain.rpc[0], //TODO: TBD
+    rpc: "",
+    bulkUnit: 1000, //TODO: TBD
+    chainExplorerIndex: 0, //TODO: TBD
+    blockIntervalMs: targetChain.blockIntervalMs,
+    tryCount: targetChain.tryCount,
+    abortWatchIntervalMs: targetChain.abortWatchIntervalMs,
+  };
+};
+
 export type ThemeColor = "dark" | "light";
-export type UserSettingThemeColor = {
-  userSettingsKey: "themeColor";
-  value: ThemeColor;
+export type UserSetting = {
+  userSettingsId: "userSetting01";
+  themeColor: ThemeColor;
+  devMode: boolean;
+  selectedChainName: ChainName;
+  isOpenSidebar: boolean;
 };
-export type UserSettingDevMode = {
-  userSettingsKey: "devMode";
-  value: boolean;
+export const initialDataUserSettings = (): UserSetting => {
+  return {
+    userSettingsId: "userSetting01",
+    themeColor: "light",
+    devMode: false,
+    selectedChainName: "eth",
+    isOpenSidebar: true,
+  };
 };
-export type UserSettingSelectedChainName = {
-  userSettingsKey: "selectedChainName";
-  value: ChainName;
-};
-export type UserSettingIsOpenSidebar = {
-  userSettingsKey: "isOpenSidebar";
-  value: boolean;
-};
-export type UserSetting =
-  | UserSettingThemeColor
-  | UserSettingDevMode
-  | UserSettingSelectedChainName
-  | UserSettingIsOpenSidebar;
 /////////////////////////////////////////////////////////
 export type NodeStatus =
   | "SUCCESS"

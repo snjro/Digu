@@ -5,6 +5,4 @@ export type StateChainStatuses = {
   [key in ChainName]: ChainStatus;
 };
 export type StateRpcSettings = { [key in ChainName]: RpcSetting };
-export type StateUserSettings = {
-  [key in UserSetting["userSettingsKey"]]: UserSetting["value"];
-};
+export type StateUserSettings = UserSetting;

@@ -46,39 +46,42 @@ export async function updateDbItemRpcSettings<T extends keyof RpcSetting>(
 
 ////////////////////////////////////////////////////
 export async function getDbRecordUserSettings(
-  userSettingsKey: UserSetting["userSettingsKey"]
+  userSettingsId: UserSetting["userSettingsId"]
 ): Promise<UserSetting> {
   return await dbSettings.transaction("r", tableNameUserSettings, async () => {
     const userSettings: UserSetting = await dbSettings
       .table(tableNameUserSettings)
-      .get(userSettingsKey);
+      .get(userSettingsId);
 
     return userSettings;
   });
 }
-export async function getDbItemUserSettings(
-  userSettingsKey: UserSetting["userSettingsKey"]
-): Promise<UserSetting["value"]> {
-  return (await getDbRecordUserSettings(userSettingsKey)).value;
+export async function getDbItemUserSettings<T extends keyof UserSetting>(
+  userSettingsId: UserSetting["userSettingsId"],
+  key: T
+): Promise<UserSetting[T]> {
+  const userSetting: UserSetting = await getDbRecordUserSettings(
+    userSettingsId
+  );
+  return userSetting[key];
 }
 
-export async function updateDbItemUserSettings(
-  userSettingsKey: UserSetting["userSettingsKey"],
-  newValue: UserSetting["value"]
+export async function updateDbItemUserSettings<T extends keyof UserSetting>(
+  key: T,
+  newValue: UserSetting[T]
 ): Promise<void> {
   await dbSettings
     .transaction("rw", tableNameUserSettings, async () => {
       //update table
       await dbSettings
         .table(tableNameUserSettings)
-        .update(userSettingsKey, { value: newValue });
+        .update("userSetting01", { [key]: newValue });
     })
     .then(() => {
       //update store
-      storeUserSettings.updateState(userSettingsKey, newValue);
+      storeUserSettings.updateState({ [key]: newValue });
     });
 }
-
 ////////////////////////////////////////////////////
 export async function addInitialData() {
   await dbSettings.transaction(
