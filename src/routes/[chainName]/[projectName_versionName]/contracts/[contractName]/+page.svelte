@@ -6,7 +6,7 @@
 
   export let data: LoadContractData;
 
-  let selectedTab: "Overview" | "ABI" = "Overview";
+  let selectedTabValue: "Overview" | "ABI" = "Overview";
   const titleCategoryLabelText: string = "Contract";
   let titleText: string;
   $: titleText = data.targetContract.name;
@@ -16,7 +16,7 @@
   {titleText}
   {titleCategoryLabelText}
   tabValues={["Overview", "ABI"]}
-  bind:selectedTab
+  bind:selectedTabValue
   tabGroupName="contractInfo"
 >
   <ContractOverview
@@ -24,13 +24,13 @@
     targetProject={data.targetProject}
     targetVersion={data.targetVersion}
     targetContract={data.targetContract}
-    hidden={selectedTab !== "Overview"}
+    hidden={selectedTabValue !== "Overview"}
   />
   <AbiJsonViewer
     targetAbi={data.targetContract.contractInterface}
     abiFormatType="json"
     {titleCategoryLabelText}
     {titleText}
-    hidden={selectedTab !== "ABI"}
+    hidden={selectedTabValue !== "ABI"}
   />
 </BasePageContainer>

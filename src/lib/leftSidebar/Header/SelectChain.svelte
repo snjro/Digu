@@ -3,10 +3,9 @@
   import BaseSelect, {
     type BaseSelectProps,
   } from "$lib/base/BaseSelect.svelte";
-  import type { Chain } from "@constants/chains/types";
+  import type { Chain, ChainName } from "@constants/chains/types";
   import { TARGET_CHAINS } from "@constants/chains/_index";
   import { updateDbItemUserSettings } from "@db/dbSettingsDataHandlers";
-  import type { UserSetting } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
@@ -21,9 +20,8 @@
   );
   async function change(event: Event) {
     //update DB data and stored value
-    const selectedChainName: UserSetting["value"] = (
-      event.target as HTMLInputElement
-    ).value;
+    const selectedChainName: ChainName = (event.target as HTMLInputElement)
+      .value;
     await updateDbItemUserSettings("selectedChainName", selectedChainName);
     //jump to home
     const rootUrl = `${location.origin}/${selectedChainName}`;

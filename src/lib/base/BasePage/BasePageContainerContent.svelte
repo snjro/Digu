@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
+  import { page } from "$app/stores";
   import BasePageContainerContentFrame from "$lib/base/BasePage/BasePageContainerContentFrame.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { BaseSize } from "$lib/base/baseSizes";
@@ -6,9 +8,10 @@
   import BaseRadio, {
     type RadioLabelAndValues,
   } from "$lib/base/BaseRadio.svelte";
+  import { convertToKebabCase } from "@utils/utilsCommon";
 
   type TabValue = $$Generic;
-  export let selectedTab: TabValue | undefined;
+  export let selectedTabValue: TabValue | undefined;
   export let tabValues: TabValue[] | undefined;
   export let tabGroupName: string | undefined;
 
@@ -19,9 +22,35 @@
           labelText: tabValue as string,
           value: tabValue,
           inputId: `${tabGroupName}${tabValue}`,
+          href: `#${convertToKebabCase(tabValue as string)}`,
         };
       })
     : [];
+  $: {
+    if (tabValues) {
+      const selectedTabValueByUrl = labelAndValues.find((labelAndValue) => {
+        return labelAndValue.href === $page.url.hash;
+      })?.value;
+      if (selectedTabValue === selectedTabValueByUrl) {
+        // There is nothing to do.
+        // Because a selected tab and a URL hash match.
+      } else {
+        if (selectedTabValueByUrl) {
+          // Match URL hash and selectedTabValue.
+          // URL hash is preferred here, considering the case where the page is accessed by typing the URL directly.
+          selectedTabValue = selectedTabValueByUrl;
+        } else {
+          // Add hash to URL.
+          // Because a tab is selected but that is not reflected in URL.
+          goto(
+            `${$page.url.pathname}#${convertToKebabCase(
+              selectedTabValue as string
+            )}`
+          );
+        }
+      }
+    }
+  }
 </script>
 
 <div class={classNames("w-full", "h-full", "flex", "flex-col")}>
@@ -30,7 +59,7 @@
       radioButtonType="tab"
       border={true}
       groupName={tabGroupName}
-      bind:selectedValue={selectedTab}
+      bind:selectedValue={selectedTabValue}
       {size}
       {labelAndValues}
     />

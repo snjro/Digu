@@ -90,3 +90,10 @@ export function capitalizeFirstLetter(targetString: string): string {
   }
   return targetString;
 }
+
+export function convertToKebabCase(targetString: string): string {
+  return targetString
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/[\s_]+/g, "-")
+    .toLowerCase();
+}

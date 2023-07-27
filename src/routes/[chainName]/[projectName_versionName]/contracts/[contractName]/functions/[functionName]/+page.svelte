@@ -7,7 +7,7 @@
   export let data: LoadFunction;
 
   type SelectetTabsForEventLogs = "Overview" | "ABI Fragment";
-  let selectedTab: SelectetTabsForEventLogs = "Overview";
+  let selectedTabValue: SelectetTabsForEventLogs = "Overview";
   const titleCategoryLabelText: string = "Function";
   $: titleText = data.targetFunctionAbiFragment.name!;
 </script>
@@ -16,7 +16,7 @@
   {titleText}
   {titleCategoryLabelText}
   tabValues={["Overview", "ABI Fragment"]}
-  bind:selectedTab
+  bind:selectedTabValue
   tabGroupName="eventLogsInfo"
 >
   <FunctionOverview
@@ -25,14 +25,14 @@
     targetVersion={data.targetVersion}
     targetContract={data.targetContract}
     targetFunctionAbiFragment={data.targetFunctionAbiFragment}
-    hidden={selectedTab !== "Overview"}
+    hidden={selectedTabValue !== "Overview"}
   />
   <AbiJsonViewer
     targetAbi={data.targetFunctionAbiFragment}
     abiFormatType="json"
     {titleCategoryLabelText}
     {titleText}
-    hidden={selectedTab !== "ABI Fragment"}
+    hidden={selectedTabValue !== "ABI Fragment"}
     fragment
   />
 </BasePageContainer>

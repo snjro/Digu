@@ -19,7 +19,6 @@ import { myLogger } from "@utils/logger";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { initialDataUserSettings } from "@db/dbSettings";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { extractEventContracts } from "@utils/utilsEthers";
 import { get } from "svelte/store";
@@ -71,14 +70,10 @@ async function InitializeStoreRpcSettings(chainName: ChainName): Promise<void> {
   });
 }
 async function initializeStoreUserSettings(): Promise<void> {
-  for (const initialUserSetting of initialDataUserSettings()) {
-    const userSettingsKey: UserSetting["userSettingsKey"] =
-      initialUserSetting.userSettingsKey;
-    const userSetting: UserSetting = await getDbRecordUserSettings(
-      userSettingsKey
-    );
-    storeUserSettings.updateState(userSettingsKey, userSetting.value);
-  }
+  const userSettings: UserSetting = await getDbRecordUserSettings(
+    "userSetting01"
+  );
+  storeUserSettings.updateState(userSettings);
   myLogger.success(`Initialized "storeUserSetting"`, {
     storeUserSettings: get(storeUserSettings),
   });

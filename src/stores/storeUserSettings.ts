@@ -1,16 +1,12 @@
 import { writable } from "svelte/store";
 import type { StateUserSettings } from "./storeTypes";
-import type { UserSetting } from "@db/dbTypes";
-// import { initialDataUserSettings } from "@db/dbSettings";
+import { initialDataUserSettings, type UserSetting } from "@db/dbTypes";
 
 function store() {
   const state: StateUserSettings = getInitialState();
   const { subscribe, set, update } = writable(state);
-  const updateState = (
-    userSettingsKey: UserSetting["userSettingsKey"],
-    newValue: UserSetting["value"]
-  ): void => {
-    state[userSettingsKey] = newValue;
+  const updateState = (newUserSetting: Partial<UserSetting>): void => {
+    Object.assign(state, newUserSetting);
     set(state);
   };
 
@@ -20,18 +16,5 @@ function store() {
 export const storeUserSettings = store();
 
 function getInitialState(): StateUserSettings {
-  // TODO: return by using "initialDataUserSettings"
-  // console.log(2020220, initialDataUserSettings);
-  // return Object.assign(
-  //   {},
-  //   ...initialDataUserSettings().map((initialData: UserSetting) => {
-  //     return { [initialData.userSettingsKey]: initialData };
-  //   })
-  // );
-  return {
-    themeColor: "light",
-    devMode: false,
-    selectedChainName: "eth",
-    isOpenSidebar: true,
-  };
+  return initialDataUserSettings();
 }

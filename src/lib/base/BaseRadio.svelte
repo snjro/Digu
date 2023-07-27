@@ -3,6 +3,7 @@
     labelText: string;
     value: RadioValue;
     inputId: string;
+    href?: string | undefined;
   }[];
   export const radioSizes: { [key in BaseSize]: string } = {
     xs: "w-3 h-3",
@@ -227,7 +228,7 @@
       "static"
     )}
   >
-    {#each labelAndValues as { labelText, value, inputId }, i}
+    {#each labelAndValues as { labelText, value, inputId, href }, i}
       <div
         class={classNames(
           radioButtonType === "button" &&
@@ -257,6 +258,7 @@
           label={labelText}
           {disabled}
           {size}
+          {href}
           border={radioButtonType === "tab"
             ? selectedValue !== value
             : themeColor === "dark" && true}
