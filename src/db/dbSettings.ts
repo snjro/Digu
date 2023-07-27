@@ -14,21 +14,24 @@ import {
   getDbRecordUserSettings,
 } from "./dbSettingsDataHandlers";
 
-export const TABLE_SETTINGS_COLUMN_NAMES = {
-  RpcSettings: {
-    chainName: "chainName",
-    rpc: "rpc",
-    bulkUnit: "bulkUnit",
-    blokIntervalMs: "blokIntervalMs",
-  },
-  userSettings: {
-    userSettingsId: "userSettingsId",
-    themeColor: "themeColor",
-    devMode: "devMode",
-    selectedChainName: "selectedChainName",
-    isOpenSidebar: "isOpenSidebar",
-  },
-} as const;
+// export const TABLE_SETTINGS_COLUMN_NAMES = {
+//   RpcSettings: {
+//     chainName: "chainName",
+//     rpc: "rpc",
+//     bulkUnit: "bulkUnit",
+//     blokIntervalMs: "blokIntervalMs",
+//     tryCount: "tryCount",
+//     abortWatchIntervalMs: "abortWatchIntervalMs",
+//     inputType: "inputType",
+//   },
+//   userSettings: {
+//     userSettingsId: "userSettingsId",
+//     themeColor: "themeColor",
+//     devMode: "devMode",
+//     selectedChainName: "selectedChainName",
+//     isOpenSidebar: "isOpenSidebar",
+//   },
+// } as const;
 
 export class DbSettings extends dbBase {
   constructor(dbNameForTest?: string) {
@@ -46,10 +49,11 @@ export class DbSettings extends dbBase {
   }
   protected getSchemaDefinition(): SchemaDefinition {
     const schemaDefinition: SchemaDefinition = {
-      [DB_TABLE_NAMES.Settings.rpcSettings]:
-        TABLE_SETTINGS_COLUMN_NAMES.RpcSettings.chainName,
+      [DB_TABLE_NAMES.Settings.rpcSettings]: "chainName" as keyof RpcSetting,
+      // TABLE_SETTINGS_COLUMN_NAMES.RpcSettings.chainName,
       [DB_TABLE_NAMES.Settings.userSettings]:
-        TABLE_SETTINGS_COLUMN_NAMES.userSettings.userSettingsId,
+        "userSettingsId" as keyof UserSetting,
+      // TABLE_SETTINGS_COLUMN_NAMES.userSettings.userSettingsId,
     };
     return schemaDefinition;
   }
