@@ -19,6 +19,7 @@
   export let isHoverControledByParent: NonNullable<
     BaseIconProps["isHoverControledByParent"]
   > = false;
+  export let cursor: "cursor-default" | "cursor-pointer" = "cursor-default";
   function onMouseEnter() {
     if (!isHoverControledByParent) isHover = true;
   }
@@ -83,7 +84,7 @@
   {style}
   on:mouseenter={onMouseEnter}
   on:mouseleave={onMouseLeave}
-  class={classNames("cursor-default", "w-fit", "h-fit")}
+  class={classNames(cursor, "w-fit", "h-fit")}
 >
   <svg
     xmlns="http://www.w3.org/2000/svg"
