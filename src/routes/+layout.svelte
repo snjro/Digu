@@ -43,7 +43,7 @@
           "flex-col",
           "w-screen",
           "h-screen",
-          $storeUserSettings.isOpenSidebar && "pl-[328px]",
+          $storeUserSettings.isOpenSidebar && "pl-[320px]",
           "overflow-x-auto",
           "overflow-y-auto",
           scrollbarStyle(colorSettings.main).thick,

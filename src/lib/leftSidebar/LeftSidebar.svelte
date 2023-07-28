@@ -17,7 +17,7 @@
     "absolute top-0",
     "w-full",
     "h-full",
-    "sm:w-[328px]",
+    "sm:w-[320px]",
     "dark:border-r",
     colorDefinitions[themeColor][colorSettings.leftSidebarBorder].border,
     "shadow-md dark:shadow-none",
