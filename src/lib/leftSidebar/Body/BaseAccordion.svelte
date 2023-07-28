@@ -182,7 +182,6 @@
         isHoverControledByParent
         {isHover}
         colorCategory={getFrontColorCategory(isSelected())}
-        appendClass="ml-1"
       />
     </div>
   </button>

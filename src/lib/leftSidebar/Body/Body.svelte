@@ -20,9 +20,10 @@
     "flex-col",
     "flex-grow",
     "pt-2",
+    "pr-3",
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
     "overflow-y-scroll",
-    scrollbarStyle(colorSettings.leftSidebarBodyBg).thick,
+    scrollbarStyle(colorSettings.leftSidebarBodyBg).thin,
     "h-full",
     ""
   )}
