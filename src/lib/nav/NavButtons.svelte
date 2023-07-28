@@ -16,7 +16,8 @@
     "flex-row",
     "flex-nowrap",
     "items-center",
-    "space-x-3"
+    "space-x-2",
+    ""
   )}
 >
   {#if $storeNoDbCurrentWidth < breakPointWidths.sm}
