@@ -24,6 +24,7 @@
   export let disabled: boolean;
   export let toggleValue: boolean;
   export let spinIcon: boolean = false;
+  export let pulseIcon: boolean = false;
 
   const dispatcher = createEventDispatcher();
   function onToggle(): void {
@@ -139,6 +140,7 @@
               "fill-white",
               "hover:fill-white",
               spinIcon && "animate-spin",
+              pulseIcon && "animate-pulse",
               cursorStyle
             )}
           />
