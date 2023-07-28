@@ -93,6 +93,7 @@
       "placeholder:italic",
       baseTextSizes[size],
       inputPaddingSizes[size],
+      "noborder",
       appendClass
     );
   const handleInput = (event: Event): void => {
@@ -207,9 +208,10 @@
 </div>
 
 <style lang="scss">
-  input:focus {
-    outline: none !important;
-    // background-color: red;
-    border: none !important;
+  .noborder {
+    &:focus {
+      outline: none !important;
+      border: none !important;
+    }
   }
 </style>
