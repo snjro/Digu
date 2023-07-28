@@ -29,8 +29,10 @@ export function getVerticalViewabilityInScroll(
   return verticalViewability;
 }
 
-// "tailwindcss/stubs/defaultConfig.stub"
 type BreakPointWidthName = "sm" | "md" | "lg" | "xl" | "2xl";
+
+// The values in "tailwind.config.js" must be sync with the values here
+// Ref: https://tailwindcss.com/docs/screens
 export const breakPointWidths: { [key in BreakPointWidthName]: number } = {
   sm: 640,
   md: 768,
