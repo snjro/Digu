@@ -18,7 +18,7 @@ type ColorSettings = Record<
   | "itemGroupTitle"
   | "itemMemberText"
   | "itemMemberTableBg"
-  | "itemMemberTableBorderAndHover"
+  | "itemMemberTableBorder"
   | "itemMemberProgressBarFront"
   | "itemMemberProgressBarBg"
   | "gridContainer"
@@ -64,7 +64,7 @@ export const colorSettings: ColorSettings = {
   itemGroupTitle: colorSub,
   itemMemberText: colorMain,
   itemMemberTableBg: colorMain,
-  itemMemberTableBorderAndHover: colorSub,
+  itemMemberTableBorder: colorSub,
   itemMemberProgressBarBg: colorSub,
   itemMemberProgressBarFront: colorMain,
   //grid
