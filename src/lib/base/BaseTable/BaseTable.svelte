@@ -25,7 +25,7 @@
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 
   const colorCategoryBorder: ColorCategory =
-    colorSettings.itemMemberTableBorderAndHover;
+    colorSettings.itemMemberTableBorder;
   const colorCategoryBg: ColorCategory = colorSettings.itemMemberTableBg;
 </script>
 

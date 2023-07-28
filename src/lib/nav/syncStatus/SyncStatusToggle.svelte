@@ -48,8 +48,10 @@
   let isAbleToSync: boolean;
   $: isAbleToSync =
     nodeStatus === "SUCCESS" && targetChainSyncStatus.isSyncTarget;
+  let isStopping: boolean;
+  $: isStopping = currentSyncingState === "Stopping...";
   let disabled: boolean;
-  $: disabled = !isAbleToSync || currentSyncingState === "Stopping...";
+  $: disabled = !isAbleToSync || isStopping;
 
   $: (async () => {
     if (currentSyncingState === "Stopped") {
@@ -59,7 +61,14 @@
 </script>
 
 <div
-  class={classNames("flex", "flex-row", "items-center", "space-x-0.5", "w-32")}
+  class={classNames(
+    "flex",
+    "flex-row",
+    "items-center",
+    "space-x-0.5",
+    "w-32",
+    isStopping && "animate-pulse"
+  )}
 >
   <BaseToggle
     toggleValue={toggleOn}
@@ -73,6 +82,7 @@
     colorCategoryThumbToggleOff={disabled ? colorSettings.navBg : "interactive"}
     colorCategoryThumbToggleOn="success"
     spinIcon={toggleOn}
+    pulseIcon={isStopping}
     on:toggleChanged={toggleChanged}
   />
   <CommonSyncCurrentState

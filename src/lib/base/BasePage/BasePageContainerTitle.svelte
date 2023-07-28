@@ -15,7 +15,7 @@
   export let isVerticalTitle: boolean;
   let titleTextSize: BaseSize;
   $: titleTextSize =
-    $storeNoDbCurrentWidth < breakPointWidths.sm
+    $storeNoDbCurrentWidth <= breakPointWidths.sm
       ? changeSize(sizeSettings.title, -3)
       : sizeSettings.title;
   let themeColor: ThemeColor;

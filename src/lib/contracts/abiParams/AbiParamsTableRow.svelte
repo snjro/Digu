@@ -36,13 +36,11 @@
     getComponentsFromAbiFragmentParam(paramType);
 </script>
 
-<BaseTableRow
-  colorCategoryBgHover={colorSettings.itemMemberTableBorderAndHover}
->
+<BaseTableRow>
   <SequenceBodyCell
     {rowIndex}
     textSize={abiParamsTabeSize}
-    colorCategoryBorder={colorSettings.itemMemberTableBorderAndHover}
+    colorCategoryBorder={colorSettings.itemMemberTableBorder}
   />
   <BaseTableBodyCell
     text={paramType.name ? paramType.name : NO_DATA}

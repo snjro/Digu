@@ -34,9 +34,9 @@
     : undefined;
   let detailsTextSize: BaseSize;
   $: detailsTextSize =
-    $storeNoDbCurrentWidth > breakPointWidths.sm
-      ? itemSize
-      : changeSize(itemSize, -1);
+    $storeNoDbCurrentWidth <= breakPointWidths.sm
+      ? changeSize(itemSize, -1)
+      : itemSize;
 </script>
 
 <CommonItemMember text="Progress">
@@ -44,9 +44,9 @@
     startValue={targetContract.creation.blockNumber}
     currentValue={fetchedBlockNumber ?? targetContract.creation.blockNumber}
     goalValue={latestBlockNumber}
-    detailsPosition={$storeNoDbCurrentWidth > breakPointWidths.lg
-      ? "bottom"
-      : "right"}
+    detailsPosition={$storeNoDbCurrentWidth <= breakPointWidths.lg
+      ? "right"
+      : "bottom"}
     circleSize={changeSize(itemSize, 1)}
     {detailsTextSize}
   />

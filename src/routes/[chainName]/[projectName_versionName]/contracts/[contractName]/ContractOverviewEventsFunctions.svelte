@@ -48,13 +48,11 @@
     >
       <svelte:fragment slot="tableBody">
         {#each nameList as name, indexSortedEventNames}
-          <BaseTableRow
-            colorCategoryBgHover={colorSettings.itemMemberTableBorderAndHover}
-          >
+          <BaseTableRow>
             <SequenceBodyCell
               rowIndex={indexSortedEventNames}
               {textSize}
-              colorCategoryBorder={colorSettings.itemMemberTableBorderAndHover}
+              colorCategoryBorder={colorSettings.itemMemberTableBorder}
             />
             <BaseTableBodyCell align="left" {textSize}>
               <BaseA
