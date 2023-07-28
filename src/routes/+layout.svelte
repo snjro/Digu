@@ -36,7 +36,7 @@
   );
   $: mainContainerStyle = classNames(
     $storeUserSettings.isOpenSidebar &&
-      $storeNoDbCurrentWidth < breakPointWidths.sm
+      $storeNoDbCurrentWidth <= breakPointWidths.sm
       ? "hidden"
       : classNames(
           "flex",

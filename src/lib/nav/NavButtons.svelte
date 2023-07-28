@@ -20,7 +20,7 @@
     ""
   )}
 >
-  {#if $storeNoDbCurrentWidth < breakPointWidths.sm}
+  {#if $storeNoDbCurrentWidth <= breakPointWidths.sm}
     <BaseButton type="icon" size={sizeSettings.navButton} on:click={onClick}>
       <BaseIcon
         slot="prefixIcon"

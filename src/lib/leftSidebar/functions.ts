@@ -9,7 +9,7 @@ export async function toggleLeftSideBar(): Promise<void> {
   await updateDbItemUserSettings("isOpenSidebar", !isOpenSidebar);
 }
 export async function toggleLeftSideBarWithCondition(): Promise<void> {
-  if (get(storeNoDbCurrentWidth) < breakPointWidths.sm) {
+  if (get(storeNoDbCurrentWidth) <= breakPointWidths.sm) {
     await toggleLeftSideBar();
   }
 }
