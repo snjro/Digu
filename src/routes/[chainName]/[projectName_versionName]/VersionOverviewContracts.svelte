@@ -63,13 +63,11 @@
     >
       <svelte:fragment slot="tableBody">
         {#each targetVersion.contracts as targetContract, indexSortedEventNames}
-          <BaseTableRow
-            colorCategoryBgHover={colorSettings.itemMemberTableBorderAndHover}
-          >
+          <BaseTableRow>
             <SequenceBodyCell
               rowIndex={indexSortedEventNames}
               {textSize}
-              colorCategoryBorder={colorSettings.itemMemberTableBorderAndHover}
+              colorCategoryBorder={colorSettings.itemMemberTableBorder}
             />
             <BaseTableBodyCell align="left" {textSize}>
               <BaseA
