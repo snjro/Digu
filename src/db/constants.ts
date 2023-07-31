@@ -1,5 +1,5 @@
 export const DB_NAME = {
-  firstName: "Monju",
+  firstName: "Monju", //TODO: change firstName
   secondNames: {
     eventLog: "EventLog",
     blockTimes: "BlockTimes",
