@@ -11,6 +11,8 @@ import type { FunctionRow } from "./gridRows";
 import { columnDefStateMutability } from "$lib/gridColumnDefs/columnDefStateMutability";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
+import { convertToKebabCase } from "@utils/utilsCommon";
+import { tabValuesForFunction } from "./[functionName]/+page.svelte";
 
 const cellClass: string = classNames("");
 const sortable = true;
@@ -48,7 +50,9 @@ export const columnDefsBasic = <T extends FunctionRow>(
                 target: cell.eGui,
                 props: {
                   text: cellRendererParams.data.functionName,
-                  href: `${urlPathName}/${cellRendererParams.data.functionName}`,
+                  href: `${urlPathName}/${
+                    cellRendererParams.data.functionName
+                  }#${convertToKebabCase(tabValuesForFunction[0])}`,
                   textSize: gridSize,
                   openNewTab: false,
                   prefixIcon: {

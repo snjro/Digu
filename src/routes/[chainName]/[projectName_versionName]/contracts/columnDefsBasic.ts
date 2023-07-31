@@ -13,6 +13,8 @@ import type { ContractRow } from "./gridRows";
 import { columnDefChainExplorerLinkByKeyName } from "$lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
+import { convertToKebabCase } from "@utils/utilsCommon";
+import { tabValuesForContract } from "./[contractName]/+page.svelte";
 
 const girdSize: BaseSize = sizeSettings.grid;
 const cellClass: string = classNames("");
@@ -51,7 +53,9 @@ export const columnDefsBasic = <T extends ContractRow>(
                 target: cell.eGui,
                 props: {
                   text: cellRendererParams.data?.contractName,
-                  href: `${urlPathName}/${cellRendererParams.data.contractName}`,
+                  href: `${urlPathName}/${
+                    cellRendererParams.data.contractName
+                  }#${convertToKebabCase(tabValuesForContract[0])}`,
                   textSize: girdSize,
                   openNewTab: false,
                   prefixIcon: {

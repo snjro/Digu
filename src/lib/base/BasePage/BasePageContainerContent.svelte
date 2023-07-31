@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="TabValues, SelectedTabValue">
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import BasePageContainerContentFrame from "$lib/base/BasePage/BasePageContainerContentFrame.svelte";
@@ -10,14 +10,15 @@
   } from "$lib/base/BaseRadio.svelte";
   import { convertToKebabCase } from "@utils/utilsCommon";
 
-  type TabValue = $$Generic;
-  export let selectedTabValue: TabValue | undefined;
-  export let tabValues: TabValue[] | undefined;
+  export let selectedTabValue: SelectedTabValue | undefined;
+  export let tabValues: TabValues | undefined;
   export let tabGroupName: string | undefined;
 
   const size: BaseSize = sizeSettings.tab;
-  const labelAndValues: RadioLabelAndValues<TabValue> = tabValues
-    ? tabValues.map((tabValue: TabValue) => {
+  const labelAndValues: RadioLabelAndValues<SelectedTabValue> = Array.isArray(
+    tabValues
+  )
+    ? tabValues.map((tabValue: SelectedTabValue) => {
         return {
           labelText: tabValue as string,
           value: tabValue,

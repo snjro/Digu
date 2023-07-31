@@ -10,6 +10,8 @@ import classNames from "classnames";
 import type { EventRow } from "./gridRows";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
+import { convertToKebabCase } from "@utils/utilsCommon";
+import { tabValuesForEvent } from "./[eventName]/+page.svelte";
 
 const girdSize: BaseSize = sizeSettings.grid;
 
@@ -45,7 +47,9 @@ export const columnDefsBasic = <T extends EventRow>(
                 target: cell.eGui,
                 props: {
                   text: cellRendererParams.data.eventName,
-                  href: `${urlPathName}/${cellRendererParams.data.eventName}`,
+                  href: `${urlPathName}/${
+                    cellRendererParams.data.eventName
+                  }#${convertToKebabCase(tabValuesForEvent[0])}`,
                   textSize: girdSize,
                   openNewTab: false,
                   prefixIcon: {

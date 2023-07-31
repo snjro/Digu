@@ -9,6 +9,10 @@
   import { directoryItems } from "$lib/leftSidebar/Body/directoryDefinitions";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { tabValuesForContract } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/+page.svelte";
+  import { tabValuesForEvent } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/+page.svelte";
+  import { tabValuesForFunction } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/functions/[functionName]/+page.svelte";
+  import { convertToKebabCase } from "@utils/utilsCommon";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
 
@@ -31,7 +35,11 @@
       indexPathNames < pathNames.length;
       indexPathNames++
     ) {
-      href = `${href}/${pathNames[indexPathNames]}`;
+      const PathNameWithUrlHash = getPathNameWithUrlHash(
+        pathNames,
+        indexPathNames
+      );
+      href = `${removeUrlHash(href)}/${PathNameWithUrlHash}`;
       text = convertUrlTextToLabelText(pathNames[indexPathNames]);
       prefixIconName = undefined;
       if (text) {
@@ -40,6 +48,37 @@
     }
     return crumbs;
   };
+  function removeUrlHash(href: string): string {
+    const hashStartIndex: number = href.indexOf("#");
+    return hashStartIndex > 0 ? href.substring(0, hashStartIndex) : href;
+  }
+  function getPathNameWithUrlHash(
+    pathNames: string[],
+    indexPathNames: number
+  ): string {
+    const previousPathName: string = pathNames[indexPathNames - 1];
+    let urlHash: string = "";
+    // if (indexPathNames === pathNames.length - 1) {
+    switch (previousPathName) {
+      case "contracts":
+        urlHash = tabValuesForContract[0];
+        break;
+      case "events":
+        urlHash = tabValuesForEvent[0];
+        break;
+      case "functions":
+        urlHash = tabValuesForFunction[0];
+        break;
+      default:
+        urlHash = "";
+        break;
+    }
+    if (urlHash) {
+      urlHash = `#${convertToKebabCase(urlHash)}`;
+    }
+    // }
+    return pathNames[indexPathNames] + urlHash;
+  }
   function convertUrlTextToLabelText(path: string): string {
     if (path in directoryItems) {
       return directoryItems[path].label;
