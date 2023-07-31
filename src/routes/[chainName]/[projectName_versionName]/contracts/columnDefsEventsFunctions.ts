@@ -11,21 +11,22 @@ import type { ContractRow } from "./gridRows";
 import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
+import type { AbiFragmentsType } from "./[contractName]/ContractOverviewEventsFunctions.svelte";
 const gridSize: BaseSize = sizeSettings.grid;
 export const columnDefsEventsFunctions = <T extends ContractRow>(
-  processType: "events" | "functions",
+  abiFragmentsType: AbiFragmentsType,
   urlPathName: string
 ): ColumnDef => {
   const keyOfContractRow: keyof T =
-    processType === "events"
+    abiFragmentsType === "events"
       ? "contractEventsTotalNumber"
       : "contractFunctionsTotalNumber";
 
   const columnDef: ColumnDef = {
-    headerName: `${capitalizeFirstLetter(processType)}`,
+    headerName: `${capitalizeFirstLetter(abiFragmentsType)}`,
     children: [
       {
-        headerName: `Num of ${capitalizeFirstLetter(processType)}`,
+        headerName: `Num of ${capitalizeFirstLetter(abiFragmentsType)}`,
         sortable: true,
         editable: false,
         cellStyle: cellAlign("end"),
@@ -53,7 +54,7 @@ export const columnDefsEventsFunctions = <T extends ContractRow>(
               ] as number;
               if (totalNumber > 0) {
                 {
-                  const href: string = `${urlPathName}/${cellRendererParams.data.contractName}/${processType}`;
+                  const href: string = `${urlPathName}/${cellRendererParams.data.contractName}/${abiFragmentsType}`;
                   new BaseA({
                     target: cell.eGui,
                     props: {
