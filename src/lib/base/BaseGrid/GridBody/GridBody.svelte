@@ -28,7 +28,7 @@
   }
 </script>
 
-<script lang="ts">
+<script lang="ts" generics="GridRow">
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
@@ -60,7 +60,6 @@
   import { baseTextSizesPixel, type BaseSize } from "$lib/base/baseSizes";
   // import { afterNavigate } from "$app/navigation";
 
-  type GridRow = $$Generic;
   export let gridOptions: GridOptions<GridRow>;
   export let paramColumnDefs: ColumnDef[] = [];
   export let rows: GridRow[];

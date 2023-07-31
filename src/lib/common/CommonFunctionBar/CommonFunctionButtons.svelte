@@ -8,7 +8,7 @@
   };
 </script>
 
-<script lang="ts">
+<script lang="ts" generics="ButtonGroupKey extends string">
   import BaseDividerVertical from "$lib/base/BaseDividerVertical.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
@@ -18,7 +18,6 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import classNames from "classnames";
 
-  type ButtonGroupKey = $$Generic<string>;
   type ButtonDefinitions = Record<
     ButtonGroupKey,
     CommonFunctionButtonDefinition[]

@@ -18,7 +18,7 @@
   };
 </script>
 
-<script lang="ts">
+<script lang="ts" generics="RadioValue">
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
@@ -30,7 +30,6 @@
   import BaseLabel from "./BaseLabel.svelte";
   import type { BaseSize } from "./baseSizes";
 
-  type RadioValue = $$Generic;
   export let radioButtonType: "button" | "tab" | "circle" = "circle";
   export let groupName: string;
   export let selectedValue: RadioValue;
