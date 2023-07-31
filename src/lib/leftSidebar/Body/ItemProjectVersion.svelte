@@ -12,6 +12,8 @@
     getProjectVersionNameForUrl,
   } from "@routes/[chainName]/[projectName_versionName]/projectVersionNameHelper";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { tabValuesForContract } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/+page.svelte";
+  import { convertToKebabCase } from "@utils/utilsCommon";
 
   let chainName: ChainName;
   $: chainName = $storeUserSettings.selectedChainName.toString();
@@ -63,7 +65,9 @@
                     `/${getProjectVersionNameForUrl(
                       targetProject.name,
                       targetVersion.name
-                    )}/contracts/${targetContract.name}`}
+                    )}/contracts/${targetContract.name}#${convertToKebabCase(
+                      tabValuesForContract[0]
+                    )}`}
                 />
               {/each}
             </svelte:fragment>
