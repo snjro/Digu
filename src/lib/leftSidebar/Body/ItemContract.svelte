@@ -8,6 +8,8 @@
   import { getFrontColorCategory } from "./fontStyle";
   import classNames from "classnames";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { convertToKebabCase } from "@utils/utilsCommon";
+  import { tabValuesForContract } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/+page.svelte";
 
   export let targetContractHref: string;
   export let targetContractName: Contract["name"];
@@ -24,7 +26,7 @@
     contractSuffixIcon: changeSize(size, -1),
     contractChildren: changeSize(size, -1),
   };
-  const hrefs: { events: string; functions: string } = {
+  const hrefsForChildren: { events: string; functions: string } = {
     events: `${targetContractHref}/events`,
     functions: `${targetContractHref}/functions`,
   };
@@ -37,20 +39,23 @@
   // $: isSelectedFunctions = (): boolean => {
   //   return hrefs.functions === $page.url.pathname;
   // };
+  const hrefForContract: string = `${targetContractHref}#${convertToKebabCase(
+    tabValuesForContract[0]
+  )}`;
 </script>
 
 {#if !hasEvents && !hasFunctions}
   <BaseItem
     label={targetContractName}
     iconName={undefined}
-    href={targetContractHref}
+    href={hrefForContract}
     size={sizes.contractSelf}
   />
 {:else}
   <BaseAccordion
     label={targetContractName}
     iconName={undefined}
-    href={targetContractHref}
+    href={hrefForContract}
     showVerticalLine
     size={sizes.contractSelf}
   >
@@ -80,7 +85,7 @@
           iconName={"databaseOutline"}
           label={"Events"}
           size={sizes.contractChildren}
-          href={hrefs.events}
+          href={hrefsForChildren.events}
           isConsideredAsParentDirectory={true}
         />
       {/if}
@@ -89,7 +94,7 @@
           iconName={"function"}
           label={"Functions"}
           size={sizes.contractChildren}
-          href={hrefs.functions}
+          href={hrefsForChildren.functions}
           isConsideredAsParentDirectory={true}
         />
       {/if}
