@@ -1,9 +1,16 @@
+import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
 import type {
+  AbiFragmentName,
   Chain,
+  ChainName,
   Contract,
+  ContractName,
   FunctionAbiFragment,
+  HexString,
   Project,
+  ProjectName,
   Version,
+  VersionName,
 } from "@constants/chains/types";
 import type {
   ChainIdentifier,
@@ -39,32 +46,45 @@ export async function load({
   if (initializing) {
     return {};
   } else {
+    const chainName: ChainName = params.chainName!;
+    const projectName: ProjectName = getSplitProjectVersionName(
+      params.projectName_versionName!
+    ).projectName;
+    const versionName: VersionName = getSplitProjectVersionName(
+      params.projectName_versionName!
+    ).versionName;
+    const contractName: ContractName = params.contractName!;
+    const functionName: AbiFragmentName = getSplittedFunctionNameAndSelector(
+      params.functionName!
+    ).functionName;
+    const functionSelector: HexString = getSplittedFunctionNameAndSelector(
+      params.functionName!
+    ).functionSelector as HexString;
+
     const chainIdentifier: ChainIdentifier = {
-      chainName: params.chainName!,
+      chainName: chainName,
     };
     const projectIdentifier: ProjectIdentifier = {
       ...chainIdentifier,
-      projectName: getSplitProjectVersionName(params.projectName_versionName!)
-        .projectName,
+      projectName: projectName,
     };
     const versionIdentifier = {
       ...projectIdentifier,
-      versionName: getSplitProjectVersionName(params.projectName_versionName!)
-        .versionName,
+      versionName: versionName,
     };
     const contractIdentifier: ContractIdentifier = {
       ...versionIdentifier,
-      contractName: params.contractName!,
+      contractName: contractName,
     };
     const abiFragmentIdentifier: AbiFragmentIdentifier = {
-      chainName: params.chainName!,
-      projectName: getSplitProjectVersionName(params.projectName_versionName!)
-        .projectName,
-      versionName: getSplitProjectVersionName(params.projectName_versionName!)
-        .versionName,
-      contractName: params.contractName!,
-      abiFragmentName: params.functionName!,
+      chainName: chainName,
+      projectName: projectName,
+      versionName: versionName,
+      contractName: contractName,
+      abiFragmentName: functionName,
+      functionSelector: functionSelector,
     };
+
     const targetChain: Chain = getTargetChain(chainIdentifier);
     const targetProject: Project = getTargetProject(projectIdentifier);
     const targetVersion: Version = getTargetVersion(versionIdentifier);

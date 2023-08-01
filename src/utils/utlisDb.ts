@@ -88,9 +88,8 @@ export function getTargetFunctionAbiFragment(
   });
   const functionAbiFragment: FunctionAbiFragment =
     targetContract.contractInterface.getFunction(
-      functionIdentifier.abiFragmentName
+      functionIdentifier.functionSelector!
     )!;
-
   return functionAbiFragment;
 }
 export function getEventTableNames(targetContracts: Contract[]): string[] {
