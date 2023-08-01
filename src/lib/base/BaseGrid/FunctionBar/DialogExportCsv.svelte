@@ -43,7 +43,17 @@
 
   const colorCategory: ColorCategory = colorSettings.dialogHeader;
 
-  let exportCsvRadioProps: ExportCsvRadioProps = {
+  let gridId: string | undefined = undefined;
+  $: gridId = gridOptions.api?.getGridId();
+
+  // In order to avoid duplicate inputIds, add gridId to inputId.
+  // This duplication occurs when multiple grids appear on a single page (including in tags).
+  $: addGridIdToInputId = (id: string): string => {
+    return `${id}${gridId ?? ""}`;
+  };
+
+  let exportCsvRadioProps: ExportCsvRadioProps;
+  $: exportCsvRadioProps = {
     skipRowNumber: {
       title: "Row number",
       subTitle: "Include the row number which is the first column?",
@@ -53,12 +63,12 @@
         {
           labelText: "Yes",
           value: false,
-          inputId: "includeRowNumberYes",
+          inputId: addGridIdToInputId("includeRowNumberYes"),
         },
         {
           labelText: "No",
           value: true,
-          inputId: "includeRowNumberNo",
+          inputId: addGridIdToInputId("includeRowNumberNo"),
         },
       ],
     },
@@ -71,17 +81,17 @@
         {
           labelText: `Comma`,
           value: ",",
-          inputId: "columnSeparatorComma",
+          inputId: addGridIdToInputId("columnSeparatorComma"),
         },
         {
           labelText: `Tab`,
           value: `\t`,
-          inputId: "columnSeparatorTab",
+          inputId: addGridIdToInputId("columnSeparatorTab"),
         },
         {
           labelText: `Bar "|"`,
           value: `|`,
-          inputId: "columnSeparatorBar",
+          inputId: addGridIdToInputId("columnSeparatorBar"),
         },
       ],
     },
@@ -94,12 +104,12 @@
         {
           labelText: "Yes",
           value: false,
-          inputId: "wrapDoubleQuotesYes",
+          inputId: addGridIdToInputId("wrapDoubleQuotesYes"),
         },
         {
           labelText: "No",
           value: true,
-          inputId: "wrapDoubleQuotesNo",
+          inputId: addGridIdToInputId("wrapDoubleQuotesNo"),
         },
       ],
     },
@@ -112,12 +122,12 @@
         {
           labelText: "Yes",
           value: false,
-          inputId: "exportColumnHeadersYes",
+          inputId: addGridIdToInputId("exportColumnHeadersYes"),
         },
         {
           labelText: "No",
           value: true,
-          inputId: "exportColumnHeadersNo",
+          inputId: addGridIdToInputId("exportColumnHeadersNo"),
         },
       ],
     },
@@ -130,18 +140,19 @@
         {
           labelText: "All",
           value: "all",
-          inputId: "filteredAndSortedNo",
+          inputId: addGridIdToInputId("filteredAndSortedNo"),
         },
         {
           labelText: "Filtered & Sorted",
           value: "filteredAndSorted",
-          inputId: "filteredAndSortedYes",
+          inputId: addGridIdToInputId("filteredAndSortedYes"),
         },
       ],
     },
   };
-  const radioPropsKeys = Object.keys(
-    exportCsvRadioProps
+
+  $: radioPropsKeys = Object.keys(
+    exportCsvRadioProps ?? {}
   ) as (keyof ExportCsvRadioProps)[];
 </script>
 
