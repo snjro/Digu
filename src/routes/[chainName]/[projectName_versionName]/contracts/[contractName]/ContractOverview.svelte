@@ -74,10 +74,16 @@
   {/if}
 
   <CommonItemGroup text="Events" gridTrack={gridTrackEvents}>
-    <ContractOverviewEventsFunctions {targetContract} listType="events" />
+    <ContractOverviewEventsFunctions
+      {targetContract}
+      abiFragmentsType="events"
+    />
   </CommonItemGroup>
   <CommonItemGroup text="Functions" gridTrack={gridTrackFunction}>
-    <ContractOverviewEventsFunctions {targetContract} listType="functions" />
+    <ContractOverviewEventsFunctions
+      {targetContract}
+      abiFragmentsType="functions"
+    />
   </CommonItemGroup>
   <CommonItemGroup text="Fallback" gridTrack={gridTrackEvents}>
     <ContractOverviewFallback {targetContract} />

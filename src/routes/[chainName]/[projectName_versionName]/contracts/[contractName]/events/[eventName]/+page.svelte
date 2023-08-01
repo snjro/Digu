@@ -1,3 +1,13 @@
+<script lang="ts" context="module">
+  export const tabValuesForEvent = [
+    "Overview",
+    "Event Logs (Decoded)",
+    "Event Logs (Hex)",
+    "ABI Fragment",
+  ] as const;
+  export type SelectedTabValueForEvent = (typeof tabValuesForEvent)[number];
+</script>
+
 <script lang="ts">
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
   import type { LoadEventLogs } from "./+page";
@@ -6,12 +16,7 @@
   import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
   export let data: LoadEventLogs;
 
-  type SelectetTabsForEventLogs =
-    | "Overview"
-    | "Event Logs (Decoded)"
-    | "Event Logs (Hex)"
-    | "ABI Fragment";
-  let selectedTabValue: SelectetTabsForEventLogs = "Overview";
+  let selectedTabValue: SelectedTabValueForEvent = "Overview";
   const titleCategoryLabelText: string = "Event";
   $: eventName = data.targetEventAbiFragment.name!;
 </script>
@@ -19,12 +24,7 @@
 <BasePageContainer
   titleText={eventName}
   {titleCategoryLabelText}
-  tabValues={[
-    "Overview",
-    "Event Logs (Decoded)",
-    "Event Logs (Hex)",
-    "ABI Fragment",
-  ]}
+  tabValues={tabValuesForEvent}
   bind:selectedTabValue
   tabGroupName="eventLogsInfo"
 >

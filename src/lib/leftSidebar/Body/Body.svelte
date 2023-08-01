@@ -1,7 +1,7 @@
 <script lang="ts">
   import classNames from "classnames";
   import ItemHome from "./ItemHome.svelte";
-  import ItemProjectVersion from "./ItemProjectVersion.svelte";
+  import ItemProjectVersions from "./ItemProjectVersions.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
@@ -20,13 +20,14 @@
     "flex-col",
     "flex-grow",
     "pt-2",
+    "pr-3",
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
     "overflow-y-scroll",
-    scrollbarStyle(colorSettings.leftSidebarBodyBg).thick,
+    scrollbarStyle(colorSettings.leftSidebarBodyBg).thin,
     "h-full",
     ""
   )}
 >
   <ItemHome />
-  <ItemProjectVersion />
+  <ItemProjectVersions />
 </div>

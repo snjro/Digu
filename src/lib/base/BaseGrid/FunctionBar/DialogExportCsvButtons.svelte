@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="GridRow">
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { ThemeColor } from "@db/dbTypes";
@@ -15,7 +15,6 @@
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { showSnackBarAsCopied } from "$lib/common/CommonCopyButton.svelte";
 
-  type GridRow = $$Generic;
   export let gridOptions: GridOptions<GridRow>;
   export let exportCsvRadioProps: ExportCsvRadioProps;
   export let exportFilePrefix: ExportFilePrefix;

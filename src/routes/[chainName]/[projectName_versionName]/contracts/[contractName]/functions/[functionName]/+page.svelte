@@ -1,3 +1,9 @@
+<script lang="ts" context="module">
+  export const tabValuesForFunction = ["Overview", "ABI Fragment"] as const;
+  export type SelectedTabValueForFunction =
+    (typeof tabValuesForFunction)[number];
+</script>
+
 <script lang="ts">
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
   import type { LoadFunction } from "./+page";
@@ -6,8 +12,7 @@
 
   export let data: LoadFunction;
 
-  type SelectetTabsForEventLogs = "Overview" | "ABI Fragment";
-  let selectedTabValue: SelectetTabsForEventLogs = "Overview";
+  let selectedTabValue: SelectedTabValueForFunction = "Overview";
   const titleCategoryLabelText: string = "Function";
   $: titleText = data.targetFunctionAbiFragment.name!;
 </script>
@@ -15,7 +20,7 @@
 <BasePageContainer
   {titleText}
   {titleCategoryLabelText}
-  tabValues={["Overview", "ABI Fragment"]}
+  tabValues={tabValuesForFunction}
   bind:selectedTabValue
   tabGroupName="eventLogsInfo"
 >

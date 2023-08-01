@@ -1,8 +1,15 @@
+<script lang="ts" context="module">
+  export type AbiFragmentsType = keyof Pick<Contract, "events" | "functions">;
+</script>
+
 <script lang="ts">
   import type { Contract } from "@constants/chains/types";
   import { page } from "$app/stores";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { capitalizeFirstLetter } from "@utils/utilsCommon";
+  import {
+    capitalizeFirstLetter,
+    convertToKebabCase,
+  } from "@utils/utilsCommon";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import BaseTable from "$lib/base/BaseTable/BaseTable.svelte";
   import BaseTableRow from "$lib/base/BaseTable/BaseTableRow.svelte";
@@ -15,20 +22,31 @@
   import type { BaseSize } from "$lib/base/baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
+  import { tabValuesForEvent } from "./events/[eventName]/+page.svelte";
+  import { tabValuesForFunction } from "./functions/[functionName]/+page.svelte";
 
-  export let listType: keyof Pick<Contract, "events" | "functions">;
+  export let abiFragmentsType: AbiFragmentsType;
   export let targetContract: Contract;
 
   const textSize: BaseSize = sizeSettings.itemMemberTable;
   const iconName: BaseIconProps["name"] =
-    listType === "events" ? "databaseOutline" : "function";
+    abiFragmentsType === "events" ? "databaseOutline" : "function";
 
   let nameList: string[];
-  $: nameList = targetContract[listType].names;
+  $: nameList = targetContract[abiFragmentsType].names;
 
-  const singularListType: string = listType.slice(0, -1);
+  const singularListType: string = abiFragmentsType.slice(0, -1);
   const headerLabel: string = `${capitalizeFirstLetter(singularListType)} Name`;
-  $: hrefFrontPart = `${$page.url.pathname}/${listType}`;
+  $: hrefFrontPart = `${$page.url.pathname}/${abiFragmentsType}`;
+
+  let hrefEventFunctionName: (eventFunctionName: string) => string;
+  hrefEventFunctionName = (eventFunctionName: string): string => {
+    const urlHash: string =
+      abiFragmentsType === "events"
+        ? convertToKebabCase(tabValuesForEvent[0])
+        : convertToKebabCase(tabValuesForFunction[0]);
+    return `${hrefFrontPart}/${eventFunctionName}#${urlHash}`;
+  };
 </script>
 
 <CommonItemMember>
@@ -56,7 +74,7 @@
             />
             <BaseTableBodyCell align="left" {textSize}>
               <BaseA
-                href={`${hrefFrontPart}/${name}`}
+                href={`${hrefEventFunctionName(name)}`}
                 text={name}
                 prefixIcon={{
                   name: iconName,
@@ -72,7 +90,7 @@
     </BaseTable>
   {:else}
     <BaseLabel
-      text={`The contract has no ${listType}.`}
+      text={`The contract has no ${abiFragmentsType}.`}
       textSize={sizeSettings.itemWarnningMessage}
       italic
     />

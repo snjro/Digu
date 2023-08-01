@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="GridRow">
   import type { ExportFilePrefix } from "@utils/utilsFile";
 
   import "ag-grid-community/styles/ag-grid.css";
@@ -12,7 +12,6 @@
   import BasePageFullScreenContainer from "$lib/base/BasePage/BasePageFullScreenContainer.svelte";
   import GridFooter from "./GridFooter/GridFooter.svelte";
 
-  type GridRow = $$Generic;
   export let paramColumnDefs: ColumnDef[];
   export let rows: GridRow[];
   export let getRowClass: ((params: RowClassParams) => string) | undefined =

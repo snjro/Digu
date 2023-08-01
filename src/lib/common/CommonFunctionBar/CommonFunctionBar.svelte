@@ -6,7 +6,6 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
-  type GridRow = $$Generic;
 
   export let isFullScreen: boolean;
   export let titleText: string;

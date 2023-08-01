@@ -19,7 +19,7 @@
   };
 </script>
 
-<script lang="ts">
+<script lang="ts" generics="GridRow">
   import type { ExportFilePrefix } from "@utils/utilsFile";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
@@ -37,7 +37,6 @@
   import type { GridOptions } from "ag-grid-community";
   import DialogExportCsvButtons from "./DialogExportCsvButtons.svelte";
 
-  type GridRow = $$Generic;
   export let gridOptions: GridOptions<GridRow>;
   export let dialogElement: HTMLDialogElement;
   export let exportFilePrefix: ExportFilePrefix;

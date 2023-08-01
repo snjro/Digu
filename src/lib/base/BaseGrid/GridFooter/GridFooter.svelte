@@ -1,10 +1,9 @@
-<script lang="ts">
+<script lang="ts" generics="GridRow">
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { numberWithCommas } from "@utils/utilsCommon";
   import type { GridOptions } from "ag-grid-community";
   import classNames from "classnames";
 
-  type GridRow = $$Generic;
   export let rows: GridRow[];
   export let gridOptions: GridOptions<GridRow>;
   let filteredRowCount = rows.length;

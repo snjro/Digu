@@ -1,11 +1,6 @@
 <script lang="ts">
-  // import "../app.postcss";
-  // import "./global.css";
-
-  import Nav from "$lib/nav/Nav.svelte";
   import LeftSidebar from "$lib/leftSidebar/LeftSidebar.svelte";
   import classNames from "classnames";
-  import Breadcrumb from "$lib/breadcrumb/Breadcrumb.svelte";
   import BaseSpinner from "$lib/base/BaseSpinner.svelte";
   import type { LoadDataRoot } from "./+layout";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
@@ -16,15 +11,17 @@
   import { breakPointWidths, getScreenWidth } from "@utils/utilsDom";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { ThemeColor } from "@db/dbTypes";
-  import BaseSnackbar from "$lib/base/BaseSnackbar.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { scrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
+  import { toggleLeftSideBar } from "$lib/leftSidebar/functions";
+  import Content from "./Content.svelte";
 
   export let data: LoadDataRoot;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 
   $: bodyStyle = classNames(
+    "relative",
     "flex",
     "flex-row",
     "h-screen",
@@ -35,33 +32,30 @@
     ""
   );
   $: mainContainerStyle = classNames(
+    classNames(
+      "flex",
+      "flex-col",
+      "w-screen",
+      "h-screen",
+      $storeUserSettings.isOpenSidebar &&
+        ($storeNoDbCurrentWidth <= breakPointWidths.sm
+          ? "" //"blur-sm"
+          : "pl-[320px]"),
+      "overflow-x-auto",
+      "overflow-y-auto",
+      scrollbarStyle(colorSettings.main).thick,
+      "cursor-default",
+      ""
+    )
+  );
+  $: showFilter =
     $storeUserSettings.isOpenSidebar &&
-      $storeNoDbCurrentWidth <= breakPointWidths.sm
-      ? "hidden"
-      : classNames(
-          "flex",
-          "flex-col",
-          "w-screen",
-          "h-screen",
-          $storeUserSettings.isOpenSidebar && "pl-[328px]",
-          "overflow-x-auto",
-          "overflow-y-auto",
-          scrollbarStyle(colorSettings.main).thick,
-          ""
-        )
-  );
-  $: contentStyle = classNames(
-    "overflow-y-auto",
-    scrollbarStyle(colorSettings.main).thick,
-    "flex-1",
-    "flex-col",
-    "h-full",
-    "w-full",
-    "border-none",
-    "px-3 pb-3 ",
-    colorDefinitions[themeColor][colorSettings.main].bg,
-    ""
-  );
+    $storeNoDbCurrentWidth <= breakPointWidths.sm;
+  const clickFilter = async (): Promise<void> => {
+    if (showFilter) {
+      await toggleLeftSideBar();
+    }
+  };
   function onResize(): void {
     storeNoDbCurrentWidth.set(getScreenWidth());
   }
@@ -77,12 +71,20 @@
   {:else}
     <LeftSidebar />
     <div class={mainContainerStyle}>
-      <Nav />
-      <div class={contentStyle}>
-        <Breadcrumb />
-        <slot />
-        <BaseSnackbar />
-      </div>
+      <button
+        on:click={clickFilter}
+        class={classNames(
+          "absolute",
+          "h-full",
+          "w-full",
+          !showFilter && "hidden",
+          colorDefinitions[themeColor][colorSettings.leftSidebarHeader].bg,
+          "opacity-60",
+          "blur-sm",
+          "cursor-default"
+        )}
+      />
+      <Content><slot /></Content>
     </div>
   {/if}
 </div>

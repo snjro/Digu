@@ -73,6 +73,7 @@
         {isHover}
         isHoverControledByParent={true}
         colorCategory={colorCategoryFront}
+        cursor="cursor-pointer"
       />
     {/if}
   </svelte:fragment>
@@ -84,6 +85,7 @@
         {isHover}
         isHoverControledByParent={true}
         colorCategory={colorCategoryFront}
+        cursor="cursor-pointer"
       />
     {/if}
   </svelte:fragment>

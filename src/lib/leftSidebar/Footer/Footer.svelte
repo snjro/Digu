@@ -13,7 +13,8 @@
 
 <div
   class={classNames(
-    "py-3",
+    "pt-1",
+    "pb-2",
     "flex-none",
     "sticky",
     "bottom-0",

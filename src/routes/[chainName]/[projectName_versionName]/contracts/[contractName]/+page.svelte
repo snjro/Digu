@@ -1,3 +1,9 @@
+<script lang="ts" context="module">
+  export const tabValuesForContract = ["Overview", "ABI"] as const;
+  export type SelectedTabValueForContract =
+    (typeof tabValuesForContract)[number];
+</script>
+
 <script lang="ts">
   import type { LoadContractData } from "./+page";
   import ContractOverview from "./ContractOverview.svelte";
@@ -6,7 +12,7 @@
 
   export let data: LoadContractData;
 
-  let selectedTabValue: "Overview" | "ABI" = "Overview";
+  let selectedTabValue: SelectedTabValueForContract = "Overview";
   const titleCategoryLabelText: string = "Contract";
   let titleText: string;
   $: titleText = data.targetContract.name;
@@ -15,7 +21,7 @@
 <BasePageContainer
   {titleText}
   {titleCategoryLabelText}
-  tabValues={["Overview", "ABI"]}
+  tabValues={tabValuesForContract}
   bind:selectedTabValue
   tabGroupName="contractInfo"
 >

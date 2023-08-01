@@ -191,7 +191,8 @@
             // "delay-150",
             // "hover:-translate-y-1",
             "hover:scale-105",
-            "duration-150"
+            "duration-150",
+            "active:top-px"
           );
         } else {
           popup = "active:top-px hover:-top-px";
@@ -220,8 +221,7 @@
       type === "normal" && baseTextSizes[size],
       padding(),
       "rounded",
-      // shadowEffect && "relative",
-      "relative",
+      // "relative",
       shadowEffect && "flex items-center",
       shadowEffect && baseShadowSizes[size],
       "dark:shadow-none",

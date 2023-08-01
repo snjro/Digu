@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="GridRow">
   import type { ExportFilePrefix } from "@utils/utilsFile";
   import CommonFunctionButtons, {
     type CommonFunctionButtonDefinition,
@@ -13,7 +13,6 @@
     openDialogExportCsv,
   } from "./DialogExportCsv.svelte";
 
-  type GridRow = $$Generic;
   export let gridOptions: GridOptions<GridRow>;
   export let rows: GridRow[];
   export let isFullScreen: boolean;
