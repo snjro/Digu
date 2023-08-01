@@ -13,6 +13,7 @@
   import { tabValuesForEvent } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/+page.svelte";
   import { tabValuesForFunction } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/functions/[functionName]/+page.svelte";
   import { convertToKebabCase } from "@utils/utilsCommon";
+  import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
 
@@ -35,12 +36,19 @@
       indexPathNames < pathNames.length;
       indexPathNames++
     ) {
+      const previousPathName: string = pathNames[indexPathNames - 1];
+      const currentPathName: string = pathNames[indexPathNames];
       const PathNameWithUrlHash = getPathNameWithUrlHash(
-        pathNames,
-        indexPathNames
+        previousPathName,
+        currentPathName
       );
+
+      const currentPathNameWithoutFunctionSelector: string =
+        previousPathName === "functions"
+          ? getSplittedFunctionNameAndSelector(currentPathName).functionName
+          : currentPathName;
       href = `${removeUrlHash(href)}/${PathNameWithUrlHash}`;
-      text = convertUrlTextToLabelText(pathNames[indexPathNames]);
+      text = convertUrlTextToLabelText(currentPathNameWithoutFunctionSelector);
       prefixIconName = undefined;
       if (text) {
         crumbs.push({ href: href, text: text, prefixIconName: prefixIconName });
@@ -53,10 +61,9 @@
     return hashStartIndex > 0 ? href.substring(0, hashStartIndex) : href;
   }
   function getPathNameWithUrlHash(
-    pathNames: string[],
-    indexPathNames: number
+    previousPathName: string,
+    currentPathName: string
   ): string {
-    const previousPathName: string = pathNames[indexPathNames - 1];
     let urlHash: string = "";
     // if (indexPathNames === pathNames.length - 1) {
     switch (previousPathName) {
@@ -77,7 +84,7 @@
       urlHash = `#${convertToKebabCase(urlHash)}`;
     }
     // }
-    return pathNames[indexPathNames] + urlHash;
+    return currentPathName + urlHash;
   }
   function convertUrlTextToLabelText(path: string): string {
     if (path in directoryItems) {

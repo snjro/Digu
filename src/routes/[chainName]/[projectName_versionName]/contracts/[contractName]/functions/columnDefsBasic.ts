@@ -13,6 +13,7 @@ import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
 import { convertToKebabCase } from "@utils/utilsCommon";
 import { tabValuesForFunction } from "./[functionName]/+page.svelte";
+import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
 
 const cellClass: string = classNames("");
 const sortable = true;
@@ -52,7 +53,9 @@ export const columnDefsBasic = <T extends FunctionRow>(
                   text: cellRendererParams.data.functionName,
                   href: `${urlPathName}/${
                     cellRendererParams.data.functionName
-                  }#${convertToKebabCase(tabValuesForFunction[0])}`,
+                  }${getFunctionSelectorWithSplitter(
+                    cellRendererParams.data.functionFragment
+                  )}#${convertToKebabCase(tabValuesForFunction[0])}`,
                   textSize: gridSize,
                   openNewTab: false,
                   prefixIcon: {

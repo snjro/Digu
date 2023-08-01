@@ -10,17 +10,19 @@
   import { changeSize } from "$lib/base/baseSizes";
   import { tabValuesForEvent } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/+page.svelte";
   import { tabValuesForFunction } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/functions/[functionName]/+page.svelte";
+  import { getFunctionSelectorWithSplitter } from "./ItemEventsFunctions.svelte";
 
   export let abiFragmentsType: AbiFragmentsType;
   export let targetAbiFragment: EventAbiFragment | FunctionAbiFragment;
   export let targetAbiFragmentsHref: string;
-
   const urlHash: string = convertToKebabCase(
     abiFragmentsType === "events"
       ? tabValuesForEvent[0]
       : tabValuesForFunction[0]
   );
-  const targetAbiFragmentHref: string = `${targetAbiFragmentsHref}/${targetAbiFragment.name}`;
+  const targetAbiFragmentHref: string = `${targetAbiFragmentsHref}/${
+    targetAbiFragment.name
+  }${getFunctionSelectorWithSplitter(targetAbiFragment)}`;
 </script>
 
 <BaseItem

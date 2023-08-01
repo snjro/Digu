@@ -43,7 +43,7 @@
         isOpenAccordion = false;
         break;
       case "openCurrentOnly":
-        openCurrentOnly();
+        openCurrentDirectory();
         break;
       default:
         break;
@@ -60,23 +60,18 @@
     if (htmlElement.tagName === "LABEL") {
       toggleLeftSideBarWithCondition();
       if (!isOpenAccordion) {
-        isOpenAccordion = isHrefParentOfPathname(
-          hrefWithoutUrlHash,
-          $page.url.pathname
-        );
+        isOpenAccordion = isParentDirectory();
       }
     } else {
       isOpenAccordion = !isOpenAccordion;
     }
   }
-  function openCurrentOnly(): void {
-    isOpenAccordion =
-      !isSelected() &&
-      isHrefParentOfPathname(hrefWithoutUrlHash, $page.url.pathname);
+  function openCurrentDirectory(): void {
+    isOpenAccordion = !isSelected() && isParentDirectory();
   }
   onMount(() => {
     // open an accordion when a page is opened by using URL directly
-    openCurrentOnly();
+    openCurrentDirectory();
   });
 
   $: isSelected = (): boolean => {
@@ -88,7 +83,6 @@
 
   $: chevronIconName = (): BaseIconProps["name"] => {
     return isOpenAccordion ? "chevronDown" : "chevronRight";
-    // return isOpenAccordion ? "folderOpenOutline" : "folderOutline";
   };
   $: {
     setChildElementInScroll(
@@ -99,11 +93,6 @@
       document.getElementById("leftSidebarHeader"),
       $storeNoDbOpenLeftSidebarAccordion
     );
-  }
-  $: {
-    if (isParentDirectory() && !isOpenAccordion) {
-      isOpenAccordion = true;
-    }
   }
   $: bgColor =
     (isSelected() || isHover) &&

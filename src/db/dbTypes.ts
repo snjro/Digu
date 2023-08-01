@@ -29,6 +29,8 @@ export type ContractIdentifier = VersionIdentifier & {
 };
 export type AbiFragmentIdentifier = ContractIdentifier & {
   readonly abiFragmentName: AbiFragmentName;
+  // ↓ value is set only if abiFragment is function (if event, it is set "undefined")
+  readonly functionSelector?: HexString;
 };
 /////////////////////////////////////////////////////////
 export type BlockTime = {
@@ -192,7 +194,7 @@ type SyncStatusBaseBooleanItems = {
 };
 export type SyncStatusBase<
   T extends IdentifierName,
-  U extends SubSyncStatuses
+  U extends SubSyncStatuses,
 > = {
   name: T;
   subSyncStatuses: U;

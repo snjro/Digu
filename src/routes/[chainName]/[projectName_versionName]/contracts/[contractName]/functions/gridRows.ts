@@ -6,6 +6,7 @@ export type FunctionRow = {
   functionSelector: FunctionAbiFragment["selector"];
   functionInputs: FunctionAbiFragment["inputs"];
   functionOutputs: FunctionAbiFragment["outputs"];
+  functionFragment: FunctionAbiFragment;
 };
 export const gridRows = (
   targetFunctionAbiFragments: FunctionAbiFragment[]
@@ -18,6 +19,7 @@ export const gridRows = (
       functionSelector: functionAbiFragment.selector,
       functionInputs: functionAbiFragment.inputs,
       functionOutputs: functionAbiFragment.outputs,
+      functionFragment: functionAbiFragment,
     };
     functionRows.push(functionRow);
   }

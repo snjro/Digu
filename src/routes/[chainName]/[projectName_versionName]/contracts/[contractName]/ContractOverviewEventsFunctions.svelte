@@ -3,7 +3,11 @@
 </script>
 
 <script lang="ts">
-  import type { Contract } from "@constants/chains/types";
+  import type {
+    Contract,
+    EventAbiFragment,
+    FunctionAbiFragment,
+  } from "@constants/chains/types";
   import { page } from "$app/stores";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import {
@@ -24,6 +28,7 @@
   import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
   import { tabValuesForEvent } from "./events/[eventName]/+page.svelte";
   import { tabValuesForFunction } from "./functions/[functionName]/+page.svelte";
+  import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
 
   export let abiFragmentsType: AbiFragmentsType;
   export let targetContract: Contract;
@@ -32,25 +37,32 @@
   const iconName: BaseIconProps["name"] =
     abiFragmentsType === "events" ? "databaseOutline" : "function";
 
-  let nameList: string[];
-  $: nameList = targetContract[abiFragmentsType].names;
+  let abiFragments: FunctionAbiFragment[] | EventAbiFragment[];
+  $: abiFragments = targetContract[abiFragmentsType].abiFragments;
 
   const singularListType: string = abiFragmentsType.slice(0, -1);
   const headerLabel: string = `${capitalizeFirstLetter(singularListType)} Name`;
   $: hrefFrontPart = `${$page.url.pathname}/${abiFragmentsType}`;
 
-  let hrefEventFunctionName: (eventFunctionName: string) => string;
-  hrefEventFunctionName = (eventFunctionName: string): string => {
+  let hrefEventFunctionName: (
+    abiFragment: FunctionAbiFragment | EventAbiFragment
+  ) => string;
+  hrefEventFunctionName = (
+    abiFragment: FunctionAbiFragment | EventAbiFragment
+  ): string => {
+    const functionSelectorWithSplitter: string =
+      getFunctionSelectorWithSplitter(abiFragment);
+
     const urlHash: string =
-      abiFragmentsType === "events"
-        ? convertToKebabCase(tabValuesForEvent[0])
-        : convertToKebabCase(tabValuesForFunction[0]);
-    return `${hrefFrontPart}/${eventFunctionName}#${urlHash}`;
+      abiFragmentsType === "functions"
+        ? convertToKebabCase(tabValuesForFunction[0])
+        : convertToKebabCase(tabValuesForEvent[0]);
+    return `${hrefFrontPart}/${abiFragment.name}${functionSelectorWithSplitter}#${urlHash}`;
   };
 </script>
 
 <CommonItemMember>
-  {#if nameList.length > 0}
+  {#if abiFragments.length > 0}
     <BaseTable
       tableHeaderCellProps={[
         {
@@ -61,11 +73,11 @@
         },
       ]}
       {textSize}
-      numOfTableRows={nameList.length}
+      numOfTableRows={abiFragments.length}
       borderBottom={false}
     >
       <svelte:fragment slot="tableBody">
-        {#each nameList as name, indexSortedEventNames}
+        {#each abiFragments as abiFragment, indexSortedEventNames}
           <BaseTableRow>
             <SequenceBodyCell
               rowIndex={indexSortedEventNames}
@@ -74,8 +86,8 @@
             />
             <BaseTableBodyCell align="left" {textSize}>
               <BaseA
-                href={`${hrefEventFunctionName(name)}`}
-                text={name}
+                href={`${hrefEventFunctionName(abiFragment)}`}
+                text={abiFragment.name}
                 prefixIcon={{
                   name: iconName,
                   colorCategory: "interactive",
@@ -96,7 +108,7 @@
     />
   {/if}
 </CommonItemMember>
-{#if nameList.length > 0}
+{#if abiFragments.length > 0}
   <div class={classNames("h-full", "flex", "items-end", "justify-end")}>
     <CommonViewMoreDetailsButton
       size={sizeSettings.itemViewAllButton}
