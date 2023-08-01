@@ -1,21 +1,7 @@
-<script lang="ts" context="module">
-  export type BaseItemProps = {
-    label?: BaseButtonProps["label"];
-    href: string; //BaseButtonProps["href"];
-    size?: BaseButtonProps["size"];
-    iconName?: BaseIconProps["name"];
-    bold?: boolean;
-    openNewTab?: BaseButtonProps["openNewTab"];
-    border?: boolean;
-  };
-</script>
-
 <script lang="ts">
   import { browser } from "$app/environment";
   import { page } from "$app/stores";
-  import BaseButton, {
-    type BaseButtonProps,
-  } from "$lib/base/BaseButton.svelte";
+  import BaseButton from "$lib/base/BaseButton.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import {
     colorDefinitions,
@@ -38,15 +24,20 @@
   import { baseTextHeight, type BaseSize } from "$lib/base/baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
-  export let label: NonNullable<BaseItemProps["label"]>;
-  export let href: BaseItemProps["href"];
-  export let size: NonNullable<BaseItemProps["size"]>;
-  export let iconName: BaseItemProps["iconName"] = undefined;
-  export let openNewTab: BaseItemProps["openNewTab"] = false;
+  export let label: string;
+  export let hrefWithoutUrlHash: string;
+  export let urlHash: string | undefined = undefined;
+  export let size: BaseSize;
+  export let iconName: BaseIconProps["name"] | undefined = undefined;
+  export let openNewTab: boolean = false;
   export let isConsideredAsParentDirectory: boolean = false;
   export let isHoverControledByParent: boolean = false;
   export let isHover: boolean = false;
   export let isTopLevelItem: boolean = false;
+
+  const hrefWithUrlHash: string = urlHash
+    ? `${hrefWithoutUrlHash}#${urlHash}`
+    : hrefWithoutUrlHash;
 
   let thisElement: HTMLDivElement;
   // let isHover = false;
@@ -65,11 +56,11 @@
   $: baseSidebarItemStyle = () =>
     classNames("w-full", getFrontWeight(isSelected(), isHover));
   $: isSelected = (): boolean => {
-    return href === $page.url.pathname;
+    return hrefWithoutUrlHash === $page.url.pathname;
   };
   $: isParentDirectory = (): boolean => {
     return (
-      isHrefParentOfPathname(href, $page.url.pathname) &&
+      isHrefParentOfPathname(hrefWithoutUrlHash, $page.url.pathname) &&
       isConsideredAsParentDirectory
     );
   };
@@ -139,7 +130,7 @@
       <BaseButtonIcon
         {iconName}
         {label}
-        {href}
+        href={hrefWithUrlHash}
         {size}
         justify="start"
         colorCategoryFront={frontColorCategory()}
@@ -159,7 +150,7 @@
     {:else}
       <BaseButton
         {label}
-        {href}
+        href={hrefWithUrlHash}
         {size}
         justify="start"
         colorCategoryFront={frontColorCategory()}

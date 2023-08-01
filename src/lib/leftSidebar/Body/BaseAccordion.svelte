@@ -1,11 +1,3 @@
-<script lang="ts" context="module">
-  export type BaseAccordionProps = {
-    size: BaseSize;
-    iconName?: BaseIconProps["name"];
-    bold?: boolean;
-  };
-</script>
-
 <script lang="ts">
   // import { browser } from "$app/environment";
   import { page } from "$app/stores";
@@ -22,10 +14,7 @@
   import BaseItemIndicator from "./BaseItemIndicator.svelte";
   import { setChildElementInScroll } from "./scrollController";
   import { browser } from "$app/environment";
-  import BaseItem, {
-    // leftSidebarItemHights,
-    type BaseItemProps,
-  } from "./BaseItem.svelte";
+  import BaseItem from "./BaseItem.svelte";
   import { getFrontColorCategory } from "./fontStyle";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { ThemeColor } from "@db/dbTypes";
@@ -33,10 +22,11 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
-  export let label: NonNullable<BaseItemProps["label"]>;
-  export let href: BaseItemProps["href"];
-  export let size: BaseAccordionProps["size"];
-  export let iconName: BaseAccordionProps["iconName"] = undefined;
+  export let label: string;
+  export let hrefWithoutUrlHash: string;
+  export let urlHash: string | undefined = undefined;
+  export let size: BaseSize;
+  export let iconName: BaseIconProps["name"] | undefined = undefined;
   export let isTopLevelItem: boolean = false;
 
   export let showVerticalLine: boolean = true;
@@ -70,7 +60,10 @@
     if (htmlElement.tagName === "LABEL") {
       toggleLeftSideBarWithCondition();
       if (!isOpenAccordion) {
-        isOpenAccordion = isHrefParentOfPathname(href, $page.url.pathname);
+        isOpenAccordion = isHrefParentOfPathname(
+          hrefWithoutUrlHash,
+          $page.url.pathname
+        );
       }
     } else {
       isOpenAccordion = !isOpenAccordion;
@@ -78,7 +71,8 @@
   }
   function openCurrentOnly(): void {
     isOpenAccordion =
-      !isSelected() && isHrefParentOfPathname(href, $page.url.pathname);
+      !isSelected() &&
+      isHrefParentOfPathname(hrefWithoutUrlHash, $page.url.pathname);
   }
   onMount(() => {
     // open an accordion when a page is opened by using URL directly
@@ -86,10 +80,10 @@
   });
 
   $: isSelected = (): boolean => {
-    return href === $page.url.pathname;
+    return hrefWithoutUrlHash === $page.url.pathname;
   };
   $: isParentDirectory = (): boolean => {
-    return isHrefParentOfPathname(href, $page.url.pathname);
+    return isHrefParentOfPathname(hrefWithoutUrlHash, $page.url.pathname);
   };
 
   $: chevronIconName = (): BaseIconProps["name"] => {
@@ -152,7 +146,8 @@
     >
       <BaseItem
         {label}
-        {href}
+        {hrefWithoutUrlHash}
+        {urlHash}
         {iconName}
         {size}
         {isHover}

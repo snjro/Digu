@@ -10,7 +10,7 @@
 <BaseItem
   label={directoryItems.home.label}
   iconName={directoryItems.home.iconName}
-  href={`/${targetChainName}`}
+  hrefWithoutUrlHash={`/${targetChainName}`}
   isTopLevelItem={true}
   size={sizeSettings.leftSidebarTreeTop}
 />

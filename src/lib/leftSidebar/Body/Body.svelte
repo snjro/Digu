@@ -1,7 +1,7 @@
 <script lang="ts">
   import classNames from "classnames";
   import ItemHome from "./ItemHome.svelte";
-  import ItemProjectVersion from "./ItemProjectVersion.svelte";
+  import ItemProjectVersions from "./ItemProjectVersions.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
@@ -29,5 +29,5 @@
   )}
 >
   <ItemHome />
-  <ItemProjectVersion />
+  <ItemProjectVersions />
 </div>
