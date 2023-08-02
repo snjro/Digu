@@ -1,36 +1,34 @@
+<script lang="ts" context="module">
+  export type CrumbItem = {
+    href: string;
+    text: string;
+    prefixIconName: BaseIconProps["name"] | undefined;
+  };
+</script>
+
 <script lang="ts">
   import { page } from "$app/stores";
-  import BaseA from "$lib/base/BaseA.svelte";
-  import BaseIcon from "$lib/base/BaseIcon.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { directoryItems } from "$lib/leftSidebar/Body/directoryDefinitions";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { tabValuesForContract } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/+page.svelte";
   import { tabValuesForEvent } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/+page.svelte";
   import { tabValuesForFunction } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/functions/[functionName]/+page.svelte";
   import { convertToKebabCase } from "@utils/utilsCommon";
   import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BreadcrumbItems from "./BreadcrumbItems.svelte";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
 
-  const liStyle: string = classNames("inline-block", "align-top", "");
-  const textSize: BaseSize = sizeSettings.breadcrumb;
-  type Crumb = {
-    href: string;
-    text: string;
-    prefixIconName: BaseIconProps["name"] | undefined;
-  };
-  $: crumbs = (): Crumb[] => {
-    let crumbs: Crumb[] = [];
-    let href: Crumb["href"] = `/${targetChainName}`;
-    let text: Crumb["text"] = directoryItems.home.label;
-    let prefixIconName: Crumb["prefixIconName"] = directoryItems.home.iconName;
-    crumbs.push({ href: href, text: text, prefixIconName: prefixIconName });
+  $: crumbItems = (): CrumbItem[] => {
+    let crumbItems: CrumbItem[] = [];
+    let href: CrumbItem["href"] = `/${targetChainName}`;
+    //
+    let text: CrumbItem["text"] = directoryItems.home.label;
+    let prefixIconName: CrumbItem["prefixIconName"] =
+      directoryItems.home.iconName;
+    crumbItems.push({ href: href, text: text, prefixIconName: prefixIconName });
     const pathNames: string[] = $page.url.pathname.split("/");
     for (
       let indexPathNames = 2;
@@ -52,10 +50,14 @@
       text = convertUrlTextToLabelText(currentPathNameWithoutFunctionSelector);
       prefixIconName = undefined;
       if (text) {
-        crumbs.push({ href: href, text: text, prefixIconName: prefixIconName });
+        crumbItems.push({
+          href: href,
+          text: text,
+          prefixIconName: prefixIconName,
+        });
       }
     }
-    return crumbs;
+    return crumbItems;
   };
   function removeUrlHash(href: string): string {
     const hashStartIndex: number = href.indexOf("#");
@@ -95,56 +97,34 @@
       return path.replaceAll("-", " ");
     }
   }
-  const prefixIcon = (
-    prefixIconName: Crumb["prefixIconName"],
-    isLabel: boolean
-  ): BaseIconProps | undefined => {
-    if (prefixIconName) {
-      return {
-        name: prefixIconName,
-        size: textSize,
-        colorCategory: isLabel ? colorSettings.main : "interactive",
-      };
-    } else {
-      return undefined;
-    }
-  };
 </script>
 
 <nav
-  class={classNames("flex", "mb-1.5", $page.status !== 200 && "hidden")}
+  class={classNames(
+    "flex",
+    "mt-0.5 mb-3",
+    $page.status !== 200 && "hidden",
+    ""
+  )}
   aria-label="Breadcrumb"
 >
-  <ol class={classNames("")}>
-    {#each crumbs() as crumb, i}
-      {#if i === crumbs().length - 1}
-        <li class={classNames(liStyle)}>
-          <BaseLabel
-            text={crumb.text}
-            {textSize}
-            prefixIcon={prefixIcon(crumb.prefixIconName, true)}
-          />
-        </li>
-      {:else}
-        <li class={classNames(liStyle)}>
-          <BaseA
-            text={crumb.text}
-            {textSize}
-            prefixIcon={prefixIcon(crumb.prefixIconName, false)}
-            href={crumb.href}
-            openNewTab={false}
-            hoverEffect={true}
-          />
-        </li>
-        <li class={classNames(liStyle)}>
-          <BaseIcon
-            name="menuRight"
-            size={changeSize(textSize, 2)}
-            colorCategory={colorSettings.main}
-            hoverEffect={false}
-          />
-        </li>
-      {/if}
+  <ol
+    class={classNames(
+      "flex",
+      "flex-row",
+      "flex-wrap",
+      "items-center",
+      "space-x-0.5",
+      "overflow-x-hidden",
+      ""
+    )}
+  >
+    {#each crumbItems() as crumbItem, i}
+      <BreadcrumbItems
+        targetCrumbItem={crumbItem}
+        currentIndex={i}
+        lastIndex={crumbItems().length - 1}
+      />
     {/each}
   </ol>
 </nav>

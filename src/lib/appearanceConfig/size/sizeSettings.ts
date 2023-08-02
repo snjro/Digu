@@ -35,7 +35,7 @@ type SizeSettings = Record<
 >;
 const sizeLeftSizebar: BaseSize = "lg";
 const sizeNav: BaseSize = "lg";
-const sizeBreadcrumb: BaseSize = "sm";
+const sizeBreadcrumb: BaseSize = "xs";
 const sizeGrid: BaseSize = "md";
 const sizeContent: BaseSize = "md";
 const sizeDialog: BaseSize = "md";
