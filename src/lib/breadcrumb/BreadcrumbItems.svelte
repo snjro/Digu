@@ -41,13 +41,11 @@
     <BaseButtonIcon
       size={sizeSettings.breadcrumb}
       iconName={targetCrumbItem.prefixIconName}
-      tooltipText={targetCrumbItem.text}
-      tooltipXPosition="right"
-      tooltipYPosition="top"
       colorCategoryBg={colorSettings.main}
       colorCategoryFront={"interactive"}
       href={targetCrumbItem.href}
       shadowEffect={false}
+      hoverEffect={false}
     />
   {:else}
     <BaseA
