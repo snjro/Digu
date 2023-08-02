@@ -13,6 +13,7 @@
     isHoverControledByParent?: boolean;
     openNewTab?: boolean;
     hoverEffect?: boolean;
+    truncate?: boolean;
   };
   export const setPropsByOpenNewTab = (
     openNewTab: boolean
@@ -38,6 +39,7 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { NO_DATA } from "@utils/utilsCostants";
   import { twMerge } from "tailwind-merge";
+  import classNames from "classnames";
   export let href: BaseAProps["href"];
   export let text: BaseAProps["text"] = undefined;
   export let colorCategory: BaseAProps["colorCategory"] = undefined;
@@ -53,6 +55,7 @@
     BaseAProps["isHoverControledByParent"]
   > = false;
   export let hoverEffect: NonNullable<BaseAProps["hoverEffect"]> = true;
+  export let truncate: NonNullable<BaseAProps["truncate"]> = true;
   let isHover = false;
   function onMouseEnter() {
     if (!isHoverControledByParent) isHover = true;
@@ -91,6 +94,7 @@
       "cursor-pointer",
       "max-w-fit",
       "overflow-x-hidden",
+      "whitespace-nowrap",
       // "w-fit",
       hoverEffect && "hover:underline",
       baseTextSizes[textSize],
@@ -113,7 +117,7 @@
   {#if editedPrefixIcon}
     <BaseIcon {...editedPrefixIcon} />
   {/if}
-  <p class={"truncate"}>{text ?? NO_DATA}</p>
+  <p class={classNames(truncate && "truncate")}>{text ?? NO_DATA}</p>
   {#if editedSuffixIcon}
     <BaseIcon {...editedSuffixIcon} />
   {/if}
