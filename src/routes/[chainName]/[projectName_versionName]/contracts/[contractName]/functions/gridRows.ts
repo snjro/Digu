@@ -1,3 +1,4 @@
+import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
 import type { FunctionAbiFragment } from "@constants/chains/types";
 
 export type FunctionRow = {
@@ -6,7 +7,7 @@ export type FunctionRow = {
   functionSelector: FunctionAbiFragment["selector"];
   functionInputs: FunctionAbiFragment["inputs"];
   functionOutputs: FunctionAbiFragment["outputs"];
-  functionFragment: FunctionAbiFragment;
+  functionSelectorWithSplitter: string;
 };
 export const gridRows = (
   targetFunctionAbiFragments: FunctionAbiFragment[]
@@ -19,7 +20,8 @@ export const gridRows = (
       functionSelector: functionAbiFragment.selector,
       functionInputs: functionAbiFragment.inputs,
       functionOutputs: functionAbiFragment.outputs,
-      functionFragment: functionAbiFragment,
+      functionSelectorWithSplitter:
+        getFunctionSelectorWithSplitter(functionAbiFragment),
     };
     functionRows.push(functionRow);
   }
