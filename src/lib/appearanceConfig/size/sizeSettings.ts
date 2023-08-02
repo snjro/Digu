@@ -15,6 +15,7 @@ type SizeSettings = Record<
   | "navInputHelperText"
   | "navSettings"
   | "navText"
+  | "breadcrumb"
   | "grid"
   | "gridFunctionButton"
   | "gridFunctionQuickSearch"
@@ -34,6 +35,7 @@ type SizeSettings = Record<
 >;
 const sizeLeftSizebar: BaseSize = "lg";
 const sizeNav: BaseSize = "lg";
+const sizeBreadcrumb: BaseSize = "sm";
 const sizeGrid: BaseSize = "md";
 const sizeContent: BaseSize = "md";
 const sizeDialog: BaseSize = "md";
@@ -54,7 +56,8 @@ export const sizeSettings: SizeSettings = {
   navInputHelperText: changeSize(sizeNav, -2),
   navSettings: changeSize(sizeNav, -1),
   navText: changeSize(sizeNav, -2),
-
+  //breadcrumb
+  breadcrumb: changeSize(sizeBreadcrumb, 0),
   // grid
   grid: changeSize(sizeGrid, -1),
   gridFunctionButton: changeSize(sizeGrid, 2),

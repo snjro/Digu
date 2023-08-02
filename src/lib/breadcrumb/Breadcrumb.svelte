@@ -14,11 +14,12 @@
   import { tabValuesForFunction } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/functions/[functionName]/+page.svelte";
   import { convertToKebabCase } from "@utils/utilsCommon";
   import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
 
   const liStyle: string = classNames("inline-block", "align-top", "");
-  const textSize: BaseSize = "sm";
+  const textSize: BaseSize = sizeSettings.breadcrumb;
   type Crumb = {
     href: string;
     text: string;
@@ -38,7 +39,7 @@
     ) {
       const previousPathName: string = pathNames[indexPathNames - 1];
       const currentPathName: string = pathNames[indexPathNames];
-      const PathNameWithUrlHash = getPathNameWithUrlHash(
+      const currentPathNameWithUrlHash = getPathNameWithUrlHash(
         previousPathName,
         currentPathName
       );
@@ -47,7 +48,7 @@
         previousPathName === "functions"
           ? getSplittedFunctionNameAndSelector(currentPathName).functionName
           : currentPathName;
-      href = `${removeUrlHash(href)}/${PathNameWithUrlHash}`;
+      href = `${removeUrlHash(href)}/${currentPathNameWithUrlHash}`;
       text = convertUrlTextToLabelText(currentPathNameWithoutFunctionSelector);
       prefixIconName = undefined;
       if (text) {
