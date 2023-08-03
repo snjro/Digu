@@ -18,7 +18,7 @@
     showVerticalLine={false}
     size={sizeSettings.leftSidebarTreeTop}
   >
-    <div class={classNames("pl-4")} slot="baseAccordionChildren">
+    <div class={classNames("pl-2")} slot="baseAccordionChildren">
       <ItemContracts {targetContracts} {targetProjectVersionHref} />
     </div>
   </BaseAccordion>

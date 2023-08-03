@@ -119,7 +119,7 @@
       "flex-row",
       "items-center",
       "w-full",
-      "pl-1",
+      "pl-0.5",
       bgColor,
       baseTextHeight[size],
       // "h-full",

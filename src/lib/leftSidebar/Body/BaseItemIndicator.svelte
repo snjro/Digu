@@ -36,7 +36,7 @@
     }
   };
   $: left = (): `pl-${string}` => {
-    return isTopLevelItem ? "pl-1" : "pl-2";
+    return isTopLevelItem ? "pl-0.5" : "pl-1.5";
   };
   $: center = (): string => {
     if (isSelected) {
@@ -62,7 +62,7 @@
   };
 </script>
 
-<div class={classNames("flex flex-row", height(), "")}>
+<div class={classNames("flex flex-row", height(), "w-fit", "")}>
   <div class={left()} />
   <div class={classNames(bgColor, center(), "")} />
   <div class={right()} />
