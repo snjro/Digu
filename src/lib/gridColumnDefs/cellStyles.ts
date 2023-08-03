@@ -1,6 +1,6 @@
 export type CellAlignPosition = "start" | "center" | "end";
 export const cellAlign = (
-  cellAlignPosition: CellAlignPosition = "start"
+  cellAlignPosition: CellAlignPosition = "start",
 ): {
   display: "flex";
   "justify-content": "flex-start" | "center" | "flex-end";

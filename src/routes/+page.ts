@@ -10,7 +10,7 @@ export async function load() {
     // Store values will be updated after "initialized()" in "./+layout.ts".
     const selectedChainName: ChainName = await getDbItemUserSettings(
       "userSetting01",
-      "selectedChainName"
+      "selectedChainName",
     );
     goto(`/${selectedChainName}`);
   }

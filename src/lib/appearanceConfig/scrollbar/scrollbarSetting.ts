@@ -18,7 +18,7 @@ export const scrollbarStyle = (colorCategory: ColorCategory) => {
   const scrollbarColors: string = classNames(
     colorParts.scrollbarThumb,
     colorParts.scrollbarTrack,
-    colorParts.scrollbarCorner
+    colorParts.scrollbarCorner,
   );
   return {
     thin: classNames("scrollbar-thin", scrollbarColors),

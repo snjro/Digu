@@ -31,16 +31,16 @@ function store() {
   const { subscribe, set, update } = writable(state);
   const updateState = (
     contractIdentifier: ContractIdentifier,
-    newSyncStatusContract: Partial<SyncStatusContract>
+    newSyncStatusContract: Partial<SyncStatusContract>,
   ): void => {
     Object.assign(
       getStoreSyncStatusContract(state, contractIdentifier),
-      newSyncStatusContract
+      newSyncStatusContract,
     );
     updateStoreSyncStatusSummarized(
       state,
       contractIdentifier,
-      newSyncStatusContract
+      newSyncStatusContract,
     );
     // update((newState) => newState);
     set(state);
@@ -54,7 +54,7 @@ function getInitialState(): SyncStatusesChain {
   for (const targetChain of TARGET_CHAINS) {
     const syncStatusChain: SyncStatusChain = getInitialValueBase(
       targetChain.name,
-      {}
+      {},
     );
 
     state[targetChain.name] = syncStatusChain;
@@ -62,7 +62,7 @@ function getInitialState(): SyncStatusesChain {
     for (const targetProject of targetChain.projects) {
       const syncStatusProject: SyncStatusProject = getInitialValueBase(
         targetProject.name,
-        {}
+        {},
       );
 
       state[targetChain.name].subSyncStatuses[targetProject.name] =
@@ -71,7 +71,7 @@ function getInitialState(): SyncStatusesChain {
       for (const targetVersion of targetProject.versions) {
         const syncStatusVersion: SyncStatusVersion = getInitialValueBase(
           targetVersion.name,
-          {}
+          {},
         );
 
         state[targetChain.name].subSyncStatuses[
@@ -79,7 +79,7 @@ function getInitialState(): SyncStatusesChain {
         ].subSyncStatuses[targetVersion.name] = syncStatusVersion;
 
         for (const targetContract of extractEventContracts(
-          targetVersion.contracts
+          targetVersion.contracts,
         )) {
           const syncStatusContract: SyncStatusContract =
             getInitialValueContract(targetContract);
@@ -97,7 +97,7 @@ function getInitialState(): SyncStatusesChain {
 }
 function getInitialValueBase<
   T extends IdentifierName,
-  U extends SubSyncStatuses
+  U extends SubSyncStatuses,
 >(name: T, subSyncStatuses: U): SyncStatusBase<T, U> {
   return {
     name: name,
@@ -120,13 +120,13 @@ function getInitialValueContract(targetContract: Contract): SyncStatusContract {
 
 function getStoreSyncStatusChain(
   state: SyncStatusesChain,
-  chainIdentifier: ChainIdentifier
+  chainIdentifier: ChainIdentifier,
 ): SyncStatusChain {
   return state[chainIdentifier.chainName];
 }
 function getStoreSyncStatusProject(
   state: SyncStatusesChain,
-  projectIdentifier: ProjectIdentifier
+  projectIdentifier: ProjectIdentifier,
 ): SyncStatusProject {
   return state[projectIdentifier.chainName].subSyncStatuses[
     projectIdentifier.projectName
@@ -134,7 +134,7 @@ function getStoreSyncStatusProject(
 }
 function getStoreSyncStatusVersion(
   state: SyncStatusesChain,
-  versionIdentifier: VersionIdentifier
+  versionIdentifier: VersionIdentifier,
 ): SyncStatusVersion {
   return state[versionIdentifier.chainName].subSyncStatuses[
     versionIdentifier.projectName
@@ -142,7 +142,7 @@ function getStoreSyncStatusVersion(
 }
 function getStoreSyncStatusContract(
   state: SyncStatusesChain,
-  contractIdentifier: ContractIdentifier
+  contractIdentifier: ContractIdentifier,
 ): SyncStatusContract {
   return state[contractIdentifier.chainName].subSyncStatuses[
     contractIdentifier.projectName
@@ -154,20 +154,20 @@ function getStoreSyncStatusContract(
 function updateStoreSyncStatusSummarized(
   state: SyncStatusesChain,
   contractIdentifier: ContractIdentifier,
-  newSyncStatusContract: Partial<SyncStatusContract>
+  newSyncStatusContract: Partial<SyncStatusContract>,
 ): void {
   const targetSyncStatusChain: SyncStatusChain = getStoreSyncStatusChain(
     state,
     {
       chainName: contractIdentifier.chainName,
-    }
+    },
   );
   const targetSyncStatusProject: SyncStatusProject = getStoreSyncStatusProject(
     state,
     {
       chainName: contractIdentifier.chainName,
       projectName: contractIdentifier.projectName,
-    }
+    },
   );
   const targetSyncStatusVersion: SyncStatusVersion = getStoreSyncStatusVersion(
     state,
@@ -175,27 +175,27 @@ function updateStoreSyncStatusSummarized(
       chainName: contractIdentifier.chainName,
       projectName: contractIdentifier.projectName,
       versionName: contractIdentifier.versionName,
-    }
+    },
   );
 
   updateStoreSyncStatusSummarizedBoolean(
     targetSyncStatusChain,
     targetSyncStatusProject,
     targetSyncStatusVersion,
-    newSyncStatusContract
+    newSyncStatusContract,
   );
   updateStoreSyncStatusSummarizedNumber(
     targetSyncStatusChain,
     targetSyncStatusProject,
     targetSyncStatusVersion,
-    newSyncStatusContract
+    newSyncStatusContract,
   );
 }
 function updateStoreSyncStatusSummarizedBoolean(
   targetSyncStatusChain: SyncStatusChain,
   targetSyncStatusProject: SyncStatusProject,
   targetSyncStatusVersion: SyncStatusVersion,
-  newSyncStatus: Partial<SyncStatusContract>
+  newSyncStatus: Partial<SyncStatusContract>,
 ): void {
   for (const key of syncStatusBaseBooleanKeys) {
     if (key in newSyncStatus) {
@@ -226,7 +226,7 @@ type booleanKeysInSubSyncStatus<T extends SubSyncStatus> = KeysMatching<
 function isAnyOneOfSubSyncStatusTrue<
   T extends SubSyncStatuses,
   U extends SubSyncStatus,
-  K extends booleanKeysInSubSyncStatus<U>
+  K extends booleanKeysInSubSyncStatus<U>,
 >(subSyncStatuses: T, key: K): boolean {
   assertIsDefined(subSyncStatuses);
   for (const subSyncStatus of Object.values(subSyncStatuses)) {
@@ -244,7 +244,7 @@ function updateStoreSyncStatusSummarizedNumber(
   targetSyncStatusChain: SyncStatusChain,
   targetSyncStatusProject: SyncStatusProject,
   targetSyncStatusVersion: SyncStatusVersion,
-  newSyncStatusContract: Partial<SyncStatusContract>
+  newSyncStatusContract: Partial<SyncStatusContract>,
 ): void {
   for (const key of syncStatusBaseNumberKeys) {
     if (
@@ -274,7 +274,7 @@ function updateStoreSyncStatusSummarizedNumber(
 function accumulateSubSyncStatus<
   T extends SubSyncStatuses,
   U extends SubSyncStatus,
-  K extends NumberKeysInSubSyncStatus<U>
+  K extends NumberKeysInSubSyncStatus<U>,
 >(subSyncStatuses: T, key: K): number {
   let accumulateValue = 0;
   assertIsDefined(subSyncStatuses);

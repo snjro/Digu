@@ -42,10 +42,10 @@ export async function initializeStore(): Promise<void> {
         const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
 
         for (const targetContract of extractEventContracts(
-          targetVersion.contracts
+          targetVersion.contracts,
         )) {
           promiseUpdateStores.push(
-            InitializeStoreSyncStatus(dbEventLogs, targetContract.name)
+            InitializeStoreSyncStatus(dbEventLogs, targetContract.name),
           );
         }
       }
@@ -71,7 +71,7 @@ async function InitializeStoreRpcSettings(chainName: ChainName): Promise<void> {
 }
 async function initializeStoreUserSettings(): Promise<void> {
   const userSettings: UserSetting = await getDbRecordUserSettings(
-    "userSetting01"
+    "userSetting01",
   );
   storeUserSettings.updateState(userSettings);
   myLogger.success(`Initialized "storeUserSetting"`, {
@@ -80,7 +80,7 @@ async function initializeStoreUserSettings(): Promise<void> {
 }
 async function InitializeStoreSyncStatus(
   dbEventLogs: DbEventLogs,
-  contractName: ContractName
+  contractName: ContractName,
 ): Promise<void> {
   const contractIdentifier: ContractIdentifier = {
     ...dbEventLogs.versionIdentifier,
@@ -90,7 +90,7 @@ async function InitializeStoreSyncStatus(
   const syncStatusContract: SyncStatusContract =
     await getDbRecordSyncStatusContract(
       dbEventLogs,
-      contractIdentifier.contractName
+      contractIdentifier.contractName,
     );
 
   storeSyncStatus.updateState(contractIdentifier, syncStatusContract);

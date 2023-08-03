@@ -3,13 +3,13 @@ import type { FunctionRow } from "./gridRows";
 import { columnDefAbiParams } from "$lib/gridColumnDefs/columnDefAbiParams";
 
 export const columnDefsInputs = <T extends FunctionRow>(
-  maxLengthOfFunctionInputsParams: number
+  maxLengthOfFunctionInputsParams: number,
 ): ColumnDef => {
   const columnDef: ColumnDef = columnDefAbiParams<T>(
     "functionInputs",
     "inputs",
     maxLengthOfFunctionInputsParams,
-    false
+    false,
   );
   return columnDef;
 };

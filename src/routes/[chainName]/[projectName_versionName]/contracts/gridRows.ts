@@ -40,7 +40,7 @@ export function gridRows(contracts: Contract[]): ContractRow[] {
 
       contractCreationBlockNumber: targetContract.creation.blockNumber,
       contractCreationDatetime: convertTimestampSecToIso8601(
-        targetContract.creation.timestamp
+        targetContract.creation.timestamp,
       ),
       contractCreationTx: targetContract.creation.tx,
       contractCreationCreator: targetContract.creation.creator,

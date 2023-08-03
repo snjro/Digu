@@ -11,7 +11,7 @@ export const storeNoDbOpenLeftSidebarAccordion: Writable<OpenStateLeftSidebarAcc
   writable(undefined);
 
 export const storeNoDbCurrentWidth: Writable<number> = writable(
-  getScreenWidth()
+  getScreenWidth(),
 );
 
 export const storeNoDbSnackBarInitialValue: Readonly<BaseSnackbarProps> = {

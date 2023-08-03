@@ -2,13 +2,13 @@ import type { ProjectName, VersionName } from "@constants/chains/types";
 
 export function getProjectVersionNameForUrl(
   projectName: ProjectName,
-  versionName: VersionName
+  versionName: VersionName,
 ): string {
   return `${projectName}-${versionName}`;
 }
 export function getProjectVersionNameForLabel(
   projectName: ProjectName,
-  versionName: VersionName
+  versionName: VersionName,
 ): string {
   return `${projectName} ${versionName}`;
 }

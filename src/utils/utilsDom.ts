@@ -7,7 +7,7 @@ export type VerticalViewability =
   | undefined;
 export function getVerticalViewabilityInScroll(
   parentElement: HTMLElement | null,
-  childElement: HTMLElement
+  childElement: HTMLElement,
 ): VerticalViewability {
   let verticalViewability: VerticalViewability = undefined;
 

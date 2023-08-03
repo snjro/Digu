@@ -4,7 +4,7 @@ import { columnDefAbiParams } from "$lib/gridColumnDefs/columnDefAbiParams";
 import { columnDefStateMutability } from "$lib/gridColumnDefs/columnDefStateMutability";
 
 export const columnDefsConstructor = <T extends ContractRow>(
-  maxLengthOfConstructorInputsParams: number
+  maxLengthOfConstructorInputsParams: number,
 ): ColumnDef => {
   const columnDef: ColumnDef = {
     headerName: "Constructor",
@@ -14,7 +14,7 @@ export const columnDefsConstructor = <T extends ContractRow>(
         "contractConstructorInputs",
         "inputs",
         maxLengthOfConstructorInputsParams,
-        false
+        false,
       ),
     ],
   };

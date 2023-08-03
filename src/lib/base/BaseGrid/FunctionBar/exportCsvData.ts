@@ -11,7 +11,7 @@ export function exportCsvFile(
   suppressQuotes: boolean,
   filteredAndSorted: CsvFilteredSorted,
   skipColumnHeaders: boolean,
-  fileName: string | undefined = undefined
+  fileName: string | undefined = undefined,
 ): void | string {
   const csvExportParams: CsvExportParams = getParamsForCsv(
     gridOptions,
@@ -20,7 +20,7 @@ export function exportCsvFile(
     suppressQuotes,
     filteredAndSorted,
     skipColumnHeaders,
-    fileName
+    fileName,
   );
   if (fileName) {
     gridOptions.api!.exportDataAsCsv(csvExportParams);
@@ -35,7 +35,7 @@ function getParamsForCsv(
   suppressQuotes: boolean,
   filteredAndSorted: CsvFilteredSorted,
   skipColumnHeaders: boolean,
-  fileName: string | undefined = undefined
+  fileName: string | undefined = undefined,
 ): CsvExportParams {
   let targetColIds: string[] | undefined = gridOptions.columnApi
     ?.getColumns()
@@ -45,7 +45,7 @@ function getParamsForCsv(
 
   if (skipRowNumber && targetColIds) {
     const indexOfRowNumber: number = targetColIds.indexOf(
-      ColIdRowSequenceNumber
+      ColIdRowSequenceNumber,
     );
     targetColIds!.splice(indexOfRowNumber, 1);
   }

@@ -18,7 +18,7 @@ function getAbiParamsArgStringValueFromAbiRow<T extends AbiRow>(
   targetParams: ValueGetterParams<T> | ICellRendererParams<T>,
   abiParamsKey: keyof T,
   indexOfArgs: number,
-  argKey: ArgKey
+  argKey: ArgKey,
 ): string {
   const targetAbiParam: AbiFragmentParam | undefined =
     getAbiParamsFromAbiRow<T>(targetParams, abiParamsKey)[indexOfArgs];
@@ -32,7 +32,7 @@ function getAbiParamsArgStringValueFromAbiRow<T extends AbiRow>(
 const columnDefAbiParamsStringArg = <T extends AbiRow>(
   abiParamsKey: keyof T,
   indexOfArgs: number,
-  argKey: ArgKey
+  argKey: ArgKey,
 ): ColumnDef => {
   return {
     headerName: capitalizeFirstLetter(argKey),
@@ -45,7 +45,7 @@ const columnDefAbiParamsStringArg = <T extends AbiRow>(
         valueGetterParams,
         abiParamsKey,
         indexOfArgs,
-        argKey
+        argKey,
       );
     },
     valueGetter: (valueGetterParams: ValueGetterParams<T>): string => {
@@ -53,7 +53,7 @@ const columnDefAbiParamsStringArg = <T extends AbiRow>(
         valueGetterParams,
         abiParamsKey,
         indexOfArgs,
-        argKey
+        argKey,
       );
     },
   };
@@ -62,7 +62,7 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
   abiParamsKey: keyof T,
   showAbiParamsInputIndexedField: boolean,
   abiParamArgHeaderName: string,
-  indexOfArgs: number
+  indexOfArgs: number,
 ): ColumnDef[] => {
   let columnDefs: ColumnDef[] = [
     columnDefAbiParamsStringArg(abiParamsKey, indexOfArgs, "name"),
@@ -85,7 +85,7 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
       cellRenderer: cellRendererFactory(
         (
           cell: AbstractCellRenderer,
-          cellRendererParams: ICellRendererParams<T>
+          cellRendererParams: ICellRendererParams<T>,
         ) => {
           const components: readonly AbiFragmentParam[] | undefined =
             getComponents(cellRendererParams, abiParamsKey, indexOfArgs);
@@ -107,7 +107,7 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
               },
             });
           }
-        }
+        },
       ),
     },
   ];
@@ -116,11 +116,11 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
 function getComponents<T extends AbiRow>(
   agGridParams: ValueGetterParams<T> | ICellRendererParams<T>,
   abiParamsKey: keyof T,
-  indexOfArgs: number
+  indexOfArgs: number,
 ): readonly AbiFragmentParam[] | undefined {
   const abiFragmentParams: AbiFragmentParam[] = getAbiParamsFromAbiRow<T>(
     agGridParams,
-    abiParamsKey
+    abiParamsKey,
   );
   const abiFragmentParam: AbiFragmentParam = abiFragmentParams[indexOfArgs];
   const components: readonly AbiFragmentParam[] | undefined =
@@ -128,7 +128,7 @@ function getComponents<T extends AbiRow>(
   return components;
 }
 export function getComponentsFromAbiFragmentParam(
-  abiFragmentParam: AbiFragmentParam
+  abiFragmentParam: AbiFragmentParam,
 ): readonly AbiFragmentParam[] | undefined {
   if (!abiFragmentParam) return undefined;
   if (abiFragmentParam.components !== null) return abiFragmentParam.components;
