@@ -5,36 +5,35 @@
   import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
   import {
     TAB_VALUES_CONTRACT,
-    type SelectedTabValueContract,
+    type TabStateContract,
   } from "$lib/base/BasePage/BasePageContainerContent.svelte";
 
   export let data: LoadContractData;
 
-  let selectedTabValue: SelectedTabValueContract = "Overview";
+  // let selectedTabValue: SelectedTabValueContract = "Overview";
+  let tabState: TabStateContract = {
+    selected: "Overview",
+    values: TAB_VALUES_CONTRACT,
+    groupName: "tabGroupContract",
+  };
   const titleCategoryLabelText: string = "Contract";
   let titleText: string;
   $: titleText = data.targetContract.name;
 </script>
 
-<BasePageContainer
-  {titleText}
-  {titleCategoryLabelText}
-  tabValues={TAB_VALUES_CONTRACT}
-  bind:selectedTabValue
-  tabGroupName="contractInfo"
->
+<BasePageContainer {titleText} {titleCategoryLabelText} bind:tabState>
   <ContractOverview
     targetChain={data.targetChain}
     targetProject={data.targetProject}
     targetVersion={data.targetVersion}
     targetContract={data.targetContract}
-    hidden={selectedTabValue !== "Overview"}
+    hidden={tabState.selected !== "Overview"}
   />
   <AbiJsonViewer
     targetAbi={data.targetContract.contractInterface}
     abiFormatType="json"
     {titleCategoryLabelText}
     {titleText}
-    hidden={selectedTabValue !== "ABI"}
+    hidden={tabState.selected !== "ABI"}
   />
 </BasePageContainer>

@@ -1,21 +1,33 @@
 <script lang="ts" context="module">
   export const TAB_VALUES_COMMON = ["Overview", "ABI"] as const;
   export const TAB_VALUES_CONTRACT = TAB_VALUES_COMMON;
-  export const TAB_VALUES_FUNCTION = TAB_VALUES_COMMON;
   export const TAB_VALUES_EVENT = [
     ...TAB_VALUES_COMMON,
     "Event Logs (text)",
     "Event Logs (hex)",
   ] as const;
+  export const TAB_VALUES_FUNCTION = TAB_VALUES_COMMON;
 
-  export type SelectedTabValueFunction = (typeof TAB_VALUES_FUNCTION)[number];
-  export type SelectedTabValueEvent = (typeof TAB_VALUES_EVENT)[number];
-  export type SelectedTabValueContract = (typeof TAB_VALUES_CONTRACT)[number];
+  export type TabStateContract = {
+    selected: (typeof TAB_VALUES_CONTRACT)[number];
+    values: typeof TAB_VALUES_CONTRACT;
+    groupName: "tabGroupContract";
+  };
+  export type TabStateEvent = {
+    selected: (typeof TAB_VALUES_EVENT)[number];
+    values: typeof TAB_VALUES_EVENT;
+    groupName: "tabGroupEvent";
+  };
+  export type TabStateFunction = {
+    selected: (typeof TAB_VALUES_FUNCTION)[number];
+    values: typeof TAB_VALUES_FUNCTION;
+    groupName: "tabGroupFunction";
+  };
 </script>
 
 <script
   lang="ts"
-  generics="TabValues, SelectedTabValue extends SelectedTabValueContract | SelectedTabValueEvent | SelectedTabValueFunction"
+  generics=" TabState extends  TabStateContract|TabStateEvent|TabStateFunction"
 >
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { EventLogType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/EventLogs.svelte";
@@ -32,23 +44,20 @@
   } from "$lib/base/BaseRadio.svelte";
   import { convertToKebabCase } from "@utils/utilsCommon";
 
-  export let tabValues: TabValues | undefined;
-  export let selectedTabValue: SelectedTabValue | undefined;
-  export let tabGroupName: string | undefined;
+  export let tabState: TabState | undefined;
 
   const size: BaseSize = sizeSettings.tab;
+
+  let breakPointWidthKey: BreakPointWidthKey;
+  $: breakPointWidthKey = $storeUserSettings.isOpenSidebar ? "md" : "sm";
 
   type ConvertTabValueForLabelText =
     | "Overv"
     | "ABI"
     | `EL (${EventLogType})`
-    | SelectedTabValue;
-  $: convertTabValueForLabelText = (
-    tabValue: SelectedTabValue
-  ): ConvertTabValueForLabelText => {
+    | TabState["selected"];
+  $: convertTabValueForLabelText = (tabValue: TabState["selected"]): string => {
     let convertedTabValue: ConvertTabValueForLabelText = tabValue;
-    const breakPointWidthKey: BreakPointWidthKey =
-      $storeUserSettings.isOpenSidebar ? "md" : "sm";
     if ($storeNoDbCurrentWidth <= breakPointWidths[breakPointWidthKey]) {
       switch (tabValue) {
         case "Overview":
@@ -67,43 +76,45 @@
     }
     return convertedTabValue;
   };
-  function convertTabValueForHref(tabValue: SelectedTabValue): `#${string}` {
-    let convertedTabValue: string;
-    convertedTabValue = convertToKebabCase(tabValue as string);
+  function convertTabValueForHref(
+    tabValue: TabState["selected"]
+  ): `#${string}` {
+    let convertedTabValue: string = convertToKebabCase(tabValue as string);
     convertedTabValue = convertedTabValue.replace("(", "").replace(")", "");
     return `#${convertedTabValue}`;
   }
-  $: labelAndValues = (): RadioLabelAndValues<SelectedTabValue> =>
-    Array.isArray(tabValues)
-      ? tabValues.map((tabValue: SelectedTabValue) => {
+  $: labelAndValues = (): RadioLabelAndValues<TabState["selected"]> =>
+    tabState
+      ? tabState.values.map((tabValue: TabState["selected"]) => {
           return {
-            labelText: convertTabValueForLabelText(tabValue) as string,
+            labelText: convertTabValueForLabelText(tabValue),
             value: tabValue,
-            inputId: `${tabGroupName}${tabValue}`,
+            inputId: `${tabState!.groupName}_${tabValue}`,
             href: convertTabValueForHref(tabValue),
           };
         })
       : [];
   $: {
-    if (tabValues && selectedTabValue) {
-      const selectedTabValueByUrl: SelectedTabValue | undefined =
-        labelAndValues().find((labelAndValue) => {
-          return labelAndValue.href === $page.url.hash;
-        })?.value;
-      if (selectedTabValue === selectedTabValueByUrl) {
+    if (tabState) {
+      const selectedTabValueFoundByUrl: TabState["selected"] | undefined =
+        tabState.values.find((tabValue: TabState["selected"]) => {
+          const href: string = convertTabValueForHref(tabValue);
+          return href === $page.url.hash;
+        });
+      if (tabState.selected === selectedTabValueFoundByUrl) {
         // There is nothing to do.
-        // Because a selected tab and a URL hash match.
+        // Because a selected tab and a URL hash matched.
       } else {
-        if (selectedTabValueByUrl) {
-          // Match URL hash and selectedTabValue.
+        if (selectedTabValueFoundByUrl) {
+          // Need to match URL hash and selectedTabValue.
           // considering the case where the page is accessed by typing the URL directly,
-          // URL hash is used here,
-          selectedTabValue = selectedTabValueByUrl;
+          // URL hash is used as selected value here.
+          tabState.selected = selectedTabValueFoundByUrl;
         } else {
           // Add hash to URL.
           // Because a tab is selected but that is not reflected in URL.
           goto(
-            `${$page.url.pathname}${convertTabValueForHref(selectedTabValue)}`
+            `${$page.url.pathname}${convertTabValueForHref(tabState.selected)}`
           );
         }
       }
@@ -112,17 +123,17 @@
 </script>
 
 <div class={classNames("w-full", "h-full", "flex", "flex-col")}>
-  {#if tabValues && tabGroupName}
+  {#if tabState}
     <BaseRadio
       radioButtonType="tab"
       border={true}
-      groupName={tabGroupName}
-      bind:selectedValue={selectedTabValue}
+      groupName={tabState.groupName}
+      bind:selectedValue={tabState.selected}
       {size}
       labelAndValues={labelAndValues()}
     />
   {/if}
-  <BasePageContainerContentFrame hasTab={tabValues ? true : false}>
+  <BasePageContainerContentFrame hasTab={tabState ? true : false}>
     <slot />
   </BasePageContainerContentFrame>
 </div>

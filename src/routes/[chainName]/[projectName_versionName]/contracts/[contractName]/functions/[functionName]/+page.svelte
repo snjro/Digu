@@ -5,37 +5,37 @@
   import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
   import {
     TAB_VALUES_FUNCTION,
-    type SelectedTabValueFunction,
+    type TabStateFunction,
   } from "$lib/base/BasePage/BasePageContainerContent.svelte";
 
   export let data: LoadFunction;
 
-  let selectedTabValue: SelectedTabValueFunction = "Overview";
+  // let selectedTabValue: SelectedTabValueFunction = "Overview";
+  let tabState: TabStateFunction = {
+    selected: "Overview",
+    values: TAB_VALUES_FUNCTION,
+    groupName: "tabGroupFunction",
+  };
+
   const titleCategoryLabelText: string = "Function";
   $: titleText = data.targetFunctionAbiFragment.name!;
 </script>
 
-<BasePageContainer
-  {titleText}
-  {titleCategoryLabelText}
-  tabValues={TAB_VALUES_FUNCTION}
-  bind:selectedTabValue
-  tabGroupName="eventLogsInfo"
->
+<BasePageContainer {titleText} {titleCategoryLabelText} bind:tabState>
   <FunctionOverview
     targetChain={data.targetChain}
     targetProject={data.targetProject}
     targetVersion={data.targetVersion}
     targetContract={data.targetContract}
     targetFunctionAbiFragment={data.targetFunctionAbiFragment}
-    hidden={selectedTabValue !== "Overview"}
+    hidden={tabState.selected !== "Overview"}
   />
   <AbiJsonViewer
     targetAbi={data.targetFunctionAbiFragment}
     abiFormatType="json"
     {titleCategoryLabelText}
     {titleText}
-    hidden={selectedTabValue !== "ABI"}
+    hidden={tabState.selected !== "ABI"}
     fragment
   />
 </BasePageContainer>

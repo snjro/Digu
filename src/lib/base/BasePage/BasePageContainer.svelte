@@ -1,21 +1,19 @@
 <script
   lang="ts"
-  generics="TabValues, SelectedTabValue extends SelectedTabValueContract | SelectedTabValueEvent | SelectedTabValueFunction"
+  generics=" TabState extends  TabStateContract|TabStateEvent|TabStateFunction"
 >
   import classNames from "classnames";
   import BasePageContainerTitle from "$lib/base/BasePage/BasePageContainerTitle.svelte";
   import BasePageContainerContent, {
-    type SelectedTabValueContract,
-    type SelectedTabValueEvent,
-    type SelectedTabValueFunction,
+    type TabStateContract,
+    type TabStateEvent,
+    type TabStateFunction,
   } from "./BasePageContainerContent.svelte";
 
   export let titleText: string;
   export let titleCategoryLabelText: string;
 
-  export let tabValues: TabValues | undefined = undefined;
-  export let selectedTabValue: SelectedTabValue | undefined = undefined;
-  export let tabGroupName: string | undefined = undefined;
+  export let tabState: TabState | undefined = undefined;
 </script>
 
 <div class={classNames("space-y-3", "h-fit", "w-full", "")}>
@@ -24,7 +22,7 @@
     {titleCategoryLabelText}
     isVerticalTitle={false}
   />
-  <BasePageContainerContent bind:selectedTabValue {tabValues} {tabGroupName}>
+  <BasePageContainerContent bind:tabState>
     <slot />
   </BasePageContainerContent>
 </div>
