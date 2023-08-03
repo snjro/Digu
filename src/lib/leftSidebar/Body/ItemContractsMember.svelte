@@ -9,8 +9,8 @@
   import classNames from "classnames";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { convertToKebabCase } from "@utils/utilsCommon";
-  import { tabValuesForContract } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/+page.svelte";
   import ItemEventsFunctions from "./ItemEventsFunctions.svelte";
+  import { TAB_VALUES_CONTRACT } from "$lib/base/BasePage/BasePageContainerContent.svelte";
 
   export let targetContract: Contract;
   export let targetContractsHref: string;
@@ -24,7 +24,7 @@
     contractSuffixIcon: changeSize(size, -1),
   };
   const targetContractHref: string = `${targetContractsHref}/${targetContract.name}`;
-  const urlHash: string = convertToKebabCase(tabValuesForContract[0]);
+  const urlHash: string = convertToKebabCase(TAB_VALUES_CONTRACT[0]);
 </script>
 
 {#if !targetContract.events.abiFragments.length && !targetContract.functions.abiFragments.length}

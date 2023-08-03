@@ -1,18 +1,16 @@
-<script lang="ts" context="module">
-  export const tabValuesForContract = ["Overview", "ABI"] as const;
-  export type SelectedTabValueForContract =
-    (typeof tabValuesForContract)[number];
-</script>
-
 <script lang="ts">
   import type { LoadContractData } from "./+page";
   import ContractOverview from "./ContractOverview.svelte";
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
   import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
+  import {
+    TAB_VALUES_CONTRACT,
+    type SelectedTabValueContract,
+  } from "$lib/base/BasePage/BasePageContainerContent.svelte";
 
   export let data: LoadContractData;
 
-  let selectedTabValue: SelectedTabValueForContract = "Overview";
+  let selectedTabValue: SelectedTabValueContract = "Overview";
   const titleCategoryLabelText: string = "Contract";
   let titleText: string;
   $: titleText = data.targetContract.name;
@@ -21,7 +19,7 @@
 <BasePageContainer
   {titleText}
   {titleCategoryLabelText}
-  tabValues={tabValuesForContract}
+  tabValues={TAB_VALUES_CONTRACT}
   bind:selectedTabValue
   tabGroupName="contractInfo"
 >

@@ -1,18 +1,16 @@
-<script lang="ts" context="module">
-  export const tabValuesForFunction = ["Overview", "ABI Fragment"] as const;
-  export type SelectedTabValueForFunction =
-    (typeof tabValuesForFunction)[number];
-</script>
-
 <script lang="ts">
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
   import type { LoadFunction } from "./+page";
   import FunctionOverview from "./FunctionOverview.svelte";
   import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
+  import {
+    TAB_VALUES_FUNCTION,
+    type SelectedTabValueFunction,
+  } from "$lib/base/BasePage/BasePageContainerContent.svelte";
 
   export let data: LoadFunction;
 
-  let selectedTabValue: SelectedTabValueForFunction = "Overview";
+  let selectedTabValue: SelectedTabValueFunction = "Overview";
   const titleCategoryLabelText: string = "Function";
   $: titleText = data.targetFunctionAbiFragment.name!;
 </script>
@@ -20,7 +18,7 @@
 <BasePageContainer
   {titleText}
   {titleCategoryLabelText}
-  tabValues={tabValuesForFunction}
+  tabValues={TAB_VALUES_FUNCTION}
   bind:selectedTabValue
   tabGroupName="eventLogsInfo"
 >
@@ -37,7 +35,7 @@
     abiFormatType="json"
     {titleCategoryLabelText}
     {titleText}
-    hidden={selectedTabValue !== "ABI Fragment"}
+    hidden={selectedTabValue !== "ABI"}
     fragment
   />
 </BasePageContainer>

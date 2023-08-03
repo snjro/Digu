@@ -8,17 +8,17 @@
   import type { AbiFragmentsType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/ContractOverviewEventsFunctions.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { changeSize } from "$lib/base/baseSizes";
-  import { tabValuesForEvent } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/+page.svelte";
-  import { tabValuesForFunction } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/functions/[functionName]/+page.svelte";
   import { getFunctionSelectorWithSplitter } from "./ItemEventsFunctions.svelte";
+  import {
+    TAB_VALUES_EVENT,
+    TAB_VALUES_FUNCTION,
+  } from "$lib/base/BasePage/BasePageContainerContent.svelte";
 
   export let abiFragmentsType: AbiFragmentsType;
   export let targetAbiFragment: EventAbiFragment | FunctionAbiFragment;
   export let targetAbiFragmentsHref: string;
   const urlHash: string = convertToKebabCase(
-    abiFragmentsType === "events"
-      ? tabValuesForEvent[0]
-      : tabValuesForFunction[0]
+    abiFragmentsType === "events" ? TAB_VALUES_EVENT[0] : TAB_VALUES_FUNCTION[0]
   );
   const targetAbiFragmentHref: string = `${targetAbiFragmentsHref}/${
     targetAbiFragment.name

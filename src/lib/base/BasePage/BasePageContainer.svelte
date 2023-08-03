@@ -1,7 +1,14 @@
-<script lang="ts" generics="TabValues, SelectedTabValue">
+<script
+  lang="ts"
+  generics="TabValues, SelectedTabValue extends SelectedTabValueContract | SelectedTabValueEvent | SelectedTabValueFunction"
+>
   import classNames from "classnames";
   import BasePageContainerTitle from "$lib/base/BasePage/BasePageContainerTitle.svelte";
-  import BasePageContainerContent from "./BasePageContainerContent.svelte";
+  import BasePageContainerContent, {
+    type SelectedTabValueContract,
+    type SelectedTabValueEvent,
+    type SelectedTabValueFunction,
+  } from "./BasePageContainerContent.svelte";
 
   export let titleText: string;
   export let titleCategoryLabelText: string;

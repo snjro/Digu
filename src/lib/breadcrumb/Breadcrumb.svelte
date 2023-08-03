@@ -12,12 +12,14 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { directoryItems } from "$lib/leftSidebar/Body/directoryDefinitions";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { tabValuesForContract } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/+page.svelte";
-  import { tabValuesForEvent } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/+page.svelte";
-  import { tabValuesForFunction } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/functions/[functionName]/+page.svelte";
   import { convertToKebabCase } from "@utils/utilsCommon";
   import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
   import BreadcrumbItems from "./BreadcrumbItems.svelte";
+  import {
+    TAB_VALUES_CONTRACT,
+    TAB_VALUES_EVENT,
+    TAB_VALUES_FUNCTION,
+  } from "$lib/base/BasePage/BasePageContainerContent.svelte";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
 
@@ -71,13 +73,13 @@
     // if (indexPathNames === pathNames.length - 1) {
     switch (previousPathName) {
       case "contracts":
-        urlHash = tabValuesForContract[0];
+        urlHash = TAB_VALUES_CONTRACT[0];
         break;
       case "events":
-        urlHash = tabValuesForEvent[0];
+        urlHash = TAB_VALUES_EVENT[0];
         break;
       case "functions":
-        urlHash = tabValuesForFunction[0];
+        urlHash = TAB_VALUES_FUNCTION[0];
         break;
       default:
         urlHash = "";

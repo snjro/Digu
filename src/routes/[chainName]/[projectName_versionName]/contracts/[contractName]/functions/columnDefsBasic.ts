@@ -12,7 +12,7 @@ import { columnDefStateMutability } from "$lib/gridColumnDefs/columnDefStateMuta
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
 import { convertToKebabCase } from "@utils/utilsCommon";
-import { tabValuesForFunction } from "./[functionName]/+page.svelte";
+import { TAB_VALUES_FUNCTION } from "$lib/base/BasePage/BasePageContainerContent.svelte";
 
 const cellClass: string = classNames("");
 const sortable = true;
@@ -54,7 +54,7 @@ export const columnDefsBasic = <T extends FunctionRow>(
                     cellRendererParams.data.functionName
                   }${
                     cellRendererParams.data.functionSelectorWithSplitter
-                  }#${convertToKebabCase(tabValuesForFunction[0])}`,
+                  }#${convertToKebabCase(TAB_VALUES_FUNCTION[0])}`,
                   textSize: gridSize,
                   openNewTab: false,
                   prefixIcon: {
