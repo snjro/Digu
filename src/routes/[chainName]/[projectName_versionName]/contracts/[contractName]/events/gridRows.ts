@@ -7,7 +7,7 @@ export type EventRow = {
   eventTopicHash: EventAbiFragment["topicHash"];
 };
 export const gridRows = (
-  targetEventAbiFragments: EventAbiFragment[]
+  targetEventAbiFragments: EventAbiFragment[],
 ): EventRow[] => {
   let eventRows: EventRow[] = [];
   for (const eventAbiFragment of targetEventAbiFragments) {

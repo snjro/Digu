@@ -14,12 +14,12 @@ import type {
 import { sortObjectArrayByProperty } from "@utils/utilsCommon";
 
 export function convertJsonFilesContractToContracts(
-  jsonFileContracts: JsonFileContract[]
+  jsonFileContracts: JsonFileContract[],
 ): Contract[] {
   let convertedContracts: Contract[] = jsonFileContracts.map(
     (jsonFileContract: JsonFileContract): Contract => {
       const contractInterface: ContractInterface = new ethers.Interface(
-        jsonFileContract.abi
+        jsonFileContract.abi,
       );
 
       const constructorAbiFragment: ConstructorAbiFragment =
@@ -36,7 +36,7 @@ export function convertJsonFilesContractToContracts(
       const eventNames: EventAbiFragment["name"][] = eventAbiFragments.map(
         (eventAbiFragment: EventAbiFragment) => {
           return eventAbiFragment.name;
-        }
+        },
       );
       const functionNames: FunctionAbiFragment["name"][] =
         functionAbiFragments.map((functionAbiFragment: FunctionAbiFragment) => {
@@ -66,14 +66,14 @@ export function convertJsonFilesContractToContracts(
         },
       };
       return { ...baseContract, ...additionalContract };
-    }
+    },
   );
 
   return sortObjectArrayByProperty<Contract>(convertedContracts, "name");
 }
 
 function getConstructorFragmentFromContractInterface(
-  contractInterface: ContractInterface
+  contractInterface: ContractInterface,
 ): ConstructorAbiFragment {
   const constructorAbiFragment: ConstructorAbiFragment = {
     ...contractInterface.deploy,
@@ -85,7 +85,7 @@ function getConstructorFragmentFromContractInterface(
   return constructorAbiFragment;
 }
 function getEventAbiFragmentsFromContractInterface(
-  contractInterface: ContractInterface
+  contractInterface: ContractInterface,
 ): EventAbiFragment[] {
   let eventAbiFragments: EventAbiFragment[] = [];
   contractInterface.forEachEvent((eventAbiFragment: EventAbiFragment): void => {
@@ -95,22 +95,22 @@ function getEventAbiFragmentsFromContractInterface(
   return eventAbiFragments;
 }
 function getFunctionAbiFragmentsFromContractInterface(
-  contractInterface: ContractInterface
+  contractInterface: ContractInterface,
 ): FunctionAbiFragment[] {
   let functionAbiFragments: FunctionAbiFragment[] = [];
   contractInterface.forEachFunction(
     (functionAbiFragment: FunctionAbiFragment): void => {
       functionAbiFragments.push(functionAbiFragment);
-    }
+    },
   );
   functionAbiFragments = sortObjectArrayByProperty(
     functionAbiFragments,
-    "name"
+    "name",
   );
   return functionAbiFragments;
 }
 function getFallbackAbiFragmentFromContractInterface(
-  contractInterface: ContractInterface
+  contractInterface: ContractInterface,
 ): FallbackAbiFragment {
   let fallbackAbiFragment: FallbackAbiFragment;
 

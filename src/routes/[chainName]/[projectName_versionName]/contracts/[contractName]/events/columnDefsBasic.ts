@@ -19,7 +19,7 @@ const cellClass: string = classNames("");
 const sortable = true;
 const editable = false;
 export const columnDefsBasic = <T extends EventRow>(
-  urlPathName: string
+  urlPathName: string,
 ): ColumnDef => {
   const columnDef: ColumnDef = {
     headerName: "Basic",
@@ -40,7 +40,7 @@ export const columnDefsBasic = <T extends EventRow>(
         cellRenderer: cellRendererFactory(
           (
             cell: AbstractCellRenderer,
-            cellRendererParams: ICellRendererParams<T>
+            cellRendererParams: ICellRendererParams<T>,
           ) => {
             if (cellRendererParams.data) {
               new BaseA({
@@ -59,7 +59,7 @@ export const columnDefsBasic = <T extends EventRow>(
                 },
               });
             }
-          }
+          },
         ),
       },
       {
@@ -92,7 +92,7 @@ export const columnDefsBasic = <T extends EventRow>(
         cellRenderer: cellRendererFactory(
           (
             cell: AbstractCellRenderer,
-            cellRendererParams: ICellRendererParams<T>
+            cellRendererParams: ICellRendererParams<T>,
           ) => {
             if (cellRendererParams.data) {
               new BaseLabel({
@@ -105,7 +105,7 @@ export const columnDefsBasic = <T extends EventRow>(
                 },
               });
             }
-          }
+          },
         ),
       },
     ],

@@ -15,7 +15,7 @@ import type { AbiFragmentsType } from "./[contractName]/ContractOverviewEventsFu
 const gridSize: BaseSize = sizeSettings.grid;
 export const columnDefsEventsFunctions = <T extends ContractRow>(
   abiFragmentsType: AbiFragmentsType,
-  urlPathName: string
+  urlPathName: string,
 ): ColumnDef => {
   const keyOfContractRow: keyof T =
     abiFragmentsType === "events"
@@ -32,7 +32,7 @@ export const columnDefsEventsFunctions = <T extends ContractRow>(
         cellStyle: cellAlign("end"),
         columnGroupShow: undefined,
         filterValueGetter: (
-          valueGetterParams: ValueGetterParams<T>
+          valueGetterParams: ValueGetterParams<T>,
         ): number => {
           return valueGetterParams.data
             ? (valueGetterParams.data[keyOfContractRow] as number)
@@ -46,7 +46,7 @@ export const columnDefsEventsFunctions = <T extends ContractRow>(
         cellRenderer: cellRendererFactory(
           (
             cell: AbstractCellRenderer,
-            cellRendererParams: ICellRendererParams<T>
+            cellRendererParams: ICellRendererParams<T>,
           ) => {
             if (cellRendererParams.data) {
               const totalNumber: number = cellRendererParams.data[
@@ -75,7 +75,7 @@ export const columnDefsEventsFunctions = <T extends ContractRow>(
                 });
               }
             }
-          }
+          },
         ),
       },
     ],

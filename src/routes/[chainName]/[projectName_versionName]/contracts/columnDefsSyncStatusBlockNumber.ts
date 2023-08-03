@@ -31,7 +31,7 @@ export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
   targetChain: Chain,
   targetProject: Project,
   targetVersion: Version,
-  headerName: "Start" | "Current" | "Goal"
+  headerName: "Start" | "Current" | "Goal",
 ): ColumnDef => {
   const columnDef: ColumnDef = {
     headerName: headerName,
@@ -62,7 +62,7 @@ export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
       const blockNumber: number = getBlockNumberByHeaderName(
         headerName,
         latestBlockNumber,
-        targetContractSyncStatus
+        targetContractSyncStatus,
       );
       // in order to sort the column, change type of "blockNumber"(=number) to string
       return blockNumber === 0 ? NO_DATA : blockNumber.toString();
@@ -70,7 +70,7 @@ export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
-        cellRendererParams: ICellRendererParams<T>
+        cellRendererParams: ICellRendererParams<T>,
       ) => {
         new GridCellSyncStatusBlockNumber({
           target: cell.eGui,
@@ -82,7 +82,7 @@ export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
             headerName: headerName,
           },
         });
-      }
+      },
     ),
   };
   return columnDef;

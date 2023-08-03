@@ -3,7 +3,7 @@ import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
 export function getFrontWeight(
   isSelected: boolean,
-  isHover: boolean
+  isHover: boolean,
 ): "font-medium" | "font-normal" | "font-bold" {
   if (isHover) {
     // return "font-bold";
@@ -16,7 +16,7 @@ export function getFrontWeight(
 }
 export function getFrontColorCategory(
   isSelected: boolean,
-  isUpdated = false
+  isUpdated = false,
 ): ColorCategory {
   if (isSelected) {
     return "interactive";

@@ -1,5 +1,5 @@
 export function assertIsDefined<T>(
-  assertDefinedValue: T
+  assertDefinedValue: T,
 ): asserts assertDefinedValue is NonNullable<T> {
   if (assertDefinedValue === undefined || assertDefinedValue === null) {
     const errorMessage: string = `Expected 'value' to be defined, but received value is: ${assertDefinedValue}`;
@@ -15,7 +15,7 @@ export function removeDuplicateValuesFromArray<T>(array: T[]): T[] {
 export function promiseWithTimeout<T>(
   promise: Promise<T>,
   ms: number,
-  timeoutError = new Error("Promise timed out")
+  timeoutError = new Error("Promise timed out"),
 ): Promise<T> {
   // create a promise that rejects in milliseconds
   const timeout = new Promise<never>((_, reject) => {
@@ -67,7 +67,7 @@ export function sortArray<T>(arr: Array<T>, sortType: SortType): Array<T> {
 export function sortObjectArrayByProperty<T>(
   objectArray: T[],
   property: keyof T,
-  sortType: "asc" | "desc" = "asc"
+  sortType: "asc" | "desc" = "asc",
 ): T[] {
   return objectArray.sort((a, b) => {
     if (a[property] < b[property]) {

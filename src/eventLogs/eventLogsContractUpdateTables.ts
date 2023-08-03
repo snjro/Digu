@@ -26,7 +26,7 @@ export async function registerEventLogsAndBlockTimes(
   targetContract: Contract,
   nodeProvider: NodeProvider,
   ethersEventLogs: EthersEventLog[],
-  lastFetchedBlockNumber: number
+  lastFetchedBlockNumber: number,
 ) {
   const targetChainName: ChainName = dbEventLogs.versionIdentifier.chainName;
   try {
@@ -34,18 +34,18 @@ export async function registerEventLogsAndBlockTimes(
       await fetchBlockTimesForEventLogs(
         nodeProvider,
         targetChainName,
-        ethersEventLogs
+        ethersEventLogs,
       );
     const convertedEventLogs: ConvertedEventLog[] = getConvertedEventLogs(
       ethersEventLogs,
-      blockTimesForEventLogs
+      blockTimesForEventLogs,
     );
 
     const groupedEventLogs: GroupedEventLogs =
       groupEventLogsByEventName(convertedEventLogs);
 
     const unregisteredBlockTimes: BlockTime[] = getUnregisterdBlockTimes(
-      blockTimesForEventLogs
+      blockTimesForEventLogs,
     );
 
     await setDbBlockTime(targetChainName, unregisteredBlockTimes);
@@ -54,7 +54,7 @@ export async function registerEventLogsAndBlockTimes(
       dbEventLogs,
       targetContract,
       groupedEventLogs,
-      lastFetchedBlockNumber
+      lastFetchedBlockNumber,
     );
   } catch (error) {
     myLogger.error("Error occurred in registering event logs.", {
@@ -68,7 +68,7 @@ export async function registerEventLogsAndBlockTimes(
 }
 
 function getUnregisterdBlockTimes(
-  blockTimesForEventLogs: BlockTimeForEventLog[]
+  blockTimesForEventLogs: BlockTimeForEventLog[],
 ): BlockTime[] {
   let unregisterdBlockTimes: BlockTime[] = [];
   for (const blockTimesForEventLog of blockTimesForEventLogs) {
@@ -81,7 +81,7 @@ function getUnregisterdBlockTimes(
 
 function getConvertedEventLogs(
   ethersEventLogs: EthersEventLog[],
-  blockTimesForEventLogs: BlockTimeForEventLog[]
+  blockTimesForEventLogs: BlockTimeForEventLog[],
 ): ConvertedEventLog[] {
   let convertedEventLogs: ConvertedEventLog[] = [];
 
@@ -91,19 +91,19 @@ function getConvertedEventLogs(
         return (
           blockTime.fetchedBlockTime.blockNumber === ethersEventLog.blockNumber
         );
-      }
+      },
     )?.fetchedBlockTime;
 
     if (targetBlockTime) {
       const convertedEventLog: ConvertedEventLog = convertEthersEventToEventLog(
         ethersEventLog,
-        targetBlockTime.timestamp
+        targetBlockTime.timestamp,
       );
 
       convertedEventLogs.push(convertedEventLog);
     } else {
       throw new Error(
-        `Error! cannot find blocktime. blocknumber is ${ethersEventLog.blockNumber}`
+        `Error! cannot find blocktime. blocknumber is ${ethersEventLog.blockNumber}`,
       );
     }
   }
@@ -112,7 +112,7 @@ function getConvertedEventLogs(
 }
 function convertEthersEventToEventLog(
   ethersEventLog: EthersEventLog,
-  timestamp: number
+  timestamp: number,
 ): ConvertedEventLog {
   if (
     isHexString(ethersEventLog.blockHash) &&
@@ -171,13 +171,13 @@ function convertEthersEventToEventLog(
       invalidProps.push("transactionHash");
     }
     const errorMessage = `Invalid EthersEventLog object. The following properties are not a valid hex string: ${invalidProps.join(
-      ", "
+      ", ",
     )}.`;
     throw new Error(errorMessage);
   }
 }
 function groupEventLogsByEventName(
-  convertedEventLogs: ConvertedEventLog[]
+  convertedEventLogs: ConvertedEventLog[],
 ): GroupedEventLogs {
   const groupedEventLogs: GroupedEventLogs = {};
   for (const convertedEventLog of convertedEventLogs) {

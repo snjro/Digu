@@ -48,17 +48,17 @@ export async function load({
   } else {
     const chainName: ChainName = params.chainName!;
     const projectName: ProjectName = getSplitProjectVersionName(
-      params.projectName_versionName!
+      params.projectName_versionName!,
     ).projectName;
     const versionName: VersionName = getSplitProjectVersionName(
-      params.projectName_versionName!
+      params.projectName_versionName!,
     ).versionName;
     const contractName: ContractName = params.contractName!;
     const functionName: AbiFragmentName = getSplittedFunctionNameAndSelector(
-      params.functionName!
+      params.functionName!,
     ).functionName;
     const functionSelector: HexString = getSplittedFunctionNameAndSelector(
-      params.functionName!
+      params.functionName!,
     ).functionSelector as HexString;
 
     const chainIdentifier: ChainIdentifier = {

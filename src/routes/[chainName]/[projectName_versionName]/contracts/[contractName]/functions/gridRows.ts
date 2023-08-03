@@ -10,7 +10,7 @@ export type FunctionRow = {
   functionSelectorWithSplitter: string;
 };
 export const gridRows = (
-  targetFunctionAbiFragments: FunctionAbiFragment[]
+  targetFunctionAbiFragments: FunctionAbiFragment[],
 ): FunctionRow[] => {
   let functionRows: FunctionRow[] = [];
   for (const functionAbiFragment of targetFunctionAbiFragments) {

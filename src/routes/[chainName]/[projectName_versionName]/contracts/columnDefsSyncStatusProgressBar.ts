@@ -28,7 +28,7 @@ import { NO_DATA } from "@utils/utilsCostants";
 export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
   targetChain: Chain,
   targetProject: Project,
-  targetVersion: Version
+  targetVersion: Version,
 ): ColumnDef => {
   const columnDef: ColumnDef = {
     headerName: "Progress",
@@ -66,7 +66,7 @@ export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
         ? getProgressRate(
             startBlockNumber,
             latestBlockNumber,
-            (contractSyncStatus as SyncStatusContract).fetchedBlockNumber
+            (contractSyncStatus as SyncStatusContract).fetchedBlockNumber,
           ).toString() // in order to sort the column, change type of "progressRate"(=number) to string
         : NO_DATA;
 
@@ -75,7 +75,7 @@ export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
-        cellRendererParams: ICellRendererParams<T>
+        cellRendererParams: ICellRendererParams<T>,
       ) => {
         new GridCellSyncStatusProgressBar({
           target: cell.eGui,
@@ -86,7 +86,7 @@ export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
             targetContract: cellRendererParams.data!.contract,
           },
         });
-      }
+      },
     ),
   };
   return columnDef;

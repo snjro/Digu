@@ -14,24 +14,24 @@ export type BlockTimeForEventLog = {
 export async function fetchBlockTimesForEventLogs(
   nodeProvider: NodeProvider,
   chainName: ChainName,
-  ethersEventLogs: EthersEventLog[]
+  ethersEventLogs: EthersEventLog[],
 ): Promise<BlockTimeForEventLog[]> {
   let deplicateEventLogBlockNumbers: number[] = ethersEventLogs.map(
     (ethersEventLog: EthersEventLog) => {
       return ethersEventLog.blockNumber;
-    }
+    },
   );
   const eventLogBlockNumbers = removeDuplicateValuesFromArray<number>(
-    deplicateEventLogBlockNumbers
+    deplicateEventLogBlockNumbers,
   );
   const blockTimesForEventLogs: BlockTimeForEventLog[] = await Promise.all(
     eventLogBlockNumbers.map(async (eventLogBlockNumber: number) => {
       return await fetchBlockTimeFromDbOrProvider(
         nodeProvider,
         chainName,
-        eventLogBlockNumber
+        eventLogBlockNumber,
       );
-    })
+    }),
   );
 
   return blockTimesForEventLogs;
@@ -39,11 +39,11 @@ export async function fetchBlockTimesForEventLogs(
 async function fetchBlockTimeFromDbOrProvider(
   nodeProvider: NodeProvider,
   chainName: ChainName,
-  targetBlockNumber: number
+  targetBlockNumber: number,
 ): Promise<BlockTimeForEventLog> {
   let blockTime: BlockTime | undefined = await getDbRecordBlockTime(
     chainName,
-    targetBlockNumber
+    targetBlockNumber,
   );
 
   if (blockTime) {
@@ -51,7 +51,7 @@ async function fetchBlockTimeFromDbOrProvider(
   } else {
     const block: Block = await fetchBlockFromNodeProvider(
       nodeProvider,
-      targetBlockNumber
+      targetBlockNumber,
     );
     return {
       fetchedBlockTime: {
@@ -65,7 +65,7 @@ async function fetchBlockTimeFromDbOrProvider(
 }
 async function fetchBlockFromNodeProvider(
   nodeProvider: NodeProvider,
-  blockNumber: number
+  blockNumber: number,
 ): Promise<Block> {
   let block: Block | null;
   try {
@@ -77,7 +77,7 @@ async function fetchBlockFromNodeProvider(
     }
   } catch (error) {
     throw new Error(
-      `Error! Exception in "nodeProvider.getBlock". Block number is ${blockNumber}. error: ${error}`
+      `Error! Exception in "nodeProvider.getBlock". Block number is ${blockNumber}. error: ${error}`,
     );
   }
 }

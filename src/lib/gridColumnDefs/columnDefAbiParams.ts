@@ -16,7 +16,7 @@ export const columnDefAbiParams = <T extends AbiRow>(
   abiParamsKey: keyof T,
   paramTypeName: AbiFragmentParamTypeName,
   maxLengthOfAbiParamsArgs: number,
-  showAbiParamsInputIndexedField: boolean
+  showAbiParamsInputIndexedField: boolean,
 ): ColumnDef => {
   return {
     headerName: capitalizeFirstLetter(paramTypeName),
@@ -26,20 +26,20 @@ export const columnDefAbiParams = <T extends AbiRow>(
       columnDefAbiParamsNumOfParams(
         abiParamsKey,
         paramTypeName,
-        showAbiParamsInputIndexedField
+        showAbiParamsInputIndexedField,
       ),
       ...columnDefAbiParamsArgs(
         abiParamsKey,
         paramTypeName,
         maxLengthOfAbiParamsArgs,
-        showAbiParamsInputIndexedField
+        showAbiParamsInputIndexedField,
       ),
     ],
   };
 };
 export function getAbiParamsFromAbiRow<T extends AbiRow>(
   targetParams: ValueGetterParams<T> | ICellRendererParams<T>,
-  abiParamsKey: keyof T
+  abiParamsKey: keyof T,
 ): AbiFragmentParam[] {
   return targetParams.data
     ? (targetParams.data[abiParamsKey] as AbiFragmentParam[])

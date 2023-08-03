@@ -24,7 +24,7 @@ const sortable = true;
 const editable = false;
 export const columnDefs = <T extends ConvertedEventLog>(
   targetEventAbiFragment: EventAbiFragment,
-  eachArgsMaxLengths: number[]
+  eachArgsMaxLengths: number[],
 ): ColumnDef[] => {
   const columnDefs: ColumnDef[] = [
     {
@@ -50,7 +50,7 @@ export const columnDefs = <T extends ConvertedEventLog>(
   return columnDefs;
 };
 export function getHexEventLogColumnDefs(
-  targetEventAbiFragment: EventAbiFragment
+  targetEventAbiFragment: EventAbiFragment,
 ): ColumnDef[] {
   const columnDefs: ColumnDef[] = [
     {
@@ -85,13 +85,13 @@ export function getHexEventLogColumnDefs(
 }
 
 const blocknumberColumnDef = <T extends ConvertedEventLog>(
-  columnGroupShow: "open" | "closed" | undefined
+  columnGroupShow: "open" | "closed" | undefined,
 ): ColumnDef =>
   columnDefChainExplorerLinkByKeyName<T>(
     "blocknumber",
     "blockNumber",
     "block",
-    columnGroupShow
+    columnGroupShow,
   );
 function getTopicsLength(targetEventAbiFragment: EventAbiFragment): number {
   let topicsLength = targetEventAbiFragment.anonymous ? 0 : 1;
@@ -103,7 +103,7 @@ function getTopicsLength(targetEventAbiFragment: EventAbiFragment): number {
   return topicsLength;
 }
 const topicsColumnDef = (
-  targetEventAbiFragment: EventAbiFragment
+  targetEventAbiFragment: EventAbiFragment,
 ): ColumnDef => {
   const topicsColumnDef: ColumnDef = { headerName: "topics", children: [] };
   for (
@@ -146,7 +146,7 @@ const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
           "transaction hash",
           "transactionHash",
           "tx",
-          "open"
+          "open",
         ),
       ],
     },
@@ -188,7 +188,7 @@ function getArgChildValue(argChildValue: any, indexArgChild: number): any {
 
 const argsColumnDef = (
   targetEventAbiFragment: EventAbiFragment,
-  eachArgsMaxLengths: number[]
+  eachArgsMaxLengths: number[],
 ): ColumnDef => {
   // name     |number of occurances|type
   // address  |407,                |address
@@ -229,7 +229,7 @@ const argsColumnDef = (
         indexOfArgChild++
       ) {
         argColumnDef.children.push(
-          argChildColumnDef(abiFragmentInput, indexOfInputs, indexOfArgChild)
+          argChildColumnDef(abiFragmentInput, indexOfInputs, indexOfArgChild),
         );
       }
       columnDef.children.push(argColumnDef);
@@ -240,7 +240,7 @@ const argsColumnDef = (
 const argChildColumnDef = (
   abiFragmentInput: AbiFragmentParam,
   indexOfInputs: number,
-  indexOfArgChild: number
+  indexOfArgChild: number,
 ): ColumnDef => {
   let argChildColumnDef: ColumnDef;
   const headerName: string = abiFragmentInput.isArray()
@@ -256,19 +256,19 @@ const argChildColumnDef = (
       filterValueGetter: (valueGetterParams: ValueGetterParams) => {
         return getArgChildValue(
           valueGetterParams.data.args[indexOfInputs],
-          indexOfArgChild
+          indexOfArgChild,
         );
       },
       valueGetter: (valueGetterParams: ValueGetterParams) => {
         return getArgChildValue(
           valueGetterParams.data.args[indexOfInputs],
-          indexOfArgChild
+          indexOfArgChild,
         );
       },
       cellRenderer: cellRendererFactory(
         (
           cell: AbstractCellRenderer,
-          cellRendererParams: ICellRendererParams
+          cellRendererParams: ICellRendererParams,
         ) => {
           new CommonChainExplorerLink({
             target: cell.eGui,
@@ -276,13 +276,13 @@ const argChildColumnDef = (
               subdirectory: "address",
               value: getArgChildValue(
                 cellRendererParams.data.args[indexOfInputs],
-                indexOfArgChild
+                indexOfArgChild,
               ),
               isFontMono: true,
               textSize: sizeSettings.grid,
             },
           });
-        }
+        },
       ),
     };
   } else {
@@ -298,7 +298,7 @@ const argChildColumnDef = (
       valueFormatter: (valueFormatterParams: ValueFormatterParams) => {
         let argChildValue = getArgChildValue(
           valueFormatterParams.data.args[indexOfInputs],
-          indexOfArgChild
+          indexOfArgChild,
         );
         return typeof argChildValue === "bigint"
           ? argChildValue.toLocaleString()
@@ -307,13 +307,13 @@ const argChildColumnDef = (
       filterValueGetter: (valueGetterParams: ValueGetterParams) => {
         return getArgChildValue(
           valueGetterParams.data.args[indexOfInputs],
-          indexOfArgChild
+          indexOfArgChild,
         );
       },
       valueGetter: (valueGetterParams: ValueGetterParams) => {
         return getArgChildValue(
           valueGetterParams.data.args[indexOfInputs],
-          indexOfArgChild
+          indexOfArgChild,
         );
       },
     };
