@@ -26,9 +26,11 @@
   import type { BaseSize } from "$lib/base/baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
-  import { tabValuesForEvent } from "./events/[eventName]/+page.svelte";
-  import { tabValuesForFunction } from "./functions/[functionName]/+page.svelte";
   import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
+  import {
+    TAB_VALUES_EVENT,
+    TAB_VALUES_FUNCTION,
+  } from "$lib/base/BasePage/BasePageContainerContent.svelte";
 
   export let abiFragmentsType: AbiFragmentsType;
   export let targetContract: Contract;
@@ -55,8 +57,8 @@
 
     const urlHash: string =
       abiFragmentsType === "functions"
-        ? convertToKebabCase(tabValuesForFunction[0])
-        : convertToKebabCase(tabValuesForEvent[0]);
+        ? convertToKebabCase(TAB_VALUES_FUNCTION[0])
+        : convertToKebabCase(TAB_VALUES_EVENT[0]);
     return `${hrefFrontPart}/${abiFragment.name}${functionSelectorWithSplitter}#${urlHash}`;
   };
 </script>

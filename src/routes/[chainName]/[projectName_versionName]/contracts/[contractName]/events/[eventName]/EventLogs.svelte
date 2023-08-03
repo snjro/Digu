@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-  export type EventLogType = "hex" | "decoded";
+  export type EventLogType = "hex" | "text";
 </script>
 
 <script lang="ts">

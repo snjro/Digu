@@ -1,10 +1,10 @@
 <script lang="ts" context="module">
-  export type RadioLabelAndValues<RadioValue> = {
+  export type RadioLabelAndValues<RadioValue> = ReadonlyArray<{
     labelText: string;
     value: RadioValue;
     inputId: string;
     href?: string | undefined;
-  }[];
+  }>;
   export const radioSizes: { [key in BaseSize]: string } = {
     xs: "w-3 h-3",
     sm: "w-4 h-4",

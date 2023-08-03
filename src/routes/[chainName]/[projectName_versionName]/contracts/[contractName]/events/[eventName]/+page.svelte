@@ -1,52 +1,45 @@
-<script lang="ts" context="module">
-  export const tabValuesForEvent = [
-    "Overview",
-    "Event Logs (Decoded)",
-    "Event Logs (Hex)",
-    "ABI Fragment",
-  ] as const;
-  export type SelectedTabValueForEvent = (typeof tabValuesForEvent)[number];
-</script>
-
 <script lang="ts">
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
   import type { LoadEventLogs } from "./+page";
   import EventLogs from "./EventLogs.svelte";
   import EventOverview from "./EventOverview.svelte";
   import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
+  import {
+    TAB_VALUES_EVENT,
+    type TabStateEvent,
+  } from "$lib/base/BasePage/BasePageContainerContent.svelte";
   export let data: LoadEventLogs;
 
-  let selectedTabValue: SelectedTabValueForEvent = "Overview";
+  let tabState: TabStateEvent = {
+    selected: "Overview",
+    values: TAB_VALUES_EVENT,
+    groupName: "tabGroupEvent",
+  };
+
   const titleCategoryLabelText: string = "Event";
   $: eventName = data.targetEventAbiFragment.name!;
 </script>
 
-<BasePageContainer
-  titleText={eventName}
-  {titleCategoryLabelText}
-  tabValues={tabValuesForEvent}
-  bind:selectedTabValue
-  tabGroupName="eventLogsInfo"
->
+<BasePageContainer titleText={eventName} {titleCategoryLabelText} bind:tabState>
   <EventOverview
     targetChain={data.targetChain}
     targetProject={data.targetProject}
     targetVersion={data.targetVersion}
     targetContract={data.targetContract}
     targetEventAbiFragment={data.targetEventAbiFragment}
-    hidden={selectedTabValue !== "Overview"}
+    hidden={tabState.selected !== "Overview"}
   />
   <EventLogs
     targetEventIdentifier={data.targetEventIdentifier}
     targetEventAbiFragment={data.targetEventAbiFragment}
-    hidden={selectedTabValue !== "Event Logs (Decoded)"}
+    hidden={tabState.selected !== "Event Logs (text)"}
     {titleCategoryLabelText}
-    eventLogType="decoded"
+    eventLogType="text"
   />
   <EventLogs
     targetEventIdentifier={data.targetEventIdentifier}
     targetEventAbiFragment={data.targetEventAbiFragment}
-    hidden={selectedTabValue !== "Event Logs (Hex)"}
+    hidden={tabState.selected !== "Event Logs (hex)"}
     {titleCategoryLabelText}
     eventLogType="hex"
   />
@@ -55,7 +48,7 @@
     abiFormatType="json"
     {titleCategoryLabelText}
     titleText={eventName}
-    hidden={selectedTabValue !== "ABI Fragment"}
+    hidden={tabState.selected !== "ABI"}
     fragment
   />
 </BasePageContainer>
