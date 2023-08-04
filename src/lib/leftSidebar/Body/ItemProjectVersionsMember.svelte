@@ -16,7 +16,7 @@
     hrefWithoutUrlHash={targetProjectVersionHref}
     isTopLevelItem
     showVerticalLine={false}
-    size={sizeSettings.leftSidebarTreeTop}
+    size={sizeSettings.leftSidebarTree1st}
   >
     <div class={classNames("pl-2")} slot="baseAccordionChildren">
       <ItemContracts {targetContracts} {targetProjectVersionHref} />
