@@ -7,7 +7,6 @@
   import { convertToKebabCase } from "@utils/utilsCommon";
   import type { AbiFragmentsType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/ContractOverviewEventsFunctions.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { changeSize } from "$lib/base/baseSizes";
   import { getFunctionSelectorWithSplitter } from "./ItemEventsFunctions.svelte";
   import {
     TAB_VALUES_EVENT,
@@ -29,5 +28,6 @@
   hrefWithoutUrlHash={targetAbiFragmentHref}
   {urlHash}
   label={targetAbiFragment.name}
-  size={changeSize(sizeSettings.leftSidebarTree3rd, -1)}
+  size={sizeSettings.leftSidebarTree4th}
+  hasChildren={false}
 />
