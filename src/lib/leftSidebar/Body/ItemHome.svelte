@@ -13,4 +13,5 @@
   hrefWithoutUrlHash={`/${targetChainName}`}
   isTopLevelItem={true}
   size={sizeSettings.leftSidebarTree1st}
+  hasChildren={false}
 />
