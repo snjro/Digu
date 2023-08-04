@@ -29,5 +29,5 @@
   hrefWithoutUrlHash={targetAbiFragmentHref}
   {urlHash}
   label={targetAbiFragment.name}
-  size={changeSize(sizeSettings.leftSidebarTreeBottom, -1)}
+  size={changeSize(sizeSettings.leftSidebarTree3rd, -1)}
 />

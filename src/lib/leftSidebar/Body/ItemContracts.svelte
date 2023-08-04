@@ -14,7 +14,7 @@
   iconName={undefined}
   hrefWithoutUrlHash={targetContractsHref}
   showVerticalLine
-  size={sizeSettings.leftSidebarTreeMiddle}
+  size={sizeSettings.leftSidebarTree2nd}
 >
   <svelte:fragment slot="baseAccordionChildren">
     {#each targetContracts as targetContract (targetContract.name)}

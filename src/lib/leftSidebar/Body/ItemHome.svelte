@@ -12,5 +12,5 @@
   iconName={directoryItems.home.iconName}
   hrefWithoutUrlHash={`/${targetChainName}`}
   isTopLevelItem={true}
-  size={sizeSettings.leftSidebarTreeTop}
+  size={sizeSettings.leftSidebarTree1st}
 />
