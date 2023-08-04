@@ -34,6 +34,17 @@ export const baseTextHeight: { [key in BaseSize]: `h-${string}` } = {
   "4xl": "h-10",
   "5xl": "h-12",
 };
+export const leftSideBarItemHeight: { [key in BaseSize]: `h-${string}` } = {
+  xs: "h-5",
+  sm: "h-6",
+  md: "h-7",
+  lg: "h-8",
+  xl: "h-8",
+  "2xl": "h-9",
+  "3xl": "h-10",
+  "4xl": "h-11",
+  "5xl": "h-14",
+};
 export const buttonHeight: { [key in BaseSize]: `h-${string}` } = {
   xs: "h-6",
   sm: "h-7",

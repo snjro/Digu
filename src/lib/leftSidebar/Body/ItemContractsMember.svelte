@@ -15,7 +15,7 @@
   export let targetContract: Contract;
   export let targetContractsHref: string;
 
-  const size: BaseSize = sizeSettings.leftSidebarTreeMiddle;
+  const size: BaseSize = sizeSettings.leftSidebarTree2nd;
   const sizes: {
     contractSelf: BaseSize;
     contractSuffixIcon: BaseSize;
@@ -25,17 +25,13 @@
   };
   const targetContractHref: string = `${targetContractsHref}/${targetContract.name}`;
   const urlHash: string = convertToKebabCase(TAB_VALUES_CONTRACT[0]);
+  const hasEvents: boolean = targetContract.events.abiFragments.length > 0;
+  const hasFunctions: boolean =
+    targetContract.functions.abiFragments.length > 0;
+  const hasChildren: boolean = hasEvents || hasFunctions;
 </script>
 
-{#if !targetContract.events.abiFragments.length && !targetContract.functions.abiFragments.length}
-  <BaseItem
-    label={targetContract.name}
-    iconName={undefined}
-    hrefWithoutUrlHash={targetContractHref}
-    {urlHash}
-    size={sizes.contractSelf}
-  />
-{:else}
+{#if hasChildren}
   <BaseAccordion
     label={targetContract.name}
     iconName={undefined}
@@ -45,9 +41,9 @@
     size={sizes.contractSelf}
   >
     <svelte:fragment slot="baseAccordionSuffixIcons">
-      {#if targetContract.events.abiFragments.length || targetContract.functions.abiFragments.length}
+      {#if hasChildren}
         <div class={classNames("flex", "flex-row")}>
-          {#if targetContract.events.abiFragments.length}
+          {#if hasEvents}
             <BaseIcon
               name="databaseOutline"
               size={sizes.contractSuffixIcon}
@@ -56,7 +52,7 @@
               )}
             />
           {/if}
-          {#if targetContract.functions.abiFragments.length}
+          {#if hasFunctions}
             <BaseIcon
               name="function"
               size={sizes.contractSuffixIcon}
@@ -81,4 +77,13 @@
       />
     </svelte:fragment>
   </BaseAccordion>
+{:else}
+  <BaseItem
+    label={targetContract.name}
+    iconName={undefined}
+    hrefWithoutUrlHash={targetContractHref}
+    {urlHash}
+    size={sizes.contractSelf}
+    {hasChildren}
+  />
 {/if}

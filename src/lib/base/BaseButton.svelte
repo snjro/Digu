@@ -261,12 +261,13 @@
       <div
         class={classNames(
           "border-b-2",
+          "overflow-x-hidden",
           underlineLabel
             ? colorDefinitions[themeColor]["interactive"].border
             : "border-transparent"
         )}
       >
-        <BaseLabel text={label} textSize={size} cursorPointer />
+        <BaseLabel text={label} textSize={size} cursorPointer truncate />
       </div>
     {/if}
     {#if $$slots.suffixIcon}

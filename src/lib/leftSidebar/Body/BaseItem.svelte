@@ -8,10 +8,7 @@
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import classNames from "classnames";
-  import {
-    isHrefParentOfPathname,
-    toggleLeftSideBarWithCondition,
-  } from "../functions";
+  import { toggleLeftSideBarWithCondition } from "../functions";
   import { getFrontColorCategory, getFrontWeight } from "./fontStyle";
   import BaseItemIndicator from "./BaseItemIndicator.svelte";
   import { setChildElementInScroll } from "./scrollController";
@@ -21,7 +18,11 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { baseTextHeight, type BaseSize } from "$lib/base/baseSizes";
+  import {
+    type BaseSize,
+    buttonHeight,
+    leftSideBarItemHeight,
+  } from "$lib/base/baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   export let label: string;
@@ -30,10 +31,10 @@
   export let size: BaseSize;
   export let iconName: BaseIconProps["name"] | undefined = undefined;
   export let openNewTab: boolean = false;
-  export let isConsideredAsParentDirectory: boolean = false;
   export let isHoverControledByParent: boolean = false;
   export let isHover: boolean = false;
   export let isTopLevelItem: boolean = false;
+  export let hasChildren = true;
 
   const hrefWithUrlHash: string = urlHash
     ? `${hrefWithoutUrlHash}#${urlHash}`
@@ -58,12 +59,6 @@
   $: isSelected = (): boolean => {
     return hrefWithoutUrlHash === $page.url.pathname;
   };
-  $: isParentDirectory = (): boolean => {
-    return (
-      isHrefParentOfPathname(hrefWithoutUrlHash, $page.url.pathname) &&
-      isConsideredAsParentDirectory
-    );
-  };
 
   $: {
     setChildElementInScroll(
@@ -75,24 +70,25 @@
       $storeNoDbOpenLeftSidebarAccordion
     );
   }
-  $: frontColorCategory = (): ColorCategory => {
-    return getFrontColorCategory(isSelected() || isParentDirectory());
-  };
+  let frontColorCategory: ColorCategory;
+  $: frontColorCategory = getFrontColorCategory(isSelected());
+
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
   $: bgColor =
     (isSelected() || isHover) &&
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis;
-  const height: { [key in BaseSize]: `h-${string}` } = {
-    xs: "h-5",
-    sm: "h-6",
-    md: "h-7",
-    lg: "h-8",
-    xl: "h-8",
-    "2xl": "h-9",
-    "3xl": "h-10",
-    "4xl": "h-11",
-    "5xl": "h-14",
+
+  let width = (): `w-${string}` => {
+    if (hasChildren) {
+      return "w-fit";
+    } else {
+      if (isTopLevelItem) {
+        return "w-full";
+      } else {
+        return "w-[256px]";
+      }
+    }
   };
 </script>
 
@@ -102,15 +98,15 @@
     "flex",
     "flex-row",
     "items-center",
-    height[size],
-    "rounded"
+    buttonHeight[size],
+    width()
   )}
 >
   <BaseItemIndicator
-    isSelected={isSelected() || isParentDirectory()}
+    isSelected={isSelected()}
     {isHover}
     {isTopLevelItem}
-    invisible={size === sizeSettings.leftSidebarTreeTop}
+    invisible={size === sizeSettings.leftSidebarTree1st}
   />
   <div
     bind:this={thisElement}
@@ -118,12 +114,12 @@
       "flex",
       "flex-row",
       "items-center",
-      "w-full",
-      "pl-1",
+      hasChildren ? "w-fit" : "w-full",
+      "px-0.5",
       bgColor,
-      baseTextHeight[size],
-      // "h-full",
-      isTopLevelItem || isConsideredAsParentDirectory ? "rounded" : "rounded-l"
+      "truncate",
+      leftSideBarItemHeight[size],
+      hasChildren ? "rounded-l" : "rounded"
     )}
   >
     {#if iconName}
@@ -133,7 +129,7 @@
         href={hrefWithUrlHash}
         {size}
         justify="start"
-        colorCategoryFront={frontColorCategory()}
+        colorCategoryFront={frontColorCategory}
         colorCategoryBg={undefined}
         appendClassButton={classNames(baseSidebarItemStyle())}
         {openNewTab}
@@ -153,7 +149,7 @@
         href={hrefWithUrlHash}
         {size}
         justify="start"
-        colorCategoryFront={frontColorCategory()}
+        colorCategoryFront={frontColorCategory}
         colorCategoryBg={undefined}
         appendClass={classNames(baseSidebarItemStyle())}
         {openNewTab}

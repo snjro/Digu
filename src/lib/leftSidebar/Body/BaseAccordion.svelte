@@ -3,7 +3,11 @@
   import { page } from "$app/stores";
   import BaseIcon from "$lib/base/BaseIcon.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { baseTextHeight, type BaseSize } from "$lib/base/baseSizes";
+  import {
+    type BaseSize,
+    buttonHeight,
+    leftSideBarItemHeight,
+  } from "$lib/base/baseSizes";
   import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
   import classNames from "classnames";
   import { onMount } from "svelte";
@@ -28,8 +32,8 @@
   export let size: BaseSize;
   export let iconName: BaseIconProps["name"] | undefined = undefined;
   export let isTopLevelItem: boolean = false;
-
   export let showVerticalLine: boolean = true;
+
   let isOpenAccordion = true;
   let isHover = false;
   let thisElement: HTMLButtonElement;
@@ -101,21 +105,17 @@
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 </script>
 
-<div class={classNames("flex", "flex-col", "w-full", "h-fit", "")}>
+<div class={classNames("flex", "flex-col", "w-full")}>
   <button
     bind:this={thisElement}
     class={classNames(
       "flex",
       "flex-row",
-      "justify-between",
       "items-center",
       "w-full",
-      // leftSidebarItemHights[size],
-      // baseTextHeight[size],
-      "h-fit",
-      // bgColor,
-
-      "rounded"
+      buttonHeight[size],
+      "cursor-default",
+      ""
     )}
     on:keypress
     on:click={flipAccordion}
@@ -124,36 +124,27 @@
     on:mouseleave={onMouseLeave}
     on:blur={onMouseLeave}
   >
+    <BaseItem
+      {label}
+      {hrefWithoutUrlHash}
+      {urlHash}
+      {iconName}
+      {size}
+      {isHover}
+      isHoverControledByParent
+      {isTopLevelItem}
+    />
+
+    <div class={classNames(bgColor, leftSideBarItemHeight[size], "w-full")} />
+
     <div
       class={classNames(
         "flex",
         "flex-row",
         "items-center",
-        // leftSidebarItemHights[size],
-        "h-fit"
-      )}
-    >
-      <BaseItem
-        {label}
-        {hrefWithoutUrlHash}
-        {urlHash}
-        {iconName}
-        {size}
-        {isHover}
-        isHoverControledByParent
-        {isTopLevelItem}
-      />
-    </div>
-    <div
-      class={classNames(
-        "flex",
-        "flex-row",
-        "items-center",
-        "justify-end",
-        // leftSidebarItemHights[size],
-        baseTextHeight[size],
         bgColor,
-        "w-full",
+        leftSideBarItemHeight[size],
+        "w-fit",
         "rounded-r",
         ""
       )}
@@ -162,7 +153,7 @@
 
       <BaseIcon
         name={chevronIconName()}
-        size={sizeSettings.leftSidebarTreeTop}
+        size={sizeSettings.leftSidebarTree1st}
         isHoverControledByParent
         {isHover}
         colorCategory={getFrontColorCategory(isSelected())}
@@ -188,7 +179,7 @@
         isTopLevelItem={false}
       />
     {/if}
-    <div class={classNames("flex", "flex-col", "w-full", "h-full")}>
+    <div class={classNames("flex", "flex-col", "w-full", "")}>
       <slot name="baseAccordionChildren" />
     </div>
   </div>

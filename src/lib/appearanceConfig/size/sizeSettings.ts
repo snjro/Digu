@@ -4,9 +4,10 @@ type SizeSettings = Record<
   | "leftSidebarLogo"
   | "leftSidebarButton"
   | "leftSidebarDropdown"
-  | "leftSidebarTreeTop"
-  | "leftSidebarTreeMiddle"
-  | "leftSidebarTreeBottom"
+  | "leftSidebarTree1st"
+  | "leftSidebarTree2nd"
+  | "leftSidebarTree3rd"
+  | "leftSidebarTree4th"
   | "leftSidebarVersion"
   | "navButton"
   | "navProgressBar"
@@ -44,9 +45,10 @@ export const sizeSettings: SizeSettings = {
   leftSidebarLogo: changeSize(sizeLeftSizebar, 2),
   leftSidebarButton: changeSize(sizeLeftSizebar, 0),
   leftSidebarDropdown: changeSize(sizeLeftSizebar, -2),
-  leftSidebarTreeTop: changeSize(sizeLeftSizebar, 0),
-  leftSidebarTreeMiddle: changeSize(sizeLeftSizebar, -1),
-  leftSidebarTreeBottom: changeSize(sizeLeftSizebar, -2),
+  leftSidebarTree1st: changeSize(sizeLeftSizebar, 0),
+  leftSidebarTree2nd: changeSize(sizeLeftSizebar, -1),
+  leftSidebarTree3rd: changeSize(sizeLeftSizebar, -2),
+  leftSidebarTree4th: changeSize(sizeLeftSizebar, -3),
   leftSidebarVersion: changeSize(sizeLeftSizebar, -1),
   // nav
   navButton: changeSize(sizeNav, 0),
