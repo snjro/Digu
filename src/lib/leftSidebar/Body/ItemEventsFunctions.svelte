@@ -61,7 +61,6 @@
     label={capitalizeFirstLetter(abiFragmentsType)}
     iconName={abiFragmentsType === "events" ? "databaseOutline" : "function"}
     hrefWithoutUrlHash={targetAbiFragmentsHref}
-    showVerticalLine
     size={sizeSettings.leftSidebarTree3rd}
   >
     <svelte:fragment slot="baseAccordionChildren">

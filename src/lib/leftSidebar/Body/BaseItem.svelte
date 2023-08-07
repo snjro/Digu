@@ -1,7 +1,9 @@
 <script lang="ts">
   import { browser } from "$app/environment";
   import { page } from "$app/stores";
-  import BaseButton from "$lib/base/BaseButton.svelte";
+  import BaseButton, {
+    type BaseButtonProps,
+  } from "$lib/base/BaseButton.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import {
     colorDefinitions,
@@ -9,12 +11,11 @@
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import classNames from "classnames";
   import { toggleLeftSideBarWithCondition } from "../functions";
-  import { getFrontColorCategory, getFrontWeight } from "./fontStyle";
+  import { getFrontColorCategory } from "./fontStyle";
   import BaseItemIndicator from "./BaseItemIndicator.svelte";
   import { setChildElementInScroll } from "./scrollController";
   import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import { createEventDispatcher } from "svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
@@ -41,29 +42,23 @@
     : hrefWithoutUrlHash;
 
   let thisElement: HTMLDivElement;
-  // let isHover = false;
-  const dispatch = createEventDispatcher();
-  function onMouseEnter(event: CustomEvent) {
+
+  function onMouseEnter() {
     if (!isHoverControledByParent) isHover = true;
-    dispatch("mouseenter", event.detail);
   }
-  function onMouseLeave(event: CustomEvent) {
+  function onMouseLeave() {
     if (!isHoverControledByParent) isHover = false;
-    dispatch("mouseleave", event.detail);
   }
   async function onClick() {
     await toggleLeftSideBarWithCondition();
   }
-  $: baseSidebarItemStyle = () =>
-    classNames("w-full", getFrontWeight(isSelected(), isHover));
-  $: isSelected = (): boolean => {
-    return hrefWithoutUrlHash === $page.url.pathname;
-  };
+  let isSelected: boolean;
+  $: isSelected = hrefWithoutUrlHash === $page.url.pathname;
 
   $: {
     setChildElementInScroll(
       browser,
-      isSelected(),
+      isSelected,
       document.getElementById("leftSidebarBody"),
       thisElement,
       document.getElementById("leftSidebarHeader"),
@@ -71,12 +66,12 @@
     );
   }
   let frontColorCategory: ColorCategory;
-  $: frontColorCategory = getFrontColorCategory(isSelected());
+  $: frontColorCategory = getFrontColorCategory(isSelected);
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
   $: bgColor =
-    (isSelected() || isHover) &&
+    (isSelected || isHover) &&
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis;
 
   let width = (): `w-${string}` => {
@@ -90,10 +85,11 @@
       }
     }
   };
+  let selectedFontWeight: BaseButtonProps["designatedFontWeight"];
+  $: selectedFontWeight = isSelected ? "font-bold" : undefined;
 </script>
 
-<div
-  bind:this={thisElement}
+<button
   class={classNames(
     "flex",
     "flex-row",
@@ -101,9 +97,12 @@
     buttonHeight[size],
     width()
   )}
+  on:mouseenter={onMouseEnter}
+  on:mouseleave={onMouseLeave}
+  on:click={onClick}
 >
   <BaseItemIndicator
-    isSelected={isSelected()}
+    {isSelected}
     {isHover}
     {isTopLevelItem}
     invisible={size === sizeSettings.leftSidebarTree1st}
@@ -114,7 +113,7 @@
       "flex",
       "flex-row",
       "items-center",
-      hasChildren ? "w-fit" : "w-full",
+      width(),
       "px-0.5",
       bgColor,
       "truncate",
@@ -131,7 +130,8 @@
         justify="start"
         colorCategoryFront={frontColorCategory}
         colorCategoryBg={undefined}
-        appendClassButton={classNames(baseSidebarItemStyle())}
+        appendClassButton={width()}
+        designatedFontWeight={selectedFontWeight}
         {openNewTab}
         shadowEffect={false}
         popupEffect={false}
@@ -139,9 +139,6 @@
         noPadding
         {isHoverControledByParent}
         {isHover}
-        on:mouseenter={onMouseEnter}
-        on:mouseleave={onMouseLeave}
-        on:click={onClick}
       />
     {:else}
       <BaseButton
@@ -151,17 +148,15 @@
         justify="start"
         colorCategoryFront={frontColorCategory}
         colorCategoryBg={undefined}
-        appendClass={classNames(baseSidebarItemStyle())}
+        appendClass={width()}
+        designatedFontWeight={selectedFontWeight}
         {openNewTab}
         popupEffect={false}
         shadowEffect={false}
         noPadding
         {isHoverControledByParent}
         {isHover}
-        on:mouseenter={onMouseEnter}
-        on:mouseleave={onMouseLeave}
-        on:click={onClick}
       />
     {/if}
   </div>
-</div>
+</button>

@@ -21,6 +21,7 @@
     shadowEffect?: boolean;
     popupEffect?: boolean;
     opacityEffect?: boolean;
+    designatedFontWeight?: BaseLabelProps["fontWeight"];
   };
   const justifyPositions = {
     start: "justify-start",
@@ -73,7 +74,8 @@
   import { createEventDispatcher } from "svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import BaseLabel from "./BaseLabel.svelte";
+  import type { BaseLabelProps } from "./BaseLabel.svelte";
+  import BaseButtonContent from "./BaseButtonContent.svelte";
 
   export let type: NonNullable<BaseButtonProps["type"]> = "normal";
   export let label: BaseButtonProps["label"] = undefined;
@@ -98,6 +100,9 @@
   export let isHover: boolean = false;
   export let isHoverControledByParent: boolean = false;
   export let underlineLabel: boolean = false;
+  export let designatedFontWeight: BaseButtonProps["designatedFontWeight"] =
+    undefined;
+
   const dispatch = createEventDispatcher();
   function onMouseEnter(event: MouseEvent) {
     if (!isHoverControledByParent) isHover = true;
@@ -147,11 +152,6 @@
   };
   $: borderColor = (): string => {
     let borderColor: string = "";
-    // if (border && colorCategoryFront) {
-    //   borderColor = colorDefinitions[themeColor][colorCategoryFront].border;
-    // } else {
-    //   borderColor = "border-inherit";
-    // }
     if (border) {
       if (colorCategoryFront) {
         borderColor = colorDefinitions[themeColor][colorCategoryFront].border;
@@ -239,10 +239,7 @@
   xPosition={tooltipXPosition}
   yPosition={tooltipYPosition}
 >
-  <svelte:element
-    this={href ? "a" : "button"}
-    type={href ? undefined : "button"}
-    {href}
+  <button
     class={customClass}
     {...setPropsByOpenNewTab(openNewTab)}
     {disabled}
@@ -254,24 +251,32 @@
     on:mouseleave={onMouseLeave}
     on:animationend
   >
-    {#if $$slots.prefixIcon}
-      <slot name="prefixIcon" />
-    {/if}
-    {#if label && type === "normal"}
-      <div
-        class={classNames(
-          "border-b-2",
-          "overflow-x-hidden",
-          underlineLabel
-            ? colorDefinitions[themeColor]["interactive"].border
-            : "border-transparent"
-        )}
+    {#if href}
+      <a {href} class={classNames("inline-flex", "items-center")}>
+        <BaseButtonContent
+          {label}
+          {size}
+          {hoverEffect}
+          {isHover}
+          {underlineLabel}
+          {designatedFontWeight}
+        >
+          <slot slot="prefixIcon" name="prefixIcon" />
+          <slot slot="suffixIcon" name="suffixIcon" />
+        </BaseButtonContent>
+      </a>
+    {:else}
+      <BaseButtonContent
+        {label}
+        {size}
+        {hoverEffect}
+        {isHover}
+        {underlineLabel}
+        {designatedFontWeight}
       >
-        <BaseLabel text={label} textSize={size} cursorPointer truncate />
-      </div>
+        <slot slot="prefixIcon" name="prefixIcon" />
+        <slot slot="suffixIcon" name="suffixIcon" />
+      </BaseButtonContent>
     {/if}
-    {#if $$slots.suffixIcon}
-      <slot name="suffixIcon" />
-    {/if}
-  </svelte:element>
+  </button>
 </BaseTooltip>
