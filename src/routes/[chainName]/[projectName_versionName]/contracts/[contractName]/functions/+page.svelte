@@ -5,12 +5,13 @@
   import type { LoadFunctionsData } from "./+page";
   import { columnDefs } from "./columnDefs";
   import { gridRows, type FunctionRow } from "./gridRows";
+  import type { Contract } from "@constants/chains/types";
 
   export let data: LoadFunctionsData;
 
-  const titleText = (): string => {
-    return data.targetContract.name;
-  };
+  let titleText: Contract["name"];
+  $: titleText = data.targetContract.name;
+
   const titleCategoryLabelText: string = "Functions";
 
   let rows: FunctionRow[] = [];
@@ -36,10 +37,7 @@
   };
 </script>
 
-<BasePageContainer
-  titleText={data.targetContract.name}
-  {titleCategoryLabelText}
->
+<BasePageContainer {titleText} {titleCategoryLabelText}>
   <BaseGrid
     {rows}
     paramColumnDefs={columnDefs(
@@ -47,9 +45,9 @@
       maxLengthOfFunctionInputsParams(),
       maxLengthOfFunctionOutputsParams()
     )}
-    titleText={titleText()}
+    {titleText}
     {titleCategoryLabelText}
     hidden={false}
-    exportFilePrefix="functions"
+    exportFilePrefix={"functions"}
   />
 </BasePageContainer>

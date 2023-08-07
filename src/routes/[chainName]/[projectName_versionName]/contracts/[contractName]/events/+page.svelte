@@ -9,9 +9,11 @@
 
   export let data: LoadEventsData;
 
-  const contractName: Contract["name"] = data.targetContract.name;
+  let titleText: Contract["name"];
+  $: titleText = data.targetContract.name;
 
   const titleCategoryLabelText: string = "Events";
+
   let rows: EventRow[] = [];
   $: rows = gridRows(data.targetEventAbiFragments);
 
@@ -26,7 +28,7 @@
   };
 </script>
 
-<BasePageContainer titleText={contractName} {titleCategoryLabelText}>
+<BasePageContainer {titleText} {titleCategoryLabelText}>
   <BaseGrid
     {rows}
     paramColumnDefs={columnDefs(
@@ -36,10 +38,10 @@
         chainName: data.targetChain.name,
         projectName: data.targetProject.name,
         versionName: data.targetVersion.name,
-        contractName: data.targetContract.name,
+        contractName: titleText,
       }
     )}
-    titleText={contractName}
+    {titleText}
     {titleCategoryLabelText}
     hidden={false}
     exportFilePrefix="events"

@@ -17,10 +17,11 @@
   };
 
   const titleCategoryLabelText: string = "Event";
-  $: eventName = data.targetEventAbiFragment.name!;
+
+  $: titleText = data.targetEventAbiFragment.name;
 </script>
 
-<BasePageContainer titleText={eventName} {titleCategoryLabelText} bind:tabState>
+<BasePageContainer {titleText} {titleCategoryLabelText} bind:tabState>
   <EventOverview
     targetChain={data.targetChain}
     targetProject={data.targetProject}
@@ -47,7 +48,7 @@
     targetAbi={data.targetEventAbiFragment}
     abiFormatType="json"
     {titleCategoryLabelText}
-    titleText={eventName}
+    {titleText}
     hidden={tabState.selected !== "ABI"}
     fragment
   />
