@@ -17,11 +17,7 @@
 </script>
 
 <div class={classNames("space-y-3", "h-fit", "w-full", "")}>
-  <BasePageContainerTitle
-    {titleText}
-    {titleCategoryLabelText}
-    isVerticalTitle={false}
-  />
+  <BasePageContainerTitle {titleText} {titleCategoryLabelText} />
   <BasePageContainerContent bind:tabState>
     <slot />
   </BasePageContainerContent>

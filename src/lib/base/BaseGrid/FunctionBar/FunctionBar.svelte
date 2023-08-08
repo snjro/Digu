@@ -15,12 +15,7 @@
   let quickSearchText: string = "";
 </script>
 
-<CommonFunctionBar
-  {isFullScreen}
-  {titleCategoryLabelText}
-  {titleText}
-  isVerticalTitle={true}
->
+<CommonFunctionBar {isFullScreen} {titleCategoryLabelText} {titleText}>
   <QuickSearch bind:quickSearchText {gridOptions} />
   <FunctionButtons
     bind:quickSearchText

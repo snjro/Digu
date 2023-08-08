@@ -77,7 +77,6 @@
   {titleText}
   justifyAlignment={isFullScreen ? "justify-between" : "justify-end"}
   {isFullScreen}
-  isVerticalTitle={false}
 >
   <CommonFunctionButtons {buttonDefinitions} />
 </CommonFunctionBar>

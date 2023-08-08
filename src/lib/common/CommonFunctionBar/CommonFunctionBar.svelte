@@ -14,7 +14,6 @@
     | "justify-between"
     | "justify-start"
     | "justify-end" = "justify-between";
-  export let isVerticalTitle: boolean;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
@@ -34,11 +33,7 @@
   )}
 >
   {#if isFullScreen}
-    <BasePageContainerTitle
-      {titleText}
-      {titleCategoryLabelText}
-      {isVerticalTitle}
-    />
+    <BasePageContainerTitle {titleText} {titleCategoryLabelText} />
   {/if}
   <slot />
 </div>

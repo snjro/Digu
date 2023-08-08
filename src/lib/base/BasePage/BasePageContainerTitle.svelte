@@ -12,7 +12,6 @@
 
   export let titleText: string;
   export let titleCategoryLabelText: string;
-  export let isVerticalTitle: boolean;
   let titleTextSize: BaseSize;
   $: titleTextSize =
     $storeNoDbCurrentWidth <= breakPointWidths.sm
@@ -20,14 +19,15 @@
       : sizeSettings.title;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: isWidthSmall = $storeNoDbCurrentWidth <= breakPointWidths.sm;
 </script>
 
 <div
   class={classNames(
     "flex",
-    isVerticalTitle ? "flex-col" : "flex-row",
-    isVerticalTitle ? "self-start" : "self-center",
-    isVerticalTitle ? "" : "sm:space-x-3",
+    isWidthSmall ? "flex-col" : "flex-row",
+    isWidthSmall ? "self-start" : "self-center",
+    isWidthSmall ? "" : "sm:space-x-3",
     "justify-items-start",
     "w-fit"
   )}
