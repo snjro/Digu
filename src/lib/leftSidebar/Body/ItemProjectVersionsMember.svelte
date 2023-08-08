@@ -17,6 +17,7 @@
     isTopLevelItem
     showVerticalLine={false}
     size={sizeSettings.leftSidebarTree1st}
+    layerLevel={0}
   >
     <div class={classNames("pl-2")} slot="baseAccordionChildren">
       <ItemContracts {targetContracts} {targetProjectVersionHref} />

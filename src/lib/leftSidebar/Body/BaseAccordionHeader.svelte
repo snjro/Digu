@@ -16,7 +16,7 @@
   } from "../functions";
   import { setChildElementInScroll } from "./scrollController";
   import { browser } from "$app/environment";
-  import BaseItem from "./BaseItem.svelte";
+  import BaseItem, { type LayerLevel } from "./BaseItem.svelte";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -34,6 +34,7 @@
   export let isTopLevelItem: boolean;
   export let suffixIcons: BaseAccordionHeaderSuffixIcon[];
   export let isOpenAccordion: boolean;
+  export let layerLevel: LayerLevel;
 
   let isHover = false;
   let thisElement: HTMLButtonElement;
@@ -130,6 +131,7 @@
     {isHover}
     isHoverControledByParent
     {isTopLevelItem}
+    {layerLevel}
   />
   <BaseAccordionHeaderSpacer {bgColor} height={leftSideBarItemHeight[size]} />
   <BaseAccordionHeaderSuffixIcons

@@ -1,3 +1,7 @@
+<script lang="ts" context="module">
+  export type LayerLevel = 0 | 1 | 2 | 3 | 4;
+</script>
+
 <script lang="ts">
   import { browser } from "$app/environment";
   import { page } from "$app/stores";
@@ -25,6 +29,7 @@
     leftSideBarItemHeight,
   } from "$lib/base/baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { goto } from "$app/navigation";
 
   export let label: string;
   export let hrefWithoutUrlHash: string;
@@ -36,12 +41,13 @@
   export let isHover: boolean = false;
   export let isTopLevelItem: boolean = false;
   export let hasChildren = true;
+  export let layerLevel: LayerLevel;
 
   const hrefWithUrlHash: string = urlHash
     ? `${hrefWithoutUrlHash}#${urlHash}`
     : hrefWithoutUrlHash;
 
-  let thisElement: HTMLDivElement;
+  let thisElement: HTMLButtonElement;
 
   function onMouseEnter() {
     if (!isHoverControledByParent) isHover = true;
@@ -50,6 +56,7 @@
     if (!isHoverControledByParent) isHover = false;
   }
   async function onClick() {
+    await goto(hrefWithUrlHash);
     await toggleLeftSideBarWithCondition();
   }
   let isSelected: boolean;
@@ -74,15 +81,29 @@
     (isSelected || isHover) &&
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis;
 
-  let width = (): `w-${string}` => {
+  const widthForFrame = (): string => {
     if (hasChildren) {
       return "w-fit";
     } else {
-      if (isTopLevelItem) {
-        return "w-full";
-      } else {
-        return "w-[256px]";
+      switch (layerLevel) {
+        case 0:
+          return "item-width-0";
+        case 1:
+          return "item-width-1";
+        case 2:
+          return "item-width-2";
+        case 3:
+          return "item-width-3";
+        default:
+          return "item-width-4";
       }
+    }
+  };
+  const widthForButton = (): `w-${string}` => {
+    if (hasChildren) {
+      return "w-fit";
+    } else {
+      return "w-full";
     }
   };
   let selectedFontWeight: BaseButtonProps["designatedFontWeight"];
@@ -95,7 +116,8 @@
     "flex-row",
     "items-center",
     buttonHeight[size],
-    width()
+    widthForFrame(),
+    ""
   )}
   on:mouseenter={onMouseEnter}
   on:mouseleave={onMouseLeave}
@@ -106,20 +128,22 @@
     {isHover}
     {isTopLevelItem}
     invisible={size === sizeSettings.leftSidebarTree1st}
+    {layerLevel}
   />
-  <div
+  <button
     bind:this={thisElement}
     class={classNames(
       "flex",
       "flex-row",
       "items-center",
-      width(),
+      widthForFrame(),
       "px-0.5",
       bgColor,
       "truncate",
       leftSideBarItemHeight[size],
       hasChildren ? "rounded-l" : "rounded"
     )}
+    on:click={onClick}
   >
     {#if iconName}
       <BaseButtonIcon
@@ -130,14 +154,14 @@
         justify="start"
         colorCategoryFront={frontColorCategory}
         colorCategoryBg={undefined}
-        appendClassButton={width()}
+        appendClassButton={widthForButton()}
         designatedFontWeight={selectedFontWeight}
         {openNewTab}
         shadowEffect={false}
         popupEffect={false}
         hoverEffect
         noPadding
-        {isHoverControledByParent}
+        isHoverControledByParent
         {isHover}
       />
     {:else}
@@ -148,15 +172,34 @@
         justify="start"
         colorCategoryFront={frontColorCategory}
         colorCategoryBg={undefined}
-        appendClass={width()}
+        appendClass={widthForButton()}
         designatedFontWeight={selectedFontWeight}
         {openNewTab}
         popupEffect={false}
         shadowEffect={false}
         noPadding
-        {isHoverControledByParent}
+        isHoverControledByParent
         {isHover}
       />
     {/if}
-  </div>
+  </button>
 </button>
+
+<style lang="scss">
+  @use "../leftsidebar.scss" as lsb;
+  .item-width-0 {
+    width: lsb.get-item-width(0) * 1px;
+  }
+  .item-width-1 {
+    width: lsb.get-item-width(1) * 1px;
+  }
+  .item-width-2 {
+    width: lsb.get-item-width(2) * 1px;
+  }
+  .item-width-3 {
+    width: lsb.get-item-width(3) * 1px;
+  }
+  .item-width-4 {
+    width: lsb.get-item-width(4) * 1px;
+  }
+</style>

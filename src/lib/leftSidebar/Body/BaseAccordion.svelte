@@ -5,6 +5,7 @@
   import BaseAccordionChildren from "./BaseAccordionChildren.svelte";
   import type { BaseAccordionHeaderSuffixIcon } from "./BaseAccordionHeaderSuffixIcons.svelte";
   import BaseAccordionHeader from "./BaseAccordionHeader.svelte";
+  import type { LayerLevel } from "./BaseItem.svelte";
 
   export let label: string;
   export let hrefWithoutUrlHash: string;
@@ -14,7 +15,7 @@
   export let isTopLevelItem: boolean = false;
   export let showVerticalLine: boolean = true;
   export let suffixIcons: BaseAccordionHeaderSuffixIcon[] = [];
-
+  export let layerLevel: LayerLevel;
   let isOpenAccordion = true;
 </script>
 
@@ -27,10 +28,11 @@
     {iconName}
     {isTopLevelItem}
     {suffixIcons}
+    {layerLevel}
     bind:isOpenAccordion
   />
 
-  <BaseAccordionChildren {isOpenAccordion} {showVerticalLine}>
+  <BaseAccordionChildren {isOpenAccordion} {showVerticalLine} {layerLevel}>
     <slot slot="baseAccordionChildren" name="baseAccordionChildren" />
   </BaseAccordionChildren>
 </div>

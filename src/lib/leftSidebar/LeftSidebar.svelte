@@ -18,7 +18,7 @@
     "flex flex-col",
     "fixed top-0",
     "h-full",
-    "w-[320px]",
+    "leftsidebar-width",
     "dark:border-r",
     colorDefinitions[themeColor][colorSettings.leftSidebarBorder].border,
     "shadow-md dark:shadow-none",
@@ -33,3 +33,10 @@
   <Body />
   <Footer />
 </button>
+
+<style lang="scss">
+  @use "./leftsidebar.scss" as lsb;
+  .leftsidebar-width {
+    width: lsb.$leftsidebar-width * 1px;
+  }
+</style>

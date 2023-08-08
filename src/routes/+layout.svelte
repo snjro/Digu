@@ -40,7 +40,7 @@
       $storeUserSettings.isOpenSidebar &&
         ($storeNoDbCurrentWidth <= breakPointWidths.sm
           ? "" //"blur-sm"
-          : "pl-[320px]"),
+          : "leftsidebar-padding"),
       "overflow-x-auto",
       "overflow-y-auto",
       scrollbarStyle(colorSettings.main).thick,
@@ -88,3 +88,10 @@
     </div>
   {/if}
 </div>
+
+<style lang="scss">
+  @use "../lib/leftSidebar/leftsidebar.scss" as lsb;
+  .leftsidebar-padding {
+    padding-left: lsb.$leftsidebar-width * 1px;
+  }
+</style>
