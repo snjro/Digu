@@ -230,6 +230,7 @@
       shadowEffect && "active:border-none",
       // !shadowEffect && "top-[2px]",
       popup(),
+      "truncate",
       appendClass
     );
 </script>
@@ -252,7 +253,10 @@
     on:animationend
   >
     {#if href}
-      <a {href} class={classNames("inline-flex", "items-center")}>
+      <a
+        {href}
+        class={classNames("inline-flex", "items-center", "truncate", "w-full")}
+      >
         <BaseButtonContent
           {label}
           {size}
