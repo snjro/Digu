@@ -11,6 +11,8 @@
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import "./baseHighlight.css";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import classNames from "classnames";
+  import { scrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
 
   export let targetLanguageName: keyof typeof languages;
   export let code: string;
@@ -34,9 +36,16 @@
   <!-- eslint-disable svelte/no-at-html-tags -->
   {@html highlightStyle}
 </svelte:head>
-<Highlight
-  language={languages[targetLanguageName]}
-  {code}
-  class="text-left"
-  style={`--base-highlight-background-color:${colorHexBg}`}
-/>
+<div
+  class={classNames(
+    "overflow-auto",
+    scrollbarStyle(colorSettings.itemGroupContent).thick
+  )}
+>
+  <Highlight
+    language={languages[targetLanguageName]}
+    {code}
+    class="text-left"
+    style={`--base-highlight-background-color:${colorHexBg}`}
+  />
+</div>
