@@ -22,61 +22,32 @@
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 </script>
 
-<div class={classNames("flex", "flex-row", "justify-between", "max-w-4xl")}>
-  <div
-    class={classNames(
-      "flex",
-      "flex-col",
-      "justify-items-start",
-      "items-center",
-      "sm:flex-row",
-      "sm:space-x-5",
-      "w-full",
-      ""
+<div
+  class={classNames(
+    "flex",
+    isVerticalTitle ? "flex-col" : "flex-row",
+    isVerticalTitle ? "self-start" : "self-center",
+    isVerticalTitle ? "" : "sm:space-x-3",
+    "justify-items-start",
+    "w-fit"
+  )}
+>
+  <BaseLabel
+    text={titleCategoryLabelText}
+    textSize={changeSize(titleTextSize, -3)}
+    colorCategoryFront={colorSettings.main}
+    appendClass={classNames(
+      "rounded-lg",
+      "px-1",
+      "border-4",
+      "border-double",
+      colorDefinitions[themeColor][colorSettings.main].border
     )}
-  >
-    <div
-      class={classNames(
-        "flex",
-        isVerticalTitle ? "flex-col" : "flex-row",
-        isVerticalTitle ? "self-start" : "self-center",
-        isVerticalTitle ? "" : "sm:space-x-3",
-        "justify-items-start",
-        "w-fit"
-      )}
-    >
-      <!-- <BaseLabel
-        text={titleCategoryLabelText}
-        textSize={titleTextSize}
-        colorCategoryFront={colorCategoryBg}
-        colorCategoryBg={colorCategoryFront}
-        appendClass={classNames(
-          // "font-medium",
-          "px-1",
-          "rounded",
-          ""
-        )}
-      /> -->
-      <div
-        class={classNames(
-          "rounded-lg px-1 border-4 border-double",
-          colorDefinitions[themeColor][colorSettings.main].border,
-          "border-inherit",
-          ""
-        )}
-      >
-        <BaseLabel
-          text={titleCategoryLabelText}
-          textSize={changeSize(titleTextSize, -3)}
-          colorCategoryFront={colorSettings.main}
-        />
-      </div>
-      <BaseLabel
-        text={titleText}
-        textSize={titleTextSize}
-        colorCategoryFront={colorSettings.main}
-        appendClass={classNames()}
-      />
-    </div>
-  </div>
+  />
+  <BaseLabel
+    text={titleText}
+    textSize={titleTextSize}
+    colorCategoryFront={colorSettings.main}
+    appendClass={classNames("")}
+  />
 </div>
