@@ -61,8 +61,8 @@
     label={capitalizeFirstLetter(abiFragmentsType)}
     iconName={abiFragmentsType === "events" ? "databaseOutline" : "function"}
     hrefWithoutUrlHash={targetAbiFragmentsHref}
-    showVerticalLine
     size={sizeSettings.leftSidebarTree3rd}
+    layerLevel={3}
   >
     <svelte:fragment slot="baseAccordionChildren">
       <!-- Add functionSelector to the key because "targetAbiFragment.name" is not unique.

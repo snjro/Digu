@@ -1,30 +1,11 @@
 <script lang="ts">
-  // import { browser } from "$app/environment";
-  import { page } from "$app/stores";
-  import BaseIcon from "$lib/base/BaseIcon.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import {
-    type BaseSize,
-    buttonHeight,
-    leftSideBarItemHeight,
-  } from "$lib/base/baseSizes";
-  import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
+  import type { BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
-  import { onMount } from "svelte";
-  import {
-    isHrefParentOfPathname,
-    toggleLeftSideBarWithCondition,
-  } from "../functions";
-  import BaseItemIndicator from "./BaseItemIndicator.svelte";
-  import { setChildElementInScroll } from "./scrollController";
-  import { browser } from "$app/environment";
-  import BaseItem from "./BaseItem.svelte";
-  import { getFrontColorCategory } from "./fontStyle";
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import BaseAccordionChildren from "./BaseAccordionChildren.svelte";
+  import type { BaseAccordionHeaderSuffixIcon } from "./BaseAccordionHeaderSuffixIcons.svelte";
+  import BaseAccordionHeader from "./BaseAccordionHeader.svelte";
+  import type { LayerLevel } from "./BaseItem.svelte";
 
   export let label: string;
   export let hrefWithoutUrlHash: string;
@@ -33,154 +14,25 @@
   export let iconName: BaseIconProps["name"] | undefined = undefined;
   export let isTopLevelItem: boolean = false;
   export let showVerticalLine: boolean = true;
-
+  export let suffixIcons: BaseAccordionHeaderSuffixIcon[] = [];
+  export let layerLevel: LayerLevel;
   let isOpenAccordion = true;
-  let isHover = false;
-  let thisElement: HTMLButtonElement;
-
-  $: {
-    switch ($storeNoDbOpenLeftSidebarAccordion) {
-      case "openAll":
-        isOpenAccordion = true;
-        break;
-      case "closeAll":
-        isOpenAccordion = false;
-        break;
-      case "openCurrentOnly":
-        openCurrentDirectory();
-        break;
-      default:
-        break;
-    }
-  }
-  function onMouseEnter() {
-    isHover = true;
-  }
-  function onMouseLeave() {
-    isHover = false;
-  }
-  function flipAccordion(e: Event) {
-    const htmlElement: HTMLElement = e.target as HTMLElement;
-    if (htmlElement.tagName === "LABEL") {
-      toggleLeftSideBarWithCondition();
-      if (!isOpenAccordion) {
-        isOpenAccordion = isParentDirectory();
-      }
-    } else {
-      isOpenAccordion = !isOpenAccordion;
-    }
-  }
-  function openCurrentDirectory(): void {
-    isOpenAccordion = !isSelected() && isParentDirectory();
-  }
-  onMount(() => {
-    // open an accordion when a page is opened by using URL directly
-    openCurrentDirectory();
-  });
-
-  $: isSelected = (): boolean => {
-    return hrefWithoutUrlHash === $page.url.pathname;
-  };
-  $: isParentDirectory = (): boolean => {
-    return isHrefParentOfPathname(hrefWithoutUrlHash, $page.url.pathname);
-  };
-
-  $: chevronIconName = (): BaseIconProps["name"] => {
-    return isOpenAccordion ? "chevronDown" : "chevronRight";
-  };
-  $: {
-    setChildElementInScroll(
-      browser,
-      isSelected(),
-      document.getElementById("leftSidebarBody"),
-      thisElement,
-      document.getElementById("leftSidebarHeader"),
-      $storeNoDbOpenLeftSidebarAccordion
-    );
-  }
-  $: bgColor =
-    (isSelected() || isHover) &&
-    colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis;
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 </script>
 
 <div class={classNames("flex", "flex-col", "w-full")}>
-  <button
-    bind:this={thisElement}
-    class={classNames(
-      "flex",
-      "flex-row",
-      "items-center",
-      "w-full",
-      buttonHeight[size],
-      "cursor-default",
-      ""
-    )}
-    on:keypress
-    on:click={flipAccordion}
-    on:mouseenter={onMouseEnter}
-    on:focus={onMouseEnter}
-    on:mouseleave={onMouseLeave}
-    on:blur={onMouseLeave}
-  >
-    <BaseItem
-      {label}
-      {hrefWithoutUrlHash}
-      {urlHash}
-      {iconName}
-      {size}
-      {isHover}
-      isHoverControledByParent
-      {isTopLevelItem}
-    />
+  <BaseAccordionHeader
+    {label}
+    {hrefWithoutUrlHash}
+    {urlHash}
+    {size}
+    {iconName}
+    {isTopLevelItem}
+    {suffixIcons}
+    {layerLevel}
+    bind:isOpenAccordion
+  />
 
-    <div class={classNames(bgColor, leftSideBarItemHeight[size], "w-full")} />
-
-    <div
-      class={classNames(
-        "flex",
-        "flex-row",
-        "items-center",
-        bgColor,
-        leftSideBarItemHeight[size],
-        "w-fit",
-        "rounded-r",
-        ""
-      )}
-    >
-      <slot name="baseAccordionSuffixIcons" />
-
-      <BaseIcon
-        name={chevronIconName()}
-        size={sizeSettings.leftSidebarTree1st}
-        isHoverControledByParent
-        {isHover}
-        colorCategory={getFrontColorCategory(isSelected())}
-      />
-    </div>
-  </button>
-
-  <div
-    class={classNames(
-      "flex",
-      "flex-row",
-      "w-full",
-      "h-fit",
-      !isOpenAccordion && "hidden"
-    )}
-  >
-    {#if showVerticalLine}
-      <BaseItemIndicator
-        isSelected={false}
-        isHover={false}
-        isUpdated={false}
-        invisible={false}
-        isTopLevelItem={false}
-      />
-    {/if}
-    <div class={classNames("flex", "flex-col", "w-full", "")}>
-      <slot name="baseAccordionChildren" />
-    </div>
-  </div>
+  <BaseAccordionChildren {isOpenAccordion} {showVerticalLine} {layerLevel}>
+    <slot slot="baseAccordionChildren" name="baseAccordionChildren" />
+  </BaseAccordionChildren>
 </div>

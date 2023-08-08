@@ -6,7 +6,7 @@
   import BaseIcon from "$lib/base/BaseIcon.svelte";
   import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { createEventDispatcher } from "svelte";
-  // export let type: NonNullable<BaseButtonProps["type"]> = "icon";
+
   export let label: BaseButtonProps["label"] = undefined;
   export let href: BaseButtonProps["href"] = undefined;
   export let openNewTab: BaseButtonProps["openNewTab"] = false;
@@ -28,6 +28,9 @@
   export let isHoverControledByParent: boolean = false;
   export let isHover: boolean = false;
   export let border: boolean = false;
+  export let designatedFontWeight: BaseButtonProps["designatedFontWeight"] =
+    undefined;
+
   const dispatch = createEventDispatcher();
   function onMouseEnter(event: CustomEvent) {
     if (!isHoverControledByParent) isHover = true;
@@ -59,6 +62,7 @@
   {justify}
   {isHover}
   {border}
+  {designatedFontWeight}
   {isHoverControledByParent}
   appendClass={appendClassButton}
   on:click

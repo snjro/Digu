@@ -1,0 +1,56 @@
+<script lang="ts">
+  import classNames from "classnames";
+  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import BaseLabel, { type BaseLabelProps } from "./BaseLabel.svelte";
+  import type { BaseButtonProps } from "./BaseButton.svelte";
+
+  export let label: BaseButtonProps["label"];
+  export let size: NonNullable<BaseButtonProps["size"]>;
+  export let hoverEffect: NonNullable<BaseButtonProps["hoverEffect"]>;
+  export let isHover: boolean;
+  export let underlineLabel: boolean;
+  export let designatedFontWeight: BaseButtonProps["designatedFontWeight"];
+
+  let themeColor: ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+
+  $: fontWeight = (): BaseLabelProps["fontWeight"] => {
+    if (designatedFontWeight) {
+      return designatedFontWeight;
+    } else {
+      if (hoverEffect && isHover) {
+        return "font-bold";
+      } else {
+        return "font-normal";
+      }
+    }
+  };
+</script>
+
+{#if $$slots.prefixIcon}
+  <slot name="prefixIcon" />
+{/if}
+{#if label}
+  <div
+    class={classNames(
+      "border-b-2",
+      "overflow-x-hidden",
+      underlineLabel
+        ? colorDefinitions[themeColor]["interactive"].border
+        : "border-transparent"
+    )}
+  >
+    <BaseLabel
+      text={label}
+      textSize={size}
+      cursorPointer
+      truncate
+      fontWeight={fontWeight()}
+    />
+  </div>
+{/if}
+{#if $$slots.suffixIcon}
+  <slot name="suffixIcon" />
+{/if}

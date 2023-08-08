@@ -10,6 +10,16 @@
     suffixIcon?: BaseIconProps;
     colorCategoryFront?: ColorCategory;
     colorCategoryBg?: ColorCategory;
+    fontWeight:
+      | "font-thin"
+      | "font-extralight"
+      | "font-light"
+      | "font-normal"
+      | "font-medium"
+      | "font-semibold"
+      | "font-bold"
+      | "font-extrabold"
+      | "font-black";
   };
 </script>
 
@@ -44,17 +54,8 @@
   export let italic: boolean = false;
   export let truncate: boolean = true;
   export let showCopyButton: boolean = false;
+  export let fontWeight: BaseLabelProps["fontWeight"] = "font-normal";
 
-  export let fontWeight:
-    | "font-thin"
-    | "font-extralight"
-    | "font-light"
-    | "font-normal"
-    | "font-medium"
-    | "font-semibold"
-    | "font-bold"
-    | "font-extrabold"
-    | "font-black" = "font-normal";
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 

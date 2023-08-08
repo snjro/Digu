@@ -20,10 +20,10 @@
     "flex-col",
     "flex-grow",
     "pt-2",
-    "pr-3",
+    "right-padding",
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
     "overflow-y-scroll",
-    scrollbarStyle(colorSettings.leftSidebarBodyBg).thin,
+    scrollbarStyle(colorSettings.leftSidebarBodyBg).thick,
     "h-full",
     ""
   )}
@@ -31,3 +31,10 @@
   <ItemHome />
   <ItemProjectVersions />
 </div>
+
+<style lang="scss">
+  @use "../leftsidebar.scss" as lsb;
+  .right-padding {
+    padding-right: lsb.$padding-right * 1px;
+  }
+</style>
