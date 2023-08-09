@@ -9,7 +9,7 @@
 
   export let isFullScreen: boolean;
   export let titleText: string;
-  export let titleCategoryLabelText: string;
+  export let titleCategoryLabelTextForFullScreen: string;
   export let justifyAlignment:
     | "justify-between"
     | "justify-start"
@@ -33,7 +33,10 @@
   )}
 >
   {#if isFullScreen}
-    <BasePageContainerTitle {titleText} {titleCategoryLabelText} />
+    <BasePageContainerTitle
+      {titleText}
+      titleCategoryLabelText={titleCategoryLabelTextForFullScreen}
+    />
   {/if}
   <slot />
 </div>

@@ -51,7 +51,7 @@
       maxLengthOfConstructorInputsParams()
     )}
     titleText={titleText()}
-    {titleCategoryLabelText}
+    titleCategoryLabelTextForFullScreen={titleCategoryLabelText}
     hidden={false}
     exportFilePrefix="contracts"
   />

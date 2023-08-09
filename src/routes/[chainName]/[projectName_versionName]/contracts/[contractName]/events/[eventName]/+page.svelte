@@ -34,14 +34,14 @@
     targetEventIdentifier={data.targetEventIdentifier}
     targetEventAbiFragment={data.targetEventAbiFragment}
     hidden={tabState.selected !== "Event Logs (text)"}
-    {titleCategoryLabelText}
+    titleCategoryLabelTextForFullScreen={tabState.selected}
     eventLogType="text"
   />
   <EventLogs
     targetEventIdentifier={data.targetEventIdentifier}
     targetEventAbiFragment={data.targetEventAbiFragment}
     hidden={tabState.selected !== "Event Logs (hex)"}
-    {titleCategoryLabelText}
+    titleCategoryLabelTextForFullScreen={tabState.selected}
     eventLogType="hex"
   />
   <AbiJsonViewer

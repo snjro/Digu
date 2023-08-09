@@ -46,7 +46,7 @@
       maxLengthOfFunctionOutputsParams()
     )}
     {titleText}
-    {titleCategoryLabelText}
+    titleCategoryLabelTextForFullScreen={titleCategoryLabelText}
     hidden={false}
     exportFilePrefix={"functions"}
   />

@@ -21,7 +21,7 @@
   export let suppressMovableColumns: boolean = false;
   export let suppressColumnVirtualisation: boolean = true;
   export let rowSelection: GridOptions["rowSelection"] = "multiple";
-  export let titleCategoryLabelText: string;
+  export let titleCategoryLabelTextForFullScreen: string;
   export let titleText: string;
   export let hidden: boolean;
   export let exportFilePrefix: ExportFilePrefix;
@@ -42,7 +42,7 @@
     {gridOptions}
     {rows}
     bind:isFullScreen
-    {titleCategoryLabelText}
+    {titleCategoryLabelTextForFullScreen}
     {titleText}
     {exportFilePrefix}
   />
