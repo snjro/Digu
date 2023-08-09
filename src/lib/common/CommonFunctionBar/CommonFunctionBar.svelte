@@ -36,6 +36,7 @@
     <BasePageContainerTitle
       {titleText}
       titleCategoryLabelText={titleCategoryLabelTextForFullScreen}
+      isFullScreen
     />
   {/if}
   <slot />

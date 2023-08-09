@@ -12,6 +12,10 @@ type ColorSettings = Record<
   | "navButton"
   | "navInput"
   | "navSettings"
+  | "titleCategoryFront"
+  | "titleCategoryBg"
+  | "titleTextNormal"
+  | "titleTextFullScreen"
   | "tabSelected"
   | "tabUnselected"
   | "itemGroupContent"
@@ -56,6 +60,11 @@ export const colorSettings: ColorSettings = {
   navButton: colorSub,
   navInput: colorMain,
   navSettings: colorMain,
+  // title
+  titleCategoryFront: "white",
+  titleCategoryBg: "interactive",
+  titleTextNormal: colorMain,
+  titleTextFullScreen: colorSub,
   //tab
   tabSelected: colorSub,
   tabUnselected: colorMain,

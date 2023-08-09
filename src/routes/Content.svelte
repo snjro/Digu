@@ -13,6 +13,7 @@
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 
   $: contentStyle = classNames(
+    "overflow-x-auto",
     "overflow-y-auto",
     scrollbarStyle(colorSettings.main).thick,
     "flex-1",
