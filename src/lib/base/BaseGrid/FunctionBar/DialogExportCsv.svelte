@@ -176,7 +176,13 @@
                 size={sizeSettings.dialogBodyContent}
                 labelAndValues={exportCsvRadioProps[key].radioLabelAndValues}
                 groupName={exportCsvRadioProps[key].groupName}
-                bind:selectedValue={exportCsvRadioProps[key].selectedValue}
+                selectedValue={exportCsvRadioProps[key].selectedValue}
+                on:changed={(event) => {
+                  // update selectedValue.
+                  // I tried to updete it by using `bing:selectedValue={exportCsv...}`,
+                  // but that did not work. I looked into it, but couldn't figure out why.
+                  exportCsvRadioProps[key].selectedValue = event.detail;
+                }}
               />
             </li>
           </ul>

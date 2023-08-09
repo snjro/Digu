@@ -20,7 +20,6 @@
 
 <script lang="ts" generics="RadioValue">
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -29,6 +28,7 @@
   import BaseIcon from "./BaseIcon.svelte";
   import BaseLabel from "./BaseLabel.svelte";
   import type { BaseSize } from "./baseSizes";
+  import { createEventDispatcher } from "svelte";
 
   export let radioButtonType: "button" | "tab" | "circle" = "circle";
   export let groupName: string;
@@ -37,6 +37,9 @@
   export let labelAndValues: RadioLabelAndValues<RadioValue>;
   export let disabled: boolean = false;
   export let appendLabelClass: string | undefined = undefined;
+
+  const dispatch = createEventDispatcher();
+
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
   const roundedSize = (
@@ -121,7 +124,7 @@
         }
     }
   };
-
+  createEventDispatcher;
   const buttonRoundStyle = (
     currentButtonIndex: number,
     lastButtonIndex: number
@@ -280,6 +283,7 @@
           )}
           on:click={() => {
             selectedValue = value;
+            dispatch("changed", selectedValue);
           }}
         />
       </div>
