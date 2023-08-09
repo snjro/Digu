@@ -82,7 +82,7 @@
     fullScreen: [
       {
         iconName: isFullScreen ? "fullScreenExit" : "fullScreen",
-        tooltipText: isFullScreen ? "Windowed " : "Full screen",
+        tooltipText: isFullScreen ? "Exit full screen" : "Full screen",
         onClickEventFunction: () => {
           isFullScreen = !isFullScreen;
         },
