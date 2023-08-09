@@ -70,7 +70,7 @@
       } as CommonFunctionButtonDefinition,
       {
         iconName: "download",
-        tooltipText: "Export CSV",
+        tooltipText: "Export as CSV",
         onClickEventFunction: () => {
           openDialogExportCsv(dialogElement);
         },

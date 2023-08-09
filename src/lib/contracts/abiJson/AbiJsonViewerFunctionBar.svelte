@@ -43,7 +43,7 @@
     export: [
       {
         iconName: "download",
-        tooltipText: "Export ABI",
+        tooltipText: "Export as JSON",
         onClickEventFunction: () =>
           ExportDataToFile(
             abiText,
