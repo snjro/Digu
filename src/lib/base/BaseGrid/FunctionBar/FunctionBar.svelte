@@ -8,7 +8,7 @@
   export let gridOptions: GridOptions<GridRow>;
   export let rows: GridRow[];
   export let isFullScreen: boolean;
-  export let titleCategoryLabelText: string;
+  export let titleCategoryLabelTextForFullScreen: string;
   export let titleText: string;
   export let exportFilePrefix: ExportFilePrefix;
 
@@ -17,9 +17,8 @@
 
 <CommonFunctionBar
   {isFullScreen}
-  {titleCategoryLabelText}
+  {titleCategoryLabelTextForFullScreen}
   {titleText}
-  isVerticalTitle={true}
 >
   <QuickSearch bind:quickSearchText {gridOptions} />
   <FunctionButtons

@@ -30,6 +30,7 @@
   export let titleText: string;
   export let fragment: boolean = false;
 
+  const titleCategoryLabelTextForFullScreen: `${typeof titleCategoryLabelText} ABI` = `${titleCategoryLabelText} ABI`;
   let formattedAbi: string[] | string;
   $: {
     if (isTargetContractInterface(targetAbi)) {
@@ -59,7 +60,7 @@
     bind:isExpanded
     bind:isFullScreen
     {abiText}
-    {titleCategoryLabelText}
+    {titleCategoryLabelTextForFullScreen}
     {titleText}
     {fragment}
   />

@@ -35,7 +35,7 @@
   import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { CsvColumnSeparator, CsvFilteredSorted } from "./exportCsvData";
   import type { GridOptions } from "ag-grid-community";
-  import DialogExportCsvButtons from "./DialogExportCsvButtons.svelte";
+  import DialogExportCsvFooterButtons from "./DialogExportCsvFooterButtons.svelte";
 
   export let gridOptions: GridOptions<GridRow>;
   export let dialogElement: HTMLDialogElement;
@@ -183,7 +183,7 @@
         </CommonItemMember>
       {/each}
     </ul>
-    <DialogExportCsvButtons
+    <DialogExportCsvFooterButtons
       {gridOptions}
       {exportCsvRadioProps}
       {exportFilePrefix}

@@ -42,7 +42,7 @@
       }
     )}
     {titleText}
-    {titleCategoryLabelText}
+    titleCategoryLabelTextForFullScreen={titleCategoryLabelText}
     hidden={false}
     exportFilePrefix="events"
   />

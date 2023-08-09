@@ -13,7 +13,7 @@
   import { gridRows } from "./gridRows";
   export let targetEventIdentifier: AbiFragmentIdentifier;
   export let targetEventAbiFragment: EventAbiFragment;
-  export let titleCategoryLabelText: string;
+  export let titleCategoryLabelTextForFullScreen: string;
   export let eventLogType: EventLogType;
   export let hidden: boolean;
 
@@ -60,7 +60,7 @@
   {rows}
   paramColumnDefs={eventLogColumnDefs}
   titleText={targetEventAbiFragment.name}
-  {titleCategoryLabelText}
+  {titleCategoryLabelTextForFullScreen}
   {hidden}
   exportFilePrefix={`eventLogs(${eventLogType})`}
 />

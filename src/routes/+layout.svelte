@@ -29,6 +29,8 @@
     $storeNoDbCountShowingDialog > 0 && "blur-sm",
     colorDefinitions[themeColor][colorSettings.main].bg,
     colorDefinitions[themeColor][colorSettings.main].text,
+    "overflow-x-hidden",
+    "overflow-y-hidden",
     ""
   );
   $: mainContainerStyle = classNames(
@@ -41,8 +43,9 @@
         ($storeNoDbCurrentWidth <= breakPointWidths.sm
           ? "" //"blur-sm"
           : "leftsidebar-padding"),
-      "overflow-x-auto",
-      "overflow-y-auto",
+      "overflow-x-none",
+      // "overflow-y-auto",
+      "overscroll-y-auto",
       scrollbarStyle(colorSettings.main).thick,
       "cursor-default",
       ""

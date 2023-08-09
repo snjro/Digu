@@ -1,82 +1,58 @@
 <script lang="ts">
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
-  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { breakPointWidths } from "@utils/utilsDom";
   import classNames from "classnames";
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
 
   export let titleText: string;
   export let titleCategoryLabelText: string;
-  export let isVerticalTitle: boolean;
+  export let isFullScreen: boolean = false;
+
+  let titleCategorySize: BaseSize;
   let titleTextSize: BaseSize;
-  $: titleTextSize =
-    $storeNoDbCurrentWidth <= breakPointWidths.sm
-      ? changeSize(sizeSettings.title, -3)
-      : sizeSettings.title;
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  let flexStyle: string;
+  let titleTextColorCategory: ColorCategory;
+
+  $: {
+    if (isFullScreen) {
+      titleCategorySize = changeSize(sizeSettings.title, -5);
+      titleTextSize = changeSize(sizeSettings.title, -4);
+      flexStyle = classNames("flex-col", "justify-start");
+      titleTextColorCategory = colorSettings.titleTextFullScreen;
+    } else {
+      titleCategorySize = changeSize(sizeSettings.title, -2);
+      titleTextSize = sizeSettings.title;
+      flexStyle = classNames("flex-row", "items-center", "space-x-1");
+      titleTextColorCategory = colorSettings.titleTextNormal;
+    }
+  }
 </script>
 
-<div class={classNames("flex", "flex-row", "justify-between", "max-w-4xl")}>
-  <div
-    class={classNames(
-      "flex",
-      "flex-col",
-      "justify-items-start",
-      "items-center",
-      "sm:flex-row",
-      "sm:space-x-5",
-      "w-full",
-      ""
+<div class={classNames("flex", "w-full", flexStyle)}>
+  <BaseLabel
+    text={titleCategoryLabelText}
+    textSize={titleCategorySize}
+    colorCategoryBg={colorSettings.titleCategoryBg}
+    colorCategoryFront={colorSettings.titleCategoryFront}
+    appendClass={classNames(
+      "rounded",
+      "px-1",
+      "py-0"
+      // "text-shadow-white"
     )}
-  >
-    <div
-      class={classNames(
-        "flex",
-        isVerticalTitle ? "flex-col" : "flex-row",
-        isVerticalTitle ? "self-start" : "self-center",
-        isVerticalTitle ? "" : "sm:space-x-3",
-        "justify-items-start",
-        "w-fit"
-      )}
-    >
-      <!-- <BaseLabel
-        text={titleCategoryLabelText}
-        textSize={titleTextSize}
-        colorCategoryFront={colorCategoryBg}
-        colorCategoryBg={colorCategoryFront}
-        appendClass={classNames(
-          // "font-medium",
-          "px-1",
-          "rounded",
-          ""
-        )}
-      /> -->
-      <div
-        class={classNames(
-          "rounded-lg px-1 border-4 border-double",
-          colorDefinitions[themeColor][colorSettings.main].border,
-          "border-inherit",
-          ""
-        )}
-      >
-        <BaseLabel
-          text={titleCategoryLabelText}
-          textSize={changeSize(titleTextSize, -3)}
-          colorCategoryFront={colorSettings.main}
-        />
-      </div>
-      <BaseLabel
-        text={titleText}
-        textSize={titleTextSize}
-        colorCategoryFront={colorSettings.main}
-        appendClass={classNames()}
-      />
-    </div>
+    fontWeight="font-black"
+  />
+  <div class={classNames("overflow-x-auto", "w-full")}>
+    <BaseLabel
+      text={titleText}
+      textSize={titleTextSize}
+      colorCategoryFront={titleTextColorCategory}
+      colorCategoryBg={titleTextColorCategory}
+      appendClass={classNames("pl-1")}
+      fontWeight="font-black"
+      truncate
+    />
   </div>
 </div>

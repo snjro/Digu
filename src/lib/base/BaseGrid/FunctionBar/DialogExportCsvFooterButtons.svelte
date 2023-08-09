@@ -1,11 +1,8 @@
 <script lang="ts" generics="GridRow">
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import type { ThemeColor } from "@db/dbTypes";
   import { getExportFileName, type ExportFilePrefix } from "@utils/utilsFile";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { buttonHeight, type BaseSize } from "$lib/base/baseSizes";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { ExportCsvRadioProps } from "./DialogExportCsv.svelte";
   import { page } from "$app/stores";
   import type { GridOptions } from "ag-grid-community";
@@ -44,8 +41,6 @@
       getExportFileName(exportFilePrefix, $page.params, "csv")
     );
   }
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
   type ButtonIconProp = {
     iconName: BaseIconProps["name"];
     label: string;
@@ -73,10 +68,9 @@
       hoverEffect
       label={buttonIconProp.label}
       {size}
-      colorCategoryFront={"interactive"}
-      colorCategoryBg={colorSettings.dialogBody}
+      colorCategoryFront={"white"}
+      colorCategoryBg={"interactive"}
       appendClassButton={buttonHeight[size]}
-      border={themeColor === "dark"}
       on:click={buttonIconProp.onClick}
     />
   {/each}

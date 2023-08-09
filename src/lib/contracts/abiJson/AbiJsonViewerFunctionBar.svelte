@@ -5,7 +5,7 @@
     type CommonFunctionButtonDefinition,
   } from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
   import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
-  export let titleCategoryLabelText: string;
+  export let titleCategoryLabelTextForFullScreen: string;
   export let titleText: string;
   export let isExpanded: boolean;
   export let isFullScreen: boolean;
@@ -43,7 +43,7 @@
     export: [
       {
         iconName: "download",
-        tooltipText: "Export ABI",
+        tooltipText: "Export as JSON",
         onClickEventFunction: () =>
           ExportDataToFile(
             abiText,
@@ -61,7 +61,7 @@
     fullScreen: [
       {
         iconName: isFullScreen ? "fullScreenExit" : "fullScreen",
-        tooltipText: isFullScreen ? "Windowed " : "Full screen",
+        tooltipText: isFullScreen ? "Exit full screen" : "Full screen",
         onClickEventFunction: () => {
           isFullScreen = !isFullScreen;
         },
@@ -73,11 +73,10 @@
 </script>
 
 <CommonFunctionBar
-  {titleCategoryLabelText}
+  {titleCategoryLabelTextForFullScreen}
   {titleText}
   justifyAlignment={isFullScreen ? "justify-between" : "justify-end"}
   {isFullScreen}
-  isVerticalTitle={false}
 >
   <CommonFunctionButtons {buttonDefinitions} />
 </CommonFunctionBar>

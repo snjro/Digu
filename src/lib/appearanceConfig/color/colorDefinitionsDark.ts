@@ -1,4 +1,5 @@
 import type { ColorDefinitionCategories } from "./colorDefinitions";
+import { colorDefinitionsLight } from "./colorDefinitionsLight";
 
 export const colorDefinitionsDark: ColorDefinitionCategories = {
   success: {
@@ -96,4 +97,5 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     scrollbarTrack: "scrollbar-track-zinc-700",
     scrollbarCorner: "scrollbar-corner-zinc-700",
   },
+  white: colorDefinitionsLight.white,
 };
