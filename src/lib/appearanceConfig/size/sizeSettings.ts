@@ -77,5 +77,5 @@ export const sizeSettings: SizeSettings = {
   // dialog
   dialogHeader: changeSize(sizeDialog, 1),
   dialogBodyContent: changeSize(sizeDialog, -1),
-  dialogFooter: changeSize(sizeDialog, 0),
+  dialogFooter: changeSize(sizeDialog, -1),
 };
