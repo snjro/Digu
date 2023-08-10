@@ -16,7 +16,7 @@
   const size: BaseSize = sizeSettings.gridFunctionQuickSearch;
 </script>
 
-<div class={classNames("max-w-xl", "min-w-fit", "w-full")}>
+<div class={classNames("max-w-2xl", "min-w-fit", "w-full")}>
   <BaseInput
     placeholder="Quick search..."
     type="text"
