@@ -78,5 +78,10 @@
   justifyAlignment={isFullScreen ? "justify-between" : "justify-end"}
   {isFullScreen}
 >
-  <CommonFunctionButtons {buttonDefinitions} slot="buttons" />
+  <CommonFunctionButtons
+    {buttonDefinitions}
+    {isFullScreen}
+    responsive={false}
+    slot="buttons"
+  />
 </CommonFunctionBar>
