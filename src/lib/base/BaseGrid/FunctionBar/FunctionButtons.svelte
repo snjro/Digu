@@ -30,7 +30,7 @@
       } as CommonFunctionButtonDefinition,
       {
         iconName: "arrowCollapseHorizontal",
-        tooltipText: "hide minor columns",
+        tooltipText: "Hide minor columns",
         onClickEventFunction: () =>
           setAllColumnGroupState(gridOptions.columnApi!, false),
         tooltipXPosition: isFullScreen ? "left" : "right",
