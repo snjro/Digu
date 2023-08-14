@@ -68,7 +68,7 @@ export const sizeSettings: SizeSettings = {
   gridFunctionQuickSearch: changeSize(sizeGrid, 0),
   // content
   title: changeSize(sizeContent, 3),
-  itemGroup: changeSize(sizeContent, 2),
+  itemGroup: changeSize(sizeContent, 1),
   itemMember: changeSize(sizeContent, 0),
   itemMemberTable: changeSize(sizeContent, -1),
   itemWarnningMessage: changeSize(sizeContent, -1),
