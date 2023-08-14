@@ -36,7 +36,7 @@ type SizeSettings = Record<
   BaseSize
 >;
 const sizeLeftSizebar: BaseSize = "lg";
-const sizeNav: BaseSize = "lg";
+const sizeNav: BaseSize = "md";
 const sizeBreadcrumb: BaseSize = "xs";
 const sizeGrid: BaseSize = "md";
 const sizeContent: BaseSize = "md";
@@ -54,12 +54,12 @@ export const sizeSettings: SizeSettings = {
   leftSidebarVersion: changeSize(sizeLeftSizebar, -1),
   // nav
   navButton: changeSize(sizeNav, 0),
-  navProgressBar: changeSize(sizeNav, -1),
-  navToggle: changeSize(sizeNav, -1),
-  navInput: changeSize(sizeNav, -1),
-  navInputHelperText: changeSize(sizeNav, -2),
-  navSettings: changeSize(sizeNav, -1),
-  navText: changeSize(sizeNav, -2),
+  navProgressBar: changeSize(sizeNav, 0),
+  navToggle: changeSize(sizeNav, 0),
+  navInput: changeSize(sizeNav, 0),
+  navInputHelperText: changeSize(sizeNav, -1),
+  navSettings: changeSize(sizeNav, 0),
+  navText: changeSize(sizeNav, -1),
   //breadcrumb
   breadcrumb: changeSize(sizeBreadcrumb, 0),
   // grid
