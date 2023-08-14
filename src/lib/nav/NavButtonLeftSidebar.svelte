@@ -1,14 +1,17 @@
 <script lang="ts">
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import BaseNavButton from "./BaseNavButton.svelte";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { toggleLeftSideBar } from "$lib/leftSidebar/functions";
-
-  async function click() {
-    await toggleLeftSideBar();
-  }
-  let iconName: BaseIconProps["name"];
-  $: iconName = $storeUserSettings.isOpenSidebar ? "backburger" : "menu";
+  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 </script>
 
-<BaseNavButton {iconName} on:click={click} />
+<BaseButtonIcon
+  iconName={$storeUserSettings.isOpenSidebar ? "backburger" : "menu"}
+  size={sizeSettings.navButton}
+  colorCategoryFront={colorSettings.navButton}
+  colorCategoryBg={colorSettings.navButton}
+  on:click={async () => {
+    await toggleLeftSideBar();
+  }}
+/>
