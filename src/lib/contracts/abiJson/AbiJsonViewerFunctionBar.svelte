@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from "$app/stores";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
   import CommonFunctionBar from "$lib/common/CommonFunctionBar/CommonFunctionBar.svelte";
   import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
@@ -82,5 +83,6 @@
     {isFullScreen}
     responsive={false}
     slot="buttons"
+    size={sizeSettings.gridFunctionButton}
   />
 </CommonFunctionBar>

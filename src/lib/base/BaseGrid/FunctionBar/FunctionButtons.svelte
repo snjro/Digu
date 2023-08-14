@@ -1,4 +1,5 @@
 <script lang="ts" generics="GridRow">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
   import type { ExportFilePrefix } from "@utils/utilsFile";
   import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
@@ -118,4 +119,8 @@
 </script>
 
 <DialogExportCsv {gridOptions} bind:dialogElement {exportFilePrefix} />
-<CommonFunctionButtons {buttonDefinitions} {isFullScreen} />
+<CommonFunctionButtons
+  {buttonDefinitions}
+  {isFullScreen}
+  size={sizeSettings.gridFunctionButton}
+/>

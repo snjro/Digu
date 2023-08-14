@@ -6,7 +6,6 @@
     type SimplifiedButtonDefinition,
   } from "$lib/base/BaseButtonIcon.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import classNames from "classnames";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { breakPointWidths } from "@utils/utilsDom";
@@ -16,8 +15,7 @@
   export let buttonDefinitions: ButtonDefinitions;
   export let isFullScreen: boolean;
   export let responsive: boolean = true;
-
-  const buttonSize: BaseSize = sizeSettings.gridFunctionButton;
+  export let size: BaseSize;
 
   const buttonDefinitionKeys = Object.keys(
     buttonDefinitions
@@ -43,7 +41,7 @@
 >
   {#if showThreeDotsButton}
     <CommonThreeDotsButton
-      size={buttonSize}
+      {size}
       {buttonDefinitions}
       colorCategory={colorSettings.gridFunctionButton}
     />
@@ -60,7 +58,7 @@
       >
         {#each buttonDefinitions[buttonDefinitionKey] as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition }}
           <BaseButtonIcon
-            size={buttonSize}
+            {size}
             {iconName}
             {tooltipText}
             {tooltipXPosition}
@@ -72,7 +70,7 @@
         {/each}
       </div>
       <BaseDividerVertical
-        size={buttonSize}
+        {size}
         colorCategory={colorSettings.gridFunctionButton}
         hidden={buttonDefinitionIndex >= buttonDefinitionKeys.length - 1}
       />
