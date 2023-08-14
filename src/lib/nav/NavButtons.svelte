@@ -46,10 +46,12 @@
   };
 </script>
 
-<CommonFunctionButtons
-  {buttonDefinitions}
-  buttonSize={sizeSettings.navButton}
-  listSize={changeSize(sizeSettings.navButton, -1)}
-  isOpenSidebar={$storeUserSettings.isOpenSidebar}
-/>
-<NavButtonsSettingsDialog bind:dialogElement bind:initializeValue />
+<div>
+  <CommonFunctionButtons
+    {buttonDefinitions}
+    buttonSize={sizeSettings.navButton}
+    listSize={changeSize(sizeSettings.navButton, -1)}
+    isOpenSidebar={$storeUserSettings.isOpenSidebar}
+  />
+  <NavButtonsSettingsDialog bind:dialogElement bind:initializeValue />
+</div>
