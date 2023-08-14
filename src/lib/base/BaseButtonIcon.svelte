@@ -1,3 +1,13 @@
+<script lang="ts" context="module">
+  export type SimplifiedButtonDefinition = {
+    iconName: BaseIconProps["name"];
+    tooltipText: BaseButtonProps["tooltipText"];
+    onClickEventFunction: () => void | Promise<void>;
+    tooltipXPosition: BaseButtonProps["tooltipXPosition"];
+    tooltipYPosition: BaseButtonProps["tooltipYPosition"];
+  };
+</script>
+
 <script lang="ts">
   import BaseButton, {
     type BaseButtonProps,

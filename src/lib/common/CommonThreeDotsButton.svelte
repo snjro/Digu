@@ -1,5 +1,4 @@
 <script lang="ts" generics="ButtonGroupKey extends string">
-  import type { CommonFunctionButtonDefinition } from "./CommonFunctionBar/CommonFunctionButtons.svelte";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import {
@@ -7,14 +6,13 @@
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import BaseDividerHorizontal from "$lib/base/BaseDividerHorizontal.svelte";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
+  import BaseButtonIcon, {
+    type SimplifiedButtonDefinition,
+  } from "$lib/base/BaseButtonIcon.svelte";
   import classNames from "classnames";
   import type { BaseSize } from "$lib/base/baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  type ButtonDefinitions = Record<
-    ButtonGroupKey,
-    CommonFunctionButtonDefinition[]
-  >;
+  type ButtonDefinitions = Record<ButtonGroupKey, SimplifiedButtonDefinition[]>;
 
   export let buttonDefinitions: ButtonDefinitions;
   export let size: BaseSize;

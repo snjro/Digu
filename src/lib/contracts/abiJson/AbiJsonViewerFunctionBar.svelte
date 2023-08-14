@@ -1,9 +1,8 @@
 <script lang="ts">
   import { page } from "$app/stores";
+  import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
   import CommonFunctionBar from "$lib/common/CommonFunctionBar/CommonFunctionBar.svelte";
-  import CommonFunctionButtons, {
-    type CommonFunctionButtonDefinition,
-  } from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
+  import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
   import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
   export let titleCategoryLabelTextForFullScreen: string;
   export let titleText: string;
@@ -13,10 +12,10 @@
   export let fragment: boolean;
 
   let buttonDefinitions: {
-    textFormatter: CommonFunctionButtonDefinition[];
-    copy: CommonFunctionButtonDefinition[];
-    export: CommonFunctionButtonDefinition[];
-    fullScreen: CommonFunctionButtonDefinition[];
+    textFormatter: SimplifiedButtonDefinition[];
+    copy: SimplifiedButtonDefinition[];
+    export: SimplifiedButtonDefinition[];
+    fullScreen: SimplifiedButtonDefinition[];
   };
   $: buttonDefinitions = {
     textFormatter: [

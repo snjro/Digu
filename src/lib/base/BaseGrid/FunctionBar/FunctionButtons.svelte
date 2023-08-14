@@ -1,8 +1,7 @@
 <script lang="ts" generics="GridRow">
+  import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
   import type { ExportFilePrefix } from "@utils/utilsFile";
-  import CommonFunctionButtons, {
-    type CommonFunctionButtonDefinition,
-  } from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
+  import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
   import type { GridOptions } from "ag-grid-community";
   // import classNames from "classnames";
   import {
@@ -27,7 +26,7 @@
           setAllColumnGroupState(gridOptions.columnApi!, true),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+      } as SimplifiedButtonDefinition,
       {
         iconName: "arrowCollapseHorizontal",
         tooltipText: "Hide minor columns",
@@ -35,7 +34,7 @@
           setAllColumnGroupState(gridOptions.columnApi!, false),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+      } as SimplifiedButtonDefinition,
     ],
     columnWidthHandler: [
       {
@@ -44,14 +43,14 @@
         onClickEventFunction: () => gridOptions.api!.sizeColumnsToFit(),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+      } as SimplifiedButtonDefinition,
       {
         iconName: "tableColumnWidth",
         tooltipText: "Auto fit columns",
         onClickEventFunction: () => setAutoColumnWidth(gridOptions.columnApi!),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+      } as SimplifiedButtonDefinition,
     ],
     reset: [
       {
@@ -60,14 +59,14 @@
         onClickEventFunction: resetAllFilters,
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+      } as SimplifiedButtonDefinition,
       {
         iconName: "refresh",
         tooltipText: "Reload",
         onClickEventFunction: reload,
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+      } as SimplifiedButtonDefinition,
       {
         iconName: "download",
         tooltipText: "Export as CSV",
@@ -77,7 +76,7 @@
 
         tooltipXPosition: "left",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+      } as SimplifiedButtonDefinition,
     ],
     fullScreen: [
       {
@@ -88,7 +87,7 @@
         },
         tooltipXPosition: "left",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+      } as SimplifiedButtonDefinition,
     ],
   };
   function resetAllFilters(): void {

@@ -1,32 +1,18 @@
-<script lang="ts" context="module">
-  export type CommonFunctionButtonDefinition = {
-    iconName: BaseIconProps["name"];
-    tooltipText: BaseTooltipProps["text"];
-    onClickEventFunction: () => void | Promise<void>;
-    tooltipXPosition: BaseTooltipProps["xPosition"];
-    tooltipYPosition: BaseTooltipProps["yPosition"];
-  };
-</script>
-
 <script lang="ts" generics="ButtonGroupKey extends string">
   import { storeUserSettings } from "@stores/storeUserSettings";
-
   import BaseDividerVertical from "$lib/base/BaseDividerVertical.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import BaseButtonIcon, {
+    type SimplifiedButtonDefinition,
+  } from "$lib/base/BaseButtonIcon.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
-  import type { BaseTooltipProps } from "$lib/base/BaseTooltip.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import classNames from "classnames";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { breakPointWidths } from "@utils/utilsDom";
   import CommonThreeDotsButton from "../CommonThreeDotsButton.svelte";
 
-  type ButtonDefinitions = Record<
-    ButtonGroupKey,
-    CommonFunctionButtonDefinition[]
-  >;
+  type ButtonDefinitions = Record<ButtonGroupKey, SimplifiedButtonDefinition[]>;
   export let buttonDefinitions: ButtonDefinitions;
   export let isFullScreen: boolean;
   export let responsive: boolean = true;
