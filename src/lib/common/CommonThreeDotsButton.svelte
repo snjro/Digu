@@ -64,7 +64,7 @@
           "flex-col",
           "items-start",
           "space-y-1",
-          "w-52"
+          "w-56"
         )}
       >
         {#each buttonDefinitions[buttonDefinitionKey] as { iconName, tooltipText, onClickEventFunction }}
