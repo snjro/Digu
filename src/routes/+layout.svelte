@@ -15,8 +15,20 @@
   import { scrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
   import { toggleLeftSideBar } from "$lib/leftSidebar/functions";
   import Content from "./Content.svelte";
+  import { browser } from "$app/environment";
 
   export let data: LoadDataRoot;
+
+  $: {
+    if (browser) {
+      if ($storeUserSettings.themeColor === "dark") {
+        window.document.documentElement.classList.add("dark");
+      } else {
+        window.document.documentElement.classList.remove("dark");
+      }
+    }
+  }
+
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 

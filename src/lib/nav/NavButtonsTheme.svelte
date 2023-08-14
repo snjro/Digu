@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { browser } from "$app/environment";
   import { updateDbItemUserSettings } from "@db/dbSettingsDataHandlers";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -14,15 +13,6 @@
     }
     await updateDbItemUserSettings("themeColor", newThemeColor);
   };
-  $: {
-    if (browser) {
-      if ($storeUserSettings.themeColor === "dark") {
-        window.document.documentElement.classList.add("dark");
-      } else {
-        window.document.documentElement.classList.remove("dark");
-      }
-    }
-  }
 </script>
 
 <BaseNavButton
