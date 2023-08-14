@@ -81,7 +81,7 @@
   }
 </script>
 
-<div class={classNames("w-full", "flex", "flex-row", "h-fit")}>
+<div class={classNames("w-full")}>
   <BaseInput
     colorCategory={colorSettings.navInput}
     colorCategoryBorder={colorSettings.navInput}
