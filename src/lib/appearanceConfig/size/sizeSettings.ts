@@ -59,7 +59,7 @@ export const sizeSettings: SizeSettings = {
   navInput: changeSize(sizeNav, 0),
   navInputHelperText: changeSize(sizeNav, -1),
   navSettings: changeSize(sizeNav, 0),
-  navText: changeSize(sizeNav, -1),
+  navText: changeSize(sizeNav, -2),
   //breadcrumb
   breadcrumb: changeSize(sizeBreadcrumb, 0),
   // grid
