@@ -3,8 +3,8 @@
 $leftsidebar-width: 320;
 $padding-right: 4;
 $scrollbar-width: 16; // thin=8px, thick=16px
-$indicator-width-top: 8;
-$indicator-width-normal: 12;
+$indicator-width-top: 10;
+$indicator-width-normal: 14;
 
 @function get-piled-indicators-padding-width($layer-level) {
   @if $layer-level==0 {
