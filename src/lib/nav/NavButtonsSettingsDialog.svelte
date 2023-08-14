@@ -1,19 +1,12 @@
 <script lang="ts">
-  import BaseDialog, {
-    openDialog,
-  } from "$lib/base/BaseDialog/BaseDialog.svelte";
+  import BaseDialog from "$lib/base/BaseDialog/BaseDialog.svelte";
   import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
   import classNames from "classnames";
-  import BaseNavButton from "./BaseNavButton.svelte";
   import RpcConfig from "./settings/rpcConfig/RpcConfig.svelte";
   import ChainExplorer from "./settings/ChainExplorer.svelte";
 
-  let initializeValue: boolean = false;
-  let dialogElement: HTMLDialogElement;
-  function showDialog(): void {
-    openDialog(dialogElement);
-    initializeValue = true;
-  }
+  export let initializeValue: boolean;
+  export let dialogElement: HTMLDialogElement;
 
   function closeDialog(): void {
     initializeValue = false;
@@ -27,11 +20,6 @@
   const gridTrackRpc: string = classNames("col-span-full", "");
 </script>
 
-<BaseNavButton
-  iconName="cogOutline"
-  tooltipText="settings"
-  on:click={showDialog}
-/>
 <BaseDialog
   bind:dialogElement
   headerText="Settings"

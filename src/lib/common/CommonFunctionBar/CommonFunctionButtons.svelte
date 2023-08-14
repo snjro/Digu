@@ -1,5 +1,4 @@
 <script lang="ts" generics="ButtonGroupKey extends string">
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import BaseDividerVertical from "$lib/base/BaseDividerVertical.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import BaseButtonIcon, {
@@ -13,20 +12,24 @@
 
   type ButtonDefinitions = Record<ButtonGroupKey, SimplifiedButtonDefinition[]>;
   export let buttonDefinitions: ButtonDefinitions;
-  export let isFullScreen: boolean;
+  export let isOpenSidebar: boolean = false;
   export let responsive: boolean = true;
-  export let size: BaseSize;
+  export let buttonSize: BaseSize;
+  export let listSize: BaseSize = buttonSize;
 
   const buttonDefinitionKeys = Object.keys(
     buttonDefinitions
   ) as ButtonGroupKey[];
 
-  $: showThreeDotsButton =
-    responsive &&
-    ($storeNoDbCurrentWidth <= breakPointWidths.sm ||
-      ($storeNoDbCurrentWidth <= breakPointWidths.lg &&
-        $storeUserSettings.isOpenSidebar &&
-        !isFullScreen));
+  let showThreeDotsButton: () => boolean;
+  $: showThreeDotsButton = (): boolean => {
+    if (!responsive) return false;
+    if ($storeNoDbCurrentWidth <= breakPointWidths.sm) return true;
+    if ($storeNoDbCurrentWidth <= breakPointWidths.lg && isOpenSidebar)
+      return true;
+
+    return false;
+  };
 </script>
 
 <div
@@ -35,30 +38,25 @@
     "flex",
     "flex-row",
     "items-center",
-    "space-x-2",
+    "space-x-3",
     ""
   )}
 >
-  {#if showThreeDotsButton}
+  {#if showThreeDotsButton()}
     <CommonThreeDotsButton
-      {size}
+      {buttonSize}
+      {listSize}
       {buttonDefinitions}
       colorCategory={colorSettings.gridFunctionButton}
     />
   {:else}
     {#each buttonDefinitionKeys as buttonDefinitionKey, buttonDefinitionIndex}
       <div
-        class={classNames(
-          "flex",
-          "flex-row",
-          "items-center",
-          "space-x-1.5",
-          ""
-        )}
+        class={classNames("flex", "flex-row", "items-center", "space-x-3", "")}
       >
         {#each buttonDefinitions[buttonDefinitionKey] as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition }}
           <BaseButtonIcon
-            {size}
+            size={buttonSize}
             {iconName}
             {tooltipText}
             {tooltipXPosition}
@@ -70,7 +68,7 @@
         {/each}
       </div>
       <BaseDividerVertical
-        {size}
+        size={buttonSize}
         colorCategory={colorSettings.gridFunctionButton}
         hidden={buttonDefinitionIndex >= buttonDefinitionKeys.length - 1}
       />

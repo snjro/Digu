@@ -1,4 +1,5 @@
 <script lang="ts" generics="GridRow">
+  import { storeUserSettings } from "@stores/storeUserSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
   import type { ExportFilePrefix } from "@utils/utilsFile";
@@ -121,6 +122,6 @@
 <DialogExportCsv {gridOptions} bind:dialogElement {exportFilePrefix} />
 <CommonFunctionButtons
   {buttonDefinitions}
-  {isFullScreen}
-  size={sizeSettings.gridFunctionButton}
+  isOpenSidebar={isFullScreen ? false : $storeUserSettings.isOpenSidebar}
+  buttonSize={sizeSettings.gridFunctionButton}
 />

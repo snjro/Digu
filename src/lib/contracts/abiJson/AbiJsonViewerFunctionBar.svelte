@@ -80,9 +80,8 @@
 >
   <CommonFunctionButtons
     {buttonDefinitions}
-    {isFullScreen}
     responsive={false}
     slot="buttons"
-    size={sizeSettings.gridFunctionButton}
+    buttonSize={sizeSettings.gridFunctionButton}
   />
 </CommonFunctionBar>
