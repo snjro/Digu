@@ -8,6 +8,7 @@ type SizeSettings = Record<
   | "leftSidebarTree2nd"
   | "leftSidebarTree3rd"
   | "leftSidebarTree4th"
+  | "leftSidebarChevronIcon"
   | "leftSidebarVersion"
   | "navButton"
   | "navProgressBar"
@@ -52,6 +53,7 @@ export const sizeSettings: SizeSettings = {
   leftSidebarTree3rd: changeSize(sizeLeftSizebar, -2),
   leftSidebarTree4th: changeSize(sizeLeftSizebar, -3),
   leftSidebarVersion: changeSize(sizeLeftSizebar, -1),
+  leftSidebarChevronIcon: changeSize(sizeLeftSizebar, -1),
   // nav
   navButton: changeSize(sizeNav, 1),
   navProgressBar: changeSize(sizeNav, 0),
