@@ -9,7 +9,7 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
 
   export let size: BaseSize;
-  export let colorCategoryBg: ColorCategory;
+  export let colorCategory: ColorCategory;
   export let hidden: boolean = false;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
@@ -21,6 +21,6 @@
     buttonHeight[size],
     "w-0",
     "border-r",
-    colorDefinitions[themeColor][colorCategoryBg].border
+    colorDefinitions[themeColor][colorCategory].border
   )}
 />
