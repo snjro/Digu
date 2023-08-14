@@ -53,7 +53,7 @@ export const sizeSettings: SizeSettings = {
   leftSidebarTree4th: changeSize(sizeLeftSizebar, -3),
   leftSidebarVersion: changeSize(sizeLeftSizebar, -1),
   // nav
-  navButton: changeSize(sizeNav, 0),
+  navButton: changeSize(sizeNav, 1),
   navProgressBar: changeSize(sizeNav, 0),
   navToggle: changeSize(sizeNav, 0),
   navInput: changeSize(sizeNav, 0),
