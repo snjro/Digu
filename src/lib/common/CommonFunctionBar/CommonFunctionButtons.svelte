@@ -36,13 +36,13 @@
     "flex",
     "flex-row",
     "items-center",
-    "space-x-3",
+    "space-x-2",
     ""
   )}
 >
   {#each buttonDefinitionKeys as buttonDefinitionKey, buttonDefinitionIndex}
     <div
-      class={classNames("flex", "flex-row", "items-center", "space-x-2", "")}
+      class={classNames("flex", "flex-row", "items-center", "space-x-1.5", "")}
     >
       {#each buttonDefinitions[buttonDefinitionKey] as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition }}
         <BaseButtonIcon
@@ -51,7 +51,6 @@
           {tooltipText}
           {tooltipXPosition}
           {tooltipYPosition}
-          appendClassButton={"p-0"}
           colorCategoryBg={colorSettings.gridFunctionButton}
           colorCategoryFront={colorSettings.gridFunctionButton}
           on:click={onClickEventFunction}

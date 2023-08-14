@@ -20,8 +20,9 @@
   {titleCategoryLabelTextForFullScreen}
   {titleText}
 >
-  <QuickSearch bind:quickSearchText {gridOptions} />
+  <QuickSearch slot="quickSearch" bind:quickSearchText {gridOptions} />
   <FunctionButtons
+    slot="buttons"
     bind:quickSearchText
     {gridOptions}
     {rows}
