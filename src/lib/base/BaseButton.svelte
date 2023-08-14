@@ -186,12 +186,12 @@
       if (hoverEffect && !disabled) {
         if (themeColor === "dark") {
           popup = classNames(
-            "transition",
-            "ease-in-out",
+            // "transition",
+            // "ease-in-out",
             // "delay-150",
             // "hover:-translate-y-1",
-            "hover:scale-105",
-            "duration-150",
+            // "hover:scale-105",
+            // "duration-150",
             "active:top-px"
           );
         } else {
