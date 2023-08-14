@@ -13,6 +13,8 @@
 
   import classNames from "classnames";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { baseTextSizes } from "./baseSizes";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   export let text: BaseTooltipProps["text"];
   export let xPosition: BaseTooltipProps["xPosition"] = "right";
   export let yPosition: BaseTooltipProps["yPosition"] = "top";
@@ -24,11 +26,12 @@
     "rounded-md",
     colorDefinitions[themeColor][colorSettings.tooltip].bg,
     colorDefinitions[themeColor][colorSettings.tooltip].text,
-    "px-2",
-    "py-1",
+    "px-1",
+    "py-0.5",
     "absolute",
     xPosition === "left" ? "right-full" : "left-full",
     yPosition === "top" ? "bottom-full" : "top-full",
+    baseTextSizes[sizeSettings.tooltip],
     "z-10",
     "opacity-0",
     "group-hover:opacity-100",

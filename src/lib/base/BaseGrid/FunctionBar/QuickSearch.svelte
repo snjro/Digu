@@ -6,6 +6,7 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { GridOptions } from "ag-grid-community";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import classNames from "classnames";
 
   export let gridOptions: GridOptions;
   export let quickSearchText: string;
@@ -15,32 +16,34 @@
   const size: BaseSize = sizeSettings.gridFunctionQuickSearch;
 </script>
 
-<BaseInput
-  placeholder="Quick search..."
-  type="text"
-  {size}
-  bind:value={quickSearchText}
-  colorCategory={colorSettings.gridFunctionInput}
-  colorCategoryBorder={colorSettings.gridFunctionInputBorder}
->
-  <BaseIcon
-    slot="prefixIcon"
-    name="magnify"
+<div class={classNames("max-w-2xl", "min-w-fit", "w-full")}>
+  <BaseInput
+    placeholder="Quick search..."
+    type="text"
     {size}
-    hoverEffect={false}
+    bind:value={quickSearchText}
     colorCategory={colorSettings.gridFunctionInput}
-  />
-  <BaseButtonIcon
-    slot="suffixIcon"
-    size={changeSize(size, -1)}
-    tooltipText="clear"
-    tooltipXPosition="right"
-    tooltipYPosition="bottom"
-    iconName="close"
-    colorCategoryBg={colorSettings.gridFunctionButton}
-    colorCategoryFront={colorSettings.gridFunctionButton}
-    on:click={() => {
-      quickSearchText = "";
-    }}
-  />
-</BaseInput>
+    colorCategoryBorder={colorSettings.gridFunctionInputBorder}
+  >
+    <BaseIcon
+      slot="prefixIcon"
+      name="magnify"
+      {size}
+      hoverEffect={false}
+      colorCategory={colorSettings.gridFunctionInput}
+    />
+    <BaseButtonIcon
+      slot="suffixIcon"
+      size={changeSize(size, -1)}
+      tooltipText="clear"
+      tooltipXPosition="right"
+      tooltipYPosition="bottom"
+      iconName="close"
+      colorCategoryBg={colorSettings.gridFunctionButton}
+      colorCategoryFront={colorSettings.gridFunctionButton}
+      on:click={() => {
+        quickSearchText = "";
+      }}
+    />
+  </BaseInput>
+</div>

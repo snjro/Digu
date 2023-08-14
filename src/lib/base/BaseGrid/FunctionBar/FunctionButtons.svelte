@@ -119,4 +119,4 @@
 </script>
 
 <DialogExportCsv {gridOptions} bind:dialogElement {exportFilePrefix} />
-<CommonFunctionButtons {buttonDefinitions} />
+<CommonFunctionButtons {buttonDefinitions} {isFullScreen} />

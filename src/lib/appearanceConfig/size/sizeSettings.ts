@@ -31,7 +31,8 @@ type SizeSettings = Record<
   | "itemTitle"
   | "dialogHeader"
   | "dialogBodyContent"
-  | "dialogFooter",
+  | "dialogFooter"
+  | "tooltip",
   BaseSize
 >;
 const sizeLeftSizebar: BaseSize = "lg";
@@ -40,6 +41,7 @@ const sizeBreadcrumb: BaseSize = "xs";
 const sizeGrid: BaseSize = "md";
 const sizeContent: BaseSize = "md";
 const sizeDialog: BaseSize = "md";
+const sizeTooltip: BaseSize = "sm";
 export const sizeSettings: SizeSettings = {
   // leftSidebar
   leftSidebarLogo: changeSize(sizeLeftSizebar, 2),
@@ -62,11 +64,11 @@ export const sizeSettings: SizeSettings = {
   breadcrumb: changeSize(sizeBreadcrumb, 0),
   // grid
   grid: changeSize(sizeGrid, -1),
-  gridFunctionButton: changeSize(sizeGrid, 2),
+  gridFunctionButton: changeSize(sizeGrid, 0),
   gridFunctionQuickSearch: changeSize(sizeGrid, 0),
   // content
   title: changeSize(sizeContent, 3),
-  itemGroup: changeSize(sizeContent, 2),
+  itemGroup: changeSize(sizeContent, 1),
   itemMember: changeSize(sizeContent, 0),
   itemMemberTable: changeSize(sizeContent, -1),
   itemWarnningMessage: changeSize(sizeContent, -1),
@@ -78,4 +80,6 @@ export const sizeSettings: SizeSettings = {
   dialogHeader: changeSize(sizeDialog, 1),
   dialogBodyContent: changeSize(sizeDialog, -1),
   dialogFooter: changeSize(sizeDialog, -1),
+  // tooltip
+  tooltip: changeSize(sizeTooltip, 0),
 };

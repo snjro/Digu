@@ -12,25 +12,24 @@
 
   let titleCategorySize: BaseSize;
   let titleTextSize: BaseSize;
-  let flexStyle: string;
   let titleTextColorCategory: ColorCategory;
 
   $: {
     if (isFullScreen) {
       titleCategorySize = changeSize(sizeSettings.title, -5);
       titleTextSize = changeSize(sizeSettings.title, -4);
-      flexStyle = classNames("flex-col", "justify-start");
       titleTextColorCategory = colorSettings.titleTextFullScreen;
     } else {
       titleCategorySize = changeSize(sizeSettings.title, -2);
       titleTextSize = sizeSettings.title;
-      flexStyle = classNames("flex-row", "items-center", "space-x-1");
       titleTextColorCategory = colorSettings.titleTextNormal;
     }
   }
 </script>
 
-<div class={classNames("flex", "w-full", flexStyle)}>
+<div
+  class={classNames("flex", "w-full", "flex-row", "items-center", "space-x-1")}
+>
   <BaseLabel
     text={titleCategoryLabelText}
     textSize={titleCategorySize}
@@ -39,12 +38,12 @@
     appendClass={classNames(
       "rounded",
       "px-1",
-      "py-0"
+      "py-0.5"
       // "text-shadow-white"
     )}
     fontWeight="font-black"
   />
-  <div class={classNames("overflow-x-auto", "w-full")}>
+  <div class={classNames("overflow-x-hidden", "w-fit")}>
     <BaseLabel
       text={titleText}
       textSize={titleTextSize}
@@ -53,6 +52,7 @@
       appendClass={classNames("pl-1")}
       fontWeight="font-black"
       truncate
+      fontMono
     />
   </div>
 </div>

@@ -4,11 +4,9 @@
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import classNames from "classnames";
-  import { buttonHeight, type BaseSize } from "./baseSizes";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
 
-  export let size: BaseSize;
   export let colorCategory: ColorCategory;
   export let hidden: boolean = false;
   let themeColor: ThemeColor;
@@ -18,9 +16,9 @@
 <div
   {hidden}
   class={classNames(
-    buttonHeight[size],
-    "w-0",
-    "border-r",
+    "h-[1px]",
+    "w-full",
+    "border-t",
     colorDefinitions[themeColor][colorCategory].border
   )}
 />

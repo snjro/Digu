@@ -9,6 +9,8 @@
 </script>
 
 <script lang="ts" generics="ButtonGroupKey extends string">
+  import { storeUserSettings } from "@stores/storeUserSettings";
+
   import BaseDividerVertical from "$lib/base/BaseDividerVertical.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
@@ -17,17 +19,30 @@
   import type { BaseTooltipProps } from "$lib/base/BaseTooltip.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import classNames from "classnames";
+  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
+  import { breakPointWidths } from "@utils/utilsDom";
+  import CommonThreeDotsButton from "../CommonThreeDotsButton.svelte";
 
   type ButtonDefinitions = Record<
     ButtonGroupKey,
     CommonFunctionButtonDefinition[]
   >;
   export let buttonDefinitions: ButtonDefinitions;
+  export let isFullScreen: boolean;
+  export let responsive: boolean = true;
+
   const buttonSize: BaseSize = sizeSettings.gridFunctionButton;
 
   const buttonDefinitionKeys = Object.keys(
     buttonDefinitions
   ) as ButtonGroupKey[];
+
+  $: showThreeDotsButton =
+    responsive &&
+    ($storeNoDbCurrentWidth <= breakPointWidths.sm ||
+      ($storeNoDbCurrentWidth <= breakPointWidths.lg &&
+        $storeUserSettings.isOpenSidebar &&
+        !isFullScreen));
 </script>
 
 <div
@@ -36,32 +51,45 @@
     "flex",
     "flex-row",
     "items-center",
-    "space-x-3",
+    "space-x-2",
     ""
   )}
 >
-  {#each buttonDefinitionKeys as buttonDefinitionKey, buttonDefinitionIndex}
-    <div
-      class={classNames("flex", "flex-row", "items-center", "space-x-2", "")}
-    >
-      {#each buttonDefinitions[buttonDefinitionKey] as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition }}
-        <BaseButtonIcon
-          size={buttonSize}
-          {iconName}
-          {tooltipText}
-          {tooltipXPosition}
-          {tooltipYPosition}
-          appendClassButton={"p-0"}
-          colorCategoryBg={colorSettings.gridFunctionButton}
-          colorCategoryFront={colorSettings.gridFunctionButton}
-          on:click={onClickEventFunction}
-        />
-      {/each}
-    </div>
-    <BaseDividerVertical
+  {#if showThreeDotsButton}
+    <CommonThreeDotsButton
       size={buttonSize}
-      colorCategoryBg={colorSettings.gridFunctionButton}
-      hidden={buttonDefinitionIndex >= buttonDefinitionKeys.length - 1}
+      {buttonDefinitions}
+      colorCategory={colorSettings.gridFunctionButton}
     />
-  {/each}
+  {:else}
+    {#each buttonDefinitionKeys as buttonDefinitionKey, buttonDefinitionIndex}
+      <div
+        class={classNames(
+          "flex",
+          "flex-row",
+          "items-center",
+          "space-x-1.5",
+          ""
+        )}
+      >
+        {#each buttonDefinitions[buttonDefinitionKey] as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition }}
+          <BaseButtonIcon
+            size={buttonSize}
+            {iconName}
+            {tooltipText}
+            {tooltipXPosition}
+            {tooltipYPosition}
+            colorCategoryBg={colorSettings.gridFunctionButton}
+            colorCategoryFront={colorSettings.gridFunctionButton}
+            on:click={onClickEventFunction}
+          />
+        {/each}
+      </div>
+      <BaseDividerVertical
+        size={buttonSize}
+        colorCategory={colorSettings.gridFunctionButton}
+        hidden={buttonDefinitionIndex >= buttonDefinitionKeys.length - 1}
+      />
+    {/each}
+  {/if}
 </div>

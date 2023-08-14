@@ -29,15 +29,38 @@
     "space-x-5",
     colorDefinitions[themeColor][colorSettings.gridHeader].bg,
     isFullScreen ? "px-3" : "px-0.5",
-    isFullScreen ? "py-3" : "pb-3"
+    isFullScreen ? "py-1" : "pb-1"
   )}
 >
-  {#if isFullScreen}
-    <BasePageContainerTitle
-      {titleText}
-      titleCategoryLabelText={titleCategoryLabelTextForFullScreen}
-      isFullScreen
-    />
-  {/if}
-  <slot />
+  <div
+    class={classNames(
+      "w-full",
+      "flex",
+      "flex-col",
+      "justify-start",
+      "space-y-1"
+    )}
+  >
+    {#if isFullScreen}
+      <BasePageContainerTitle
+        {titleText}
+        titleCategoryLabelText={titleCategoryLabelTextForFullScreen}
+        isFullScreen
+      />
+    {/if}
+
+    <div
+      class={classNames(
+        "w-full",
+        "flex",
+        "flex-row",
+        "items-center",
+        $$slots.quickSearch ? "justify-between" : "justify-end",
+        "space-x-3"
+      )}
+    >
+      <slot name="quickSearch" />
+      <slot name="buttons" />
+    </div>
+  </div>
 </div>
