@@ -44,7 +44,6 @@
     colorCategoryFront={colorCategory}
     on:click={toggleShowChildren}
   />
-  <!-- {#if openList} -->
   <div
     class={classNames(
       "absolute",
@@ -90,5 +89,4 @@
       />
     {/each}
   </div>
-  <!-- {/if} -->
 </div>
