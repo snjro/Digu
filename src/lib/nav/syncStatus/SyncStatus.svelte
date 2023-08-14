@@ -4,7 +4,7 @@
   import SyncStatusToggle from "./SyncStatusToggle.svelte";
 </script>
 
-<div class={classNames("flex", "flex-col", "max-w-xs", "w-40", "space-y-1")}>
+<div class={classNames("flex", "flex-col", "max-w-[140px]", "w-full")}>
   <SyncStatusToggle />
   <SyncStatusProgressbar />
 </div>
