@@ -54,6 +54,7 @@
         "w-full",
         "flex",
         "flex-row",
+        "items-center",
         $$slots.quickSearch ? "justify-between" : "justify-end",
         "space-x-3"
       )}
