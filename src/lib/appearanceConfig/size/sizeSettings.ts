@@ -71,13 +71,13 @@ export const sizeSettings: SizeSettings = {
   // content
   title: changeSize(sizeContent, 3),
   itemGroup: changeSize(sizeContent, 1),
-  itemMember: changeSize(sizeContent, 0),
+  itemTitle: changeSize(sizeContent, 0),
+  itemMember: changeSize(sizeContent, -1),
   itemMemberTable: changeSize(sizeContent, -1),
   itemWarnningMessage: changeSize(sizeContent, -1),
   itemViewAllButton: changeSize(sizeContent, -1),
   abiParamsTable: changeSize(sizeContent, -1),
   tab: changeSize(sizeContent, -1),
-  itemTitle: changeSize(sizeContent, 1),
   // dialog
   dialogHeader: changeSize(sizeDialog, 1),
   dialogBodyContent: changeSize(sizeDialog, -1),

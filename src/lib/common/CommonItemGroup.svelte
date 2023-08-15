@@ -55,7 +55,7 @@
     class={classNames(
       "py-3",
       "px-3",
-      "space-y-3",
+      "space-y-2.5",
       "w-full",
       "h-full",
       "flex",
