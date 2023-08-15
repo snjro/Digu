@@ -189,8 +189,7 @@
       "items-center",
       "disabled:cursor-not-allowed",
       "disabled:opacity-50",
-      "w-fit",
-      // "h-fit",
+      label ? "w-fit" : baseTextHeight[size].replace("h-", "w-"),
       baseTextHeight[size],
       "cursor-pointer",
       justifyPositions[justify],
@@ -208,7 +207,7 @@
       shadowColor(),
       shadowEffect && "active:border-none",
       // !shadowEffect && "top-[2px]",
-      "truncate",
+      label && "truncate",
       popupEffect && "active:translate-y-px",
       appendClass
     );
