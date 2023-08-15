@@ -59,60 +59,60 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     scrollbarCorner: "scrollbar-corner-blue-300",
   },
   primary: {
-    text: "text-zinc-600", //leftsidebar(header/footer) text
-    textOpacity: "text-zinc-600/50", //leftsidebar(header/footer) text
-    textHover: "hover:text-zinc-700",
-    textEmphasis: "text-zinc-700",
-    fill: "fill-zinc-600", //leftsidebar(header/footer) icon
-    fillOpacity: "fill-zinc-600/50", //leftsidebar(header/footer) icon
-    fillEmphasis: "fill-zinc-700", //leftsidebar(header/footer) icon
-    fillHover: "hover:fill-zinc-700", //leftsidebar(header/footer) icon
-    bg: "bg-zinc-100",
-    bgOpacity: "bg-zinc-100/50",
-    bgEmphasis: "bg-zinc-200",
-    bgHover: "hover:bg-zinc-200",
-    shadow: "shadow-zinc-600", //leftsidebar/Nav(Body/Buttons) shadow
-    border: "border-zinc-300", //breadcrumb border,
-    scrollbarThumb: "scrollbar-thumb-zinc-300",
-    scrollbarTrack: "scrollbar-track-zinc-100",
-    scrollbarCorner: "scrollbar-corner-zinc-100",
+    text: "text-stone-600", //leftsidebar(header/footer) text
+    textOpacity: "text-stone-600/50", //leftsidebar(header/footer) text
+    textHover: "hover:text-stone-700",
+    textEmphasis: "text-stone-700",
+    fill: "fill-stone-600", //leftsidebar(header/footer) icon
+    fillOpacity: "fill-stone-600/50", //leftsidebar(header/footer) icon
+    fillEmphasis: "fill-stone-700", //leftsidebar(header/footer) icon
+    fillHover: "hover:fill-stone-700", //leftsidebar(header/footer) icon
+    bg: "bg-stone-100",
+    bgOpacity: "bg-stone-100/50",
+    bgEmphasis: "bg-stone-200",
+    bgHover: "hover:bg-stone-200",
+    shadow: "shadow-stone-600", //leftsidebar/Nav(Body/Buttons) shadow
+    border: "border-stone-300", //breadcrumb border,
+    scrollbarThumb: "scrollbar-thumb-stone-300",
+    scrollbarTrack: "scrollbar-track-stone-100",
+    scrollbarCorner: "scrollbar-corner-stone-100",
   },
   secondary: {
-    text: "text-zinc-600", //leftsidebar(header/footer) text
-    textOpacity: "text-zinc-600/50", //leftsidebar(header/footer) text
-    textHover: "hover:text-zinc-900",
-    textEmphasis: "text-zinc-900",
-    fill: "fill-zinc-600", //leftsidebar(header/footer) icon
-    fillOpacity: "fill-zinc-600/50", //leftsidebar(header/footer) icon
-    fillEmphasis: "fill-zinc-900", //leftsidebar(header/footer) icon
-    fillHover: "hover:fill-zinc-900", //leftsidebar(header/footer) icon
-    bg: "bg-zinc-300",
-    bgOpacity: "bg-zinc-300/50",
-    bgEmphasis: "bg-zinc-200",
-    bgHover: "hover:bg-zinc-200",
-    shadow: "shadow-zinc-800", //leftsidebar/Nav(Body/Buttons) shadow
-    border: "border-zinc-400", //breadcrumb border
-    scrollbarThumb: "scrollbar-thumb-zinc-400",
-    scrollbarTrack: "scrollbar-track-zinc-600",
-    scrollbarCorner: "scrollbar-corner-zinc-600",
+    text: "text-stone-600", //leftsidebar(header/footer) text
+    textOpacity: "text-stone-600/50", //leftsidebar(header/footer) text
+    textHover: "hover:text-stone-900",
+    textEmphasis: "text-stone-900",
+    fill: "fill-stone-600", //leftsidebar(header/footer) icon
+    fillOpacity: "fill-stone-600/50", //leftsidebar(header/footer) icon
+    fillEmphasis: "fill-stone-900", //leftsidebar(header/footer) icon
+    fillHover: "hover:fill-stone-900", //leftsidebar(header/footer) icon
+    bg: "bg-stone-300",
+    bgOpacity: "bg-stone-300/50",
+    bgEmphasis: "bg-stone-200",
+    bgHover: "hover:bg-stone-200",
+    shadow: "shadow-stone-800", //leftsidebar/Nav(Body/Buttons) shadow
+    border: "border-stone-400", //breadcrumb border
+    scrollbarThumb: "scrollbar-thumb-stone-400",
+    scrollbarTrack: "scrollbar-track-stone-600",
+    scrollbarCorner: "scrollbar-corner-stone-600",
   },
   white: {
-    text: "text-zinc-50",
-    textOpacity: "text-zinc-50/50",
-    textHover: "hover:text-zinc-50",
-    textEmphasis: "text-zinc-50",
-    fill: "fill-zinc-50",
-    fillOpacity: "fill-zinc-50/50",
-    fillEmphasis: "fill-zinc-50",
-    fillHover: "hover:fill-zinc-50",
-    bg: "bg-zinc-50",
-    bgOpacity: "bg-zinc-50/50",
-    bgEmphasis: "bg-zinc-50",
-    bgHover: "hover:bg-zinc-50",
-    shadow: "shadow-zinc-50",
-    border: "border-zinc-50",
-    scrollbarThumb: "scrollbar-thumb-zinc-50",
-    scrollbarTrack: "scrollbar-track-zinc-50",
-    scrollbarCorner: "scrollbar-corner-zinc-50",
+    text: "text-stone-50",
+    textOpacity: "text-stone-50/50",
+    textHover: "hover:text-stone-50",
+    textEmphasis: "text-stone-50",
+    fill: "fill-stone-50",
+    fillOpacity: "fill-stone-50/50",
+    fillEmphasis: "fill-stone-50",
+    fillHover: "hover:fill-stone-50",
+    bg: "bg-stone-50",
+    bgOpacity: "bg-stone-50/50",
+    bgEmphasis: "bg-stone-50",
+    bgHover: "hover:bg-stone-50",
+    shadow: "shadow-stone-50",
+    border: "border-stone-50",
+    scrollbarThumb: "scrollbar-thumb-stone-50",
+    scrollbarTrack: "scrollbar-track-stone-50",
+    scrollbarCorner: "scrollbar-corner-stone-50",
   },
 };
