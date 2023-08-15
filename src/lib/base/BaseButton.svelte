@@ -238,8 +238,6 @@
         <BaseButtonContent
           {label}
           {size}
-          {hoverEffect}
-          {isHover}
           {underlineLabel}
           {designatedFontWeight}
         >
@@ -248,14 +246,7 @@
         </BaseButtonContent>
       </a>
     {:else}
-      <BaseButtonContent
-        {label}
-        {size}
-        {hoverEffect}
-        {isHover}
-        {underlineLabel}
-        {designatedFontWeight}
-      >
+      <BaseButtonContent {label} {size} {underlineLabel} {designatedFontWeight}>
         <slot slot="prefixIcon" name="prefixIcon" />
         <slot slot="suffixIcon" name="suffixIcon" />
       </BaseButtonContent>
