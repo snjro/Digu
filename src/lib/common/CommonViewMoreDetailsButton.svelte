@@ -8,7 +8,8 @@
 <BaseButton
   {size}
   {href}
-  colorCategoryFront="interactive"
+  colorCategoryFront="white"
+  colorCategoryBg="interactive"
   label="View more details"
   openNewTab={false}
   appendClass={buttonHeight[size]}
