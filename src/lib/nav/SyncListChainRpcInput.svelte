@@ -91,7 +91,7 @@
     {truncate}
     disabled={$storeSyncStatus[targetChainName].isSyncing}
     helperTextState={helperTextState()}
-    placeholder="Enter URL of RPC"
+    placeholder="http://localhost:8545"
     on:focus={focusRpc}
     on:blur={blurRpc}
   >
