@@ -1,5 +1,4 @@
 import type { ColorDefinitionCategories } from "./colorDefinitions";
-import { colorDefinitionsLight } from "./colorDefinitionsLight";
 
 export const colorDefinitionsDark: ColorDefinitionCategories = {
   success: {
