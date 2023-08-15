@@ -1,3 +1,16 @@
+<script lang="ts" context="module">
+  export const fullScreenSimplifiedButtonDefinition = (
+    isFullScreen: boolean
+  ): Omit<SimplifiedButtonDefinition, "onClickEventFunction"> => {
+    return {
+      iconName: isFullScreen ? "fullScreenExit" : "fullScreen",
+      tooltipText: isFullScreen ? "Exit" : "Full screen",
+      tooltipXPosition: "left",
+      tooltipYPosition: isFullScreen ? "bottom" : "top",
+    };
+  };
+</script>
+
 <script lang="ts" generics="GridRow">
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
@@ -19,7 +32,13 @@
   export let isFullScreen: boolean;
   export let quickSearchText: string;
   export let exportFilePrefix: ExportFilePrefix;
-  let buttonDefinitions: Record<string, SimplifiedButtonDefinition[]>;
+
+  let buttonDefinitions: {
+    groupColumnHandler: SimplifiedButtonDefinition[];
+    columnWidthHandler: SimplifiedButtonDefinition[];
+    reset: SimplifiedButtonDefinition[];
+    fullScreen: SimplifiedButtonDefinition[];
+  };
   $: buttonDefinitions = {
     groupColumnHandler: [
       {
@@ -37,7 +56,7 @@
         tooltipYPosition: isFullScreen ? "bottom" : "top",
         onClickEventFunction: () =>
           setAllColumnGroupState(gridOptions.columnApi!, false),
-      } as SimplifiedButtonDefinition,
+      },
     ],
     columnWidthHandler: [
       {
@@ -46,14 +65,14 @@
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
         onClickEventFunction: () => gridOptions.api!.sizeColumnsToFit(),
-      } as SimplifiedButtonDefinition,
+      },
       {
         iconName: "tableColumnWidth",
         tooltipText: "Auto fit columns",
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
         onClickEventFunction: () => setAutoColumnWidth(gridOptions.columnApi!),
-      } as SimplifiedButtonDefinition,
+      },
     ],
     reset: [
       {
@@ -62,14 +81,14 @@
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
         onClickEventFunction: resetAllFilters,
-      } as SimplifiedButtonDefinition,
+      },
       {
         iconName: "refresh",
         tooltipText: "Reload",
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
         onClickEventFunction: reload,
-      } as SimplifiedButtonDefinition,
+      },
       {
         iconName: "download",
         tooltipText: "Export as CSV",
@@ -78,18 +97,15 @@
         onClickEventFunction: () => {
           openDialogExportCsv(dialogElement);
         },
-      } as SimplifiedButtonDefinition,
+      },
     ],
     fullScreen: [
       {
-        iconName: isFullScreen ? "fullScreenExit" : "fullScreen",
-        tooltipText: isFullScreen ? "Exit full screen" : "Full screen",
-        tooltipXPosition: "left",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
+        ...fullScreenSimplifiedButtonDefinition(isFullScreen),
         onClickEventFunction: () => {
           isFullScreen = !isFullScreen;
         },
-      } as SimplifiedButtonDefinition,
+      },
     ],
   };
   function resetAllFilters(): void {
