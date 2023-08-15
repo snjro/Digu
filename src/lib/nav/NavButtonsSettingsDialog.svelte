@@ -27,11 +27,11 @@
   on:close={closeDialog}
 >
   <div class={classNames(gridMain, "w-full", "h-full", "")} slot="dialogBody">
-    <CommonItemGroup text="Chain Explorer" gridTrack={gridTrackRpc}>
-      <ChainExplorer />
-    </CommonItemGroup>
     <CommonItemGroup text="RPC configuration" gridTrack={gridTrackRpc}>
       <RpcConfig {initializeValue} />
+    </CommonItemGroup>
+    <CommonItemGroup text="Chain Explorer" gridTrack={gridTrackRpc}>
+      <ChainExplorer />
     </CommonItemGroup>
   </div>
 </BaseDialog>
