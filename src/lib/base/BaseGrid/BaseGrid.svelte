@@ -37,7 +37,7 @@
   let isFullScreen = false;
 </script>
 
-<BasePageFullScreenContainer {hidden} {isFullScreen}>
+<BasePageFullScreenContainer {hidden} bind:isFullScreen>
   <FunctionBar
     {gridOptions}
     {rows}

@@ -8,6 +8,12 @@
   export let isFullScreen: boolean = false;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+
+  document.addEventListener("keydown", (event: KeyboardEvent) => {
+    if (isFullScreen && event.key == "Escape") {
+      isFullScreen = false;
+    }
+  });
 </script>
 
 <div
