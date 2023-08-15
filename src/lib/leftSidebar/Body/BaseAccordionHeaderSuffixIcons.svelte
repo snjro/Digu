@@ -41,6 +41,7 @@
     <div class={classNames("flex", "flex-row")}>
       {#each suffixIcons as suffixIcon}
         <BaseIcon
+          {isHover}
           name={suffixIcon.name}
           size={suffixIcon.size}
           colorCategory={frontColorCategory}
