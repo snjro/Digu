@@ -19,7 +19,9 @@
   let initializeValue: boolean = false;
   let dialogElement: HTMLDialogElement;
 
-  let buttonDefinitions: Record<string, SimplifiedButtonDefinition[]>;
+  let buttonDefinitions: {
+    basics: SimplifiedButtonDefinition[];
+  };
   $: buttonDefinitions = {
     basics: [
       {
@@ -31,7 +33,7 @@
           openDialog(dialogElement);
           initializeValue = true;
         },
-      } as SimplifiedButtonDefinition,
+      },
       {
         iconName:
           currentThemeColor === "dark" ? "lightbulbOnOutline" : "weatherNight",
@@ -41,7 +43,7 @@
         onClickEventFunction: async () => {
           await updateDbItemUserSettings("themeColor", newThemeColor);
         },
-      } as SimplifiedButtonDefinition,
+      },
     ],
   };
 </script>

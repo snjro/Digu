@@ -55,7 +55,7 @@
   let isFullScreen: boolean = false;
 </script>
 
-<BasePageFullScreenContainer {hidden} {isFullScreen}>
+<BasePageFullScreenContainer {hidden} bind:isFullScreen>
   <AbiJsonViewerFunctionBar
     bind:isExpanded
     bind:isFullScreen

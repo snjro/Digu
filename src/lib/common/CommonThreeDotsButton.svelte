@@ -53,9 +53,29 @@
         return "top-12";
     }
   };
+
+  let thisElement: HTMLElement;
+
+  //hide children when `Esc` is pressed.
+  document.addEventListener("keydown", (event: KeyboardEvent) => {
+    if (showChildren && event.key === "Escape") {
+      toggleShowChildren();
+    }
+  });
+  //hide children when clicked outside of this component
+  document.addEventListener("click", (event: MouseEvent) => {
+    if (
+      showChildren &&
+      thisElement &&
+      thisElement.contains(event.target as Node) === false
+    ) {
+      toggleShowChildren();
+    }
+  });
 </script>
 
 <div
+  bind:this={thisElement}
   class={classNames("flex", "flex-col", "items-end", "space-y-0.5", "relative")}
 >
   <BaseButtonIcon
