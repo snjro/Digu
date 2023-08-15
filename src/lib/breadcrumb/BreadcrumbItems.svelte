@@ -12,7 +12,11 @@
   export let currentIndex: number;
   export let lastIndex: number;
 
-  const textSize: BaseSize = sizeSettings.breadcrumb;
+  const targetSize = (): BaseSize => {
+    return currentIndex === 0
+      ? changeSize(sizeSettings.breadcrumb, 1)
+      : sizeSettings.breadcrumb;
+  };
   const prefixIcon = (
     prefixIconName: CrumbItem["prefixIconName"],
     isLabel: boolean
@@ -20,7 +24,7 @@
     if (prefixIconName) {
       return {
         name: prefixIconName,
-        size: textSize,
+        size: targetSize(),
         colorCategory: isLabel ? colorSettings.main : "interactive",
       };
     } else {
@@ -30,16 +34,18 @@
 </script>
 
 {#if currentIndex === lastIndex}
-  <BaseLabel
-    text={targetCrumbItem.text}
-    {textSize}
-    truncate
-    prefixIcon={prefixIcon(targetCrumbItem.prefixIconName, true)}
-  />
+  {#if targetCrumbItem.text}
+    <BaseLabel
+      text={targetCrumbItem.text}
+      textSize={targetSize()}
+      truncate
+      prefixIcon={prefixIcon(targetCrumbItem.prefixIconName, true)}
+    />
+  {/if}
 {:else}
   {#if currentIndex === 0 && targetCrumbItem.prefixIconName}
     <BaseButtonIcon
-      size={currentIndex === 0 ? changeSize(textSize, 1) : textSize}
+      size={targetSize()}
       iconName={targetCrumbItem.prefixIconName}
       colorCategoryBg={colorSettings.main}
       colorCategoryFront={"interactive"}
@@ -50,7 +56,7 @@
   {:else}
     <BaseA
       text={targetCrumbItem.text}
-      {textSize}
+      textSize={targetSize()}
       prefixIcon={prefixIcon(targetCrumbItem.prefixIconName, false)}
       href={targetCrumbItem.href}
       openNewTab={false}

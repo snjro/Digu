@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
   export type CrumbItem = {
     href: string;
-    text: string;
+    text: string | undefined;
     prefixIconName: BaseIconProps["name"] | undefined;
   };
 </script>
@@ -10,7 +10,6 @@
   import { page } from "$app/stores";
   import classNames from "classnames";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { directoryItems } from "$lib/leftSidebar/Body/directoryDefinitions";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import { convertToKebabCase } from "@utils/utilsCommon";
   import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
@@ -27,9 +26,8 @@
     let crumbItems: CrumbItem[] = [];
     let href: CrumbItem["href"] = `/${targetChainName}`;
     //
-    let text: CrumbItem["text"] = directoryItems.home.label;
-    let prefixIconName: CrumbItem["prefixIconName"] =
-      directoryItems.home.iconName;
+    let text: CrumbItem["text"] = undefined;
+    let prefixIconName: CrumbItem["prefixIconName"] = "home";
     crumbItems.push({ href: href, text: text, prefixIconName: prefixIconName });
     const pathNames: string[] = $page.url.pathname.split("/");
     for (
@@ -92,12 +90,7 @@
     return currentPathName + urlHash;
   }
   function convertUrlTextToLabelText(path: string): string {
-    if (path in directoryItems) {
-      return directoryItems[path].label;
-    } else {
-      // return capitalizeFirstLetter(path.replaceAll("-", " "));
-      return path.replaceAll("-", " ");
-    }
+    return path.replaceAll("-", " ");
   }
 </script>
 
