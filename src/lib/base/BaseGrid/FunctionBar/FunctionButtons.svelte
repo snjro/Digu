@@ -1,8 +1,22 @@
+<script lang="ts" context="module">
+  export const fullScreenSimplifiedButtonDefinition = (
+    isFullScreen: boolean
+  ): Omit<SimplifiedButtonDefinition, "onClickEventFunction"> => {
+    return {
+      iconName: isFullScreen ? "fullScreenExit" : "fullScreen",
+      tooltipText: isFullScreen ? "Exit" : "Full screen",
+      tooltipXPosition: "left",
+      tooltipYPosition: isFullScreen ? "bottom" : "top",
+    };
+  };
+</script>
+
 <script lang="ts" generics="GridRow">
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
   import type { ExportFilePrefix } from "@utils/utilsFile";
-  import CommonFunctionButtons, {
-    type CommonFunctionButtonDefinition,
-  } from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
+  import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
   import type { GridOptions } from "ag-grid-community";
   // import classNames from "classnames";
   import {
@@ -18,77 +32,80 @@
   export let isFullScreen: boolean;
   export let quickSearchText: string;
   export let exportFilePrefix: ExportFilePrefix;
+
+  let buttonDefinitions: {
+    groupColumnHandler: SimplifiedButtonDefinition[];
+    columnWidthHandler: SimplifiedButtonDefinition[];
+    reset: SimplifiedButtonDefinition[];
+    fullScreen: SimplifiedButtonDefinition[];
+  };
   $: buttonDefinitions = {
     groupColumnHandler: [
       {
         iconName: "arrowExpandHorizontal",
         tooltipText: "Show all columns",
-        onClickEventFunction: () =>
-          setAllColumnGroupState(gridOptions.columnApi!, true),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+        onClickEventFunction: () =>
+          setAllColumnGroupState(gridOptions.columnApi!, true),
+      } as SimplifiedButtonDefinition,
       {
         iconName: "arrowCollapseHorizontal",
         tooltipText: "Hide minor columns",
-        onClickEventFunction: () =>
-          setAllColumnGroupState(gridOptions.columnApi!, false),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+        onClickEventFunction: () =>
+          setAllColumnGroupState(gridOptions.columnApi!, false),
+      },
     ],
     columnWidthHandler: [
       {
         iconName: "fitToPageOutline",
         tooltipText: "Fit columns in frame",
-        onClickEventFunction: () => gridOptions.api!.sizeColumnsToFit(),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+        onClickEventFunction: () => gridOptions.api!.sizeColumnsToFit(),
+      },
       {
         iconName: "tableColumnWidth",
         tooltipText: "Auto fit columns",
-        onClickEventFunction: () => setAutoColumnWidth(gridOptions.columnApi!),
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+        onClickEventFunction: () => setAutoColumnWidth(gridOptions.columnApi!),
+      },
     ],
     reset: [
       {
         iconName: "filterRemove",
         tooltipText: "Reset all filters",
-        onClickEventFunction: resetAllFilters,
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+        onClickEventFunction: resetAllFilters,
+      },
       {
         iconName: "refresh",
         tooltipText: "Reload",
-        onClickEventFunction: reload,
         tooltipXPosition: isFullScreen ? "left" : "right",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+        onClickEventFunction: reload,
+      },
       {
         iconName: "download",
         tooltipText: "Export as CSV",
+        tooltipXPosition: "left",
+        tooltipYPosition: isFullScreen ? "bottom" : "top",
         onClickEventFunction: () => {
           openDialogExportCsv(dialogElement);
         },
-
-        tooltipXPosition: "left",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+      },
     ],
     fullScreen: [
       {
-        iconName: isFullScreen ? "fullScreenExit" : "fullScreen",
-        tooltipText: isFullScreen ? "Exit full screen" : "Full screen",
+        ...fullScreenSimplifiedButtonDefinition(isFullScreen),
         onClickEventFunction: () => {
           isFullScreen = !isFullScreen;
         },
-        tooltipXPosition: "left",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
-      } as CommonFunctionButtonDefinition,
+      },
     ],
   };
   function resetAllFilters(): void {
@@ -119,4 +136,8 @@
 </script>
 
 <DialogExportCsv {gridOptions} bind:dialogElement {exportFilePrefix} />
-<CommonFunctionButtons {buttonDefinitions} {isFullScreen} />
+<CommonFunctionButtons
+  {buttonDefinitions}
+  isOpenSidebar={isFullScreen ? false : $storeUserSettings.isOpenSidebar}
+  buttonSize={sizeSettings.gridFunctionButton}
+/>

@@ -1,48 +1,35 @@
-<script lang="ts" context="module">
-  export type CommonFunctionButtonDefinition = {
-    iconName: BaseIconProps["name"];
-    tooltipText: BaseTooltipProps["text"];
-    onClickEventFunction: () => void | Promise<void>;
-    tooltipXPosition: BaseTooltipProps["xPosition"];
-    tooltipYPosition: BaseTooltipProps["yPosition"];
-  };
-</script>
-
 <script lang="ts" generics="ButtonGroupKey extends string">
-  import { storeUserSettings } from "@stores/storeUserSettings";
-
   import BaseDividerVertical from "$lib/base/BaseDividerVertical.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import BaseButtonIcon, {
+    type SimplifiedButtonDefinition,
+  } from "$lib/base/BaseButtonIcon.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
-  import type { BaseTooltipProps } from "$lib/base/BaseTooltip.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import classNames from "classnames";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { breakPointWidths } from "@utils/utilsDom";
   import CommonThreeDotsButton from "../CommonThreeDotsButton.svelte";
 
-  type ButtonDefinitions = Record<
-    ButtonGroupKey,
-    CommonFunctionButtonDefinition[]
-  >;
+  type ButtonDefinitions = Record<ButtonGroupKey, SimplifiedButtonDefinition[]>;
   export let buttonDefinitions: ButtonDefinitions;
-  export let isFullScreen: boolean;
+  export let isOpenSidebar: boolean = false;
   export let responsive: boolean = true;
-
-  const buttonSize: BaseSize = sizeSettings.gridFunctionButton;
+  export let buttonSize: BaseSize;
+  export let listSize: BaseSize = buttonSize;
 
   const buttonDefinitionKeys = Object.keys(
     buttonDefinitions
   ) as ButtonGroupKey[];
 
-  $: showThreeDotsButton =
-    responsive &&
-    ($storeNoDbCurrentWidth <= breakPointWidths.sm ||
-      ($storeNoDbCurrentWidth <= breakPointWidths.lg &&
-        $storeUserSettings.isOpenSidebar &&
-        !isFullScreen));
+  let showThreeDotsButton: () => boolean;
+  $: showThreeDotsButton = (): boolean => {
+    if (!responsive) return false;
+    if ($storeNoDbCurrentWidth <= breakPointWidths.sm) return true;
+    if ($storeNoDbCurrentWidth <= breakPointWidths.lg && isOpenSidebar)
+      return true;
+
+    return false;
+  };
 </script>
 
 <div
@@ -51,26 +38,21 @@
     "flex",
     "flex-row",
     "items-center",
-    "space-x-2",
+    "space-x-3",
     ""
   )}
 >
-  {#if showThreeDotsButton}
+  {#if showThreeDotsButton()}
     <CommonThreeDotsButton
-      size={buttonSize}
+      {buttonSize}
+      {listSize}
       {buttonDefinitions}
       colorCategory={colorSettings.gridFunctionButton}
     />
   {:else}
     {#each buttonDefinitionKeys as buttonDefinitionKey, buttonDefinitionIndex}
       <div
-        class={classNames(
-          "flex",
-          "flex-row",
-          "items-center",
-          "space-x-1.5",
-          ""
-        )}
+        class={classNames("flex", "flex-row", "items-center", "space-x-3", "")}
       >
         {#each buttonDefinitions[buttonDefinitionKey] as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition }}
           <BaseButtonIcon

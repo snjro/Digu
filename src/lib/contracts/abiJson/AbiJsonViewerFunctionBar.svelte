@@ -1,9 +1,10 @@
 <script lang="ts">
   import { page } from "$app/stores";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
+  import { fullScreenSimplifiedButtonDefinition } from "$lib/base/BaseGrid/FunctionBar/FunctionButtons.svelte";
   import CommonFunctionBar from "$lib/common/CommonFunctionBar/CommonFunctionBar.svelte";
-  import CommonFunctionButtons, {
-    type CommonFunctionButtonDefinition,
-  } from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
+  import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
   import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
   export let titleCategoryLabelTextForFullScreen: string;
   export let titleText: string;
@@ -13,37 +14,38 @@
   export let fragment: boolean;
 
   let buttonDefinitions: {
-    textFormatter: CommonFunctionButtonDefinition[];
-    copy: CommonFunctionButtonDefinition[];
-    export: CommonFunctionButtonDefinition[];
-    fullScreen: CommonFunctionButtonDefinition[];
+    textFormatter: SimplifiedButtonDefinition[];
+    copy: SimplifiedButtonDefinition[];
+    export: SimplifiedButtonDefinition[];
+    fullScreen: SimplifiedButtonDefinition[];
   };
   $: buttonDefinitions = {
     textFormatter: [
       {
         iconName: isExpanded ? "arrowCollapseVertical" : "arrowExpandVertical",
         tooltipText: isExpanded ? "Unformatted" : "Formatted",
+        tooltipXPosition: isFullScreen ? "left" : "right",
+        tooltipYPosition: isFullScreen ? "bottom" : "top",
         onClickEventFunction: () => {
           isExpanded = !isExpanded;
         },
-        tooltipXPosition: isFullScreen ? "left" : "right",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
       },
     ],
-
     copy: [
       {
         iconName: "contentCopy",
         tooltipText: "Copy to clipboard",
-        onClickEventFunction: () => navigator.clipboard.writeText(abiText),
         tooltipXPosition: "left",
         tooltipYPosition: isFullScreen ? "bottom" : "top",
+        onClickEventFunction: () => navigator.clipboard.writeText(abiText),
       },
     ],
     export: [
       {
         iconName: "download",
         tooltipText: "Export as JSON",
+        tooltipXPosition: "left",
+        tooltipYPosition: isFullScreen ? "bottom" : "top",
         onClickEventFunction: () =>
           ExportDataToFile(
             abiText,
@@ -54,19 +56,14 @@
             ),
             "json"
           ),
-        tooltipXPosition: "left",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
       },
     ],
     fullScreen: [
       {
-        iconName: isFullScreen ? "fullScreenExit" : "fullScreen",
-        tooltipText: isFullScreen ? "Exit full screen" : "Full screen",
+        ...fullScreenSimplifiedButtonDefinition(isFullScreen),
         onClickEventFunction: () => {
           isFullScreen = !isFullScreen;
         },
-        tooltipXPosition: "left",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
       },
     ],
   };
@@ -80,8 +77,8 @@
 >
   <CommonFunctionButtons
     {buttonDefinitions}
-    {isFullScreen}
     responsive={false}
     slot="buttons"
+    buttonSize={sizeSettings.gridFunctionButton}
   />
 </CommonFunctionBar>

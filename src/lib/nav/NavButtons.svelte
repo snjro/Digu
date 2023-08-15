@@ -1,35 +1,57 @@
 <script lang="ts">
-  import NavButtonsTheme from "./NavButtonsTheme.svelte";
-  import { breakPointWidths } from "@utils/utilsDom";
-  import BaseButton from "$lib/base/BaseButton.svelte";
-  import BaseIcon from "$lib/base/BaseIcon.svelte";
-  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import classNames from "classnames";
-  import NavButtonsSettings from "./NavButtonsSettings.svelte";
-  function onClick() {}
+  import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { capitalizeFirstLetter } from "@utils/utilsCommon";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { updateDbItemUserSettings } from "@db/dbSettingsDataHandlers";
+  import { openDialog } from "$lib/base/BaseDialog/BaseDialog.svelte";
+  import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
+  import NavButtonsSettingsDialog from "./NavButtonsSettingsDialog.svelte";
+  import { changeSize } from "$lib/base/baseSizes";
+
+  let currentThemeColor: ThemeColor;
+  $: currentThemeColor = $storeUserSettings.themeColor;
+
+  let newThemeColor: ThemeColor;
+  $: newThemeColor = currentThemeColor === "dark" ? "light" : "dark";
+
+  let initializeValue: boolean = false;
+  let dialogElement: HTMLDialogElement;
+
+  let buttonDefinitions: Record<string, SimplifiedButtonDefinition[]>;
+  $: buttonDefinitions = {
+    basics: [
+      {
+        iconName: "cogOutline",
+        tooltipText: "Settings",
+        tooltipXPosition: "left",
+        tooltipYPosition: "bottom",
+        onClickEventFunction: () => {
+          openDialog(dialogElement);
+          initializeValue = true;
+        },
+      } as SimplifiedButtonDefinition,
+      {
+        iconName:
+          currentThemeColor === "dark" ? "lightbulbOnOutline" : "weatherNight",
+        tooltipText: `Change theme to ${capitalizeFirstLetter(newThemeColor)}`,
+        tooltipXPosition: "left",
+        tooltipYPosition: "bottom",
+        onClickEventFunction: async () => {
+          await updateDbItemUserSettings("themeColor", newThemeColor);
+        },
+      } as SimplifiedButtonDefinition,
+    ],
+  };
 </script>
 
-<div
-  class={classNames(
-    "flex",
-    "flex-row",
-    "flex-nowrap",
-    "items-center",
-    "space-x-2",
-    ""
-  )}
->
-  {#if $storeNoDbCurrentWidth <= breakPointWidths.sm}
-    <BaseButton type="icon" size={sizeSettings.navButton} on:click={onClick}>
-      <BaseIcon
-        slot="prefixIcon"
-        name="dotsVertical"
-        size={sizeSettings.navButton}
-      />
-    </BaseButton>
-  {:else}
-    <NavButtonsSettings />
-    <NavButtonsTheme />
-  {/if}
+<div>
+  <CommonFunctionButtons
+    {buttonDefinitions}
+    buttonSize={sizeSettings.navButton}
+    listSize={changeSize(sizeSettings.navButton, -1)}
+    isOpenSidebar={$storeUserSettings.isOpenSidebar}
+  />
+  <NavButtonsSettingsDialog bind:dialogElement bind:initializeValue />
 </div>

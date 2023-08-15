@@ -53,13 +53,13 @@
   };
   $: right = (): `pr-${string}` => {
     if (isSelected) {
-      return "pr-[2px]";
-    } else if (isUpdated) {
-      return "pr-[0px]";
-    } else if (isHover) {
       return "pr-[4px]";
+    } else if (isUpdated) {
+      return "pr-[2px]";
+    } else if (isHover) {
+      return "pr-[6px]";
     } else {
-      return "pr-[5px]";
+      return "pr-[7px]";
     }
   };
   const width = (): string => {

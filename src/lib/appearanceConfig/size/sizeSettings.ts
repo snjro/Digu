@@ -8,6 +8,7 @@ type SizeSettings = Record<
   | "leftSidebarTree2nd"
   | "leftSidebarTree3rd"
   | "leftSidebarTree4th"
+  | "leftSidebarChevronIcon"
   | "leftSidebarVersion"
   | "navButton"
   | "navProgressBar"
@@ -36,7 +37,7 @@ type SizeSettings = Record<
   BaseSize
 >;
 const sizeLeftSizebar: BaseSize = "lg";
-const sizeNav: BaseSize = "lg";
+const sizeNav: BaseSize = "md";
 const sizeBreadcrumb: BaseSize = "xs";
 const sizeGrid: BaseSize = "md";
 const sizeContent: BaseSize = "md";
@@ -52,13 +53,14 @@ export const sizeSettings: SizeSettings = {
   leftSidebarTree3rd: changeSize(sizeLeftSizebar, -2),
   leftSidebarTree4th: changeSize(sizeLeftSizebar, -3),
   leftSidebarVersion: changeSize(sizeLeftSizebar, -1),
+  leftSidebarChevronIcon: changeSize(sizeLeftSizebar, -1),
   // nav
-  navButton: changeSize(sizeNav, 0),
-  navProgressBar: changeSize(sizeNav, -1),
-  navToggle: changeSize(sizeNav, -1),
-  navInput: changeSize(sizeNav, -1),
-  navInputHelperText: changeSize(sizeNav, -2),
-  navSettings: changeSize(sizeNav, -1),
+  navButton: changeSize(sizeNav, 1),
+  navProgressBar: changeSize(sizeNav, 0),
+  navToggle: changeSize(sizeNav, 0),
+  navInput: changeSize(sizeNav, 0),
+  navInputHelperText: changeSize(sizeNav, -1),
+  navSettings: changeSize(sizeNav, 0),
   navText: changeSize(sizeNav, -2),
   //breadcrumb
   breadcrumb: changeSize(sizeBreadcrumb, 0),

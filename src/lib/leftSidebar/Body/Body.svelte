@@ -23,6 +23,7 @@
     "right-padding",
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
     "overflow-y-scroll",
+    "overflow-x-hidden",
     scrollbarStyle(colorSettings.leftSidebarBodyBg).thick,
     "h-full",
     ""

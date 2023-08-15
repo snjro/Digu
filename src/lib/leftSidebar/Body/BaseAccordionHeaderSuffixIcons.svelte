@@ -51,7 +51,7 @@
 
   <BaseIcon
     name={isOpenAccordion ? "chevronDown" : "chevronRight"}
-    size={sizeSettings.leftSidebarTree1st}
+    size={sizeSettings.leftSidebarChevronIcon}
     isHoverControledByParent
     {isHover}
     colorCategory={frontColorCategory}

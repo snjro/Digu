@@ -20,9 +20,10 @@
     leftSidebarHeaderHeight,
     colorDefinitions[themeColor][colorSettings.navBg].bg,
     "flex",
-    "flex-nowrap",
+    "flex-row",
     "justify-between",
     "items-center",
+    "space-x-3",
     "border-b",
     colorDefinitions[themeColor][colorSettings.navBg].border,
     ""
@@ -33,7 +34,17 @@
   {#if !$storeUserSettings.isOpenSidebar}
     <NavButtonLeftSidebar />
   {/if}
-  <div class={classNames("flex", "flex-row", "space-x-8", "items-center", "")}>
+  <div
+    class={classNames(
+      "flex",
+      "flex-row",
+      "space-x-3",
+      "items-center",
+      "max-w-3xl",
+      // "min-w-fit",
+      "w-full"
+    )}
+  >
     <SyncListChainRpcInput />
     <SyncStatus />
   </div>

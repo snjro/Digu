@@ -76,7 +76,7 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     border: "border-zinc-700",
     scrollbarThumb: "scrollbar-thumb-zinc-700",
     scrollbarTrack: "scrollbar-track-zinc-950",
-    scrollbarCorner: "scrollbar-corner-zinc-300",
+    scrollbarCorner: "scrollbar-corner-zinc-950",
   },
   secondary: {
     text: "text-zinc-300",
