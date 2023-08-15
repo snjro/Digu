@@ -72,7 +72,6 @@
   $: colorDefs = getColorDefinitionsForGrid(
     $storeUserSettings.themeColor as ThemeColor,
     colorSettings.gridHeader,
-
     colorSettings.gridRow
   );
 
