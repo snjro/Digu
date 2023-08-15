@@ -2,7 +2,7 @@
   import type { CrumbItem } from "./Breadcrumb.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import BaseA from "$lib/base/BaseA.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
@@ -39,7 +39,7 @@
 {:else}
   {#if currentIndex === 0 && targetCrumbItem.prefixIconName}
     <BaseButtonIcon
-      size={sizeSettings.breadcrumb}
+      size={currentIndex === 0 ? changeSize(textSize, 1) : textSize}
       iconName={targetCrumbItem.prefixIconName}
       colorCategoryBg={colorSettings.main}
       colorCategoryFront={"interactive"}
