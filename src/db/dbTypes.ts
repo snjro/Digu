@@ -8,6 +8,7 @@ import type {
   ContractInterface,
   Chain,
 } from "@constants/chains/types";
+import type { NO_DATA } from "@utils/utilsCostants";
 import type { EventLog as OriginalEthersEventLog } from "ethers";
 import type { HTMLInputTypeAttribute } from "svelte/elements";
 
@@ -192,6 +193,10 @@ type SyncStatusBaseNumberItems = {
 type SyncStatusBaseBooleanItems = {
   [key in (typeof syncStatusBaseBooleanKeys)[number]]: boolean;
 };
+export type SyncStateText = "stopped" | "syncing" | "stopping" | typeof NO_DATA;
+type SyncStateTextItems = {
+  syncStateText: SyncStateText;
+};
 export type SyncStatusBase<
   T extends IdentifierName,
   U extends SubSyncStatuses,
@@ -199,4 +204,5 @@ export type SyncStatusBase<
   name: T;
   subSyncStatuses: U;
 } & SyncStatusBaseNumberItems &
-  SyncStatusBaseBooleanItems;
+  SyncStatusBaseBooleanItems &
+  SyncStateTextItems;
