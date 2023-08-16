@@ -93,7 +93,7 @@
       showLabel={isProgressRateOver50}
       isColoredBar={true}
       {progressRate}
-      colorCategoryFront={colorCategoryBg}
+      colorCategoryFront="white"
       colorCategoryBg="interactive"
     />
     <BaseProgressBarForBlockNumberBodyBar
