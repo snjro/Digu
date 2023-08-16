@@ -8,6 +8,7 @@
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import { getProgressRateForLabel } from "./progressRate";
 
   export let progressRate: number;
   export let size: BaseSize;
@@ -64,7 +65,7 @@
 >
   {#if showLabel}
     <BaseLabel
-      text={`${progressRate.toFixed(1)}%`}
+      text={`${getProgressRateForLabel(progressRate)}%`}
       textSize={size}
       {colorCategoryFront}
       {colorCategoryBg}
