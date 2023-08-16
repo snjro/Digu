@@ -7,7 +7,7 @@ export type VerticalViewability =
   | undefined;
 export function getVerticalViewabilityInScroll(
   parentElement: HTMLElement | null,
-  childElement: HTMLElement,
+  childElement: HTMLElement
 ): VerticalViewability {
   let verticalViewability: VerticalViewability = undefined;
 
@@ -40,6 +40,16 @@ export const breakPointWidths: { [key in BreakPointWidthKey]: number } = {
   xl: 1280,
   "2xl": 1536,
 };
+
+export type BreakPointWidthValue =
+  (typeof breakPointWidths)[keyof typeof breakPointWidths];
+
+export const breakPointWidthThresholds: Record<string, BreakPointWidthValue> = {
+  grigFunctionButtonForOpenedSidebar: breakPointWidths.lg,
+  navButtonForOpenedSidebar: breakPointWidths.md,
+  navSyncStatusForOpenedSidebar: breakPointWidths.md,
+};
+
 export function getScreenWidth(): number {
   let screenWidth = 0;
   if (browser) {

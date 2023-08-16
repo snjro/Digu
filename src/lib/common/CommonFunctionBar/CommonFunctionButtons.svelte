@@ -7,7 +7,7 @@
   import type { BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { breakPointWidths } from "@utils/utilsDom";
+  import { breakPointWidths, type BreakPointWidthValue } from "@utils/utilsDom";
   import CommonThreeDotsButton from "../CommonThreeDotsButton.svelte";
 
   type ButtonDefinitions = Record<ButtonGroupKey, SimplifiedButtonDefinition[]>;
@@ -16,6 +16,7 @@
   export let responsive: boolean = true;
   export let buttonSize: BaseSize;
   export let listSize: BaseSize = buttonSize;
+  export let breakPointWidthForOpendSidebar: BreakPointWidthValue;
 
   const buttonDefinitionKeys = Object.keys(
     buttonDefinitions
@@ -25,7 +26,10 @@
   $: showThreeDotsButton = (): boolean => {
     if (!responsive) return false;
     if ($storeNoDbCurrentWidth <= breakPointWidths.sm) return true;
-    if ($storeNoDbCurrentWidth <= breakPointWidths.lg && isOpenSidebar)
+    if (
+      $storeNoDbCurrentWidth <= breakPointWidthForOpendSidebar &&
+      isOpenSidebar
+    )
       return true;
 
     return false;

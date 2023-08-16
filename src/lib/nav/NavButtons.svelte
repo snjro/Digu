@@ -9,6 +9,7 @@
   import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
   import NavButtonsSettingsDialog from "./NavButtonsSettingsDialog.svelte";
   import { changeSize } from "$lib/base/baseSizes";
+  import { breakPointWidthThresholds } from "@utils/utilsDom";
 
   let currentThemeColor: ThemeColor;
   $: currentThemeColor = $storeUserSettings.themeColor;
@@ -54,6 +55,7 @@
     buttonSize={sizeSettings.navButton}
     listSize={changeSize(sizeSettings.navButton, -1)}
     isOpenSidebar={$storeUserSettings.isOpenSidebar}
+    breakPointWidthForOpendSidebar={breakPointWidthThresholds.navButtonForOpenedSidebar}
   />
   <NavButtonsSettingsDialog bind:dialogElement bind:initializeValue />
 </div>
