@@ -21,9 +21,8 @@
     colorDefinitions[themeColor][colorSettings.navBg].bg,
     "flex",
     "flex-row",
-    "justify-between",
     "items-center",
-    "space-x-3",
+    "space-x-9",
     "border-b",
     colorDefinitions[themeColor][colorSettings.navBg].border,
     ""
@@ -31,21 +30,18 @@
 </script>
 
 <nav class={navClass}>
-  {#if !$storeUserSettings.isOpenSidebar}
-    <NavButtonLeftSidebar />
-  {/if}
+  <NavButtonLeftSidebar />
   <div
     class={classNames(
       "flex",
       "flex-row",
-      "space-x-3",
+      "w-full",
       "items-center",
-      "max-w-3xl",
-      // "min-w-fit",
-      "w-full"
+      "space-x-3"
     )}
   >
     <SyncListChainRpcInput />
+
     <SyncStatus />
   </div>
   <NavButtons />

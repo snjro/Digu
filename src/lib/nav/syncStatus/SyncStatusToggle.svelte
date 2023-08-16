@@ -2,7 +2,12 @@
   import BaseToggle from "$lib/base/BaseToggle.svelte";
   import type { Chain, ChainName } from "@constants/chains/types";
   import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
-  import type { ChainStatus, NodeStatus, SyncStatus } from "@db/dbTypes";
+  import type {
+    ChainStatus,
+    NodeStatus,
+    SyncStateText,
+    SyncStatus,
+  } from "@db/dbTypes";
   import { fetchEventLogs } from "@eventLogs/eventLogs";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { storeChainStatus } from "@stores/storeChainStatus";
@@ -10,13 +15,15 @@
   import { getTargetChain } from "@utils/utlisDb";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import CommonSyncCurrentState, {
-    iconNameForCurrentSyncingState,
-    type CurrentSyncingState,
-  } from "$lib/common/CommonSyncCurrentState.svelte";
+  import { iconNameForSyncStateText } from "$lib/common/CommonSyncStateText.svelte";
   import classNames from "classnames";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
 
   let toggleOn: boolean = false;
+  $: {
+    if (syncStateText === "stopped") toggleOn = false;
+  }
+
   let targetChainName: ChainName;
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
 
@@ -43,53 +50,40 @@
     }
   };
 
-  let currentSyncingState: CurrentSyncingState;
+  let syncStateText: SyncStateText;
+  $: syncStateText = $storeSyncStatus[targetChainName].syncStateText;
 
   let isAbleToSync: boolean;
   $: isAbleToSync =
     nodeStatus === "SUCCESS" && targetChainSyncStatus.isSyncTarget;
   let isStopping: boolean;
-  $: isStopping = currentSyncingState === "Stopping...";
+  $: isStopping = syncStateText === "stopping";
   let disabled: boolean;
   $: disabled = !isAbleToSync || isStopping;
 
-  $: (async () => {
-    if (currentSyncingState === "Stopped") {
-      toggleOn = false;
-    }
-  })();
+  let iconProps: BaseIconProps;
+  $: iconProps = {
+    name: iconNameForSyncStateText(syncStateText),
+    size: sizeSettings.navToggle,
+    colorCategory: colorSettings.navToggleIcon,
+    appendClass: classNames(toggleOn && "animate-spin"),
+  };
 </script>
 
-<div
-  class={classNames(
-    "flex",
-    "flex-row",
-    "items-center",
-    "space-x-0.5",
-    "w-32",
-    isStopping && "animate-pulse"
-  )}
->
+<div class={classNames(isStopping && "animate-pulse")}>
   <BaseToggle
     toggleValue={toggleOn}
     size={sizeSettings.navToggle}
     {disabled}
-    iconName={iconNameForCurrentSyncingState(currentSyncingState)}
     tooltipText="syncing on/off"
     tooltipXPosition="right"
     tooltipYPosition="bottom"
     colorCategoryTrack={colorSettings.navButton}
-    colorCategoryThumbToggleOff={disabled ? colorSettings.navBg : "interactive"}
-    colorCategoryThumbToggleOn="success"
-    spinIcon={toggleOn}
-    pulseIcon={isStopping}
+    colorCategoryThumbToggleOff={disabled
+      ? colorSettings.navBg
+      : colorSettings.navToggleOff}
+    colorCategoryThumbToggleOn={colorSettings.navToggleOn}
+    {iconProps}
     on:toggleChanged={toggleChanged}
-  />
-  <CommonSyncCurrentState
-    colorCategoryFront={colorSettings.navText}
-    size={sizeSettings.navText}
-    {targetChain}
-    showIcon={false}
-    bind:currentSyncingState
   />
 </div>

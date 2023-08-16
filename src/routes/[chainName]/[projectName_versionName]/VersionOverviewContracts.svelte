@@ -20,8 +20,9 @@
   import { NO_DATA } from "@utils/utilsCostants";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import CommonSyncCurrentState from "$lib/common/CommonSyncCurrentState.svelte";
+  import CommonSyncStateText from "$lib/common/CommonSyncStateText.svelte";
   import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
 
   // export let contracts: Contract[];
   export let targetChain: Chain;
@@ -106,11 +107,11 @@
               {textSize}
             >
               {#if targetContract.events.abiFragments.length > 0}
-                <CommonSyncCurrentState
-                  {targetChain}
-                  {targetProject}
-                  {targetVersion}
-                  {targetContract}
+                <CommonSyncStateText
+                  syncStateText={$storeSyncStatus[targetChain.name]
+                    .subSyncStatuses[targetProject.name].subSyncStatuses[
+                    targetVersion.name
+                  ].subSyncStatuses[targetContract.name].syncStateText}
                   size={changeSize(textSize, -1)}
                   colorCategoryFront={colorSettings.itemMemberText}
                 />

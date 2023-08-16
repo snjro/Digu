@@ -2,9 +2,34 @@
   import classNames from "classnames";
   import SyncStatusProgressbar from "./SyncStatusProgressbar.svelte";
   import SyncStatusToggle from "./SyncStatusToggle.svelte";
+  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
+  import { breakPointWidthThresholds, breakPointWidths } from "@utils/utilsDom";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+
+  $: hideProgressCircle = (): boolean => {
+    if ($storeNoDbCurrentWidth <= breakPointWidths.sm) return true;
+    if (
+      $storeNoDbCurrentWidth <=
+        breakPointWidthThresholds.navSyncStatusForOpenedSidebar &&
+      $storeUserSettings.isOpenSidebar
+    )
+      return true;
+
+    return false;
+  };
 </script>
 
-<div class={classNames("flex", "flex-col", "max-w-[140px]", "w-full")}>
+<div
+  class={classNames(
+    "flex",
+    hideProgressCircle() ? "flex-col" : "flex-row",
+    "w-fit",
+    "h-full",
+    "items-center",
+    "justify-center",
+    "space-x-3"
+  )}
+>
   <SyncStatusToggle />
-  <SyncStatusProgressbar />
+  <SyncStatusProgressbar hideProgressCircle={hideProgressCircle()} />
 </div>

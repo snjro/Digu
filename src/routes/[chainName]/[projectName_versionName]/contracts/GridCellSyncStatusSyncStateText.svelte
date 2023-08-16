@@ -7,22 +7,27 @@
   } from "@constants/chains/types";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import CommonSyncCurrentState from "$lib/common/CommonSyncCurrentState.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { NO_DATA } from "@utils/utilsCostants";
+  import CommonSyncStateText from "$lib/common/CommonSyncStateText.svelte";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import type { SyncStateText } from "@db/dbTypes";
 
   export let targetChain: Chain;
   export let targetProject: Project;
   export let targetVersion: Version;
   export let targetContract: Contract;
+
+  let syncStateText: SyncStateText;
+  $: syncStateText =
+    $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
+      .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name]
+      .syncStateText;
 </script>
 
 {#if targetContract.events.abiFragments.length > 0}
-  <CommonSyncCurrentState
-    {targetChain}
-    {targetProject}
-    {targetVersion}
-    {targetContract}
+  <CommonSyncStateText
+    {syncStateText}
     size={sizeSettings.grid}
     colorCategoryFront={colorSettings.gridCell}
   />

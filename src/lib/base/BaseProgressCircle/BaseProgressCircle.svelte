@@ -1,6 +1,5 @@
 <script lang="ts">
   import classNames from "classnames";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import {
@@ -12,13 +11,16 @@
   import { changeSize, type BaseSize } from "../baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { getProgressRate } from "../BaseProgressBarForBlockNumber/progressRate";
+  import CommonSyncStateText, {
+    type SyncStateTextLabelProps,
+  } from "$lib/common/CommonSyncStateText.svelte";
+  import BaseProgressCirclePercentage from "./BaseProgressCirclePercentage.svelte";
 
   export let startValue: number;
   export let goalValue: number;
   export let currentValue: number;
   export let circleSize: BaseSize;
   export let detailsTextSize: BaseSize = circleSize;
-
   export let detailsPosition:
     | "inner"
     | "right"
@@ -26,8 +28,12 @@
     | "bottom"
     | "top"
     | "none" = "inner";
-  export let colorCategoryCircleProgress: ColorCategory = "interactive";
-  const colorCategoryCircleBg: ColorCategory = colorSettings.progressCircleBg;
+
+  export let colorCategoryCircleBg: ColorCategory =
+    colorSettings.progressCircleBg;
+
+  export let syncStateTextLabelProps: SyncStateTextLabelProps | undefined =
+    undefined;
 
   type TargetSize = {
     svgSize: number;
@@ -35,15 +41,15 @@
     gapY: `gap-y-${number}`;
   };
   const sizes: { [key in BaseSize]: TargetSize } = {
-    xs: { svgSize: 75, strokeWidth: 3, gapY: "gap-y-0" },
-    sm: { svgSize: 125, strokeWidth: 6, gapY: "gap-y-0" },
-    md: { svgSize: 200, strokeWidth: 9, gapY: "gap-y-0.5" },
-    lg: { svgSize: 250, strokeWidth: 12, gapY: "gap-y-1.5" },
-    xl: { svgSize: 300, strokeWidth: 15, gapY: "gap-y-1.5" },
-    "2xl": { svgSize: 350, strokeWidth: 18, gapY: "gap-y-2" },
-    "3xl": { svgSize: 400, strokeWidth: 21, gapY: "gap-y-2.5" },
-    "4xl": { svgSize: 450, strokeWidth: 24, gapY: "gap-y-3" },
-    "5xl": { svgSize: 500, strokeWidth: 27, gapY: "gap-y-3.5" },
+    xs: { svgSize: 75, strokeWidth: 4, gapY: "gap-y-0" },
+    sm: { svgSize: 125, strokeWidth: 8, gapY: "gap-y-0" },
+    md: { svgSize: 200, strokeWidth: 12, gapY: "gap-y-0.5" },
+    lg: { svgSize: 250, strokeWidth: 16, gapY: "gap-y-1.5" },
+    xl: { svgSize: 300, strokeWidth: 20, gapY: "gap-y-1.5" },
+    "2xl": { svgSize: 350, strokeWidth: 24, gapY: "gap-y-2" },
+    "3xl": { svgSize: 400, strokeWidth: 28, gapY: "gap-y-2.5" },
+    "4xl": { svgSize: 450, strokeWidth: 32, gapY: "gap-y-3" },
+    "5xl": { svgSize: 500, strokeWidth: 38, gapY: "gap-y-3.5" },
   };
   let targetSize: TargetSize;
   $: targetSize = sizes[circleSize];
@@ -59,6 +65,22 @@
   $: progressRate = getProgressRate(startValue, goalValue, currentValue);
   let offset: number;
   $: offset = (circumference * (100 - progressRate)) / 100;
+  let animatePulse: "animate-pulse" | undefined;
+  $: animatePulse =
+    syncStateTextLabelProps?.syncStateText === "stopping"
+      ? "animate-pulse"
+      : undefined;
+  let colorCategoryCircleProgress: () => ColorCategory;
+  $: colorCategoryCircleProgress = (): ColorCategory => {
+    switch (syncStateTextLabelProps?.syncStateText) {
+      case "syncing":
+        return "success";
+      case "stopping":
+        return "secondary";
+      default:
+        return "interactive";
+    }
+  };
 </script>
 
 <div
@@ -73,8 +95,9 @@
     (detailsPosition === "right" || detailsPosition === "left") && "space-x-3",
     (detailsPosition === "top" || detailsPosition === "bottom") && "space-y-3",
     "w-full",
-    "h-fit",
+    "h-full",
     // "mx-10",
+    animatePulse,
     ""
     // "bg-green-300",
   )}
@@ -82,7 +105,6 @@
   <svg
     viewBox={`0 0 ${targetSize.svgSize} ${targetSize.svgSize}`}
     xmlns="http://www.w3.org/2000/svg"
-    class={classNames("max-w-xs")}
   >
     <circle
       r={radiusMinusStroke}
@@ -93,6 +115,7 @@
         colorDefinitions[themeColor][colorCategoryCircleBg].bg
       )}
       stroke-width={targetSize.strokeWidth}
+      class={classNames(animatePulse)}
     />
     <circle
       r={radiusMinusStroke}
@@ -100,12 +123,13 @@
       cy={radiusPure}
       fill="transparent"
       stroke={getColorHexWithSharpFromTailwindColor(
-        colorDefinitions[themeColor][colorCategoryCircleProgress].bg
+        colorDefinitions[themeColor][colorCategoryCircleProgress()].bg
       )}
       stroke-width={targetSize.strokeWidth}
       stroke-dasharray={`${circumference}px`}
       stroke-dashoffset={`${offset}px`}
       transform={`rotate(-90 ${radiusPure} ${radiusPure})`}
+      class={classNames(animatePulse)}
     />
     <foreignObject
       x={targetSize.strokeWidth}
@@ -115,39 +139,32 @@
     >
       <div
         class={classNames(
-          "grid",
-          "place-content-center",
+          "flex",
+          "flex-col",
+          "justify-center",
           "h-full",
           "w-full",
           targetSize.gapY,
           ""
         )}
       >
-        <div class={classNames("col-span-full", "", "")}>
-          <div
-            class={classNames(
-              "flex",
-              "flex-row",
-              "w-full",
-              "justify-center",
-              "items-end",
-              "pl-2"
-            )}
-          >
-            <BaseLabel
-              text={progressRate >= 100
-                ? progressRate.toFixed(0)
-                : progressRate.toFixed(1)}
-              textSize={detailsPosition === "inner"
-                ? changeSize(circleSize, 5)
-                : changeSize(circleSize, 5)}
-              truncate={false}
+        <BaseProgressCirclePercentage
+          {progressRate}
+          textSize={changeSize(circleSize, 5)}
+          {animatePulse}
+        />
+        {#if syncStateTextLabelProps}
+          <div class={classNames("w-full", "flex", "justify-center", "")}>
+            <CommonSyncStateText
+              showIcon={syncStateTextLabelProps.showIcon}
+              colorCategoryFront={syncStateTextLabelProps.colorCategoryFront}
+              size={syncStateTextLabelProps.size}
+              syncStateText={syncStateTextLabelProps.syncStateText}
             />
-            <BaseLabel text={"%"} textSize={changeSize(circleSize, 0)} />
           </div>
-        </div>
+        {/if}
         {#if detailsPosition === "inner"}
-          <div class={classNames("col-span-full", "mx-1", "")}>
+          <div class={classNames("w-full", "mx-1", "")}>
             <BaseProgressCircleDetails
               {startValue}
               {currentValue}

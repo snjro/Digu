@@ -12,19 +12,15 @@ import type {
   Project,
   Version,
 } from "@constants/chains/types";
-import GridCellSyncStatusCurrentState from "./GridCellSyncStatusCurrentState.svelte";
-import {
-  getCurrentSyncingState,
-  type CurrentSyncingState,
-} from "$lib/common/CommonSyncCurrentState.svelte";
+import GridCellSyncStatusSyncStateText from "./GridCellSyncStatusSyncStateText.svelte";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
-import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
+import type { SyncStateText, SyncStatusesChain } from "@db/dbTypes";
 import { NO_DATA } from "@utils/utilsCostants";
 
 export const columnDefsSyncstatusCurrentState = <T extends ContractRow>(
   targetChain: Chain,
   targetProject: Project,
-  targetVersion: Version,
+  targetVersion: Version
 ): ColumnDef => {
   const columnDef: ColumnDef = {
     headerName: "Current State",
@@ -33,27 +29,24 @@ export const columnDefsSyncstatusCurrentState = <T extends ContractRow>(
     cellStyle: cellAlign("center"),
 
     columnGroupShow: undefined,
-    valueGetter: (
-      valueGetterParams: ValueGetterParams<T>,
-    ): CurrentSyncingState => {
-      let contractSyncStatus: SyncStatusContract | undefined = undefined;
-      let contractName: ContractName = valueGetterParams.data!.contract.name;
+    valueGetter: (valueGetterParams: ValueGetterParams<T>): SyncStateText => {
+      let syncStateText: SyncStateText = NO_DATA;
+      const contractName: ContractName = valueGetterParams.data!.contract.name;
       storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
-        contractSyncStatus =
+        syncStateText =
           syncStatusesChain[targetChain.name].subSyncStatuses[
             targetProject.name
-          ].subSyncStatuses[targetVersion.name].subSyncStatuses[contractName];
+          ].subSyncStatuses[targetVersion.name].subSyncStatuses[contractName]
+            .syncStateText;
       });
-      return contractSyncStatus
-        ? getCurrentSyncingState(contractSyncStatus)
-        : NO_DATA;
+      return syncStateText;
     },
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
-        cellRendererParams: ICellRendererParams<T>,
+        cellRendererParams: ICellRendererParams<T>
       ) => {
-        new GridCellSyncStatusCurrentState({
+        new GridCellSyncStatusSyncStateText({
           target: cell.eGui,
           props: {
             targetChain: targetChain,
@@ -62,7 +55,7 @@ export const columnDefsSyncstatusCurrentState = <T extends ContractRow>(
             targetContract: cellRendererParams.data!.contract,
           },
         });
-      },
+      }
     ),
   };
   return columnDef;

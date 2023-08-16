@@ -1,16 +1,27 @@
 <script lang="ts">
   // import { round } from "@utils/utilsMath";
   import { storeChainStatus } from "@stores/storeChainStatus";
-  import type { ChainName } from "@constants/chains/types";
+  import type { Chain, ChainName } from "@constants/chains/types";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseProgressBarForBlockNumber from "$lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  // const numOfDecimals = 2;
+  import BaseProgressCircle from "$lib/base/BaseProgressCircle/BaseProgressCircle.svelte";
+  import { getTargetChain } from "@utils/utlisDb";
+  import classNames from "classnames";
+  import CommonSyncStateText, {
+    type SyncStateTextLabelProps,
+  } from "$lib/common/CommonSyncStateText.svelte";
+  import { getProgressRate } from "$lib/base/BaseProgressBarForBlockNumber/progressRate";
+  import BaseProgressCirclePercentage from "$lib/base/BaseProgressCircle/BaseProgressCirclePercentage.svelte";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { NO_DATA } from "@utils/utilsCostants";
 
+  export let hideProgressCircle: boolean;
   let targetChainName: ChainName;
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
+
+  let targetChain: Chain;
+  $: targetChain = getTargetChain({ chainName: targetChainName });
 
   let latestBlockNumber: number;
   $: latestBlockNumber = $storeChainStatus[targetChainName].latestBlockNumber;
@@ -26,19 +37,44 @@
   let fetchedBlockNumber: number;
   $: fetchedBlockNumber = $storeSyncStatus[targetChainName].fetchedBlockNumber;
 
-  let isSyncing: boolean;
-  $: isSyncing = $storeSyncStatus[targetChainName].isSyncing;
+  let syncStateTextLabelProps: SyncStateTextLabelProps;
+  $: syncStateTextLabelProps = {
+    syncStateText: $storeSyncStatus[targetChain.name].syncStateText,
+    colorCategoryFront: colorSettings.navText,
+    size: sizeSettings.navProgressCircle,
+    showIcon: false,
+    currentSyncingState: NO_DATA,
+  };
 </script>
 
-<BaseProgressBarForBlockNumber
-  size={sizeSettings.navProgressBar}
-  processing={isSyncing}
-  colorCategoryFront={colorSettings.navBg}
-  colorCategoryBg={colorSettings.navInput}
-  startBlockNumber={creationBlockNumber}
-  endBlockNumber={latestBlockNumber * numOfSyncTargetContract}
-  {fetchedBlockNumber}
-  showBlockNumber={false}
-  rounded
-  shadowBar={false}
-/>
+{#if hideProgressCircle}
+  <div class={classNames("flex", "flex-col", "w-fit", "mt-1")}>
+    <BaseProgressCirclePercentage
+      progressRate={getProgressRate(
+        creationBlockNumber,
+        latestBlockNumber * numOfSyncTargetContract,
+        fetchedBlockNumber
+      )}
+      textSize="sm"
+      animatePulse={undefined}
+    />
+    <CommonSyncStateText
+      syncStateText={syncStateTextLabelProps.syncStateText}
+      showIcon={syncStateTextLabelProps.showIcon}
+      colorCategoryFront={syncStateTextLabelProps.colorCategoryFront}
+      size={syncStateTextLabelProps.size}
+    />
+  </div>
+{:else}
+  <div class={classNames("w-[68px]", "h-full")}>
+    <BaseProgressCircle
+      circleSize={sizeSettings.navProgressCircle}
+      startValue={creationBlockNumber}
+      goalValue={latestBlockNumber * numOfSyncTargetContract}
+      currentValue={fetchedBlockNumber}
+      detailsPosition="none"
+      colorCategoryCircleBg={colorSettings.navBg}
+      {syncStateTextLabelProps}
+    />
+  </div>
+{/if}
