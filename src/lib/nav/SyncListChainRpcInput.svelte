@@ -81,7 +81,7 @@
   }
 </script>
 
-<div class={classNames("w-full")}>
+<div class={classNames("w-full", "max-w-2xl")}>
   <BaseInput
     colorCategory={colorSettings.navInput}
     colorCategoryBorder={colorSettings.navInput}
