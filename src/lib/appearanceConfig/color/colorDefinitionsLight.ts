@@ -52,7 +52,7 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     bgOpacity: "bg-sky-600/50",
     bgEmphasis: "bg-sky-700",
     bgHover: "hover:bg-sky-700",
-    shadow: "shadow-sky-600",
+    shadow: "shadow-sky-950",
     border: "border-sky-600",
     scrollbarThumb: "scrollbar-thumb-sky-600",
     scrollbarTrack: "scrollbar-track-sky-300",
