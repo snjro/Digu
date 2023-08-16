@@ -6,12 +6,14 @@
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 </script>
 
-<BaseButtonIcon
-  iconName={$storeUserSettings.isOpenSidebar ? "backburger" : "menu"}
-  size={sizeSettings.navButton}
-  colorCategoryFront={colorSettings.navButton}
-  colorCategoryBg={colorSettings.navButton}
-  on:click={async () => {
-    await toggleLeftSideBar();
-  }}
-/>
+{#if !$storeUserSettings.isOpenSidebar}
+  <BaseButtonIcon
+    iconName="menu"
+    size={sizeSettings.navButton}
+    colorCategoryFront={colorSettings.navButton}
+    colorCategoryBg={colorSettings.navButton}
+    on:click={async () => {
+      await toggleLeftSideBar();
+    }}
+  />
+{/if}
