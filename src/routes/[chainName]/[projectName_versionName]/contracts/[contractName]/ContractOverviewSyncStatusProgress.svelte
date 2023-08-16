@@ -8,12 +8,13 @@
     Project,
     Version,
   } from "@constants/chains/types";
-  import type { SyncStatusContract } from "@db/dbTypes";
+  import type { SyncStateText, SyncStatusContract } from "@db/dbTypes";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { breakPointWidths } from "@utils/utilsDom";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -37,6 +38,9 @@
     $storeNoDbCurrentWidth <= breakPointWidths.sm
       ? changeSize(itemSize, -1)
       : itemSize;
+
+  let syncStateText: SyncStateText;
+  $: syncStateText = targetContractSyncStatus.syncStateText;
 </script>
 
 <CommonItemMember text="Progress">
@@ -49,5 +53,11 @@
       : "bottom"}
     circleSize={changeSize(itemSize, 1)}
     {detailsTextSize}
+    syncStateTextLabelProps={{
+      showIcon: true,
+      syncStateText: syncStateText,
+      size: itemSize,
+      colorCategoryFront: colorSettings.itemMemberText,
+    }}
   />
 </CommonItemMember>
