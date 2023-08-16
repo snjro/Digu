@@ -14,7 +14,6 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
-  import CommonSyncCurrentState from "$lib/common/CommonSyncCurrentState.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -62,17 +61,6 @@
       size={sizeSettings.itemMember}
       shadowBar={false}
       processing={targetContractSyncStatus.isSyncing}
-    />
-  </CommonItemMember>
-
-  <CommonItemMember text="Sync State">
-    <CommonSyncCurrentState
-      colorCategoryFront={colorSettings.itemMemberText}
-      size={sizeSettings.itemMember}
-      {targetChain}
-      {targetProject}
-      {targetVersion}
-      {targetContract}
     />
   </CommonItemMember>
 </ContractOverviewBasic>
