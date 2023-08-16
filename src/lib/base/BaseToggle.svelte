@@ -136,9 +136,8 @@
           <BaseIcon
             name={iconName}
             {size}
+            colorCategory="white"
             appendClass={classNames(
-              "fill-white",
-              "hover:fill-white",
               spinIcon && "animate-spin",
               pulseIcon && "animate-pulse",
               cursorStyle
