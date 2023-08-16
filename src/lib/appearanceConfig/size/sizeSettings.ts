@@ -11,7 +11,7 @@ type SizeSettings = Record<
   | "leftSidebarChevronIcon"
   | "leftSidebarVersion"
   | "navButton"
-  | "navProgressBar"
+  | "navProgressCircle"
   | "navToggle"
   | "navInput"
   | "navInputHelperText"
@@ -56,12 +56,12 @@ export const sizeSettings: SizeSettings = {
   leftSidebarChevronIcon: changeSize(sizeLeftSizebar, -1),
   // nav
   navButton: changeSize(sizeNav, 1),
-  navProgressBar: changeSize(sizeNav, 0),
-  navToggle: changeSize(sizeNav, 1),
+  navProgressCircle: changeSize(sizeNav, -2),
+  navToggle: changeSize(sizeNav, 0),
   navInput: changeSize(sizeNav, 0),
   navInputHelperText: changeSize(sizeNav, -1),
   navSettings: changeSize(sizeNav, 0),
-  navText: changeSize(sizeNav, -2),
+  navText: changeSize(sizeNav, -1),
   //breadcrumb
   breadcrumb: changeSize(sizeBreadcrumb, 0),
   // grid
