@@ -2,7 +2,6 @@
   import type { Chain, Project, Version } from "@constants/chains/types";
   import VersionOverviewSyncStatusTarget from "./VersionOverviewSyncStatusTarget.svelte";
   import VersionOverviewSyncStatusProgress from "./VersionOverviewSyncStatusProgress.svelte";
-  import VersionOverviewSyncStatusCurrentState from "./VersionOverviewSyncStatusCurrentState.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -15,11 +14,6 @@
   {targetVersion}
 />
 <VersionOverviewSyncStatusProgress
-  {targetChain}
-  {targetProject}
-  {targetVersion}
-/>
-<VersionOverviewSyncStatusCurrentState
   {targetChain}
   {targetProject}
   {targetVersion}
