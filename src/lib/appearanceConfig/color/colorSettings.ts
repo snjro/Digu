@@ -12,6 +12,9 @@ type ColorSettings = Record<
   | "navButton"
   | "navInput"
   | "navSettings"
+  | "navToggleOn"
+  | "navToggleOff"
+  | "navToggleIcon"
   | "titleCategoryFront"
   | "titleCategoryBg"
   | "titleTextNormal"
@@ -60,6 +63,9 @@ export const colorSettings: ColorSettings = {
   navButton: colorSub,
   navInput: colorMain,
   navSettings: colorMain,
+  navToggleOn: "success",
+  navToggleOff: "interactive",
+  navToggleIcon: "white",
   // title
   titleCategoryFront: "white",
   titleCategoryBg: "interactive",
