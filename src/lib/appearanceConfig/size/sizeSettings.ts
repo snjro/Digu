@@ -57,7 +57,7 @@ export const sizeSettings: SizeSettings = {
   // nav
   navButton: changeSize(sizeNav, 1),
   navProgressBar: changeSize(sizeNav, 0),
-  navToggle: changeSize(sizeNav, 0),
+  navToggle: changeSize(sizeNav, 1),
   navInput: changeSize(sizeNav, 0),
   navInputHelperText: changeSize(sizeNav, -1),
   navSettings: changeSize(sizeNav, 0),
