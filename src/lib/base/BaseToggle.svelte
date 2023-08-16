@@ -55,15 +55,15 @@
     "5xl": "w-12 h-12",
   };
   const paddingX: { [key in BaseSize]: string } = {
-    xs: "p-1",
-    sm: "p-1.5",
-    md: "p-2",
-    lg: "p-2.5",
-    xl: "p-3",
-    "2xl": "p-3.5",
-    "3xl": "p-4",
-    "4xl": "p-4",
-    "5xl": "p-5",
+    xs: "px-1",
+    sm: "px-1.5",
+    md: "px-2",
+    lg: "px-2.5",
+    xl: "px-3",
+    "2xl": "px-3.5",
+    "3xl": "px-4",
+    "4xl": "px-4",
+    "5xl": "px-5",
   };
   let translateX: { [key in BaseSize]: string };
   $: translateX = {
