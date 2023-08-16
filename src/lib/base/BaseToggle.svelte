@@ -14,7 +14,6 @@
   import { createEventDispatcher } from "svelte";
   export let size: BaseSize = "md";
   // export let iconSize: BaseSize = "xl";
-  export let iconName: BaseIconProps["name"] | undefined = undefined;
   export let colorCategoryThumbToggleOn: ColorCategory = "interactive";
   export let colorCategoryThumbToggleOff: ColorCategory = "interactive";
   export let colorCategoryTrack: ColorCategory;
@@ -23,8 +22,7 @@
   export let tooltipYPosition: BaseButtonProps["tooltipYPosition"] = "top";
   export let disabled: boolean;
   export let toggleValue: boolean;
-  export let spinIcon: boolean = false;
-  export let pulseIcon: boolean = false;
+  export let iconProps: BaseIconProps | undefined = undefined;
 
   const dispatcher = createEventDispatcher();
   function onToggle(): void {
@@ -132,16 +130,12 @@
       yPosition={tooltipYPosition}
     >
       <div class={classNames(thumClass)}>
-        {#if iconName}
+        {#if iconProps}
           <BaseIcon
-            name={iconName}
-            {size}
-            colorCategory="white"
-            appendClass={classNames(
-              spinIcon && "animate-spin",
-              pulseIcon && "animate-pulse",
-              cursorStyle
-            )}
+            name={iconProps.name}
+            size={iconProps.size}
+            colorCategory={iconProps.colorCategory}
+            appendClass={classNames(iconProps.appendClass, cursorStyle)}
           />
         {/if}
       </div>
