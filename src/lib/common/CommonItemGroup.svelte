@@ -10,11 +10,6 @@
   export let text: BaseLabelProps["text"];
   export let gridTrack: string;
 
-  $: shadowStyle = classNames(
-    "shadow-sm",
-    colorDefinitions[themeColor][colorSettings.itemGroupTitle].shadow
-  );
-
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 </script>
@@ -29,10 +24,6 @@
     "rounded",
     "pb-3 ",
     gridTrack,
-    themeColor === "light" && shadowStyle,
-    // "px-3",
-    // "pt-2",
-    // "pb-3",
     ""
   )}
 >
@@ -44,9 +35,7 @@
       "pt-1",
       "pb-1.5",
       "rounded-tl",
-      "rounded-br",
-      themeColor !== "dark" && "border-b border-r",
-      colorDefinitions[themeColor][colorSettings.itemGroupTitle].border
+      "rounded-br"
     )}
     colorCategoryBg={colorSettings.itemGroupTitle}
     colorCategoryFront={colorSettings.itemGroupTitle}
