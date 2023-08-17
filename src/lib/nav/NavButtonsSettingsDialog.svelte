@@ -4,6 +4,7 @@
   import classNames from "classnames";
   import RpcConfig from "./settings/rpcConfig/RpcConfig.svelte";
   import ChainExplorer from "./settings/ChainExplorer.svelte";
+  import BasePageContainerContent from "$lib/base/BasePage/BasePageContainerContent.svelte";
 
   export let initializeValue: boolean;
   export let dialogElement: HTMLDialogElement;
@@ -26,12 +27,16 @@
   headerIconName="cogOutline"
   on:close={closeDialog}
 >
-  <div class={classNames(gridMain, "w-full", "h-full", "")} slot="dialogBody">
-    <CommonItemGroup text="RPC configuration" gridTrack={gridTrackRpc}>
-      <RpcConfig {initializeValue} />
-    </CommonItemGroup>
-    <CommonItemGroup text="Chain Explorer" gridTrack={gridTrackRpc}>
-      <ChainExplorer />
-    </CommonItemGroup>
+  <div class={classNames("space-y-3", "h-fit", "w-full", "")} slot="dialogBody">
+    <BasePageContainerContent tabState={undefined}>
+      <div class={classNames(gridMain, "w-full", "h-full", "")}>
+        <CommonItemGroup text="RPC configuration" gridTrack={gridTrackRpc}>
+          <RpcConfig {initializeValue} />
+        </CommonItemGroup>
+        <CommonItemGroup text="Chain Explorer" gridTrack={gridTrackRpc}>
+          <ChainExplorer />
+        </CommonItemGroup>
+      </div>
+    </BasePageContainerContent>
   </div>
 </BaseDialog>
