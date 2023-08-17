@@ -11,10 +11,8 @@
   import { changeSize, type BaseSize } from "../baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { getProgressRate } from "../BaseProgressBarForBlockNumber/progressRate";
-  import CommonSyncStateText, {
-    type SyncStateTextLabelProps,
-  } from "$lib/common/CommonSyncStateText.svelte";
-  import BaseProgressCirclePercentage from "./BaseProgressCirclePercentage.svelte";
+  import type { SyncStateTextLabelProps } from "$lib/common/CommonSyncStateText.svelte";
+  import BaseProgressCircleSyncStatus from "./BaseProgressCircleSyncStatus.svelte";
 
   export let startValue: number;
   export let goalValue: number;
@@ -65,11 +63,10 @@
   $: progressRate = getProgressRate(startValue, goalValue, currentValue);
   let offset: number;
   $: offset = (circumference * (100 - progressRate)) / 100;
+  let isStopping: boolean;
+  $: isStopping = syncStateTextLabelProps?.syncStateText === "stopping";
   let animatePulse: "animate-pulse" | undefined;
-  $: animatePulse =
-    syncStateTextLabelProps?.syncStateText === "stopping"
-      ? "animate-pulse"
-      : undefined;
+  $: animatePulse = isStopping ? "animate-pulse" : undefined;
   let colorCategoryCircleProgress: () => ColorCategory;
   $: colorCategoryCircleProgress = (): ColorCategory => {
     switch (syncStateTextLabelProps?.syncStateText) {
@@ -148,21 +145,13 @@
           ""
         )}
       >
-        <BaseProgressCirclePercentage
+        <BaseProgressCircleSyncStatus
           {progressRate}
-          textSize={changeSize(circleSize, 5)}
-          {animatePulse}
+          percentageSize={changeSize(circleSize, 5)}
+          {syncStateTextLabelProps}
+          isAnimatePulse={isStopping}
         />
-        {#if syncStateTextLabelProps}
-          <div class={classNames("w-full", "flex", "justify-center", "")}>
-            <CommonSyncStateText
-              showIcon={syncStateTextLabelProps.showIcon}
-              colorCategoryFront={syncStateTextLabelProps.colorCategoryFront}
-              size={syncStateTextLabelProps.size}
-              syncStateText={syncStateTextLabelProps.syncStateText}
-            />
-          </div>
-        {/if}
+
         {#if detailsPosition === "inner"}
           <div class={classNames("w-full", "mx-1", "")}>
             <BaseProgressCircleDetails
