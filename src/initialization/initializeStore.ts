@@ -42,10 +42,10 @@ export async function initializeStore(): Promise<void> {
         const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
 
         for (const targetContract of extractEventContracts(
-          targetVersion.contracts,
+          targetVersion.contracts
         )) {
           promiseUpdateStores.push(
-            InitializeStoreSyncStatus(dbEventLogs, targetContract.name),
+            InitializeStoreSyncStatus(dbEventLogs, targetContract.name)
           );
         }
       }
@@ -56,7 +56,7 @@ export async function initializeStore(): Promise<void> {
 async function InitializeStoreChainStatus(chainName: ChainName): Promise<void> {
   const chainStatus: ChainStatus = await getDbRecordChainStatus(chainName);
   storeChainStatus.updateState(chainName, chainStatus);
-  myLogger.success(`Initialized "storeChainStatus"`, {
+  myLogger.info(`Initialized "storeChainStatus"`, {
     chainName: chainName,
     storeChainStatus: get(storeChainStatus),
   });
@@ -64,23 +64,22 @@ async function InitializeStoreChainStatus(chainName: ChainName): Promise<void> {
 async function InitializeStoreRpcSettings(chainName: ChainName): Promise<void> {
   const rpcSetting: RpcSetting = await getDbRecordRpcSettings(chainName);
   storeRpcSettings.updateState(chainName, rpcSetting);
-  myLogger.success(`Initialized "storeRpcSetting"`, {
+  myLogger.info(`Initialized "storeRpcSetting"`, {
     chainName: chainName,
     storeRpcSettings: get(storeRpcSettings),
   });
 }
 async function initializeStoreUserSettings(): Promise<void> {
-  const userSettings: UserSetting = await getDbRecordUserSettings(
-    "userSetting01",
-  );
+  const userSettings: UserSetting =
+    await getDbRecordUserSettings("userSetting01");
   storeUserSettings.updateState(userSettings);
-  myLogger.success(`Initialized "storeUserSetting"`, {
+  myLogger.info(`Initialized "storeUserSetting"`, {
     storeUserSettings: get(storeUserSettings),
   });
 }
 async function InitializeStoreSyncStatus(
   dbEventLogs: DbEventLogs,
-  contractName: ContractName,
+  contractName: ContractName
 ): Promise<void> {
   const contractIdentifier: ContractIdentifier = {
     ...dbEventLogs.versionIdentifier,
@@ -90,11 +89,11 @@ async function InitializeStoreSyncStatus(
   const syncStatusContract: SyncStatusContract =
     await getDbRecordSyncStatusContract(
       dbEventLogs,
-      contractIdentifier.contractName,
+      contractIdentifier.contractName
     );
 
   storeSyncStatus.updateState(contractIdentifier, syncStatusContract);
-  myLogger.success(`Initialized "storeSyncStatus"`, {
+  myLogger.info(`Initialized "storeSyncStatus"`, {
     ...dbEventLogs.versionIdentifier,
     contractName: contractName,
     storeSyncStatus: get(storeSyncStatus),
