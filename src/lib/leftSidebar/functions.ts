@@ -1,7 +1,7 @@
+import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
 import { updateDbItemUserSettings } from "@db/dbSettingsDataHandlers";
 import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
 import { storeUserSettings } from "@stores/storeUserSettings";
-import { breakPointWidths } from "@utils/utilsDom";
 import { get } from "svelte/store";
 
 export async function toggleLeftSideBar(): Promise<void> {
@@ -16,7 +16,7 @@ export async function toggleLeftSideBarWithCondition(): Promise<void> {
 
 export function isHrefParentOfPathname(
   href: string,
-  pathname: string,
+  pathname: string
 ): boolean {
   const splitHref: string[] = href.split("/");
   const splitPathname: string[] = pathname.split("/");

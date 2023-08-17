@@ -8,7 +8,7 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { breakPointWidths } from "@utils/utilsDom";
+  import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 </script>

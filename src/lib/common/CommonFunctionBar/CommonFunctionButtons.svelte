@@ -1,4 +1,8 @@
 <script lang="ts" generics="ButtonGroupKey extends string">
+  import {
+    breakPointWidths,
+    type BreakPointWidthValue,
+  } from "$lib/appearanceConfig/size/sizeDefinitions";
   import BaseDividerVertical from "$lib/base/BaseDividerVertical.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import BaseButtonIcon, {
@@ -7,7 +11,6 @@
   import type { BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { breakPointWidths, type BreakPointWidthValue } from "@utils/utilsDom";
   import CommonThreeDotsButton from "../CommonThreeDotsButton.svelte";
 
   type ButtonDefinitions = Record<ButtonGroupKey, SimplifiedButtonDefinition[]>;

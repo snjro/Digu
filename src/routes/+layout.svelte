@@ -8,7 +8,7 @@
     storeNoDbCurrentWidth,
     storeNoDbCountShowingDialog,
   } from "@stores/storeNoDb";
-  import { breakPointWidths, getScreenWidth } from "@utils/utilsDom";
+  import { getScreenWidth } from "@utils/utilsDom";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
@@ -16,6 +16,7 @@
   import { toggleLeftSideBar } from "$lib/leftSidebar/functions";
   import Content from "./Content.svelte";
   import { browser } from "$app/environment";
+  import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
 
   export let data: LoadDataRoot;
 

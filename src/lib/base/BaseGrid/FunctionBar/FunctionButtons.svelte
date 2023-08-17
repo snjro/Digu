@@ -12,7 +12,8 @@
 </script>
 
 <script lang="ts" generics="GridRow">
-  import { breakPointWidthThresholds } from "@utils/utilsDom";
+  import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
+
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";

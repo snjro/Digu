@@ -1,12 +1,13 @@
 <script lang="ts">
   import { page } from "$app/stores";
+  import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
   import { fullScreenSimplifiedButtonDefinition } from "$lib/base/BaseGrid/FunctionBar/FunctionButtons.svelte";
   import CommonFunctionBar from "$lib/common/CommonFunctionBar/CommonFunctionBar.svelte";
   import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
-  import { breakPointWidthThresholds } from "@utils/utilsDom";
   import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
+
   export let titleCategoryLabelTextForFullScreen: string;
   export let titleText: string;
   export let isExpanded: boolean;

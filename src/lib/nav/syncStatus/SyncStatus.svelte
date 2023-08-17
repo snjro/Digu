@@ -3,8 +3,11 @@
   import SyncStatusProgress from "./SyncStatusProgress.svelte";
   import SyncStatusToggle from "./SyncStatusToggle.svelte";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { breakPointWidthThresholds, breakPointWidths } from "@utils/utilsDom";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import {
+    breakPointWidthThresholds,
+    breakPointWidths,
+  } from "$lib/appearanceConfig/size/sizeDefinitions";
 
   $: hideProgressCircle = (): boolean => {
     if ($storeNoDbCurrentWidth <= breakPointWidths.sm) return true;
