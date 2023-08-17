@@ -3,6 +3,7 @@
   import { buttonHeight, type BaseSize } from "$lib/base/baseSizes";
   export let size: BaseSize;
   export let href: string;
+  export let label: string = "View more details";
 </script>
 
 <BaseButton
@@ -10,7 +11,7 @@
   {href}
   colorCategoryFront="white"
   colorCategoryBg="interactive"
-  label="View more details"
+  {label}
   openNewTab={false}
   appendClass={buttonHeight[size]}
 />
