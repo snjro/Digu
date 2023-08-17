@@ -1,6 +1,6 @@
 <script lang="ts">
   import classNames from "classnames";
-  import SyncStatusProgressbar from "./SyncStatusProgressbar.svelte";
+  import SyncStatusProgress from "./SyncStatusProgress.svelte";
   import SyncStatusToggle from "./SyncStatusToggle.svelte";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { breakPointWidthThresholds, breakPointWidths } from "@utils/utilsDom";
@@ -31,5 +31,5 @@
   )}
 >
   <SyncStatusToggle />
-  <SyncStatusProgressbar hideProgressCircle={hideProgressCircle()} />
+  <SyncStatusProgress hideProgressCircle={hideProgressCircle()} />
 </div>
