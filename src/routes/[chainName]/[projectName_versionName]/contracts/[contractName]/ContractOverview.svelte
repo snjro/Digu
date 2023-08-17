@@ -32,11 +32,12 @@
   let gridTrackBasic: string;
   $: gridTrackBasic = classNames(
     "col-span-full",
-    hasEvent && "lg:col-span-4",
+    hasEvent && "md:col-span-4",
     ""
   );
   const gridTrackSync: string = classNames(
-    "col-span-full lg:col-span-2",
+    "col-span-full",
+    "md:col-span-2",
     "row-span-2",
     ""
   );
