@@ -14,7 +14,7 @@ const functionName: string = "updateLatestBlocknumber";
 
 export async function startUpdateLatestBlockNumber(
   targetChainName: ChainName,
-  nodeProvider: NodeProvider,
+  nodeProvider: NodeProvider
 ): Promise<void> {
   myLogger.start(`${functionName}()`, {
     chainName: targetChainName,
@@ -23,12 +23,8 @@ export async function startUpdateLatestBlockNumber(
   const rpcSetting: RpcSetting = get(storeRpcSettings)[targetChainName];
   const maxErrorCount: number = rpcSetting.tryCount;
   let errorCount: number = 0;
-  let intervalId: number = window.setInterval(async () => {
-    if (!get(storeSyncStatus)[targetChainName].isSyncing) {
-      stopUpdateLatestBlockNumber(intervalId);
-      return;
-    }
 
+  const tryGetAndUpdateLatestBlockNumber = async () => {
     try {
       await getAndUpdateLatestBlockNumber(nodeProvider, targetChainName);
       errorCount = 0;
@@ -40,6 +36,21 @@ export async function startUpdateLatestBlockNumber(
         error: error,
       });
     }
+  };
+
+  // Get the latest block number before updating in the interval.
+  // The reason is that the fetching event logs start before the interval starts.
+  // And the block number, which is the goal of the fetching event log, is considered 0.
+  // To avoid this, get the latest blocknumber here.
+  await tryGetAndUpdateLatestBlockNumber();
+
+  let intervalId: number = window.setInterval(async () => {
+    if (!get(storeSyncStatus)[targetChainName].isSyncing) {
+      stopUpdateLatestBlockNumber(intervalId);
+      return;
+    }
+
+    await tryGetAndUpdateLatestBlockNumber();
     if (errorCount > maxErrorCount) {
       myLogger.error({
         errorOn: functionName,
