@@ -11,10 +11,8 @@
   import { changeSize, type BaseSize } from "../baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { getProgressRate } from "../BaseProgressBarForBlockNumber/progressRate";
-  import CommonSyncStateText, {
-    type SyncStateTextLabelProps,
-  } from "$lib/common/CommonSyncStateText.svelte";
-  import BaseProgressCircleSyncStatusPercentage from "./BaseProgressCircleSyncStatusPercentage.svelte";
+  import type { SyncStateTextLabelProps } from "$lib/common/CommonSyncStateText.svelte";
+  import BaseProgressCircleSyncStatus from "./BaseProgressCircleSyncStatus.svelte";
 
   export let startValue: number;
   export let goalValue: number;
@@ -148,21 +146,13 @@
           ""
         )}
       >
-        <BaseProgressCircleSyncStatusPercentage
+        <BaseProgressCircleSyncStatus
           {progressRate}
-          textSize={changeSize(circleSize, 5)}
+          percentageSize={changeSize(circleSize, 5)}
+          {syncStateTextLabelProps}
           {animatePulse}
         />
-        {#if syncStateTextLabelProps}
-          <div class={classNames("w-full", "flex", "justify-center", "")}>
-            <CommonSyncStateText
-              showIcon={syncStateTextLabelProps.showIcon}
-              colorCategoryFront={syncStateTextLabelProps.colorCategoryFront}
-              size={syncStateTextLabelProps.size}
-              syncStateText={syncStateTextLabelProps.syncStateText}
-            />
-          </div>
-        {/if}
+
         {#if detailsPosition === "inner"}
           <div class={classNames("w-full", "mx-1", "")}>
             <BaseProgressCircleDetails
