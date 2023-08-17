@@ -102,6 +102,7 @@
   <svg
     viewBox={`0 0 ${targetSize.svgSize} ${targetSize.svgSize}`}
     xmlns="http://www.w3.org/2000/svg"
+    class="max-w-[248px]"
   >
     <circle
       r={radiusMinusStroke}
