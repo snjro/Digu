@@ -9,14 +9,6 @@
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
-  let shadowEffect: string;
-  $: shadowEffect =
-    themeColor === "light" && !hasTab
-      ? classNames(
-          colorDefinitions[themeColor][colorSettings.tabSelected].shadow,
-          "shadow"
-        )
-      : "";
 </script>
 
 <div
@@ -28,7 +20,6 @@
     "rounded-b",
     !hasTab && "rounded-tl",
     colorDefinitions[themeColor][colorSettings.tabSelected].bg,
-    shadowEffect,
     ""
   )}
 >
