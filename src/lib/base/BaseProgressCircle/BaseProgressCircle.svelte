@@ -14,7 +14,7 @@
   import CommonSyncStateText, {
     type SyncStateTextLabelProps,
   } from "$lib/common/CommonSyncStateText.svelte";
-  import BaseProgressCirclePercentage from "./BaseProgressCirclePercentage.svelte";
+  import BaseProgressCircleSyncStatusPercentage from "./BaseProgressCircleSyncStatusPercentage.svelte";
 
   export let startValue: number;
   export let goalValue: number;
@@ -148,7 +148,7 @@
           ""
         )}
       >
-        <BaseProgressCirclePercentage
+        <BaseProgressCircleSyncStatusPercentage
           {progressRate}
           textSize={changeSize(circleSize, 5)}
           {animatePulse}

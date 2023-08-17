@@ -12,7 +12,7 @@
     type SyncStateTextLabelProps,
   } from "$lib/common/CommonSyncStateText.svelte";
   import { getProgressRate } from "$lib/base/BaseProgressBarForBlockNumber/progressRate";
-  import BaseProgressCirclePercentage from "$lib/base/BaseProgressCircle/BaseProgressCirclePercentage.svelte";
+  import BaseProgressCircleSyncStatusPercentage from "$lib/base/BaseProgressCircle/BaseProgressCircleSyncStatusPercentage.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { NO_DATA } from "@utils/utilsCostants";
 
@@ -49,7 +49,7 @@
 
 {#if hideProgressCircle}
   <div class={classNames("flex", "flex-col", "w-fit", "mt-1")}>
-    <BaseProgressCirclePercentage
+    <BaseProgressCircleSyncStatusPercentage
       progressRate={getProgressRate(
         creationBlockNumber,
         latestBlockNumber * numOfSyncTargetContract,
