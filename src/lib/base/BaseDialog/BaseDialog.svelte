@@ -99,7 +99,6 @@
           "overflow-y-auto",
           scrollbarStyle(colorSettings.dialogBody).thick,
           colorDefinitions[themeColor][colorSettings.dialogBody].bg,
-          "p-3",
           ""
         )}
       >

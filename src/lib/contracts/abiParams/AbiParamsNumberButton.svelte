@@ -40,12 +40,13 @@
     headerText={`${dialogHeaderText}`}
     headerIconName={iconName}
   >
-    <AbiParamsTable
-      slot="dialogBody"
-      {paramTypes}
-      {dialogHeaderText}
-      showInputIndexedField={showAbiParamsInputIndexedField}
-    />
+    <div class="p-3" slot="dialogBody">
+      <AbiParamsTable
+        {paramTypes}
+        {dialogHeaderText}
+        showInputIndexedField={showAbiParamsInputIndexedField}
+      />
+    </div>
   </BaseDialog>
 {:else}
   <BaseLabel

@@ -157,7 +157,7 @@
 </script>
 
 <BaseDialog bind:dialogElement headerText="Export CSV File">
-  <form slot="dialogBody" class={classNames("space-y-3", "")}>
+  <form slot="dialogBody" class={classNames("space-y-3", "p-3")}>
     <ul class={classNames("space-y-3")}>
       {#each radioPropsKeys as key}
         <CommonItemMember text={exportCsvRadioProps[key].title}>
