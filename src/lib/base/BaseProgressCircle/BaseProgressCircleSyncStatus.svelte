@@ -7,12 +7,12 @@
   export let progressRate: number;
   export let percentageSize: BaseSize;
   export let syncStateTextLabelProps: SyncStateTextLabelProps | undefined;
-  export let animatePulse: "animate-pulse" | undefined;
+  export let isAnimatePulse: boolean;
 </script>
 
 <BaseProgressCircleSyncStatusPercentage
   {progressRate}
   textSize={percentageSize}
-  {animatePulse}
+  {isAnimatePulse}
 />
 <BaseProgressCircleSyncStatusText {syncStateTextLabelProps} />

@@ -6,7 +6,10 @@
 
   export let progressRate: number;
   export let textSize: BaseSize;
-  export let animatePulse: "animate-pulse" | undefined;
+  export let isAnimatePulse: boolean;
+
+  let animatePulse: "animate-pulse" | undefined;
+  $: animatePulse = isAnimatePulse ? "animate-pulse" : undefined;
 </script>
 
 <div

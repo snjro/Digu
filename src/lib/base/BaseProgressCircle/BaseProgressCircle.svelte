@@ -63,11 +63,10 @@
   $: progressRate = getProgressRate(startValue, goalValue, currentValue);
   let offset: number;
   $: offset = (circumference * (100 - progressRate)) / 100;
+  let isStopping: boolean;
+  $: isStopping = syncStateTextLabelProps?.syncStateText === "stopping";
   let animatePulse: "animate-pulse" | undefined;
-  $: animatePulse =
-    syncStateTextLabelProps?.syncStateText === "stopping"
-      ? "animate-pulse"
-      : undefined;
+  $: animatePulse = isStopping ? "animate-pulse" : undefined;
   let colorCategoryCircleProgress: () => ColorCategory;
   $: colorCategoryCircleProgress = (): ColorCategory => {
     switch (syncStateTextLabelProps?.syncStateText) {
@@ -150,7 +149,7 @@
           {progressRate}
           percentageSize={changeSize(circleSize, 5)}
           {syncStateTextLabelProps}
-          {animatePulse}
+          isAnimatePulse={isStopping}
         />
 
         {#if detailsPosition === "inner"}
