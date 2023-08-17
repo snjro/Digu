@@ -29,9 +29,12 @@
   lang="ts"
   generics=" TabState extends  TabStateContract|TabStateEvent|TabStateFunction"
 >
+  import {
+    breakPointWidths,
+    type BreakPointWidthKey,
+  } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { EventLogType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/EventLogs.svelte";
-  import { breakPointWidths, type BreakPointWidthKey } from "@utils/utilsDom";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";

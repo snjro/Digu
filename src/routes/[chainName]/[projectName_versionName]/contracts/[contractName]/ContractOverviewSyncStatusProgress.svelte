@@ -13,8 +13,8 @@
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { breakPointWidths } from "@utils/utilsDom";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
 
   export let targetChain: Chain;
   export let targetProject: Project;

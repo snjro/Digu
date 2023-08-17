@@ -9,7 +9,7 @@
   import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
   import NavButtonsSettingsDialog from "./NavButtonsSettingsDialog.svelte";
   import { changeSize } from "$lib/base/baseSizes";
-  import { breakPointWidthThresholds } from "@utils/utilsDom";
+  import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
 
   let currentThemeColor: ThemeColor;
   $: currentThemeColor = $storeUserSettings.themeColor;
