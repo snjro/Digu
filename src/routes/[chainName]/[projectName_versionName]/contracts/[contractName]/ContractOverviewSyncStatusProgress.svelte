@@ -35,7 +35,7 @@
     : undefined;
   let detailsTextSize: BaseSize;
   $: detailsTextSize =
-    $storeNoDbCurrentWidth <= breakPointWidths.sm
+    $storeNoDbCurrentWidth <= breakPointWidths.md
       ? changeSize(itemSize, -1)
       : itemSize;
 
@@ -48,9 +48,7 @@
     startValue={targetContract.creation.blockNumber}
     currentValue={fetchedBlockNumber ?? targetContract.creation.blockNumber}
     goalValue={latestBlockNumber}
-    detailsPosition={$storeNoDbCurrentWidth <= breakPointWidths.lg
-      ? "right"
-      : "bottom"}
+    detailsPosition={"bottom"}
     circleSize={changeSize(itemSize, 1)}
     {detailsTextSize}
     syncStateTextLabelProps={{
