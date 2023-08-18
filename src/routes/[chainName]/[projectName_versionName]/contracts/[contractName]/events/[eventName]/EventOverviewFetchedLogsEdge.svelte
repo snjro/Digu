@@ -1,6 +1,6 @@
 <script lang="ts">
   import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
   import type { ConvertedEventLog } from "@db/dbTypes";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
@@ -10,7 +10,9 @@
   export let convertedEventLogs: ConvertedEventLog[];
   export let edgeType: "latest" | "oldest";
 
-  const textSize: BaseSize = sizeSettings.itemMember;
+  const textSizeTltle: BaseSize = sizeSettings.itemMember;
+  const textSizeValue: BaseSize = changeSize(sizeSettings.itemMember, -1);
+
   $: edgeEventLog = (): ConvertedEventLog => {
     if (edgeType === "latest") {
       return convertedEventLogs[convertedEventLogs.length - 1];
@@ -22,46 +24,45 @@
   const itemStyle: string = classNames(
     "flex",
     "flex-row",
-    "items-start",
+    "items-center",
     "w-full",
-    "pl-1",
     ""
   );
-  const subItemStyle: string = classNames("w-32", "flex-none");
+  const subItemStyle: string = classNames("w-24", "flex-none");
 </script>
 
 <div class={itemStyle}>
   <div class={classNames(subItemStyle)}>
-    <BaseLabel text="Block Number" {textSize} />
+    <BaseLabel text="Block Number" textSize={textSizeTltle} />
   </div>
 
   <CommonChainExplorerLink
     subdirectory="block"
     value={edgeEventLog().blockNumber.toString()}
     isFontMono
-    {textSize}
+    textSize={textSizeValue}
   />
 </div>
 <div class={itemStyle}>
   <div class={classNames(subItemStyle)}>
-    <BaseLabel text="Datetime" {textSize} />
+    <BaseLabel text="Datetime" textSize={textSizeTltle} />
   </div>
   <BaseLabel
     text={edgeEventLog
       ? convertJsDateToIso8601(edgeEventLog().jsDate)
       : undefined}
     fontMono
-    {textSize}
+    textSize={textSizeValue}
   />
 </div>
 <div class={itemStyle}>
   <div class={classNames(subItemStyle)}>
-    <BaseLabel text="Tx Hash" {textSize} />
+    <BaseLabel text="Tx Hash" textSize={textSizeTltle} />
   </div>
   <CommonChainExplorerLink
     subdirectory="tx"
     value={edgeEventLog().transactionHash}
     isFontMono
-    {textSize}
+    textSize={textSizeValue}
   />
 </div>
