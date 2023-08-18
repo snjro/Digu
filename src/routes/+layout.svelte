@@ -12,7 +12,6 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { scrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
   import { toggleLeftSideBar } from "$lib/leftSidebar/functions";
   import Content from "./Content.svelte";
   import { browser } from "$app/environment";
@@ -46,6 +45,7 @@
     "overflow-y-hidden",
     ""
   );
+
   $: mainContainerStyle = classNames(
     classNames(
       "flex",
@@ -56,12 +56,7 @@
         ($storeNoDbCurrentWidth <= breakPointWidths.sm
           ? "" //"blur-sm"
           : "leftsidebar-padding"),
-      "overflow-x-none",
-      // "overflow-y-auto",
-      "overscroll-y-auto",
-      scrollbarStyle(colorSettings.main).thick,
-      "cursor-default",
-      ""
+      "cursor-default"
     )
   );
   $: showFilter =
