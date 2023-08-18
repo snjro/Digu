@@ -117,7 +117,11 @@
   {#if editedPrefixIcon}
     <BaseIcon {...editedPrefixIcon} />
   {/if}
-  <p class={classNames(truncate && "truncate")}>{text ?? NO_DATA}</p>
+  {#if $$slots.anchorContent}
+    <slot name="anchorContent" />
+  {:else}
+    <p class={classNames(truncate && "truncate")}>{text ?? NO_DATA}</p>
+  {/if}
   {#if editedSuffixIcon}
     <BaseIcon {...editedSuffixIcon} />
   {/if}

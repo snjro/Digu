@@ -63,7 +63,7 @@
   import { twMerge } from "tailwind-merge";
 
   import classNames from "classnames";
-  import { setPropsByOpenNewTab } from "./BaseA.svelte";
+  import BaseA from "./BaseA.svelte";
   import {
     colorDefinitions,
     type ColorCategory,
@@ -197,7 +197,7 @@
       textColor(),
       borderColor(),
       type === "normal" && baseTextSizes[size],
-      padding(),
+      !href && padding(),
       "rounded",
       // "relative",
       shadowEffect && "flex items-center",
@@ -220,7 +220,6 @@
 >
   <button
     class={customClass}
-    {...setPropsByOpenNewTab(openNewTab)}
     {disabled}
     on:click
     on:change
@@ -231,11 +230,19 @@
     on:animationend
   >
     {#if href}
-      <a
+      <BaseA
+        {openNewTab}
         {href}
-        class={classNames("inline-flex", "items-center", "truncate", "w-full")}
+        forcedClass={classNames(
+          "inline-flex",
+          "items-center",
+          "truncate",
+          "w-full",
+          padding()
+        )}
       >
         <BaseButtonContent
+          slot="anchorContent"
           {label}
           {size}
           {underlineLabel}
@@ -244,7 +251,7 @@
           <slot slot="prefixIcon" name="prefixIcon" />
           <slot slot="suffixIcon" name="suffixIcon" />
         </BaseButtonContent>
-      </a>
+      </BaseA>
     {:else}
       <BaseButtonContent {label} {size} {underlineLabel} {designatedFontWeight}>
         <slot slot="prefixIcon" name="prefixIcon" />
