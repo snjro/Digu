@@ -17,16 +17,12 @@
     <BaseLabel
       {text}
       {textSize}
-      fontWeight="font-medium"
-      colorCategoryFront={colorSettings.itemMemberText}
-      prefixIcon={{
-        name: "circleSmall",
-        size: textSize,
-        colorCategory: colorSettings.itemMemberText,
-      }}
+      colorCategoryFront={colorSettings.itemMemberTitle}
+      colorCategoryBg={colorSettings.itemMemberTitle}
+      appendClass={classNames("pl-1", "pr-1.5", "pb-[1px]", "rounded-sm")}
     />
   {/if}
-  <div class={classNames("pl-7", "pr-3", "w-full h-fit")}>
+  <div class={classNames("pl-1", "pr-3", "w-full h-fit")}>
     <slot />
   </div>
 </div>
