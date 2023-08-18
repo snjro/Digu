@@ -12,7 +12,10 @@
   import "./baseHighlight.css";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import classNames from "classnames";
-  import { scrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
+  import {
+    getScrollbarStyle,
+    type ScrollbarStyle,
+  } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
 
   export let targetLanguageName: keyof typeof languages;
   export let code: string;
@@ -30,18 +33,19 @@
   $: colorHexBg = getColorHexWithSharpFromTailwindColor(
     colorDefinitions[themeColor][colorSettings.itemGroupContent].bg
   );
+
+  let scrollbarStyle: ScrollbarStyle;
+  $: scrollbarStyle = getScrollbarStyle(
+    colorSettings.itemGroupContent,
+    themeColor
+  );
 </script>
 
 <svelte:head>
   <!-- eslint-disable svelte/no-at-html-tags -->
   {@html highlightStyle}
 </svelte:head>
-<div
-  class={classNames(
-    "overflow-auto",
-    scrollbarStyle(colorSettings.itemGroupContent).thick
-  )}
->
+<div class={classNames("overflow-auto", scrollbarStyle.thick)}>
   <Highlight
     language={languages[targetLanguageName]}
     {code}

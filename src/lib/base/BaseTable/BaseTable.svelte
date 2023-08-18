@@ -11,7 +11,10 @@
   import BaseTableHeaderCell from "./BaseTableHeaderCell.svelte";
   import SequenceHeaderCell from "./SequenceHeaderCell.svelte";
   import type { BaseSize } from "../baseSizes";
-  import { scrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
+  import {
+    getScrollbarStyle,
+    type ScrollbarStyle,
+  } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   export let tableHeaderCellProps: BaseTableHeaderCellProps[];
@@ -26,16 +29,15 @@
 
   const colorCategoryBorder: ColorCategory =
     colorSettings.itemMemberTableBorder;
-  const colorCategoryBg: ColorCategory = colorSettings.itemMemberTableBg;
+
+  let scrollbarStyle: ScrollbarStyle;
+  $: scrollbarStyle = getScrollbarStyle(
+    colorSettings.itemMemberTableBg,
+    themeColor
+  );
 </script>
 
-<div
-  class={classNames(
-    "overflow-x-auto",
-    scrollbarStyle(colorCategoryBg).thin,
-    ""
-  )}
->
+<div class={classNames("overflow-x-auto", scrollbarStyle.thin, "")}>
   <table
     class={classNames(
       "table-fixed",

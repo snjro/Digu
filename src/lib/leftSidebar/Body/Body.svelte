@@ -6,10 +6,18 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { scrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
+  import {
+    getScrollbarStyle,
+    type ScrollbarStyle,
+  } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  let scrollbarStyle: ScrollbarStyle;
+  $: scrollbarStyle = getScrollbarStyle(
+    colorSettings.leftSidebarBodyBg,
+    themeColor
+  );
 </script>
 
 <div
@@ -24,7 +32,7 @@
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
     "overflow-y-scroll",
     "overflow-x-hidden",
-    scrollbarStyle(colorSettings.leftSidebarBodyBg).thick,
+    scrollbarStyle.thick,
     "h-full",
     ""
   )}
