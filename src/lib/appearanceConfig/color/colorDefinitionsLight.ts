@@ -78,12 +78,12 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     scrollbarCorner: "scrollbar-corner-stone-100",
   },
   secondary: {
-    text: "text-stone-600", //leftsidebar(header/footer) text
-    textOpacity: "text-stone-600/50", //leftsidebar(header/footer) text
+    text: "text-stone-700", //leftsidebar(header/footer) text
+    textOpacity: "text-stone-700/50", //leftsidebar(header/footer) text
     textHover: "hover:text-stone-900",
     textEmphasis: "text-stone-900",
-    fill: "fill-stone-600", //leftsidebar(header/footer) icon
-    fillOpacity: "fill-stone-600/50", //leftsidebar(header/footer) icon
+    fill: "fill-stone-700", //leftsidebar(header/footer) icon
+    fillOpacity: "fill-stone-700/50", //leftsidebar(header/footer) icon
     fillEmphasis: "fill-stone-900", //leftsidebar(header/footer) icon
     fillHover: "hover:fill-stone-900", //leftsidebar(header/footer) icon
     bg: "bg-stone-300",
@@ -93,8 +93,8 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     shadow: "shadow-stone-800", //leftsidebar/Nav(Body/Buttons) shadow
     border: "border-stone-400", //breadcrumb border
     scrollbarThumb: "scrollbar-thumb-stone-400",
-    scrollbarTrack: "scrollbar-track-stone-600",
-    scrollbarCorner: "scrollbar-corner-stone-600",
+    scrollbarTrack: "scrollbar-track-stone-700",
+    scrollbarCorner: "scrollbar-corner-stone-700",
   },
   white: {
     text: "text-stone-50",
