@@ -23,6 +23,7 @@ type ColorSettings = Record<
   | "tabUnselected"
   | "itemGroupContent"
   | "itemGroupTitle"
+  | "itemMemberTitle"
   | "itemMemberText"
   | "itemMemberTableBg"
   | "itemMemberTableBorder"
@@ -77,6 +78,7 @@ export const colorSettings: ColorSettings = {
   //item
   itemGroupContent: colorMain,
   itemGroupTitle: colorSub,
+  itemMemberTitle: colorSub,
   itemMemberText: colorMain,
   itemMemberTableBg: colorMain,
   itemMemberTableBorder: colorSub,
