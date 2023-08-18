@@ -23,6 +23,14 @@
     values: typeof TAB_VALUES_FUNCTION;
     groupName: "tabGroupFunction";
   };
+
+  export function convertTabValueForHref<
+    TabState extends TabStateContract | TabStateEvent | TabStateFunction
+  >(tabValue: TabState["selected"]): `#${string}` {
+    let convertedTabValue: string = convertToKebabCase(tabValue as string);
+    convertedTabValue = convertedTabValue.replace("(", "").replace(")", "");
+    return `#${convertedTabValue}`;
+  }
 </script>
 
 <script
@@ -79,13 +87,6 @@
     }
     return convertedTabValue;
   };
-  function convertTabValueForHref(
-    tabValue: TabState["selected"]
-  ): `#${string}` {
-    let convertedTabValue: string = convertToKebabCase(tabValue as string);
-    convertedTabValue = convertedTabValue.replace("(", "").replace(")", "");
-    return `#${convertedTabValue}`;
-  }
   $: labelAndValues = (): RadioLabelAndValues<TabState["selected"]> =>
     tabState
       ? tabState.values.map((tabValue: TabState["selected"]) => {
