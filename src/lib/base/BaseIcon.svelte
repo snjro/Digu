@@ -80,11 +80,12 @@
   );
 </script>
 
-<button
+<div
   {style}
   on:mouseenter={onMouseEnter}
   on:mouseleave={onMouseLeave}
   class={classNames(cursor, "w-fit", "h-fit")}
+  role="presentation"
 >
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -98,4 +99,4 @@
   >
     <path d={iconNames[name]} class={""} />
   </svg>
-</button>
+</div>

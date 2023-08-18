@@ -13,7 +13,7 @@
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 </script>
 
-<button
+<div
   class={classNames(
     "flex flex-col",
     "fixed top-0",
@@ -32,7 +32,7 @@
   <Header />
   <Body />
   <Footer />
-</button>
+</div>
 
 <style lang="scss">
   @use "./leftsidebar.scss" as lsb;
