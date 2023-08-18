@@ -68,6 +68,9 @@
     colorCategory: colorSettings.navToggleIcon,
     appendClass: classNames(toggleOn && "animate-spin"),
   };
+
+  let tooltipText: string;
+  $: tooltipText = toggleOn ? "stop sync" : "start sync";
 </script>
 
 <div class={classNames(isStopping && "animate-pulse")}>
@@ -75,7 +78,7 @@
     toggleValue={toggleOn}
     size={sizeSettings.navToggle}
     {disabled}
-    tooltipText="syncing on/off"
+    {tooltipText}
     tooltipXPosition="right"
     tooltipYPosition="bottom"
     colorCategoryTrack={colorSettings.navButton}
