@@ -56,7 +56,7 @@ export const sizeSettings: SizeSettings = {
   leftSidebarChevronIcon: changeSize(sizeLeftSizebar, -1),
   // nav
   navButton: changeSize(sizeNav, 1),
-  navProgressCircle: changeSize(sizeNav, -2),
+  navProgressCircle: changeSize(sizeNav, -1),
   navToggle: changeSize(sizeNav, 0),
   navInput: changeSize(sizeNav, 0),
   navInputHelperText: changeSize(sizeNav, -1),
