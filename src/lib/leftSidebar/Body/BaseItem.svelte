@@ -56,8 +56,12 @@
     if (!isHoverControledByParent) isHover = false;
   }
   async function onClick() {
-    await goto(hrefWithUrlHash);
-    await toggleLeftSideBarWithCondition();
+    await Promise.all([
+      // This `goto` triggers a page reloading.
+      // To avoid the reloading, add `preventDefault` as an event modifier to `on:click`
+      goto(hrefWithUrlHash),
+      toggleLeftSideBarWithCondition(),
+    ]);
   }
   let isSelected: boolean;
   $: isSelected = hrefWithoutUrlHash === $page.url.pathname;
@@ -111,6 +115,7 @@
 </script>
 
 <button
+  bind:this={thisElement}
   class={classNames(
     "flex",
     "flex-row",
@@ -121,7 +126,7 @@
   )}
   on:mouseenter={onMouseEnter}
   on:mouseleave={onMouseLeave}
-  on:click={onClick}
+  on:click|stopPropagation|preventDefault={onClick}
 >
   <BaseItemIndicator
     {isSelected}
@@ -130,8 +135,7 @@
     invisible={size === sizeSettings.leftSidebarTree1st}
     {layerLevel}
   />
-  <button
-    bind:this={thisElement}
+  <div
     class={classNames(
       "flex",
       "flex-row",
@@ -143,7 +147,6 @@
       leftSideBarItemHeight[size],
       hasChildren ? "rounded-l" : "rounded"
     )}
-    on:click={onClick}
   >
     {#if iconName}
       <BaseButtonIcon
@@ -182,7 +185,7 @@
         {isHover}
       />
     {/if}
-  </button>
+  </div>
 </button>
 
 <style lang="scss">
