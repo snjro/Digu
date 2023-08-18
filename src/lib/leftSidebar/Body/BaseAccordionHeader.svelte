@@ -10,10 +10,7 @@
   import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
   import classNames from "classnames";
   import { onMount } from "svelte";
-  import {
-    isHrefParentOfPathname,
-    toggleLeftSideBarWithCondition,
-  } from "../functions";
+  import { isHrefParentOfPathname } from "../functions";
   import { setChildElementInScroll } from "./scrollController";
   import { browser } from "$app/environment";
   import BaseItem, { type LayerLevel } from "./BaseItem.svelte";
@@ -60,16 +57,8 @@
   function onMouseLeave() {
     isHover = false;
   }
-  function flipAccordion(e: Event) {
-    const htmlElement: HTMLElement = e.target as HTMLElement;
-    if (htmlElement.tagName === "LABEL") {
-      toggleLeftSideBarWithCondition();
-      if (!isOpenAccordion) {
-        isOpenAccordion = isParentDirectory();
-      }
-    } else {
-      isOpenAccordion = !isOpenAccordion;
-    }
+  function flipAccordion() {
+    isOpenAccordion = !isOpenAccordion;
   }
   function openCurrentDirectory(): void {
     isOpenAccordion = !isSelected() && isParentDirectory();
