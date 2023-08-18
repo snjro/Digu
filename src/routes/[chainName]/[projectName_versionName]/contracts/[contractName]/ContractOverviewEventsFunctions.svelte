@@ -21,7 +21,6 @@
   import BaseTableBodyCell from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
   import BaseA from "$lib/base/BaseA.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import classNames from "classnames";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { BaseSize } from "$lib/base/baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
@@ -111,10 +110,8 @@
   {/if}
 </CommonItemMember>
 {#if abiFragments.length > 0}
-  <div class={classNames("h-full", "flex", "items-end", "justify-end")}>
-    <CommonViewMoreDetailsButton
-      size={sizeSettings.itemViewAllButton}
-      href={hrefFrontPart}
-    />
-  </div>
+  <CommonViewMoreDetailsButton
+    size={sizeSettings.itemViewAllButton}
+    href={hrefFrontPart}
+  />
 {/if}
