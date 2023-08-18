@@ -12,11 +12,12 @@
   import { numberWithCommas } from "@utils/utilsCommon";
   import EventOverviewFetchedLogsEdge from "./EventOverviewFetchedLogsEdge.svelte";
   import classNames from "classnames";
-  import BaseButton from "$lib/base/BaseButton.svelte";
   import { DbEventLogs } from "@db/dbEventLogs";
   import { getEventLogTableName } from "@utils/utlisDb";
   import { getEventLogTableRecords } from "@db/dbEventLogsDataHandlersEventLog";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
+  import { convertTabValueForHref } from "$lib/base/BasePage/BasePageContainerContent.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -79,11 +80,10 @@
       <EventOverviewFetchedLogsEdge {convertedEventLogs} edgeType="oldest" />
     </CommonItemMember>
   </div>
-  <BaseButton
-    href={"/"}
+  <CommonViewMoreDetailsButton
     label="View all Event Logs"
     size={sizeSettings.itemViewAllButton}
-    colorCategoryFront="interactive"
+    href={convertTabValueForHref("Event Logs (text)")}
   />
 {:else}
   <BaseLabel
