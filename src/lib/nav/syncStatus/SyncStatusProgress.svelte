@@ -13,9 +13,11 @@
   import BaseProgressCircleSyncStatus from "$lib/base/BaseProgressCircle/BaseProgressCircleSyncStatus.svelte";
   import type { SyncStateTextLabelProps } from "$lib/common/CommonSyncStateText.svelte";
   import type { SyncStateText } from "@db/dbTypes";
-  import { changeSize } from "$lib/base/baseSizes";
+  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
 
   export let hideProgressCircle: boolean;
+
+  const progressCircleSize: BaseSize = sizeSettings.navProgressCircle;
 
   let targetChainName: ChainName;
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
@@ -47,29 +49,31 @@
   $: syncStateTextLabelProps = {
     syncStateText: syncStateText,
     colorCategoryFront: colorSettings.navText,
-    size: sizeSettings.navProgressCircle,
+    size: hideProgressCircle
+      ? progressCircleSize
+      : changeSize(progressCircleSize, 3),
     showIcon: false,
     currentSyncingState: NO_DATA,
   };
 </script>
 
-{#if hideProgressCircle}
-  <div class={classNames("flex", "flex-col", "w-fit", "mt-1")}>
-    <BaseProgressCircleSyncStatus
-      progressRate={getProgressRate(
-        creationBlockNumber,
-        latestBlockNumber * numOfSyncTargetContract,
-        fetchedBlockNumber
-      )}
-      percentageSize={changeSize(sizeSettings.navProgressCircle, 1)}
-      {syncStateTextLabelProps}
-      isAnimatePulse={isStopping}
-    />
-  </div>
-{:else}
-  <div class={classNames("w-[68px]", "h-full")}>
+<div class={classNames("w-[70px]", "h-full")}>
+  {#if hideProgressCircle}
+    <div class={classNames("flex", "flex-col", "w-fit", "mt-1")}>
+      <BaseProgressCircleSyncStatus
+        progressRate={getProgressRate(
+          creationBlockNumber,
+          latestBlockNumber * numOfSyncTargetContract,
+          fetchedBlockNumber
+        )}
+        percentageSize={changeSize(progressCircleSize, 1)}
+        {syncStateTextLabelProps}
+        isAnimatePulse={isStopping}
+      />
+    </div>
+  {:else}
     <BaseProgressCircle
-      circleSize={sizeSettings.navProgressCircle}
+      circleSize={progressCircleSize}
       startValue={creationBlockNumber}
       goalValue={latestBlockNumber * numOfSyncTargetContract}
       currentValue={fetchedBlockNumber}
@@ -77,5 +81,5 @@
       colorCategoryCircleBg={colorSettings.navBg}
       {syncStateTextLabelProps}
     />
-  </div>
-{/if}
+  {/if}
+</div>
