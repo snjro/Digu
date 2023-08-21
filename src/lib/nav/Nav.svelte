@@ -22,7 +22,7 @@
     "flex",
     "flex-row",
     "items-center",
-    "space-x-9",
+    "space-x-3",
     "border-b",
     colorDefinitions[themeColor][colorSettings.navBg].border,
     ""
@@ -37,7 +37,7 @@
       "flex-row",
       "w-full",
       "items-center",
-      "space-x-3"
+      "space-x-1"
     )}
   >
     <SyncListChainRpcInput />
