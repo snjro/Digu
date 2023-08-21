@@ -95,12 +95,7 @@
 </script>
 
 <nav
-  class={classNames(
-    "flex",
-    "mt-0.5 mb-3",
-    $page.status !== 200 && "hidden",
-    ""
-  )}
+  class={classNames("mt-0.5", "mb-1", $page.status !== 200 && "hidden", "")}
   aria-label="Breadcrumb"
 >
   <ol

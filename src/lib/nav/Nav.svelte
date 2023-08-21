@@ -15,8 +15,8 @@
 
   let navClass: string;
   $: navClass = classNames(
-    "pl-3",
-    "pr-3",
+    "px-3",
+    "flex-none",
     leftSidebarHeaderHeight,
     colorDefinitions[themeColor][colorSettings.navBg].bg,
     "flex",

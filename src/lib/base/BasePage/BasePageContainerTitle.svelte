@@ -28,7 +28,15 @@
 </script>
 
 <div
-  class={classNames("flex", "w-full", "flex-row", "items-center", "space-x-1")}
+  class={classNames(
+    "flex",
+    "w-full",
+    "h-fit",
+    "flex-row",
+    "items-center",
+    "space-x-1",
+    "pb-2"
+  )}
 >
   <BaseLabel
     text={titleCategoryLabelText}

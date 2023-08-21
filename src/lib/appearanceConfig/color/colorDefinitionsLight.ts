@@ -92,9 +92,9 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     bgHover: "hover:bg-stone-200",
     shadow: "shadow-stone-800", //leftsidebar/Nav(Body/Buttons) shadow
     border: "border-stone-400", //breadcrumb border
-    scrollbarThumb: "scrollbar-thumb-stone-400",
-    scrollbarTrack: "scrollbar-track-stone-700",
-    scrollbarCorner: "scrollbar-corner-stone-700",
+    scrollbarThumb: "scrollbar-thumb-stone-500",
+    scrollbarTrack: "scrollbar-track-stone-300",
+    scrollbarCorner: "scrollbar-corner-stone-300",
   },
   white: {
     text: "text-stone-50",

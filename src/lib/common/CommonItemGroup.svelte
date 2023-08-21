@@ -22,7 +22,6 @@
     "w-full",
     "h-full",
     "rounded",
-    "pb-3 ",
     gridTrack,
     ""
   )}

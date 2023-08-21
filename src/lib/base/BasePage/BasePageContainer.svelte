@@ -12,11 +12,10 @@
 
   export let titleText: string;
   export let titleCategoryLabelText: string;
-
   export let tabState: TabState | undefined = undefined;
 </script>
 
-<div class={classNames("space-y-3", "h-fit", "w-full", "")}>
+<div class={classNames("min-h-0", "h-full", "w-full", "flex", "flex-col")}>
   <BasePageContainerTitle {titleText} {titleCategoryLabelText} />
   <BasePageContainerContent bind:tabState>
     <slot />
