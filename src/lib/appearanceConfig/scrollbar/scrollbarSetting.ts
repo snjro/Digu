@@ -22,8 +22,9 @@ export const getScrollbarStyle = (
     colorParts.scrollbarTrack,
     colorParts.scrollbarCorner
   );
+  const rounded: string = "scrollbar-thumb-rounded";
   return {
-    thin: classNames("scrollbar-thin", scrollbarColors),
-    thick: classNames("scrollbar", scrollbarColors),
+    thin: classNames("scrollbar-thin", rounded, scrollbarColors),
+    thick: classNames("scrollbar", rounded, scrollbarColors),
   };
 };
