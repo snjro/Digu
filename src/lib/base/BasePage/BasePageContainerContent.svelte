@@ -126,7 +126,7 @@
   }
 </script>
 
-<div class={classNames("w-full", "h-full", "flex", "flex-col")}>
+<div class={classNames("min-h-0", "w-full", "h-full", "flex", "flex-col")}>
   {#if tabState}
     <BaseRadio
       radioButtonType="tab"

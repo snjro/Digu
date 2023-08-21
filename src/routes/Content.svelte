@@ -7,27 +7,18 @@
   import type { ThemeColor } from "@db/dbTypes";
   import BaseSnackbar from "$lib/base/BaseSnackbar.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import {
-    getScrollbarStyle,
-    type ScrollbarStyle,
-  } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 
-  let scrollbarStyle: ScrollbarStyle;
-  $: scrollbarStyle = getScrollbarStyle(colorSettings.main, themeColor);
-
   $: contentStyle = classNames(
-    "overflow-x-auto",
-    "overflow-y-auto",
-    scrollbarStyle.thick,
-    "flex-1",
+    "min-h-0",
+    "flex",
     "flex-col",
     "h-full",
     "w-full",
-    "border-none",
-    "px-3 pb-3 ",
+    "px-3",
+    "pb-3",
     colorDefinitions[themeColor][colorSettings.main].bg,
     ""
   );

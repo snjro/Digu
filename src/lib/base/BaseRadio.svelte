@@ -218,7 +218,7 @@
     class={classNames(
       "flex",
       "flex-row",
-      "h-full",
+      "h-fit",
       "w-fit",
       // themeColor !== "dark" && radioButtonType === "tab" && "shadow-sm",
       // colorDefinitions[themeColor][colorSettings.tabSelected].shadow,
