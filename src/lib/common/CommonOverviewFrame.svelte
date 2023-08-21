@@ -31,9 +31,9 @@
   );
 </script>
 
-<div class={classNames("w-full", "h-full", "pr-1", hidden && "hidden", "")}>
+<div class={classNames("w-full", "h-full", "pr-0.5", hidden && "hidden", "")}>
   <div
-    class={classNames(gridMain, "w-full", "h-full", "pr-1", scrollStyle, "")}
+    class={classNames(gridMain, "w-full", "h-full", "pr-0.5", scrollStyle, "")}
   >
     <slot />
   </div>
