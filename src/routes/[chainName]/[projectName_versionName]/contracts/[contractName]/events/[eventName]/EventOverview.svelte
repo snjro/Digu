@@ -11,6 +11,7 @@
   import EventOverviewBasic from "./EventOverviewBasic.svelte";
   import EventOverviewFetchedLogs from "./EventOverviewFetchedLogs.svelte";
   import EventOverviewContract from "./EventOverviewContract.svelte";
+  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -19,17 +20,11 @@
   export let targetEventAbiFragment: EventAbiFragment;
   export let hidden: boolean;
 
-  const gridMain: string = classNames(
-    "grid",
-    "grid-cols-2",
-    "grid-flow-dense",
-    "gap-3"
-  );
   const gridTrackBasic: string = classNames("col-span-full lg:col-span-1");
   const gridTrackFetchedLogs: string = classNames("col-span-full");
 </script>
 
-<div class={classNames(gridMain, "w-full", "h-full", hidden && "hidden", "")}>
+<CommonOverviewFrame gridCols={2} {hidden}>
   <CommonItemGroup text="Basic" gridTrack={gridTrackBasic}>
     <EventOverviewBasic {targetEventAbiFragment} />
   </CommonItemGroup>
@@ -51,4 +46,4 @@
       {targetEventAbiFragment}
     />
   </CommonItemGroup>
-</div>
+</CommonOverviewFrame>

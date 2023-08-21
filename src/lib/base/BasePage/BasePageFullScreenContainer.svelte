@@ -23,7 +23,7 @@
     "justify-items-center",
     // "items-start",
     isFullScreen
-      ? classNames("w-screen", "h-screen", "absolute", "inset-0")
+      ? classNames("w-screen", "h-screen", "absolute", "inset-0", "pl-3")
       : "h-full w-full",
     hidden && "hidden",
     colorDefinitions[themeColor][colorSettings.gridContainer].bg,

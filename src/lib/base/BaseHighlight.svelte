@@ -29,27 +29,34 @@
 
   const languages = { json: json };
 
+  let colorBg: `bg-${string}`;
+  $: colorBg = colorDefinitions[themeColor][colorSettings.itemGroupContent].bg;
   let colorHexBg: `#${string}`;
-  $: colorHexBg = getColorHexWithSharpFromTailwindColor(
-    colorDefinitions[themeColor][colorSettings.itemGroupContent].bg
-  );
+  $: colorHexBg = getColorHexWithSharpFromTailwindColor(colorBg);
 
   let scrollbarStyle: ScrollbarStyle;
-  $: scrollbarStyle = getScrollbarStyle(
-    colorSettings.itemGroupContent,
-    themeColor
-  );
+  $: scrollbarStyle = getScrollbarStyle(colorSettings.tabSelected, themeColor);
 </script>
 
 <svelte:head>
   <!-- eslint-disable svelte/no-at-html-tags -->
   {@html highlightStyle}
 </svelte:head>
-<div class={classNames("overflow-auto", scrollbarStyle.thick)}>
-  <Highlight
-    language={languages[targetLanguageName]}
-    {code}
-    class="text-left"
-    style={`--base-highlight-background-color:${colorHexBg}`}
-  />
+<div class={classNames("min-h-0", "w-full", "h-full", "pr-1", "")}>
+  <div
+    class={classNames(
+      "w-full",
+      "h-full",
+      "pr-1",
+      "overflow-scroll",
+      scrollbarStyle.thin
+    )}
+  >
+    <Highlight
+      language={languages[targetLanguageName]}
+      {code}
+      class="text-left"
+      style={`--base-highlight-background-color:${colorHexBg}`}
+    />
+  </div>
 </div>

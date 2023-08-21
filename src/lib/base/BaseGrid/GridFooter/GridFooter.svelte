@@ -23,7 +23,8 @@
     "flex-row",
     "items-center",
     "justify-end",
-    "space-x-1"
+    "space-x-1",
+    "pr-3"
   )}
 >
   <BaseLabel text="Rows (filtered/all) :" />

@@ -13,6 +13,7 @@
   import ContractOverviewFallback from "./ContractOverviewFallback.svelte";
   import ContractOverviewConstructor from "./ContractOverviewConstructor.svelte";
   import ContractOverviewEventsFunctions from "./ContractOverviewEventsFunctions.svelte";
+  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -23,12 +24,6 @@
   let hasEvent: boolean;
   $: hasEvent = targetContract.events.abiFragments.length > 0;
 
-  const gridMain: string = classNames(
-    "grid",
-    "grid-cols-6",
-    "grid-flow-dense",
-    "gap-3"
-  );
   let gridTrackBasic: string;
   $: gridTrackBasic = classNames(
     "col-span-full",
@@ -49,7 +44,7 @@
   );
 </script>
 
-<div class={classNames(gridMain, "w-full", "h-full", hidden && "hidden", "")}>
+<CommonOverviewFrame gridCols={6} {hidden}>
   <CommonItemGroup text="Basic" gridTrack={gridTrackBasic}>
     <ContractOverviewBasic
       {targetChain}
@@ -92,4 +87,4 @@
   <CommonItemGroup text="Constructor" gridTrack={gridTrackEvents}>
     <ContractOverviewConstructor {targetContract} />
   </CommonItemGroup>
-</div>
+</CommonOverviewFrame>
