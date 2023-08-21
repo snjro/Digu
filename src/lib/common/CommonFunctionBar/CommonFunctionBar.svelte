@@ -28,8 +28,9 @@
     justifyAlignment,
     "space-x-5",
     colorDefinitions[themeColor][colorSettings.gridHeader].bg,
-    isFullScreen ? "px-3" : "px-0.5",
-    isFullScreen ? "py-1" : "pb-1"
+    "pr-3",
+    isFullScreen ? "py-1" : "pb-1",
+    ""
   )}
 >
   <div

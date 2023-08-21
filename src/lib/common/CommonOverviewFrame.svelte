@@ -9,27 +9,32 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
-  export let hasTab: boolean = false;
+  export let gridCols: 2 | 6;
+  export let hidden: boolean = false;
 
+  const gridMain: string = classNames(
+    "grid",
+    gridCols === 2 ? "grid-cols-2" : "grid-cols-6",
+    "grid-flow-dense",
+    "gap-3"
+  );
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
   let scrollbarStyle: ScrollbarStyle;
   $: scrollbarStyle = getScrollbarStyle(colorSettings.tabSelected, themeColor);
+
+  let scrollStyle: string;
+  $: scrollStyle = classNames(
+    colorDefinitions[themeColor][colorSettings.tabSelected].bg,
+    "overflow-y-scroll",
+    scrollbarStyle.thin
+  );
 </script>
 
-<div
-  class={classNames(
-    "min-h-0",
-    "h-full",
-    "w-full",
-    "py-3",
-    "pl-3",
-    "rounded-tr",
-    "rounded-b",
-    !hasTab && "rounded-tl",
-    colorDefinitions[themeColor][colorSettings.tabSelected].bg,
-    ""
-  )}
->
-  <slot />
+<div class={classNames("w-full", "h-full", "pr-0.5", hidden && "hidden", "")}>
+  <div
+    class={classNames(gridMain, "w-full", "h-full", "pr-0.5", scrollStyle, "")}
+  >
+    <slot />
+  </div>
 </div>

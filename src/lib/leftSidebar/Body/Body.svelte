@@ -23,22 +23,37 @@
 <div
   id="leftSidebarBody"
   class={classNames(
+    "min-h-0",
     "w-full",
     "flex",
     "flex-col",
     "flex-grow",
-    "pt-2",
     "right-padding",
-    colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
-    "overflow-y-scroll",
-    "overflow-x-hidden",
-    scrollbarStyle.thick,
     "h-full",
+    colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
+
     ""
   )}
 >
-  <ItemHome />
-  <ItemProjectVersions />
+  <div
+    class={classNames(
+      "py-1",
+      "h-full",
+      "w-full",
+      "flex",
+      "flex-col",
+      "flex-grow",
+      "right-padding",
+      colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
+      "overflow-y-scroll",
+      "overflow-x-hidden",
+      scrollbarStyle.thin,
+      ""
+    )}
+  >
+    <ItemHome />
+    <ItemProjectVersions />
+  </div>
 </div>
 
 <style lang="scss">

@@ -11,6 +11,7 @@
   import FunctionOverviewBasic from "./FunctionOverviewBasic.svelte";
   import FunctionOverviewParams from "./FunctionOverviewParams.svelte";
   import ContractOverviewBasic from "../../ContractOverviewBasic.svelte";
+  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -19,17 +20,11 @@
   export let targetFunctionAbiFragment: FunctionAbiFragment;
   export let hidden: boolean;
 
-  const gridMain: string = classNames(
-    "grid",
-    "grid-cols-2",
-    "grid-flow-dense",
-    "gap-3"
-  );
   const gridTrackBasic: string = classNames("col-span-full lg:col-span-1");
   const gridTrackParams: string = classNames("col-span-full lg:col-span-1");
 </script>
 
-<div class={classNames(gridMain, "w-full", "h-full", hidden && "hidden", "")}>
+<CommonOverviewFrame gridCols={2} {hidden}>
   <CommonItemGroup text="Basic" gridTrack={gridTrackBasic}>
     <FunctionOverviewBasic {targetFunctionAbiFragment} />
   </CommonItemGroup>
@@ -55,4 +50,4 @@
       paramIdentifier="outputs"
     />
   </CommonItemGroup>
-</div>
+</CommonOverviewFrame>

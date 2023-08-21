@@ -1,8 +1,8 @@
 @use 'sass:math';
 
 $leftsidebar-width: 320;
-$padding-right: 4;
-$scrollbar-width: 16; // thin=8px, thick=16px
+$padding-right: 2;
+$scrollbar-width: 8; // thin=8px, thick=16px
 $indicator-width-top: 10;
 $indicator-width-normal: 14;
 
@@ -16,7 +16,7 @@ $indicator-width-normal: 14;
 @function get-item-width($layer-level) {
   $used-width: 
     $scrollbar-width
-    + $padding-right
+    + $padding-right * 2
     + get-piled-indicators-padding-width($layer-level);
   @return $leftsidebar-width - $used-width;
 }

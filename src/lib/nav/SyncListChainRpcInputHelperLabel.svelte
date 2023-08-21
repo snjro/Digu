@@ -24,6 +24,7 @@
           },
           text: "Connected.",
           colorCategoryFront: colorSettings.navText,
+          fontWeight: "font-normal",
         };
         break;
       }
@@ -36,6 +37,7 @@
           },
           text: "Connecting...",
           colorCategoryFront: colorSettings.navText,
+          fontWeight: "font-normal",
         };
         break;
       }
@@ -43,7 +45,7 @@
         let errorMessage: string | undefined = undefined;
         switch (nodeStatus) {
           case "INVALID_PROTOCOL": {
-            errorMessage = `Error. Protocol should be "http", "https", "ws", or "wss".`;
+            errorMessage = `Error. Protocol is invalid.`;
             break;
           }
           case "INVALID_URL": {
@@ -59,7 +61,7 @@
             break;
           }
           case "NETWORK_ERROR": {
-            errorMessage = "Error. It cannot get a network data.";
+            errorMessage = "Error. cannot get a network data.";
             break;
           }
           default: {
@@ -77,13 +79,14 @@
           text: errorMessage,
           textSize: size,
           colorCategoryFront: "error",
+          fontWeight: "font-normal",
         };
       }
     }
     if (labelProps.prefixIcon) {
       labelProps.prefixIcon.size = size;
     }
-    labelProps.appendClass = classNames("flex", "flex-row", "flex-nowrap");
+    labelProps.appendClass = classNames("whitespace-pre-wrap");
     return labelProps;
   };
 </script>

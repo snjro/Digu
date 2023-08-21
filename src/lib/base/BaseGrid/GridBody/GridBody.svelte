@@ -133,7 +133,7 @@
   );
 </script>
 
-<div class={classNames(isGridFullScreen ? "h-full" : "h-full")}>
+<div class={classNames(isGridFullScreen ? "h-full" : "h-full", "pr-3")}>
   <div
     id="baseGridContainer"
     bind:this={elementGridDiv}

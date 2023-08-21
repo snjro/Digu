@@ -59,7 +59,7 @@ export const sizeSettings: SizeSettings = {
   navProgressCircle: changeSize(sizeNav, -1),
   navToggle: changeSize(sizeNav, 0),
   navInput: changeSize(sizeNav, 0),
-  navInputHelperText: changeSize(sizeNav, -1),
+  navInputHelperText: changeSize(sizeNav, -2),
   navSettings: changeSize(sizeNav, 0),
   navText: changeSize(sizeNav, -1),
   //breadcrumb
