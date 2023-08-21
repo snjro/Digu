@@ -42,12 +42,12 @@
   <!-- eslint-disable svelte/no-at-html-tags -->
   {@html highlightStyle}
 </svelte:head>
-<div class={classNames("min-h-0", "w-full", "h-full", "pr-1", "")}>
+<div class={classNames("min-h-0", "w-full", "h-full", "pr-0.5", "")}>
   <div
     class={classNames(
       "w-full",
       "h-full",
-      "pr-1",
+      "pr-0.5",
       "overflow-scroll",
       scrollbarStyle.thin
     )}
