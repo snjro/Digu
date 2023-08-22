@@ -29,7 +29,7 @@
     "space-x-5",
     colorDefinitions[themeColor][colorSettings.gridHeader].bg,
     "pr-3",
-    isFullScreen ? "py-1" : "pb-1",
+    "pb-3",
     ""
   )}
 >
