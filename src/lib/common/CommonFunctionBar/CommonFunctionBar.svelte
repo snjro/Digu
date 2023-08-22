@@ -28,8 +28,8 @@
     justifyAlignment,
     "space-x-5",
     colorDefinitions[themeColor][colorSettings.gridHeader].bg,
-    "pr-3",
-    "pb-3",
+    "pr-1.5",
+    "pb-1.5",
     ""
   )}
 >

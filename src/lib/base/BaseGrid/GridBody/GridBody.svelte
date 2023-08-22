@@ -129,7 +129,7 @@
   );
 </script>
 
-<div class={classNames("h-full", "pr-3")}>
+<div class={classNames("h-full", "pr-1.5")}>
   <div
     id="baseGridContainer"
     bind:this={elementGridDiv}

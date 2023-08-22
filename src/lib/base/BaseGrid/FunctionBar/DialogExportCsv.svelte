@@ -20,6 +20,9 @@
 </script>
 
 <script lang="ts" generics="GridRow">
+  import { storeUserSettings } from "@stores/storeUserSettings";
+
+  import type { ThemeColor } from "@db/dbTypes";
   import type { ExportFilePrefix } from "@utils/utilsFile";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
@@ -32,7 +35,10 @@
   } from "$lib/base/BaseRadio.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import classNames from "classnames";
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+  import {
+    colorDefinitions,
+    type ColorCategory,
+  } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { CsvColumnSeparator, CsvFilteredSorted } from "./exportCsvData";
   import type { GridOptions } from "ag-grid-community";
   import DialogExportCsvFooterButtons from "./DialogExportCsvFooterButtons.svelte";
@@ -42,6 +48,9 @@
   export let exportFilePrefix: ExportFilePrefix;
 
   const colorCategory: ColorCategory = colorSettings.dialogHeader;
+
+  let themeColor: ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 
   let gridId: string | undefined = undefined;
   $: gridId = gridOptions.api?.getGridId();
@@ -157,11 +166,11 @@
 </script>
 
 <BaseDialog bind:dialogElement headerText="Export CSV File">
-  <form slot="dialogBody" class={classNames("space-y-3", "p-3")}>
-    <ul class={classNames("space-y-8")}>
-      {#each radioPropsKeys as key}
+  <form slot="dialogBody" class={classNames("p-1.5")}>
+    <ul class={classNames("space-y-3")}>
+      {#each radioPropsKeys as key, indexRadioProps}
         <CommonItemMember text={exportCsvRadioProps[key].title}>
-          <ul class={classNames("space-y-1")}>
+          <ul class={classNames("space-y-1.5")}>
             <li>
               <BaseLabel
                 text={exportCsvRadioProps[key].subTitle}
@@ -187,6 +196,15 @@
             </li>
           </ul>
         </CommonItemMember>
+        {#if indexRadioProps < radioPropsKeys.length - 1}
+          <div
+            class={classNames(
+              "h-0.5",
+              colorDefinitions[themeColor][colorCategory].bgOpacity,
+              "w-full"
+            )}
+          />
+        {/if}
       {/each}
     </ul>
     <DialogExportCsvFooterButtons

@@ -17,7 +17,7 @@
         "grid",
         gridCols === 2 ? "grid-cols-2" : "grid-cols-6",
         "grid-flow-dense",
-        "gap-3"
+        "gap-1.5"
       )
     : undefined;
   let themeColor: ThemeColor;
@@ -33,19 +33,8 @@
   );
 </script>
 
-<div
-  class={classNames(
-    "w-full",
-    "h-full",
-    "pr-0.5",
-    hidden && "hidden",
-    "min-h-0",
-    ""
-  )}
->
-  <div
-    class={classNames(gridMain, "w-full", "h-full", "pr-0.5", scrollStyle, "")}
-  >
+<div class={classNames("w-full", "h-full", hidden && "hidden", "min-h-0", "")}>
+  <div class={classNames(gridMain, "w-full", "h-full", scrollStyle, "")}>
     <slot />
   </div>
 </div>

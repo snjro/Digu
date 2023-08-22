@@ -34,7 +34,7 @@
     headerText ? "justify-between" : "justify-end",
     headerText && "space-x-10",
     "w-full",
-    "p-3",
+    "p-1.5",
     colorDefinitions[themeColor][colorSettings.dialogHeader].bg,
     "relative",
     // "rounded-t-lg",

@@ -28,8 +28,8 @@
           "h-screen",
           "absolute",
           "inset-0",
-          "pl-3",
-          "pb-3",
+          "pl-1.5",
+          "pb-1.5",
           ""
         )
       : "h-full w-full",
