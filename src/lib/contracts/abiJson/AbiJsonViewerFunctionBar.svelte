@@ -15,14 +15,9 @@
   export let abiText: string;
   export let fragment: boolean;
 
-  let buttonDefinitions: {
-    textFormatter: SimplifiedButtonDefinition[];
-    copy: SimplifiedButtonDefinition[];
-    export: SimplifiedButtonDefinition[];
-    fullScreen: SimplifiedButtonDefinition[];
-  };
-  $: buttonDefinitions = {
-    textFormatter: [
+  let buttonDefinitions: Array<SimplifiedButtonDefinition[]>;
+  $: buttonDefinitions = [
+    [
       {
         iconName: isExpanded ? "arrowCollapseVertical" : "arrowExpandVertical",
         tooltipText: isExpanded ? "Unformatted" : "Formatted",
@@ -32,8 +27,6 @@
           isExpanded = !isExpanded;
         },
       },
-    ],
-    copy: [
       {
         iconName: "contentCopy",
         tooltipText: "Copy to clipboard",
@@ -41,8 +34,6 @@
         tooltipYPosition: isFullScreen ? "bottom" : "top",
         onClickEventFunction: () => navigator.clipboard.writeText(abiText),
       },
-    ],
-    export: [
       {
         iconName: "download",
         tooltipText: "Export as JSON",
@@ -59,8 +50,6 @@
             "json"
           ),
       },
-    ],
-    fullScreen: [
       {
         ...fullScreenSimplifiedButtonDefinition(isFullScreen),
         onClickEventFunction: () => {
@@ -68,7 +57,7 @@
         },
       },
     ],
-  };
+  ];
 </script>
 
 <CommonFunctionBar
