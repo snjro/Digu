@@ -32,7 +32,7 @@
     appendClass={classNames(
       "pl-1.5",
       "pr-3",
-      "py-1.5",
+      "pb-0.5",
       "rounded-tl",
       "rounded-br"
     )}
