@@ -1,4 +1,4 @@
-<script lang="ts" generics="ButtonGroupKey extends string">
+<script lang="ts">
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import {
@@ -12,19 +12,14 @@
   import classNames from "classnames";
   import type { BaseSize } from "$lib/base/baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  type ButtonDefinitions = Record<ButtonGroupKey, SimplifiedButtonDefinition[]>;
 
-  export let buttonDefinitions: ButtonDefinitions;
+  export let buttonDefinitions: Array<SimplifiedButtonDefinition[]>;
   export let buttonSize: BaseSize;
   export let listSize: BaseSize;
   export let colorCategory: ColorCategory;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
-
-  const buttonDefinitionKeys = Object.keys(
-    buttonDefinitions
-  ) as ButtonGroupKey[];
 
   let showChildren: boolean = false;
 
@@ -100,7 +95,7 @@
       colorDefinitions[themeColor][colorSettings.gridFunctionButton].bg
     )}
   >
-    {#each buttonDefinitionKeys as buttonDefinitionKey, buttonDefinitionIndex}
+    {#each buttonDefinitions as buttonGroup, buttonGroupIndex}
       <div
         class={classNames(
           "flex",
@@ -110,7 +105,7 @@
           "w-56"
         )}
       >
-        {#each buttonDefinitions[buttonDefinitionKey] as { iconName, tooltipText, onClickEventFunction }}
+        {#each buttonGroup as { iconName, tooltipText, onClickEventFunction }}
           <BaseButtonIcon
             size={listSize}
             {iconName}
@@ -126,7 +121,7 @@
       </div>
       <BaseDividerHorizontal
         colorCategory={colorSettings.gridFunctionButton}
-        hidden={buttonDefinitionIndex >= buttonDefinitionKeys.length - 1}
+        hidden={buttonGroupIndex >= buttonGroup.length - 1}
       />
     {/each}
   </div>

@@ -30,7 +30,8 @@
     {text}
     textSize={sizeSettings.itemGroup}
     appendClass={classNames(
-      "px-3",
+      "pl-0.5",
+      "pr-3",
       "pt-1",
       "pb-1.5",
       "rounded-tl",

@@ -46,13 +46,7 @@
     {titleText}
     {exportFilePrefix}
   />
-  <GridBody
-    bind:gridOptions
-    {paramColumnDefs}
-    {rows}
-    {hidden}
-    isGridFullScreen={isFullScreen}
-  />
+  <GridBody bind:gridOptions {paramColumnDefs} {rows} {hidden} />
   <GridFooter {gridOptions} {rows} />
 </BasePageFullScreenContainer>
 

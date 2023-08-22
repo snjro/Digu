@@ -56,6 +56,7 @@
   import { convertToKebabCase } from "@utils/utilsCommon";
 
   export let tabState: TabState | undefined;
+  export let isContentGrid: boolean;
 
   const size: BaseSize = sizeSettings.tab;
 
@@ -137,7 +138,10 @@
       labelAndValues={labelAndValues()}
     />
   {/if}
-  <BasePageContainerContentFrame hasTab={tabState ? true : false}>
+  <BasePageContainerContentFrame
+    hasTab={tabState ? true : false}
+    {isContentGrid}
+  >
     <slot />
   </BasePageContainerContentFrame>
 </div>

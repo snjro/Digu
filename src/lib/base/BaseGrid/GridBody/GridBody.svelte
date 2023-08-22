@@ -63,7 +63,6 @@
   export let gridOptions: GridOptions<GridRow>;
   export let paramColumnDefs: ColumnDef[] = [];
   export let rows: GridRow[];
-  export let isGridFullScreen: boolean;
   export let hidden: boolean;
 
   const gridTextSize: BaseSize = sizeSettings.grid;
@@ -112,8 +111,6 @@
       }
     }
   }
-  $: {
-  }
   // Adjust all columns width only the first time it shows.
   // Because it not possible to autosize a column that is not visible on the screen.
   // https://www.ag-grid.com/javascript-data-grid/column-sizing/#auto-size-columns
@@ -128,12 +125,11 @@
     isThemeLight ? "ag-theme-balham" : "ag-theme-balham-dark",
     "h-full",
     "w-full",
-    "col-span-12",
     ""
   );
 </script>
 
-<div class={classNames(isGridFullScreen ? "h-full" : "h-full", "pr-3")}>
+<div class={classNames("h-full", "pr-3")}>
   <div
     id="baseGridContainer"
     bind:this={elementGridDiv}

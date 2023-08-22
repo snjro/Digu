@@ -18,7 +18,7 @@
     "h-full",
     "w-full",
     "px-3",
-    "pb-3",
+    "pb-0.5",
     colorDefinitions[themeColor][colorSettings.main].bg,
     ""
   );

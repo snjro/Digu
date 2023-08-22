@@ -35,81 +35,93 @@
   export let quickSearchText: string;
   export let exportFilePrefix: ExportFilePrefix;
 
-  let buttonDefinitions: {
-    groupColumnHandler: SimplifiedButtonDefinition[];
-    columnWidthHandler: SimplifiedButtonDefinition[];
-    reset: SimplifiedButtonDefinition[];
-    fullScreen: SimplifiedButtonDefinition[];
-  };
-  $: buttonDefinitions = {
-    groupColumnHandler: [
-      {
-        iconName: "arrowExpandHorizontal",
-        tooltipText: "Show all columns",
-        tooltipXPosition: isFullScreen ? "left" : "right",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
-        onClickEventFunction: () =>
-          setAllColumnGroupState(gridOptions.columnApi!, true),
-      } as SimplifiedButtonDefinition,
-      {
-        iconName: "arrowCollapseHorizontal",
-        tooltipText: "Hide minor columns",
-        tooltipXPosition: isFullScreen ? "left" : "right",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
-        onClickEventFunction: () =>
-          setAllColumnGroupState(gridOptions.columnApi!, false),
+  let buttonDefinitionShowHideColumns: SimplifiedButtonDefinition[];
+  $: buttonDefinitionShowHideColumns = [
+    {
+      iconName: "arrowExpandHorizontal",
+      tooltipText: "Show all columns",
+      tooltipXPosition: isFullScreen ? "left" : "right",
+      tooltipYPosition: isFullScreen ? "bottom" : "top",
+      onClickEventFunction: () =>
+        setAllColumnGroupState(gridOptions.columnApi!, true),
+    },
+    {
+      iconName: "arrowCollapseHorizontal",
+      tooltipText: "Hide minor columns",
+      tooltipXPosition: isFullScreen ? "left" : "right",
+      tooltipYPosition: isFullScreen ? "bottom" : "top",
+      onClickEventFunction: () =>
+        setAllColumnGroupState(gridOptions.columnApi!, false),
+    },
+  ];
+
+  let buttonDefinitionColumnWidthHandler: SimplifiedButtonDefinition[];
+  $: buttonDefinitionColumnWidthHandler = [
+    {
+      iconName: "fitToPageOutline",
+      tooltipText: "Fit columns in frame",
+      tooltipXPosition: isFullScreen ? "left" : "right",
+      tooltipYPosition: isFullScreen ? "bottom" : "top",
+      onClickEventFunction: () => gridOptions.api!.sizeColumnsToFit(),
+    },
+    {
+      iconName: "tableColumnWidth",
+      tooltipText: "Auto fit columns",
+      tooltipXPosition: isFullScreen ? "left" : "right",
+      tooltipYPosition: isFullScreen ? "bottom" : "top",
+      onClickEventFunction: () => setAutoColumnWidth(gridOptions.columnApi!),
+    },
+  ];
+
+  let buttonDefinitionReset: SimplifiedButtonDefinition[];
+  $: buttonDefinitionReset = [
+    {
+      iconName: "filterRemove",
+      tooltipText: "Reset all filters",
+      tooltipXPosition: isFullScreen ? "left" : "right",
+      tooltipYPosition: isFullScreen ? "bottom" : "top",
+      onClickEventFunction: resetAllFilters,
+    },
+    {
+      iconName: "refresh",
+      tooltipText: "Reload",
+      tooltipXPosition: isFullScreen ? "left" : "right",
+      tooltipYPosition: isFullScreen ? "bottom" : "top",
+      onClickEventFunction: reload,
+    },
+  ];
+
+  let buttonDefinitionDownload: SimplifiedButtonDefinition[];
+  $: buttonDefinitionDownload = [
+    {
+      iconName: "download",
+      tooltipText: "Export as CSV",
+      tooltipXPosition: "left",
+      tooltipYPosition: isFullScreen ? "bottom" : "top",
+      onClickEventFunction: () => {
+        openDialogExportCsv(dialogElement);
       },
-    ],
-    columnWidthHandler: [
-      {
-        iconName: "fitToPageOutline",
-        tooltipText: "Fit columns in frame",
-        tooltipXPosition: isFullScreen ? "left" : "right",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
-        onClickEventFunction: () => gridOptions.api!.sizeColumnsToFit(),
+    },
+  ];
+
+  let buttonDefinitionFullScreen: SimplifiedButtonDefinition[];
+  $: buttonDefinitionFullScreen = [
+    {
+      ...fullScreenSimplifiedButtonDefinition(isFullScreen),
+      onClickEventFunction: () => {
+        isFullScreen = !isFullScreen;
       },
-      {
-        iconName: "tableColumnWidth",
-        tooltipText: "Auto fit columns",
-        tooltipXPosition: isFullScreen ? "left" : "right",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
-        onClickEventFunction: () => setAutoColumnWidth(gridOptions.columnApi!),
-      },
-    ],
-    reset: [
-      {
-        iconName: "filterRemove",
-        tooltipText: "Reset all filters",
-        tooltipXPosition: isFullScreen ? "left" : "right",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
-        onClickEventFunction: resetAllFilters,
-      },
-      {
-        iconName: "refresh",
-        tooltipText: "Reload",
-        tooltipXPosition: isFullScreen ? "left" : "right",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
-        onClickEventFunction: reload,
-      },
-      {
-        iconName: "download",
-        tooltipText: "Export as CSV",
-        tooltipXPosition: "left",
-        tooltipYPosition: isFullScreen ? "bottom" : "top",
-        onClickEventFunction: () => {
-          openDialogExportCsv(dialogElement);
-        },
-      },
-    ],
-    fullScreen: [
-      {
-        ...fullScreenSimplifiedButtonDefinition(isFullScreen),
-        onClickEventFunction: () => {
-          isFullScreen = !isFullScreen;
-        },
-      },
-    ],
-  };
+    },
+  ];
+
+  let buttonDefinitions: Array<SimplifiedButtonDefinition[]>;
+  $: buttonDefinitions = [
+    buttonDefinitionShowHideColumns,
+    buttonDefinitionColumnWidthHandler,
+    buttonDefinitionReset,
+    buttonDefinitionDownload,
+    buttonDefinitionFullScreen,
+  ];
   function resetAllFilters(): void {
     if (gridOptions.api) {
       gridOptions.api.setFilterModel(null);

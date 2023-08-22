@@ -1,4 +1,4 @@
-<script lang="ts" generics="ButtonGroupKey extends string">
+<script lang="ts">
   import {
     breakPointWidths,
     type BreakPointWidthValue,
@@ -13,17 +13,12 @@
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import CommonThreeDotsButton from "../CommonThreeDotsButton.svelte";
 
-  type ButtonDefinitions = Record<ButtonGroupKey, SimplifiedButtonDefinition[]>;
-  export let buttonDefinitions: ButtonDefinitions;
+  export let buttonDefinitions: Array<SimplifiedButtonDefinition[]>;
   export let isOpenSidebar: boolean = false;
   export let responsive: boolean = true;
   export let buttonSize: BaseSize;
   export let listSize: BaseSize = buttonSize;
   export let breakPointWidthForOpendSidebar: BreakPointWidthValue;
-
-  const buttonDefinitionKeys = Object.keys(
-    buttonDefinitions
-  ) as ButtonGroupKey[];
 
   let showThreeDotsButton: () => boolean;
   $: showThreeDotsButton = (): boolean => {
@@ -57,11 +52,11 @@
       colorCategory={colorSettings.gridFunctionButton}
     />
   {:else}
-    {#each buttonDefinitionKeys as buttonDefinitionKey, buttonDefinitionIndex}
+    {#each buttonDefinitions as buttonGroup, buttonDefinitionIndex}
       <div
         class={classNames("flex", "flex-row", "items-center", "space-x-3", "")}
       >
-        {#each buttonDefinitions[buttonDefinitionKey] as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition }}
+        {#each buttonGroup as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition }}
           <BaseButtonIcon
             size={buttonSize}
             {iconName}
@@ -77,7 +72,7 @@
       <BaseDividerVertical
         size={buttonSize}
         colorCategory={colorSettings.gridFunctionButton}
-        hidden={buttonDefinitionIndex >= buttonDefinitionKeys.length - 1}
+        hidden={buttonDefinitionIndex >= buttonDefinitions.length - 1}
       />
     {/each}
   {/if}

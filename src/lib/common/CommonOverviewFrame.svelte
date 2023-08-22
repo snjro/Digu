@@ -9,15 +9,17 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
-  export let gridCols: 2 | 6;
+  export let gridCols: 2 | 6 | undefined = undefined;
   export let hidden: boolean = false;
 
-  const gridMain: string = classNames(
-    "grid",
-    gridCols === 2 ? "grid-cols-2" : "grid-cols-6",
-    "grid-flow-dense",
-    "gap-3"
-  );
+  const gridMain: string | undefined = gridCols
+    ? classNames(
+        "grid",
+        gridCols === 2 ? "grid-cols-2" : "grid-cols-6",
+        "grid-flow-dense",
+        "gap-3"
+      )
+    : undefined;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
   let scrollbarStyle: ScrollbarStyle;
@@ -31,7 +33,16 @@
   );
 </script>
 
-<div class={classNames("w-full", "h-full", "pr-0.5", hidden && "hidden", "")}>
+<div
+  class={classNames(
+    "w-full",
+    "h-full",
+    "pr-0.5",
+    hidden && "hidden",
+    "min-h-0",
+    ""
+  )}
+>
   <div
     class={classNames(gridMain, "w-full", "h-full", "pr-0.5", scrollStyle, "")}
   >

@@ -19,9 +19,19 @@
   const titleCategoryLabelText: string = "Event";
 
   $: titleText = data.targetEventAbiFragment.name;
+
+  let isContentGrid: boolean;
+  $: isContentGrid =
+    tabState.selected === "Event Logs (hex)" ||
+    tabState.selected === "Event Logs (text)";
 </script>
 
-<BasePageContainer {titleText} {titleCategoryLabelText} bind:tabState>
+<BasePageContainer
+  {titleText}
+  {titleCategoryLabelText}
+  bind:tabState
+  {isContentGrid}
+>
   <EventOverview
     targetChain={data.targetChain}
     targetProject={data.targetProject}

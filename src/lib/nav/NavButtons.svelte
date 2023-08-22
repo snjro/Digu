@@ -20,11 +20,9 @@
   let initializeValue: boolean = false;
   let dialogElement: HTMLDialogElement;
 
-  let buttonDefinitions: {
-    basics: SimplifiedButtonDefinition[];
-  };
-  $: buttonDefinitions = {
-    basics: [
+  let buttonDefinitions: Array<SimplifiedButtonDefinition[]>;
+  $: buttonDefinitions = [
+    [
       {
         iconName: "cogOutline",
         tooltipText: "Settings",
@@ -46,7 +44,7 @@
         },
       },
     ],
-  };
+  ];
 </script>
 
 <div>

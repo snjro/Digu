@@ -10,6 +10,7 @@
   import classNames from "classnames";
 
   export let hasTab: boolean = false;
+  export let isContentGrid: boolean;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
@@ -20,7 +21,7 @@
 <div
   class={classNames(
     "min-h-0",
-    "h-full",
+    isContentGrid ? "h-full" : "h-fit",
     "w-full",
     "py-3",
     "pl-3",
