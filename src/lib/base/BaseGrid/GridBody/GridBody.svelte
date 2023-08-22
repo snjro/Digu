@@ -111,8 +111,6 @@
       }
     }
   }
-  $: {
-  }
   // Adjust all columns width only the first time it shows.
   // Because it not possible to autosize a column that is not visible on the screen.
   // https://www.ag-grid.com/javascript-data-grid/column-sizing/#auto-size-columns
