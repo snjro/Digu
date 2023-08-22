@@ -101,9 +101,6 @@
       <div
         class={classNames(
           "h-full",
-          "p-3",
-          "overflow-y-auto",
-          scrollbarStyle.thin,
           colorDefinitions[themeColor][colorSettings.dialogBody].bg,
           ""
         )}
