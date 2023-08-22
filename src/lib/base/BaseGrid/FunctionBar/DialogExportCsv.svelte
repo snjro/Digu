@@ -20,9 +20,7 @@
 </script>
 
 <script lang="ts" generics="GridRow">
-  import { storeUserSettings } from "@stores/storeUserSettings";
-
-  import type { ThemeColor } from "@db/dbTypes";
+  import BaseDividerHorizontal from "$lib/base/BaseDividerHorizontal.svelte";
   import type { ExportFilePrefix } from "@utils/utilsFile";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
@@ -35,10 +33,7 @@
   } from "$lib/base/BaseRadio.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import classNames from "classnames";
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { CsvColumnSeparator, CsvFilteredSorted } from "./exportCsvData";
   import type { GridOptions } from "ag-grid-community";
   import DialogExportCsvFooterButtons from "./DialogExportCsvFooterButtons.svelte";
@@ -48,9 +43,6 @@
   export let exportFilePrefix: ExportFilePrefix;
 
   const colorCategory: ColorCategory = colorSettings.dialogHeader;
-
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 
   let gridId: string | undefined = undefined;
   $: gridId = gridOptions.api?.getGridId();
@@ -196,15 +188,10 @@
             </li>
           </ul>
         </CommonItemMember>
-        {#if indexRadioProps < radioPropsKeys.length - 1}
-          <div
-            class={classNames(
-              "h-0.5",
-              colorDefinitions[themeColor][colorCategory].bgOpacity,
-              "w-full"
-            )}
-          />
-        {/if}
+        <BaseDividerHorizontal
+          hidden={indexRadioProps >= radioPropsKeys.length - 1}
+          {colorCategory}
+        />
       {/each}
     </ul>
     <DialogExportCsvFooterButtons
