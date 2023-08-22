@@ -16,6 +16,7 @@
     getScrollbarStyle,
     type ScrollbarStyle,
   } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
+  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
 
   export let targetLanguageName: keyof typeof languages;
   export let code: string;
@@ -42,21 +43,11 @@
   <!-- eslint-disable svelte/no-at-html-tags -->
   {@html highlightStyle}
 </svelte:head>
-<div class={classNames("min-h-0", "w-full", "h-full", "pr-0.5", "")}>
-  <div
-    class={classNames(
-      "w-full",
-      "h-full",
-      "pr-0.5",
-      "overflow-scroll",
-      scrollbarStyle.thin
-    )}
-  >
-    <Highlight
-      language={languages[targetLanguageName]}
-      {code}
-      class="text-left"
-      style={`--base-highlight-background-color:${colorHexBg}`}
-    />
-  </div>
-</div>
+<CommonOverviewFrame>
+  <Highlight
+    language={languages[targetLanguageName]}
+    class={classNames("w-full", "min-w-fit")}
+    {code}
+    style={classNames(`--base-highlight-background-color:${colorHexBg};`)}
+  />
+</CommonOverviewFrame>
