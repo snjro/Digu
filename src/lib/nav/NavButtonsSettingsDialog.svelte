@@ -28,7 +28,7 @@
   on:close={closeDialog}
 >
   <div class={classNames("space-y-3", "h-fit", "w-full", "")} slot="dialogBody">
-    <BasePageContainerContent tabState={undefined}>
+    <BasePageContainerContent tabState={undefined} isContentGrid>
       <div class={classNames(gridMain, "w-full", "h-full", "")}>
         <CommonItemGroup text="RPC configuration" gridTrack={gridTrackRpc}>
           <RpcConfig {initializeValue} />
