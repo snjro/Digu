@@ -13,11 +13,12 @@
   export let titleText: string;
   export let titleCategoryLabelText: string;
   export let tabState: TabState | undefined = undefined;
+  export let isContentGrid: boolean = false;
 </script>
 
 <div class={classNames("min-h-0", "h-full", "w-full", "flex", "flex-col")}>
   <BasePageContainerTitle {titleText} {titleCategoryLabelText} />
-  <BasePageContainerContent bind:tabState>
+  <BasePageContainerContent bind:tabState {isContentGrid}>
     <slot />
   </BasePageContainerContent>
 </div>

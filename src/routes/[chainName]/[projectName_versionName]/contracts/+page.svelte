@@ -40,7 +40,11 @@
   };
 </script>
 
-<BasePageContainer titleText={titleText()} {titleCategoryLabelText}>
+<BasePageContainer
+  titleText={titleText()}
+  {titleCategoryLabelText}
+  isContentGrid
+>
   <BaseGrid
     {rows}
     paramColumnDefs={columnDefs(
