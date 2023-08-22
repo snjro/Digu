@@ -17,6 +17,8 @@
     type ScrollbarStyle,
   } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
   import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
+  import { baseTextSizes } from "./baseSizes";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 
   export let targetLanguageName: keyof typeof languages;
   export let code: string;
@@ -46,7 +48,11 @@
 <CommonOverviewFrame>
   <Highlight
     language={languages[targetLanguageName]}
-    class={classNames("w-full", "min-w-fit")}
+    class={classNames(
+      "w-full",
+      "min-w-fit",
+      baseTextSizes[sizeSettings.abiJsonText]
+    )}
     {code}
     style={classNames(`--base-highlight-background-color:${colorHexBg};`)}
   />

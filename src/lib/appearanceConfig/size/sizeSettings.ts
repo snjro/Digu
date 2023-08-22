@@ -21,13 +21,14 @@ type SizeSettings = Record<
   | "grid"
   | "gridFunctionButton"
   | "gridFunctionQuickSearch"
+  | "abiParamsTable"
+  | "abiJsonText"
   | "title"
   | "itemGroup"
   | "itemMember"
   | "itemMemberTable"
   | "itemWarnningMessage"
   | "itemViewAllButton"
-  | "abiParamsTable"
   | "tab"
   | "itemTitle"
   | "dialogHeader"
@@ -40,6 +41,7 @@ const sizeLeftSizebar: BaseSize = "lg";
 const sizeNav: BaseSize = "md";
 const sizeBreadcrumb: BaseSize = "xs";
 const sizeGrid: BaseSize = "md";
+const sizeAbi: BaseSize = "sm";
 const sizeContent: BaseSize = "md";
 const sizeDialog: BaseSize = "md";
 const sizeTooltip: BaseSize = "sm";
@@ -68,6 +70,9 @@ export const sizeSettings: SizeSettings = {
   grid: changeSize(sizeGrid, -1),
   gridFunctionButton: changeSize(sizeGrid, 0),
   gridFunctionQuickSearch: changeSize(sizeGrid, 0),
+  // abi
+  abiParamsTable: changeSize(sizeAbi, 0),
+  abiJsonText: changeSize(sizeAbi, 0),
   // content
   title: changeSize(sizeContent, 3),
   itemGroup: changeSize(sizeContent, 1),
@@ -76,7 +81,6 @@ export const sizeSettings: SizeSettings = {
   itemMemberTable: changeSize(sizeContent, -1),
   itemWarnningMessage: changeSize(sizeContent, -1),
   itemViewAllButton: changeSize(sizeContent, -1),
-  abiParamsTable: changeSize(sizeContent, -1),
   tab: changeSize(sizeContent, -1),
   // dialog
   dialogHeader: changeSize(sizeDialog, 1),
