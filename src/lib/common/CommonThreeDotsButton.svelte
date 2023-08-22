@@ -95,7 +95,7 @@
       colorDefinitions[themeColor][colorSettings.gridFunctionButton].bg
     )}
   >
-    {#each buttonDefinitions as buttonGroup, buttonGroupIndex}
+    {#each buttonDefinitions as buttonGroup, buttonDefinitionIndex}
       <div
         class={classNames(
           "flex",
@@ -121,7 +121,7 @@
       </div>
       <BaseDividerHorizontal
         colorCategory={colorSettings.gridFunctionButton}
-        hidden={buttonGroupIndex >= buttonGroup.length - 1}
+        hidden={buttonDefinitionIndex >= buttonDefinitions.length - 1}
       />
     {/each}
   </div>
