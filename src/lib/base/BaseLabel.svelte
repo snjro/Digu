@@ -10,7 +10,7 @@
     suffixIcon?: BaseIconProps;
     colorCategoryFront?: ColorCategory;
     colorCategoryBg?: ColorCategory;
-    fontWeight:
+    fontWeight?:
       | "font-thin"
       | "font-extralight"
       | "font-light"
