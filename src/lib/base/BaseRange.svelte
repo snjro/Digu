@@ -63,6 +63,9 @@
       colorCategoryFront
         ? colorDefinitions[themeColor][colorCategoryFront].text
         : "text-inherit",
+      colorCategoryFront
+        ? colorDefinitions[themeColor][colorCategoryFront].accent
+        : "accent-inherit",
       "dark:border",
       colorCategoryBg
         ? colorDefinitions[themeColor][colorCategoryBg].border
