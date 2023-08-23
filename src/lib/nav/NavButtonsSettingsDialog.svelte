@@ -16,7 +16,7 @@
     "grid",
     "grid-cols-6",
     "grid-flow-dense",
-    "gap-3"
+    "gap-1.5"
   );
   const gridTrackRpc: string = classNames("col-span-full", "");
 </script>
@@ -27,7 +27,7 @@
   headerIconName="cogOutline"
   on:close={closeDialog}
 >
-  <div class={classNames("space-y-3", "h-fit", "w-full", "")} slot="dialogBody">
+  <div class={classNames("h-fit", "w-full")} slot="dialogBody">
     <BasePageContainerContent tabState={undefined} isContentGrid>
       <div class={classNames(gridMain, "w-full", "h-full", "")}>
         <CommonItemGroup text="RPC configuration" gridTrack={gridTrackRpc}>
