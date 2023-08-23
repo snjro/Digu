@@ -62,7 +62,7 @@ export const sizeSettings: SizeSettings = {
   navToggle: changeSize(sizeNav, 0),
   navInput: changeSize(sizeNav, 0),
   navInputHelperText: changeSize(sizeNav, -2),
-  navSettings: changeSize(sizeNav, 0),
+  navSettings: changeSize(sizeNav, -1),
   navText: changeSize(sizeNav, -1),
   //breadcrumb
   breadcrumb: changeSize(sizeBreadcrumb, 0),
