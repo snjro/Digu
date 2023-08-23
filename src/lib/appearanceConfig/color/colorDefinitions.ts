@@ -22,6 +22,7 @@ export type ColorDefinitionForParts = {
   scrollbarThumb: `scrollbar-thumb-${string}`;
   scrollbarTrack: `scrollbar-track-${string}`;
   scrollbarCorner: `scrollbar-corner-${string}`;
+  accent: `accent-${string}`;
 };
 export type ColorCategory =
   | "success"

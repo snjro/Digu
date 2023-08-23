@@ -19,6 +19,7 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     scrollbarThumb: "scrollbar-thumb-green-600",
     scrollbarTrack: "scrollbar-track-green-400",
     scrollbarCorner: "scrollbar-corner-green-400",
+    accent: "accent-green-500",
   },
   error: {
     text: "text-red-400",
@@ -38,6 +39,7 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     scrollbarThumb: "scrollbar-thumb-red-600",
     scrollbarTrack: "scrollbar-track-red-400",
     scrollbarCorner: "scrollbar-corner-red-400",
+    accent: "accent-red-500",
   },
   interactive: {
     text: "text-sky-500",
@@ -57,6 +59,7 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     scrollbarThumb: "scrollbar-thumb-sky-600",
     scrollbarTrack: "scrollbar-track-sky-400",
     scrollbarCorner: "scrollbar-corner-sky-400",
+    accent: "accent-sky-600",
   },
   primary: {
     text: "text-neutral-300",
@@ -76,6 +79,7 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     scrollbarThumb: "scrollbar-thumb-neutral-700",
     scrollbarTrack: "scrollbar-track-neutral-950",
     scrollbarCorner: "scrollbar-corner-neutral-950",
+    accent: "accent-neutral-950",
   },
   secondary: {
     text: "text-neutral-200",
@@ -95,6 +99,7 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     scrollbarThumb: "scrollbar-thumb-neutral-500",
     scrollbarTrack: "scrollbar-track-neutral-700",
     scrollbarCorner: "scrollbar-corner-neutral-700",
+    accent: "accent-neutral-700",
   },
   white: {
     text: "text-neutral-950",
@@ -114,5 +119,6 @@ export const colorDefinitionsDark: ColorDefinitionCategories = {
     scrollbarThumb: "scrollbar-thumb-neutral-950",
     scrollbarTrack: "scrollbar-track-neutral-950",
     scrollbarCorner: "scrollbar-corner-neutral-950",
+    accent: "accent-neutral-950",
   },
 };
