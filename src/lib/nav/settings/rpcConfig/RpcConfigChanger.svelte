@@ -58,7 +58,15 @@
 </script>
 
 {#key initializeValue}
-  <div class={classNames("flex", "flex-row", "items-center", "space-x-3")}>
+  <div
+    class={classNames(
+      "flex",
+      "flex-row",
+      "items-center",
+      "space-x-3",
+      "pt-1.5"
+    )}
+  >
     <RpcConfigChangerInput
       {helperTextState}
       bind:value={storedValue}
