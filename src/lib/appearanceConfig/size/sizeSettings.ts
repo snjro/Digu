@@ -83,7 +83,7 @@ export const sizeSettings: SizeSettings = {
   itemViewAllButton: changeSize(sizeContent, -1),
   tab: changeSize(sizeContent, -1),
   // dialog
-  dialogHeader: changeSize(sizeDialog, 1),
+  dialogHeader: changeSize(sizeDialog, 0),
   dialogBodyContent: changeSize(sizeDialog, -1),
   dialogFooter: changeSize(sizeDialog, -1),
   // tooltip
