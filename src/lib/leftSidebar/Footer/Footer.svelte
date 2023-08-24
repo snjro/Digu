@@ -19,7 +19,6 @@
     "sticky",
     "bottom-0",
     "w-full",
-    "shrink-0",
     colorDefinitions[themeColor][colorSettings.leftSidebarFooter].bg,
     "border-t",
     colorDefinitions[themeColor][colorSettings.leftSidebarFooter].border,

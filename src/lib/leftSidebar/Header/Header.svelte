@@ -20,6 +20,7 @@
   id="leftSidebarHeader"
   class={classNames(
     "sticky",
+    "flex-none",
     "flex flex-row",
     "items-center",
     "top-0",
