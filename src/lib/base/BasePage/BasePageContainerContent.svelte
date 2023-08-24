@@ -56,7 +56,6 @@
   import { convertToKebabCase } from "@utils/utilsCommon";
 
   export let tabState: TabState | undefined;
-  export let isContentGrid: boolean;
 
   const size: BaseSize = sizeSettings.tab;
 
@@ -127,21 +126,20 @@
   }
 </script>
 
-<div class={classNames("min-h-0", "w-full", "h-full", "flex", "flex-col")}>
-  {#if tabState}
-    <BaseRadio
-      radioButtonType="tab"
-      border={true}
-      groupName={tabState.groupName}
-      bind:selectedValue={tabState.selected}
-      {size}
-      labelAndValues={labelAndValues()}
-    />
-  {/if}
-  <BasePageContainerContentFrame
-    hasTab={tabState ? true : false}
-    {isContentGrid}
-  >
-    <slot />
-  </BasePageContainerContentFrame>
+<div class={classNames("flex-auto", "min-h-0")}>
+  <div class={classNames("h-full", "w-full", "flex", "flex-col", "")}>
+    {#if tabState}
+      <BaseRadio
+        radioButtonType="tab"
+        border={true}
+        groupName={tabState.groupName}
+        bind:selectedValue={tabState.selected}
+        {size}
+        labelAndValues={labelAndValues()}
+      />
+    {/if}
+    <BasePageContainerContentFrame hasTab={tabState ? true : false}>
+      <slot />
+    </BasePageContainerContentFrame>
+  </div>
 </div>

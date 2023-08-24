@@ -42,13 +42,8 @@
   import { storeNoDbCountShowingDialog } from "@stores/storeNoDb";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { get } from "svelte/store";
-  import {
-    getScrollbarStyle,
-    type ScrollbarStyle,
-  } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
 
   export let dialogElement: NonNullable<BaseDialogProps["dialogElement"]>;
-  export let fullScreen: NonNullable<BaseDialogProps["fullScreen"]> = false;
   export let headerIconName: BaseDialogProps["headerIconName"] = undefined;
   export let headerText: BaseDialogProps["headerText"];
 
@@ -67,46 +62,30 @@
           colorDefinitions[themeColor][colorSettings.dialogHeader].shadow
         )
   );
-  let scrollbarStyle: ScrollbarStyle;
-  $: scrollbarStyle = getScrollbarStyle(colorSettings.dialogBody, themeColor);
 </script>
 
-<div class={classNames("relative")}>
-  <dialog
-    bind:this={dialogElement}
-    class={classNames(
-      "p-0",
-      "absolute",
-      "top-0",
-      "rounded-lg",
-      // "shadow dark:shadow-none",
-      shadowStyle,
-      fullScreen ? "h-screen w-screen" : "w-fit max-h-fit",
-      "overflow-hidden",
-      ""
-    )}
-    on:close
-    on:cancel={() => closeDialog(dialogElement)}
-  >
-    <div
-      class={classNames(
-        "flex flex-col",
-        "w-full",
-        "max-h-screen",
-        "overflow-hidden",
-        ""
-      )}
-    >
-      <BaseDialogHeader {dialogElement} {headerIconName} {headerText} />
-      <div
-        class={classNames(
-          "h-full",
-          colorDefinitions[themeColor][colorSettings.dialogBody].bg,
-          ""
-        )}
-      >
-        <slot name="dialogBody" />
-      </div>
-    </div>
-  </dialog>
-</div>
+<dialog
+  bind:this={dialogElement}
+  class={classNames(
+    "rounded",
+    shadowStyle,
+    "w-fit",
+    "h-full",
+    "min-h-0",
+    "backdrop:backdrop-brightness-50",
+    colorDefinitions[themeColor][colorSettings.dialogHeader].bg
+  )}
+  on:close
+  on:cancel={() => closeDialog(dialogElement)}
+>
+  <div class={classNames("h-full", "w-full", "flex", "flex-col")}>
+    <BaseDialogHeader {dialogElement} {headerIconName} {headerText} />
+    <slot name="dialogBody" />
+  </div>
+</dialog>
+
+<style>
+  dialog[open] {
+    max-height: calc(100vh - 80px);
+  }
+</style>
