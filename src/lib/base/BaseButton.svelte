@@ -22,6 +22,7 @@
     popupEffect?: boolean;
     opacityEffect?: boolean;
     designatedFontWeight?: BaseLabelProps["fontWeight"];
+    underlineLabel: boolean;
   };
   const justifyPositions = {
     start: "justify-start",
@@ -99,7 +100,7 @@
   export let colorCategoryBg: BaseButtonProps["colorCategoryBg"] = undefined;
   export let isHover: boolean = false;
   export let isHoverControledByParent: boolean = false;
-  export let underlineLabel: boolean = false;
+  export let underlineLabel: BaseButtonProps["underlineLabel"] = false;
   export let designatedFontWeight: BaseButtonProps["designatedFontWeight"] =
     undefined;
 
