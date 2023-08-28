@@ -12,9 +12,14 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import type { BaseSize } from "$lib/base/baseSizes";
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+  import {
+    colorDefinitions,
+    type ColorCategory,
+  } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { HoverType } from "./BaseAccordionHeader.svelte";
   import { leftSidebarItemRoundedStyle } from "./BaseItem.svelte";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeUserSettings } from "@stores/storeUserSettings";
 
   export let height: `h-${string}`;
   export let bgColor: `bg-${string}` | undefined;
@@ -23,12 +28,20 @@
   export let isOpenAccordion = true;
   export let suffixIcons: BaseAccordionHeaderSuffixIcon[];
 
+  let themeColor: ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+
   let frontColorCategory: ColorCategory;
   $: frontColorCategory = getFrontColorCategory(isSelected);
 
   let shevronUnderlineStyle: string;
   $: shevronUnderlineStyle =
-    hoverType === "onSpace" ? classNames("border-b", "border-sky-500") : "";
+    hoverType === "onSpace"
+      ? classNames(
+          "border-b",
+          colorDefinitions[themeColor]["interactive"].border
+        )
+      : "";
 </script>
 
 <div
