@@ -41,6 +41,7 @@
   export let designatedFontWeight: BaseButtonProps["designatedFontWeight"] =
     undefined;
   export let underlineLabel: BaseButtonProps["underlineLabel"] = false;
+  export let rounded: BaseButtonProps["rounded"] = false;
   const dispatch = createEventDispatcher();
   function onMouseEnter(event: CustomEvent) {
     if (!isHoverControledByParent) isHover = true;
@@ -75,6 +76,7 @@
   {designatedFontWeight}
   {isHoverControledByParent}
   {underlineLabel}
+  {rounded}
   appendClass={appendClassButton}
   on:click
   on:mouseenter={onMouseEnter}

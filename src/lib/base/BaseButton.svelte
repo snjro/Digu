@@ -23,6 +23,7 @@
     opacityEffect?: boolean;
     designatedFontWeight?: BaseLabelProps["fontWeight"];
     underlineLabel: boolean;
+    rounded: boolean;
   };
   const justifyPositions = {
     start: "justify-start",
@@ -103,6 +104,7 @@
   export let underlineLabel: BaseButtonProps["underlineLabel"] = false;
   export let designatedFontWeight: BaseButtonProps["designatedFontWeight"] =
     undefined;
+  export let rounded: BaseButtonProps["rounded"] = true;
 
   const dispatch = createEventDispatcher();
   function onMouseEnter(event: MouseEvent) {
@@ -199,7 +201,7 @@
       borderColor(),
       type === "normal" && baseTextSizes[size],
       !href && padding(),
-      "rounded",
+      rounded && "rounded",
       // "relative",
       shadowEffect && "flex items-center",
       shadowEffect && baseShadowSizes[size],
