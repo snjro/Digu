@@ -3,7 +3,10 @@
   import { closeDialog, type BaseDialogProps } from "./BaseDialog.svelte";
   import BaseLabel from "../BaseLabel.svelte";
   import BaseButtonIcon from "../BaseButtonIcon.svelte";
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import {
+    colorDefinitions,
+    type ColorCategory,
+  } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
@@ -18,28 +21,27 @@
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 
   const headerSize: BaseSize = sizeSettings.dialogHeader;
+  const headerColor: ColorCategory = colorSettings.dialogHeader;
   const prefixIcon: BaseLabel["prefixIcon"] = headerIconName
     ? {
         name: headerIconName,
-        colorCategory: colorSettings.dialogHeader,
+        colorCategory: headerColor,
       }
     : undefined;
 </script>
 
 <div
   class={classNames(
+    "shrink-0",
     "flex",
-    "flex-shrink-0",
     "items-center",
     headerText ? "justify-between" : "justify-end",
-    headerText && "space-x-10",
     "w-full",
     "p-1.5",
-    colorDefinitions[themeColor][colorSettings.dialogHeader].bg,
+    colorDefinitions[themeColor][headerColor].bg,
     "relative",
-    // "rounded-t-lg",
     "border-b",
-    colorDefinitions[themeColor][colorSettings.dialogHeader].border,
+    colorDefinitions[themeColor][headerColor].border,
     ""
   )}
 >
@@ -48,17 +50,16 @@
       {prefixIcon}
       text={headerText}
       textSize={headerSize}
-      colorCategoryFront={colorSettings.dialogHeader}
+      colorCategoryFront={headerColor}
     />
   {/if}
   <BaseButtonIcon
     size={headerSize}
     iconName="close"
-    colorCategoryFront={colorSettings.dialogHeader}
-    colorCategoryBg={colorSettings.dialogHeader}
+    colorCategoryFront={headerColor}
+    colorCategoryBg={headerColor}
     tooltipXPosition="left"
     tooltipYPosition="bottom"
     on:click={() => closeDialog(dialogElement)}
   />
 </div>
-<!-- </div> -->

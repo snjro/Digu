@@ -10,23 +10,24 @@
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
-
-  $: contentStyle = classNames(
-    "min-h-0",
-    "flex",
-    "flex-col",
-    "h-full",
-    "w-full",
-    "px-3",
-    "pb-0.5",
-    colorDefinitions[themeColor][colorSettings.main].bg,
-    ""
-  );
 </script>
 
 <Nav />
-<div class={contentStyle}>
-  <Breadcrumb />
-  <slot />
-  <BaseSnackbar />
+<div class={classNames("flex-auto", "min-h-0")}>
+  <div
+    class={classNames(
+      "flex",
+      "flex-col",
+      "h-full",
+      "w-full",
+      "px-3",
+      "pb-1.5",
+      colorDefinitions[themeColor][colorSettings.main].bg,
+      ""
+    )}
+  >
+    <Breadcrumb />
+    <slot />
+    <BaseSnackbar />
+  </div>
 </div>

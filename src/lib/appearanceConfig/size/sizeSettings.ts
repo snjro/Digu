@@ -62,7 +62,7 @@ export const sizeSettings: SizeSettings = {
   navToggle: changeSize(sizeNav, 0),
   navInput: changeSize(sizeNav, 0),
   navInputHelperText: changeSize(sizeNav, -2),
-  navSettings: changeSize(sizeNav, 0),
+  navSettings: changeSize(sizeNav, -1),
   navText: changeSize(sizeNav, -1),
   //breadcrumb
   breadcrumb: changeSize(sizeBreadcrumb, 0),
@@ -83,7 +83,7 @@ export const sizeSettings: SizeSettings = {
   itemViewAllButton: changeSize(sizeContent, -1),
   tab: changeSize(sizeContent, -1),
   // dialog
-  dialogHeader: changeSize(sizeDialog, 1),
+  dialogHeader: changeSize(sizeDialog, 0),
   dialogBodyContent: changeSize(sizeDialog, -1),
   dialogFooter: changeSize(sizeDialog, -1),
   // tooltip

@@ -30,5 +30,4 @@
   label={targetAbiFragment.name}
   size={sizeSettings.leftSidebarTree4th}
   hasChildren={false}
-  layerLevel={4}
 />

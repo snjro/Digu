@@ -4,10 +4,7 @@
   import BaseSpinner from "$lib/base/BaseSpinner.svelte";
   import type { LoadDataRoot } from "./+layout";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import {
-    storeNoDbCurrentWidth,
-    storeNoDbCountShowingDialog,
-  } from "@stores/storeNoDb";
+  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { getScreenWidth } from "@utils/utilsDom";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { ThemeColor } from "@db/dbTypes";
@@ -38,7 +35,6 @@
     "flex-row",
     "h-screen",
     "w-screen",
-    $storeNoDbCountShowingDialog > 0 && "blur-sm",
     colorDefinitions[themeColor][colorSettings.main].bg,
     colorDefinitions[themeColor][colorSettings.main].text,
     ""
@@ -51,9 +47,8 @@
       "w-screen",
       "h-screen",
       $storeUserSettings.isOpenSidebar &&
-        ($storeNoDbCurrentWidth <= breakPointWidths.sm
-          ? "" //"blur-sm"
-          : "leftsidebar-padding"),
+        $storeNoDbCurrentWidth > breakPointWidths.sm &&
+        "leftsidebar-padding",
       "cursor-default"
     )
   );

@@ -28,7 +28,7 @@
   };
 </script>
 
-<BasePageContainer {titleText} {titleCategoryLabelText} isContentGrid>
+<BasePageContainer {titleText} {titleCategoryLabelText}>
   <BaseGrid
     {rows}
     paramColumnDefs={columnDefs(

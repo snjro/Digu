@@ -1,5 +1,8 @@
+<script lang="ts" context="module">
+  export type HoverType = "onItem" | "onSpace" | undefined;
+</script>
+
 <script lang="ts">
-  // import { browser } from "$app/environment";
   import { page } from "$app/stores";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import {
@@ -11,9 +14,7 @@
   import classNames from "classnames";
   import { onMount } from "svelte";
   import { isHrefParentOfPathname } from "../functions";
-  import { setChildElementInScroll } from "./scrollController";
-  import { browser } from "$app/environment";
-  import BaseItem, { type LayerLevel } from "./BaseItem.svelte";
+  import BaseItem from "./BaseItem.svelte";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -21,7 +22,6 @@
   import BaseAccordionHeaderSuffixIcons, {
     type BaseAccordionHeaderSuffixIcon,
   } from "./BaseAccordionHeaderSuffixIcons.svelte";
-  import BaseAccordionHeaderSpacer from "./BaseAccordionHeaderSpacer.svelte";
 
   export let label: string;
   export let hrefWithoutUrlHash: string;
@@ -31,10 +31,8 @@
   export let isTopLevelItem: boolean;
   export let suffixIcons: BaseAccordionHeaderSuffixIcon[];
   export let isOpenAccordion: boolean;
-  export let layerLevel: LayerLevel;
 
-  let isHover = false;
-  let thisElement: HTMLButtonElement;
+  let hoverType: HoverType = undefined;
 
   $: {
     switch ($storeNoDbOpenLeftSidebarAccordion) {
@@ -51,15 +49,21 @@
         break;
     }
   }
-  function onMouseEnter() {
-    isHover = true;
+  function onMouseEnter(): void {
+    hoverType = "onSpace";
   }
-  function onMouseLeave() {
-    isHover = false;
+  function onMouseLeave(): void {
+    hoverType = undefined;
   }
-  function flipAccordion() {
+  function flipAccordion(): void {
     isOpenAccordion = !isOpenAccordion;
   }
+  function onKeyDown(event: KeyboardEvent): void {
+    if (event.key === "Enter" || event.key === " ") {
+      flipAccordion();
+    }
+  }
+
   function openCurrentDirectory(): void {
     isOpenAccordion = !isSelected() && isParentDirectory();
   }
@@ -75,41 +79,24 @@
     return isHrefParentOfPathname(hrefWithoutUrlHash, $page.url.pathname);
   };
 
-  $: {
-    setChildElementInScroll(
-      browser,
-      isSelected(),
-      document.getElementById("leftSidebarBody"),
-      thisElement,
-      document.getElementById("leftSidebarHeader"),
-      $storeNoDbOpenLeftSidebarAccordion
-    );
-  }
   $: bgColor =
-    isSelected() || isHover
+    isSelected() || hoverType !== undefined
       ? colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis
       : undefined;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 </script>
 
-<button
-  bind:this={thisElement}
+<div
   class={classNames(
+    "flex-initial",
     "flex",
     "flex-row",
     "items-center",
-    "w-full",
+    "w-full max-w-full",
     buttonHeight[size],
-    "cursor-default",
     ""
   )}
-  on:keypress
-  on:click={flipAccordion}
-  on:mouseenter={onMouseEnter}
-  on:focus={onMouseEnter}
-  on:mouseleave={onMouseLeave}
-  on:blur={onMouseLeave}
 >
   <BaseItem
     {label}
@@ -117,18 +104,21 @@
     {urlHash}
     {iconName}
     {size}
-    {isHover}
-    isHoverControledByParent
+    bind:hoverType
+    isHoverControledByParent={false}
     {isTopLevelItem}
-    {layerLevel}
+    noGrow
   />
-  <BaseAccordionHeaderSpacer {bgColor} height={leftSideBarItemHeight[size]} />
   <BaseAccordionHeaderSuffixIcons
-    {isHover}
+    {hoverType}
     height={leftSideBarItemHeight[size]}
     isSelected={isSelected()}
     {bgColor}
     {isOpenAccordion}
     {suffixIcons}
+    on:click={flipAccordion}
+    on:mouseenter={onMouseEnter}
+    on:mouseleave={onMouseLeave}
+    on:keydown={onKeyDown}
   />
-</button>
+</div>

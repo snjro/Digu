@@ -24,7 +24,6 @@
           },
           text: "Connected.",
           colorCategoryFront: colorSettings.navText,
-          fontWeight: "font-normal",
         };
         break;
       }
@@ -37,7 +36,6 @@
           },
           text: "Connecting...",
           colorCategoryFront: colorSettings.navText,
-          fontWeight: "font-normal",
         };
         break;
       }
@@ -79,7 +77,6 @@
           text: errorMessage,
           textSize: size,
           colorCategoryFront: "error",
-          fontWeight: "font-normal",
         };
       }
     }

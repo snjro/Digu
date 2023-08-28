@@ -32,17 +32,19 @@
 </script>
 
 <CommonItemMember text={"Chain Explorer"}>
-  <BaseSelect
-    {items}
-    value={selectedChainExplorerIndex.toString()}
-    size={sizeSettings.navSettings}
-    colorCategoryFront={colorSettings.navSettings}
-    colorCategoryBg={colorSettings.navSettings}
-    on:change={change}
-  />
-  <CommonOpenLink
-    href={targetChainExplorerUrl}
-    text={targetChainExplorerUrl}
-    textSize={sizeSettings.navSettings}
-  />
+  <div class="pt-1.5">
+    <BaseSelect
+      {items}
+      value={selectedChainExplorerIndex.toString()}
+      size={sizeSettings.navSettings}
+      colorCategoryFront={colorSettings.navSettings}
+      colorCategoryBg={colorSettings.navSettings}
+      on:change={change}
+    />
+    <CommonOpenLink
+      href={targetChainExplorerUrl}
+      text={targetChainExplorerUrl}
+      textSize={sizeSettings.navSettings}
+    />
+  </div>
 </CommonItemMember>

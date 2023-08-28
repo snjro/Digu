@@ -12,5 +12,5 @@
   isTopLevelItem={true}
   size={sizeSettings.leftSidebarTree1st}
   hasChildren={false}
-  layerLevel={0}
+  noGrow
 />

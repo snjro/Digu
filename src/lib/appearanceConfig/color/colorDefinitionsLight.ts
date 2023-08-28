@@ -19,6 +19,7 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     scrollbarThumb: "scrollbar-thumb-green-900",
     scrollbarTrack: "scrollbar-track-green-600",
     scrollbarCorner: "scrollbar-corner-green-600",
+    accent: "accent-green-600",
   },
   error: {
     text: "text-red-600",
@@ -38,6 +39,7 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     scrollbarThumb: "scrollbar-thumb-red-900",
     scrollbarTrack: "scrollbar-track-red-600",
     scrollbarCorner: "scrollbar-corner-red-600",
+    accent: "accent-red-600",
   },
   interactive: {
     text: "text-sky-600",
@@ -57,6 +59,7 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     scrollbarThumb: "scrollbar-thumb-sky-600",
     scrollbarTrack: "scrollbar-track-sky-300",
     scrollbarCorner: "scrollbar-corner-sky-300",
+    accent: "accent-sky-600",
   },
   primary: {
     text: "text-stone-600", //leftsidebar(header/footer) text
@@ -76,6 +79,7 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     scrollbarThumb: "scrollbar-thumb-stone-300",
     scrollbarTrack: "scrollbar-track-stone-100",
     scrollbarCorner: "scrollbar-corner-stone-100",
+    accent: "accent-stone-600",
   },
   secondary: {
     text: "text-stone-700", //leftsidebar(header/footer) text
@@ -95,6 +99,7 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     scrollbarThumb: "scrollbar-thumb-stone-400",
     scrollbarTrack: "scrollbar-track-stone-300",
     scrollbarCorner: "scrollbar-corner-stone-300",
+    accent: "accent-stone-700",
   },
   white: {
     text: "text-stone-50",
@@ -114,5 +119,6 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     scrollbarThumb: "scrollbar-thumb-stone-50",
     scrollbarTrack: "scrollbar-track-stone-50",
     scrollbarCorner: "scrollbar-corner-stone-50",
+    accent: "accent-stone-50",
   },
 };

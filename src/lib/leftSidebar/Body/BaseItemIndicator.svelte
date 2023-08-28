@@ -7,14 +7,12 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import type { LayerLevel } from "./BaseItem.svelte";
 
   export let isSelected: boolean = false;
   export let isHover: boolean = false;
   export let isUpdated: boolean = false;
   export let invisible: boolean = false;
   export let isTopLevelItem: boolean;
-  export let layerLevel: LayerLevel;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
@@ -62,30 +60,10 @@
       return "pr-[7px]";
     }
   };
-  const width = (): string => {
-    if (layerLevel === 0) {
-      return "indicator-width-top";
-    } else {
-      return "indicator-width-normal";
-    }
-  };
 </script>
 
-<div
-  class={classNames("flex flex-row", width(), height())}
-  style={`--layler-level: ${layerLevel};`}
->
+<div class={classNames("flex flex-row", "w-fit", height())}>
   <div class={classNames(left())} />
   <div class={classNames(bgColor, center())} />
   <div class={classNames(right())} />
 </div>
-
-<style lang="scss">
-  @use "../leftsidebar.scss" as lsb;
-  .indicator-width-top {
-    width: lsb.$indicator-width-top * 1px;
-  }
-  .indicator-width-normal {
-    width: lsb.$indicator-width-normal * 1px;
-  }
-</style>

@@ -57,7 +57,7 @@
       }
     }
   };
-  const size: BaseSize = sizeSettings.navSettings;
+  const size: BaseSize = sizeSettings.navInputHelperText;
 </script>
 
 {#if helperTextState}

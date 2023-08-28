@@ -9,16 +9,23 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
-  export let gridCols: 2 | 6 | undefined = undefined;
+  export let gridCols: 1 | 2 | 6 | undefined = undefined;
   export let hidden: boolean = false;
 
+  const targetGridCols = (): `grid-cols-${number}` | undefined => {
+    switch (gridCols) {
+      case 1:
+        return "grid-cols-1";
+      case 2:
+        return "grid-cols-2";
+      case 6:
+        return "grid-cols-6";
+      default:
+        return undefined;
+    }
+  };
   const gridMain: string | undefined = gridCols
-    ? classNames(
-        "grid",
-        gridCols === 2 ? "grid-cols-2" : "grid-cols-6",
-        "grid-flow-dense",
-        "gap-1.5"
-      )
+    ? classNames("grid", targetGridCols(), "grid-flow-dense", "gap-1.5")
     : undefined;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
@@ -33,8 +40,16 @@
   );
 </script>
 
-<div class={classNames("w-full", "h-full", hidden && "hidden", "min-h-0", "")}>
-  <div class={classNames(gridMain, "w-full", "h-full", scrollStyle, "")}>
+<div
+  class={classNames(
+    // "flex-auto",
+    // "min-h-0",
+    "h-full",
+    hidden && "hidden",
+    scrollStyle
+  )}
+>
+  <div class={classNames(gridMain, "w-full", "h-full", "")}>
     <slot />
   </div>
 </div>

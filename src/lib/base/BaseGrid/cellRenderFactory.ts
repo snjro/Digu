@@ -13,9 +13,14 @@ export abstract class AbstractCellRenderer implements ICellRendererComp {
   eGui: any;
   protected value: any;
 
-  constructor(parentElement = "span") {
+  constructor(parentElement = "div") {
     // create empty span (or other element) to place svelte component in
     this.eGui = document.createElement(parentElement);
+    // add styles to center the component vertically
+    this.eGui.style.display = "flex";
+    this.eGui.style.flexDirection = "row";
+    this.eGui.style.height = "100%";
+    this.eGui.style.alignItems = "center";
   }
 
   init(cellRendererParams: ICellRendererParams) {
@@ -59,8 +64,8 @@ export abstract class AbstractCellRenderer implements ICellRendererComp {
 export function cellRendererFactory(
   svelteComponent: (
     cell: AbstractCellRenderer,
-    cellRendererParams: ICellRendererParams,
-  ) => void,
+    cellRendererParams: ICellRendererParams
+  ) => void
 ) {
   class Renderer extends AbstractCellRenderer {
     createComponent(cellRendererParams: ICellRendererParams<any, any>): void {
