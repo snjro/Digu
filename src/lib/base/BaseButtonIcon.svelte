@@ -41,7 +41,7 @@
   export let designatedFontWeight: BaseButtonProps["designatedFontWeight"] =
     undefined;
   export let underlineLabel: BaseButtonProps["underlineLabel"] = false;
-  export let rounded: BaseButtonProps["rounded"] = false;
+  export let rounded: BaseButtonProps["rounded"] = true;
   const dispatch = createEventDispatcher();
   function onMouseEnter(event: CustomEvent) {
     if (!isHoverControledByParent) isHover = true;
