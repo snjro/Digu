@@ -71,7 +71,6 @@
 {:else}
   <BaseItem
     label={targetContract.name}
-    iconName={undefined}
     hrefWithoutUrlHash={targetContractHref}
     {urlHash}
     size={sizes.contractSelf}
