@@ -5,7 +5,6 @@
   import BaseAccordionChildren from "./BaseAccordionChildren.svelte";
   import type { BaseAccordionHeaderSuffixIcon } from "./BaseAccordionHeaderSuffixIcons.svelte";
   import BaseAccordionHeader from "./BaseAccordionHeader.svelte";
-  import type { LayerLevel } from "./BaseItem.svelte";
 
   export let label: string;
   export let hrefWithoutUrlHash: string;
@@ -15,11 +14,10 @@
   export let isTopLevelItem: boolean = false;
   export let showVerticalLine: boolean = true;
   export let suffixIcons: BaseAccordionHeaderSuffixIcon[] = [];
-  export let layerLevel: LayerLevel;
   let isOpenAccordion = true;
 </script>
 
-<div class={classNames("flex", "flex-col", "w-full")}>
+<div class={classNames("flex-initial", "flex", "flex-col", "w-full", "")}>
   <BaseAccordionHeader
     {label}
     {hrefWithoutUrlHash}
@@ -28,11 +26,10 @@
     {iconName}
     {isTopLevelItem}
     {suffixIcons}
-    {layerLevel}
     bind:isOpenAccordion
   />
 
-  <BaseAccordionChildren {isOpenAccordion} {showVerticalLine} {layerLevel}>
+  <BaseAccordionChildren {isOpenAccordion} {showVerticalLine}>
     <slot slot="baseAccordionChildren" name="baseAccordionChildren" />
   </BaseAccordionChildren>
 </div>

@@ -24,30 +24,22 @@
   id="leftSidebarBody"
   class={classNames(
     "min-h-0",
+    "flex-auto",
     "w-full",
-    "flex",
-    "flex-col",
-    "flex-grow",
-    "right-padding",
-    "h-full",
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
-
+    "overflow-y-scroll",
+    scrollbarStyle.thin,
     ""
   )}
 >
   <div
     class={classNames(
       "py-1",
-      "h-full",
+      "pr-1",
+      "h-fit",
       "w-full",
       "flex",
       "flex-col",
-      "flex-grow",
-      "right-padding",
-      colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
-      "overflow-y-scroll",
-      "overflow-x-hidden",
-      scrollbarStyle.thin,
       ""
     )}
   >
@@ -55,10 +47,3 @@
     <ItemProjectVersions />
   </div>
 </div>
-
-<style lang="scss">
-  @use "../leftsidebar.scss" as lsb;
-  .right-padding {
-    padding-right: lsb.$padding-right * 1px;
-  }
-</style>

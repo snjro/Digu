@@ -53,7 +53,6 @@
     {urlHash}
     size={sizes.contractSelf}
     suffixIcons={suffixIcons()}
-    layerLevel={2}
   >
     <svelte:fragment slot="baseAccordionChildren">
       <ItemEventsFunctions
@@ -75,6 +74,5 @@
     {urlHash}
     size={sizes.contractSelf}
     {hasChildren}
-    layerLevel={2}
   />
 {/if}

@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
-  export type LayerLevel = 0 | 1 | 2 | 3 | 4;
+  export const leftSidebarItemRoundedStyle: `rounded-${string}` =
+    "rounded-r-md";
 </script>
 
 <script lang="ts">
@@ -30,6 +31,7 @@
   } from "$lib/base/baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { goto } from "$app/navigation";
+  import type { HoverType } from "./BaseAccordionHeader.svelte";
 
   export let label: string;
   export let hrefWithoutUrlHash: string;
@@ -38,23 +40,17 @@
   export let iconName: BaseIconProps["name"] | undefined = undefined;
   export let openNewTab: boolean = false;
   export let isHoverControledByParent: boolean = false;
-  export let isHover: boolean = false;
+  export let hoverType: HoverType = undefined;
   export let isTopLevelItem: boolean = false;
   export let hasChildren = true;
-  export let layerLevel: LayerLevel;
+  export let noGrow: boolean = false;
 
   const hrefWithUrlHash: string = urlHash
     ? `${hrefWithoutUrlHash}#${urlHash}`
     : hrefWithoutUrlHash;
 
-  let thisElement: HTMLButtonElement;
+  let thisElement: HTMLDivElement;
 
-  function onMouseEnter() {
-    if (!isHoverControledByParent) isHover = true;
-  }
-  function onMouseLeave() {
-    if (!isHoverControledByParent) isHover = false;
-  }
   async function onClick() {
     await Promise.all([
       // This `goto` triggers a page reloading.
@@ -63,6 +59,7 @@
       toggleLeftSideBarWithCondition(),
     ]);
   }
+
   let isSelected: boolean;
   $: isSelected = hrefWithoutUrlHash === $page.url.pathname;
 
@@ -82,70 +79,55 @@
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
   $: bgColor =
-    (isSelected || isHover) &&
+    (isSelected || hoverType !== undefined) &&
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis;
 
-  const widthForFrame = (): string => {
-    if (hasChildren) {
-      return "w-fit";
-    } else {
-      switch (layerLevel) {
-        case 0:
-          return "item-width-0";
-        case 1:
-          return "item-width-1";
-        case 2:
-          return "item-width-2";
-        case 3:
-          return "item-width-3";
-        default:
-          return "item-width-4";
-      }
-    }
-  };
-  const widthForButton = (): `w-${string}` => {
-    if (hasChildren) {
-      return "w-fit";
-    } else {
-      return "w-full";
-    }
-  };
+  const widthForButton: `w-${string}` = hasChildren ? "w-fit" : "w-full";
+
   let selectedFontWeight: BaseButtonProps["designatedFontWeight"];
   $: selectedFontWeight = isSelected ? "font-bold" : undefined;
+
+  const onMouseEnter = () => {
+    if (!isHoverControledByParent) hoverType = "onItem";
+  };
+  const onMouseLeave = () => {
+    if (!isHoverControledByParent) hoverType = undefined;
+  };
+  let underlineLabel: boolean;
+  $: underlineLabel = !isSelected && hoverType === "onItem";
 </script>
 
-<button
+<div
   bind:this={thisElement}
   class={classNames(
+    noGrow ? "flex-initial" : "flex-auto",
     "flex",
     "flex-row",
     "items-center",
     buttonHeight[size],
-    widthForFrame(),
+    "max-w-full",
     ""
   )}
-  on:mouseenter={onMouseEnter}
-  on:mouseleave={onMouseLeave}
-  on:click|stopPropagation|preventDefault={onClick}
 >
   <BaseItemIndicator
     {isSelected}
-    {isHover}
+    isHover={hoverType !== undefined}
     {isTopLevelItem}
     invisible={size === sizeSettings.leftSidebarTree1st}
-    {layerLevel}
   />
   <div
     class={classNames(
+      "flex-auto",
+      "max-w-full min-w-0",
       "flex",
       "flex-row",
+      "text-left",
       "items-center",
-      widthForFrame(),
       "px-0.5",
       bgColor,
       "truncate",
       leftSideBarItemHeight[size],
-      hasChildren ? "rounded-l" : "rounded"
+      !hasChildren && leftSidebarItemRoundedStyle
     )}
   >
     {#if iconName}
@@ -157,7 +139,7 @@
         justify="start"
         colorCategoryFront={frontColorCategory}
         colorCategoryBg={undefined}
-        appendClassButton={widthForButton()}
+        appendClassButton={widthForButton}
         designatedFontWeight={selectedFontWeight}
         {openNewTab}
         shadowEffect={false}
@@ -165,7 +147,12 @@
         hoverEffect
         noPadding
         isHoverControledByParent
-        {isHover}
+        isHover={hoverType !== undefined}
+        rounded={false}
+        {underlineLabel}
+        on:mouseenter={onMouseEnter}
+        on:mouseleave={onMouseLeave}
+        on:click={onClick}
       />
     {:else}
       <BaseButton
@@ -175,34 +162,20 @@
         justify="start"
         colorCategoryFront={frontColorCategory}
         colorCategoryBg={undefined}
-        appendClass={widthForButton()}
+        appendClass={widthForButton}
         designatedFontWeight={selectedFontWeight}
         {openNewTab}
         popupEffect={false}
         shadowEffect={false}
         noPadding
         isHoverControledByParent
-        {isHover}
+        isHover={hoverType !== undefined}
+        rounded={false}
+        {underlineLabel}
+        on:mouseenter={onMouseEnter}
+        on:mouseleave={onMouseLeave}
+        on:click={onClick}
       />
     {/if}
   </div>
-</button>
-
-<style lang="scss">
-  @use "../leftsidebar.scss" as lsb;
-  .item-width-0 {
-    width: lsb.get-item-width(0) * 1px;
-  }
-  .item-width-1 {
-    width: lsb.get-item-width(1) * 1px;
-  }
-  .item-width-2 {
-    width: lsb.get-item-width(2) * 1px;
-  }
-  .item-width-3 {
-    width: lsb.get-item-width(3) * 1px;
-  }
-  .item-width-4 {
-    width: lsb.get-item-width(4) * 1px;
-  }
-</style>
+</div>

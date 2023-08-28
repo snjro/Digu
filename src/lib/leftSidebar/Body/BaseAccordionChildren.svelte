@@ -1,20 +1,21 @@
 <script lang="ts">
   import classNames from "classnames";
   import BaseItemIndicator from "./BaseItemIndicator.svelte";
-  import type { LayerLevel } from "./BaseItem.svelte";
 
   export let showVerticalLine: boolean;
   export let isOpenAccordion: boolean;
-  export let layerLevel: LayerLevel;
+  let leftPadding: `pl-${0 | 3}` = showVerticalLine ? "pl-0" : "pl-3";
 </script>
 
 <div
   class={classNames(
+    "flex-auto",
+    "min-w-0",
     "flex",
     "flex-row",
-    "w-full",
     "h-fit",
-    !isOpenAccordion && "hidden"
+    !isOpenAccordion && "hidden",
+    ""
   )}
 >
   {#if showVerticalLine}
@@ -24,10 +25,11 @@
       isUpdated={false}
       invisible={false}
       isTopLevelItem={false}
-      {layerLevel}
     />
   {/if}
-  <div class={classNames("flex", "flex-col", "w-full", "")}>
+  <div
+    class={classNames("flex-auto", "min-w-0", "flex", "flex-col", leftPadding)}
+  >
     <slot name="baseAccordionChildren" />
   </div>
 </div>
