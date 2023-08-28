@@ -240,7 +240,7 @@
           "inline-flex",
           "items-center",
           "truncate",
-          "w-full",
+          "w-fit",
           padding()
         )}
       >
