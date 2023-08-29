@@ -7,7 +7,7 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
-  export let text: BaseLabelProps["text"];
+  export let text: BaseLabelProps["text"] = undefined;
   export let gridTrack: string | undefined = undefined;
 
   let themeColor: ThemeColor;
@@ -26,19 +26,21 @@
     "",
   )}
 >
-  <BaseLabel
-    {text}
-    textSize={sizeSettings.itemGroup}
-    appendClass={classNames(
-      "pl-1.5",
-      "pr-3",
-      "pb-0.5",
-      "rounded-tl",
-      "rounded-br",
-    )}
-    colorCategoryBg={colorSettings.itemGroupTitle}
-    colorCategoryFront={colorSettings.itemGroupTitle}
-  />
+  {#if text}
+    <BaseLabel
+      {text}
+      textSize={sizeSettings.itemGroup}
+      appendClass={classNames(
+        "pl-1.5",
+        "pr-3",
+        "pb-0.5",
+        "rounded-tl",
+        "rounded-br",
+      )}
+      colorCategoryBg={colorSettings.itemGroupTitle}
+      colorCategoryFront={colorSettings.itemGroupTitle}
+    />
+  {/if}
   <div
     class={classNames(
       "py-3",
