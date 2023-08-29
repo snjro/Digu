@@ -42,7 +42,7 @@
     "relative",
     "border-b",
     colorDefinitions[themeColor][headerColor].border,
-    ""
+    "",
   )}
 >
   {#if headerText}

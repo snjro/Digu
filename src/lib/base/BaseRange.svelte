@@ -71,7 +71,7 @@
         ? colorDefinitions[themeColor][colorCategoryBg].border
         : "border-inherit",
       sizes[size],
-      appendClass
+      appendClass,
     );
 </script>
 

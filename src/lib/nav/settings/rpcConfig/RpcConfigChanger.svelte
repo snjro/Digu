@@ -45,7 +45,7 @@
       await updateDbItemRpcSettings(
         targetChainName,
         rpcConfigParam.name,
-        newValue
+        newValue,
       );
       helperTextState = "success";
     } else {
@@ -64,7 +64,7 @@
       "flex-row",
       "items-center",
       "space-x-3",
-      "pt-1.5"
+      "pt-1.5",
     )}
   >
     <RpcConfigChangerInput

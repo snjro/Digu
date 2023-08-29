@@ -51,7 +51,7 @@
       sizes[size],
       // colorDefinitions[themeColor][colorCategory].bg,
       colorDefinitions[themeColor][colorCategory].fill,
-      appendClass
+      appendClass,
     );
 </script>
 

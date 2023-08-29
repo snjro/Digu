@@ -71,7 +71,7 @@
     backgroundColor,
     "appearance-none",
     "disabled:opacity-50",
-    "cursor-pointer disabled:cursor-not-allowed"
+    "cursor-pointer disabled:cursor-not-allowed",
   )}
   style="--url: url({checkboxImageFile})"
 />

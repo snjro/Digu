@@ -19,6 +19,6 @@
     "h-[1px]",
     "w-full",
     "border-t",
-    colorDefinitions[themeColor][colorCategory].border
+    colorDefinitions[themeColor][colorCategory].border,
   )}
 />

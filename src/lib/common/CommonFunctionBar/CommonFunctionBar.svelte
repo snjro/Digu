@@ -30,7 +30,7 @@
     colorDefinitions[themeColor][colorSettings.gridHeader].bg,
     "pr-1.5",
     "pb-1.5",
-    ""
+    "",
   )}
 >
   <div
@@ -39,7 +39,7 @@
       "flex",
       "flex-col",
       "justify-start",
-      "space-y-1"
+      "space-y-1",
     )}
   >
     {#if isFullScreen}
@@ -57,7 +57,7 @@
         "flex-row",
         "items-center",
         $$slots.quickSearch ? "justify-between" : "justify-end",
-        "space-x-3"
+        "space-x-3",
       )}
     >
       <slot name="quickSearch" />

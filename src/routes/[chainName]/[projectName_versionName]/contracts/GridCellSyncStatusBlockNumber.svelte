@@ -3,7 +3,7 @@
   export function getBlockNumberByHeaderName(
     headerName: HeaderName,
     latestBlockNumber: number,
-    targetContractSyncStatus: SyncStatusContract
+    targetContractSyncStatus: SyncStatusContract,
   ): number {
     if (!targetContractSyncStatus) {
       // When a contract has no event, "targetContractSyncStatus" is undefined.
@@ -54,7 +54,7 @@
   $: blockNumber = getBlockNumberByHeaderName(
     headerName,
     latestBlockNumber,
-    targetContractSyncStatus
+    targetContractSyncStatus,
   );
 </script>
 

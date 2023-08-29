@@ -7,7 +7,7 @@
     Project,
     Version,
   } from "@constants/chains/types";
-// import CommonLinkList from "$lib/common/CommonLinkList.svelte";
+  // import CommonLinkList from "$lib/common/CommonLinkList.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseA from "$lib/base/BaseA.svelte";

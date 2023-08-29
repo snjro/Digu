@@ -28,19 +28,19 @@
   $: gridTrackBasic = classNames(
     "col-span-full",
     hasEvent && "md:col-span-4",
-    ""
+    "",
   );
   const gridTrackSync: string = classNames(
     "col-span-full",
     "md:col-span-2",
     "row-span-2",
-    ""
+    "",
   );
   const gridTrackEvents: string = classNames("col-span-full lg:col-span-3", "");
   const gridTrackFunction: string = classNames(
     "col-span-full lg:col-span-3",
     "row-span-3",
-    ""
+    "",
   );
 </script>
 

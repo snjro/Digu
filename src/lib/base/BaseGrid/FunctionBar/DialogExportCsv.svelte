@@ -153,7 +153,7 @@
   };
 
   $: radioPropsKeys = Object.keys(
-    exportCsvRadioProps ?? {}
+    exportCsvRadioProps ?? {},
   ) as (keyof ExportCsvRadioProps)[];
 </script>
 

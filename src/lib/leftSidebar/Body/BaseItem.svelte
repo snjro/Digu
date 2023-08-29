@@ -70,7 +70,7 @@
       document.getElementById("leftSidebarBody"),
       thisElement,
       document.getElementById("leftSidebarHeader"),
-      $storeNoDbOpenLeftSidebarAccordion
+      $storeNoDbOpenLeftSidebarAccordion,
     );
   }
   let frontColorCategory: ColorCategory;
@@ -106,7 +106,7 @@
     "items-center",
     buttonHeight[size],
     "max-w-full",
-    ""
+    "",
   )}
 >
   <BaseItemIndicator
@@ -127,7 +127,7 @@
       bgColor,
       "truncate",
       leftSideBarItemHeight[size],
-      !hasChildren && leftSidebarItemRoundedStyle
+      !hasChildren && leftSidebarItemRoundedStyle,
     )}
   >
     {#if iconName}

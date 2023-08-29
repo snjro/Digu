@@ -31,7 +31,7 @@
     targetProjectName: Project["name"],
     targetVersionName: Version["name"],
     targetContractName: Contract["name"],
-    targetEventAbiFragmentName: EventAbiFragment["name"]
+    targetEventAbiFragmentName: EventAbiFragment["name"],
   ): Promise<void> => {
     const dbEventLogs: DbEventLogs = new DbEventLogs({
       chainName: targetChainName,
@@ -40,13 +40,13 @@
     });
     const eventLogTableName: string = getEventLogTableName(
       targetContractName,
-      targetEventAbiFragmentName
+      targetEventAbiFragmentName,
     );
 
     convertedEventLogs = await getEventLogTableRecords(
       dbEventLogs,
       eventLogTableName,
-      "asc"
+      "asc",
     );
   };
   $: eventLogsFetcherFromDB(
@@ -54,14 +54,14 @@
     targetProject.name,
     targetVersion.name,
     targetContract.name,
-    targetEventAbiFragment.name
+    targetEventAbiFragment.name,
   );
 
   const gridMain: string = classNames(
     "grid",
     "grid-cols-1 lg:grid-cols-2",
     "grid-flow-dense",
-    "gap-5"
+    "gap-5",
   );
 </script>
 

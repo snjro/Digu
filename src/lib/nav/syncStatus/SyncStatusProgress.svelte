@@ -64,7 +64,7 @@
         progressRate={getProgressRate(
           creationBlockNumber,
           latestBlockNumber * numOfSyncTargetContract,
-          fetchedBlockNumber
+          fetchedBlockNumber,
         )}
         percentageSize={changeSize(progressCircleSize, 1)}
         {syncStateTextLabelProps}

@@ -69,7 +69,7 @@
     colorCategoryBorder
       ? colorDefinitions[themeColor][colorCategoryBorder].border
       : "border-inherit",
-    ""
+    "",
   )}
 >
   <div class={classNames("flex ", celldAlign(), "content-center")}>

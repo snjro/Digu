@@ -35,8 +35,7 @@
   export let appendClass: CommonChainExplorerLinkProps["appendClass"] =
     undefined;
   export let withIcon: CommonChainExplorerLinkProps["withIcon"] = true;
-  export let showCopyButton: CommonChainExplorerLinkProps["showCopyButton"] =
-    true;
+  export let showCopyButton: CommonChainExplorerLinkProps["showCopyButton"] = true;
   export let isFontMono: CommonChainExplorerLinkProps["isFontMono"] = false;
   export let justifyEnd: CommonChainExplorerLinkProps["justifyEnd"] = false;
 
@@ -83,7 +82,7 @@
     "max-w-full",
 
     justifyEnd ? "justify-end" : "justify-start",
-    ""
+    "",
   )}
 >
   {#if value}

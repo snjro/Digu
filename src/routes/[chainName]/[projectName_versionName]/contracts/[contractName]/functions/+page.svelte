@@ -43,7 +43,7 @@
     paramColumnDefs={columnDefs(
       $page.url.pathname,
       maxLengthOfFunctionInputsParams(),
-      maxLengthOfFunctionOutputsParams()
+      maxLengthOfFunctionOutputsParams(),
     )}
     {titleText}
     titleCategoryLabelTextForFullScreen={titleCategoryLabelText}

@@ -37,7 +37,7 @@
     "w-screen",
     colorDefinitions[themeColor][colorSettings.main].bg,
     colorDefinitions[themeColor][colorSettings.main].text,
-    ""
+    "",
   );
 
   $: mainContainerStyle = classNames(
@@ -49,8 +49,8 @@
       $storeUserSettings.isOpenSidebar &&
         $storeNoDbCurrentWidth > breakPointWidths.sm &&
         "leftsidebar-padding",
-      "cursor-default"
-    )
+      "cursor-default",
+    ),
   );
   $: showFilter =
     $storeUserSettings.isOpenSidebar &&
@@ -85,7 +85,7 @@
           colorDefinitions[themeColor][colorSettings.leftSidebarHeader].bg,
           "opacity-60",
           "blur-sm",
-          "cursor-default"
+          "cursor-default",
         )}
       />
       <Content><slot /></Content>

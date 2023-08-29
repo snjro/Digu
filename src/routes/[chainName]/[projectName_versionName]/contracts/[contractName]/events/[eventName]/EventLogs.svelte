@@ -23,10 +23,10 @@
     (convertedEventLogs: ConvertedEventLog[]) => {
       rows = convertedEventLogs;
       // eachArgsMaxLengths = getEachArgsMaxLengths(rows);
-    }
+    },
   );
   function getEachArgsMaxLengths(
-    convertedEventLogs: ConvertedEventLog[]
+    convertedEventLogs: ConvertedEventLog[],
   ): number[] {
     let maxLengths: number[] = [];
     for (

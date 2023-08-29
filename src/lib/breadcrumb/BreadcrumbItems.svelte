@@ -19,7 +19,7 @@
   };
   const prefixIcon = (
     prefixIconName: CrumbItem["prefixIconName"],
-    isLabel: boolean
+    isLabel: boolean,
   ): BaseIconProps | undefined => {
     if (prefixIconName) {
       return {

@@ -16,7 +16,7 @@
   let scrollbarStyle: ScrollbarStyle;
   $: scrollbarStyle = getScrollbarStyle(
     colorSettings.leftSidebarBodyBg,
-    themeColor
+    themeColor,
   );
 </script>
 
@@ -29,7 +29,7 @@
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
     "overflow-y-scroll",
     scrollbarStyle.thin,
-    ""
+    "",
   )}
 >
   <div
@@ -40,7 +40,7 @@
       "w-full",
       "flex",
       "flex-col",
-      ""
+      "",
     )}
   >
     <ItemHome />

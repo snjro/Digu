@@ -46,10 +46,10 @@
   $: hrefFrontPart = `${$page.url.pathname}/${abiFragmentsType}`;
 
   let hrefEventFunctionName: (
-    abiFragment: FunctionAbiFragment | EventAbiFragment
+    abiFragment: FunctionAbiFragment | EventAbiFragment,
   ) => string;
   hrefEventFunctionName = (
-    abiFragment: FunctionAbiFragment | EventAbiFragment
+    abiFragment: FunctionAbiFragment | EventAbiFragment,
   ): string => {
     const functionSelectorWithSplitter: string =
       getFunctionSelectorWithSplitter(abiFragment);

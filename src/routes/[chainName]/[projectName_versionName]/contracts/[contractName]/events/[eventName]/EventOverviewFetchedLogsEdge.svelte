@@ -26,7 +26,7 @@
     "flex-row",
     "items-center",
     "w-full",
-    ""
+    "",
   );
   const subItemStyle: string = classNames("w-24", "flex-none");
 </script>

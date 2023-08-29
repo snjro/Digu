@@ -39,7 +39,7 @@
         projectName: data.targetProject.name,
         versionName: data.targetVersion.name,
         contractName: titleText,
-      }
+      },
     )}
     {titleText}
     titleCategoryLabelTextForFullScreen={titleCategoryLabelText}

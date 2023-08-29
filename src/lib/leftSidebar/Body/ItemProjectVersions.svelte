@@ -24,11 +24,11 @@
     <ItemProjectVersionsMember
       targetProjectVersionNameForLabel={getProjectVersionNameForLabel(
         targetProject.name,
-        targetVersion.name
+        targetVersion.name,
       )}
       targetProjectVersionHref={`${rootPath}/${getProjectVersionNameForUrl(
         targetProject.name,
-        targetVersion.name
+        targetVersion.name,
       )}`}
       targetContracts={targetVersion.contracts}
     />

@@ -23,7 +23,7 @@
       "px-3",
       "pb-1.5",
       colorDefinitions[themeColor][colorSettings.main].bg,
-      ""
+      "",
     )}
   >
     <Breadcrumb />

@@ -21,7 +21,7 @@
     } = getSplitProjectVersionName(projectVersionName);
     return getProjectVersionNameForLabel(
       splitProjectVersionName.projectName,
-      splitProjectVersionName.versionName
+      splitProjectVersionName.versionName,
     );
   };
   const titleCategoryLabelText: string = "Contracts";
@@ -48,7 +48,7 @@
       data.targetProject,
       data.targetVersion,
       $page.url.pathname,
-      maxLengthOfConstructorInputsParams()
+      maxLengthOfConstructorInputsParams(),
     )}
     titleText={titleText()}
     titleCategoryLabelTextForFullScreen={titleCategoryLabelText}

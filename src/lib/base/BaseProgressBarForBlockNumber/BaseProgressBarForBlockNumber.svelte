@@ -22,8 +22,7 @@
   import { getProgressRate } from "./progressRate";
 
   export let size: BaseProgressBarForBlockNumberProps["size"] = "md";
-  export let processing: BaseProgressBarForBlockNumberProps["processing"] =
-    false;
+  export let processing: BaseProgressBarForBlockNumberProps["processing"] = false;
   export let colorCategoryProgress: BaseProgressBarForBlockNumberProps["colorCategoryProgress"] =
     "interactive";
   export let startBlockNumber: BaseProgressBarForBlockNumberProps["startBlockNumber"];
@@ -41,7 +40,7 @@
   $: progressRate = getProgressRate(
     startBlockNumber,
     endBlockNumber,
-    fetchedBlockNumber
+    fetchedBlockNumber,
   );
 </script>
 
@@ -52,7 +51,7 @@
     "w-full",
     "h-fit",
     showBlockNumber && "px-12",
-    ""
+    "",
   )}
 >
   <div
@@ -63,7 +62,7 @@
       "h-fit",
       "items-start",
       "justify-start",
-      ""
+      "",
     )}
   >
     {#if showBlockNumber}

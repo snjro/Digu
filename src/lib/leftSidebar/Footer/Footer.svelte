@@ -22,7 +22,7 @@
     colorDefinitions[themeColor][colorSettings.leftSidebarFooter].bg,
     "border-t",
     colorDefinitions[themeColor][colorSettings.leftSidebarFooter].border,
-    ""
+    "",
   )}
 >
   <div class={classNames("flex", "h-full", "w-full", "justify-evenly", "")}>

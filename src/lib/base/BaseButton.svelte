@@ -212,7 +212,7 @@
       // !shadowEffect && "top-[2px]",
       label && "truncate",
       popupEffect && "active:translate-y-px",
-      appendClass
+      appendClass,
     );
 </script>
 
@@ -241,7 +241,7 @@
           "items-center",
           "truncate",
           "w-fit",
-          padding()
+          padding(),
         )}
       >
         <BaseButtonContent

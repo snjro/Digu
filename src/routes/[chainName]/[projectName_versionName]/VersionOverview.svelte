@@ -15,7 +15,7 @@
   const gridTrackSync: string = classNames("col-span-full lg:col-span-2", "");
   const gridTrackContracts: string = classNames(
     "col-span-full lg:col-span-4",
-    ""
+    "",
   );
 </script>
 

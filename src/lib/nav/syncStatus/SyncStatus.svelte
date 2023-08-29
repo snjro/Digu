@@ -30,7 +30,7 @@
     "h-full",
     "items-center",
     "justify-center",
-    "space-x-0.5"
+    "space-x-0.5",
   )}
 >
   <SyncStatusToggle />

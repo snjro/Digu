@@ -21,6 +21,6 @@
     buttonHeight[size],
     "w-0",
     "border-r",
-    colorDefinitions[themeColor][colorCategory].border
+    colorDefinitions[themeColor][colorCategory].border,
   )}
 />

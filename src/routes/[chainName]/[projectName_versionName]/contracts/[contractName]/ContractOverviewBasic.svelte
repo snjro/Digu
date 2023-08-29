@@ -28,7 +28,7 @@
     `/${targetChain.name}` +
     `/${getProjectVersionNameForUrl(
       targetProject.name,
-      targetVersion.name
+      targetVersion.name,
     )}/contracts/${targetContract.name}`;
 </script>
 

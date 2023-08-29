@@ -25,7 +25,7 @@
       "overflow-x-hidden",
       underlineLabel
         ? colorDefinitions[themeColor]["interactive"].border
-        : "border-transparent"
+        : "border-transparent",
     )}
   >
     <BaseLabel

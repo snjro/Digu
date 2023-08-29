@@ -30,12 +30,12 @@
           "inset-0",
           "pl-1.5",
           "pb-1.5",
-          ""
+          "",
         )
       : "h-full w-full",
     hidden && "hidden",
     colorDefinitions[themeColor][colorSettings.gridContainer].bg,
-    ""
+    "",
   )}
 >
   <slot />

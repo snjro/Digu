@@ -1,19 +1,19 @@
 <script lang="ts" context="module">
   const FUNC_NAME_SPLITTER = "-";
   function isFunctionAbiFragment(
-    targetAbiFragment: EventAbiFragment | FunctionAbiFragment
+    targetAbiFragment: EventAbiFragment | FunctionAbiFragment,
   ): targetAbiFragment is FunctionAbiFragment {
     return targetAbiFragment.type === "function";
   }
   export function getFunctionSelectorWithSplitter(
-    targetAbiFragment: EventAbiFragment | FunctionAbiFragment
+    targetAbiFragment: EventAbiFragment | FunctionAbiFragment,
   ): string {
     return isFunctionAbiFragment(targetAbiFragment)
       ? `${FUNC_NAME_SPLITTER}${targetAbiFragment.selector}` // hyphens are not allowed in function names on Solidity.
       : "";
   }
   export function getSplittedFunctionNameAndSelector(
-    functionNameAndSelector: string
+    functionNameAndSelector: string,
   ): {
     functionName: FunctionAbiFragment["name"];
     functionSelector: FunctionAbiFragment["selector"];
@@ -30,7 +30,7 @@
       myLogger.error(
         errorMessage,
         `splitted.length: ${splitted.length}`,
-        `functionNameAndSelector: ${functionNameAndSelector}`
+        `functionNameAndSelector: ${functionNameAndSelector}`,
       );
       throw new Error(errorMessage);
     }

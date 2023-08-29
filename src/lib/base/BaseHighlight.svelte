@@ -44,7 +44,7 @@
     class={classNames(
       "w-full",
       "min-w-fit",
-      baseTextSizes[sizeSettings.abiJsonText]
+      baseTextSizes[sizeSettings.abiJsonText],
     )}
     {code}
     style={classNames(`--base-highlight-background-color:${colorHexBg};`)}

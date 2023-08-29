@@ -39,7 +39,7 @@
       const currentPathName: string = pathNames[indexPathNames];
       const currentPathNameWithUrlHash = getPathNameWithUrlHash(
         previousPathName,
-        currentPathName
+        currentPathName,
       );
 
       const currentPathNameWithoutFunctionSelector: string =
@@ -65,7 +65,7 @@
   }
   function getPathNameWithUrlHash(
     previousPathName: string,
-    currentPathName: string
+    currentPathName: string,
   ): string {
     let urlHash: string = "";
     // if (indexPathNames === pathNames.length - 1) {
@@ -106,7 +106,7 @@
       "items-center",
       "space-x-0.5",
       "overflow-x-hidden",
-      ""
+      "",
     )}
   >
     {#each crumbItems() as crumbItem, i}

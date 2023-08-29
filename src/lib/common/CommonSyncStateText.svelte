@@ -7,7 +7,7 @@
   };
 
   export function iconNameForSyncStateText(
-    syncStateText: SyncStateText
+    syncStateText: SyncStateText,
   ): BaseIconProps["name"] {
     if (syncStateText === "stopping" || syncStateText === "syncing") {
       return "sync";

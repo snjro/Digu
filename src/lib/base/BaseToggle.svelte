@@ -93,7 +93,7 @@
     "shadow dark:shadow-none ",
     "dark:border",
     cursorStyle,
-    ""
+    "",
   );
   let colorCategoryThumb: ColorCategory;
   $: colorCategoryThumb = toggleValue
@@ -115,7 +115,7 @@
     "dark:border",
     colorDefinitions[themeColor][colorCategoryThumb].border,
     disabled && "contrast-50",
-    cursorStyle
+    cursorStyle,
   );
 
   let cursorStyle: `cursor-${string}`;

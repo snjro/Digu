@@ -16,7 +16,7 @@
     truncate?: boolean;
   };
   export const setPropsByOpenNewTab = (
-    openNewTab: boolean
+    openNewTab: boolean,
   ): { target: string; rel: string } | undefined => {
     if (openNewTab) {
       return { target: "_blank", rel: "noreferrer noopener" };
@@ -64,7 +64,7 @@
     if (!isHoverControledByParent) isHover = false;
   }
   $: editIconProps = (
-    iconProps: BaseIconProps | undefined
+    iconProps: BaseIconProps | undefined,
   ): BaseIconProps | undefined => {
     if (iconProps) {
       iconProps.isHover = isHover;
@@ -102,7 +102,7 @@
       disabled && "disabled:opacity-75",
       disabled && "pointer-events: none",
       isFontMono && "font-mono",
-      appendClass
+      appendClass,
     );
 </script>
 

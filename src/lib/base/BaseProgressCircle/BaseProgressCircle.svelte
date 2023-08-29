@@ -95,7 +95,7 @@
     "h-full",
     // "mx-10",
     animatePulse,
-    ""
+    "",
     // "bg-green-300",
   )}
 >
@@ -110,7 +110,7 @@
       cy={radiusPure}
       fill="transparent"
       stroke={getColorHexWithSharpFromTailwindColor(
-        colorDefinitions[themeColor][colorCategoryCircleBg].bg
+        colorDefinitions[themeColor][colorCategoryCircleBg].bg,
       )}
       stroke-width={targetSize.strokeWidth}
       class={classNames(animatePulse)}
@@ -121,7 +121,7 @@
       cy={radiusPure}
       fill="transparent"
       stroke={getColorHexWithSharpFromTailwindColor(
-        colorDefinitions[themeColor][colorCategoryCircleProgress()].bg
+        colorDefinitions[themeColor][colorCategoryCircleProgress()].bg,
       )}
       stroke-width={targetSize.strokeWidth}
       stroke-dasharray={`${circumference}px`}
@@ -143,7 +143,7 @@
           "h-full",
           "w-full",
           targetSize.gapY,
-          ""
+          "",
         )}
       >
         <BaseProgressCircleSyncStatus

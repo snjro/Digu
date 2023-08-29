@@ -25,7 +25,7 @@
   };
 
   export function convertTabValueForHref<
-    TabState extends TabStateContract | TabStateEvent | TabStateFunction
+    TabState extends TabStateContract | TabStateEvent | TabStateFunction,
   >(tabValue: TabState["selected"]): `#${string}` {
     let convertedTabValue: string = convertToKebabCase(tabValue as string);
     convertedTabValue = convertedTabValue.replace("(", "").replace(")", "");
@@ -118,7 +118,7 @@
           // Add hash to URL.
           // Because a tab is selected but that is not reflected in URL.
           goto(
-            `${$page.url.pathname}${convertTabValueForHref(tabState.selected)}`
+            `${$page.url.pathname}${convertTabValueForHref(tabState.selected)}`,
           );
         }
       }

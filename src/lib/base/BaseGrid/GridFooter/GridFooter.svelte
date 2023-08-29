@@ -24,13 +24,13 @@
     "items-center",
     "justify-end",
     "space-x-1",
-    "pr-3"
+    "pr-3",
   )}
 >
   <BaseLabel text="Rows (filtered/all) :" />
   <BaseLabel
     text={`${numberWithCommas(filteredRowCount)}/${numberWithCommas(
-      rows.length
+      rows.length,
     )}`}
   />
 </div>

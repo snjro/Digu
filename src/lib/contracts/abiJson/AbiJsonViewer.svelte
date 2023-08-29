@@ -4,7 +4,7 @@
     | EventAbiFragment
     | FunctionAbiFragment;
   export function isTargetContractInterface(
-    targetAbi: TargetAbi
+    targetAbi: TargetAbi,
   ): targetAbi is ContractInterface {
     return targetAbi.hasOwnProperty("fragments");
   }

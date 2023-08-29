@@ -41,7 +41,7 @@
     colorDefinitions[themeColor][colorSettings.tooltip].shadow,
     "dark:border",
     colorDefinitions[themeColor][colorSettings.tooltip].border,
-    ""
+    "",
   );
 </script>
 

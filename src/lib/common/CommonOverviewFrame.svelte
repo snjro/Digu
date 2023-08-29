@@ -36,7 +36,7 @@
   $: scrollStyle = classNames(
     colorDefinitions[themeColor][colorSettings.tabSelected].bg,
     "overflow-y-scroll",
-    scrollbarStyle.thin
+    scrollbarStyle.thin,
   );
 </script>
 
@@ -46,7 +46,7 @@
     // "min-h-0",
     "h-full",
     hidden && "hidden",
-    scrollStyle
+    scrollStyle,
   )}
 >
   <div class={classNames(gridMain, "w-full", "h-full", "")}>

@@ -45,9 +45,9 @@
             getExportFileName(
               fragment ? "ABIfragment" : "ABI",
               $page.params,
-              "json"
+              "json",
             ),
-            "json"
+            "json",
           ),
       },
       {

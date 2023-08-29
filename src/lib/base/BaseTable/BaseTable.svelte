@@ -33,7 +33,7 @@
   let scrollbarStyle: ScrollbarStyle;
   $: scrollbarStyle = getScrollbarStyle(
     colorSettings.itemMemberTableBg,
-    themeColor
+    themeColor,
   );
 </script>
 
@@ -45,13 +45,13 @@
       borderX && "border-x",
       borderTop && "border-t",
       borderBottom && "border-b",
-      colorDefinitions[themeColor][colorCategoryBorder].border
+      colorDefinitions[themeColor][colorCategoryBorder].border,
     )}
   >
     <thead
       class={classNames(
         "border-b",
-        colorDefinitions[themeColor][colorCategoryBorder].border
+        colorDefinitions[themeColor][colorCategoryBorder].border,
       )}
     >
       <BaseTableRow hoverEffect={false}>

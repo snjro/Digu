@@ -89,7 +89,7 @@
       fontMono && "font-mono",
       italic && "italic",
       fontWeight,
-      appendClass
+      appendClass,
     );
 </script>
 
@@ -101,7 +101,7 @@
     "w-fit",
     "max-w-full",
     "h-fit",
-    ""
+    "",
   )}
 >
   {#if prefixIcon}

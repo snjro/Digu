@@ -18,12 +18,12 @@
 
   async function change(event: Event) {
     const chainExplorerIndex: number = parseInt(
-      (event.target as HTMLInputElement).value
+      (event.target as HTMLInputElement).value,
     );
     await updateDbItemRpcSettings(
       targetChainName,
       "chainExplorerIndex",
-      chainExplorerIndex
+      chainExplorerIndex,
     );
   }
   $: items = targetChainExplorers.map((chainExplorer, index) => {

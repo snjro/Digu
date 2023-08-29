@@ -39,7 +39,7 @@
     hoverType === "onSpace"
       ? classNames(
           "border-b",
-          colorDefinitions[themeColor]["interactive"].border
+          colorDefinitions[themeColor]["interactive"].border,
         )
       : "";
 </script>
@@ -57,7 +57,7 @@
     "justify-end",
     "pr-1",
     leftSidebarItemRoundedStyle,
-    ""
+    "",
   )}
   on:click
   on:mouseenter

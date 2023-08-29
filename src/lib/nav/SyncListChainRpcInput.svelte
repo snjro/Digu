@@ -42,7 +42,7 @@
   }
   async function updateRpc(
     chainName: ChainName,
-    newRpc: string = rpc
+    newRpc: string = rpc,
   ): Promise<void> {
     await updateDbItemRpcSettings(chainName, "rpc", newRpc);
 

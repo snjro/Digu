@@ -27,7 +27,7 @@
     !$storeUserSettings.isOpenSidebar && "hidden",
     "cursor-default",
     $storeNoDbCurrentWidth <= breakPointWidths.sm && "z-10",
-    ""
+    "",
   )}
 >
   <Header />

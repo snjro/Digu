@@ -17,7 +17,9 @@
   export let targetAbiFragment: EventAbiFragment | FunctionAbiFragment;
   export let targetAbiFragmentsHref: string;
   const urlHash: string = convertToKebabCase(
-    abiFragmentsType === "events" ? TAB_VALUES_EVENT[0] : TAB_VALUES_FUNCTION[0]
+    abiFragmentsType === "events"
+      ? TAB_VALUES_EVENT[0]
+      : TAB_VALUES_FUNCTION[0],
   );
   const targetAbiFragmentHref: string = `${targetAbiFragmentsHref}/${
     targetAbiFragment.name

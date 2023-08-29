@@ -41,7 +41,7 @@
     "flex-row",
     "items-center",
     "space-x-3",
-    ""
+    "",
   )}
 >
   {#if showThreeDotsButton()}

@@ -35,7 +35,7 @@
     "flex-row",
     "items-center",
     "space-x-1",
-    isFullScreen ? "pt-1.5" : "pb-2"
+    isFullScreen ? "pt-1.5" : "pb-2",
   )}
 >
   <BaseLabel
@@ -46,7 +46,7 @@
     appendClass={classNames(
       "rounded",
       "px-1",
-      "py-0.5"
+      "py-0.5",
       // "text-shadow-white"
     )}
     fontWeight="font-black"

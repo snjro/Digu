@@ -92,7 +92,7 @@
       "border",
       !showChildren && "hidden",
       colorDefinitions[themeColor][colorSettings.gridFunctionButton].border,
-      colorDefinitions[themeColor][colorSettings.gridFunctionButton].bg
+      colorDefinitions[themeColor][colorSettings.gridFunctionButton].bg,
     )}
   >
     {#each buttonDefinitions as buttonGroup, buttonDefinitionIndex}
@@ -102,7 +102,7 @@
           "flex-col",
           "items-start",
           "space-y-1",
-          "w-56"
+          "w-56",
         )}
       >
         {#each buttonGroup as { iconName, tooltipText, onClickEventFunction }}

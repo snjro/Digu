@@ -11,7 +11,7 @@
   let titleText: string;
   $: titleText = getProjectVersionNameForLabel(
     data.targetProject.name,
-    data.targetVersion.name
+    data.targetVersion.name,
   );
 </script>
 

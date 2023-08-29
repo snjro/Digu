@@ -23,7 +23,7 @@
     "h-full",
     "rounded",
     gridTrack,
-    ""
+    "",
   )}
 >
   <BaseLabel
@@ -34,7 +34,7 @@
       "pr-3",
       "pb-0.5",
       "rounded-tl",
-      "rounded-br"
+      "rounded-br",
     )}
     colorCategoryBg={colorSettings.itemGroupTitle}
     colorCategoryFront={colorSettings.itemGroupTitle}
@@ -47,7 +47,7 @@
       "w-full",
       "h-full",
       "flex",
-      "flex-col"
+      "flex-col",
     )}
   >
     <slot />

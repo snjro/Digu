@@ -26,7 +26,7 @@ export class DbEventLogs extends dbBase {
   constructor(versionIdentifier: VersionIdentifier) {
     const targetVersion: Version = getTargetVersion(versionIdentifier);
     const targetContracts: Contract[] = extractEventContracts(
-      targetVersion.contracts
+      targetVersion.contracts,
     );
 
     //define DB name
@@ -57,7 +57,7 @@ export class DbEventLogs extends dbBase {
   }
   protected async addInitialData(
     tx: Transaction,
-    targetContracts: Contract[]
+    targetContracts: Contract[],
   ): Promise<void> {
     const ArrayOfInitialData = [];
     for (const targetContract of targetContracts) {
@@ -72,7 +72,7 @@ export class DbEventLogs extends dbBase {
 }
 
 function getInitialDataOfSyncStatusContract(
-  targetContract: Contract
+  targetContract: Contract,
 ): SyncStatusContract {
   const creationBlockNumber: number = targetContract.creation.blockNumber;
   return {
@@ -89,7 +89,7 @@ function getInitialDataOfSyncStatusContract(
   };
 }
 export function getInitialDataOfSyncStatusesEvent(
-  eventNames: EventAbiFragment["name"][]
+  eventNames: EventAbiFragment["name"][],
 ): SyncStatusesEvent {
   const syncStatusesEvent: SyncStatusesEvent = {};
   for (let eventName of eventNames) {

@@ -95,7 +95,7 @@
     "items-center",
     "w-full max-w-full",
     buttonHeight[size],
-    ""
+    "",
   )}
 >
   <BaseItem

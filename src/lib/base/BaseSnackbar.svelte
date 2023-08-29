@@ -41,12 +41,12 @@
     themeColor === "light"
       ? classNames(
           "shadow-md",
-          colorDefinitions[themeColor][colorSettings.snackBarBg].shadow
+          colorDefinitions[themeColor][colorSettings.snackBarBg].shadow,
         )
       : classNames(
           "border",
-          colorDefinitions[themeColor][colorSettings.snackBarBg].border
-        )
+          colorDefinitions[themeColor][colorSettings.snackBarBg].border,
+        ),
   );
 
   let themeColor: ThemeColor;
@@ -56,7 +56,7 @@
     "fixed",
     "bottom-3",
     "right-6",
-    "z-50"
+    "z-50",
   );
   const textSize: BaseSize = "xl";
 </script>
@@ -76,7 +76,7 @@
       "p-4",
       "rounded",
       frameLineStyle,
-      colorDefinitions[themeColor][colorSettings.snackBarBg].bg
+      colorDefinitions[themeColor][colorSettings.snackBarBg].bg,
     )}
   >
     <BaseLabel

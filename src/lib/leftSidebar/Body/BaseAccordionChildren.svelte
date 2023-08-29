@@ -15,7 +15,7 @@
     "flex-row",
     "h-fit",
     !isOpenAccordion && "hidden",
-    ""
+    "",
   )}
 >
   {#if showVerticalLine}
