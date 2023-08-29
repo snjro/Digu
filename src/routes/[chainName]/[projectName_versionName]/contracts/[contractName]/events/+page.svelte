@@ -1,11 +1,11 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import type { LoadEventsData } from "./+page";
-  import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
-  import { gridRows, type EventRow } from "./gridRows";
-  import { columnDefs } from "./columnDefs";
+  import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
   import type { Contract } from "@constants/chains/types";
+  import type { LoadEventsData } from "./+page";
+  import { columnDefs } from "./columnDefs";
+  import { gridRows, type EventRow } from "./gridRows";
 
   export let data: LoadEventsData;
 
@@ -39,7 +39,7 @@
         projectName: data.targetProject.name,
         versionName: data.targetVersion.name,
         contractName: titleText,
-      }
+      },
     )}
     {titleText}
     titleCategoryLabelTextForFullScreen={titleCategoryLabelText}

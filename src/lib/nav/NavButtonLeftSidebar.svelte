@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { toggleLeftSideBar } from "$lib/leftSidebar/functions";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
+  import { toggleLeftSideBar } from "$lib/leftSidebar/functions";
+  import { storeUserSettings } from "@stores/storeUserSettings";
 </script>
 
 {#if !$storeUserSettings.isOpenSidebar}

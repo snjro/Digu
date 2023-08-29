@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { LoadVersionData } from "./+page";
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
-  import { getProjectVersionNameForLabel } from "./projectVersionNameHelper";
+  import type { LoadVersionData } from "./+page";
   import VersionOverview from "./VersionOverview.svelte";
+  import { getProjectVersionNameForLabel } from "./projectVersionNameHelper";
 
   export let data: LoadVersionData;
 
@@ -11,7 +11,7 @@
   let titleText: string;
   $: titleText = getProjectVersionNameForLabel(
     data.targetProject.name,
-    data.targetVersion.name
+    data.targetVersion.name,
   );
 </script>
 

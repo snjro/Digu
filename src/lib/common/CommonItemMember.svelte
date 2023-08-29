@@ -1,9 +1,9 @@
 <script lang="ts">
-  import classNames from "classnames";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseLabel, { type BaseLabelProps } from "$lib/base/BaseLabel.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import classNames from "classnames";
 
   export let text: BaseLabelProps["text"] | undefined = undefined;
 

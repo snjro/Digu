@@ -38,7 +38,7 @@
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 
   $: colorHexWithSharp = getColorHexWithSharpFromTailwindColor(
-    colorDefinitions[themeColor][colorCategoryProgress].bg
+    colorDefinitions[themeColor][colorCategoryProgress].bg,
   );
   $: colorHexWithoutSharp = colorHexWithSharp.replace("#", "");
 
@@ -68,7 +68,7 @@
       ? colorDefinitions[themeColor][colorCategoryBg].bg
       : "bg-inherit",
     barHeights[size],
-    ""
+    "",
   )}
   style={classNames(processing && backgroundImage())}
 >
@@ -84,7 +84,7 @@
       // : "border-inherit",
 
       rounded ? roundedSizes[size] : "rounded-none",
-      ""
+      "",
     )}
     style={progressColor()}
   >

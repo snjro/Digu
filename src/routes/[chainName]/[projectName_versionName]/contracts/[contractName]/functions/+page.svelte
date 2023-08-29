@@ -2,10 +2,10 @@
   import { page } from "$app/stores";
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
+  import type { Contract } from "@constants/chains/types";
   import type { LoadFunctionsData } from "./+page";
   import { columnDefs } from "./columnDefs";
   import { gridRows, type FunctionRow } from "./gridRows";
-  import type { Contract } from "@constants/chains/types";
 
   export let data: LoadFunctionsData;
 
@@ -43,7 +43,7 @@
     paramColumnDefs={columnDefs(
       $page.url.pathname,
       maxLengthOfFunctionInputsParams(),
-      maxLengthOfFunctionOutputsParams()
+      maxLengthOfFunctionOutputsParams(),
     )}
     {titleText}
     titleCategoryLabelTextForFullScreen={titleCategoryLabelText}

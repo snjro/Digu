@@ -3,33 +3,33 @@
 </script>
 
 <script lang="ts">
+  import { page } from "$app/stores";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseA from "$lib/base/BaseA.svelte";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import {
+    TAB_VALUES_EVENT,
+    TAB_VALUES_FUNCTION,
+  } from "$lib/base/BasePage/BasePageContainerContent.svelte";
+  import BaseTable from "$lib/base/BaseTable/BaseTable.svelte";
+  import BaseTableBodyCell from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
+  import BaseTableRow from "$lib/base/BaseTable/BaseTableRow.svelte";
+  import SequenceBodyCell from "$lib/base/BaseTable/SequenceBodyCell.svelte";
+  import type { BaseSize } from "$lib/base/baseSizes";
+  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
+  import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
+  import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
   import type {
     Contract,
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
-  import { page } from "$app/stores";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
   import {
     capitalizeFirstLetter,
     convertToKebabCase,
   } from "@utils/utilsCommon";
-  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
-  import BaseTable from "$lib/base/BaseTable/BaseTable.svelte";
-  import BaseTableRow from "$lib/base/BaseTable/BaseTableRow.svelte";
-  import SequenceBodyCell from "$lib/base/BaseTable/SequenceBodyCell.svelte";
-  import BaseTableBodyCell from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
-  import BaseA from "$lib/base/BaseA.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { BaseSize } from "$lib/base/baseSizes";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
-  import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
-  import {
-    TAB_VALUES_EVENT,
-    TAB_VALUES_FUNCTION,
-  } from "$lib/base/BasePage/BasePageContainerContent.svelte";
 
   export let abiFragmentsType: AbiFragmentsType;
   export let targetContract: Contract;
@@ -46,10 +46,10 @@
   $: hrefFrontPart = `${$page.url.pathname}/${abiFragmentsType}`;
 
   let hrefEventFunctionName: (
-    abiFragment: FunctionAbiFragment | EventAbiFragment
+    abiFragment: FunctionAbiFragment | EventAbiFragment,
   ) => string;
   hrefEventFunctionName = (
-    abiFragment: FunctionAbiFragment | EventAbiFragment
+    abiFragment: FunctionAbiFragment | EventAbiFragment,
   ): string => {
     const functionSelectorWithSplitter: string =
       getFunctionSelectorWithSplitter(abiFragment);

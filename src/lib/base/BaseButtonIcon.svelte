@@ -9,12 +9,12 @@
 </script>
 
 <script lang="ts">
+  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import BaseButton, {
     type BaseButtonProps,
   } from "$lib/base/BaseButton.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import BaseIcon from "$lib/base/BaseIcon.svelte";
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { createEventDispatcher } from "svelte";
 
   export let label: BaseButtonProps["label"] = undefined;

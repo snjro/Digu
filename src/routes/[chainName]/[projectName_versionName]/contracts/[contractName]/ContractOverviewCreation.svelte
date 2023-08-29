@@ -1,10 +1,10 @@
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
   import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import type { Contract } from "@constants/chains/types";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
 
   export let targetContract: Contract;

@@ -9,19 +9,19 @@
 
 <script lang="ts">
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import classNames from "classnames";
-  import BaseLabel from "./BaseLabel.svelte";
-  import { fly } from "svelte/transition";
-  import { expoInOut } from "svelte/easing";
-  import type { BaseIconProps } from "./BaseIcon";
   import {
     storeNoDbSnackBar,
     storeNoDbSnackBarInitialValue,
   } from "@stores/storeNoDb";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
+  import { expoInOut } from "svelte/easing";
+  import { fly } from "svelte/transition";
+  import type { BaseIconProps } from "./BaseIcon";
+  import BaseLabel from "./BaseLabel.svelte";
   import type { BaseSize } from "./baseSizes";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   const displayTimeInMilliseconds: number = 1000;
 
@@ -41,12 +41,12 @@
     themeColor === "light"
       ? classNames(
           "shadow-md",
-          colorDefinitions[themeColor][colorSettings.snackBarBg].shadow
+          colorDefinitions[themeColor][colorSettings.snackBarBg].shadow,
         )
       : classNames(
           "border",
-          colorDefinitions[themeColor][colorSettings.snackBarBg].border
-        )
+          colorDefinitions[themeColor][colorSettings.snackBarBg].border,
+        ),
   );
 
   let themeColor: ThemeColor;
@@ -56,7 +56,7 @@
     "fixed",
     "bottom-3",
     "right-6",
-    "z-50"
+    "z-50",
   );
   const textSize: BaseSize = "xl";
 </script>
@@ -76,7 +76,7 @@
       "p-4",
       "rounded",
       frameLineStyle,
-      colorDefinitions[themeColor][colorSettings.snackBarBg].bg
+      colorDefinitions[themeColor][colorSettings.snackBarBg].bg,
     )}
   >
     <BaseLabel

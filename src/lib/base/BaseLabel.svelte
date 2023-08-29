@@ -24,20 +24,20 @@
 </script>
 
 <script lang="ts">
-  import classNames from "classnames";
-  import type { BaseIconProps } from "./BaseIcon";
-  import BaseIcon from "./BaseIcon.svelte";
-  import { baseTextSizes, changeSize } from "./baseSizes";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { BaseSize } from "./baseSizes";
+  import CommonCopyButton from "$lib/common/CommonCopyButton.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { NO_DATA } from "@utils/utilsCostants";
+  import classNames from "classnames";
   import { twMerge } from "tailwind-merge";
-  import CommonCopyButton from "$lib/common/CommonCopyButton.svelte";
+  import type { BaseIconProps } from "./BaseIcon";
+  import BaseIcon from "./BaseIcon.svelte";
+  import type { BaseSize } from "./baseSizes";
+  import { baseTextSizes, changeSize } from "./baseSizes";
   export let text: BaseLabelProps["text"];
   export let inputId: BaseLabelProps["inputId"] = undefined;
   export let colorCategoryFront: BaseLabelProps["colorCategoryFront"] =
@@ -89,7 +89,7 @@
       fontMono && "font-mono",
       italic && "italic",
       fontWeight,
-      appendClass
+      appendClass,
     );
 </script>
 
@@ -101,7 +101,7 @@
     "w-fit",
     "max-w-full",
     "h-fit",
-    ""
+    "",
   )}
 >
   {#if prefixIcon}

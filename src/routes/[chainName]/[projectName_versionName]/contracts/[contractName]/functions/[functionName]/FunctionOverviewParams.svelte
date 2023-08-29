@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import AbiParamsTable from "$lib/contracts/abiParams/AbiParamsTable.svelte";
   import type { FunctionAbiFragment } from "@constants/chains/types";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 
   type ParamIdentifier = Extract<
     keyof FunctionAbiFragment,

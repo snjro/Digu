@@ -3,8 +3,8 @@
   import type { BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
   import BaseAccordionChildren from "./BaseAccordionChildren.svelte";
-  import type { BaseAccordionHeaderSuffixIcon } from "./BaseAccordionHeaderSuffixIcons.svelte";
   import BaseAccordionHeader from "./BaseAccordionHeader.svelte";
+  import type { BaseAccordionHeaderSuffixIcon } from "./BaseAccordionHeaderSuffixIcons.svelte";
 
   export let label: string;
   export let hrefWithoutUrlHash: string;

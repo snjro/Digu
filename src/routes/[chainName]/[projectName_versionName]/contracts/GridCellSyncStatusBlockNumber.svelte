@@ -3,7 +3,7 @@
   export function getBlockNumberByHeaderName(
     headerName: HeaderName,
     latestBlockNumber: number,
-    targetContractSyncStatus: SyncStatusContract
+    targetContractSyncStatus: SyncStatusContract,
   ): number {
     if (!targetContractSyncStatus) {
       // When a contract has no event, "targetContractSyncStatus" is undefined.
@@ -20,20 +20,20 @@
 </script>
 
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import type { BaseSize } from "$lib/base/baseSizes";
+  import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
   import type {
     Chain,
     Contract,
     Project,
     Version,
   } from "@constants/chains/types";
-  import { storeChainStatus } from "@stores/storeChainStatus";
   import type { SyncStatusContract } from "@db/dbTypes";
+  import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { NO_DATA } from "@utils/utilsCostants";
-  import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { BaseSize } from "$lib/base/baseSizes";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -54,7 +54,7 @@
   $: blockNumber = getBlockNumberByHeaderName(
     headerName,
     latestBlockNumber,
-    targetContractSyncStatus
+    targetContractSyncStatus,
   );
 </script>
 

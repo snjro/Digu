@@ -1,13 +1,13 @@
 <script lang="ts">
-  import type { CrumbItem } from "./Breadcrumb.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import BaseA from "$lib/base/BaseA.svelte";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import BreadcrumnItemSeparater from "./BreadcrumnItemSeparater.svelte";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseA from "$lib/base/BaseA.svelte";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
+  import type { CrumbItem } from "./Breadcrumb.svelte";
+  import BreadcrumnItemSeparater from "./BreadcrumnItemSeparater.svelte";
   export let targetCrumbItem: CrumbItem;
   export let currentIndex: number;
   export let lastIndex: number;
@@ -19,7 +19,7 @@
   };
   const prefixIcon = (
     prefixIconName: CrumbItem["prefixIconName"],
-    isLabel: boolean
+    isLabel: boolean,
   ): BaseIconProps | undefined => {
     if (prefixIconName) {
       return {

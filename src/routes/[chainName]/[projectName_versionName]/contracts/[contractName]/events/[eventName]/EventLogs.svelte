@@ -7,9 +7,9 @@
 
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
   import type { ColumnDef } from "$lib/base/BaseGrid/types";
-  import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
   import type { EventAbiFragment } from "@constants/chains/types";
   import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
+  import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
   import { gridRows } from "./gridRows";
   export let targetEventIdentifier: AbiFragmentIdentifier;
   export let targetEventAbiFragment: EventAbiFragment;
@@ -23,10 +23,10 @@
     (convertedEventLogs: ConvertedEventLog[]) => {
       rows = convertedEventLogs;
       // eachArgsMaxLengths = getEachArgsMaxLengths(rows);
-    }
+    },
   );
   function getEachArgsMaxLengths(
-    convertedEventLogs: ConvertedEventLog[]
+    convertedEventLogs: ConvertedEventLog[],
   ): number[] {
     let maxLengths: number[] = [];
     for (

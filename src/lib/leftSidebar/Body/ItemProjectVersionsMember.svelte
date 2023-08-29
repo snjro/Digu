@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { Contract } from "@constants/chains/types";
   import BaseAccordion from "./BaseAccordion.svelte";
   import ItemContracts from "./ItemContracts.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   export let targetProjectVersionNameForLabel: string;
   export let targetProjectVersionHref: string;
   export let targetContracts: Contract[];

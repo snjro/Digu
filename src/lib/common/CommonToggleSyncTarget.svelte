@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
   const isSyncTargetIndeterminate = (
-    subSyncStatuses: SubSyncStatuses
+    subSyncStatuses: SubSyncStatuses,
   ): boolean => {
     if (subSyncStatuses) {
       let targetSubSyncStatusValues: SubSyncStatus[] =
@@ -12,7 +12,7 @@
               targetSubSyncStatusValue.isSyncTarget ===
               targetSubSyncStatusValues[0].isSyncTarget
             );
-          }
+          },
         );
       return !isAllSubSyncStatusValuesSame;
     } else {
@@ -27,7 +27,7 @@
     | "Yes"
     | "No";
   export const syncTargetLabelText = (
-    targetSyncStatus: SyncStatus
+    targetSyncStatus: SyncStatus,
   ): SyncTargetLabelText => {
     if (targetSyncStatus.subSyncStatuses) {
       if (isSyncTargetIndeterminate(targetSyncStatus.subSyncStatuses)) {
@@ -42,19 +42,19 @@
 </script>
 
 <script lang="ts">
+  import BaseCheckbox from "$lib/base/BaseCheckbox.svelte";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
   import type {
     Chain,
     Contract,
     Project,
     Version,
   } from "@constants/chains/types";
-  import { toggleIsSyncTarget } from "./toggleSyncTarget";
   import type { SubSyncStatus, SubSyncStatuses, SyncStatus } from "@db/dbTypes";
-  import BaseCheckbox from "$lib/base/BaseCheckbox.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
   import classNames from "classnames";
+  import { toggleIsSyncTarget } from "./toggleSyncTarget";
 
   export let targetChain: Chain;
   export let targetProject: Project | undefined = undefined;
@@ -66,12 +66,12 @@
     CH extends Chain,
     PR extends Project | undefined = undefined,
     VE extends Version | undefined = undefined,
-    CO extends Contract | undefined = undefined
+    CO extends Contract | undefined = undefined,
   >(
     targetChain: CH,
     targetProject?: PR,
     targetVersion?: PR extends Project ? VE : undefined,
-    targetContract?: VE extends Version ? CO : undefined
+    targetContract?: VE extends Version ? CO : undefined,
   ): SyncStatus => {
     if (targetProject && targetVersion && targetContract) {
       return $storeSyncStatus[targetChain.name].subSyncStatuses[
@@ -96,7 +96,7 @@
     targetChain,
     targetProject,
     targetVersion,
-    targetContract
+    targetContract,
   );
 
   const checkChanged = async () => {
@@ -104,7 +104,7 @@
       targetChain.name,
       targetProject?.name,
       targetVersion?.name,
-      targetContract?.name
+      targetContract?.name,
     );
   };
 </script>

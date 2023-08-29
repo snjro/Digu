@@ -19,7 +19,7 @@
     "w-full",
     "justify-center",
     "items-end",
-    "space-x-0.5"
+    "space-x-0.5",
     // "pl-2"
   )}
 >

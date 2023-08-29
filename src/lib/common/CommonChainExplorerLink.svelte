@@ -13,17 +13,17 @@
 </script>
 
 <script lang="ts">
-  import type { ChainExplorer } from "@constants/chains/types";
   import BaseA, { type BaseAProps } from "$lib/base/BaseA.svelte";
-  import { numberWithCommas } from "@utils/utilsCommon";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import type { ChainExplorer } from "@constants/chains/types";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { numberWithCommas } from "@utils/utilsCommon";
 
-  import { getTargetChain } from "@utils/utlisDb";
-  import classNames from "classnames";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { changeSize } from "$lib/base/baseSizes";
+  import { getTargetChain } from "@utils/utlisDb";
+  import classNames from "classnames";
   import CommonCopyButton from "./CommonCopyButton.svelte";
 
   export let subdirectory: CommonChainExplorerLinkProps["subdirectory"];
@@ -35,8 +35,7 @@
   export let appendClass: CommonChainExplorerLinkProps["appendClass"] =
     undefined;
   export let withIcon: CommonChainExplorerLinkProps["withIcon"] = true;
-  export let showCopyButton: CommonChainExplorerLinkProps["showCopyButton"] =
-    true;
+  export let showCopyButton: CommonChainExplorerLinkProps["showCopyButton"] = true;
   export let isFontMono: CommonChainExplorerLinkProps["isFontMono"] = false;
   export let justifyEnd: CommonChainExplorerLinkProps["justifyEnd"] = false;
 
@@ -83,7 +82,7 @@
     "max-w-full",
 
     justifyEnd ? "justify-end" : "justify-start",
-    ""
+    "",
   )}
 >
   {#if value}

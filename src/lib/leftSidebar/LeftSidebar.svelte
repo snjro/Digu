@@ -1,14 +1,15 @@
 <script lang="ts">
-  import classNames from "classnames";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import Header from "./Header/Header.svelte";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
   import Body from "./Body/Body.svelte";
   import Footer from "./Footer/Footer.svelte";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
+  import Header from "./Header/Header.svelte";
+
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 </script>
@@ -26,7 +27,7 @@
     !$storeUserSettings.isOpenSidebar && "hidden",
     "cursor-default",
     $storeNoDbCurrentWidth <= breakPointWidths.sm && "z-10",
-    ""
+    "",
   )}
 >
   <Header />

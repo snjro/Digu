@@ -1,23 +1,23 @@
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import { convertTabValueForHref } from "$lib/base/BasePage/BasePageContainerContent.svelte";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
+  import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
   import type {
-    EventAbiFragment,
     Chain,
+    Contract,
+    EventAbiFragment,
     Project,
     Version,
-    Contract,
   } from "@constants/chains/types";
+  import { DbEventLogs } from "@db/dbEventLogs";
+  import { getEventLogTableRecords } from "@db/dbEventLogsDataHandlersEventLog";
   import type { ConvertedEventLog } from "@db/dbTypes";
   import { numberWithCommas } from "@utils/utilsCommon";
-  import EventOverviewFetchedLogsEdge from "./EventOverviewFetchedLogsEdge.svelte";
-  import classNames from "classnames";
-  import { DbEventLogs } from "@db/dbEventLogs";
   import { getEventLogTableName } from "@utils/utlisDb";
-  import { getEventLogTableRecords } from "@db/dbEventLogsDataHandlersEventLog";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
-  import { convertTabValueForHref } from "$lib/base/BasePage/BasePageContainerContent.svelte";
+  import classNames from "classnames";
+  import EventOverviewFetchedLogsEdge from "./EventOverviewFetchedLogsEdge.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -31,7 +31,7 @@
     targetProjectName: Project["name"],
     targetVersionName: Version["name"],
     targetContractName: Contract["name"],
-    targetEventAbiFragmentName: EventAbiFragment["name"]
+    targetEventAbiFragmentName: EventAbiFragment["name"],
   ): Promise<void> => {
     const dbEventLogs: DbEventLogs = new DbEventLogs({
       chainName: targetChainName,
@@ -40,13 +40,13 @@
     });
     const eventLogTableName: string = getEventLogTableName(
       targetContractName,
-      targetEventAbiFragmentName
+      targetEventAbiFragmentName,
     );
 
     convertedEventLogs = await getEventLogTableRecords(
       dbEventLogs,
       eventLogTableName,
-      "asc"
+      "asc",
     );
   };
   $: eventLogsFetcherFromDB(
@@ -54,14 +54,14 @@
     targetProject.name,
     targetVersion.name,
     targetContract.name,
-    targetEventAbiFragment.name
+    targetEventAbiFragment.name,
   );
 
   const gridMain: string = classNames(
     "grid",
     "grid-cols-1 lg:grid-cols-2",
     "grid-flow-dense",
-    "gap-5"
+    "gap-5",
   );
 </script>
 

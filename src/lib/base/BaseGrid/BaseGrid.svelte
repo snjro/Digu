@@ -31,7 +31,7 @@
     suppressMovableColumns,
     suppressColumnVirtualisation,
     rowSelection,
-    getRowClass
+    getRowClass,
     // rows
   );
   let isFullScreen = false;

@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
   export const fullScreenSimplifiedButtonDefinition = (
-    isFullScreen: boolean
+    isFullScreen: boolean,
   ): Omit<SimplifiedButtonDefinition, "onClickEventFunction"> => {
     return {
       iconName: isFullScreen ? "fullScreenExit" : "fullScreen",

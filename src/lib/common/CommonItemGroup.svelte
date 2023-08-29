@@ -1,11 +1,11 @@
 <script lang="ts">
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import classNames from "classnames";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseLabel, { type BaseLabelProps } from "$lib/base/BaseLabel.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import BaseLabel, { type BaseLabelProps } from "$lib/base/BaseLabel.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import classNames from "classnames";
 
   export let text: BaseLabelProps["text"];
   export let gridTrack: string;
@@ -23,7 +23,7 @@
     "h-full",
     "rounded",
     gridTrack,
-    ""
+    "",
   )}
 >
   <BaseLabel
@@ -34,7 +34,7 @@
       "pr-3",
       "pb-0.5",
       "rounded-tl",
-      "rounded-br"
+      "rounded-br",
     )}
     colorCategoryBg={colorSettings.itemGroupTitle}
     colorCategoryFront={colorSettings.itemGroupTitle}
@@ -47,7 +47,7 @@
       "w-full",
       "h-full",
       "flex",
-      "flex-col"
+      "flex-col",
     )}
   >
     <slot />

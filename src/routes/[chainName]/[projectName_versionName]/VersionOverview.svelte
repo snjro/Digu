@@ -1,10 +1,10 @@
 <script lang="ts">
+  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
+  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
   import type { Chain, Project, Version } from "@constants/chains/types";
   import classNames from "classnames";
-  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
   import VersionOverviewContracts from "./VersionOverviewContracts.svelte";
   import VersionOverviewSyncStatus from "./VersionOverviewSyncStatus.svelte";
-  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -15,7 +15,7 @@
   const gridTrackSync: string = classNames("col-span-full lg:col-span-2", "");
   const gridTrackContracts: string = classNames(
     "col-span-full lg:col-span-4",
-    ""
+    "",
   );
 </script>
 

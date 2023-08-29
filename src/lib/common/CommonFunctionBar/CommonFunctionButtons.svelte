@@ -1,16 +1,16 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import {
     breakPointWidths,
     type BreakPointWidthValue,
   } from "$lib/appearanceConfig/size/sizeDefinitions";
-  import BaseDividerVertical from "$lib/base/BaseDividerVertical.svelte";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import BaseButtonIcon, {
     type SimplifiedButtonDefinition,
   } from "$lib/base/BaseButtonIcon.svelte";
+  import BaseDividerVertical from "$lib/base/BaseDividerVertical.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
-  import classNames from "classnames";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
+  import classNames from "classnames";
   import CommonThreeDotsButton from "../CommonThreeDotsButton.svelte";
 
   export let buttonDefinitions: Array<SimplifiedButtonDefinition[]>;
@@ -41,7 +41,7 @@
     "flex-row",
     "items-center",
     "space-x-3",
-    ""
+    "",
   )}
 >
   {#if showThreeDotsButton()}

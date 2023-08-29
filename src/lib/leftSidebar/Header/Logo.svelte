@@ -1,8 +1,8 @@
 <script lang="ts">
-  import BaseA from "$lib/base/BaseA.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import classNames from "classnames";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseA from "$lib/base/BaseA.svelte";
+  import classNames from "classnames";
 </script>
 
 <BaseA

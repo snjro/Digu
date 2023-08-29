@@ -1,13 +1,13 @@
 <script lang="ts">
-  import type { AbiFragmentName } from "@constants/chains/types";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import type { ContractIdentifier } from "@db/dbTypes";
   import BaseA from "$lib/base/BaseA.svelte";
-  import { numberWithCommas } from "@utils/utilsCommon";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { convertTabValueForHref } from "$lib/base/BasePage/BasePageContainerContent.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
+  import type { AbiFragmentName } from "@constants/chains/types";
+  import type { ContractIdentifier } from "@db/dbTypes";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import { numberWithCommas } from "@utils/utilsCommon";
 
   export let contractIdentifier: ContractIdentifier;
   export let targetEventName: AbiFragmentName;
@@ -22,7 +22,7 @@
     ].events[targetEventName].recordCount;
 
   const href: string = `${urlPathName}/${targetEventName}${convertTabValueForHref(
-    "Event Logs (text)"
+    "Event Logs (text)",
   )}`;
 
   let text: string;

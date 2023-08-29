@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import type { ThemeColor } from "@db/dbTypes";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import BaseDividerHorizontal from "$lib/base/BaseDividerHorizontal.svelte";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import BaseButtonIcon, {
     type SimplifiedButtonDefinition,
   } from "$lib/base/BaseButtonIcon.svelte";
-  import classNames from "classnames";
+  import BaseDividerHorizontal from "$lib/base/BaseDividerHorizontal.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
 
   export let buttonDefinitions: Array<SimplifiedButtonDefinition[]>;
   export let buttonSize: BaseSize;
@@ -92,7 +92,7 @@
       "border",
       !showChildren && "hidden",
       colorDefinitions[themeColor][colorSettings.gridFunctionButton].border,
-      colorDefinitions[themeColor][colorSettings.gridFunctionButton].bg
+      colorDefinitions[themeColor][colorSettings.gridFunctionButton].bg,
     )}
   >
     {#each buttonDefinitions as buttonGroup, buttonDefinitionIndex}
@@ -102,7 +102,7 @@
           "flex-col",
           "items-start",
           "space-y-1",
-          "w-56"
+          "w-56",
         )}
       >
         {#each buttonGroup as { iconName, tooltipText, onClickEventFunction }}

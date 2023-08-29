@@ -5,33 +5,33 @@
 
 <script lang="ts">
   import { browser } from "$app/environment";
+  import { goto } from "$app/navigation";
   import { page } from "$app/stores";
-  import BaseButton, {
-    type BaseButtonProps,
-  } from "$lib/base/BaseButton.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import classNames from "classnames";
-  import { toggleLeftSideBarWithCondition } from "../functions";
-  import { getFrontColorCategory } from "./fontStyle";
-  import BaseItemIndicator from "./BaseItemIndicator.svelte";
-  import { setChildElementInScroll } from "./scrollController";
-  import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseButton, {
+    type BaseButtonProps,
+  } from "$lib/base/BaseButton.svelte";
+  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
   import {
-    type BaseSize,
     buttonHeight,
     leftSideBarItemHeight,
+    type BaseSize,
   } from "$lib/base/baseSizes";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { goto } from "$app/navigation";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
+  import { toggleLeftSideBarWithCondition } from "../functions";
   import type { HoverType } from "./BaseAccordionHeader.svelte";
+  import BaseItemIndicator from "./BaseItemIndicator.svelte";
+  import { getFrontColorCategory } from "./fontStyle";
+  import { setChildElementInScroll } from "./scrollController";
 
   export let label: string;
   export let hrefWithoutUrlHash: string;
@@ -70,7 +70,7 @@
       document.getElementById("leftSidebarBody"),
       thisElement,
       document.getElementById("leftSidebarHeader"),
-      $storeNoDbOpenLeftSidebarAccordion
+      $storeNoDbOpenLeftSidebarAccordion,
     );
   }
   let frontColorCategory: ColorCategory;
@@ -106,7 +106,7 @@
     "items-center",
     buttonHeight[size],
     "max-w-full",
-    ""
+    "",
   )}
 >
   <BaseItemIndicator
@@ -127,7 +127,7 @@
       bgColor,
       "truncate",
       leftSideBarItemHeight[size],
-      !hasChildren && leftSidebarItemRoundedStyle
+      !hasChildren && leftSidebarItemRoundedStyle,
     )}
   >
     {#if iconName}

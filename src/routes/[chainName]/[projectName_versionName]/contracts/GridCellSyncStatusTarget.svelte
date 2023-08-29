@@ -1,4 +1,8 @@
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
+  import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
   import type {
     Chain,
     Contract,
@@ -7,11 +11,7 @@
   } from "@constants/chains/types";
   import type { SyncStatusContract } from "@db/dbTypes";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { NO_DATA } from "@utils/utilsCostants";
-  import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
 
   export let targetChain: Chain;
   export let targetProject: Project;

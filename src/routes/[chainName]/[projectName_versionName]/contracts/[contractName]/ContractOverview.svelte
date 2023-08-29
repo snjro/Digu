@@ -1,4 +1,6 @@
 <script lang="ts">
+  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
+  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
   import type {
     Chain,
     Contract,
@@ -6,14 +8,12 @@
     Version,
   } from "@constants/chains/types";
   import classNames from "classnames";
-  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
   import ContractOverviewBasic from "./ContractOverviewBasic.svelte";
-  import ContractOverviewCreation from "./ContractOverviewCreation.svelte";
-  import ContractOverviewSyncStatus from "./ContractOverviewSyncStatus.svelte";
-  import ContractOverviewFallback from "./ContractOverviewFallback.svelte";
   import ContractOverviewConstructor from "./ContractOverviewConstructor.svelte";
+  import ContractOverviewCreation from "./ContractOverviewCreation.svelte";
   import ContractOverviewEventsFunctions from "./ContractOverviewEventsFunctions.svelte";
-  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
+  import ContractOverviewFallback from "./ContractOverviewFallback.svelte";
+  import ContractOverviewSyncStatus from "./ContractOverviewSyncStatus.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -28,19 +28,19 @@
   $: gridTrackBasic = classNames(
     "col-span-full",
     hasEvent && "md:col-span-4",
-    ""
+    "",
   );
   const gridTrackSync: string = classNames(
     "col-span-full",
     "md:col-span-2",
     "row-span-2",
-    ""
+    "",
   );
   const gridTrackEvents: string = classNames("col-span-full lg:col-span-3", "");
   const gridTrackFunction: string = classNames(
     "col-span-full lg:col-span-3",
     "row-span-3",
-    ""
+    "",
   );
 </script>
 

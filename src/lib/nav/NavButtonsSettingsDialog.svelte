@@ -1,11 +1,11 @@
 <script lang="ts">
   import BaseDialog from "$lib/base/BaseDialog/BaseDialog.svelte";
-  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
-  import classNames from "classnames";
-  import RpcConfig from "./settings/rpcConfig/RpcConfig.svelte";
-  import ChainExplorer from "./settings/ChainExplorer.svelte";
   import BasePageContainerContent from "$lib/base/BasePage/BasePageContainerContent.svelte";
+  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
   import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
+  import classNames from "classnames";
+  import ChainExplorer from "./settings/ChainExplorer.svelte";
+  import RpcConfig from "./settings/rpcConfig/RpcConfig.svelte";
 
   export let initializeValue: boolean;
   export let dialogElement: HTMLDialogElement;

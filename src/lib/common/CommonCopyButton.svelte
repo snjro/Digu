@@ -10,12 +10,12 @@
 </script>
 
 <script lang="ts">
+  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
   import type { BaseSnackbarProps } from "$lib/base/BaseSnackbar.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   export let copyTarget: string | undefined = undefined;
   export let size: BaseSize;

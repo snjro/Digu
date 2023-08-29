@@ -55,12 +55,12 @@
     themeColor === "dark"
       ? classNames(
           "border",
-          colorDefinitions[themeColor][colorSettings.dialogHeader].border
+          colorDefinitions[themeColor][colorSettings.dialogHeader].border,
         )
       : classNames(
           "shadow",
-          colorDefinitions[themeColor][colorSettings.dialogHeader].shadow
-        )
+          colorDefinitions[themeColor][colorSettings.dialogHeader].shadow,
+        ),
   );
 </script>
 
@@ -73,7 +73,7 @@
     "h-full",
     "min-h-0",
     "backdrop:backdrop-brightness-50",
-    colorDefinitions[themeColor][colorSettings.dialogHeader].bg
+    colorDefinitions[themeColor][colorSettings.dialogHeader].bg,
   )}
   on:close
   on:cancel={() => closeDialog(dialogElement)}

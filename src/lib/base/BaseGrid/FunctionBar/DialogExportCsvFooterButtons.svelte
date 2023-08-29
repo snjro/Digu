@@ -24,7 +24,7 @@
       exportCsvRadioProps.columnSeparator.selectedValue,
       exportCsvRadioProps.suppressDoubleQuotes.selectedValue,
       exportCsvRadioProps.filteredSorted.selectedValue,
-      exportCsvRadioProps.skipColumnHeaders.selectedValue
+      exportCsvRadioProps.skipColumnHeaders.selectedValue,
     ) as string;
     navigator.clipboard.writeText(csvData);
     // TODO change the position of snackbar
@@ -38,7 +38,7 @@
       exportCsvRadioProps.suppressDoubleQuotes.selectedValue,
       exportCsvRadioProps.filteredSorted.selectedValue,
       exportCsvRadioProps.skipColumnHeaders.selectedValue,
-      getExportFileName(exportFilePrefix, $page.params, "csv")
+      getExportFileName(exportFilePrefix, $page.params, "csv"),
     );
   }
   type ButtonIconProp = {

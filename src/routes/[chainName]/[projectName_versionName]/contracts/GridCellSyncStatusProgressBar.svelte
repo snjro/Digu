@@ -1,20 +1,20 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import BaseProgressBarForBlockNumber from "$lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
+  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import type {
     Chain,
     Contract,
     Project,
     Version,
   } from "@constants/chains/types";
-  import BaseProgressBarForBlockNumber from "$lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
-  import { storeChainStatus } from "@stores/storeChainStatus";
   import type { SyncStatusContract } from "@db/dbTypes";
+  import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import { NO_DATA } from "@utils/utilsCostants";
   import classNames from "classnames";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   export let targetChain: Chain;
   export let targetProject: Project;

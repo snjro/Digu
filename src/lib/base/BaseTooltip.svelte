@@ -11,10 +11,10 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
 
-  import classNames from "classnames";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { baseTextSizes } from "./baseSizes";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import classNames from "classnames";
+  import { baseTextSizes } from "./baseSizes";
   export let text: BaseTooltipProps["text"];
   export let xPosition: BaseTooltipProps["xPosition"] = "right";
   export let yPosition: BaseTooltipProps["yPosition"] = "top";
@@ -41,7 +41,7 @@
     colorDefinitions[themeColor][colorSettings.tooltip].shadow,
     "dark:border",
     colorDefinitions[themeColor][colorSettings.tooltip].border,
-    ""
+    "",
   );
 </script>
 

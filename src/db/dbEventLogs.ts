@@ -19,6 +19,7 @@ import {
 } from "@db/constants";
 import type { SyncStatusContract } from "@db/dbTypes";
 import { extractEventContracts } from "@utils/utilsEthers";
+import { NO_DATA } from "@utils/utilsCostants";
 
 export class DbEventLogs extends dbBase {
   versionIdentifier: VersionIdentifier;
@@ -82,6 +83,7 @@ function getInitialDataOfSyncStatusContract(
     fetchedBlockNumber: creationBlockNumber - 1,
     creationBlockNumber: creationBlockNumber,
     numOfSyncTargetContract: 1,
+    syncStateText: NO_DATA,
     subSyncStatuses: null,
     events: getInitialDataOfSyncStatusesEvent(targetContract.events.names),
   };

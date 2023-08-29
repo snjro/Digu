@@ -59,7 +59,7 @@
     "h-full",
     roundedStyle(),
     shadowStyle(),
-    ""
+    "",
   )}
   style:width="{barWidth}%"
 >

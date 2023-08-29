@@ -1,9 +1,9 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseRange from "$lib/base/BaseRange.svelte";
   import { createEventDispatcher } from "svelte";
   import type { RpcConfigParam } from "./RpcConfig.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   export let rpcConfigParam: RpcConfigParam;
   export let disabled: boolean;

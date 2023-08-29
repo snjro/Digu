@@ -1,19 +1,19 @@
 <script lang="ts">
-  import { storeChainStatus } from "@stores/storeChainStatus";
-  import type { Chain, ChainName } from "@constants/chains/types";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { getProgressRate } from "$lib/base/BaseProgressBarForBlockNumber/progressRate";
   import BaseProgressCircle from "$lib/base/BaseProgressCircle/BaseProgressCircle.svelte";
+  import BaseProgressCircleSyncStatus from "$lib/base/BaseProgressCircle/BaseProgressCircleSyncStatus.svelte";
+  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
+  import type { SyncStateTextLabelProps } from "$lib/common/CommonSyncStateText.svelte";
+  import type { Chain, ChainName } from "@constants/chains/types";
+  import type { SyncStateText } from "@db/dbTypes";
+  import { storeChainStatus } from "@stores/storeChainStatus";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { NO_DATA } from "@utils/utilsCostants";
   import { getTargetChain } from "@utils/utlisDb";
   import classNames from "classnames";
-  import { getProgressRate } from "$lib/base/BaseProgressBarForBlockNumber/progressRate";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { NO_DATA } from "@utils/utilsCostants";
-  import BaseProgressCircleSyncStatus from "$lib/base/BaseProgressCircle/BaseProgressCircleSyncStatus.svelte";
-  import type { SyncStateTextLabelProps } from "$lib/common/CommonSyncStateText.svelte";
-  import type { SyncStateText } from "@db/dbTypes";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
 
   export let hideProgressCircle: boolean;
 
@@ -64,7 +64,7 @@
         progressRate={getProgressRate(
           creationBlockNumber,
           latestBlockNumber * numOfSyncTargetContract,
-          fetchedBlockNumber
+          fetchedBlockNumber,
         )}
         percentageSize={changeSize(progressCircleSize, 1)}
         {syncStateTextLabelProps}

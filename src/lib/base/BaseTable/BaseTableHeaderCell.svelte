@@ -32,8 +32,7 @@
   export let textSize: BaseTableHeaderCellProps["textSize"];
   export let align: BaseTableHeaderCellProps["align"];
   export let width: BaseTableHeaderCellProps["width"] = "w-full";
-  export let showBorderRight: BaseTableHeaderCellProps["showBorderRight"] =
-    false;
+  export let showBorderRight: BaseTableHeaderCellProps["showBorderRight"] = false;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
@@ -71,7 +70,7 @@
     colorCategoryBorder
       ? colorDefinitions[themeColor][colorCategoryBorder].border
       : "border-inherit",
-    ""
+    "",
   )}
 >
   <div class={classNames("flex ", celldAlign(), "content-center")}>

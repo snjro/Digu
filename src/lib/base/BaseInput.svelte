@@ -18,18 +18,18 @@
 </script>
 
 <script lang="ts">
-  import classNames from "classnames";
-  import BaseLabel, { type BaseLabelProps } from "./BaseLabel.svelte";
-  import { baseTextSizes } from "./baseSizes";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { BaseSize } from "./baseSizes";
+  import type { HelperTextState } from "$lib/nav/settings/rpcConfig/RpcConfigChanger.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import type { HelperTextState } from "$lib/nav/settings/rpcConfig/RpcConfigChanger.svelte";
+  import classNames from "classnames";
   import type { HTMLInputTypeAttribute } from "svelte/elements";
+  import BaseLabel, { type BaseLabelProps } from "./BaseLabel.svelte";
+  import type { BaseSize } from "./baseSizes";
+  import { baseTextSizes } from "./baseSizes";
 
   export let type: BaseInputProps["type"];
   export let value: BaseInputProps["value"] = undefined;
@@ -94,7 +94,7 @@
       baseTextSizes[size],
       inputPaddingSizes[size],
       "noborder",
-      appendClass
+      appendClass,
     );
   const handleInput = (event: Event): void => {
     value = (event.target as HTMLInputElement).value;
@@ -109,15 +109,15 @@
     isFocus
       ? colorDefinitions[themeColor]["interactive"].border
       : colorDefinitions[themeColor][colorCategoryBorder].border,
-    ""
+    "",
   );
   let shadowStyle: string;
   $: shadowStyle = classNames(
     themeColor === "light" &&
       classNames(
         "shadow-inner",
-        colorDefinitions[themeColor][colorCategory].shadow
-      )
+        colorDefinitions[themeColor][colorCategory].shadow,
+      ),
   );
 </script>
 
@@ -127,7 +127,7 @@
     "flex-col",
     "h-fit",
     "w-full",
-    "justify-items-start"
+    "justify-items-start",
   )}
 >
   {#if labelProps}
@@ -142,7 +142,7 @@
       "rounded-md",
       shadowStyle,
       borderStyle,
-      colorDefinitions[themeColor][colorCategory].bg
+      colorDefinitions[themeColor][colorCategory].bg,
     )}
   >
     {#if $$slots.prefixIcon}
@@ -151,7 +151,7 @@
           prefixIconPaddingSizes[size],
           "flex",
           "items-center",
-          "justify-items-start"
+          "justify-items-start",
         )}
       >
         <slot name="prefixIcon" />
@@ -189,7 +189,7 @@
           sufixIconPaddingSizes[size],
           "flex",
           "items-center",
-          "justify-items-start"
+          "justify-items-start",
         )}
       >
         <slot name="suffixIcon" />

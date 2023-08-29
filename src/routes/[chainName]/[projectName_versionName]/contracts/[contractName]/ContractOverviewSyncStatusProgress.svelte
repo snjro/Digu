@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseProgressCircle from "$lib/base/BaseProgressCircle/BaseProgressCircle.svelte";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
@@ -9,12 +12,9 @@
     Version,
   } from "@constants/chains/types";
   import type { SyncStateText, SyncStatusContract } from "@db/dbTypes";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
 
   export let targetChain: Chain;
   export let targetProject: Project;

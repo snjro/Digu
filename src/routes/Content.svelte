@@ -1,12 +1,12 @@
 <script lang="ts">
-  import Nav from "$lib/nav/Nav.svelte";
-  import classNames from "classnames";
-  import Breadcrumb from "$lib/breadcrumb/Breadcrumb.svelte";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import type { ThemeColor } from "@db/dbTypes";
-  import BaseSnackbar from "$lib/base/BaseSnackbar.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import BaseSnackbar from "$lib/base/BaseSnackbar.svelte";
+  import Breadcrumb from "$lib/breadcrumb/Breadcrumb.svelte";
+  import Nav from "$lib/nav/Nav.svelte";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
@@ -23,7 +23,7 @@
       "px-3",
       "pb-1.5",
       colorDefinitions[themeColor][colorSettings.main].bg,
-      ""
+      "",
     )}
   >
     <Breadcrumb />

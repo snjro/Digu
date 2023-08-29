@@ -1,12 +1,12 @@
 <script lang="ts" context="module">
-  import classNames from "classnames";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { baseTextSizes, type BaseSize } from "./baseSizes";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
+  import { baseTextSizes, type BaseSize } from "./baseSizes";
 
   export type BaseSelectProps = {
     items: {
@@ -61,7 +61,7 @@
       baseTextSizes[size],
       "cursor-pointer",
       // "appearance-none",
-      appendClass
+      appendClass,
     );
 </script>
 
@@ -82,7 +82,7 @@
       : "shadow-inherit",
 
     "h-fit w-fit",
-    ""
+    "",
   )}
 >
   <select bind:value class={customClass} on:change on:input>
@@ -95,7 +95,7 @@
             : "bg-inherit",
           colorCategoryFront
             ? colorDefinitions[themeColor][colorCategoryFront].text
-            : "text-inherit"
+            : "text-inherit",
         )}
       >
         {name}

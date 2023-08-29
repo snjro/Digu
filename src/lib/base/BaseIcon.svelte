@@ -1,10 +1,10 @@
 <script lang="ts">
-  import classNames from "classnames";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { BaseSize } from "./baseSizes";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
   import { iconNames, type BaseIconProps } from "./BaseIcon";
+  import type { BaseSize } from "./baseSizes";
 
   export let name: BaseIconProps["name"];
   export let size: NonNullable<BaseIconProps["size"]> = "md";
@@ -14,8 +14,9 @@
   export let hoverEffect: NonNullable<BaseIconProps["hoverEffect"]> = true;
   export let isHover: NonNullable<BaseIconProps["isHover"]> = false;
   export let focusable: NonNullable<BaseIconProps["focusable"]> = "false";
-  export let flipHorizontal: NonNullable<BaseIconProps["flipHorizontal"]> =
-    false;
+  export let flipHorizontal: NonNullable<
+    BaseIconProps["flipHorizontal"]
+  > = false;
   export let isHoverControledByParent: NonNullable<
     BaseIconProps["isHoverControledByParent"]
   > = false;
@@ -67,16 +68,16 @@
         classNames(
           hoverEffect && isHover
             ? colorDefinitions[themeColor][colorCategory].fillEmphasis
-            : colorDefinitions[themeColor][colorCategory].fill
+            : colorDefinitions[themeColor][colorCategory].fill,
         ),
-      ""
+      "",
     );
   $: style = classNames(
     `min-width:${sizes[size]};`,
     `max-width:${sizes[size]};`,
     `min-height:${sizes[size]};`,
     `max-height:${sizes[size]};`,
-    flipHorizontal && "transform: scale(-1,1);"
+    flipHorizontal && "transform: scale(-1,1);",
   );
 </script>
 

@@ -64,8 +64,8 @@ export abstract class AbstractCellRenderer implements ICellRendererComp {
 export function cellRendererFactory(
   svelteComponent: (
     cell: AbstractCellRenderer,
-    cellRendererParams: ICellRendererParams
-  ) => void
+    cellRendererParams: ICellRendererParams,
+  ) => void,
 ) {
   class Renderer extends AbstractCellRenderer {
     createComponent(cellRendererParams: ICellRendererParams<any, any>): void {

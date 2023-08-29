@@ -1,6 +1,9 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseProgressBarForBlockNumber from "$lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
+  import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
   import type {
     Chain,
     Contract,
@@ -11,9 +14,6 @@
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import ContractOverviewBasic from "../../ContractOverviewBasic.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;

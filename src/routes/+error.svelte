@@ -29,7 +29,7 @@
     "space-y-3",
     "pt-3",
     colorDefinitions[themeColor][colorCategory].bg,
-    ""
+    "",
   )}
 >
   <BaseLabel
@@ -46,7 +46,7 @@
       "border-y",
       colorDefinitions[themeColor][colorCategory].border,
       "pl-3",
-      ""
+      "",
     )}
   >
     {#each errorDetails as errorDetail}

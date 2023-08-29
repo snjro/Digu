@@ -2,7 +2,7 @@
   export function setAutoColumnWidth(
     columnApi: ColumnApi,
     skipHeader: boolean = false,
-    waitMilliSecond: number = 0
+    waitMilliSecond: number = 0,
   ): void {
     columnApi.sizeColumnsToFit(0);
     setTimeout(() => {
@@ -12,7 +12,7 @@
   }
   export function setAllColumnGroupState(
     columnApi: ColumnApi,
-    open: boolean
+    open: boolean,
   ): void {
     let stateItems: {
       groupId: string;
@@ -71,7 +71,7 @@
   $: colorDefs = getColorDefinitionsForGrid(
     $storeUserSettings.themeColor as ThemeColor,
     colorSettings.gridHeader,
-    colorSettings.gridRow
+    colorSettings.gridRow,
   );
 
   let elementGridDiv: HTMLElement;
@@ -79,7 +79,7 @@
   onMount(() => {
     gridMain = new Grid(elementGridDiv, gridOptions);
     gridOptions.onGridReady = (
-      gridReadyEvent: GridReadyEvent<GridRow>
+      gridReadyEvent: GridReadyEvent<GridRow>,
     ): void => {
       gridOptions.api = gridReadyEvent.api;
       gridOptions.columnApi = gridReadyEvent.columnApi;
@@ -125,7 +125,7 @@
     isThemeLight ? "ag-theme-balham" : "ag-theme-balham-dark",
     "h-full",
     "w-full",
-    ""
+    "",
   );
 </script>
 
@@ -142,7 +142,7 @@
       `--color-row-bg:${colorDefs.row.bg};`,
       `--color-row-text:${colorDefs.row.text};`,
       `--color-row-hover:${colorDefs.row.hover};`,
-      `--color-row-border:${colorDefs.row.border};`
+      `--color-row-border:${colorDefs.row.border};`,
     )}
   />
 </div>

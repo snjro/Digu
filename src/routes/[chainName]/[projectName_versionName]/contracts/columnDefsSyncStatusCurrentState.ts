@@ -24,7 +24,7 @@ import { NO_DATA } from "@utils/utilsCostants";
 export const columnDefsSyncstatusCurrentState = <T extends ContractRow>(
   targetChain: Chain,
   targetProject: Project,
-  targetVersion: Version
+  targetVersion: Version,
 ): ColumnDef => {
   const columnDef: ColumnDef = {
     headerName: "Current State",
@@ -52,7 +52,7 @@ export const columnDefsSyncstatusCurrentState = <T extends ContractRow>(
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
-        cellRendererParams: ICellRendererParams<T>
+        cellRendererParams: ICellRendererParams<T>,
       ) => {
         new GridCellSyncStatusSyncStateText({
           target: cell.eGui,
@@ -63,7 +63,7 @@ export const columnDefsSyncstatusCurrentState = <T extends ContractRow>(
             targetContract: cellRendererParams.data!.contract,
           },
         });
-      }
+      },
     ),
   };
   return columnDef;

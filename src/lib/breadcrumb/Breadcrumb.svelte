@@ -8,17 +8,17 @@
 
 <script lang="ts">
   import { page } from "$app/stores";
-  import classNames from "classnames";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { convertToKebabCase } from "@utils/utilsCommon";
-  import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
-  import BreadcrumbItems from "./BreadcrumbItems.svelte";
   import {
     TAB_VALUES_CONTRACT,
     TAB_VALUES_EVENT,
     TAB_VALUES_FUNCTION,
   } from "$lib/base/BasePage/BasePageContainerContent.svelte";
+  import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { convertToKebabCase } from "@utils/utilsCommon";
+  import classNames from "classnames";
+  import BreadcrumbItems from "./BreadcrumbItems.svelte";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
 
@@ -39,7 +39,7 @@
       const currentPathName: string = pathNames[indexPathNames];
       const currentPathNameWithUrlHash = getPathNameWithUrlHash(
         previousPathName,
-        currentPathName
+        currentPathName,
       );
 
       const currentPathNameWithoutFunctionSelector: string =
@@ -65,7 +65,7 @@
   }
   function getPathNameWithUrlHash(
     previousPathName: string,
-    currentPathName: string
+    currentPathName: string,
   ): string {
     let urlHash: string = "";
     // if (indexPathNames === pathNames.length - 1) {
@@ -106,7 +106,7 @@
       "items-center",
       "space-x-0.5",
       "overflow-x-hidden",
-      ""
+      "",
     )}
   >
     {#each crumbItems() as crumbItem, i}

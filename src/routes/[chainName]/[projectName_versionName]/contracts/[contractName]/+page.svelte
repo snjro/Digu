@@ -1,12 +1,12 @@
 <script lang="ts">
-  import type { LoadContractData } from "./+page";
-  import ContractOverview from "./ContractOverview.svelte";
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
-  import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
   import {
     TAB_VALUES_CONTRACT,
     type TabStateContract,
   } from "$lib/base/BasePage/BasePageContainerContent.svelte";
+  import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
+  import type { LoadContractData } from "./+page";
+  import ContractOverview from "./ContractOverview.svelte";
 
   export let data: LoadContractData;
 

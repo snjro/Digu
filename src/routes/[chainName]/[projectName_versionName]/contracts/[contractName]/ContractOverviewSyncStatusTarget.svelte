@@ -1,13 +1,13 @@
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
+  import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
   import type {
     Chain,
     Contract,
     Project,
     Version,
   } from "@constants/chains/types";
-  import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 
   export let targetChain: Chain;
   export let targetProject: Project;

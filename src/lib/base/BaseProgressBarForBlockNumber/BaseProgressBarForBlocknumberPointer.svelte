@@ -38,7 +38,7 @@
     colorCategoryFront
       ? colorDefinitions[themeColor][colorCategoryBg].border
       : "border-inherit",
-    ""
+    "",
   )}
   style:width="{progressRate}%"
 />

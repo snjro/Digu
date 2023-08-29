@@ -19,16 +19,16 @@
 </script>
 
 <script lang="ts" generics="RadioValue">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
+  import { createEventDispatcher } from "svelte";
   import BaseButton from "./BaseButton.svelte";
   import BaseIcon from "./BaseIcon.svelte";
   import BaseLabel from "./BaseLabel.svelte";
   import type { BaseSize } from "./baseSizes";
-  import { createEventDispatcher } from "svelte";
 
   export let radioButtonType: "button" | "tab" | "circle" = "circle";
   export let groupName: string;
@@ -43,7 +43,7 @@
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
   const roundedSize = (
-    roundPosition: "tl" | "tr" | "l" | "r"
+    roundPosition: "tl" | "tr" | "l" | "r",
   ): `rounded-${string}` => {
     switch (roundPosition) {
       case "tl":
@@ -127,20 +127,20 @@
   createEventDispatcher;
   const buttonRoundStyle = (
     currentButtonIndex: number,
-    lastButtonIndex: number
+    lastButtonIndex: number,
   ): string => {
     switch (currentButtonIndex) {
       case 0:
         return classNames(
           roundedSize("tl"),
           "rounded-r-none",
-          radioButtonType === "tab" && "rounded-bl-none"
+          radioButtonType === "tab" && "rounded-bl-none",
         );
       case lastButtonIndex:
         return classNames(
           roundedSize("tr"),
           "rounded-l-none",
-          radioButtonType === "tab" && "rounded-br-none"
+          radioButtonType === "tab" && "rounded-br-none",
         );
       default:
         return "rounded-none";
@@ -159,7 +159,7 @@
           "items-center",
           "w-fit",
           // "space-x-2",
-          ""
+          "",
         )}
       >
         <div
@@ -174,7 +174,7 @@
             "bg-inherit",
             themeColor === "dark" && "border",
 
-            ""
+            "",
           )}
         >
           <input
@@ -192,7 +192,7 @@
               "absolute",
               "appearance-none",
               "cursor-pointer",
-              ""
+              "",
             )}
           />
           <BaseIcon
@@ -227,7 +227,7 @@
       radioButtonType === "tab" &&
         colorDefinitions[themeColor][colorSettings.tabSelected].bg,
       // "space-x-px",
-      "static"
+      "static",
     )}
   >
     {#each labelAndValues as { labelText, value, inputId, href }, i}
@@ -236,7 +236,7 @@
           radioButtonType === "button" &&
             selectedValue === value &&
             themeColor !== "dark" &&
-            "pt-0.5"
+            "pt-0.5",
         )}
       >
         <input
@@ -253,7 +253,7 @@
             "opacity-0",
             "absolute",
             "appearance-none",
-            ""
+            "",
           )}
         />
         <BaseButton
@@ -279,7 +279,7 @@
           appendClass={classNames(
             "h-full",
             buttonRoundStyle(i, labelAndValues.length - 1),
-            ""
+            "",
           )}
           on:click={() => {
             selectedValue = value;

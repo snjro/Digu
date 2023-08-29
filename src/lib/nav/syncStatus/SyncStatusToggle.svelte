@@ -1,5 +1,9 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
   import BaseToggle from "$lib/base/BaseToggle.svelte";
+  import { iconNameForSyncStateText } from "$lib/common/CommonSyncStateText.svelte";
   import type { Chain, ChainName } from "@constants/chains/types";
   import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
   import type {
@@ -9,15 +13,11 @@
     SyncStatus,
   } from "@db/dbTypes";
   import { fetchEventLogs } from "@eventLogs/eventLogs";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { storeChainStatus } from "@stores/storeChainStatus";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getTargetChain } from "@utils/utlisDb";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { iconNameForSyncStateText } from "$lib/common/CommonSyncStateText.svelte";
   import classNames from "classnames";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
 
   let toggleOn: boolean = false;
   $: {

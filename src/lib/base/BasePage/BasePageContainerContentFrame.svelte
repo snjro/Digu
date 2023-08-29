@@ -22,7 +22,7 @@
       "rounded-b",
       !hasTab && "rounded-tl",
       colorDefinitions[themeColor][colorSettings.tabSelected].bg,
-      ""
+      "",
     )}
   >
     <slot />

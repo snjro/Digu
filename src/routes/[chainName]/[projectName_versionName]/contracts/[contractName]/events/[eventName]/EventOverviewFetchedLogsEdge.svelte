@@ -1,9 +1,9 @@
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
   import type { ConvertedEventLog } from "@db/dbTypes";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { convertJsDateToIso8601 } from "@utils/utilsTime";
   import classNames from "classnames";
 
@@ -26,7 +26,7 @@
     "flex-row",
     "items-center",
     "w-full",
-    ""
+    "",
   );
   const subItemStyle: string = classNames("w-24", "flex-none");
 </script>

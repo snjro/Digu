@@ -16,7 +16,7 @@
         name: targetChain.fullName,
         value: targetChain.name,
       };
-    }
+    },
   );
   async function change(event: Event) {
     //update DB data and stored value

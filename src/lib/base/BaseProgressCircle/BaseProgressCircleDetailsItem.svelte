@@ -17,7 +17,7 @@
     "justify-between",
     "space-x-3",
     "w-full",
-    ""
+    "",
   )}
 >
   <div>

@@ -4,24 +4,24 @@
 
 <script lang="ts">
   import { page } from "$app/stores";
+  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import {
-    type BaseSize,
     buttonHeight,
     leftSideBarItemHeight,
+    type BaseSize,
   } from "$lib/base/baseSizes";
+  import type { ThemeColor } from "@db/dbTypes";
   import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
+  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import { onMount } from "svelte";
   import { isHrefParentOfPathname } from "../functions";
-  import BaseItem from "./BaseItem.svelte";
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import BaseAccordionHeaderSuffixIcons, {
     type BaseAccordionHeaderSuffixIcon,
   } from "./BaseAccordionHeaderSuffixIcons.svelte";
+  import BaseItem from "./BaseItem.svelte";
 
   export let label: string;
   export let hrefWithoutUrlHash: string;
@@ -95,7 +95,7 @@
     "items-center",
     "w-full max-w-full",
     buttonHeight[size],
-    ""
+    "",
   )}
 >
   <BaseItem
