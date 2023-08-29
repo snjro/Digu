@@ -64,7 +64,7 @@
   class={classNames(
     "flex",
     "flex-row",
-    "py-1",
+    "p-1",
     "space-x-3",
     "justify-end",
     "h-fit",
