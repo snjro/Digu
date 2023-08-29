@@ -9,7 +9,7 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
-  export let gridCols: 1 | 2 | 6 | undefined = undefined;
+  export let gridCols: 1 | 2 | 6;
   export let hidden: boolean = false;
 
   const targetGridCols = (): `grid-cols-${number}` | undefined => {
