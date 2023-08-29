@@ -14,11 +14,11 @@
 <script lang="ts" generics="GridRow">
   import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
 
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
-  import type { ExportFilePrefix } from "@utils/utilsFile";
   import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import type { ExportFilePrefix } from "@utils/utilsFile";
   import type { GridOptions } from "ag-grid-community";
   // import classNames from "classnames";
   import {
