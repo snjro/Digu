@@ -64,24 +64,26 @@
   );
 </script>
 
-<dialog
-  bind:this={dialogElement}
-  class={classNames(
-    "rounded",
-    shadowStyle,
-    "w-fit",
-    "h-full",
-    "backdrop:backdrop-brightness-50",
-    colorDefinitions[themeColor][colorSettings.dialogHeader].bg,
-  )}
-  on:close
-  on:cancel={() => closeDialog(dialogElement)}
->
-  <div class={classNames("h-full", "w-full", "flex", "flex-col")}>
-    <BaseDialogHeader {dialogElement} {headerIconName} {headerText} />
-    <slot name="dialogBody" />
-  </div>
-</dialog>
+<div>
+  <dialog
+    bind:this={dialogElement}
+    class={classNames(
+      "rounded",
+      shadowStyle,
+      "w-fit",
+      "h-full",
+      "backdrop:backdrop-brightness-50",
+      colorDefinitions[themeColor][colorSettings.dialogHeader].bg,
+    )}
+    on:close
+    on:cancel={() => closeDialog(dialogElement)}
+  >
+    <div class={classNames("h-full", "w-full", "flex", "flex-col")}>
+      <BaseDialogHeader {dialogElement} {headerIconName} {headerText} />
+      <slot name="dialogBody" />
+    </div>
+  </dialog>
+</div>
 
 <style>
   dialog[open] {
