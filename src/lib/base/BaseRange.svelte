@@ -23,14 +23,14 @@
 </script>
 
 <script lang="ts">
-  import classNames from "classnames";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { BaseSize } from "./baseSizes";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
+  import type { BaseSize } from "./baseSizes";
   export let min: BaseRangeProps["min"];
   export let max: BaseRangeProps["max"];
   export let value: BaseRangeProps["value"];

@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseA from "$lib/base/BaseA.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import type { BaseSize } from "$lib/base/baseSizes";
   import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import CommonOpenLink from "$lib/common/CommonOpenLink.svelte";
@@ -12,8 +14,6 @@
   } from "@constants/chains/types";
   import { NO_DATA } from "@utils/utilsCostants";
   import { getProjectVersionNameForUrl } from "../../projectVersionNameHelper";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { BaseSize } from "$lib/base/baseSizes";
 
   export let targetChain: Chain;
   export let targetProject: Project;

@@ -17,11 +17,11 @@
     FunctionAbiFragment,
   } from "@constants/chains/types";
 
-  import BasePageFullScreenContainer from "$lib/base/BasePage/BasePageFullScreenContainer.svelte";
-  import AbiJsonViewerFunctionBar from "./AbiJsonViewerFunctionBar.svelte";
   import BaseHighlight from "$lib/base/BaseHighlight.svelte";
-  import type { AbiFormatType } from "@utils/utilsEthers";
+  import BasePageFullScreenContainer from "$lib/base/BasePage/BasePageFullScreenContainer.svelte";
   import { jsonStringifyFormatted } from "@utils/utilsCommon";
+  import type { AbiFormatType } from "@utils/utilsEthers";
+  import AbiJsonViewerFunctionBar from "./AbiJsonViewerFunctionBar.svelte";
 
   export let targetAbi: TargetAbi;
   export let abiFormatType: AbiFormatType;

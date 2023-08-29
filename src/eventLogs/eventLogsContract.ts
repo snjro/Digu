@@ -33,7 +33,7 @@ export async function fetchEventLogsContract(
   targetProject: Project,
   targetVersion: Version,
   targetContract: Contract,
-  nodeProvider: NodeProvider
+  nodeProvider: NodeProvider,
 ): Promise<void> {
   const chainName: ChainName = dbEventLogs.versionIdentifier.chainName;
   const contractIdentifier: ContractIdentifier = {
@@ -56,7 +56,7 @@ export async function fetchEventLogsContract(
   const ethersContract: EthersContract = new ethers.Contract(
     targetContract.address,
     targetContract.contractInterface.fragments,
-    nodeProvider
+    nodeProvider,
   );
 
   let doLoop: boolean = true;
@@ -96,21 +96,21 @@ export async function fetchEventLogsContract(
         targetContract.events.names,
         ethersContract,
         fromBlockNumber,
-        toBlockNumber
+        toBlockNumber,
       );
       await registerEventLogsAndBlockTimes(
         dbEventLogs,
         targetContract,
         nodeProvider,
         ethersEventLogs,
-        toBlockNumber
+        toBlockNumber,
       );
       if (ethersEventLogs.length) {
         myLogger.success(
           "Event logs was successfully fetched & registered to DB.",
           {
             fetchingTarget: fetchingTargetInfo,
-          }
+          },
         );
       } else {
         myLogger.info("No event logs within target blocks.", {
@@ -127,7 +127,7 @@ export async function fetchEventLogsContract(
           errorCount: `${errorCount}/${maxErrorCount}`,
           fetchingTarget: fetchingTargetInfo,
           errorObject: error,
-        }
+        },
       );
     }
     if (errorCount > maxErrorCount) {
@@ -136,7 +136,7 @@ export async function fetchEventLogsContract(
         {
           errorCount: `${errorCount}/${maxErrorCount}`,
           fetchingTarget: fetchingTargetInfo,
-        }
+        },
       );
       await startAbortingInChain(chainName);
     }
@@ -151,6 +151,6 @@ export async function fetchEventLogsContract(
     targetVersion,
     targetContract,
     nodeProvider,
-    ethersContract
+    ethersContract,
   );
 }

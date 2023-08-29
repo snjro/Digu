@@ -1,13 +1,13 @@
 <script lang="ts">
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
-  import type { LoadEventLogs } from "./+page";
-  import EventLogs from "./EventLogs.svelte";
-  import EventOverview from "./EventOverview.svelte";
-  import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
   import {
     TAB_VALUES_EVENT,
     type TabStateEvent,
   } from "$lib/base/BasePage/BasePageContainerContent.svelte";
+  import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
+  import type { LoadEventLogs } from "./+page";
+  import EventLogs from "./EventLogs.svelte";
+  import EventOverview from "./EventOverview.svelte";
   export let data: LoadEventLogs;
 
   let tabState: TabStateEvent = {

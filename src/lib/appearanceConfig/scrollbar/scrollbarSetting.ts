@@ -12,7 +12,7 @@ export type ScrollbarStyle = {
 };
 export const getScrollbarStyle = (
   colorCategory: ColorCategory,
-  themeColor: ThemeColor
+  themeColor: ThemeColor,
 ): ScrollbarStyle => {
   const colorParts: ColorDefinitionForParts =
     colorDefinitions[themeColor][colorCategory];
@@ -20,7 +20,7 @@ export const getScrollbarStyle = (
   const scrollbarColors: string = classNames(
     colorParts.scrollbarThumb,
     colorParts.scrollbarTrack,
-    colorParts.scrollbarCorner
+    colorParts.scrollbarCorner,
   );
   const rounded: string = "scrollbar-thumb-rounded";
   return {

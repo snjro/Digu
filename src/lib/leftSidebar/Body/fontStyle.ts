@@ -3,7 +3,7 @@ import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
 export function getFrontColorCategory(
   isSelected: boolean,
-  isUpdated = false
+  isUpdated = false,
 ): ColorCategory {
   if (isSelected) {
     return "interactive";

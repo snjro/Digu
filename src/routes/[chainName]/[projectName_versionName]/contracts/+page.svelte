@@ -3,13 +3,13 @@
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
   import type { ProjectName, VersionName } from "@constants/chains/types";
-  import { gridRows, type ContractRow } from "./gridRows";
-  import { columnDefs } from "./columnDefs";
   import type { LoadVersionData } from "../+page";
   import {
     getProjectVersionNameForLabel,
     getSplitProjectVersionName,
   } from "../projectVersionNameHelper";
+  import { columnDefs } from "./columnDefs";
+  import { gridRows, type ContractRow } from "./gridRows";
 
   export let data: LoadVersionData;
 

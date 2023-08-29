@@ -10,14 +10,14 @@
 
 <script lang="ts">
   import type { ChainName } from "@constants/chains/types";
-  import type { RpcConfigParam } from "./RpcConfig.svelte";
   import { updateDbItemRpcSettings } from "@db/dbSettingsDataHandlers";
+  import { storeRpcSettings } from "@stores/storeRpcSettings";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import classNames from "classnames";
+  import type { RpcConfigParam } from "./RpcConfig.svelte";
+  import RpcConfigChangerHelperText from "./RpcConfigChangerHelperText.svelte";
   import RpcConfigChangerInput from "./RpcConfigChangerInput.svelte";
   import RpcConfigChangerRange from "./RpcConfigChangerRange.svelte";
-  import RpcConfigChangerHelperText from "./RpcConfigChangerHelperText.svelte";
-  import classNames from "classnames";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { storeRpcSettings } from "@stores/storeRpcSettings";
 
   export let targetChainName: ChainName;
   export let rpcConfigParam: RpcConfigParam;

@@ -8,17 +8,17 @@
 
 <script lang="ts">
   import { page } from "$app/stores";
-  import classNames from "classnames";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { convertToKebabCase } from "@utils/utilsCommon";
-  import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
-  import BreadcrumbItems from "./BreadcrumbItems.svelte";
   import {
     TAB_VALUES_CONTRACT,
     TAB_VALUES_EVENT,
     TAB_VALUES_FUNCTION,
   } from "$lib/base/BasePage/BasePageContainerContent.svelte";
+  import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { convertToKebabCase } from "@utils/utilsCommon";
+  import classNames from "classnames";
+  import BreadcrumbItems from "./BreadcrumbItems.svelte";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
 

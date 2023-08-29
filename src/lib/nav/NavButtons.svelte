@@ -1,15 +1,15 @@
 <script lang="ts">
+  import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
+  import { openDialog } from "$lib/base/BaseDialog/BaseDialog.svelte";
+  import { changeSize } from "$lib/base/baseSizes";
+  import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
+  import { updateDbItemUserSettings } from "@db/dbSettingsDataHandlers";
+  import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { updateDbItemUserSettings } from "@db/dbSettingsDataHandlers";
-  import { openDialog } from "$lib/base/BaseDialog/BaseDialog.svelte";
-  import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
   import NavButtonsSettingsDialog from "./NavButtonsSettingsDialog.svelte";
-  import { changeSize } from "$lib/base/baseSizes";
-  import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
 
   let currentThemeColor: ThemeColor;
   $: currentThemeColor = $storeUserSettings.themeColor;

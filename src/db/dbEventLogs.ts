@@ -19,13 +19,14 @@ import {
 } from "@db/constants";
 import type { SyncStatusContract } from "@db/dbTypes";
 import { extractEventContracts } from "@utils/utilsEthers";
+import { NO_DATA } from "@utils/utilsCostants";
 
 export class DbEventLogs extends dbBase {
   versionIdentifier: VersionIdentifier;
   constructor(versionIdentifier: VersionIdentifier) {
     const targetVersion: Version = getTargetVersion(versionIdentifier);
     const targetContracts: Contract[] = extractEventContracts(
-      targetVersion.contracts,
+      targetVersion.contracts
     );
 
     //define DB name
@@ -56,7 +57,7 @@ export class DbEventLogs extends dbBase {
   }
   protected async addInitialData(
     tx: Transaction,
-    targetContracts: Contract[],
+    targetContracts: Contract[]
   ): Promise<void> {
     const ArrayOfInitialData = [];
     for (const targetContract of targetContracts) {
@@ -71,7 +72,7 @@ export class DbEventLogs extends dbBase {
 }
 
 function getInitialDataOfSyncStatusContract(
-  targetContract: Contract,
+  targetContract: Contract
 ): SyncStatusContract {
   const creationBlockNumber: number = targetContract.creation.blockNumber;
   return {
@@ -82,12 +83,13 @@ function getInitialDataOfSyncStatusContract(
     fetchedBlockNumber: creationBlockNumber - 1,
     creationBlockNumber: creationBlockNumber,
     numOfSyncTargetContract: 1,
+    syncStateText: NO_DATA,
     subSyncStatuses: null,
     events: getInitialDataOfSyncStatusesEvent(targetContract.events.names),
   };
 }
 export function getInitialDataOfSyncStatusesEvent(
-  eventNames: EventAbiFragment["name"][],
+  eventNames: EventAbiFragment["name"][]
 ): SyncStatusesEvent {
   const syncStatusesEvent: SyncStatusesEvent = {};
   for (let eventName of eventNames) {

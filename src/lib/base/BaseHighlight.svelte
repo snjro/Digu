@@ -1,24 +1,20 @@
 <script lang="ts">
-  import type { ThemeColor } from "@db/dbTypes";
-  import Highlight from "svelte-highlight";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import json from "svelte-highlight/languages/json";
-  import highlightStyleDark from "svelte-highlight/styles/github-dark";
-  import highlightStyleLight from "svelte-highlight/styles/github";
   import {
     colorDefinitions,
     getColorHexWithSharpFromTailwindColor,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import "./baseHighlight.css";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import classNames from "classnames";
-  import {
-    getScrollbarStyle,
-    type ScrollbarStyle,
-  } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
-  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
-  import { baseTextSizes } from "./baseSizes";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
+  import Highlight from "svelte-highlight";
+  import json from "svelte-highlight/languages/json";
+  import highlightStyleLight from "svelte-highlight/styles/github";
+  import highlightStyleDark from "svelte-highlight/styles/github-dark";
+  import "./baseHighlight.css";
+  import { baseTextSizes } from "./baseSizes";
 
   export let targetLanguageName: keyof typeof languages;
   export let code: string;
@@ -36,9 +32,6 @@
   $: colorBg = colorDefinitions[themeColor][colorSettings.itemGroupContent].bg;
   let colorHexBg: `#${string}`;
   $: colorHexBg = getColorHexWithSharpFromTailwindColor(colorBg);
-
-  let scrollbarStyle: ScrollbarStyle;
-  $: scrollbarStyle = getScrollbarStyle(colorSettings.tabSelected, themeColor);
 </script>
 
 <svelte:head>

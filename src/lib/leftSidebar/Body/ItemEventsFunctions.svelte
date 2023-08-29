@@ -38,16 +38,16 @@
 </script>
 
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type {
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
-  import BaseAccordion from "./BaseAccordion.svelte";
-  import { capitalizeFirstLetter } from "@utils/utilsCommon";
   import type { AbiFragmentsType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/ContractOverviewEventsFunctions.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import ItemEventsFunctionsMember from "./ItemEventsFunctionsMember.svelte";
   import { myLogger } from "@utils/logger";
+  import { capitalizeFirstLetter } from "@utils/utilsCommon";
+  import BaseAccordion from "./BaseAccordion.svelte";
+  import ItemEventsFunctionsMember from "./ItemEventsFunctionsMember.svelte";
 
   export let abiFragmentsType: AbiFragmentsType;
   export let targetAbiFragments: EventAbiFragment[] | FunctionAbiFragment[];

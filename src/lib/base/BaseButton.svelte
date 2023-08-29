@@ -64,20 +64,20 @@
 <script lang="ts">
   import { twMerge } from "tailwind-merge";
 
-  import classNames from "classnames";
-  import BaseA from "./BaseA.svelte";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { baseShadowSizes, baseTextHeight, baseTextSizes } from "./baseSizes";
-  import BaseTooltip, { type BaseTooltipProps } from "./BaseTooltip.svelte";
-  import type { BaseSize } from "./baseSizes";
-  import { createEventDispatcher } from "svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import type { BaseLabelProps } from "./BaseLabel.svelte";
+  import classNames from "classnames";
+  import { createEventDispatcher } from "svelte";
+  import BaseA from "./BaseA.svelte";
   import BaseButtonContent from "./BaseButtonContent.svelte";
+  import type { BaseLabelProps } from "./BaseLabel.svelte";
+  import BaseTooltip, { type BaseTooltipProps } from "./BaseTooltip.svelte";
+  import type { BaseSize } from "./baseSizes";
+  import { baseShadowSizes, baseTextHeight, baseTextSizes } from "./baseSizes";
 
   export let type: NonNullable<BaseButtonProps["type"]> = "normal";
   export let label: BaseButtonProps["label"] = undefined;

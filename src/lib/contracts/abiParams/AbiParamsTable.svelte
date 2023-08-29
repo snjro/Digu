@@ -10,15 +10,15 @@
 </script>
 
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseTable from "$lib/base/BaseTable/BaseTable.svelte";
+  import type { BaseTableBodyCellProps } from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
+  import type { BaseSize } from "$lib/base/baseSizes";
   import type {
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
-  import type { BaseSize } from "$lib/base/baseSizes";
-  import BaseTable from "$lib/base/BaseTable/BaseTable.svelte";
-  import type { BaseTableBodyCellProps } from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
   import AbiParamsTableRow from "./AbiParamsTableRow.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 
   export let paramTypes: CommonAbiParamsTableProps["paramTypes"];
   export let dialogHeaderText: CommonAbiParamsTableProps["dialogHeaderText"];

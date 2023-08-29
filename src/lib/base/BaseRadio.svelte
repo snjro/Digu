@@ -19,16 +19,16 @@
 </script>
 
 <script lang="ts" generics="RadioValue">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
+  import { createEventDispatcher } from "svelte";
   import BaseButton from "./BaseButton.svelte";
   import BaseIcon from "./BaseIcon.svelte";
   import BaseLabel from "./BaseLabel.svelte";
   import type { BaseSize } from "./baseSizes";
-  import { createEventDispatcher } from "svelte";
 
   export let radioButtonType: "button" | "tab" | "circle" = "circle";
   export let groupName: string;

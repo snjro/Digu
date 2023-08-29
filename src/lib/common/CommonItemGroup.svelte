@@ -1,11 +1,11 @@
 <script lang="ts">
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import classNames from "classnames";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseLabel, { type BaseLabelProps } from "$lib/base/BaseLabel.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import BaseLabel, { type BaseLabelProps } from "$lib/base/BaseLabel.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import classNames from "classnames";
 
   export let text: BaseLabelProps["text"];
   export let gridTrack: string;

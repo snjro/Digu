@@ -1,5 +1,8 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { BaseButtonProps } from "$lib/base/BaseButton.svelte";
+  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import {
     storeNoDbOpenLeftSidebarAccordion,
@@ -7,9 +10,6 @@
   } from "@stores/storeNoDb";
   import classNames from "classnames";
   import { tick } from "svelte";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   async function onClick(openState: OpenStateLeftSidebarAccordion) {
     $storeNoDbOpenLeftSidebarAccordion = openState;

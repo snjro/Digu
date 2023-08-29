@@ -9,19 +9,19 @@
 
 <script lang="ts">
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import classNames from "classnames";
-  import BaseLabel from "./BaseLabel.svelte";
-  import { fly } from "svelte/transition";
-  import { expoInOut } from "svelte/easing";
-  import type { BaseIconProps } from "./BaseIcon";
   import {
     storeNoDbSnackBar,
     storeNoDbSnackBarInitialValue,
   } from "@stores/storeNoDb";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
+  import { expoInOut } from "svelte/easing";
+  import { fly } from "svelte/transition";
+  import type { BaseIconProps } from "./BaseIcon";
+  import BaseLabel from "./BaseLabel.svelte";
   import type { BaseSize } from "./baseSizes";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   const displayTimeInMilliseconds: number = 1000;
 

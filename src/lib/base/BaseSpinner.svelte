@@ -21,14 +21,14 @@
 </script>
 
 <script lang="ts">
-  import classNames from "classnames";
-  import type { BaseSize } from "./baseSizes";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
+  import type { BaseSize } from "./baseSizes";
 
   export let size: NonNullable<BaseSpinerProps["size"]> = "md";
   export let currentFill: NonNullable<BaseSpinerProps["currentFill"]> =

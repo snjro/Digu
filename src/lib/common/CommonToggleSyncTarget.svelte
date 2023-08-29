@@ -42,19 +42,19 @@
 </script>
 
 <script lang="ts">
+  import BaseCheckbox from "$lib/base/BaseCheckbox.svelte";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
   import type {
     Chain,
     Contract,
     Project,
     Version,
   } from "@constants/chains/types";
-  import { toggleIsSyncTarget } from "./toggleSyncTarget";
   import type { SubSyncStatus, SubSyncStatuses, SyncStatus } from "@db/dbTypes";
-  import BaseCheckbox from "$lib/base/BaseCheckbox.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
   import classNames from "classnames";
+  import { toggleIsSyncTarget } from "./toggleSyncTarget";
 
   export let targetChain: Chain;
   export let targetProject: Project | undefined = undefined;

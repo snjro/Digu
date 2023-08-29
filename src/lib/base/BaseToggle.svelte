@@ -6,12 +6,12 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
+  import { createEventDispatcher } from "svelte";
   import type { BaseButtonProps } from "./BaseButton.svelte";
   import type { BaseIconProps } from "./BaseIcon";
   import BaseIcon from "./BaseIcon.svelte";
-  import type { BaseSize } from "./baseSizes";
   import BaseTooltip from "./BaseTooltip.svelte";
-  import { createEventDispatcher } from "svelte";
+  import type { BaseSize } from "./baseSizes";
   export let size: BaseSize = "md";
   // export let iconSize: BaseSize = "xl";
   export let colorCategoryThumbToggleOn: ColorCategory = "interactive";

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import BaseItem from "./BaseItem.svelte";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import BaseItem from "./BaseItem.svelte";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
 </script>

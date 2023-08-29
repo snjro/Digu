@@ -6,20 +6,20 @@
 </script>
 
 <script lang="ts">
-  import BaseIcon from "$lib/base/BaseIcon.svelte";
-  import classNames from "classnames";
-  import { getFrontColorCategory } from "./fontStyle";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import type { BaseSize } from "$lib/base/baseSizes";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { HoverType } from "./BaseAccordionHeader.svelte";
-  import { leftSidebarItemRoundedStyle } from "./BaseItem.svelte";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import BaseIcon from "$lib/base/BaseIcon.svelte";
+  import type { BaseSize } from "$lib/base/baseSizes";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
+  import type { HoverType } from "./BaseAccordionHeader.svelte";
+  import { leftSidebarItemRoundedStyle } from "./BaseItem.svelte";
+  import { getFrontColorCategory } from "./fontStyle";
 
   export let height: `h-${string}`;
   export let bgColor: `bg-${string}` | undefined;

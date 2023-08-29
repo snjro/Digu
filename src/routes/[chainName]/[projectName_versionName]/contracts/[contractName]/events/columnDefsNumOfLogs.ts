@@ -13,7 +13,7 @@ import GridCellNumOfLogs from "./GridCellNumOfLogs.svelte";
 
 export const columnDefsNumOfLogs = <T extends EventRow>(
   contractIdentifier: ContractIdentifier,
-  urlPathName: string
+  urlPathName: string,
 ): ColumnDef => {
   return {
     headerName: `Num of Logs`,
@@ -27,7 +27,7 @@ export const columnDefsNumOfLogs = <T extends EventRow>(
     cellRenderer: cellRendererFactory(
       (
         cell: AbstractCellRenderer,
-        cellRendererParams: ICellRendererParams<T>
+        cellRendererParams: ICellRendererParams<T>,
       ) => {
         new GridCellNumOfLogs({
           target: cell.eGui,
@@ -37,14 +37,14 @@ export const columnDefsNumOfLogs = <T extends EventRow>(
             urlPathName: urlPathName,
           },
         });
-      }
+      },
     ),
   };
 };
 
 const recordCount = (
   contractIdentifier: ContractIdentifier,
-  eventName: AbiFragmentName | undefined
+  eventName: AbiFragmentName | undefined,
 ): number => {
   let recordCount: number = 0;
   if (eventName) {

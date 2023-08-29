@@ -1,23 +1,23 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import BaseIcon from "$lib/base/BaseIcon.svelte";
   import BaseInput from "$lib/base/BaseInput.svelte";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { changeSize } from "$lib/base/baseSizes";
+  import type { ChainName } from "@constants/chains/types";
+  import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
+  import { updateDbItemRpcSettings } from "@db/dbSettingsDataHandlers";
+  import type { NodeStatus, RpcInputType } from "@db/dbTypes";
+  import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { storeChainStatus } from "@stores/storeChainStatus";
-  import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
-  import { updateDbItemRpcSettings } from "@db/dbSettingsDataHandlers";
-  import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
-  import type { ChainName } from "@constants/chains/types";
-  import classNames from "classnames";
-  import BaseIcon from "$lib/base/BaseIcon.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { changeSize } from "$lib/base/baseSizes";
-  import type { HelperTextState } from "./settings/rpcConfig/RpcConfigChanger.svelte";
-  import type { NodeStatus, RpcInputType } from "@db/dbTypes";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { storeUserSettings } from "@stores/storeUserSettings";
   import { getNodeProvider } from "@utils/utilsEthers";
+  import classNames from "classnames";
+  import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
+  import type { HelperTextState } from "./settings/rpcConfig/RpcConfigChanger.svelte";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
   $: rpc = $storeRpcSettings[targetChainName].rpc;

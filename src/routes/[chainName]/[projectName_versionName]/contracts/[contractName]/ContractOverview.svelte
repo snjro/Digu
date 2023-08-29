@@ -1,4 +1,6 @@
 <script lang="ts">
+  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
+  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
   import type {
     Chain,
     Contract,
@@ -6,14 +8,12 @@
     Version,
   } from "@constants/chains/types";
   import classNames from "classnames";
-  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
   import ContractOverviewBasic from "./ContractOverviewBasic.svelte";
-  import ContractOverviewCreation from "./ContractOverviewCreation.svelte";
-  import ContractOverviewSyncStatus from "./ContractOverviewSyncStatus.svelte";
-  import ContractOverviewFallback from "./ContractOverviewFallback.svelte";
   import ContractOverviewConstructor from "./ContractOverviewConstructor.svelte";
+  import ContractOverviewCreation from "./ContractOverviewCreation.svelte";
   import ContractOverviewEventsFunctions from "./ContractOverviewEventsFunctions.svelte";
-  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
+  import ContractOverviewFallback from "./ContractOverviewFallback.svelte";
+  import ContractOverviewSyncStatus from "./ContractOverviewSyncStatus.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;

@@ -1,12 +1,12 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseLabel, { type BaseLabelProps } from "$lib/base/BaseLabel.svelte";
-  import classNames from "classnames";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import type { BaseSize } from "$lib/base/baseSizes";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
-  import type { BaseSize } from "$lib/base/baseSizes";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
 
   const size: BaseSize = sizeSettings.navInputHelperText;
   $: targetChainName = $storeUserSettings.selectedChainName.toString();

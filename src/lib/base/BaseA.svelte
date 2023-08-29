@@ -27,19 +27,19 @@
 </script>
 
 <script lang="ts">
-  import BaseIcon from "./BaseIcon.svelte";
-  import type { BaseIconProps } from "./BaseIcon";
-  import type { BaseSize } from "./baseSizes";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { baseTextSizes } from "./baseSizes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import type { ThemeColor } from "@db/dbTypes";
+  import { storeUserSettings } from "@stores/storeUserSettings";
   import { NO_DATA } from "@utils/utilsCostants";
-  import { twMerge } from "tailwind-merge";
   import classNames from "classnames";
+  import { twMerge } from "tailwind-merge";
+  import type { BaseIconProps } from "./BaseIcon";
+  import BaseIcon from "./BaseIcon.svelte";
+  import type { BaseSize } from "./baseSizes";
+  import { baseTextSizes } from "./baseSizes";
   export let href: BaseAProps["href"];
   export let text: BaseAProps["text"] = undefined;
   export let colorCategory: BaseAProps["colorCategory"] = undefined;

@@ -5,8 +5,8 @@
     Project,
     Version,
   } from "@constants/chains/types";
-  import ContractOverviewSyncStatusTarget from "./ContractOverviewSyncStatusTarget.svelte";
   import ContractOverviewSyncStatusProgress from "./ContractOverviewSyncStatusProgress.svelte";
+  import ContractOverviewSyncStatusTarget from "./ContractOverviewSyncStatusTarget.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;

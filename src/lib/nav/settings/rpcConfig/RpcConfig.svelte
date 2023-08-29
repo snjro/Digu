@@ -14,10 +14,10 @@
 
 <script lang="ts">
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { getTargetChain } from "@utils/utlisDb";
   import type { Chain, ChainName } from "@constants/chains/types";
   import type { RpcSetting } from "@db/dbTypes";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { getTargetChain } from "@utils/utlisDb";
   import RpcConfigChanger from "./RpcConfigChanger.svelte";
 
   export let initializeValue: boolean;

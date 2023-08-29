@@ -1,17 +1,17 @@
 <script lang="ts">
-  import classNames from "classnames";
+  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
+  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
   import type {
     Chain,
-    Project,
-    Version,
     Contract,
     EventAbiFragment,
+    Project,
+    Version,
   } from "@constants/chains/types";
-  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
+  import classNames from "classnames";
   import EventOverviewBasic from "./EventOverviewBasic.svelte";
-  import EventOverviewFetchedLogs from "./EventOverviewFetchedLogs.svelte";
   import EventOverviewContract from "./EventOverviewContract.svelte";
-  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
+  import EventOverviewFetchedLogs from "./EventOverviewFetchedLogs.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;

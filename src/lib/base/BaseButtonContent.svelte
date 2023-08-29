@@ -1,10 +1,10 @@
 <script lang="ts">
-  import classNames from "classnames";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import BaseLabel from "./BaseLabel.svelte";
+  import classNames from "classnames";
   import type { BaseButtonProps } from "./BaseButton.svelte";
+  import BaseLabel from "./BaseLabel.svelte";
 
   export let label: BaseButtonProps["label"];
   export let size: NonNullable<BaseButtonProps["size"]>;

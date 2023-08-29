@@ -1,8 +1,8 @@
 <script lang="ts">
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
-  import BasePageContainerTitle from "$lib/base/BasePage/BasePageContainerTitle.svelte";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import BasePageContainerTitle from "$lib/base/BasePage/BasePageContainerTitle.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";

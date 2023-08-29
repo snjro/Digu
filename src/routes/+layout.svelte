@@ -1,18 +1,18 @@
 <script lang="ts">
-  import LeftSidebar from "$lib/leftSidebar/LeftSidebar.svelte";
-  import classNames from "classnames";
-  import BaseSpinner from "$lib/base/BaseSpinner.svelte";
-  import type { LoadDataRoot } from "./+layout";
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { getScreenWidth } from "@utils/utilsDom";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { toggleLeftSideBar } from "$lib/leftSidebar/functions";
-  import Content from "./Content.svelte";
   import { browser } from "$app/environment";
+  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
+  import BaseSpinner from "$lib/base/BaseSpinner.svelte";
+  import LeftSidebar from "$lib/leftSidebar/LeftSidebar.svelte";
+  import { toggleLeftSideBar } from "$lib/leftSidebar/functions";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { getScreenWidth } from "@utils/utilsDom";
+  import classNames from "classnames";
+  import type { LoadDataRoot } from "./+layout";
+  import Content from "./Content.svelte";
 
   export let data: LoadDataRoot;
 

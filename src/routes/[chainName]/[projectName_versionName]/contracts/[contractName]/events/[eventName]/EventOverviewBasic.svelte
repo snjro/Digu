@@ -1,10 +1,10 @@
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import AbiParamsTable from "$lib/contracts/abiParams/AbiParamsTable.svelte";
   import type { EventAbiFragment } from "@constants/chains/types";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 
   export let targetEventAbiFragment: EventAbiFragment;
 

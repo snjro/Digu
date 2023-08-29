@@ -1,11 +1,11 @@
 <script lang="ts">
   import type { ChainName } from "@constants/chains/types";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { getTargetChain } from "@utils/utlisDb";
   import {
     getProjectVersionNameForLabel,
     getProjectVersionNameForUrl,
   } from "@routes/[chainName]/[projectName_versionName]/projectVersionNameHelper";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { getTargetChain } from "@utils/utlisDb";
   import ItemProjectVersionsMember from "./ItemProjectVersionsMember.svelte";
 
   let chainName: ChainName;

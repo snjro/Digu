@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { BaseButtonProps } from "$lib/base/BaseButton.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import type { BaseButtonProps } from "$lib/base/BaseButton.svelte";
+  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
 
   const buttons: {
     iconName: BaseIconProps["name"];

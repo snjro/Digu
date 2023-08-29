@@ -1,12 +1,12 @@
 <script lang="ts">
   import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
-  import type { LoadFunction } from "./+page";
-  import FunctionOverview from "./FunctionOverview.svelte";
-  import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
   import {
     TAB_VALUES_FUNCTION,
     type TabStateFunction,
   } from "$lib/base/BasePage/BasePageContainerContent.svelte";
+  import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
+  import type { LoadFunction } from "./+page";
+  import FunctionOverview from "./FunctionOverview.svelte";
 
   export let data: LoadFunction;
 

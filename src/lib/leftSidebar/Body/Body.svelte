@@ -1,15 +1,15 @@
 <script lang="ts">
-  import classNames from "classnames";
-  import ItemHome from "./ItemHome.svelte";
-  import ItemProjectVersions from "./ItemProjectVersions.svelte";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import {
     getScrollbarStyle,
     type ScrollbarStyle,
   } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
+  import ItemHome from "./ItemHome.svelte";
+  import ItemProjectVersions from "./ItemProjectVersions.svelte";
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;

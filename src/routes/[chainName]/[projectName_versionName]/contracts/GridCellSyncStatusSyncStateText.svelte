@@ -1,17 +1,17 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import CommonSyncStateText from "$lib/common/CommonSyncStateText.svelte";
   import type {
     Chain,
     Contract,
     Project,
     Version,
   } from "@constants/chains/types";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { NO_DATA } from "@utils/utilsCostants";
-  import CommonSyncStateText from "$lib/common/CommonSyncStateText.svelte";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
   import type { SyncStatusContract } from "@db/dbTypes";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import { NO_DATA } from "@utils/utilsCostants";
 
   export let targetChain: Chain;
   export let targetProject: Project;

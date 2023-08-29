@@ -26,7 +26,7 @@ export async function beginEventListening(
   targetVersion: Version,
   targetContract: Contract,
   nodeProvider: NodeProvider,
-  ethersContract: EthersContract
+  ethersContract: EthersContract,
 ): Promise<void> {
   const contractIdentifier: ContractIdentifier = {
     ...dbEventLogs.versionIdentifier,
@@ -38,7 +38,7 @@ export async function beginEventListening(
 
   const latestBlockNumber: number = await getAndUpdateLatestBlockNumber(
     nodeProvider,
-    dbEventLogs.versionIdentifier.chainName
+    dbEventLogs.versionIdentifier.chainName,
   );
 
   const fetchedBlockNumber: number = syncStatusContract({
@@ -58,26 +58,26 @@ export async function beginEventListening(
   if (fetchedBlockNumber < latestBlockNumber) {
     myLogger.fail(
       `Cannot begin event listening because fetchedBlockNumber is older than latestBlockNumber.\tStart to return bulk insert of event logs.`,
-      blockInfo
+      blockInfo,
     );
     await fetchEventLogsContract(
       dbEventLogs,
       targetProject,
       targetVersion,
       targetContract,
-      nodeProvider
+      nodeProvider,
     );
   } else {
     myLogger.info(
       `Event listening can begin. Start to listen events of the contract.`,
-      { contract: contractIdentifier }
+      { contract: contractIdentifier },
     );
     //start event listenning
     await listenContractEvents(
       dbEventLogs,
       targetContract,
       nodeProvider,
-      ethersContract
+      ethersContract,
     );
     myLogger.info(`Event listening startup complete.`, {
       contract: contractIdentifier,
@@ -89,12 +89,12 @@ async function listenContractEvents(
   dbEventLogs: DbEventLogs,
   targetContract: Contract,
   nodeProvider: NodeProvider,
-  ethersContract: EthersContract
+  ethersContract: EthersContract,
 ): Promise<void> {
   await watchAbort(dbEventLogs, targetContract, ethersContract);
 
   const listener: Listener = async (
-    ethersEventLog: EthersEventLog
+    ethersEventLog: EthersEventLog,
   ): Promise<void> => {
     const listenedEventInfo: {
       contractName: ContractName;
@@ -113,11 +113,11 @@ async function listenContractEvents(
       targetContract,
       nodeProvider,
       [ethersEventLog],
-      ethersEventLog.blockNumber
+      ethersEventLog.blockNumber,
     );
     myLogger.success(
       "Listened event was successfully fetched & registered to DB.",
-      listenedEventInfo
+      listenedEventInfo,
     );
   };
 
@@ -130,7 +130,7 @@ async function listenContractEvents(
 async function watchAbort(
   dbEventLogs: DbEventLogs,
   targetContract: Contract,
-  ethersContract: EthersContract
+  ethersContract: EthersContract,
 ): Promise<void> {
   const chainName: ChainName = dbEventLogs.versionIdentifier.chainName;
   const contractName: ContractName = targetContract.name;

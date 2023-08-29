@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
   import BaseDialog, {
     openDialog,
@@ -6,7 +7,6 @@
   import BaseHighlight from "$lib/base/BaseHighlight.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import type { AbiFragmentParam } from "@constants/chains/types";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { jsonStringifyFormatted } from "@utils/utilsCommon";
 
   export let dialogHeaderText: string;

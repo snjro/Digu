@@ -10,20 +10,20 @@
 </script>
 
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseTableBodyCell from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
+  import BaseTableRow from "$lib/base/BaseTable/BaseTableRow.svelte";
+  import SequenceBodyCell from "$lib/base/BaseTable/SequenceBodyCell.svelte";
+  import type { BaseSize } from "$lib/base/baseSizes";
+  import { getComponentsFromAbiFragmentParam } from "$lib/gridColumnDefs/columnDefAbiParamsArgsChildren";
   import type {
     AbiFragmentParam,
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
   import { NO_DATA } from "@utils/utilsCostants";
-  import type { BaseSize } from "$lib/base/baseSizes";
-  import BaseTableBodyCell from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
-  import SequenceBodyCell from "$lib/base/BaseTable/SequenceBodyCell.svelte";
   import AbiParamComponentsDetailsButton from "./AbiParamComponentsDetailsButton.svelte";
-  import BaseTableRow from "$lib/base/BaseTable/BaseTableRow.svelte";
-  import { getComponentsFromAbiFragmentParam } from "$lib/gridColumnDefs/columnDefAbiParamsArgsChildren";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   export let paramType: AbiFragmentParam;
   export let dialogHeaderText: CommonAbiParamsTableProps["dialogHeaderText"];

@@ -1,10 +1,10 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseInput from "$lib/base/BaseInput.svelte";
+  import classNames from "classnames";
   import { createEventDispatcher, SvelteComponent } from "svelte";
   import type { HelperTextState } from "./RpcConfigChanger.svelte";
-  import classNames from "classnames";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 
   export let disabled: boolean;
   export let value: number;

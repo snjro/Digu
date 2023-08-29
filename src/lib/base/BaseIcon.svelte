@@ -1,10 +1,10 @@
 <script lang="ts">
-  import classNames from "classnames";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { BaseSize } from "./baseSizes";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
   import { iconNames, type BaseIconProps } from "./BaseIcon";
+  import type { BaseSize } from "./baseSizes";
 
   export let name: BaseIconProps["name"];
   export let size: NonNullable<BaseIconProps["size"]> = "md";

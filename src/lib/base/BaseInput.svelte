@@ -18,18 +18,18 @@
 </script>
 
 <script lang="ts">
-  import classNames from "classnames";
-  import BaseLabel, { type BaseLabelProps } from "./BaseLabel.svelte";
-  import { baseTextSizes } from "./baseSizes";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { BaseSize } from "./baseSizes";
+  import type { HelperTextState } from "$lib/nav/settings/rpcConfig/RpcConfigChanger.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import type { HelperTextState } from "$lib/nav/settings/rpcConfig/RpcConfigChanger.svelte";
+  import classNames from "classnames";
   import type { HTMLInputTypeAttribute } from "svelte/elements";
+  import BaseLabel, { type BaseLabelProps } from "./BaseLabel.svelte";
+  import type { BaseSize } from "./baseSizes";
+  import { baseTextSizes } from "./baseSizes";
 
   export let type: BaseInputProps["type"];
   export let value: BaseInputProps["value"] = undefined;

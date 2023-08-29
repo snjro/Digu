@@ -1,7 +1,7 @@
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { Contract } from "@constants/chains/types";
   import BaseAccordion from "./BaseAccordion.svelte";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import ItemContractsMember from "./ItemContractsMember.svelte";
 
   export let targetContracts: Contract[];

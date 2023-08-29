@@ -1,13 +1,13 @@
 <script lang="ts">
-  import BaseLabel, { type BaseLabelProps } from "$lib/base/BaseLabel.svelte";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import type { RpcConfigParam } from "./RpcConfig.svelte";
-  import type { ChainName } from "@constants/chains/types";
-  import classNames from "classnames";
-  import { baseTextHeight, type BaseSize } from "$lib/base/baseSizes";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { HelperTextState } from "./RpcConfigChanger.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseLabel, { type BaseLabelProps } from "$lib/base/BaseLabel.svelte";
+  import { baseTextHeight, type BaseSize } from "$lib/base/baseSizes";
+  import type { ChainName } from "@constants/chains/types";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import classNames from "classnames";
+  import type { RpcConfigParam } from "./RpcConfig.svelte";
+  import type { HelperTextState } from "./RpcConfigChanger.svelte";
 
   export let targetChainName: ChainName;
   export let helperTextState: HelperTextState;

@@ -1,13 +1,13 @@
 <script lang="ts">
-  import BaseItem from "./BaseItem.svelte";
-  import type { Contract } from "@constants/chains/types";
-  import BaseAccordion from "./BaseAccordion.svelte";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { convertToKebabCase } from "@utils/utilsCommon";
-  import ItemEventsFunctions from "./ItemEventsFunctions.svelte";
   import { TAB_VALUES_CONTRACT } from "$lib/base/BasePage/BasePageContainerContent.svelte";
+  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
+  import type { Contract } from "@constants/chains/types";
+  import { convertToKebabCase } from "@utils/utilsCommon";
+  import BaseAccordion from "./BaseAccordion.svelte";
   import type { BaseAccordionHeaderSuffixIcon } from "./BaseAccordionHeaderSuffixIcons.svelte";
+  import BaseItem from "./BaseItem.svelte";
+  import ItemEventsFunctions from "./ItemEventsFunctions.svelte";
 
   export let targetContract: Contract;
   export let targetContractsHref: string;

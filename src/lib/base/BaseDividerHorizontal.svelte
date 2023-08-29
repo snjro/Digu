@@ -3,9 +3,9 @@
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import classNames from "classnames";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
 
   export let colorCategory: ColorCategory;
   export let hidden: boolean = false;

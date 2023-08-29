@@ -60,9 +60,8 @@ export async function getDbItemUserSettings<T extends keyof UserSetting>(
   userSettingsId: UserSetting["userSettingsId"],
   key: T,
 ): Promise<UserSetting[T]> {
-  const userSetting: UserSetting = await getDbRecordUserSettings(
-    userSettingsId,
-  );
+  const userSetting: UserSetting =
+    await getDbRecordUserSettings(userSettingsId);
   return userSetting[key];
 }
 
