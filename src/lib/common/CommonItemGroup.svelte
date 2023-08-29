@@ -8,7 +8,7 @@
   import classNames from "classnames";
 
   export let text: BaseLabelProps["text"] = undefined;
-  export let gridTrack: string | undefined = undefined;
+  export let gridTrack: string;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
