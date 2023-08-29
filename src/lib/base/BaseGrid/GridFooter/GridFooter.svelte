@@ -25,9 +25,7 @@
   $: numOfAllRows = numberWithCommas(rows.length);
 
   let text: string;
-  $: text = `Rows( filtered: ${numOfFilteredRows} , all: ${numberWithCommas(
-    rows.length,
-  )})`;
+  $: text = `Rows( filtered: ${numOfFilteredRows} , all: ${numOfAllRows})`;
 </script>
 
 <div
