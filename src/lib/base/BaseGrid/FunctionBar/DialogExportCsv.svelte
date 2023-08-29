@@ -161,8 +161,8 @@
 
 <BaseDialog bind:dialogElement headerText="Export CSV File">
   <BasePageContainerContent tabState={undefined} slot="dialogBody">
-    <CommonOverviewFrame gridCols={1}>
-      <CommonItemGroup text="CSV File Format" gridTrack={"col-span-full"}>
+    <CommonOverviewFrame>
+      <CommonItemGroup text="CSV File Format">
         {#each radioPropsKeys as key}
           <CommonItemMember text={exportCsvRadioProps[key].title}>
             <div class={classNames("flex", "flex-col", "space-y-1", "pb-2")}>
