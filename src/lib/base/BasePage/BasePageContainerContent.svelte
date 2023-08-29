@@ -37,23 +37,23 @@
   lang="ts"
   generics=" TabState extends  TabStateContract|TabStateEvent|TabStateFunction"
 >
+  import { goto } from "$app/navigation";
+  import { page } from "$app/stores";
   import {
     breakPointWidths,
     type BreakPointWidthKey,
   } from "$lib/appearanceConfig/size/sizeDefinitions";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import type { EventLogType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/EventLogs.svelte";
-  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
-  import BasePageContainerContentFrame from "$lib/base/BasePage/BasePageContainerContentFrame.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { BaseSize } from "$lib/base/baseSizes";
-  import classNames from "classnames";
+  import BasePageContainerContentFrame from "$lib/base/BasePage/BasePageContainerContentFrame.svelte";
   import BaseRadio, {
     type RadioLabelAndValues,
   } from "$lib/base/BaseRadio.svelte";
+  import type { BaseSize } from "$lib/base/baseSizes";
+  import type { EventLogType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/EventLogs.svelte";
+  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
+  import { storeUserSettings } from "@stores/storeUserSettings";
   import { convertToKebabCase } from "@utils/utilsCommon";
+  import classNames from "classnames";
 
   export let tabState: TabState | undefined;
 
