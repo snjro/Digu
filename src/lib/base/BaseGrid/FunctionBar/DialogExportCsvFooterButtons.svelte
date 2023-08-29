@@ -1,16 +1,16 @@
 <script lang="ts" generics="GridRow">
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { getExportFileName, type ExportFilePrefix } from "@utils/utilsFile";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { buttonHeight, type BaseSize } from "$lib/base/baseSizes";
-  import type { ExportCsvRadioProps } from "./DialogExportCsv.svelte";
   import { page } from "$app/stores";
-  import type { GridOptions } from "ag-grid-community";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import classNames from "classnames";
-  import { exportCsvFile } from "./exportCsvData";
-  import { storeNoDbSnackBar } from "@stores/storeNoDb";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import { buttonHeight, type BaseSize } from "$lib/base/baseSizes";
   import { showSnackBarAsCopied } from "$lib/common/CommonCopyButton.svelte";
+  import { storeNoDbSnackBar } from "@stores/storeNoDb";
+  import { getExportFileName, type ExportFilePrefix } from "@utils/utilsFile";
+  import type { GridOptions } from "ag-grid-community";
+  import classNames from "classnames";
+  import type { ExportCsvRadioProps } from "./DialogExportCsv.svelte";
+  import { exportCsvFile } from "./exportCsvData";
 
   export let gridOptions: GridOptions<GridRow>;
   export let exportCsvRadioProps: ExportCsvRadioProps;
@@ -60,7 +60,16 @@
   ];
 </script>
 
-<div class={classNames("flex", "flex-row", "pt-3", "space-x-3", "justify-end")}>
+<div
+  class={classNames(
+    "flex",
+    "flex-row",
+    "py-1",
+    "space-x-3",
+    "justify-end",
+    "h-fit",
+  )}
+>
   {#each buttonIconProps as buttonIconProp}
     <BaseButtonIcon
       prefixIcon
