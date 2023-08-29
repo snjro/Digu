@@ -32,16 +32,16 @@
 <script lang="ts">
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
 
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeNoDbCountShowingDialog } from "@stores/storeNoDb";
+  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
-  import BaseDialogHeader from "./BaseDialogHeader.svelte";
+  import { get } from "svelte/store";
   import type { BaseIconProps } from "../BaseIcon";
   import type { BaseLabelProps } from "../BaseLabel.svelte";
   import type { BaseSize } from "../baseSizes";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { storeNoDbCountShowingDialog } from "@stores/storeNoDb";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { get } from "svelte/store";
+  import BaseDialogHeader from "./BaseDialogHeader.svelte";
 
   export let dialogElement: NonNullable<BaseDialogProps["dialogElement"]>;
   export let headerIconName: BaseDialogProps["headerIconName"] = undefined;
@@ -71,7 +71,6 @@
     shadowStyle,
     "w-fit",
     "h-full",
-    "min-h-0",
     "backdrop:backdrop-brightness-50",
     colorDefinitions[themeColor][colorSettings.dialogHeader].bg,
   )}
