@@ -20,23 +20,25 @@
 </script>
 
 <script lang="ts" generics="GridRow">
-  import BaseDividerHorizontal from "$lib/base/BaseDividerHorizontal.svelte";
-  import type { ExportFilePrefix } from "@utils/utilsFile";
+  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseDialog, {
     openDialog,
   } from "$lib/base/BaseDialog/BaseDialog.svelte";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import BasePageContainerContent from "$lib/base/BasePage/BasePageContainerContent.svelte";
   import BaseRadio, {
     type RadioLabelAndValues,
   } from "$lib/base/BaseRadio.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import classNames from "classnames";
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { CsvColumnSeparator, CsvFilteredSorted } from "./exportCsvData";
+  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
+  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
+  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
+  import type { ExportFilePrefix } from "@utils/utilsFile";
   import type { GridOptions } from "ag-grid-community";
+  import classNames from "classnames";
   import DialogExportCsvFooterButtons from "./DialogExportCsvFooterButtons.svelte";
+  import type { CsvColumnSeparator, CsvFilteredSorted } from "./exportCsvData";
 
   export let gridOptions: GridOptions<GridRow>;
   export let dialogElement: HTMLDialogElement;
@@ -116,7 +118,7 @@
     },
     skipColumnHeaders: {
       title: "Column headers",
-      subTitle: "Export column headers?",
+      subTitle: "Include column headers?",
       groupName: "ExportColumnHeaders",
       selectedValue: false,
       radioLabelAndValues: [
@@ -158,19 +160,17 @@
 </script>
 
 <BaseDialog bind:dialogElement headerText="Export CSV File">
-  <form slot="dialogBody" class={classNames("p-1.5")}>
-    <ul class={classNames("space-y-3")}>
-      {#each radioPropsKeys as key, indexRadioProps}
-        <CommonItemMember text={exportCsvRadioProps[key].title}>
-          <ul class={classNames("space-y-1.5")}>
-            <li>
+  <BasePageContainerContent tabState={undefined} slot="dialogBody">
+    <CommonOverviewFrame gridCols={1}>
+      <CommonItemGroup text="CSV File Format" gridTrack={"col-span-full"}>
+        {#each radioPropsKeys as key}
+          <CommonItemMember text={exportCsvRadioProps[key].title}>
+            <div class={classNames("flex", "flex-col", "space-y-1", "pb-2")}>
               <BaseLabel
+                textSize={sizeSettings.dialogBodyContent}
                 text={exportCsvRadioProps[key].subTitle}
                 colorCategoryFront={colorCategory}
-                textSize={sizeSettings.dialogBodyContent}
               />
-            </li>
-            <li>
               <BaseRadio
                 radioButtonType="button"
                 border
@@ -185,19 +185,15 @@
                   exportCsvRadioProps[key].selectedValue = event.detail;
                 }}
               />
-            </li>
-          </ul>
-        </CommonItemMember>
-        <BaseDividerHorizontal
-          hidden={indexRadioProps >= radioPropsKeys.length - 1}
-          {colorCategory}
-        />
-      {/each}
-    </ul>
-    <DialogExportCsvFooterButtons
-      {gridOptions}
-      {exportCsvRadioProps}
-      {exportFilePrefix}
-    />
-  </form>
+            </div>
+          </CommonItemMember>
+        {/each}
+      </CommonItemGroup>
+      <DialogExportCsvFooterButtons
+        {gridOptions}
+        {exportCsvRadioProps}
+        {exportFilePrefix}
+      />
+    </CommonOverviewFrame>
+  </BasePageContainerContent>
 </BaseDialog>
