@@ -27,7 +27,7 @@
     openDialog,
   } from "$lib/base/BaseDialog/BaseDialog.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import BasePageContainerContent from "$lib/base/BasePage/BasePageContainerContent.svelte";
+  import BasePageContainerContentFrame from "$lib/base/BasePage/BasePageContainerContentFrame.svelte";
   import BaseRadio, {
     type RadioLabelAndValues,
   } from "$lib/base/BaseRadio.svelte";
@@ -36,7 +36,6 @@
   import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
   import type { ExportFilePrefix } from "@utils/utilsFile";
   import type { GridOptions } from "ag-grid-community";
-  import classNames from "classnames";
   import DialogExportCsvFooterButtons from "./DialogExportCsvFooterButtons.svelte";
   import type { CsvColumnSeparator, CsvFilteredSorted } from "./exportCsvData";
 
@@ -160,32 +159,30 @@
 </script>
 
 <BaseDialog bind:dialogElement headerText="Export CSV File">
-  <BasePageContainerContent tabState={undefined} slot="dialogBody">
+  <BasePageContainerContentFrame hasTab={false} slot="dialogBody">
     <CommonOverviewFrame gridCols={1}>
       <CommonItemGroup text="CSV File Format" gridTrack="col-span-full">
         {#each radioPropsKeys as key}
           <CommonItemMember text={exportCsvRadioProps[key].title}>
-            <div class={classNames("flex", "flex-col", "space-y-1", "pb-2")}>
-              <BaseLabel
-                textSize={sizeSettings.dialogBodyContent}
-                text={exportCsvRadioProps[key].subTitle}
-                colorCategoryFront={colorCategory}
-              />
-              <BaseRadio
-                radioButtonType="button"
-                border
-                size={sizeSettings.dialogBodyContent}
-                labelAndValues={exportCsvRadioProps[key].radioLabelAndValues}
-                groupName={exportCsvRadioProps[key].groupName}
-                selectedValue={exportCsvRadioProps[key].selectedValue}
-                on:changed={(event) => {
-                  // update selectedValue.
-                  // I tried to updete it by using `bing:selectedValue={exportCsv...}`,
-                  // but that did not work. I looked into it, but couldn't figure out why.
-                  exportCsvRadioProps[key].selectedValue = event.detail;
-                }}
-              />
-            </div>
+            <BaseLabel
+              textSize={sizeSettings.dialogBodyContent}
+              text={exportCsvRadioProps[key].subTitle}
+              colorCategoryFront={colorCategory}
+            />
+            <BaseRadio
+              radioButtonType="button"
+              border
+              size={sizeSettings.dialogBodyContent}
+              labelAndValues={exportCsvRadioProps[key].radioLabelAndValues}
+              groupName={exportCsvRadioProps[key].groupName}
+              selectedValue={exportCsvRadioProps[key].selectedValue}
+              on:changed={(event) => {
+                // update selectedValue.
+                // I tried to updete it by using `bing:selectedValue={exportCsv...}`,
+                // but that did not work. I looked into it, but couldn't figure out why.
+                exportCsvRadioProps[key].selectedValue = event.detail;
+              }}
+            />
           </CommonItemMember>
         {/each}
       </CommonItemGroup>
@@ -195,5 +192,5 @@
         {exportFilePrefix}
       />
     </CommonOverviewFrame>
-  </BasePageContainerContent>
+  </BasePageContainerContentFrame>
 </BaseDialog>

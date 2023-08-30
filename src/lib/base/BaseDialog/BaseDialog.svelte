@@ -64,21 +64,25 @@
   );
 </script>
 
-<div>
+<div class={classNames("flex")}>
   <dialog
     bind:this={dialogElement}
     class={classNames(
+      "flex-initial",
+      "min-h-0",
       "rounded",
       shadowStyle,
       "w-fit",
-      "h-full",
+      // "h-full",
+      "max-h-[90%]",
       "backdrop:backdrop-brightness-50",
       colorDefinitions[themeColor][colorSettings.dialogHeader].bg,
+      "flex-col",
     )}
     on:close
     on:cancel={() => closeDialog(dialogElement)}
   >
-    <div class={classNames("h-full", "w-full", "flex", "flex-col")}>
+    <div class={classNames("flex-initial", "min-h-0", "flex", "flex-col")}>
       <BaseDialogHeader {dialogElement} {headerIconName} {headerText} />
       <slot name="dialogBody" />
     </div>
@@ -87,6 +91,6 @@
 
 <style>
   dialog[open] {
-    max-height: calc(100vh - 80px);
+    display: flex;
   }
 </style>
