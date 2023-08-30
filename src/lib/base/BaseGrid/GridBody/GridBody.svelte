@@ -119,19 +119,14 @@
       isActivated = true;
     }
   }
-  $: gridClass = classNames(
-    isThemeLight ? "ag-theme-balham" : "ag-theme-balham-dark",
-    "h-full",
-    "w-full",
-    "pr-1.5",
-    "",
-  );
+
+  $: agTheme = isThemeLight ? "ag-theme-balham" : "ag-theme-balham-dark";
 </script>
 
 <div
   id="baseGridContainer"
   bind:this={elementGridDiv}
-  class={gridClass}
+  class={classNames(agTheme, "h-full", "w-full", "pr-1.5", "")}
   style={classNames(
     `--font-size:${baseTextSizesPixel[gridTextSize]};`,
     `--color-frame-border:${colorDefs.frame.border};`,
