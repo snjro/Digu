@@ -42,14 +42,14 @@
 
 <div
   class={classNames(
-    // "flex-auto",
-    // "min-h-0",
-    "h-full",
+    "flex-initial",
+    "min-h-0",
+    "max-h-full",
     hidden && "hidden",
     scrollStyle,
   )}
 >
-  <div class={classNames(gridMain, "w-full", "h-full", "")}>
+  <div class={classNames(gridMain, "w-full", "h-fit", "")}>
     <slot />
   </div>
 </div>

@@ -11,7 +11,13 @@
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 </script>
 
-<div class={classNames("flex-auto", "min-h-0")}>
+<div
+  class={classNames(
+    "flex-initial", //ここをAgGridの場合にのみ”flex-auto”にする
+    "min-h-0",
+    // ""
+  )}
+>
   <div
     class={classNames(
       "h-full",
