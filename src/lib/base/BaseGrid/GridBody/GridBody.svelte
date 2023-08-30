@@ -33,31 +33,29 @@
 
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 
-  import "./gridBodyStyle.css";
-  import { onDestroy, onMount } from "svelte";
   import {
+    ColumnApi,
     Grid,
     type GridOptions,
     // Column,
     type GridReadyEvent,
-    ColumnApi,
     type RowClassParams,
-    // type GridColumnsChangedEvent,
-    // type FirstDataRenderedEvent,
   } from "ag-grid-community";
   import "ag-grid-community/styles/ag-grid.css";
   import "ag-grid-community/styles/ag-theme-balham.css";
+  import { onDestroy, onMount } from "svelte";
+  import "./gridBodyStyle.css";
   // import "ag-grid-community/styles/ag-theme-balham-dark.css";
+  import { baseTextSizesPixel, type BaseSize } from "$lib/base/baseSizes";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { ColumnDef } from "../types";
+  import { getColorDefinitionsForGrid } from "./getColorDefs";
   import {
     // fColIdRowSequenceNumber,
     getColumnDefs,
   } from "./getColumnDefs";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { getColorDefinitionsForGrid } from "./getColorDefs";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { baseTextSizesPixel, type BaseSize } from "$lib/base/baseSizes";
   // import { afterNavigate } from "$app/navigation";
 
   export let gridOptions: GridOptions<GridRow>;
@@ -125,27 +123,26 @@
     isThemeLight ? "ag-theme-balham" : "ag-theme-balham-dark",
     "h-full",
     "w-full",
+    "pr-1.5",
     "",
   );
 </script>
 
-<div class={classNames("h-full", "pr-1.5")}>
-  <div
-    id="baseGridContainer"
-    bind:this={elementGridDiv}
-    class={gridClass}
-    style={classNames(
-      `--font-size:${baseTextSizesPixel[gridTextSize]};`,
-      `--color-frame-border:${colorDefs.frame.border};`,
-      `--color-header-text:${colorDefs.header.text};`,
-      `--color-header-bg:${colorDefs.header.bg};`,
-      `--color-row-bg:${colorDefs.row.bg};`,
-      `--color-row-text:${colorDefs.row.text};`,
-      `--color-row-hover:${colorDefs.row.hover};`,
-      `--color-row-border:${colorDefs.row.border};`,
-    )}
-  />
-</div>
+<div
+  id="baseGridContainer"
+  bind:this={elementGridDiv}
+  class={gridClass}
+  style={classNames(
+    `--font-size:${baseTextSizesPixel[gridTextSize]};`,
+    `--color-frame-border:${colorDefs.frame.border};`,
+    `--color-header-text:${colorDefs.header.text};`,
+    `--color-header-bg:${colorDefs.header.bg};`,
+    `--color-row-bg:${colorDefs.row.bg};`,
+    `--color-row-text:${colorDefs.row.text};`,
+    `--color-row-hover:${colorDefs.row.hover};`,
+    `--color-row-border:${colorDefs.row.border};`,
+  )}
+/>
 
 <style>
   /* :global(.cell-span) {
