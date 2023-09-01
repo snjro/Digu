@@ -10,7 +10,7 @@
 
 <script lang="ts">
   import type { ChainName } from "@constants/chains/types";
-  import { updateDbItemRpcSettings } from "@db/dbSettingsDataHandlers";
+  import { DbSettingsDataHandlers } from "@db/dbSettings";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import classNames from "classnames";
@@ -42,7 +42,7 @@
       rpcConfigParam.minValue <= newValue &&
       newValue <= rpcConfigParam.maxValue
     ) {
-      await updateDbItemRpcSettings(
+      await DbSettingsDataHandlers.updateDbItemRpcSettings(
         targetChainName,
         rpcConfigParam.name,
         newValue,

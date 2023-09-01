@@ -8,7 +8,7 @@
   import { changeSize } from "$lib/base/baseSizes";
   import type { ChainName } from "@constants/chains/types";
   import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
-  import { updateDbItemRpcSettings } from "@db/dbSettingsDataHandlers";
+  import { DbSettingsDataHandlers } from "@db/dbSettings";
   import type { NodeStatus, RpcInputType } from "@db/dbTypes";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
@@ -44,7 +44,11 @@
     chainName: ChainName,
     newRpc: string = rpc,
   ): Promise<void> {
-    await updateDbItemRpcSettings(chainName, "rpc", newRpc);
+    await DbSettingsDataHandlers.updateDbItemRpcSettings(
+      chainName,
+      "rpc",
+      newRpc,
+    );
 
     //By calling "getNodeProvider", nodeStatus is updated
     await getNodeProvider(targetChainName, newRpc);
@@ -77,7 +81,11 @@
   async function toggleInputType(): Promise<void> {
     const newInputType: RpcInputType =
       inputType === "text" ? "password" : "text";
-    await updateDbItemRpcSettings(targetChainName, "inputType", newInputType);
+    await DbSettingsDataHandlers.updateDbItemRpcSettings(
+      targetChainName,
+      "inputType",
+      newInputType,
+    );
   }
 </script>
 
