@@ -1,6 +1,6 @@
 <script lang="ts">
+  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
   import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
-  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
   import type {
     Chain,
     Contract,
@@ -18,32 +18,33 @@
   export let targetVersion: Version;
   export let targetContract: Contract;
   export let targetEventAbiFragment: EventAbiFragment;
-  export let hidden: boolean;
 
   const gridTrackBasic: string = classNames("col-span-full lg:col-span-1");
   const gridTrackFetchedLogs: string = classNames("col-span-full");
 </script>
 
-<CommonOverviewFrame gridCols={2} {hidden}>
-  <CommonItemGroup text="Basic" gridTrack={gridTrackBasic}>
-    <EventOverviewBasic {targetEventAbiFragment} />
-  </CommonItemGroup>
+<PageWrapperContent gridCols="grid-cols-2">
+  <svelte:fragment slot="PageWrapperContentBody">
+    <CommonItemGroup text="Basic" gridTrack={gridTrackBasic}>
+      <EventOverviewBasic {targetEventAbiFragment} />
+    </CommonItemGroup>
 
-  <CommonItemGroup text="Contract" gridTrack={gridTrackBasic}>
-    <EventOverviewContract
-      {targetChain}
-      {targetProject}
-      {targetVersion}
-      {targetContract}
-    />
-  </CommonItemGroup>
-  <CommonItemGroup text="Fetched Event Logs" gridTrack={gridTrackFetchedLogs}>
-    <EventOverviewFetchedLogs
-      {targetChain}
-      {targetProject}
-      {targetVersion}
-      {targetContract}
-      {targetEventAbiFragment}
-    />
-  </CommonItemGroup>
-</CommonOverviewFrame>
+    <CommonItemGroup text="Contract" gridTrack={gridTrackBasic}>
+      <EventOverviewContract
+        {targetChain}
+        {targetProject}
+        {targetVersion}
+        {targetContract}
+      />
+    </CommonItemGroup>
+    <CommonItemGroup text="Fetched Event Logs" gridTrack={gridTrackFetchedLogs}>
+      <EventOverviewFetchedLogs
+        {targetChain}
+        {targetProject}
+        {targetVersion}
+        {targetContract}
+        {targetEventAbiFragment}
+      />
+    </CommonItemGroup>
+  </svelte:fragment>
+</PageWrapperContent>

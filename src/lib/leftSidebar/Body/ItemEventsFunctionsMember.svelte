@@ -1,9 +1,9 @@
 <script lang="ts" generics>
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import {
     TAB_VALUES_EVENT,
     TAB_VALUES_FUNCTION,
-  } from "$lib/base/BasePage/BasePageContainerContent.svelte";
+  } from "$lib/PageWrapper/PageWrapper.svelte";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type {
     EventAbiFragment,
     FunctionAbiFragment,

@@ -4,15 +4,15 @@
 
 <script lang="ts">
   import { page } from "$app/stores";
+  import {
+    TAB_VALUES_EVENT,
+    TAB_VALUES_FUNCTION,
+  } from "$lib/PageWrapper/PageWrapper.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseA from "$lib/base/BaseA.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import {
-    TAB_VALUES_EVENT,
-    TAB_VALUES_FUNCTION,
-  } from "$lib/base/BasePage/BasePageContainerContent.svelte";
   import BaseTable from "$lib/base/BaseTable/BaseTable.svelte";
   import BaseTableBodyCell from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
   import BaseTableRow from "$lib/base/BaseTable/BaseTableRow.svelte";

@@ -1,11 +1,11 @@
 <script lang="ts">
+  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseButton from "$lib/base/BaseButton.svelte";
   import BaseDialog, {
     openDialog,
   } from "$lib/base/BaseDialog/BaseDialog.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
   import AbiParamsTable, {
@@ -17,7 +17,6 @@
   export let showAbiParamsInputIndexedField: boolean = false;
 
   const textSize: BaseSize = sizeSettings.abiParamsTable;
-  const iconName: BaseIconProps["name"] = "loupe";
 
   let dialogElement: HTMLDialogElement;
   function showDialog() {
@@ -38,15 +37,17 @@
   <BaseDialog
     bind:dialogElement
     headerText={`${dialogHeaderText}`}
-    headerIconName={iconName}
+    headerIconName={undefined}
   >
-    <div class="p-3" slot="dialogBody">
-      <AbiParamsTable
-        {paramTypes}
-        {dialogHeaderText}
-        showInputIndexedField={showAbiParamsInputIndexedField}
-      />
-    </div>
+    <PageWrapperContent hasMultipulTabs={false} slot="dialogBody">
+      <svelte:fragment slot="PageWrapperContentBody">
+        <AbiParamsTable
+          {paramTypes}
+          {dialogHeaderText}
+          showInputIndexedField={showAbiParamsInputIndexedField}
+        />
+      </svelte:fragment>
+    </PageWrapperContent>
   </BaseDialog>
 {:else}
   <BaseLabel

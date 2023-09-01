@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
+  import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
-  import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
   import type { ProjectName, VersionName } from "@constants/chains/types";
   import type { LoadVersionData } from "../+page";
   import {
@@ -38,21 +38,29 @@
     });
     return maxIndex;
   };
+  let isFullScreen = false;
 </script>
 
-<BasePageContainer titleText={titleText()} {titleCategoryLabelText}>
-  <BaseGrid
-    {rows}
-    paramColumnDefs={columnDefs(
-      data.targetChain,
-      data.targetProject,
-      data.targetVersion,
-      $page.url.pathname,
-      maxLengthOfConstructorInputsParams(),
-    )}
-    titleText={titleText()}
-    titleCategoryLabelTextForFullScreen={titleCategoryLabelText}
-    hidden={false}
-    exportFilePrefix="contracts"
-  />
-</BasePageContainer>
+<PageWrapper
+  titleProps={{
+    titleText: titleText(),
+    titleCategoryLabelText: titleCategoryLabelText,
+  }}
+  bind:isFullScreen
+>
+  <svelte:fragment slot="PageWrapperContent">
+    <BaseGrid
+      {rows}
+      paramColumnDefs={columnDefs(
+        data.targetChain,
+        data.targetProject,
+        data.targetVersion,
+        $page.url.pathname,
+        maxLengthOfConstructorInputsParams(),
+      )}
+      hasMultipulTabs={false}
+      exportFilePrefix="contracts"
+      bind:isFullScreen
+    />
+  </svelte:fragment>
+</PageWrapper>

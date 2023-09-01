@@ -3,26 +3,22 @@
 </script>
 
 <script lang="ts">
-  // import { afterNavigate } from "$app/navigation";
-
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
   import type { ColumnDef } from "$lib/base/BaseGrid/types";
   import type { EventAbiFragment } from "@constants/chains/types";
   import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
   import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
   import { gridRows } from "./gridRows";
+
   export let targetEventIdentifier: AbiFragmentIdentifier;
   export let targetEventAbiFragment: EventAbiFragment;
-  export let titleCategoryLabelTextForFullScreen: string;
   export let eventLogType: EventLogType;
-  export let hidden: boolean;
+  export let isFullScreen: boolean;
 
   let rows: ConvertedEventLog[] = [];
-  // let eachArgsMaxLengths: number[] = [];
   $: gridRows(targetEventIdentifier).then(
     (convertedEventLogs: ConvertedEventLog[]) => {
       rows = convertedEventLogs;
-      // eachArgsMaxLengths = getEachArgsMaxLengths(rows);
     },
   );
   function getEachArgsMaxLengths(
@@ -57,10 +53,9 @@
 </script>
 
 <BaseGrid
-  {rows}
   paramColumnDefs={eventLogColumnDefs}
-  titleText={targetEventAbiFragment.name}
-  {titleCategoryLabelTextForFullScreen}
-  {hidden}
+  {rows}
   exportFilePrefix={`eventLogs(${eventLogType})`}
+  hasMultipulTabs={true}
+  bind:isFullScreen
 />

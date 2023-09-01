@@ -1,55 +1,63 @@
 <script lang="ts" generics="GridRow">
-  import type { ExportFilePrefix } from "@utils/utilsFile";
+  import BaseGridFooter from "./BaseGridFooter.svelte";
 
+  import BaseGridFunctionBar from "./BaseGridFunctionBar.svelte";
+
+  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
+  import type { ExportFilePrefix } from "@utils/utilsFile";
   import "ag-grid-community/styles/ag-grid.css";
   import "ag-grid-community/styles/ag-theme-balham.css";
   // import "ag-grid-community/styles/ag-theme-balham-dark.css";
-  import type { ColumnDef } from "./types";
-  import FunctionBar from "./FunctionBar/FunctionBar.svelte";
+  import type { GridOptions, RowClassParams } from "ag-grid-community";
   import GridBody from "./GridBody/GridBody.svelte";
   import { getGridOptions } from "./getGridOptions";
-  import type { GridOptions, RowClassParams } from "ag-grid-community";
-  import BasePageFullScreenContainer from "$lib/base/BasePage/BasePageFullScreenContainer.svelte";
-  import GridFooter from "./GridFooter/GridFooter.svelte";
+  import type { ColumnDef } from "./types";
 
+  export let isFullScreen = false;
   export let paramColumnDefs: ColumnDef[];
   export let rows: GridRow[];
-  export let getRowClass: ((params: RowClassParams) => string) | undefined =
-    undefined;
-  export let suppressFieldDotNotation: boolean = true;
-  export let suppressRowTransform: boolean = false;
-  export let suppressMovableColumns: boolean = false;
-  export let suppressColumnVirtualisation: boolean = true;
-  export let rowSelection: GridOptions["rowSelection"] = "multiple";
-  export let titleCategoryLabelTextForFullScreen: string;
-  export let titleText: string;
-  export let hidden: boolean;
   export let exportFilePrefix: ExportFilePrefix;
+  export let hasMultipulTabs: boolean;
+  export let paramsForGridOptions: {
+    suppressFieldDotNotation: boolean;
+    suppressRowTransform: boolean;
+    suppressMovableColumns: boolean;
+    suppressColumnVirtualisation: boolean;
+    rowSelection: GridOptions["rowSelection"];
+    getRowClass: ((params: RowClassParams) => string) | undefined;
+  } = {
+    suppressFieldDotNotation: true,
+    suppressRowTransform: false,
+    suppressMovableColumns: false,
+    suppressColumnVirtualisation: true,
+    rowSelection: "multiple",
+    getRowClass: undefined,
+  };
+
   let gridOptions: GridOptions<GridRow> = getGridOptions<GridRow>(
-    suppressFieldDotNotation,
-    suppressRowTransform,
-    suppressMovableColumns,
-    suppressColumnVirtualisation,
-    rowSelection,
-    getRowClass,
-    // rows
+    paramsForGridOptions.suppressFieldDotNotation,
+    paramsForGridOptions.suppressRowTransform,
+    paramsForGridOptions.suppressMovableColumns,
+    paramsForGridOptions.suppressColumnVirtualisation,
+    paramsForGridOptions.rowSelection,
+    paramsForGridOptions.getRowClass,
   );
-  let isFullScreen = false;
 </script>
 
-<BasePageFullScreenContainer {hidden} bind:isFullScreen>
-  <FunctionBar
+<PageWrapperContent isAgGrid {hasMultipulTabs}>
+  <BaseGridFunctionBar
+    slot="PageWrapperContentFunctionBar"
     {gridOptions}
     {rows}
     bind:isFullScreen
-    {titleCategoryLabelTextForFullScreen}
-    {titleText}
     {exportFilePrefix}
   />
-  <GridBody bind:gridOptions {paramColumnDefs} {rows} {hidden} />
-  <GridFooter {gridOptions} {rows} />
-</BasePageFullScreenContainer>
 
+  <div class="flex flex-col h-full" slot="PageWrapperContentBody">
+    <GridBody bind:gridOptions {paramColumnDefs} {rows} />
+    <BaseGridFooter {gridOptions} {rows} />
+  </div>
+</PageWrapperContent>
 <!-- <style>
   :global(.abi-row-border-only-first) {
     border-top: solid 1px var(--color-frame-border) !important;

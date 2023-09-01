@@ -12,7 +12,7 @@ import { columnDefStateMutability } from "$lib/gridColumnDefs/columnDefStateMuta
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
 import { convertToKebabCase } from "@utils/utilsCommon";
-import { TAB_VALUES_FUNCTION } from "$lib/base/BasePage/BasePageContainerContent.svelte";
+import { TAB_VALUES_FUNCTION } from "$lib/PageWrapper/PageWrapper.svelte";
 
 const cellClass: string = classNames("");
 const sortable = true;

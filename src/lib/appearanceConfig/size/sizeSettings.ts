@@ -25,12 +25,13 @@ type SizeSettings = Record<
   | "abiJsonText"
   | "title"
   | "itemGroup"
+  | "itemTitle"
   | "itemMember"
   | "itemMemberTable"
   | "itemWarnningMessage"
   | "itemViewAllButton"
   | "tab"
-  | "itemTitle"
+  | "threeDotsList"
   | "dialogHeader"
   | "dialogBodyContent"
   | "dialogFooter"
@@ -82,6 +83,7 @@ export const sizeSettings: SizeSettings = {
   itemWarnningMessage: changeSize(sizeContent, -1),
   itemViewAllButton: changeSize(sizeContent, -1),
   tab: changeSize(sizeContent, -1),
+  threeDotsList: changeSize(sizeContent, -1),
   // dialog
   dialogHeader: changeSize(sizeDialog, 0),
   dialogBodyContent: changeSize(sizeDialog, -1),

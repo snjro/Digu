@@ -1,13 +1,20 @@
+<script lang="ts" context="module">
+  export type PageWrapperTitleProps = {
+    titleText: string;
+    titleCategoryLabelText: string;
+  };
+</script>
+
 <script lang="ts">
+  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
 
-  export let titleText: string;
-  export let titleCategoryLabelText: string;
+  export let titleText: PageWrapperTitleProps["titleText"];
+  export let titleCategoryLabelText: PageWrapperTitleProps["titleCategoryLabelText"];
   export let isFullScreen: boolean = false;
 
   let titleCategorySize: BaseSize;
@@ -35,7 +42,7 @@
     "flex-row",
     "items-center",
     "space-x-1",
-    isFullScreen ? "pt-1.5" : "pb-2",
+    isFullScreen ? "pt-1.5 pl-1.5" : "pb-3",
   )}
 >
   <BaseLabel
@@ -56,7 +63,6 @@
       text={titleText}
       textSize={titleTextSize}
       colorCategoryFront={titleTextColorCategory}
-      colorCategoryBg={titleTextColorCategory}
       appendClass={classNames("pl-1")}
       fontWeight="font-black"
       truncate

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
   import BaseDialog, {
@@ -34,12 +35,11 @@
 <BaseDialog
   bind:dialogElement
   headerText={`Components of ${dialogHeaderText}`}
-  headerIconName={iconName}
+  headerIconName={undefined}
 >
-  <BaseHighlight
-    slot="dialogBody"
-    targetLanguageName="json"
-    code={dialogText}
-  />
-  <!-- <pre slot="dialogBody">{dialogText}</pre> -->
+  <PageWrapperContent hasMultipulTabs={false} slot="dialogBody">
+    <svelte:fragment slot="PageWrapperContentBody">
+      <BaseHighlight targetLanguageName="json" code={dialogText} />
+    </svelte:fragment>
+  </PageWrapperContent>
 </BaseDialog>

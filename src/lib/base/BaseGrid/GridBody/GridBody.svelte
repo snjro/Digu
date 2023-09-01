@@ -61,7 +61,6 @@
   export let gridOptions: GridOptions<GridRow>;
   export let paramColumnDefs: ColumnDef[] = [];
   export let rows: GridRow[];
-  export let hidden: boolean;
 
   const gridTextSize: BaseSize = sizeSettings.grid;
 
@@ -104,9 +103,7 @@
       // To avoid errors, empty the row data beforehand
       gridOptions.api.setRowData([]);
       gridOptions.api.setColumnDefs(getColumnDefs(paramColumnDefs));
-      if (!hidden) {
-        gridOptions.api.setRowData(rows);
-      }
+      gridOptions.api.setRowData(rows);
     }
   }
   // Adjust all columns width only the first time it shows.
@@ -114,7 +111,7 @@
   // https://www.ag-grid.com/javascript-data-grid/column-sizing/#auto-size-columns
   let isActivated: boolean = false;
   $: {
-    if (hidden === false && isActivated === false && gridOptions.columnApi) {
+    if (isActivated === false && gridOptions.columnApi) {
       setAutoColumnWidth(gridOptions.columnApi);
       isActivated = true;
     }

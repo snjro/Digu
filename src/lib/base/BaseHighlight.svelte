@@ -5,7 +5,6 @@
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
@@ -38,15 +37,13 @@
   <!-- eslint-disable svelte/no-at-html-tags -->
   {@html highlightStyle}
 </svelte:head>
-<CommonOverviewFrame>
-  <Highlight
-    language={languages[targetLanguageName]}
-    class={classNames(
-      "w-full",
-      "min-w-fit",
-      baseTextSizes[sizeSettings.abiJsonText],
-    )}
-    {code}
-    style={classNames(`--base-highlight-background-color:${colorHexBg};`)}
-  />
-</CommonOverviewFrame>
+<Highlight
+  language={languages[targetLanguageName]}
+  class={classNames(
+    "w-full",
+    "min-w-fit",
+    baseTextSizes[sizeSettings.abiJsonText],
+  )}
+  {code}
+  style={classNames(`--base-highlight-background-color:${colorHexBg};`)}
+/>

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
+  import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
-  import BasePageContainer from "$lib/base/BasePage/BasePageContainer.svelte";
   import type { Contract } from "@constants/chains/types";
   import type { LoadFunctionsData } from "./+page";
   import { columnDefs } from "./columnDefs";
@@ -35,19 +35,27 @@
     });
     return maxIndex;
   };
+  let isFullScreen = false;
 </script>
 
-<BasePageContainer {titleText} {titleCategoryLabelText}>
-  <BaseGrid
-    {rows}
-    paramColumnDefs={columnDefs(
-      $page.url.pathname,
-      maxLengthOfFunctionInputsParams(),
-      maxLengthOfFunctionOutputsParams(),
-    )}
-    {titleText}
-    titleCategoryLabelTextForFullScreen={titleCategoryLabelText}
-    hidden={false}
-    exportFilePrefix={"functions"}
-  />
-</BasePageContainer>
+<PageWrapper
+  titleProps={{
+    titleText: titleText,
+    titleCategoryLabelText: titleCategoryLabelText,
+  }}
+  bind:isFullScreen
+>
+  <svelte:fragment slot="PageWrapperContent">
+    <BaseGrid
+      {rows}
+      paramColumnDefs={columnDefs(
+        $page.url.pathname,
+        maxLengthOfFunctionInputsParams(),
+        maxLengthOfFunctionOutputsParams(),
+      )}
+      exportFilePrefix={"functions"}
+      hasMultipulTabs={false}
+      bind:isFullScreen
+    />
+  </svelte:fragment>
+</PageWrapper>

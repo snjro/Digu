@@ -1,6 +1,6 @@
 <script lang="ts">
+  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
   import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
-  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
   import type {
     Chain,
     Contract,
@@ -19,7 +19,6 @@
   export let targetProject: Project;
   export let targetVersion: Version;
   export let targetContract: Contract;
-  export let hidden: boolean;
 
   let hasEvent: boolean;
   $: hasEvent = targetContract.events.abiFragments.length > 0;
@@ -44,47 +43,49 @@
   );
 </script>
 
-<CommonOverviewFrame gridCols={6} {hidden}>
-  <CommonItemGroup text="Basic" gridTrack={gridTrackBasic}>
-    <ContractOverviewBasic
-      {targetChain}
-      {targetProject}
-      {targetVersion}
-      {targetContract}
-    />
-  </CommonItemGroup>
-
-  <CommonItemGroup text="Creation" gridTrack={gridTrackBasic}>
-    <ContractOverviewCreation {targetContract} />
-  </CommonItemGroup>
-
-  {#if hasEvent}
-    <CommonItemGroup text="Sync Status" gridTrack={gridTrackSync}>
-      <ContractOverviewSyncStatus
+<PageWrapperContent gridCols="grid-cols-6">
+  <svelte:fragment slot="PageWrapperContentBody">
+    <CommonItemGroup text="Basic" gridTrack={gridTrackBasic}>
+      <ContractOverviewBasic
         {targetChain}
         {targetProject}
         {targetVersion}
         {targetContract}
       />
     </CommonItemGroup>
-  {/if}
 
-  <CommonItemGroup text="Events" gridTrack={gridTrackEvents}>
-    <ContractOverviewEventsFunctions
-      {targetContract}
-      abiFragmentsType="events"
-    />
-  </CommonItemGroup>
-  <CommonItemGroup text="Functions" gridTrack={gridTrackFunction}>
-    <ContractOverviewEventsFunctions
-      {targetContract}
-      abiFragmentsType="functions"
-    />
-  </CommonItemGroup>
-  <CommonItemGroup text="Fallback" gridTrack={gridTrackEvents}>
-    <ContractOverviewFallback {targetContract} />
-  </CommonItemGroup>
-  <CommonItemGroup text="Constructor" gridTrack={gridTrackEvents}>
-    <ContractOverviewConstructor {targetContract} />
-  </CommonItemGroup>
-</CommonOverviewFrame>
+    <CommonItemGroup text="Creation" gridTrack={gridTrackBasic}>
+      <ContractOverviewCreation {targetContract} />
+    </CommonItemGroup>
+
+    {#if hasEvent}
+      <CommonItemGroup text="Sync Status" gridTrack={gridTrackSync}>
+        <ContractOverviewSyncStatus
+          {targetChain}
+          {targetProject}
+          {targetVersion}
+          {targetContract}
+        />
+      </CommonItemGroup>
+    {/if}
+
+    <CommonItemGroup text="Events" gridTrack={gridTrackEvents}>
+      <ContractOverviewEventsFunctions
+        {targetContract}
+        abiFragmentsType="events"
+      />
+    </CommonItemGroup>
+    <CommonItemGroup text="Functions" gridTrack={gridTrackFunction}>
+      <ContractOverviewEventsFunctions
+        {targetContract}
+        abiFragmentsType="functions"
+      />
+    </CommonItemGroup>
+    <CommonItemGroup text="Fallback" gridTrack={gridTrackEvents}>
+      <ContractOverviewFallback {targetContract} />
+    </CommonItemGroup>
+    <CommonItemGroup text="Constructor" gridTrack={gridTrackEvents}>
+      <ContractOverviewConstructor {targetContract} />
+    </CommonItemGroup>
+  </svelte:fragment>
+</PageWrapperContent>

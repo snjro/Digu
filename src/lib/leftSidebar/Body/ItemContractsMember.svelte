@@ -1,6 +1,6 @@
 <script lang="ts">
+  import { TAB_VALUES_CONTRACT } from "$lib/PageWrapper/PageWrapper.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { TAB_VALUES_CONTRACT } from "$lib/base/BasePage/BasePageContainerContent.svelte";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import type { Contract } from "@constants/chains/types";
   import { convertToKebabCase } from "@utils/utilsCommon";

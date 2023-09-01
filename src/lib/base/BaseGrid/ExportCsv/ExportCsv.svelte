@@ -20,6 +20,16 @@
 </script>
 
 <script lang="ts" generics="GridRow">
+  import { showSnackBarAsCopied } from "$lib/common/CommonCopyButton.svelte";
+
+  import { storeNoDbSnackBar } from "@stores/storeNoDb";
+
+  import { page } from "$app/stores";
+
+  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
+  import PageWrapperContentFooter, {
+    type PageWrapperContentFooterDefinition,
+  } from "$lib/PageWrapper/PageWrapperContentFooter.svelte";
   import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
@@ -27,17 +37,18 @@
     openDialog,
   } from "$lib/base/BaseDialog/BaseDialog.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import BasePageContainerContentFrame from "$lib/base/BasePage/BasePageContainerContentFrame.svelte";
   import BaseRadio, {
     type RadioLabelAndValues,
   } from "$lib/base/BaseRadio.svelte";
   import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
-  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
-  import type { ExportFilePrefix } from "@utils/utilsFile";
+  import { getExportFileName, type ExportFilePrefix } from "@utils/utilsFile";
   import type { GridOptions } from "ag-grid-community";
-  import DialogExportCsvFooterButtons from "./DialogExportCsvFooterButtons.svelte";
-  import type { CsvColumnSeparator, CsvFilteredSorted } from "./exportCsvData";
+  import {
+    exportCsvFile,
+    type CsvColumnSeparator,
+    type CsvFilteredSorted,
+  } from "./exportCsv";
 
   export let gridOptions: GridOptions<GridRow>;
   export let dialogElement: HTMLDialogElement;
@@ -156,11 +167,61 @@
   $: radioPropsKeys = Object.keys(
     exportCsvRadioProps ?? {},
   ) as (keyof ExportCsvRadioProps)[];
+
+  function downloadCsvFile(): void {
+    exportCsvFile(
+      gridOptions,
+      exportCsvRadioProps.skipRowNumber.selectedValue,
+      exportCsvRadioProps.columnSeparator.selectedValue,
+      exportCsvRadioProps.suppressDoubleQuotes.selectedValue,
+      exportCsvRadioProps.filteredSorted.selectedValue,
+      exportCsvRadioProps.skipColumnHeaders.selectedValue,
+      getExportFileName(exportFilePrefix, $page.params, "csv"),
+    );
+  }
+  function copyToClipboard(): void {
+    const csvData: string = exportCsvFile(
+      gridOptions,
+      exportCsvRadioProps.skipRowNumber.selectedValue,
+      exportCsvRadioProps.columnSeparator.selectedValue,
+      exportCsvRadioProps.suppressDoubleQuotes.selectedValue,
+      exportCsvRadioProps.filteredSorted.selectedValue,
+      exportCsvRadioProps.skipColumnHeaders.selectedValue,
+    ) as string;
+    navigator.clipboard.writeText(csvData);
+    // TODO change the position of snackbar
+    $storeNoDbSnackBar = showSnackBarAsCopied;
+  }
+
+  let footerDefinition: PageWrapperContentFooterDefinition = {
+    buttonsDefinition: [
+      {
+        iconName: "download",
+        tooltipText: "Export",
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: downloadCsvFile,
+      },
+      {
+        iconName: "contentCopy",
+        tooltipText: "Copy",
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: copyToClipboard,
+      },
+    ],
+    buttonSize: sizeSettings.dialogFooter,
+    horizontalAlignment: "end",
+  };
 </script>
 
 <BaseDialog bind:dialogElement headerText="Export CSV File">
-  <BasePageContainerContentFrame hasTab={false} slot="dialogBody">
-    <CommonOverviewFrame gridCols={1}>
+  <PageWrapperContent
+    hasMultipulTabs={false}
+    gridCols="grid-cols-1"
+    slot="dialogBody"
+  >
+    <svelte:fragment slot="PageWrapperContentBody">
       <CommonItemGroup text="CSV File Format" gridTrack="col-span-full">
         {#each radioPropsKeys as key}
           <CommonItemMember text={exportCsvRadioProps[key].title}>
@@ -186,11 +247,10 @@
           </CommonItemMember>
         {/each}
       </CommonItemGroup>
-      <DialogExportCsvFooterButtons
-        {gridOptions}
-        {exportCsvRadioProps}
-        {exportFilePrefix}
-      />
-    </CommonOverviewFrame>
-  </BasePageContainerContentFrame>
+    </svelte:fragment>
+    <PageWrapperContentFooter
+      {footerDefinition}
+      slot="PageWrapperContentFooter"
+    />
+  </PageWrapperContent>
 </BaseDialog>

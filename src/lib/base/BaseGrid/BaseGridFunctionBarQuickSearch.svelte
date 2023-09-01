@@ -1,11 +1,11 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
   import BaseIcon from "$lib/base/BaseIcon.svelte";
   import BaseInput from "$lib/base/BaseInput.svelte";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { GridOptions } from "ag-grid-community";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import classNames from "classnames";
 
   export let gridOptions: GridOptions;

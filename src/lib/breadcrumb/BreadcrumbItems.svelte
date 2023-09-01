@@ -47,7 +47,6 @@
     <BaseButtonIcon
       size={targetSize()}
       iconName={targetCrumbItem.prefixIconName}
-      colorCategoryBg={colorSettings.main}
       colorCategoryFront={"interactive"}
       href={targetCrumbItem.href}
       shadowEffect={false}

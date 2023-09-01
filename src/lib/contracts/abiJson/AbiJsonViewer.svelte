@@ -3,6 +3,7 @@
     | ContractInterface
     | EventAbiFragment
     | FunctionAbiFragment;
+
   export function isTargetContractInterface(
     targetAbi: TargetAbi,
   ): targetAbi is ContractInterface {
@@ -17,52 +18,120 @@
     FunctionAbiFragment,
   } from "@constants/chains/types";
 
+  import { page } from "$app/stores";
+  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
+  import type { PageWrapperContentFunctionBarDefinition } from "$lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
+  import PageWrapperContentFunctionBar from "$lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
+  import { fullScreenButtonDefinition } from "$lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
+  import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseHighlight from "$lib/base/BaseHighlight.svelte";
-  import BasePageFullScreenContainer from "$lib/base/BasePage/BasePageFullScreenContainer.svelte";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import { showSnackBarAsCopied } from "$lib/common/CommonCopyButton.svelte";
+  import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { jsonStringifyFormatted } from "@utils/utilsCommon";
   import type { AbiFormatType } from "@utils/utilsEthers";
-  import AbiJsonViewerFunctionBar from "./AbiJsonViewerFunctionBar.svelte";
+  import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
 
   export let targetAbi: TargetAbi;
   export let abiFormatType: AbiFormatType;
-  export let hidden: boolean;
-  export let titleCategoryLabelText: string;
-  export let titleText: string;
   export let fragment: boolean = false;
+  export let isFullScreen: boolean;
 
-  const titleCategoryLabelTextForFullScreen: `${typeof titleCategoryLabelText} ABI` = `${titleCategoryLabelText} ABI`;
-  let formattedAbi: string[] | string;
-  $: {
+  let formattedAbi: () => string[] | string;
+  formattedAbi = (): string[] | string => {
     if (isTargetContractInterface(targetAbi)) {
       if (abiFormatType === "json") {
-        formattedAbi = targetAbi.formatJson();
+        return targetAbi.formatJson();
       } else {
-        formattedAbi = targetAbi.format(abiFormatType === "minimal");
+        return targetAbi.format(abiFormatType === "minimal");
       }
     } else {
       if (abiFormatType === "json") {
-        formattedAbi = targetAbi.format(abiFormatType);
+        return targetAbi.format(abiFormatType);
       } else {
-        formattedAbi = [targetAbi.format(abiFormatType)];
+        return [targetAbi.format(abiFormatType)];
       }
     }
-  }
-  $: abiText = isExpanded
-    ? jsonStringifyFormatted(formattedAbi)
-    : formattedAbi.toString();
+  };
 
   let isExpanded: boolean = true;
-  let isFullScreen: boolean = false;
+  let abiText: string = jsonStringifyFormatted(formattedAbi());
+
+  const expandBottunClicked: () => void = () => {
+    isExpanded = !isExpanded;
+    abiText = isExpanded
+      ? jsonStringifyFormatted(formattedAbi())
+      : formattedAbi().toString();
+  };
+  let expandButtonIconName: BaseIconProps["name"];
+  $: expandButtonIconName = isExpanded
+    ? "arrowCollapseVertical"
+    : "arrowExpandVertical";
+  let expandButtonTooltipText: string;
+  $: expandButtonTooltipText = isExpanded ? "Unformatted" : "Formatted";
+
+  let buttonsDefinition: PageWrapperContentFunctionBarDefinition["buttonsDefinition"];
+  $: buttonsDefinition = [
+    [
+      {
+        iconName: expandButtonIconName,
+        tooltipText: expandButtonTooltipText,
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: expandBottunClicked,
+      },
+      {
+        iconName: "contentCopy",
+        tooltipText: "Copy to clipboard",
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: () => {
+          navigator.clipboard.writeText(abiText);
+          $storeNoDbSnackBar = showSnackBarAsCopied;
+        },
+      },
+      {
+        iconName: "download",
+        tooltipText: "Export as JSON",
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: () =>
+          ExportDataToFile(
+            abiText,
+            getExportFileName(
+              fragment ? "ABIfragment" : "ABI",
+              $page.params,
+              "json",
+            ),
+            "json",
+          ),
+      },
+      {
+        ...fullScreenButtonDefinition(isFullScreen),
+        onClickEventFunction: () => {
+          isFullScreen = !isFullScreen;
+        },
+      },
+    ],
+  ];
 </script>
 
-<BasePageFullScreenContainer {hidden} bind:isFullScreen>
-  <AbiJsonViewerFunctionBar
-    bind:isExpanded
-    bind:isFullScreen
-    {abiText}
-    {titleCategoryLabelTextForFullScreen}
-    {titleText}
-    {fragment}
+<PageWrapperContent>
+  <PageWrapperContentFunctionBar
+    slot="PageWrapperContentFunctionBar"
+    functionBarDefinition={{
+      buttonsDefinition: buttonsDefinition,
+      showThreeDotsButton: false,
+      buttonSize: sizeSettings.gridFunctionButton,
+      breakPointWidthForOpendSidebar:
+        breakPointWidthThresholds.grigFunctionButtonForOpenedSidebar,
+      horizontalAlignment: "end",
+    }}
   />
-  <BaseHighlight code={abiText} targetLanguageName="json" />
-</BasePageFullScreenContainer>
+  <BaseHighlight
+    slot="PageWrapperContentBody"
+    code={abiText}
+    targetLanguageName="json"
+  />
+</PageWrapperContent>

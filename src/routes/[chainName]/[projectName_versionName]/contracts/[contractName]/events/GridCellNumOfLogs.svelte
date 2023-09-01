@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { convertTabValueForHref } from "$lib/PageWrapper/PageWrapper.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseA from "$lib/base/BaseA.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { convertTabValueForHref } from "$lib/base/BasePage/BasePageContainerContent.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
   import type { AbiFragmentName } from "@constants/chains/types";
   import type { ContractIdentifier } from "@db/dbTypes";

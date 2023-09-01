@@ -1,7 +1,7 @@
 <script lang="ts">
+  import { convertTabValueForHref } from "$lib/PageWrapper/PageWrapper.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { convertTabValueForHref } from "$lib/base/BasePage/BasePageContainerContent.svelte";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
   import type {

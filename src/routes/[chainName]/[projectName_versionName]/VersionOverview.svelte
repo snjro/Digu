@@ -1,6 +1,6 @@
 <script lang="ts">
+  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
   import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
-  import CommonOverviewFrame from "$lib/common/CommonOverviewFrame.svelte";
   import type { Chain, Project, Version } from "@constants/chains/types";
   import classNames from "classnames";
   import VersionOverviewContracts from "./VersionOverviewContracts.svelte";
@@ -19,12 +19,18 @@
   );
 </script>
 
-<CommonOverviewFrame gridCols={6}>
-  <CommonItemGroup text="Contracts" gridTrack={gridTrackContracts}>
-    <VersionOverviewContracts {targetChain} {targetProject} {targetVersion} />
-  </CommonItemGroup>
+<PageWrapperContent gridCols="grid-cols-6" hasMultipulTabs={false}>
+  <svelte:fragment slot="PageWrapperContentBody">
+    <CommonItemGroup text="Contracts" gridTrack={gridTrackContracts}>
+      <VersionOverviewContracts {targetChain} {targetProject} {targetVersion} />
+    </CommonItemGroup>
 
-  <CommonItemGroup text="Sync Status" gridTrack={gridTrackSync}>
-    <VersionOverviewSyncStatus {targetChain} {targetProject} {targetVersion} />
-  </CommonItemGroup>
-</CommonOverviewFrame>
+    <CommonItemGroup text="Sync Status" gridTrack={gridTrackSync}>
+      <VersionOverviewSyncStatus
+        {targetChain}
+        {targetProject}
+        {targetVersion}
+      />
+    </CommonItemGroup>
+  </svelte:fragment>
+</PageWrapperContent>
