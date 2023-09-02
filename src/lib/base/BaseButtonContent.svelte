@@ -3,13 +3,13 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
-  import type { BaseButtonProps } from "./BaseButton.svelte";
-  import BaseLabel from "./BaseLabel.svelte";
+  import BaseLabel, { type BaseLabelProps } from "./BaseLabel.svelte";
+  import type { BaseSize } from "./baseSizes";
 
-  export let label: BaseButtonProps["label"];
-  export let size: NonNullable<BaseButtonProps["size"]>;
+  export let label: string | undefined;
+  export let size: BaseSize;
   export let underlineLabel: boolean;
-  export let designatedFontWeight: BaseButtonProps["designatedFontWeight"];
+  export let designatedFontWeight: BaseLabelProps["fontWeight"];
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
