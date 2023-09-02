@@ -2,7 +2,7 @@
   import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
-  import { openDialog } from "$lib/base/BaseDialog/BaseDialog.svelte";
+  import { openDialog } from "$lib/base/BaseDialog/BaseDialogHandler";
   import { changeSize } from "$lib/base/baseSizes";
   import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
   import { DbSettingsDataHandlers } from "@db/dbSettings";

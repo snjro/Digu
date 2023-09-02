@@ -2,9 +2,8 @@
   import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import BaseDialog, {
-    openDialog,
-  } from "$lib/base/BaseDialog/BaseDialog.svelte";
+  import BaseDialog from "$lib/base/BaseDialog/BaseDialog.svelte";
+  import { openDialog } from "$lib/base/BaseDialog/BaseDialogHandler";
   import BaseHighlight from "$lib/base/BaseHighlight.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import type { AbiFragmentParam } from "@constants/chains/types";
