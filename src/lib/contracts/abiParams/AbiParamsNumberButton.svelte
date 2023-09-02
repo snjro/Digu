@@ -3,9 +3,8 @@
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseButton from "$lib/base/BaseButton.svelte";
-  import BaseDialog, {
-    openDialog,
-  } from "$lib/base/BaseDialog/BaseDialog.svelte";
+  import BaseDialog from "$lib/base/BaseDialog/BaseDialog.svelte";
+  import { openDialog } from "$lib/base/BaseDialog/BaseDialogHandler";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
   import AbiParamsTable, {

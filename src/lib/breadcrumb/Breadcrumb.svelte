@@ -14,7 +14,7 @@
     TAB_VALUES_FUNCTION,
   } from "$lib/PageWrapper/PageWrapper.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
+  import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/functionNameHandler";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { convertToKebabCase } from "@utils/utilsCommon";
   import classNames from "classnames";

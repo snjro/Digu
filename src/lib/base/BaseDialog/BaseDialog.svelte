@@ -1,51 +1,17 @@
-<script lang="ts" context="module">
-  export type BaseDialogProps = {
-    dialogElement?: HTMLDialogElement;
-    fullScreen?: boolean;
-    headerSize?: BaseSize;
-    headerIconName?: BaseIconProps["name"];
-    headerText?: BaseLabelProps["text"];
-  };
-  export function openDialog(dialogElement: HTMLDialogElement): void {
-    dialogElement.showModal();
-    let currentCountShowingDialog: number = get(storeNoDbCountShowingDialog);
-    if (currentCountShowingDialog < 0) {
-      currentCountShowingDialog = 0;
-    }
-    storeNoDbCountShowingDialog.set(currentCountShowingDialog + 1);
-    dialogElement.addEventListener("click", (mouseEvent: MouseEvent) => {
-      if (mouseEvent.target === dialogElement) {
-        closeDialog(dialogElement);
-      }
-    });
-  }
-  export function closeDialog(dialogElement: HTMLDialogElement): void {
-    dialogElement.close();
-    let currentCountShowingDialog: number = get(storeNoDbCountShowingDialog);
-    if (currentCountShowingDialog < 1) {
-      currentCountShowingDialog = 1;
-    }
-    storeNoDbCountShowingDialog.set(currentCountShowingDialog - 1);
-  }
-</script>
-
 <script lang="ts">
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
 
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { ThemeColor } from "@db/dbTypes";
-  import { storeNoDbCountShowingDialog } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
-  import { get } from "svelte/store";
   import type { BaseIconProps } from "../BaseIcon";
-  import type { BaseLabelProps } from "../BaseLabel.svelte";
-  import type { BaseSize } from "../baseSizes";
+  import { closeDialog } from "./BaseDialogHandler";
   import BaseDialogHeader from "./BaseDialogHeader.svelte";
 
-  export let dialogElement: NonNullable<BaseDialogProps["dialogElement"]>;
-  export let headerIconName: BaseDialogProps["headerIconName"] = undefined;
-  export let headerText: BaseDialogProps["headerText"];
+  export let dialogElement: HTMLDialogElement;
+  export let headerIconName: BaseIconProps["name"] | undefined = undefined;
+  export let headerText: string | undefined;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;

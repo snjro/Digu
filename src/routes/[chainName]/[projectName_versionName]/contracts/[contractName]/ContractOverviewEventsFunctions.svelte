@@ -20,7 +20,7 @@
   import type { BaseSize } from "$lib/base/baseSizes";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
-  import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
+  import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/functionNameHandler";
   import type {
     Contract,
     EventAbiFragment,

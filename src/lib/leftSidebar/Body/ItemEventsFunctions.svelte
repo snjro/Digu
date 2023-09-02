@@ -1,42 +1,3 @@
-<script lang="ts" context="module">
-  const FUNC_NAME_SPLITTER = "-";
-  function isFunctionAbiFragment(
-    targetAbiFragment: EventAbiFragment | FunctionAbiFragment,
-  ): targetAbiFragment is FunctionAbiFragment {
-    return targetAbiFragment.type === "function";
-  }
-  export function getFunctionSelectorWithSplitter(
-    targetAbiFragment: EventAbiFragment | FunctionAbiFragment,
-  ): string {
-    return isFunctionAbiFragment(targetAbiFragment)
-      ? `${FUNC_NAME_SPLITTER}${targetAbiFragment.selector}` // hyphens are not allowed in function names on Solidity.
-      : "";
-  }
-  export function getSplittedFunctionNameAndSelector(
-    functionNameAndSelector: string,
-  ): {
-    functionName: FunctionAbiFragment["name"];
-    functionSelector: FunctionAbiFragment["selector"];
-  } {
-    const splitted: string[] =
-      functionNameAndSelector.split(FUNC_NAME_SPLITTER);
-    if (splitted.length === 2) {
-      return {
-        functionName: splitted[0],
-        functionSelector: splitted[1],
-      };
-    } else {
-      const errorMessage: string = `The lengh of splitted FunctionNameAndSelector should be 2.`;
-      myLogger.error(
-        errorMessage,
-        `splitted.length: ${splitted.length}`,
-        `functionNameAndSelector: ${functionNameAndSelector}`,
-      );
-      throw new Error(errorMessage);
-    }
-  }
-</script>
-
 <script lang="ts">
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type {
@@ -44,10 +5,10 @@
     FunctionAbiFragment,
   } from "@constants/chains/types";
   import type { AbiFragmentsType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/ContractOverviewEventsFunctions.svelte";
-  import { myLogger } from "@utils/logger";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
   import BaseAccordion from "./BaseAccordion.svelte";
   import ItemEventsFunctionsMember from "./ItemEventsFunctionsMember.svelte";
+  import { getFunctionSelectorWithSplitter } from "./functionNameHandler";
 
   export let abiFragmentsType: AbiFragmentsType;
   export let targetAbiFragments: EventAbiFragment[] | FunctionAbiFragment[];

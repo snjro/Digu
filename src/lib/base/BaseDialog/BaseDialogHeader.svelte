@@ -1,21 +1,22 @@
 <script lang="ts">
-  import classNames from "classnames";
-  import { closeDialog, type BaseDialogProps } from "./BaseDialog.svelte";
-  import BaseLabel from "../BaseLabel.svelte";
-  import BaseButtonIcon from "../BaseButtonIcon.svelte";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import classNames from "classnames";
+  import BaseButtonIcon from "../BaseButtonIcon.svelte";
+  import type { BaseIconProps } from "../BaseIcon";
+  import BaseLabel from "../BaseLabel.svelte";
   import type { BaseSize } from "../baseSizes";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { closeDialog } from "./BaseDialogHandler";
 
-  export let dialogElement: NonNullable<BaseDialogProps["dialogElement"]>;
-  export let headerIconName: BaseDialogProps["headerIconName"] = undefined;
-  export let headerText: BaseDialogProps["headerText"];
+  export let dialogElement: HTMLDialogElement;
+  export let headerIconName: BaseIconProps["name"] | undefined = undefined;
+  export let headerText: string | undefined;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;

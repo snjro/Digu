@@ -2,10 +2,10 @@
   import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
-  import { openDialog } from "$lib/base/BaseDialog/BaseDialog.svelte";
+  import { openDialog } from "$lib/base/BaseDialog/BaseDialogHandler";
   import { changeSize } from "$lib/base/baseSizes";
   import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
-  import { updateDbItemUserSettings } from "@db/dbSettingsDataHandlers";
+  import { DbSettingsDataHandlers } from "@db/dbSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
@@ -40,7 +40,10 @@
         tooltipXPosition: "left",
         tooltipYPosition: "bottom",
         onClickEventFunction: async () => {
-          await updateDbItemUserSettings("themeColor", newThemeColor);
+          await DbSettingsDataHandlers.updateDbItemUserSettings(
+            "themeColor",
+            newThemeColor,
+          );
         },
       },
     ],

@@ -4,10 +4,11 @@ import { initialize } from "../initialization/initialize";
 import "../app.postcss";
 export type LoadDataRoot = { initializing: boolean };
 
-// Disable the server side rendering.
+// If Vite hangs indefinitely in dev mode,
+// then Disable SSR (server side rendering).
 // Issue: https://github.com/vitejs/vite/issues/11468#issuecomment-1606439160
 // Reference: https://kit.svelte.dev/docs/page-options#ssr
-export const ssr = false;
+export const ssr = true;
 
 export async function load(): Promise<LoadDataRoot> {
   if (browser) {

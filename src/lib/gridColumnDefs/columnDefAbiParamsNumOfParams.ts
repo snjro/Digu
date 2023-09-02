@@ -6,12 +6,9 @@ import type { ColumnDef } from "$lib/base/BaseGrid/types";
 import AbiParamsNumberButton from "$lib/contracts/abiParams/AbiParamsNumberButton.svelte";
 import { capitalizeFirstLetter } from "@utils/utilsCommon";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
-import {
-  getAbiParamsFromAbiRow,
-  type AbiFragmentParamTypeName,
-  type AbiRow,
-} from "./columnDefAbiParams";
 import { cellAlign } from "./cellStyles";
+import { getAbiParamsFromAbiRow } from "./getAbiParamsFromAbiRow";
+import type { AbiFragmentParamTypeName, AbiRow } from "./type,";
 
 export const columnDefAbiParamsNumOfParams = <T extends AbiRow>(
   abiParamsKey: keyof T,

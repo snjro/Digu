@@ -3,10 +3,10 @@ import type { Contract } from "@constants/chains/types";
 import { DbEventLogs } from "@db/dbEventLogs";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import { updateDbItemSyncStatus } from "@db/dbEventLogsDataHandlersSyncStatus";
-import { addInitialData } from "@db/dbSettingsDataHandlers";
 import { getEventLogTableName } from "@utils/utlisDb";
 import { getEventLogTableRecordCount } from "@db/dbEventLogsDataHandlersEventLog";
 import { extractEventContracts } from "@utils/utilsEthers";
+import { DbSettingsDataHandlers } from "@db/dbSettings";
 
 export async function initializeDB(): Promise<void> {
   const promises: Promise<void>[] = [];
@@ -67,7 +67,7 @@ async function initializeDBSyncStatus(
   // await updateRecordCount(dbEventLogs, targetContract);
 }
 async function initializeDBSettings(): Promise<void> {
-  await addInitialData();
+  await DbSettingsDataHandlers.addInitialData();
 }
 async function updateRecordCount(
   dbEventLogs: DbEventLogs,

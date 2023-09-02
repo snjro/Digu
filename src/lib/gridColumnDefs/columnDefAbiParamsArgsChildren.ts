@@ -4,7 +4,6 @@ import {
 } from "$lib/base/BaseGrid/cellRenderFactory";
 import type { ColumnDef } from "$lib/base/BaseGrid/types";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
-import { getAbiParamsFromAbiRow, type AbiRow } from "./columnDefAbiParams";
 import type { AbiFragmentParam } from "@constants/chains/types";
 import { NO_DATA } from "@utils/utilsCostants";
 import BaseLabel from "$lib/base/BaseLabel.svelte";
@@ -12,6 +11,8 @@ import { capitalizeFirstLetter } from "@utils/utilsCommon";
 import AbiParamComponentsDetailsButton from "$lib/contracts/abiParams/AbiParamComponentsDetailsButton.svelte";
 import { cellAlign } from "./cellStyles";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+import { getAbiParamsFromAbiRow } from "./getAbiParamsFromAbiRow";
+import type { AbiRow } from "./type,";
 
 type ArgKey = "name" | "type" | "indexed";
 function getAbiParamsArgStringValueFromAbiRow<T extends AbiRow>(

@@ -11,7 +11,7 @@
   import type { AbiFragmentsType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/ContractOverviewEventsFunctions.svelte";
   import { convertToKebabCase } from "@utils/utilsCommon";
   import BaseItem from "./BaseItem.svelte";
-  import { getFunctionSelectorWithSplitter } from "./ItemEventsFunctions.svelte";
+  import { getFunctionSelectorWithSplitter } from "./functionNameHandler";
 
   export let abiFragmentsType: AbiFragmentsType;
   export let targetAbiFragment: EventAbiFragment | FunctionAbiFragment;

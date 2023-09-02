@@ -11,10 +11,6 @@ import type {
 import { getDbRecordSyncStatusContract } from "@db/dbEventLogsDataHandlersSyncStatus";
 import type { ChainName, ContractName } from "@constants/chains/types";
 import { getDbRecordChainStatus } from "@db/dbChainStatusDataHandlers";
-import {
-  getDbRecordRpcSettings,
-  getDbRecordUserSettings,
-} from "@db/dbSettingsDataHandlers";
 import { myLogger } from "@utils/logger";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { storeChainStatus } from "@stores/storeChainStatus";
@@ -22,6 +18,7 @@ import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { extractEventContracts } from "@utils/utilsEthers";
 import { get } from "svelte/store";
+import { DbSettingsDataHandlers } from "@db/dbSettings";
 
 export async function initializeStore(): Promise<void> {
   const promiseUpdateStores: Promise<void>[] = [];
@@ -62,7 +59,8 @@ async function InitializeStoreChainStatus(chainName: ChainName): Promise<void> {
   });
 }
 async function InitializeStoreRpcSettings(chainName: ChainName): Promise<void> {
-  const rpcSetting: RpcSetting = await getDbRecordRpcSettings(chainName);
+  const rpcSetting: RpcSetting =
+    await DbSettingsDataHandlers.getDbRecordRpcSettings(chainName);
   storeRpcSettings.updateState(chainName, rpcSetting);
   myLogger.info(`Initialized "storeRpcSetting"`, {
     chainName: chainName,
@@ -71,7 +69,7 @@ async function InitializeStoreRpcSettings(chainName: ChainName): Promise<void> {
 }
 async function initializeStoreUserSettings(): Promise<void> {
   const userSettings: UserSetting =
-    await getDbRecordUserSettings("userSetting01");
+    await DbSettingsDataHandlers.getDbRecordUserSettings("userSetting01");
   storeUserSettings.updateState(userSettings);
   myLogger.info(`Initialized "storeUserSetting"`, {
     storeUserSettings: get(storeUserSettings),

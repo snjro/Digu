@@ -3,14 +3,22 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
-  import type { BaseButtonProps } from "./BaseButton.svelte";
-  import BaseLabel from "./BaseLabel.svelte";
+  import { baseTextSizes, type BaseSize } from "./baseSizes";
 
-  export let label: BaseButtonProps["label"];
-  export let size: NonNullable<BaseButtonProps["size"]>;
+  export let label: string | undefined;
+  export let size: BaseSize;
   export let underlineLabel: boolean;
-  export let designatedFontWeight: BaseButtonProps["designatedFontWeight"];
-
+  export let designatedFontWeight:
+    | "font-thin"
+    | "font-extralight"
+    | "font-light"
+    | "font-normal"
+    | "font-medium"
+    | "font-semibold"
+    | "font-bold"
+    | "font-extrabold"
+    | "font-black"
+    | undefined;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 </script>
@@ -28,13 +36,23 @@
         : "border-transparent",
     )}
   >
-    <BaseLabel
+    <!-- <BaseLabel
       text={label}
       textSize={size}
       cursorPointer
       truncate
       fontWeight={designatedFontWeight}
-    />
+    /> -->
+    <span
+      class={classNames(
+        "truncate",
+        designatedFontWeight,
+        "cursor-pointer",
+        baseTextSizes[size],
+      )}
+    >
+      {label}
+    </span>
   </div>
 {/if}
 {#if $$slots.suffixIcon}

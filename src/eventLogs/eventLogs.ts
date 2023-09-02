@@ -1,11 +1,6 @@
 import { fetchEventLogsContract } from "./eventLogsContract";
 import { DbEventLogs } from "@db/dbEventLogs";
-import type {
-  ContractIdentifier,
-  NodeStatus,
-  SyncStatusContract,
-  VersionIdentifier,
-} from "@db/dbTypes";
+import type { NodeStatus, VersionIdentifier } from "@db/dbTypes";
 import { extractEventContracts, getNodeProvider } from "@utils/utilsEthers";
 import type { NodeProvider } from "@utils/utilsEthers";
 import type { Chain } from "@constants/chains/types";
@@ -17,7 +12,6 @@ import {
 import { myLogger } from "@utils/logger";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { get } from "svelte/store";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { storeChainStatus } from "@stores/storeChainStatus";
 
@@ -73,15 +67,3 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
   await Promise.all(promiseFetchAndInsertEthersEvents);
   myLogger.info(`Terminated fetch event logs. Chain: ${targetChain.name}`);
 }
-
-export const syncStatusContract = (
-  contractIdentifier: ContractIdentifier,
-): SyncStatusContract => {
-  const syncStatusContract: SyncStatusContract =
-    get(storeSyncStatus)[contractIdentifier.chainName].subSyncStatuses[
-      contractIdentifier.projectName
-    ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
-      contractIdentifier.contractName
-    ];
-  return syncStatusContract;
-};
