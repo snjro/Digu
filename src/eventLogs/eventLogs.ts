@@ -1,11 +1,6 @@
 import { fetchEventLogsContract } from "./eventLogsContract";
 import { DbEventLogs } from "@db/dbEventLogs";
-import type {
-  ContractIdentifier,
-  NodeStatus,
-  SyncStatusContract,
-  VersionIdentifier,
-} from "@db/dbTypes";
+import type { NodeStatus, VersionIdentifier } from "@db/dbTypes";
 import { extractEventContracts, getNodeProvider } from "@utils/utilsEthers";
 import type { NodeProvider } from "@utils/utilsEthers";
 import type { Chain } from "@constants/chains/types";
@@ -17,7 +12,6 @@ import {
 import { myLogger } from "@utils/logger";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { get } from "svelte/store";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { storeChainStatus } from "@stores/storeChainStatus";
 
