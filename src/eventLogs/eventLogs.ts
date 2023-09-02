@@ -73,15 +73,3 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
   await Promise.all(promiseFetchAndInsertEthersEvents);
   myLogger.info(`Terminated fetch event logs. Chain: ${targetChain.name}`);
 }
-
-export const syncStatusContract = (
-  contractIdentifier: ContractIdentifier,
-): SyncStatusContract => {
-  const syncStatusContract: SyncStatusContract =
-    get(storeSyncStatus)[contractIdentifier.chainName].subSyncStatuses[
-      contractIdentifier.projectName
-    ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
-      contractIdentifier.contractName
-    ];
-  return syncStatusContract;
-};

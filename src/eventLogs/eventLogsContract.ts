@@ -12,7 +12,6 @@ import type {
 } from "@constants/chains/types";
 import { getEthersEventLogs, type NodeProvider } from "@utils/utilsEthers";
 import { myLogger } from "@utils/logger";
-import { syncStatusContract } from "./eventLogs";
 import { get } from "svelte/store";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { storeChainStatus } from "@stores/storeChainStatus";
@@ -25,6 +24,7 @@ import type {
 } from "@db/dbTypes";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { beginEventListening } from "./eventLogsContractListener";
+import { storeSyncStatus } from "@stores/storeSyncStatus";
 type FetchingTargetInfo = ContractIdentifier & {
   blocks: { from: number; to: number; latest: number };
 };
@@ -154,3 +154,14 @@ export async function fetchEventLogsContract(
     ethersContract,
   );
 }
+export const syncStatusContract = (
+  contractIdentifier: ContractIdentifier,
+): SyncStatusContract => {
+  const syncStatusContract: SyncStatusContract =
+    get(storeSyncStatus)[contractIdentifier.chainName].subSyncStatuses[
+      contractIdentifier.projectName
+    ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
+      contractIdentifier.contractName
+    ];
+  return syncStatusContract;
+};

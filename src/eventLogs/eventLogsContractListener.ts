@@ -8,14 +8,16 @@ import type {
 import type { DbEventLogs } from "@db/dbEventLogs";
 import { stopSyncingInContract } from "@db/dbEventLogsDataHandlersSyncStatus";
 import type { Contract as EthersContract, Listener } from "ethers";
-import { fetchEventLogsContract } from "./eventLogsContract";
+import {
+  fetchEventLogsContract,
+  syncStatusContract,
+} from "./eventLogsContract";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import {
   getAndUpdateLatestBlockNumber,
   type NodeProvider,
 } from "@utils/utilsEthers";
 import { myLogger } from "@utils/logger";
-import { syncStatusContract } from "./eventLogs";
 import { get } from "svelte/store";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import type { ContractIdentifier, EthersEventLog } from "@db/dbTypes";
