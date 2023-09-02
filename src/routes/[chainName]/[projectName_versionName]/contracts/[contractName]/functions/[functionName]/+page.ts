@@ -1,4 +1,4 @@
-import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
+import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/functionNameHandler";
 import type {
   AbiFragmentName,
   Chain,

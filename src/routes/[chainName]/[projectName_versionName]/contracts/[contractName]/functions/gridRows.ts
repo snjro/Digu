@@ -1,4 +1,4 @@
-import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/ItemEventsFunctions.svelte";
+import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/functionNameHandler";
 import type { FunctionAbiFragment } from "@constants/chains/types";
 
 export type FunctionRow = {
