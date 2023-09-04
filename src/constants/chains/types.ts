@@ -5,7 +5,7 @@ import {
   type FunctionFragment,
   type Interface,
   type ParamType,
-  FallbackFragment,
+  type FallbackFragment,
 } from "ethers";
 import type { JsonFileAbi } from "./jsonFileTypes";
 // import type { FallbackFragment } from "ethers/types/abi";

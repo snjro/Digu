@@ -13,11 +13,11 @@ import { get } from "svelte/store";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import {
   JsonRpcProvider,
-  Network,
+  type Network,
   WebSocketProvider,
-  Contract as EthersContract,
-  EventLog,
-  Log,
+  type Contract as EthersContract,
+  type EventLog,
+  type Log,
 } from "ethers";
 export type AbiFormatType = "json" | "full" | "minimal";
 
