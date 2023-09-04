@@ -183,6 +183,7 @@
           "pl-1.5",
           "pb-1.5",
           colorDefinitions[themeColor][colorSettings.tabSelected].bg,
+          "z-10",
         )
       : classNames("flex-auto min-h-0", "h-full w-full"),
     "flex flex-col",
