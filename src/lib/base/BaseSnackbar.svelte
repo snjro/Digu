@@ -49,7 +49,12 @@
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 
-  const positionStyle: string = classNames("fixed", "bottom-3", "right-6");
+  const positionStyle: string = classNames(
+    "fixed",
+    "bottom-3",
+    "right-6",
+    "z-50",
+  );
   const textSize: BaseSize = "xl";
 </script>
 
