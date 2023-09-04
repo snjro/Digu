@@ -1,10 +1,9 @@
 <script lang="ts">
+  import type { PageWrapperContentFunctionBarDefinition } from "$lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
+  import PageWrapperContentFunctionBarButtons from "$lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
   import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { SimplifiedButtonDefinition } from "$lib/base/BaseButtonIcon.svelte";
   import { openDialog } from "$lib/base/BaseDialog/BaseDialogHandler";
-  import { changeSize } from "$lib/base/baseSizes";
-  import CommonFunctionButtons from "$lib/common/CommonFunctionBar/CommonFunctionButtons.svelte";
   import { DbSettingsDataHandlers } from "@db/dbSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -20,8 +19,8 @@
   let initializeValue: boolean = false;
   let dialogElement: HTMLDialogElement;
 
-  let buttonDefinitions: Array<SimplifiedButtonDefinition[]>;
-  $: buttonDefinitions = [
+  let buttonsDefinition: PageWrapperContentFunctionBarDefinition["buttonsDefinition"];
+  $: buttonsDefinition = [
     [
       {
         iconName: "cogOutline",
@@ -51,12 +50,15 @@
 </script>
 
 <div>
-  <CommonFunctionButtons
-    {buttonDefinitions}
-    buttonSize={sizeSettings.navButton}
-    listSize={changeSize(sizeSettings.navButton, -1)}
-    isOpenSidebar={$storeUserSettings.isOpenSidebar}
-    breakPointWidthForOpendSidebar={breakPointWidthThresholds.navButtonForOpenedSidebar}
-  />
   <NavButtonsSettingsDialog bind:dialogElement bind:initializeValue />
+  <PageWrapperContentFunctionBarButtons
+    functionBarDefinition={{
+      buttonsDefinition: buttonsDefinition,
+      showThreeDotsButton: true,
+      buttonSize: sizeSettings.navButton,
+      breakPointWidthForOpendSidebar:
+        breakPointWidthThresholds.navButtonForOpenedSidebar,
+      horizontalAlignment: "end",
+    }}
+  />
 </div>
