@@ -31,13 +31,6 @@ export const columnDefsEventsFunctions = <T extends ContractRow>(
         editable: false,
         cellStyle: cellAlign("end"),
         columnGroupShow: undefined,
-        filterValueGetter: (
-          valueGetterParams: ValueGetterParams<T>,
-        ): number => {
-          return valueGetterParams.data
-            ? (valueGetterParams.data[keyOfContractRow] as number)
-            : 0;
-        },
         valueGetter: (valueGetterParams: ValueGetterParams<T>): number => {
           return valueGetterParams.data
             ? (valueGetterParams.data[keyOfContractRow] as number)

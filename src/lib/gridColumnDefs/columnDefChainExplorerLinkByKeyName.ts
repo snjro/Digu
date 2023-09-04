@@ -46,13 +46,6 @@ export const columnDefChainExplorerLinkByKeyName = <T>(
       }
     },
     columnGroupShow: columnGroupShow,
-    filterValueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-      if (valueGetterParams.data && valueGetterParams.data[keyName]) {
-        return valueGetterParams.data[keyName];
-      } else {
-        return NO_DATA;
-      }
-    },
     valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
       if (valueGetterParams.data && valueGetterParams.data[keyName]) {
         return valueGetterParams.data[keyName];

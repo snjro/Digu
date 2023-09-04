@@ -21,9 +21,6 @@ export const columnDefAbiParamsNumOfParams = <T extends AbiRow>(
     editable: false,
     cellStyle: cellAlign("end"),
     columnGroupShow: undefined,
-    filterValueGetter: (valueGetterParams: ValueGetterParams<T>): number => {
-      return abiParamsLength<T>(valueGetterParams, abiParamsKey);
-    },
     valueGetter: (valueGetterParams: ValueGetterParams<T>): number => {
       return abiParamsLength<T>(valueGetterParams, abiParamsKey);
     },

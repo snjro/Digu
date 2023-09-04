@@ -117,9 +117,6 @@ const topicsColumnDef = (
       editable: editable,
       cellClass: cellClass,
       columnGroupShow: indexTopics === 0 ? undefined : "open",
-      filterValueGetter: (valueGetterParams: ValueGetterParams) => {
-        return valueGetterParams.data.topics[indexTopics];
-      },
       valueGetter: (valueGetterParams: ValueGetterParams) => {
         return valueGetterParams.data.topics[indexTopics];
       },
@@ -253,12 +250,6 @@ const argChildColumnDef = (
       sortable: sortable,
       editable: editable,
       cellClass: cellClass,
-      filterValueGetter: (valueGetterParams: ValueGetterParams) => {
-        return getArgChildValue(
-          valueGetterParams.data.args[indexOfInputs],
-          indexOfArgChild,
-        );
-      },
       valueGetter: (valueGetterParams: ValueGetterParams) => {
         return getArgChildValue(
           valueGetterParams.data.args[indexOfInputs],
@@ -303,12 +294,6 @@ const argChildColumnDef = (
         return typeof argChildValue === "bigint"
           ? argChildValue.toLocaleString()
           : argChildValue;
-      },
-      filterValueGetter: (valueGetterParams: ValueGetterParams) => {
-        return getArgChildValue(
-          valueGetterParams.data.args[indexOfInputs],
-          indexOfArgChild,
-        );
       },
       valueGetter: (valueGetterParams: ValueGetterParams) => {
         return getArgChildValue(
