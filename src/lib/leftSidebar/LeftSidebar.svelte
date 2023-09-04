@@ -38,8 +38,7 @@
   class={classNames(
     "flex-none",
     "flex flex-col",
-    "h-full",
-    "w-[320px]",
+    "h-full w-[320px]",
     "dark:border-r",
     colorDefinitions[themeColor][colorSettings.leftSidebarBorder].border,
     "shadow-md dark:shadow-none",

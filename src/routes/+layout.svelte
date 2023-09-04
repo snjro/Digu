@@ -3,15 +3,17 @@
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
+  import BaseSnackbar from "$lib/base/BaseSnackbar.svelte";
   import BaseSpinner from "$lib/base/BaseSpinner.svelte";
+  import Breadcrumb from "$lib/breadcrumb/Breadcrumb.svelte";
   import LeftSidebar from "$lib/leftSidebar/LeftSidebar.svelte";
+  import Nav from "$lib/nav/Nav.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getScreenWidth } from "@utils/utilsDom";
   import classNames from "classnames";
   import type { LoadDataRoot } from "./+layout";
-  import Content from "./Content.svelte";
 
   export let data: LoadDataRoot;
 
@@ -28,27 +30,6 @@
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 
-  $: bodyStyle = classNames(
-    "flex",
-    "flex-row",
-    "h-screen",
-    "w-screen",
-    colorDefinitions[themeColor][colorSettings.main].bg,
-    colorDefinitions[themeColor][colorSettings.main].text,
-    "",
-  );
-
-  $: mainContainerStyle = classNames(
-    classNames(
-      "min-w-0 flex-auto",
-      "flex",
-      "flex-col",
-      $storeUserSettings.isOpenSidebar &&
-        $storeNoDbCurrentWidth <= breakPointWidths.sm &&
-        "blur-sm pointer-events-none",
-    ),
-  );
-
   function onResize(): void {
     storeNoDbCurrentWidth.set(getScreenWidth());
   }
@@ -58,13 +39,41 @@
 <svelte:head>
   <title>Contract Viewer</title>
 </svelte:head>
-<div class={bodyStyle}>
+<div
+  class={classNames(
+    "flex flex-row",
+    "h-screen w-screen",
+    colorDefinitions[themeColor][colorSettings.main].bg,
+    colorDefinitions[themeColor][colorSettings.main].text,
+  )}
+>
   {#if data.initializing}
     <BaseSpinner size="3xl" />
   {:else}
     <LeftSidebar />
-    <div class={mainContainerStyle}>
-      <Content><slot /></Content>
+    <div
+      class={classNames(
+        "min-w-0 flex-auto",
+        "flex flex-col",
+        $storeUserSettings.isOpenSidebar &&
+          $storeNoDbCurrentWidth <= breakPointWidths.sm &&
+          "blur-sm pointer-events-none",
+      )}
+    >
+      <Nav />
+      <div
+        class={classNames(
+          "min-h-0 flex-auto",
+          "flex flex-col",
+          "h-full w-full",
+          "px-3 pb-1.5",
+          "",
+        )}
+      >
+        <Breadcrumb />
+        <slot />
+        <BaseSnackbar />
+      </div>
     </div>
   {/if}
 </div>
