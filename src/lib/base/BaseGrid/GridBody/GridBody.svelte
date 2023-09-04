@@ -30,14 +30,11 @@
 
 <script lang="ts" generics="GridRow">
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-
   import {
-    ColumnApi,
     Grid,
+    type ColumnApi,
     type GridOptions,
-    // Column,
     type GridReadyEvent,
     type RowClassParams,
   } from "ag-grid-community";
