@@ -186,7 +186,6 @@
       exportCsvRadioProps.skipColumnHeaders.selectedValue,
     ) as string;
     navigator.clipboard.writeText(csvData);
-    // TODO change the position of snackbar
     $storeNoDbSnackBar = showSnackBarAsCopied;
   }
 

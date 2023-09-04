@@ -1,4 +1,3 @@
-// TODO: delete this file
 import type { BaseSnackbarProps } from "$lib/base/BaseSnackbar.svelte";
 import { getScreenWidth } from "@utils/utilsDom";
 import { writable, type Writable } from "svelte/store";
