@@ -27,9 +27,6 @@
 
   $: (async () => {
     if ($storeNoDbSnackBar.visible) {
-      if ($storeNoDbSnackBar.iconProps) {
-        $storeNoDbSnackBar.iconProps.size = textSize;
-      }
       await setTimeout(() => {
         $storeNoDbSnackBar = { ...storeNoDbSnackBarInitialValue };
       }, $storeNoDbSnackBar.displayTimeInMilliseconds ?? displayTimeInMilliseconds);
@@ -52,12 +49,7 @@
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor as ThemeColor;
 
-  const positionStyle: string = classNames(
-    "fixed",
-    "bottom-3",
-    "right-6",
-    "z-50",
-  );
+  const positionStyle: string = classNames("fixed", "bottom-3", "right-6");
   const textSize: BaseSize = "xl";
 </script>
 

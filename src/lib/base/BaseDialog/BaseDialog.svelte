@@ -6,6 +6,7 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { BaseIconProps } from "../BaseIcon";
+  import BaseSnackbar from "../BaseSnackbar.svelte";
   import { closeDialog } from "./BaseDialogHandler";
   import BaseDialogHeader from "./BaseDialogHeader.svelte";
 
@@ -52,6 +53,7 @@
       <BaseDialogHeader {dialogElement} {headerIconName} {headerText} />
       <slot name="dialogBody" />
     </div>
+    <BaseSnackbar />
   </dialog>
 </div>
 
