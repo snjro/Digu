@@ -30,11 +30,6 @@ export const columnDefsBasic = <T extends FunctionRow>(
         editable: editable,
         cellClass: cellClass,
         columnGroupShow: undefined,
-        filterValueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-          return valueGetterParams.data
-            ? valueGetterParams.data.functionName
-            : "";
-        },
         valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
           return valueGetterParams.data
             ? valueGetterParams.data.functionName
@@ -74,11 +69,6 @@ export const columnDefsBasic = <T extends FunctionRow>(
         editable: editable,
         cellClass: "flex justify-center",
         columnGroupShow: "open",
-        filterValueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-          return valueGetterParams.data
-            ? valueGetterParams.data.functionSelector
-            : "";
-        },
         valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
           return valueGetterParams.data
             ? valueGetterParams.data.functionSelector

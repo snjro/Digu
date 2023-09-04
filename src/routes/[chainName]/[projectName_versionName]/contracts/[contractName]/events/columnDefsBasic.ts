@@ -31,9 +31,6 @@ export const columnDefsBasic = <T extends EventRow>(
         editable: editable,
         cellClass: cellClass,
         columnGroupShow: undefined,
-        filterValueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-          return valueGetterParams.data ? valueGetterParams.data.eventName : "";
-        },
         valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
           return valueGetterParams.data ? valueGetterParams.data.eventName : "";
         },
@@ -79,11 +76,6 @@ export const columnDefsBasic = <T extends EventRow>(
         editable: editable,
         cellClass: "flex justify-center",
         columnGroupShow: "open",
-        filterValueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-          return valueGetterParams.data
-            ? valueGetterParams.data.eventTopicHash
-            : "";
-        },
         valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
           return valueGetterParams.data
             ? valueGetterParams.data.eventTopicHash

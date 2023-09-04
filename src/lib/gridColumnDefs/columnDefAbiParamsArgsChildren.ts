@@ -41,14 +41,6 @@ const columnDefAbiParamsStringArg = <T extends AbiRow>(
     editable: false,
     cellStyle: cellAlign(argKey === "name" ? "start" : "center"),
     columnGroupShow: argKey === "name" ? undefined : "open",
-    filterValueGetter: (valueGetterParams: ValueGetterParams<T>): string => {
-      return getAbiParamsArgStringValueFromAbiRow<T>(
-        valueGetterParams,
-        abiParamsKey,
-        indexOfArgs,
-        argKey,
-      );
-    },
     valueGetter: (valueGetterParams: ValueGetterParams<T>): string => {
       return getAbiParamsArgStringValueFromAbiRow<T>(
         valueGetterParams,
@@ -77,7 +69,6 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
       editable: false,
       cellStyle: cellAlign("center"),
       columnGroupShow: "open",
-      filterValueGetter: undefined,
       valueGetter: (valueGetterParams: ValueGetterParams<T>): string => {
         const components: readonly AbiFragmentParam[] | undefined =
           getComponents(valueGetterParams, abiParamsKey, indexOfArgs);

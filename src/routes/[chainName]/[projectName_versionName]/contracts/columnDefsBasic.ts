@@ -33,11 +33,6 @@ export const columnDefsBasic = <T extends ContractRow>(
         editable: editable,
         cellClass: cellClass,
         columnGroupShow: undefined,
-        filterValueGetter: (valueGetterParams: ValueGetterParams<T>) => {
-          return valueGetterParams.data
-            ? valueGetterParams.data.contractName
-            : "";
-        },
         valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
           return valueGetterParams.data
             ? valueGetterParams.data.contractName
