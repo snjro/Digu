@@ -22,5 +22,3 @@ export const storeNoDbSnackBarInitialValue: Readonly<BaseSnackbarProps> = {
 export const storeNoDbSnackBar: Writable<BaseSnackbarProps> = writable({
   ...storeNoDbSnackBarInitialValue,
 });
-
-export const storeNoDbCountShowingDialog: Writable<number> = writable(0);
