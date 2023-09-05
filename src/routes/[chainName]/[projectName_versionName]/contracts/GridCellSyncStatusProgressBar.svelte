@@ -24,10 +24,12 @@
 
   let latestBlockNumber: number;
   $: latestBlockNumber = $storeChainStatus[targetChain.name].latestBlockNumber;
+
   let targetContractSyncStatus: SyncStatusContract;
   $: targetContractSyncStatus =
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
       .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name];
+
   let fetchedBlockNumber: number | undefined;
   $: fetchedBlockNumber = targetContractSyncStatus
     ? targetContractSyncStatus.fetchedBlockNumber
