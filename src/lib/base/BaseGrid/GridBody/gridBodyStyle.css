@@ -20,3 +20,9 @@
 .first-row-in-group {
   border-top: solid 1px var(--color-frame-border);
 }
+.ag-header-cell,.ag-header-group-cell {
+  font-weight: normal;
+}
+.ag-cell-label-container {
+  padding:1px 0px;
+}

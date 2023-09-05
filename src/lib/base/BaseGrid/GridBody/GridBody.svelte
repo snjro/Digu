@@ -120,7 +120,7 @@
 <div
   id="baseGridContainer"
   bind:this={elementGridDiv}
-  class={classNames(agTheme, "h-full", "w-full", "pr-1.5", "")}
+  class={classNames(agTheme, "h-full", "w-full", "")}
   style={classNames(
     `--font-size:${baseTextSizesPixel[gridTextSize]};`,
     `--color-frame-border:${colorDefs.frame.border};`,

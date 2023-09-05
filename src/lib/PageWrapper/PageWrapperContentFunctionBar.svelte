@@ -43,7 +43,7 @@
     horizontalAlignment(),
     "space-x-3",
     "pb-1.5",
-    "px-3",
+    "pr-3",
   )}
 >
   <slot />
