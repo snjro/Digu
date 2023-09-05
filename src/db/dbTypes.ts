@@ -55,10 +55,10 @@ export type RpcSetting = {
 export const initialDataRpcSetting = (targetChain: Chain): RpcSetting => {
   return {
     chainName: targetChain.name,
-    // rpc: targetChain.rpc[0], //TODO: TBD
-    rpc: "",
-    bulkUnit: 1000, //TODO: TBD
-    chainExplorerIndex: 0, //TODO: TBD
+    rpc:
+      targetChain.rpc && targetChain.rpc.length > 0 ? targetChain.rpc[0] : "",
+    bulkUnit: 1000,
+    chainExplorerIndex: 0,
     blockIntervalMs: targetChain.blockIntervalMs,
     tryCount: targetChain.tryCount,
     abortWatchIntervalMs: targetChain.abortWatchIntervalMs,

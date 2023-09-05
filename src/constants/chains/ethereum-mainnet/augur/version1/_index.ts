@@ -42,5 +42,3 @@ export const version: Version = {
   name: "version1",
   contracts: contracts,
 };
-//TODO: Tx of Genesis universe address is "0x5336f5c4132ef00e8b469ecfd4ee0d6800f6bd60aefb1c62232cbce81c085ae2"?
-// https://discord.com/channels/378030344374583298/378030344881963010/1088121211155910809

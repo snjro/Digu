@@ -6,13 +6,6 @@ export const chain: Chain = {
   fullName: "Ethereum Mainnet",
   chain: "ETH",
   icon: "ethereum",
-  rpc: [
-    // TODO: add "localhost:8080"
-    "https://mainnet.infura.io/v3/${INFURA_API_KEY}",
-    "wss://mainnet.infura.io/ws/v3/${INFURA_API_KEY}",
-    "https://api.mycryptoapi.com/eth",
-    "https://cloudflare-eth.com",
-  ],
   faucets: [],
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   infoURL: "https://ethereum.org",

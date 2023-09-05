@@ -1,4 +1,3 @@
-<!-- TODO: delete this file -->
 <script lang="ts" context="module">
   export type BaseAProps = {
     href: string | undefined;
