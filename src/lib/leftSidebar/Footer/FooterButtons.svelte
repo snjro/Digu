@@ -14,28 +14,14 @@
   }[] = [
     {
       iconName: "github",
-      href: "https://github.com/CrystalBallBe", // TODO: Change href
+      href: "https://github.com/snjro/contract-viewer",
       tooltipText: "GitHub",
       tooltipXPosition: "right",
       tooltipYPosition: "top",
     },
     {
-      iconName: "discord",
-      href: "https://discord.com/invite/aNBTq55", // TODO: is it OK (that Link to AugurProject)?
-      tooltipText: "Discord",
-      tooltipXPosition: "right",
-      tooltipYPosition: "top",
-    },
-    {
-      iconName: "twitter",
-      href: "https://twitter.com/crystalballbe",
-      tooltipText: "Twitter",
-      tooltipXPosition: "right",
-      tooltipYPosition: "top",
-    },
-    {
       iconName: "handCoinOutline",
-      href: "https://etherscan.io/address/0x5aE17FC457FC6A6C6DB8B92f36305e72ae7d792b", // TODO: Change href
+      href: "https://etherscan.io/address/0x5aE17FC457FC6A6C6DB8B92f36305e72ae7d792b",
       tooltipText: "Donation",
       tooltipXPosition: "right",
       tooltipYPosition: "top",
