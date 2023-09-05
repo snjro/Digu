@@ -63,6 +63,8 @@ export async function fetchEventLogsContract(
     nodeProvider,
   );
 
+  const creationBlockNumber: number = targetContract.creation.blockNumber;
+
   let doLoop: boolean = true;
 
   while (doLoop) {
@@ -71,7 +73,10 @@ export async function fetchEventLogsContract(
       return;
     }
 
-    const fromBlockNumber: number = contractSyncStatus.fetchedBlockNumber + 1;
+    const fromBlockNumber: number =
+      contractSyncStatus.fetchedBlockNumber === creationBlockNumber
+        ? contractSyncStatus.fetchedBlockNumber
+        : contractSyncStatus.fetchedBlockNumber + 1;
 
     const latestBlockNumber =
       get(storeChainStatus)[chainName].latestBlockNumber;

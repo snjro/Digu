@@ -29,10 +29,12 @@
 
   let latestBlockNumber: number;
   $: latestBlockNumber = $storeChainStatus[targetChain.name].latestBlockNumber;
+
   let fetchedBlockNumber: number | undefined;
   $: fetchedBlockNumber = targetContractSyncStatus
     ? targetContractSyncStatus.fetchedBlockNumber
     : undefined;
+
   let detailsTextSize: BaseSize;
   $: detailsTextSize =
     $storeNoDbCurrentWidth <= breakPointWidths.md
