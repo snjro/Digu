@@ -10,6 +10,7 @@
 <script lang="ts">
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { zIndex } from "$lib/appearanceConfig/zIndex";
   import type { ThemeColor } from "@db/dbTypes";
   import {
     storeNoDbSnackBar,
@@ -53,7 +54,7 @@
     "fixed",
     "bottom-3",
     "right-6",
-    "z-50",
+    zIndex.snackbar,
   );
   const textSize: BaseSize = "xl";
 </script>

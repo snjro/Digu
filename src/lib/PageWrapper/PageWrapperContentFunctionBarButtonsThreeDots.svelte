@@ -6,6 +6,7 @@
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { zIndex } from "$lib/appearanceConfig/zIndex";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
   import BaseDividerHorizontal from "$lib/base/BaseDividerHorizontal.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
@@ -83,7 +84,7 @@
     class={classNames(
       "absolute",
       top(),
-      "z-50",
+      zIndex.threeDotsMenu,
       "p-2",
       "rounded",
       "space-y-2",
