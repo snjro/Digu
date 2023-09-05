@@ -83,7 +83,7 @@ export type Chain = {
   readonly fullName: string;
   readonly chain: string;
   readonly icon?: string;
-  readonly rpc: string[];
+  readonly rpc?: string[];
   readonly faucets: string[];
   readonly nativeCurrency: {
     readonly name: string;
