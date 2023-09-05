@@ -1,16 +1,17 @@
 <script lang="ts" generics="GridRow">
-  import BaseGridFooter from "./BaseGridFooter.svelte";
-
-  import BaseGridFunctionBar from "./BaseGridFunctionBar.svelte";
-
   import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
   import type { ExportFilePrefix } from "@utils/utilsFile";
-  import "ag-grid-community/styles/ag-grid.css";
-  import "ag-grid-community/styles/ag-theme-balham.css";
-  // import "ag-grid-community/styles/ag-theme-balham-dark.css";
-  import type { GridOptions, RowClassParams } from "ag-grid-community";
-  import GridBody from "./GridBody/GridBody.svelte";
-  import { getGridOptions } from "./getGridOptions";
+  import type {
+    FilterChangedEvent,
+    FirstDataRenderedEvent,
+    GridApi,
+    GridColumnsChangedEvent,
+    GridOptions,
+    SortChangedEvent,
+  } from "ag-grid-community";
+  import BaseGridFunctionBar from "./BaseGridFunctionBar.svelte";
+  import GridBody, { setAutoColumnWidth } from "./GridBody/GridBody.svelte";
+  import { ColIdRowSequenceNumber } from "./GridBody/getColumnDefs";
   import type { ColumnDef } from "./types";
 
   export let isFullScreen = false;
@@ -18,30 +19,52 @@
   export let rows: GridRow[];
   export let exportFilePrefix: ExportFilePrefix;
   export let hasMultipulTabs: boolean;
-  export let paramsForGridOptions: {
-    suppressFieldDotNotation: boolean;
-    suppressRowTransform: boolean;
-    suppressMovableColumns: boolean;
-    suppressColumnVirtualisation: boolean;
-    rowSelection: GridOptions["rowSelection"];
-    getRowClass: ((params: RowClassParams) => string) | undefined;
-  } = {
+  const rowHeight: number = 24;
+  let gridOptions: GridOptions<GridRow> = {
+    defaultColDef: {
+      flex: 1,
+      sortable: true,
+      filter: true,
+      editable: false,
+      suppressMenu: false,
+      resizable: true,
+    },
+    defaultColGroupDef: {
+      openByDefault: true,
+      marryChildren: true,
+    },
+    columnHoverHighlight: false,
+    groupHeaderHeight: rowHeight,
+    headerHeight: rowHeight,
+    rowHeight: rowHeight,
     suppressFieldDotNotation: true,
     suppressRowTransform: false,
     suppressMovableColumns: false,
-    suppressColumnVirtualisation: true,
     rowSelection: "multiple",
-    getRowClass: undefined,
-  };
+    suppressColumnVirtualisation: true,
+    pagination: true,
+    paginationAutoPageSize: true,
 
-  let gridOptions: GridOptions<GridRow> = getGridOptions<GridRow>(
-    paramsForGridOptions.suppressFieldDotNotation,
-    paramsForGridOptions.suppressRowTransform,
-    paramsForGridOptions.suppressMovableColumns,
-    paramsForGridOptions.suppressColumnVirtualisation,
-    paramsForGridOptions.rowSelection,
-    paramsForGridOptions.getRowClass,
-  );
+    getRowClass: undefined,
+    onSortChanged: (sortChangeEvent: SortChangedEvent): void => {
+      refreshRowSeqenceNumber(sortChangeEvent.api);
+    },
+    onFilterChanged: (filterChangedEvent: FilterChangedEvent) => {
+      refreshRowSeqenceNumber(filterChangedEvent.api);
+    },
+    onGridColumnsChanged: (
+      gridColumnsChangedEvent: GridColumnsChangedEvent<GridRow>,
+    ) => {
+      setAutoColumnWidth(gridColumnsChangedEvent.columnApi);
+    },
+
+    onFirstDataRendered: (firstDataRenderedEvent: FirstDataRenderedEvent) => {
+      setAutoColumnWidth(firstDataRenderedEvent.columnApi!);
+    },
+  };
+  function refreshRowSeqenceNumber(gridApi: GridApi<GridRow>) {
+    gridApi.refreshCells({ columns: [ColIdRowSequenceNumber] });
+  }
 </script>
 
 <PageWrapperContent isAgGrid {hasMultipulTabs}>
@@ -55,7 +78,6 @@
 
   <div class="flex flex-col h-full" slot="PageWrapperContentBody">
     <GridBody bind:gridOptions {paramColumnDefs} {rows} />
-    <BaseGridFooter {gridOptions} {rows} />
   </div>
 </PageWrapperContent>
 <!-- <style>
