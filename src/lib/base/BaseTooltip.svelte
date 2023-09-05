@@ -13,6 +13,7 @@
 
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { zIndex } from "$lib/appearanceConfig/zIndex";
   import classNames from "classnames";
   import { baseTextSizes } from "./baseSizes";
   export let text: BaseTooltipProps["text"];
@@ -32,7 +33,7 @@
     xPosition === "left" ? "right-full" : "left-full",
     yPosition === "top" ? "bottom-full" : "top-full",
     baseTextSizes[sizeSettings.tooltip],
-    "z-10",
+    zIndex.tooltip,
     "opacity-0",
     "group-hover:opacity-100",
     "transition",

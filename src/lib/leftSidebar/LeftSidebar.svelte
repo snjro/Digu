@@ -2,6 +2,7 @@
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
+  import { zIndex } from "$lib/appearanceConfig/zIndex";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -47,7 +48,7 @@
     "cursor-default",
     $storeNoDbCurrentWidth <= breakPointWidths.sm &&
       classNames("absolute top-0", "left-0"),
-    "z-10",
+    zIndex.leftSidebar,
   )}
   on:click_outside={() => {
     if (

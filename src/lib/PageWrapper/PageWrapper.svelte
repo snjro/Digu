@@ -52,6 +52,7 @@
     type BreakPointWidthKey,
   } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { zIndex } from "$lib/appearanceConfig/zIndex";
   import BaseRadio, {
     type RadioLabelAndValues,
   } from "$lib/base/BaseRadio.svelte";
@@ -183,7 +184,7 @@
           "pl-1.5",
           "pb-1.5",
           colorDefinitions[themeColor][colorSettings.tabSelected].bg,
-          "z-10",
+          zIndex.fullScreen,
         )
       : classNames("flex-auto min-h-0", "h-full w-full"),
     "flex flex-col",
