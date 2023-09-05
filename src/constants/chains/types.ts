@@ -8,10 +8,8 @@ import {
   type FallbackFragment,
 } from "ethers";
 import type { JsonFileAbi } from "./jsonFileTypes";
-// import type { FallbackFragment } from "ethers/types/abi";
 
 export type HexString = `0x${string}`;
-
 export function isHexStrings(value: unknown): value is HexString[] {
   if (
     Array.isArray(value) &&
@@ -34,22 +32,6 @@ export type ConstructorAbiFragment = ConstructorFragment &
 export type FallbackAbiFragment =
   | (FallbackFragment & Pick<FunctionAbiFragment, "stateMutability">)
   | null;
-// export type ErrorAbiFragment = ErrorFragment;
-// export type AbiFragment =
-//   | EventAbiFragment
-//   | FunctionAbiFragment
-//   | ConstructorAbiFragment
-//   | FallbackAbiFragment;
-//   | ErrorAbiFragment;
-
-// export type AbiFragments = {
-//   eventAbiFragments: EventAbiFragment[];
-//   functionAbiFragments: FunctionAbiFragment[];
-//   constructorAbiFragment: ConstructorAbiFragment;
-//   fallbackAbiFragment: FallbackAbiFragment;
-//   // errorAbiFragment: ErrorAbiFragment;
-// };
-//ABI
 export type ContractInterface = Interface;
 //Contract
 export type BaseContract = {
@@ -86,8 +68,6 @@ export type Contract = BaseContract & AdditionalContract;
 //Version
 export type Version = {
   readonly name: VersionName;
-  // eventContracts: Contract[];
-  // allContracts: Contract[];
   readonly contracts: Contract[];
 };
 
