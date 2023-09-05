@@ -11,7 +11,7 @@ type JsonFileAbiFragmentParam = {
     | `string${string}`
     | `uint${string}`
     | `tuple${string}`;
-  readonly internalType?: any; // @TODO: in v6 reduce type
+  readonly internalType?: any;
   readonly components?: ReadonlyArray<JsonFileAbiFragmentParam>;
 };
 type JsonFileAbiFragmentType =

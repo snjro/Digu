@@ -2,7 +2,7 @@
   import BaseButton from "$lib/base/BaseButton.svelte";
 
   function testFunc() {
-    console.log("text"); //TODO remove
+    console.log("text");
   }
 </script>
 

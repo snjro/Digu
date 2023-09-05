@@ -122,20 +122,6 @@ function convertEthersEventToEventLog(
     isHexString(ethersEventLog.transactionHash)
   ) {
     return {
-      //TODO 現在はanonymous Eventlog は「augurv2.Cash.Lognote」にしか存在していない。
-      // これ以外にも対応できたほうが良いが、anonymous Eventlogは
-      // ethersEventにイベント名を保持していないため、イベント名を特定できない問題がある。
-      // コントラクトの出力するイベントにanonymous Eventlogが１つならば、
-      // コントラクトの情報も引数に渡してくればその匿名イベント名を特定できる。
-      // しかし、２つ以上あると匿名イベント名は特定できない。
-      // ２つ以上存在する場合の対応案としては以下↓
-      // １．anonymous Eventlogは対象外とする（テーブルも作らないしイベントログも取得しない。ただし、ABI情報は表示する）
-      // ２．ABIにanonymous Eventlogをもつコントラクトはイベントログテーブルとして
-      // 「コントラクト名_anonymous」を追加作成し、そのコントラクトが出力するすべてのanonymous Eventlogは
-      // そのテーブルに登録する。ただし、この方法は同一コントラクト内に
-      // ２つ以上のanonymous Eventlogが存在すると、異なる項目のレコードが
-      // １テーブルに混在してしまうため、ag-gridに表示できない問題がある。
-
       eventName: ethersEventLog.eventName ?? "LogNote",
       eventSignature: ethersEventLog.eventSignature,
       args: Dexie.deepClone(ethersEventLog.args),
