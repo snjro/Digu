@@ -80,7 +80,7 @@ function getInitialDataOfSyncStatusContract(
     isSyncTarget: true,
     isSyncing: false,
     isAbort: false,
-    fetchedBlockNumber: creationBlockNumber - 1,
+    fetchedBlockNumber: creationBlockNumber,
     creationBlockNumber: creationBlockNumber,
     numOfSyncTargetContract: 1,
     syncStateText: NO_DATA,
