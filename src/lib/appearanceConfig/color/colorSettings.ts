@@ -2,6 +2,7 @@ import type { ColorCategory } from "./colorDefinitions";
 
 type ColorSettings = Record<
   | "main"
+  | "sub"
   | "leftSidebarBorder"
   | "leftSidebarHeader"
   | "leftSidebarBodyBg"
@@ -52,6 +53,7 @@ const colorSub: ColorCategory = "secondary";
 export const colorSettings: ColorSettings = {
   //main
   main: colorMain,
+  sub: colorSub,
   //leftSidebar
   leftSidebarBorder: colorSub,
   leftSidebarHeader: colorSub,

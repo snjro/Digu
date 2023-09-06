@@ -13,6 +13,6 @@ export async function load() {
         "userSetting01",
         "selectedChainName",
       );
-    goto(`/${selectedChainName}`);
+    await goto(`/${selectedChainName}`);
   }
 }

@@ -56,6 +56,17 @@ export const buttonHeight: { [key in BaseSize]: `h-${string}` } = {
   "4xl": "h-12",
   "5xl": "h-14",
 };
+export const spinnerSize: { [key in BaseSize]: `h-${number} w-${number}` } = {
+  xs: "h-6 w-6",
+  sm: "h-7 w-7",
+  md: "h-8 w-8",
+  lg: "h-9 w-9",
+  xl: "h-9 w-9",
+  "2xl": "h-10 w-10",
+  "3xl": "h-11 w-11",
+  "4xl": "h-12 w-12",
+  "5xl": "h-14 w-14",
+};
 
 export const baseShadowSizes: { [key in BaseSize]: string } = {
   xs: "shadow-sm",

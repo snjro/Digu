@@ -22,3 +22,4 @@ export const storeNoDbSnackBarInitialValue: Readonly<BaseSnackbarProps> = {
 export const storeNoDbSnackBar: Writable<BaseSnackbarProps> = writable({
   ...storeNoDbSnackBarInitialValue,
 });
+export const storeNodbShowLoader: Writable<boolean> = writable(false);
