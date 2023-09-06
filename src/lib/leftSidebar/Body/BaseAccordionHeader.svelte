@@ -84,7 +84,7 @@
       ? colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis
       : undefined;
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 </script>
 
 <div

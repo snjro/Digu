@@ -43,7 +43,7 @@
   export let colorCategoryBg: ColorCategory | undefined = undefined;
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   let customClass: string;
   $: customClass =

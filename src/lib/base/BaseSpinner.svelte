@@ -14,7 +14,7 @@
   export let thumbColor: ColorCategory = "interactive";
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   $: bgColor = getColorHexWithSharpFromTailwindColor(
     colorDefinitions[themeColor][trackColor].bg,

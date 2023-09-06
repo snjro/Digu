@@ -29,7 +29,7 @@
   export let suffixIcons: BaseAccordionHeaderSuffixIcon[];
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   let frontColorCategory: ColorCategory;
   $: frontColorCategory = getFrontColorCategory(isSelected);

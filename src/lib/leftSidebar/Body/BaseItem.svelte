@@ -77,7 +77,7 @@
   $: frontColorCategory = getFrontColorCategory(isSelected);
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
   $: bgColor =
     (isSelected || hoverType !== undefined) &&
     colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis;

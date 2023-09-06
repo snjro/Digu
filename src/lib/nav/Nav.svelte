@@ -11,7 +11,7 @@
   import SyncStatus from "./syncStatus/SyncStatus.svelte";
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   let navClass: string;
   $: navClass = classNames(

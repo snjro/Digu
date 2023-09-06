@@ -78,7 +78,7 @@
   };
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   let customClass: string;
   $: customClass =

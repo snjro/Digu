@@ -116,7 +116,7 @@
     dispatch("mouseleave", event.detail);
   }
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   $: textColor = (): string => {
     let textColor: string;

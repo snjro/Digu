@@ -1,14 +1,14 @@
 <script lang="ts">
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import classNames from "classnames";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import classNames from "classnames";
 
   export let hoverEffect: boolean = true;
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   $: hoverBgColor = (): `hover:bg-${string}` | undefined => {
     if (hoverEffect) {

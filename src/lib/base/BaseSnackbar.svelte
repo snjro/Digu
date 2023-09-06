@@ -48,7 +48,7 @@
   );
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   const positionStyle: string = classNames(
     "fixed",

@@ -15,7 +15,7 @@
   export let isTopLevelItem: boolean;
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   let colorCategory: ColorCategory;
   // $: colorCategory = getFrontColorCategory(isSelected);

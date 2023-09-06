@@ -19,7 +19,7 @@
   export let colorCategory: ColorCategory;
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   let showChildren: boolean = false;
 

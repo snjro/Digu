@@ -12,7 +12,7 @@
   import classNames from "classnames";
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
   const colorCategory: ColorCategory = colorSettings.errorPage;
   const errorDetails: { title: string; value: string | undefined }[] = [
     { title: "Status", value: $page.status.toString() },

@@ -57,7 +57,7 @@
   export let fontWeight: BaseLabelProps["fontWeight"] = "font-normal";
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   function setIconProps(iconProps: BaseIconProps | undefined): void {
     if (iconProps) {

@@ -1,11 +1,11 @@
 <script lang="ts">
-  import classNames from "classnames";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
   import type { BaseSize } from "../baseSizes";
   export let size: BaseSize;
   export let colorCategoryFront: ColorCategory;
@@ -14,7 +14,7 @@
   export let isDynamicPointer: boolean = false;
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   const pointerHeights: { [key in BaseSize]: string } = {
     xs: "h-1",

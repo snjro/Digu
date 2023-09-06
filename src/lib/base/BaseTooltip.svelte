@@ -20,7 +20,7 @@
   export let xPosition: BaseTooltipProps["xPosition"] = "right";
   export let yPosition: BaseTooltipProps["yPosition"] = "top";
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   $: textClass = classNames(
     "whitespace-nowrap",

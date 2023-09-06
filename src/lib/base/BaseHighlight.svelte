@@ -19,7 +19,7 @@
   export let code: string;
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   let highlightStyle: string;
   $: highlightStyle =

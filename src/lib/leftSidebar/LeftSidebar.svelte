@@ -13,7 +13,7 @@
   import Header from "./Header/Header.svelte";
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   function clickOutside(node: HTMLDivElement): ActionReturn {
     const handleClick = (event: Event) => {

@@ -3,19 +3,19 @@
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import classNames from "classnames";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import type { BaseTableHeaderCellProps } from "./BaseTableHeaderCell.svelte";
-  import BaseTableRow from "./BaseTableRow.svelte";
-  import BaseTableHeaderCell from "./BaseTableHeaderCell.svelte";
-  import SequenceHeaderCell from "./SequenceHeaderCell.svelte";
-  import type { BaseSize } from "../baseSizes";
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import {
     getScrollbarStyle,
     type ScrollbarStyle,
   } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
+  import type { BaseSize } from "../baseSizes";
+  import type { BaseTableHeaderCellProps } from "./BaseTableHeaderCell.svelte";
+  import BaseTableHeaderCell from "./BaseTableHeaderCell.svelte";
+  import BaseTableRow from "./BaseTableRow.svelte";
+  import SequenceHeaderCell from "./SequenceHeaderCell.svelte";
 
   export let tableHeaderCellProps: BaseTableHeaderCellProps[];
   export let borderX: boolean = false;
@@ -25,7 +25,7 @@
   export let textSize: BaseSize;
   export let numOfTableRows: number;
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   const colorCategoryBorder: ColorCategory =
     colorSettings.itemMemberTableBorder;

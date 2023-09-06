@@ -1,17 +1,17 @@
 <script lang="ts">
-  import classNames from "classnames";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import {
     colorDefinitions,
     getColorHexWithSharpFromTailwindColor,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import BaseProgressCircleDetails from "./BaseProgressCircleDetails.svelte";
-  import { changeSize, type BaseSize } from "../baseSizes";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { getProgressRate } from "../BaseProgressBarForBlockNumber/progressRate";
   import type { SyncStateTextLabelProps } from "$lib/common/CommonSyncStateText.svelte";
+  import type { ThemeColor } from "@db/dbTypes";
+  import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
+  import { getProgressRate } from "../BaseProgressBarForBlockNumber/progressRate";
+  import { changeSize, type BaseSize } from "../baseSizes";
+  import BaseProgressCircleDetails from "./BaseProgressCircleDetails.svelte";
   import BaseProgressCircleSyncStatus from "./BaseProgressCircleSyncStatus.svelte";
 
   export let startValue: number;
@@ -58,7 +58,7 @@
   let circumference: number;
   $: circumference = 2 * Math.PI * radiusMinusStroke;
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
   let progressRate: number;
   $: progressRate = getProgressRate(startValue, goalValue, currentValue);
   let offset: number;

@@ -164,7 +164,7 @@
   }
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   document.addEventListener("keydown", (event: KeyboardEvent) => {
     if (isFullScreen && event.key == "Escape") {
