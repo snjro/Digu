@@ -35,7 +35,8 @@ type SizeSettings = Record<
   | "dialogHeader"
   | "dialogBodyContent"
   | "dialogFooter"
-  | "tooltip",
+  | "tooltip"
+  | "loadingSpinner",
   BaseSize
 >;
 const sizeLeftSizebar: BaseSize = "lg";
@@ -46,6 +47,7 @@ const sizeAbi: BaseSize = "sm";
 const sizeContent: BaseSize = "md";
 const sizeDialog: BaseSize = "md";
 const sizeTooltip: BaseSize = "sm";
+const sizeLoadingSpinner: BaseSize = "5xl";
 export const sizeSettings: SizeSettings = {
   // leftSidebar
   leftSidebarLogo: changeSize(sizeLeftSizebar, 2),
@@ -90,4 +92,6 @@ export const sizeSettings: SizeSettings = {
   dialogFooter: changeSize(sizeDialog, -1),
   // tooltip
   tooltip: changeSize(sizeTooltip, 0),
+  // loadingSpinner
+  loadingSpinner: changeSize(sizeLoadingSpinner, 0),
 };
