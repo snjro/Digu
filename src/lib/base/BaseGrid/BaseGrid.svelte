@@ -44,7 +44,8 @@
     suppressColumnVirtualisation: true,
     pagination: true,
     paginationAutoPageSize: true,
-
+    overlayLoadingTemplate: "Loading...",
+    overlayNoRowsTemplate: "No data",
     getRowClass: undefined,
     onSortChanged: (sortChangeEvent: SortChangedEvent): void => {
       refreshRowSeqenceNumber(sortChangeEvent.api);
