@@ -19,7 +19,7 @@
   export let headerText: string | undefined;
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   const headerSize: BaseSize = sizeSettings.dialogHeader;
   const headerColor: ColorCategory = colorSettings.dialogHeader;

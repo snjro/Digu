@@ -11,7 +11,7 @@
   export let gridTrack: string;
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 </script>
 
 <div

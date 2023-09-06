@@ -4,8 +4,8 @@
     getColorHexWithSharpFromTailwindColor,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import classNames from "classnames";
   import { baseTextHeight, type BaseSize } from "$lib/base/baseSizes";
+  import classNames from "classnames";
 
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -35,7 +35,7 @@
   };
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   $: colorHexWithSharp = getColorHexWithSharpFromTailwindColor(
     colorDefinitions[themeColor][colorCategoryProgress].bg,

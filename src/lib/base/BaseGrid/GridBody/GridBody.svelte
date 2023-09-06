@@ -44,7 +44,6 @@
   import "./gridBodyStyle.css";
   // import "ag-grid-community/styles/ag-theme-balham-dark.css";
   import { baseTextSizesPixel, type BaseSize } from "$lib/base/baseSizes";
-  import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { ColumnDef } from "../types";
@@ -63,7 +62,7 @@
 
   $: isThemeLight = $storeUserSettings.themeColor === "light";
   $: colorDefs = getColorDefinitionsForGrid(
-    $storeUserSettings.themeColor as ThemeColor,
+    $storeUserSettings.themeColor,
     colorSettings.gridHeader,
     colorSettings.gridRow,
   );

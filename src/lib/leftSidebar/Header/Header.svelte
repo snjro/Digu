@@ -13,7 +13,7 @@
   import Logo from "./Logo.svelte";
   import SelectChain from "./SelectChain.svelte";
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 </script>
 
 <div

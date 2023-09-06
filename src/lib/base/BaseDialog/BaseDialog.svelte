@@ -15,7 +15,7 @@
   export let headerText: string | undefined;
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   let shadowStyle: string;
   $: shadowStyle = classNames(

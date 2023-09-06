@@ -33,7 +33,7 @@
     | undefined = undefined;
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   let scrollStyle: string;
   $: scrollStyle = classNames(

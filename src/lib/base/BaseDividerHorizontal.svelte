@@ -10,7 +10,7 @@
   export let colorCategory: ColorCategory;
   export let hidden: boolean = false;
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 </script>
 
 <div

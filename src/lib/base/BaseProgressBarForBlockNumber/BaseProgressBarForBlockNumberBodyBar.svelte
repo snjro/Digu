@@ -1,13 +1,13 @@
 <script lang="ts">
-  import classNames from "classnames";
-  import type { BaseSize } from "$lib/base/baseSizes";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
   import {
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import type { BaseSize } from "$lib/base/baseSizes";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import classNames from "classnames";
   import { getProgressRateForLabel } from "./progressRate";
 
   export let progressRate: number;
@@ -19,7 +19,7 @@
   export let shadow: boolean = true;
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   $: barWidth = isColoredBar ? progressRate : 100 - progressRate;
   $: roundedStyle = (): `rounded${string}` => {

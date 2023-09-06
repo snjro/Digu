@@ -76,7 +76,7 @@
     "5xl": toggleValue ? "translate-x-12" : "-translate-x-12",
   };
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   $: trackClass = classNames(
     trackSizes[size],

@@ -16,11 +16,11 @@
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import classNames from "classnames";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import type { BaseSize } from "../baseSizes";
+  import classNames from "classnames";
   import BaseLabel from "../BaseLabel.svelte";
+  import type { BaseSize } from "../baseSizes";
 
   export let text: BaseTableBodyCellProps["text"] = undefined;
   export let colorCategoryFront: BaseTableBodyCellProps["colorCategoryFront"] =
@@ -35,7 +35,7 @@
   export let showBorderRight: BaseTableBodyCellProps["showBorderRight"] = false;
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   const celldAlign = ():
     | "justify-start"

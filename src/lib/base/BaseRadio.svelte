@@ -41,7 +41,7 @@
   const dispatch = createEventDispatcher();
 
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
   const roundedSize = (
     roundPosition: "tl" | "tr" | "l" | "r",
   ): `rounded-${string}` => {

@@ -16,7 +16,7 @@
   export let indeterminate: boolean = false;
   export let disabled: boolean = false;
   let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor as ThemeColor;
+  $: themeColor = $storeUserSettings.themeColor;
 
   $: {
     const index = group.indexOf(value);
