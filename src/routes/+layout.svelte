@@ -4,7 +4,6 @@
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
   import BaseSnackbar from "$lib/base/BaseSnackbar.svelte";
-  import BaseSpinner from "$lib/base/BaseSpinner.svelte";
   import Breadcrumb from "$lib/breadcrumb/Breadcrumb.svelte";
   import LeftSidebar from "$lib/leftSidebar/LeftSidebar.svelte";
   import Nav from "$lib/nav/Nav.svelte";
@@ -14,6 +13,7 @@
   import { getScreenWidth } from "@utils/utilsDom";
   import classNames from "classnames";
   import type { LoadDataRoot } from "./+layout";
+  import LoadingSpinner from "./LoadingSpinner.svelte";
 
   export let data: LoadDataRoot;
 
@@ -41,15 +41,17 @@
 </svelte:head>
 <div
   class={classNames(
-    "flex flex-row",
+    "flex",
+    "flex-row",
     "h-screen w-screen",
     colorDefinitions[themeColor][colorSettings.main].bg,
     colorDefinitions[themeColor][colorSettings.main].text,
   )}
 >
   {#if data.initializing}
-    <BaseSpinner size="3xl" />
+    <LoadingSpinner showLoader={data.initializing} />
   {:else}
+    <LoadingSpinner />
     <LeftSidebar />
     <div
       class={classNames(

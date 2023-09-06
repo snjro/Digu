@@ -8,6 +8,7 @@
   import { TARGET_CHAINS } from "@constants/chains/_index";
   import type { Chain, ChainName } from "@constants/chains/types";
   import { DbSettingsDataHandlers } from "@db/dbSettings";
+  import { storeNodbShowLoader } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
 
   const items: BaseSelectProps["items"] = TARGET_CHAINS.map(
@@ -19,6 +20,7 @@
     },
   );
   async function change(event: Event) {
+    $storeNodbShowLoader = true;
     //update DB data and stored value
     const chaingedChainName: ChainName = (event.target as HTMLInputElement)
       .value;
@@ -28,7 +30,8 @@
     );
     //jump to home
     const rootUrl = `${location.origin}/${chaingedChainName}`;
-    goto(rootUrl);
+    await goto(rootUrl);
+    $storeNodbShowLoader = false;
   }
 </script>
 
