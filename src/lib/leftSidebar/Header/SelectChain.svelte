@@ -22,14 +22,14 @@
   async function change(event: Event) {
     $storeNodbShowLoader = true;
     //update DB data and stored value
-    const chaingedChainName: ChainName = (event.target as HTMLInputElement)
+    const changedChainName: ChainName = (event.target as HTMLInputElement)
       .value;
     await DbSettingsDataHandlers.updateDbItemUserSettings(
       "selectedChainName",
-      chaingedChainName,
+      changedChainName,
     );
     //jump to home
-    const rootUrl = `${location.origin}/${chaingedChainName}`;
+    const rootUrl = `${location.origin}/${changedChainName}`;
     await goto(rootUrl);
     $storeNodbShowLoader = false;
   }
