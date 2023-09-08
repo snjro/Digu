@@ -1,22 +1,22 @@
-import MyWorker from "@db/db.worker?worker";
+import DbWorker from "@db/db.worker?worker";
 import type { DbWorkerMessage } from "@db/db.worker";
 import { myLogger } from "@utils/logger";
 
 export async function initializeDB(): Promise<void> {
   await Promise.all([
-    callDbWorker("initializeDbSettings"),
-    callDbWorker("initializeDBSyncStatus"),
+    initializeDbByWorker("initializeDbSettings"),
+    initializeDbByWorker("initializeDBSyncStatus"),
   ]);
 }
 
-async function callDbWorker(
+async function initializeDbByWorker(
   targetFunctionName: DbWorkerMessage["targetFunctionName"],
 ): Promise<void> {
   return new Promise((resolve) => {
-    let myWorker: Worker = new MyWorker();
+    let dbWorker: Worker = new DbWorker();
 
-    myWorker.addEventListener("message", (message: MessageEvent<string>) => {
-      myWorker.terminate();
+    dbWorker.addEventListener("message", (message: MessageEvent<string>) => {
+      dbWorker.terminate();
       myLogger.info(message.data);
       return resolve();
     });
@@ -25,6 +25,6 @@ async function callDbWorker(
       targetFunctionName: targetFunctionName,
     };
 
-    myWorker.postMessage(dbWorkerMessage);
+    dbWorker.postMessage(dbWorkerMessage);
   });
 }
