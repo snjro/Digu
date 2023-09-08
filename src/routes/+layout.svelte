@@ -14,7 +14,6 @@
   import classNames from "classnames";
   import type { LoadDataRoot } from "./+layout";
   import LoadingSpinner from "./LoadingSpinner.svelte";
-
   export let data: LoadDataRoot;
 
   $: {
@@ -39,18 +38,18 @@
 <svelte:head>
   <title>Contract Viewer</title>
 </svelte:head>
-<div
-  class={classNames(
-    "flex",
-    "flex-row",
-    "h-screen w-screen",
-    colorDefinitions[themeColor][colorSettings.main].bg,
-    colorDefinitions[themeColor][colorSettings.main].text,
-  )}
->
-  {#if data.initializing}
-    <LoadingSpinner showLoader={data.initializing} />
-  {:else}
+{#if data.initializing}
+  <LoadingSpinner showLoader={true} />
+{:else}
+  <div
+    class={classNames(
+      "flex",
+      "flex-row",
+      "h-screen w-screen",
+      colorDefinitions[themeColor][colorSettings.main].bg,
+      colorDefinitions[themeColor][colorSettings.main].text,
+    )}
+  >
     <LoadingSpinner />
     <LeftSidebar />
     <div
@@ -77,5 +76,5 @@
         <BaseSnackbar />
       </div>
     </div>
-  {/if}
-</div>
+  </div>
+{/if}
