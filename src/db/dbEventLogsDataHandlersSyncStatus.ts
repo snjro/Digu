@@ -152,12 +152,19 @@ export async function updateDbItemSyncStatus<
   key: T,
   newValue: SyncStatusContract[T],
 ): Promise<void> {
+  await updateDbRecordSyncStatus(dbEventLogs, contractName, {
+    [key]: newValue,
+  });
+}
+
+export async function updateDbRecordSyncStatus(
+  dbEventLogs: DbEventLogs,
+  contractName: ContractName,
+  newSyncStatusContract: Partial<SyncStatusContract>,
+): Promise<void> {
   const contractIdentifier: ContractIdentifier = {
     ...dbEventLogs.versionIdentifier,
     contractName: contractName,
-  };
-  const newSyncStatusContract: Partial<SyncStatusContract> = {
-    [key]: newValue,
   };
   await dbEventLogs
     .transaction("rw", dbEventLogs.table(tableNameSyncStatus), async () => {
