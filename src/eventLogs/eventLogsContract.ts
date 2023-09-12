@@ -9,7 +9,9 @@ import type {
   Contract,
   ContractName,
   Project,
+  ProjectName,
   Version,
+  VersionName,
 } from "@constants/chains/types";
 import {
   getAndUpdateLatestBlockNumber,
@@ -62,7 +64,7 @@ export async function fetchEventLogsContract(
     targetContract.contractInterface.fragments,
     nodeProvider,
   );
-
+  myLogger.error(targetContract.contractInterface.fragments);
   const creationBlockNumber: number = targetContract.creation.blockNumber;
 
   let doLoop: boolean = true;
@@ -98,7 +100,7 @@ export async function fetchEventLogsContract(
     };
 
     try {
-      myLogger.start("Fetch event logs within target blocks.", {
+      myLogger.start("Fetch eventLogs. targetBlocks:", {
         fetchingTarget: fetchingTargetInfo,
       });
       const ethersEventLogs: EthersEventLog[] = await getEthersEventLogs(
@@ -115,14 +117,11 @@ export async function fetchEventLogsContract(
         toBlockNumber,
       );
       if (ethersEventLogs.length) {
-        myLogger.success(
-          "Event logs was successfully fetched & registered to DB.",
-          {
-            fetchingTarget: fetchingTargetInfo,
-          },
-        );
+        myLogger.success("Fetch eventLogs. Fetched & registered to DB:", {
+          fetchingTarget: fetchingTargetInfo,
+        });
       } else {
-        myLogger.info("No event logs within target blocks.", {
+        myLogger.info("Fetch eventLogs. No logs. targetBlocks:", {
           fetchingTarget: fetchingTargetInfo,
         });
       }
@@ -130,18 +129,15 @@ export async function fetchEventLogsContract(
     } catch (error) {
       errorCount++;
 
-      myLogger.error(
-        "Error occurred in fetching event logs or registering those logs to DB.",
-        {
-          errorCount: `${errorCount}/${maxErrorCount}`,
-          fetchingTarget: fetchingTargetInfo,
-          errorObject: error,
-        },
-      );
+      myLogger.error("Fetch eventLogs. Error occurred:", {
+        errorCount: `${errorCount}/${maxErrorCount}`,
+        fetchingTarget: fetchingTargetInfo,
+        errorObject: error,
+      });
     }
     if (errorCount > maxErrorCount) {
       myLogger.fatal(
-        "Error count exceeded the limit. Start to abort sync process.",
+        "Fetch EventLogs. Error count exceeded the limit. Start to abort:",
         {
           errorCount: `${errorCount}/${maxErrorCount}`,
           fetchingTarget: fetchingTargetInfo,
@@ -187,7 +183,7 @@ export async function beginEventListening(
     ...dbEventLogs.versionIdentifier,
     contractName: targetContract.name,
   };
-  myLogger.start(`Check if event listenging can begin`, {
+  myLogger.info(`Check if event listenging can begin`, {
     contract: contractIdentifier,
   });
 
@@ -223,10 +219,12 @@ export async function beginEventListening(
       nodeProvider,
     );
   } else {
-    myLogger.info(
-      `Event listening can begin. Start to listen events of the contract.`,
-      { contract: contractIdentifier },
-    );
+    myLogger.info("Event listener can begin.", {
+      contract: contractIdentifier,
+    });
+    const logStartup: string = "Event listener startup";
+    myLogger.start(logStartup, { contract: contractIdentifier });
+
     //start event listenning
     await listenContractEvents(
       dbEventLogs,
@@ -234,9 +232,7 @@ export async function beginEventListening(
       nodeProvider,
       ethersContract,
     );
-    myLogger.info(`Event listening startup complete.`, {
-      contract: contractIdentifier,
-    });
+    myLogger.finished(logStartup, { contract: contractIdentifier });
   }
 }
 
@@ -246,23 +242,34 @@ async function listenContractEvents(
   nodeProvider: NodeProvider,
   ethersContract: EthersContract,
 ): Promise<void> {
+  type TargetListenerContractInfo = {
+    chainName: ChainName;
+    projectName: ProjectName;
+    versionName: VersionName;
+    contractName: ContractName;
+  };
+  const targetListenerContractInfo: TargetListenerContractInfo = {
+    chainName: dbEventLogs.versionIdentifier.chainName,
+    projectName: dbEventLogs.versionIdentifier.projectName,
+    versionName: dbEventLogs.versionIdentifier.versionName,
+    contractName: targetContract.name,
+  };
   await watchAbort(dbEventLogs, targetContract, ethersContract);
 
   const listener: Listener = async (
     ethersEventLog: EthersEventLog,
   ): Promise<void> => {
-    const listenedEventInfo: {
-      contractName: ContractName;
+    const listenedEventInfo: TargetListenerContractInfo & {
       eventName: string;
       blocknumber: number;
       logIdx: number;
     } = {
-      contractName: targetContract.name,
+      ...targetListenerContractInfo,
       eventName: ethersEventLog.eventName,
       blocknumber: ethersEventLog.blockNumber,
       logIdx: ethersEventLog.index,
     };
-    myLogger.info("Event listened.", listenedEventInfo);
+    myLogger.success("Event listener fetched a eventLog.", listenedEventInfo);
     await registerEventLogsAndBlockTimes(
       dbEventLogs,
       targetContract,
@@ -271,7 +278,7 @@ async function listenContractEvents(
       ethersEventLog.blockNumber,
     );
     myLogger.success(
-      "Listened event was successfully fetched & registered to DB.",
+      "Event listener registered a eventLog to DB",
       listenedEventInfo,
     );
   };
@@ -298,10 +305,12 @@ async function watchAbort(
       contractName: contractName,
     }).isAbort;
     if (isAbort) {
-      myLogger.info(`Abort listening. contract: ${contractName}`);
+      const log: string = `Abort listening events. contract: ${contractName}`;
+      myLogger.start(log);
       window.clearInterval(intervalId);
       ethersContract.removeAllListeners();
       await stopSyncingInContract(dbEventLogs, contractName);
+      myLogger.finished(log);
     }
   }, abortWatchIntervalMs);
 }

@@ -65,5 +65,5 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
     }
   }
   await Promise.all(promiseFetchAndInsertEthersEvents);
-  myLogger.info(`Terminated fetch event logs. Chain: ${targetChain.name}`);
+  myLogger.finished(`Terminated fetch event logs. Chain: ${targetChain.name}`);
 }

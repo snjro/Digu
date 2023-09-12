@@ -17,7 +17,7 @@ export async function startDbWorker<T extends TargetFunctionName>(
       "message",
       (message: MessageEvent<DbWorkerResult<T>>) => {
         dbWorker.terminate();
-        myLogger.info(message.data.log);
+        myLogger.finished(message.data.log);
         return resolve(message.data.value);
       },
     );

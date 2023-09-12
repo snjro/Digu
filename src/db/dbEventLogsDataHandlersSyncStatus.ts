@@ -23,21 +23,25 @@ export async function startSyncingInChain(chainName: ChainName): Promise<void> {
 export async function startAbortingInChain(
   chainName: ChainName,
 ): Promise<void> {
-  myLogger.start(`Abort sync process. Chain: ${chainName}`);
+  const log = `Update syncStaus for aborting. Chain: ${chainName}`;
+  myLogger.start(log);
   await setSyncStatusInChain(chainName, "isSyncing", true, "isAbort", true);
+  myLogger.finished(log);
 }
 export async function stopSyncingInChain(chainName: ChainName): Promise<void> {
-  myLogger.start(`Stop sync process. Chain: ${chainName}`);
+  const log: string = `Update syncStatus for stopping. Chain: ${chainName}`;
+  myLogger.start(log);
   await setSyncStatusInChain(chainName, "isSyncing", true, "isAbort", false);
   await setSyncStatusInChain(chainName, "isSyncing", true, "isSyncing", false);
-  myLogger.success(`Stopped sync process. Chain: ${chainName}`);
+  myLogger.finished(log);
 }
 export async function stopSyncingInContract(
   dbEventLogs: DbEventLogs,
   contractName: ContractName,
 ): Promise<void> {
   const promiseUpdate: Promise<void>[] = [];
-  myLogger.start(`Stop sync process. Contract: ${contractName}`);
+  const log: string = `Update syncStatus for stopping. Contract: ${contractName}`;
+  myLogger.start(log);
   promiseUpdate.push(
     updateDbItemSyncStatus(dbEventLogs, contractName, "isSyncing", false),
   );
@@ -45,7 +49,7 @@ export async function stopSyncingInContract(
     updateDbItemSyncStatus(dbEventLogs, contractName, "isAbort", false),
   );
   await Promise.all(promiseUpdate);
-  myLogger.success(`Stopped sync process. Contract: ${contractName}`);
+  myLogger.finished(log);
 }
 async function setSyncStatusInChain<
   T extends keyof SyncStatusContract,

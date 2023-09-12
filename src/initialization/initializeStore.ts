@@ -53,27 +53,16 @@ export async function initializeStore(): Promise<void> {
 async function InitializeStoreChainStatus(chainName: ChainName): Promise<void> {
   const chainStatus: ChainStatus = await getDbRecordChainStatus(chainName);
   storeChainStatus.updateState(chainName, chainStatus);
-  myLogger.info(`Initialized "storeChainStatus"`, {
-    chainName: chainName,
-    storeChainStatus: get(storeChainStatus),
-  });
 }
 async function InitializeStoreRpcSettings(chainName: ChainName): Promise<void> {
   const rpcSetting: RpcSetting =
     await DbSettingsDataHandlers.getDbRecordRpcSettings(chainName);
   storeRpcSettings.updateState(chainName, rpcSetting);
-  myLogger.info(`Initialized "storeRpcSetting"`, {
-    chainName: chainName,
-    storeRpcSettings: get(storeRpcSettings),
-  });
 }
 async function initializeStoreUserSettings(): Promise<void> {
   const userSettings: UserSetting =
     await DbSettingsDataHandlers.getDbRecordUserSettings("userSetting01");
   storeUserSettings.updateState(userSettings);
-  myLogger.info(`Initialized "storeUserSetting"`, {
-    storeUserSettings: get(storeUserSettings),
-  });
 }
 async function InitializeStoreSyncStatus(
   dbEventLogs: DbEventLogs,
@@ -91,9 +80,4 @@ async function InitializeStoreSyncStatus(
     );
 
   storeSyncStatus.updateState(contractIdentifier, syncStatusContract);
-  myLogger.info(`Initialized "storeSyncStatus"`, {
-    ...dbEventLogs.versionIdentifier,
-    contractName: contractName,
-    storeSyncStatus: get(storeSyncStatus),
-  });
 }
