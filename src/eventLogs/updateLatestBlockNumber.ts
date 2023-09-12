@@ -64,6 +64,8 @@ export async function startUpdateLatestBlockNumber(
   }, rpcSetting.blockIntervalMs);
 }
 function stopUpdateLatestBlockNumber(intervalId: number | undefined) {
+  const log: string = `Stop ${functionName}(). intervalId=${intervalId}`;
+  myLogger.start(log);
   window.clearInterval(intervalId);
-  myLogger.info(`Stopped ${functionName}(). intervalId=${intervalId}`);
+  myLogger.finished(log);
 }

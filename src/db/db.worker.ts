@@ -32,7 +32,8 @@ addEventListener(
     const targetFunctionName: TargetFunctionName =
       event.data.targetFunctionName;
 
-    myLogger.start(`DbWorker start: ${targetFunctionName}`);
+    const log: string = `DbWorker: ${targetFunctionName}`;
+    myLogger.start(log);
 
     const resultValue: DbWorkerResultValue<TargetFunctionName> =
       await executeTargetFunction(
@@ -41,7 +42,7 @@ addEventListener(
       );
 
     postMessage({
-      log: `DbWorker end: ${targetFunctionName}`,
+      log: log,
       value: resultValue,
     });
   },
