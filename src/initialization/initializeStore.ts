@@ -11,13 +11,11 @@ import type {
 import { getDbRecordSyncStatusContract } from "@db/dbEventLogsDataHandlersSyncStatus";
 import type { ChainName, ContractName } from "@constants/chains/types";
 import { getDbRecordChainStatus } from "@db/dbChainStatusDataHandlers";
-import { myLogger } from "@utils/logger";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { extractEventContracts } from "@utils/utilsEthers";
-import { get } from "svelte/store";
 import { DbSettingsDataHandlers } from "@db/dbSettings";
 
 export async function initializeStore(): Promise<void> {
