@@ -6,7 +6,7 @@
   import BaseIcon from "$lib/base/BaseIcon.svelte";
   import BaseInput from "$lib/base/BaseInput.svelte";
   import { changeSize } from "$lib/base/baseSizes";
-  import type { ChainName } from "@constants/chains/types";
+  import type { Chain } from "@constants/chains/types";
   import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
   import { DbSettingsDataHandlers } from "@db/dbSettings";
   import type { NodeStatus, RpcInputType } from "@db/dbTypes";
@@ -15,6 +15,7 @@
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getNodeProvider } from "@utils/utilsEthers";
+  import { getTargetChain } from "@utils/utlisDb";
   import classNames from "classnames";
   import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
   import type { HelperTextState } from "./settings/rpcConfig/RpcConfigChanger.svelte";
@@ -37,21 +38,22 @@
   };
   $: {
     if (targetChainName) {
-      updateRpc(targetChainName);
+      const targetChain: Chain = getTargetChain({ chainName: targetChainName });
+      updateRpc(targetChain);
     }
   }
   async function updateRpc(
-    chainName: ChainName,
+    targetChain: Chain,
     newRpc: string = rpc,
   ): Promise<void> {
     await DbSettingsDataHandlers.updateDbItemRpcSettings(
-      chainName,
+      targetChain.name,
       "rpc",
       newRpc,
     );
 
     //By calling "getNodeProvider", nodeStatus is updated
-    await getNodeProvider(targetChainName, newRpc);
+    await getNodeProvider(targetChain, newRpc);
   }
   async function focusRpc(): Promise<void> {
     if (nodeStatus === "SUCCESS") {
@@ -60,7 +62,8 @@
   }
   async function blurRpc(event: Event): Promise<void> {
     const newRpc: string = (event.target as HTMLInputElement).value;
-    await updateRpc(targetChainName, newRpc);
+    const targetChain: Chain = getTargetChain({ chainName: targetChainName });
+    await updateRpc(targetChain, newRpc);
   }
   let inputType: RpcInputType;
   $: inputType = $storeRpcSettings[targetChainName].inputType;

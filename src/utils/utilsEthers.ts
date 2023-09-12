@@ -13,11 +13,12 @@ import { get } from "svelte/store";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import {
   JsonRpcProvider,
-  type Network,
+  Network,
   WebSocketProvider,
   type Contract as EthersContract,
   type EventLog,
   type Log,
+  type JsonRpcApiProviderOptions,
 } from "ethers";
 export type AbiFormatType = "json" | "full" | "minimal";
 
@@ -32,42 +33,63 @@ export function extractEventContracts(targetContracts: Contract[]): Contract[] {
 export type NodeProvider = JsonRpcProvider | WebSocketProvider;
 
 export async function getNodeProvider(
-  chainName: ChainName,
+  targetChain: Chain,
   rpc: string,
 ): Promise<NodeProvider | undefined> {
   const httpProtocols: string[] = ["http:", "https:"];
   const webSoketProtocols: string[] = ["ws:", "wss:"];
   const url: URL | undefined = getUrlObject(rpc);
+
   let nodeProvider: NodeProvider | undefined = undefined;
   let nodeStatus: NodeStatus = "CONNECTING";
-  await updateDbItemChainStatus(chainName, "nodeStatus", nodeStatus);
+  await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
   if (url === undefined) {
     nodeStatus = "INVALID_URL";
   } else if ([...httpProtocols, ...webSoketProtocols].includes(url.protocol)) {
+    const targetNetwork: Network = Network.from(targetChain.chainId);
     if (httpProtocols.includes(url.protocol)) {
-      nodeProvider = new JsonRpcProvider(rpc);
+      // add the options to avoid the error `Too many eth_getLogs methods in the batch`
+      // ref: https://github.com/ethers-io/ethers.js/discussions/4130#discussioncomment-6126545
+      const jsonRpcApiProviderOptions: JsonRpcApiProviderOptions = {
+        batchMaxSize: 1,
+        staticNetwork: targetNetwork,
+      };
+      nodeProvider = new JsonRpcProvider(
+        rpc,
+        undefined,
+        jsonRpcApiProviderOptions,
+      );
     } else {
-      nodeProvider = new WebSocketProvider(rpc);
+      nodeProvider = new WebSocketProvider(rpc, targetNetwork);
     }
     try {
-      const targetChain: Chain = getTargetChain({
-        chainName: get(storeUserSettings).selectedChainName.toString(),
-      });
-      const network: Network = await nodeProvider.getNetwork();
-      if (network.chainId === BigInt(targetChain.chainId)) {
+      const providedNetwork: Network = await nodeProvider.getNetwork();
+      if (providedNetwork.chainId === targetNetwork.chainId) {
         nodeStatus = "SUCCESS";
+        myLogger.success("nodeProvider.getNetwork().", {
+          network: providedNetwork,
+          options: {
+            batchMaxCount: nodeProvider._getOption("batchMaxCount"),
+            batchMaxSize: nodeProvider._getOption("batchMaxSize"),
+            batchStallTime: nodeProvider._getOption("batchStallTime"),
+            cacheTimeout: nodeProvider._getOption("cacheTimeout"),
+            polling: nodeProvider._getOption("polling"),
+            pollingInterval: nodeProvider._getOption("pollingInterval"),
+            staticNetwork: nodeProvider._getOption("staticNetwork"),
+          },
+        });
       } else {
         nodeStatus = "WRONG_CHAIN";
       }
     } catch (error) {
-      myLogger.error("nodeProvider.getNetwork() is failed.", error);
+      myLogger.error("nodeProvider.getNetwork().", error);
       nodeStatus = "NETWORK_ERROR";
     }
   } else {
     myLogger.error(`protocol should be [http / https / ws / wss]. RPC:`, rpc);
     nodeStatus = "INVALID_PROTOCOL";
   }
-  await updateDbItemChainStatus(chainName, "nodeStatus", nodeStatus);
+  await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
   return nodeProvider;
 }
 export async function getAndUpdateLatestBlockNumber(

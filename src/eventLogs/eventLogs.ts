@@ -22,7 +22,7 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
   const promiseFetchAndInsertEthersEvents: Promise<void>[] = [];
   const rpc: string = get(storeRpcSettings)[targetChain.name].rpc;
   const nodeProvider: NodeProvider | undefined = await getNodeProvider(
-    targetChain.name,
+    targetChain,
     rpc,
   );
   const nodeStatus: NodeStatus =
