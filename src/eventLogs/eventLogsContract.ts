@@ -64,7 +64,7 @@ export async function fetchEventLogsContract(
     targetContract.contractInterface.fragments,
     nodeProvider,
   );
-  myLogger.error(targetContract.contractInterface.fragments);
+
   const creationBlockNumber: number = targetContract.creation.blockNumber;
 
   let doLoop: boolean = true;
