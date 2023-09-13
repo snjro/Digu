@@ -1,5 +1,5 @@
 import { convertTimestampSecToIso8601 } from "./utilsTime";
-export class myLogger {
+export class customLogger {
   // eslint-disable-next-line
   static info(...messages: any[]) {
     logBase("  info  ", messages);

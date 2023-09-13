@@ -1,5 +1,5 @@
 import type { AbiFragmentIdentifier, ConvertedEventLog } from "./dbTypes";
-import { myLogger } from "@utils/logger";
+import { customLogger } from "@utils/logger";
 import { dbWorkerFuncGetConvertedEventLogs } from "./db.worker.func.getConvertedEventLogs";
 import { dbWorkerFuncInitializeDBSettings } from "./db.worker.func.InitializeDBSettings";
 import { dbWorkerFuncInitializeDBSyncStatus } from "./db.worker.func.InitializeDBSyncStatus";
@@ -33,7 +33,7 @@ addEventListener(
       event.data.targetFunctionName;
 
     const log: string = `DbWorker: ${targetFunctionName}`;
-    myLogger.start(log);
+    customLogger.start(log);
 
     const resultValue: DbWorkerResultValue<TargetFunctionName> =
       await executeTargetFunction(

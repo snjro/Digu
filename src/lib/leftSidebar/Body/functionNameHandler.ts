@@ -2,7 +2,7 @@ import type {
   EventAbiFragment,
   FunctionAbiFragment,
 } from "@constants/chains/types";
-import { myLogger } from "@utils/logger";
+import { customLogger } from "@utils/logger";
 
 const FUNC_NAME_SPLITTER = "-";
 function isFunctionAbiFragment(
@@ -31,7 +31,7 @@ export function getSplittedFunctionNameAndSelector(
     };
   } else {
     const errorMessage: string = `The lengh of splitted FunctionNameAndSelector should be 2.`;
-    myLogger.error(
+    customLogger.error(
       errorMessage,
       `splitted.length: ${splitted.length}`,
       `functionNameAndSelector: ${functionNameAndSelector}`,

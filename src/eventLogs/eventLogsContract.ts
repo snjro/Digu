@@ -18,7 +18,7 @@ import {
   getEthersEventLogs,
   type NodeProvider,
 } from "@utils/utilsEthers";
-import { myLogger } from "@utils/logger";
+import { customLogger } from "@utils/logger";
 import { get } from "svelte/store";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { storeChainStatus } from "@stores/storeChainStatus";
@@ -100,7 +100,7 @@ export async function fetchEventLogsContract(
     };
 
     try {
-      myLogger.start("Fetch eventLogs. targetBlocks:", {
+      customLogger.start("Fetch eventLogs. targetBlocks:", {
         fetchingTarget: fetchingTargetInfo,
       });
       const ethersEventLogs: EthersEventLog[] = await getEthersEventLogs(
@@ -117,11 +117,11 @@ export async function fetchEventLogsContract(
         toBlockNumber,
       );
       if (ethersEventLogs.length) {
-        myLogger.success("Fetch eventLogs. Fetched & registered to DB:", {
+        customLogger.success("Fetch eventLogs. Fetched & registered to DB:", {
           fetchingTarget: fetchingTargetInfo,
         });
       } else {
-        myLogger.info("Fetch eventLogs. No logs. targetBlocks:", {
+        customLogger.info("Fetch eventLogs. No logs. targetBlocks:", {
           fetchingTarget: fetchingTargetInfo,
         });
       }
@@ -129,14 +129,14 @@ export async function fetchEventLogsContract(
     } catch (error) {
       errorCount++;
 
-      myLogger.error("Fetch eventLogs. Error occurred:", {
+      customLogger.error("Fetch eventLogs. Error occurred:", {
         errorCount: `${errorCount}/${maxErrorCount}`,
         fetchingTarget: fetchingTargetInfo,
         errorObject: error,
       });
     }
     if (errorCount > maxErrorCount) {
-      myLogger.fatal(
+      customLogger.fatal(
         "Fetch EventLogs. Error count exceeded the limit. Start to abort:",
         {
           errorCount: `${errorCount}/${maxErrorCount}`,
@@ -147,7 +147,7 @@ export async function fetchEventLogsContract(
     }
   }
 
-  myLogger.success("Sync process up to the latest block is completed.", {
+  customLogger.success("Sync process up to the latest block is completed.", {
     contract: contractIdentifier,
   });
   await beginEventListening(
@@ -183,7 +183,7 @@ export async function beginEventListening(
     ...dbEventLogs.versionIdentifier,
     contractName: targetContract.name,
   };
-  myLogger.info(`Check if event listenging can begin`, {
+  customLogger.info(`Check if event listenging can begin`, {
     contract: contractIdentifier,
   });
 
@@ -207,7 +207,7 @@ export async function beginEventListening(
     latestBlockNumber: latestBlockNumber,
   };
   if (fetchedBlockNumber < latestBlockNumber) {
-    myLogger.fail(
+    customLogger.fail(
       `Cannot begin event listening because fetchedBlockNumber is older than latestBlockNumber.\tStart to return bulk insert of event logs.`,
       blockInfo,
     );
@@ -219,11 +219,11 @@ export async function beginEventListening(
       nodeProvider,
     );
   } else {
-    myLogger.info("Event listener can begin.", {
+    customLogger.info("Event listener can begin.", {
       contract: contractIdentifier,
     });
     const logStartup: string = "Event listener startup";
-    myLogger.start(logStartup, { contract: contractIdentifier });
+    customLogger.start(logStartup, { contract: contractIdentifier });
 
     //start event listenning
     await listenContractEvents(
@@ -232,7 +232,7 @@ export async function beginEventListening(
       nodeProvider,
       ethersContract,
     );
-    myLogger.finished(logStartup, { contract: contractIdentifier });
+    customLogger.finished(logStartup, { contract: contractIdentifier });
   }
 }
 
@@ -269,7 +269,10 @@ async function listenContractEvents(
       blocknumber: ethersEventLog.blockNumber,
       logIdx: ethersEventLog.index,
     };
-    myLogger.success("Event listener fetched a eventLog.", listenedEventInfo);
+    customLogger.success(
+      "Event listener fetched a eventLog.",
+      listenedEventInfo,
+    );
     await registerEventLogsAndBlockTimes(
       dbEventLogs,
       targetContract,
@@ -277,7 +280,7 @@ async function listenContractEvents(
       [ethersEventLog],
       ethersEventLog.blockNumber,
     );
-    myLogger.success(
+    customLogger.success(
       "Event listener registered a eventLog to DB",
       listenedEventInfo,
     );
@@ -306,11 +309,11 @@ async function watchAbort(
     }).isAbort;
     if (isAbort) {
       const log: string = `Abort listening events. contract: ${contractName}`;
-      myLogger.start(log);
+      customLogger.start(log);
       window.clearInterval(intervalId);
       ethersContract.removeAllListeners();
       await stopSyncingInContract(dbEventLogs, contractName);
-      myLogger.finished(log);
+      customLogger.finished(log);
     }
   }, abortWatchIntervalMs);
 }

@@ -9,14 +9,14 @@ import {
   startSyncingInChain,
   stopSyncingInChain,
 } from "@db/dbEventLogsDataHandlersSyncStatus";
-import { myLogger } from "@utils/logger";
+import { customLogger } from "@utils/logger";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { get } from "svelte/store";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { storeChainStatus } from "@stores/storeChainStatus";
 
 export async function fetchEventLogs(targetChain: Chain): Promise<void> {
-  myLogger.start(`Fetch event logs. Chain: ${targetChain.name}`);
+  customLogger.start(`Fetch event logs. Chain: ${targetChain.name}`);
 
   await startSyncingInChain(targetChain.name);
   const promiseFetchAndInsertEthersEvents: Promise<void>[] = [];
@@ -29,7 +29,7 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
     get(storeChainStatus)[targetChain.name].nodeStatus;
 
   if (nodeProvider === undefined || nodeStatus !== "SUCCESS") {
-    myLogger.fail("Get provider.", {
+    customLogger.fail("Get provider.", {
       chainName: targetChain.name,
       rpc: rpc,
     });
@@ -65,5 +65,7 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
     }
   }
   await Promise.all(promiseFetchAndInsertEthersEvents);
-  myLogger.finished(`Terminated fetch event logs. Chain: ${targetChain.name}`);
+  customLogger.finished(
+    `Terminated fetch event logs. Chain: ${targetChain.name}`,
+  );
 }

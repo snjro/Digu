@@ -6,7 +6,7 @@ import type {
   SyncStatusContract,
   VersionIdentifier,
 } from "./dbTypes";
-import { myLogger } from "@utils/logger";
+import { customLogger } from "@utils/logger";
 import { getTargetChain } from "@utils/utlisDb";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 
@@ -24,16 +24,16 @@ export async function startAbortingInChain(
   chainName: ChainName,
 ): Promise<void> {
   const log = `Update syncStaus for aborting. Chain: ${chainName}`;
-  myLogger.start(log);
+  customLogger.start(log);
   await setSyncStatusInChain(chainName, "isSyncing", true, "isAbort", true);
-  myLogger.finished(log);
+  customLogger.finished(log);
 }
 export async function stopSyncingInChain(chainName: ChainName): Promise<void> {
   const log: string = `Update syncStatus for stopping. Chain: ${chainName}`;
-  myLogger.start(log);
+  customLogger.start(log);
   await setSyncStatusInChain(chainName, "isSyncing", true, "isAbort", false);
   await setSyncStatusInChain(chainName, "isSyncing", true, "isSyncing", false);
-  myLogger.finished(log);
+  customLogger.finished(log);
 }
 export async function stopSyncingInContract(
   dbEventLogs: DbEventLogs,
@@ -41,7 +41,7 @@ export async function stopSyncingInContract(
 ): Promise<void> {
   const promiseUpdate: Promise<void>[] = [];
   const log: string = `Update syncStatus for stopping. Contract: ${contractName}`;
-  myLogger.start(log);
+  customLogger.start(log);
   promiseUpdate.push(
     updateDbItemSyncStatus(dbEventLogs, contractName, "isSyncing", false),
   );
@@ -49,7 +49,7 @@ export async function stopSyncingInContract(
     updateDbItemSyncStatus(dbEventLogs, contractName, "isAbort", false),
   );
   await Promise.all(promiseUpdate);
-  myLogger.finished(log);
+  customLogger.finished(log);
 }
 async function setSyncStatusInChain<
   T extends keyof SyncStatusContract,
