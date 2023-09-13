@@ -69,8 +69,6 @@ const labelBgColor = (logType: LogType): CssColorKeyword => {
       return "gold";
     case " debug  ":
       return "mediumpurple";
-    default:
-      return "black";
   }
 };
 
