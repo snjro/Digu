@@ -8,9 +8,6 @@ import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
 import type { EthersEventLog, NodeStatus } from "@db/dbTypes";
 import { customLogger } from "./logger";
 import { getUrlObject } from "./utilsCommon";
-import { getTargetChain } from "./utlisDb";
-import { get } from "svelte/store";
-import { storeUserSettings } from "@stores/storeUserSettings";
 import {
   JsonRpcProvider,
   Network,
