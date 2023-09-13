@@ -55,7 +55,6 @@
   "type": "module",
   "dependencies": {
     "ag-grid-community": "^30.0.0",
-    "consola": "^3.0.2",
     "dexie": "^3.2.3",
     "ethers": "^6.3.0",
     "tailwind-merge": "^1.12.0"
