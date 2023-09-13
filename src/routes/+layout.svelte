@@ -36,10 +36,11 @@
   }
 
   onNavigate((navigation: OnNavigate) => {
-    if (!(document as any).startViewTransition) return;
+    const documentAsAny: any = document;
+    if (!documentAsAny.startViewTransition) return;
 
     return new Promise((resolve) => {
-      (document as any).startViewTransition(async () => {
+      documentAsAny.startViewTransition(async () => {
         resolve();
         await navigation.complete;
       });
