@@ -6,7 +6,7 @@ import type {
 } from "@constants/chains/types";
 import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
 import type { EthersEventLog, NodeStatus } from "@db/dbTypes";
-import { myLogger } from "./logger";
+import { customLogger } from "./logger";
 import { getUrlObject } from "./utilsCommon";
 import { getTargetChain } from "./utlisDb";
 import { get } from "svelte/store";
@@ -66,7 +66,7 @@ export async function getNodeProvider(
       const providedNetwork: Network = await nodeProvider.getNetwork();
       if (providedNetwork.chainId === targetNetwork.chainId) {
         nodeStatus = "SUCCESS";
-        myLogger.success("nodeProvider.getNetwork().", {
+        customLogger.success("nodeProvider.getNetwork().", {
           network: providedNetwork,
           options: {
             batchMaxCount: nodeProvider._getOption("batchMaxCount"),
@@ -82,11 +82,14 @@ export async function getNodeProvider(
         nodeStatus = "WRONG_CHAIN";
       }
     } catch (error) {
-      myLogger.error("nodeProvider.getNetwork().", error);
+      customLogger.error("nodeProvider.getNetwork().", error);
       nodeStatus = "NETWORK_ERROR";
     }
   } else {
-    myLogger.error(`protocol should be [http / https / ws / wss]. RPC:`, rpc);
+    customLogger.error(
+      `protocol should be [http / https / ws / wss]. RPC:`,
+      rpc,
+    );
     nodeStatus = "INVALID_PROTOCOL";
   }
   await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
