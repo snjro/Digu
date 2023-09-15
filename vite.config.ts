@@ -16,6 +16,13 @@ const config: UserConfig = {
     },
   },
   plugins: [sveltekit(), circleDependency({})],
+  test: {
+    globals: true,
+    environment: "happy-dom",
+    coverage: {
+      provider: "v8",
+    },
+  },
 };
 
 export default config;
