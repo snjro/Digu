@@ -26,7 +26,7 @@ const dataTypes: {
     mimeType: "text/plain",
   },
 };
-export type ExportFileExtention = keyof typeof dataTypes;
+type ExportFileExtention = keyof typeof dataTypes;
 export function ExportDataToFile(
   targetData: string,
   exportFileName: ExportFileName,
@@ -47,8 +47,7 @@ export function ExportDataToFile(
   }, 0);
 }
 
-export type ExportFileName =
-  `${ExportFilePrefix}${string}${ExportFileExtention}`;
+type ExportFileName = `${ExportFilePrefix}${string}${ExportFileExtention}`;
 
 export function getExportFileName(
   prefix: ExportFilePrefix,
