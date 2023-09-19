@@ -78,3 +78,9 @@ export function convertToKebabCase(targetString: string): string {
     .replace(/[\s_]+/g, "-")
     .toLowerCase();
 }
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise<void>(function (resolve: () => void): NodeJS.Timeout {
+    return setTimeout(resolve, ms);
+  });
+}
