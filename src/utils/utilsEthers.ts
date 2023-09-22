@@ -90,7 +90,7 @@ export async function getNodeProvider(
     nodeStatus = "INVALID_PROTOCOL";
   }
   await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
-  return nodeProvider;
+  return nodeStatus === "SUCCESS" ? nodeProvider : undefined;
 }
 export async function getAndUpdateLatestBlockNumber(
   nodeProvider: NodeProvider,
