@@ -47,13 +47,7 @@ function getConsoleSpy(targetLogLevel: LogLevel): SpyInstance {
 describe("customLogger", () => {
   test.each<LogDefinition>(logDefinitions)(
     `should log messages with the level "$logLevel"`,
-    ({
-      logLevel,
-      method,
-    }: {
-      logLevel: LogLevel;
-      method: LogDefinition["method"];
-    }) => {
+    ({ logLevel, method }: LogDefinition) => {
       let consoleSpy: SpyInstance = getConsoleSpy(logLevel);
       method(...messages);
       expect(consoleSpy).toHaveBeenCalled();
