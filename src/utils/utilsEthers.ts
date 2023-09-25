@@ -49,7 +49,8 @@ export async function getNodeProvider(
       // ref: https://github.com/ethers-io/ethers.js/discussions/4130#discussioncomment-6126545
       const jsonRpcApiProviderOptions: JsonRpcApiProviderOptions = {
         batchMaxSize: 1,
-        staticNetwork: targetNetwork,
+        // Comment out because network switching does not work when this line is live.
+        // staticNetwork: targetNetwork,
       };
       nodeProvider = new JsonRpcProvider(
         rpc,
