@@ -55,8 +55,7 @@ export async function fetchEventLogs(targetChain: Chain): Promise<void> {
         promiseFetchAndInsertEthersEvents.push(
           fetchEventLogsContract(
             dbEventLogs,
-            targetProject,
-            targetVersion,
+            targetChain,
             targetContract,
             nodeProvider,
           ),
