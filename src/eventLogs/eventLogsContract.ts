@@ -55,27 +55,33 @@ export async function fetchEventLogsContract(
 
   const creationBlockNumber: number = targetContract.creation.blockNumber;
 
+  // In order to optimize memory usage, declare variables OUTSIDE the loop
+  let fromBlockNumber: number;
+  let latestBlockNumber: number;
+  let toBlockNumber: number;
+  let fetchingTargetInfo: FetchingTargetInfo;
+  let ethersEventLogs: EthersEventLog[];
+
   while (true) {
     if (syncStatusContract(contractIdentifier).isAbort) {
       await stopSyncingInContract(dbEventLogs, targetContract.name);
       return;
     }
 
-    const fromBlockNumber: number =
+    fromBlockNumber =
       contractSyncStatus.fetchedBlockNumber === creationBlockNumber
         ? contractSyncStatus.fetchedBlockNumber
         : contractSyncStatus.fetchedBlockNumber + 1;
 
-    const latestBlockNumber =
-      get(storeChainStatus)[chainName].latestBlockNumber;
+    latestBlockNumber = get(storeChainStatus)[chainName].latestBlockNumber;
 
-    let toBlockNumber: number = fromBlockNumber + rpcSetting.bulkUnit - 1;
+    toBlockNumber = fromBlockNumber + rpcSetting.bulkUnit - 1;
 
     if (toBlockNumber >= latestBlockNumber) {
       toBlockNumber = latestBlockNumber;
     }
 
-    const fetchingTargetInfo: FetchingTargetInfo = {
+    fetchingTargetInfo = {
       ...contractIdentifier,
       blocks: {
         from: fromBlockNumber,
@@ -104,7 +110,7 @@ export async function fetchEventLogsContract(
       customLogger.start("Fetch eventLogs. targetBlocks:", {
         fetchingTarget: fetchingTargetInfo,
       });
-      const ethersEventLogs: EthersEventLog[] = await getEthersEventLogs(
+      ethersEventLogs = await getEthersEventLogs(
         targetContract.events.names,
         ethersContract,
         fromBlockNumber,
