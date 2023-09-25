@@ -25,7 +25,7 @@
 
 {#if showLoader || $storeNodbShowLoader}
   <div
-    role="status"
+    data-testid="loadingSpinner-test"
     class={classNames(
       "fixed",
       "flex items-center justify-center",
