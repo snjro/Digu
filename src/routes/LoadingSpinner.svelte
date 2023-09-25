@@ -25,6 +25,7 @@
 
 {#if showLoader || $storeNodbShowLoader}
   <div
+    role="status"
     class={classNames(
       "fixed",
       "flex items-center justify-center",
