@@ -1,6 +1,6 @@
 import type { ChainName } from "@constants/chains/types";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
-import { myLogger } from "@utils/logger";
+import { customLogger } from "@utils/logger";
 import {
   getAndUpdateLatestBlockNumber,
   type NodeProvider,
@@ -16,7 +16,7 @@ export async function startUpdateLatestBlockNumber(
   targetChainName: ChainName,
   nodeProvider: NodeProvider,
 ): Promise<void> {
-  myLogger.start(`${functionName}()`, {
+  customLogger.start(`${functionName}()`, {
     chainName: targetChainName,
     nodeProvider: nodeProvider,
   });
@@ -30,7 +30,7 @@ export async function startUpdateLatestBlockNumber(
       errorCount = 0;
     } catch (error) {
       errorCount++;
-      myLogger.warn({
+      customLogger.warn({
         errorOn: functionName,
         errorCount: `${errorCount}/${maxErrorCount}`,
         error: error,
@@ -52,7 +52,7 @@ export async function startUpdateLatestBlockNumber(
 
     await tryGetAndUpdateLatestBlockNumber();
     if (errorCount > maxErrorCount) {
-      myLogger.error({
+      customLogger.error({
         errorOn: functionName,
         errorCount: `${errorCount}/${maxErrorCount}`,
         errorMessage: "errorCount exceeded the limit. Start aborting.",
@@ -65,7 +65,7 @@ export async function startUpdateLatestBlockNumber(
 }
 function stopUpdateLatestBlockNumber(intervalId: number | undefined) {
   const log: string = `Stop ${functionName}(). intervalId=${intervalId}`;
-  myLogger.start(log);
+  customLogger.start(log);
   window.clearInterval(intervalId);
-  myLogger.finished(log);
+  customLogger.finished(log);
 }

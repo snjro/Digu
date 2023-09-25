@@ -8,7 +8,7 @@ import {
   updateDbItemSyncStatus,
 } from "./dbEventLogsDataHandlersSyncStatus";
 import { DB_TABLE_NAMES } from "./constants";
-import { myLogger } from "@utils/logger";
+import { customLogger } from "@utils/logger";
 import type {
   ConvertedEventLog,
   GroupedEventLogs,
@@ -66,7 +66,7 @@ export async function addEventLogs_updateFetchedBlockNumber(
       }
       await Promise.all(promiseBulkAdds);
       if (bulkPutInfo.length)
-        myLogger.success("BulkPut Event Logs.", bulkPutInfo);
+        customLogger.success("BulkPut Event Logs.", bulkPutInfo);
 
       await updateDbItemSyncStatus(
         dbEventLogs,

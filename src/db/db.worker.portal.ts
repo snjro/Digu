@@ -5,7 +5,7 @@ import type {
   DbWorkerResultValue,
   TargetFunctionName,
 } from "@db/db.worker";
-import { myLogger } from "@utils/logger";
+import { customLogger } from "@utils/logger";
 
 export async function startDbWorker<T extends TargetFunctionName>(
   dbWorkerMessage: DbWorkerMessage<T>,
@@ -17,7 +17,7 @@ export async function startDbWorker<T extends TargetFunctionName>(
       "message",
       (message: MessageEvent<DbWorkerResult<T>>) => {
         dbWorker.terminate();
-        myLogger.finished(message.data.log);
+        customLogger.finished(message.data.log);
         return resolve(message.data.value);
       },
     );

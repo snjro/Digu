@@ -1,5 +1,5 @@
 import { convertTimestampSecToIso8601 } from "./utilsTime";
-export class myLogger {
+export class customLogger {
   // eslint-disable-next-line
   static info(...messages: any[]) {
     logBase("  info  ", messages);
@@ -38,7 +38,7 @@ export class myLogger {
   }
 }
 
-type LogType =
+type LogLevel =
   | "  info  "
   | " start  "
   | "finished"
@@ -49,8 +49,8 @@ type LogType =
   | "  warn  "
   | " debug  ";
 
-const labelBgColor = (logType: LogType): CssColorKeyword => {
-  switch (logType) {
+const labelBgColor = (logLevel: LogLevel): CssColorKeyword => {
+  switch (logLevel) {
     case "  info  ":
       return "white";
     case " start  ":
@@ -69,17 +69,15 @@ const labelBgColor = (logType: LogType): CssColorKeyword => {
       return "gold";
     case " debug  ":
       return "mediumpurple";
-    default:
-      return "black";
   }
 };
 
-const logBase = (logType: LogType, messages: any[]) => {
-  const headerLabel: string = `%c${logType}%c ${convertTimestampSecToIso8601()}`;
+const logBase = (logLevel: LogLevel, messages: any[]) => {
+  const headerLabel: string = `%c${logLevel}%c ${convertTimestampSecToIso8601()}`;
 
-  const cssForLabel = (logType: LogType): string =>
+  const cssForLabel = (logLevel: LogLevel): string =>
     convertStringArrayToCssText([
-      `background-color:${labelBgColor(logType)}`,
+      `background-color:${labelBgColor(logLevel)}`,
       "color:black",
       "padding: 1px 4px",
       "font-family: monospace",
@@ -92,23 +90,33 @@ const logBase = (logType: LogType, messages: any[]) => {
     "color: gray",
   ]);
 
-  switch (logType) {
+  switch (logLevel) {
     case "  info  ":
     case " start  ":
     case "finished":
     case "success ":
     case "  fail  ":
-      console.log(headerLabel, cssForLabel(logType), cssForTime, ...messages);
+      console.log(headerLabel, cssForLabel(logLevel), cssForTime, ...messages);
       break;
     case " error  ":
     case " fatal  ":
-      console.error(headerLabel, cssForLabel(logType), cssForTime, ...messages);
+      console.error(
+        headerLabel,
+        cssForLabel(logLevel),
+        cssForTime,
+        ...messages,
+      );
       break;
     case "  warn  ":
-      console.warn(headerLabel, cssForLabel(logType), cssForTime, ...messages);
+      console.warn(headerLabel, cssForLabel(logLevel), cssForTime, ...messages);
       break;
     case " debug  ":
-      console.debug(headerLabel, cssForLabel(logType), cssForTime, ...messages);
+      console.debug(
+        headerLabel,
+        cssForLabel(logLevel),
+        cssForTime,
+        ...messages,
+      );
       break;
   }
 };

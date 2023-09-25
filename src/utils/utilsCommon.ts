@@ -12,22 +12,6 @@ export function removeDuplicateValuesFromArray<T>(array: T[]): T[] {
   return uniqueArray;
 }
 
-export function promiseWithTimeout<T>(
-  promise: Promise<T>,
-  ms: number,
-  timeoutError = new Error("Promise timed out"),
-): Promise<T> {
-  // create a promise that rejects in milliseconds
-  const timeout = new Promise<never>((_, reject) => {
-    setTimeout(() => {
-      reject(timeoutError);
-    }, ms);
-  });
-
-  // returns a race between timeout and the passed promise
-  return Promise.race<T>([promise, timeout]);
-}
-
 export function getUrlObject(url: string): URL | undefined {
   try {
     return new URL(url);
@@ -45,9 +29,6 @@ export function numberWithCommas(n: number): string {
 }
 
 export function jsonStringifyFormatted(value: any): string {
-  if (typeof value === "string") {
-    value = JSON.parse(value);
-  }
   return JSON.stringify(value, null, 2);
 }
 
@@ -96,4 +77,10 @@ export function convertToKebabCase(targetString: string): string {
     .replace(/([a-z])([A-Z])/g, "$1-$2")
     .replace(/[\s_]+/g, "-")
     .toLowerCase();
+}
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise<void>(function (resolve: () => void): NodeJS.Timeout {
+    return setTimeout(resolve, ms);
+  });
 }
