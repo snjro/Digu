@@ -6,28 +6,33 @@ import { storeNodbShowLoader } from "@stores/storeNoDb";
 type ShowParam = {
   paramShow: boolean;
   storeShow: boolean;
+  state: "show" | "hide";
 };
 const showParams: ShowParam[] = [
   {
     paramShow: true,
     storeShow: true,
+    state: "show",
   },
   {
     paramShow: true,
     storeShow: false,
+    state: "show",
   },
   {
     paramShow: false,
     storeShow: true,
+    state: "show",
   },
   {
     paramShow: false,
     storeShow: false,
+    state: "hide",
   },
 ];
 describe("LoadingSpinner.svelte", () => {
   test.each<ShowParam>(showParams)(
-    `show loader. paramShow=$paramShow, storeShow=$storeShow`,
+    `$state loader. paramShow=$paramShow, storeShow=$storeShow`,
     ({ paramShow, storeShow }: ShowParam) => {
       //set store value
       storeNodbShowLoader.set(storeShow);
