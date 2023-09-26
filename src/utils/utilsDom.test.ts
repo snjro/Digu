@@ -117,7 +117,7 @@ describe('"getVerticalViewabilityInScroll"', () => {
     );
   });
   test.each<FamilyStyle>(familiesStyle)(
-    `"getVerticalViewabilityInScroll" should return $expected when $condition`,
+    `should return $expected when $condition`,
     async ({ parent, child, expected }: FamilyStyle) => {
       parentElement = document.createElement("div");
       childElement = document.createElement("div");
