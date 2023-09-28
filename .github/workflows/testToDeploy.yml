@@ -1,0 +1,63 @@
+name: test
+
+on:
+  push:
+    branches:
+      - "**" # all branches
+  pull_request:
+    branches:
+      - main # main branch only
+  workflow_dispatch:
+
+jobs:
+  run_unit_test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read # Required to checkout the code
+      pull-requests: write # Required to put a comment into the pull-request
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run vitest Tests
+        run: npm run vitest:coverage
+
+      - name: "Report Coverage"
+        if: always() # Also generate the report if tests are failing
+        uses: davelosert/vitest-coverage-report-action@v2
+
+      - name: Build project
+        run: npm run build
+
+      - name: Install IPFS
+        run: wget https://dist.ipfs.tech/kubo/v0.22.0/kubo_v0.22.0_linux-amd64.tar.gz && tar -xvzf kubo_v0.22.0_linux-amd64.tar.gz && cd kubo && sudo bash install.sh
+
+      - name: Deploy to IPFS
+        run: |
+          ipfs init
+          ipfs daemon &
+          sleep 10
+          CID=$(ipfs add -r -Q src)
+          echo "CID=$CID" >> $GITHUB_ENV
+
+      - name: Create GitHub release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.sha }}
+          release_name: Release ${{ github.sha }}
+          body: |
+            Deployed to IPFS with CID:
+            ${{ env.CID }}
