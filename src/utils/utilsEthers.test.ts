@@ -68,8 +68,6 @@ describe("getNodeProvider", async () => {
   let spyJsonRpcGetNetwork: any;
   let spyWebSocketGetNetWork: any;
   beforeAll(() => {
-    vi.mock("JsonRpcProvider", () => {});
-    vi.mock("WebSocketProvider", () => {});
     spyJsonRpcGetNetwork = vi
       .spyOn(JsonRpcProvider.prototype, "getNetwork")
       .mockImplementationOnce(() => {
@@ -103,7 +101,7 @@ describe("getNodeProvider", async () => {
       lastNodeStatus: "SUCCESS",
     },
     {
-      rpc: "wss://hoge",
+      rpc: "wss://socketsbay.com/wss/v2/1/demo/",
       state: "valid URL(wss)",
       lastNodeStatus: "SUCCESS",
     },
