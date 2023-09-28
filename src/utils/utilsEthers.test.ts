@@ -91,23 +91,23 @@ describe("getNodeProvider", async () => {
   };
   const rpcDefinitions: RpcDefinition[] = [
     {
-      rpc: "https://xxx",
+      rpc: "https://foo",
       state: "error throw",
       lastNodeStatus: "NETWORK_ERROR",
     },
     {
-      rpc: "https://xxx",
+      rpc: "https://bar",
       state: "valid URL(https)",
       lastNodeStatus: "SUCCESS",
     },
     {
-      rpc: "wss://xxx",
+      rpc: "wss://hoge",
       state: "valid URL(wss)",
       lastNodeStatus: "SUCCESS",
     },
     { rpc: "invalid_url", state: "invalid URL", lastNodeStatus: "INVALID_URL" },
     {
-      rpc: "https://xxx",
+      rpc: "https://fuga",
       state: "wrong chainID",
       lastNodeStatus: "WRONG_CHAIN",
       targetChainId: 999,
@@ -117,7 +117,6 @@ describe("getNodeProvider", async () => {
       state: "wrong protocol",
       lastNodeStatus: "INVALID_PROTOCOL",
     },
-    // { rpc: "wss://rpc-mainnet.matic.network", lastNodeStatus: "SUCCESS" },
   ];
   test.each(rpcDefinitions)(
     `Condition: $state`,
