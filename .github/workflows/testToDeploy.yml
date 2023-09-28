@@ -1,9 +1,6 @@
 name: test
 
 on:
-  push:
-    branches:
-      - "**" # all branches
   pull_request:
     branches:
       - main # main branch only.
