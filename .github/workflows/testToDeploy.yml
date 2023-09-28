@@ -37,27 +37,27 @@ jobs:
         if: always() # Also generate the report if tests are failing
         uses: davelosert/vitest-coverage-report-action@v2
 
-      - name: Build project
-        run: npm run build
+      # - name: Build project
+      #   run: npm run build
 
-      - name: Install IPFS
-        run: wget https://dist.ipfs.tech/kubo/v0.22.0/kubo_v0.22.0_linux-amd64.tar.gz && tar -xvzf kubo_v0.22.0_linux-amd64.tar.gz && cd kubo && sudo bash install.sh
+      # - name: Install IPFS
+      #   run: wget https://dist.ipfs.tech/kubo/v0.22.0/kubo_v0.22.0_linux-amd64.tar.gz && tar -xvzf kubo_v0.22.0_linux-amd64.tar.gz && cd kubo && sudo bash install.sh
 
-      - name: Deploy to IPFS
-        run: |
-          ipfs init
-          ipfs daemon &
-          sleep 10
-          CID=$(ipfs add -r -Q src)
-          echo "CID=$CID" >> $GITHUB_ENV
+      # - name: Deploy to IPFS
+      #   run: |
+      #     ipfs init
+      #     ipfs daemon &
+      #     sleep 10
+      #     CID=$(ipfs add -r -Q src)
+      #     echo "CID=$CID" >> $GITHUB_ENV
 
-      - name: Create GitHub release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.sha }}
-          release_name: Release ${{ github.sha }}
-          body: |
-            Deployed to IPFS with CID:
-            ${{ env.CID }}
+      # - name: Create GitHub release
+      #   uses: actions/create-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: ${{ github.sha }}
+      #     release_name: Release ${{ github.sha }}
+      #     body: |
+      #       Deployed to IPFS with CID:
+      #       ${{ env.CID }}
