@@ -68,8 +68,8 @@ describe("getNodeProvider", async () => {
   let spyJsonRpcGetNetwork: any;
   let spyWebSocketGetNetWork: any;
   beforeAll(() => {
-    vi.mock("JsonRpcProvider");
-    vi.mock("WebSocketProvider");
+    vi.mock("JsonRpcProvider", () => {});
+    vi.mock("WebSocketProvider", () => {});
     spyJsonRpcGetNetwork = vi
       .spyOn(JsonRpcProvider.prototype, "getNetwork")
       .mockImplementationOnce(() => {
