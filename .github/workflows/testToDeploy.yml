@@ -6,7 +6,7 @@ on:
       - "**" # all branches
   pull_request:
     branches:
-      - main # main branch only
+      - main # main branch only.
   workflow_dispatch:
 
 jobs:
