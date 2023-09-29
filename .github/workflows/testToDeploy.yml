@@ -35,7 +35,7 @@ jobs:
         uses: davelosert/vitest-coverage-report-action@v2
 
       - name: Create release draft
-        use: release-drafter/release-drafter@v5
+        uses: release-drafter/release-drafter@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # - name: Build project
