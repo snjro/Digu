@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "daily"
+      time: "07:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    reviewers:
+      - "snjro"
+    assignees:
+      - "snjro"
+    versioning-strategy: increase-if-necessary
