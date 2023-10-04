@@ -1,7 +1,7 @@
-import { goto } from "$app/navigation";
 import { browser } from "$app/environment";
 import type { ChainName } from "@constants/chains/types";
 import { DbSettingsDataHandlers } from "@db/dbSettings";
+import { redirect } from "@sveltejs/kit";
 
 export async function load() {
   if (browser) {
@@ -13,6 +13,7 @@ export async function load() {
         "userSetting01",
         "selectedChainName",
       );
-    await goto(`/${selectedChainName}`);
+    // in load function, need to use "redirect" instead of "goto"
+    throw redirect(300,`/${selectedChainName}`)
   }
 }
