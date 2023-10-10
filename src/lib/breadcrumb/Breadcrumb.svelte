@@ -7,6 +7,7 @@
 </script>
 
 <script lang="ts">
+  import { base } from "$app/paths";
   import { page } from "$app/stores";
   import {
     TAB_VALUES_CONTRACT,
@@ -15,8 +16,14 @@
   } from "$lib/PageWrapper/PageWrapper.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/functionNameHandler";
+  import { trailingSlash } from "@routes/+layout";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { convertToKebabCase } from "@utils/utilsCommon";
+  import {
+    DIR_NAME_CONTRACTS,
+    DIR_NAME_EVENTS,
+    DIR_NAME_FUNCTIONS,
+  } from "@utils/utilsCostants";
   import classNames from "classnames";
   import BreadcrumbItems from "./BreadcrumbItems.svelte";
 
@@ -24,14 +31,22 @@
 
   $: crumbItems = (): CrumbItem[] => {
     let crumbItems: CrumbItem[] = [];
-    let href: CrumbItem["href"] = `/${targetChainName}`;
-    //
+    let href: CrumbItem["href"] = `${base}/${targetChainName}`;
     let text: CrumbItem["text"] = undefined;
     let prefixIconName: CrumbItem["prefixIconName"] = "home";
     crumbItems.push({ href: href, text: text, prefixIconName: prefixIconName });
-    const pathNames: string[] = $page.url.pathname.split("/");
+
+    // remove trailing slash
+    const pathName: string =
+      trailingSlash === "always"
+        ? $page.url.pathname.slice(0, -1)
+        : $page.url.pathname;
+
+    const pathNames: string[] = pathName.split("/");
+
+    const startIndex: number = pathNames.indexOf(targetChainName) + 1;
     for (
-      let indexPathNames = 2;
+      let indexPathNames = startIndex;
       indexPathNames < pathNames.length;
       indexPathNames++
     ) {
@@ -43,7 +58,7 @@
       );
 
       const currentPathNameWithoutFunctionSelector: string =
-        previousPathName === "functions"
+        previousPathName === DIR_NAME_FUNCTIONS
           ? getSplittedFunctionNameAndSelector(currentPathName).functionName
           : currentPathName;
       href = `${removeUrlHash(href)}/${currentPathNameWithUrlHash}`;
@@ -70,13 +85,13 @@
     let urlHash: string = "";
     // if (indexPathNames === pathNames.length - 1) {
     switch (previousPathName) {
-      case "contracts":
+      case DIR_NAME_CONTRACTS:
         urlHash = TAB_VALUES_CONTRACT[0];
         break;
-      case "events":
+      case DIR_NAME_EVENTS:
         urlHash = TAB_VALUES_EVENT[0];
         break;
-      case "functions":
+      case DIR_NAME_FUNCTIONS:
         urlHash = TAB_VALUES_FUNCTION[0];
         break;
       default:
