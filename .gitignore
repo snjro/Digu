@@ -1,5 +1,5 @@
 node_modules
 .svelte-kit
-deploy
+_deploy
 *.code-workspace
 coverage
