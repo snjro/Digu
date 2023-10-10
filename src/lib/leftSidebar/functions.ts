@@ -1,5 +1,6 @@
 import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
 import { DbSettingsDataHandlers } from "@db/dbSettings";
+import { trailingSlash } from "@routes/+layout";
 import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { get } from "svelte/store";
@@ -33,4 +34,9 @@ export function isHrefParentOfPathname(
     }
     return true;
   }
+}
+export function isSelectedDirectory(href: string, pathname: string): boolean {
+  const hrefWithTrailingSlash: string =
+    trailingSlash === "always" ? `${href}/` : href;
+  return pathname.endsWith(hrefWithTrailingSlash);
 }

@@ -27,7 +27,10 @@
   import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
-  import { toggleLeftSideBarWithCondition } from "../functions";
+  import {
+    isSelectedDirectory,
+    toggleLeftSideBarWithCondition,
+  } from "../functions";
   import type { HoverType } from "./BaseAccordionHeader.svelte";
   import BaseItemIndicator from "./BaseItemIndicator.svelte";
   import { getFrontColorCategory } from "./fontStyle";
@@ -61,7 +64,7 @@
   }
 
   let isSelected: boolean;
-  $: isSelected = hrefWithoutUrlHash === $page.url.pathname;
+  $: isSelected = isSelectedDirectory(hrefWithoutUrlHash, $page.url.pathname);
 
   $: {
     setChildElementInScroll(
