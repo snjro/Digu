@@ -4,7 +4,9 @@ updates:
     directory: "/"
     target-branch: "develop"
     schedule:
-      interval: "daily"
+      # interval: "daily"
+      interval: "weekly"
+      day: "monday"
       time: "07:00"
       timezone: "Asia/Tokyo"
     labels:
