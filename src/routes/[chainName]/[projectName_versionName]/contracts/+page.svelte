@@ -3,6 +3,7 @@
   import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
   import type { ProjectName, VersionName } from "@constants/chains/types";
+  import { trailingSlash } from "@routes/+layout";
   import type { LoadVersionData } from "../+page";
   import {
     getProjectVersionNameForLabel,
@@ -55,7 +56,10 @@
         data.targetChain,
         data.targetProject,
         data.targetVersion,
-        $page.url.pathname,
+        trailingSlash === "always"
+          ? $page.url.pathname
+          : `${$page.url.pathname}/`,
+
         maxLengthOfConstructorInputsParams(),
       )}
       hasMultipulTabs={false}

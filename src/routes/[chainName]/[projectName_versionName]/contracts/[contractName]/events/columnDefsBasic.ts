@@ -44,7 +44,7 @@ export const columnDefsBasic = <T extends EventRow>(
                 target: cell.eGui,
                 props: {
                   text: cellRendererParams.data.eventName,
-                  href: `${urlPathName}/${
+                  href: `${urlPathName}${
                     cellRendererParams.data.eventName
                   }#${convertToKebabCase(TAB_VALUES_EVENT[0])}`,
                   textSize: girdSize,

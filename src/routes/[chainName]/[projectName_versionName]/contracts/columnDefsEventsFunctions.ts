@@ -47,7 +47,7 @@ export const columnDefsEventsFunctions = <T extends ContractRow>(
               ] as number;
               if (totalNumber > 0) {
                 {
-                  const href: string = `${urlPathName}/${cellRendererParams.data.contractName}/${abiFragmentsType}`;
+                  const href: string = `${urlPathName}${cellRendererParams.data.contractName}/${abiFragmentsType}`;
                   new BaseA({
                     target: cell.eGui,
                     props: {

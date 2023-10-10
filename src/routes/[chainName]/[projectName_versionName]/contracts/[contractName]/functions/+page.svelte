@@ -3,6 +3,7 @@
   import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
   import type { Contract } from "@constants/chains/types";
+  import { trailingSlash } from "@routes/+layout";
   import type { LoadFunctionsData } from "./+page";
   import { columnDefs } from "./columnDefs";
   import { gridRows, type FunctionRow } from "./gridRows";
@@ -49,7 +50,9 @@
     <BaseGrid
       {rows}
       paramColumnDefs={columnDefs(
-        $page.url.pathname,
+        trailingSlash === "always"
+          ? $page.url.pathname
+          : `${$page.url.pathname}/`,
         maxLengthOfFunctionInputsParams(),
         maxLengthOfFunctionOutputsParams(),
       )}
