@@ -10,7 +10,7 @@
   import { DbSettingsDataHandlers } from "@db/dbSettings";
   import { storeNodbShowLoader } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
-
+  import { base } from "$app/paths";
   const items: BaseSelectProps["items"] = TARGET_CHAINS.map(
     (targetChain: Chain) => {
       return {
@@ -29,7 +29,7 @@
       changedChainName,
     );
     //jump to home
-    const rootUrl = `${location.origin}/${changedChainName}`;
+    const rootUrl = `${base}/${changedChainName}`;
     await goto(rootUrl);
     $storeNodbShowLoader = false;
   }

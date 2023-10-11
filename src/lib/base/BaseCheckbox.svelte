@@ -8,7 +8,8 @@
   import classNames from "classnames";
   import { radioSizes } from "./BaseRadio.svelte";
   import type { BaseSize } from "./baseSizes";
-
+  import {base} from "$app/paths"
+  
   export let size: BaseSize = "md";
   export let group: string[] = [];
   export let value: string = "";
@@ -38,13 +39,13 @@
   $: {
     if (indeterminate) {
       backgroundColor = "bg-yellow-500";
-      checkboxImageFile = "/checkboxIndeterminate.svg";
+      checkboxImageFile = `${base}/checkboxIndeterminate.svg`;
     } else if (checked) {
       backgroundColor = colorDefinitions[themeColor]["success"].bg;
-      checkboxImageFile = "/checkboxChecked.svg";
+      checkboxImageFile = `${base}/checkboxChecked.svg`;
     } else {
       backgroundColor = colorDefinitions[themeColor]["error"].bg;
-      checkboxImageFile = "/checkboxCross.svg";
+      checkboxImageFile = `${base}/checkboxCross.svg`;
     }
   }
 </script>

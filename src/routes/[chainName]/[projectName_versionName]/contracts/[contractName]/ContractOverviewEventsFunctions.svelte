@@ -26,6 +26,7 @@
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
+  import { trailingSlash } from "@routes/+layout";
   import {
     capitalizeFirstLetter,
     convertToKebabCase,
@@ -43,7 +44,10 @@
 
   const singularListType: string = abiFragmentsType.slice(0, -1);
   const headerLabel: string = `${capitalizeFirstLetter(singularListType)} Name`;
-  $: hrefFrontPart = `${$page.url.pathname}/${abiFragmentsType}`;
+  $: hrefFrontPart =
+    trailingSlash === "always"
+      ? `${$page.url.pathname}${abiFragmentsType}`
+      : `${$page.url.pathname}/${abiFragmentsType}`;
 
   let hrefEventFunctionName: (
     abiFragment: FunctionAbiFragment | EventAbiFragment,

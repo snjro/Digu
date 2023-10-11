@@ -48,7 +48,7 @@ export const columnDefsBasic = <T extends ContractRow>(
                 target: cell.eGui,
                 props: {
                   text: cellRendererParams.data?.contractName,
-                  href: `${urlPathName}/${
+                  href: `${urlPathName}${
                     cellRendererParams.data.contractName
                   }#${convertToKebabCase(TAB_VALUES_CONTRACT[0])}`,
                   textSize: girdSize,
