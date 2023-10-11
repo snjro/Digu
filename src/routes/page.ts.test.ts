@@ -1,17 +1,7 @@
 import type { ChainName } from "@constants/chains/types";
 import { DbSettingsDataHandlers } from "@db/dbSettings";
-import {
-  afterAll,
-  beforeEach,
-  describe,
-  expect,
-  test,
-  vi,
-  type MockedFunction,
-} from "vitest";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { load } from "./+page";
-import * as appNav from "$app/navigation";
-import { goto } from "$app/navigation";
 
 import * as kit from "@sveltejs/kit";
 import { redirect } from "@sveltejs/kit";
