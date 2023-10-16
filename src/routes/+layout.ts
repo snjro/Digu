@@ -2,7 +2,7 @@ import { browser } from "$app/environment";
 import { initialize } from "../initialization/initialize";
 // import "../app.css";
 import "../app.postcss";
-export type LoadDataRoot = { initializing: boolean };
+import { storeNodbShowLoader } from "@stores/storeNoDb";
 
 // If Vite hangs indefinitely in dev mode,
 // then Disable SSR (server side rendering).
@@ -17,11 +17,10 @@ export const prerender = true;
 // Therefore, you need to set "always" here.
 export const trailingSlash: "never" | "always" | "ignore" = "always";
 
-export async function load(): Promise<LoadDataRoot> {
+export async function load(): Promise<void> {
   if (browser) {
+    storeNodbShowLoader.set(true);
     await initialize();
-    return { initializing: false };
-  } else {
-    return { initializing: true };
+    storeNodbShowLoader.set(false);
   }
 }
