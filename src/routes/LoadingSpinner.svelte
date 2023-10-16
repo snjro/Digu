@@ -10,7 +10,7 @@
   import type { AfterNavigate, BeforeNavigate } from "@sveltejs/kit";
   import classNames from "classnames";
 
-  export let showLoader: boolean = false;
+  let showLoader: boolean = false;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;
 
