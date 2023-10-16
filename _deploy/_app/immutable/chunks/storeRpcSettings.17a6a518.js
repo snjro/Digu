@@ -1,1 +1,0 @@
-import{w as o}from"./index.37aae590.js";import{T as r}from"./_index.26ae7803.js";import{i as c}from"./storeUserSettings.8972ff17.js";function p(){const t=u(),{subscribe:a,set:e,update:i}=o(t);return{subscribe:a,set:e,update:i,updateState:(n,s)=>{Object.assign(t[n],s),e(t)}}}const b=p();function u(){const t={};for(const a of r)t[a.name]=c(a);return t}export{b as s};
