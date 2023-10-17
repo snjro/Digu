@@ -32,10 +32,10 @@ export function ExportDataToFile(
   exportFileName: ExportFileName,
   extention: ExportFileExtention,
 ): void {
-  let fileLikeObject: Blob = new Blob([targetData], {
+  const fileLikeObject: Blob = new Blob([targetData], {
     type: dataTypes[extention].mimeType,
   });
-  let anchorElement: HTMLAnchorElement = document.createElement("a");
+  const anchorElement: HTMLAnchorElement = document.createElement("a");
   const url: string = URL.createObjectURL(fileLikeObject);
   anchorElement.href = url;
   anchorElement.download = exportFileName;

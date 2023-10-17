@@ -131,7 +131,7 @@ async function queryFilter(
   fromBlock: number,
   toBLock: number,
 ): Promise<EthersEventLog[]> {
-  let ethersEventLog: Array<EventLog | Log> = await ethersContract.queryFilter(
+  const ethersEventLog: Array<EventLog | Log> = await ethersContract.queryFilter(
     eventName,
     fromBlock,
     toBLock,

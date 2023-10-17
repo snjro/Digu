@@ -16,7 +16,7 @@ export async function fetchBlockTimesForEventLogs(
   chainName: ChainName,
   ethersEventLogs: EthersEventLog[],
 ): Promise<BlockTimeForEventLog[]> {
-  let deplicateEventLogBlockNumbers: number[] = ethersEventLogs.map(
+  const deplicateEventLogBlockNumbers: number[] = ethersEventLogs.map(
     (ethersEventLog: EthersEventLog) => {
       return ethersEventLog.blockNumber;
     },
@@ -41,7 +41,7 @@ async function fetchBlockTimeFromDbOrProvider(
   chainName: ChainName,
   targetBlockNumber: number,
 ): Promise<BlockTimeForEventLog> {
-  let blockTime: BlockTime | undefined = await getDbRecordBlockTime(
+  const blockTime: BlockTime | undefined = await getDbRecordBlockTime(
     chainName,
     targetBlockNumber,
   );

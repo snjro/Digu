@@ -97,7 +97,7 @@ function getTopicsLength(targetEventAbiFragment: EventAbiFragment): number {
   let topicsLength = targetEventAbiFragment.anonymous ? 0 : 1;
   const abiFragmentInputs: EventAbiFragment["inputs"] =
     targetEventAbiFragment.inputs;
-  for (let abiFragmentParam of abiFragmentInputs) {
+  for (const abiFragmentParam of abiFragmentInputs) {
     abiFragmentParam.indexed && topicsLength++;
   }
   return topicsLength;
@@ -215,7 +215,7 @@ const argsColumnDef = (
     ) {
       const abiFragmentInput: AbiFragmentParam =
         abiFragmentInputs[indexOfInputs];
-      let argColumnDef: ColumnDef = {
+      const argColumnDef: ColumnDef = {
         headerName: `args[${indexOfInputs}]`,
         children: [],
         columnGroupShow: indexOfInputs === 0 ? undefined : "open",
@@ -287,7 +287,7 @@ const argChildColumnDef = (
           ? "text-right"
           : cellClass,
       valueFormatter: (valueFormatterParams: ValueFormatterParams) => {
-        let argChildValue = getArgChildValue(
+        const argChildValue = getArgChildValue(
           valueFormatterParams.data.args[indexOfInputs],
           indexOfArgChild,
         );

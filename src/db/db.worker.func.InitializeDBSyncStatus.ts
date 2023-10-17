@@ -61,7 +61,7 @@ async function getSyncStatusesEvent(
   dbEventLogs: DbEventLogs,
   targetContract: Contract,
 ): Promise<SyncStatusesEvent> {
-  let promises: Promise<Partial<SyncStatusesEvent>>[] = [];
+  const promises: Promise<Partial<SyncStatusesEvent>>[] = [];
   for (const eventName of targetContract.events.names) {
     promises.push(
       getRecordCountOfEventLogs(dbEventLogs, targetContract, eventName),

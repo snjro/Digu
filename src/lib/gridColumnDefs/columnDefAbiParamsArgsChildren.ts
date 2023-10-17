@@ -57,7 +57,7 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
   abiParamArgHeaderName: string,
   indexOfArgs: number,
 ): ColumnDef[] => {
-  let columnDefs: ColumnDef[] = [
+  const columnDefs: ColumnDef[] = [
     columnDefAbiParamsStringArg(abiParamsKey, indexOfArgs, "name"),
     ...(showAbiParamsInputIndexedField
       ? [columnDefAbiParamsStringArg(abiParamsKey, indexOfArgs, "indexed")]

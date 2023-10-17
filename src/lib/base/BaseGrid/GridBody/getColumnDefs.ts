@@ -2,7 +2,7 @@ import type { ColDef, ColGroupDef } from "ag-grid-community";
 import classNames from "classnames";
 import type { ColumnDef } from "../types";
 export function getColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
-  let editedColumnDefs: ColumnDef[] = addRowNumberColumnDefs(paramColumnDefs);
+  const editedColumnDefs: ColumnDef[] = addRowNumberColumnDefs(paramColumnDefs);
   for (const targetColumnDef of editedColumnDefs) {
     if (targetColumnDef.hasOwnProperty("children")) {
       setGroupColumnClass(targetColumnDef as ColGroupDef);

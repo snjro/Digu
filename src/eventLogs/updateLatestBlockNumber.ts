@@ -44,7 +44,7 @@ export async function startUpdateLatestBlockNumber(
   // To avoid this, get the latest blocknumber here.
   await tryGetAndUpdateLatestBlockNumber();
 
-  let intervalId: number = window.setInterval(async () => {
+  const intervalId: number = window.setInterval(async () => {
     if (!get(storeSyncStatus)[targetChainName].isSyncing) {
       stopUpdateLatestBlockNumber(intervalId);
       return;

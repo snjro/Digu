@@ -102,7 +102,7 @@ export async function updateDbIsSyncTarget(
     newValue,
   );
 
-  let numOfSyncTargetContract: number = newValue ? 1 : 0;
+  const numOfSyncTargetContract: number = newValue ? 1 : 0;
 
   await updateDbItemSyncStatus(
     dbEventLogs,

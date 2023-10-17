@@ -11,7 +11,7 @@ export async function startDbWorker<T extends TargetFunctionName>(
   dbWorkerMessage: DbWorkerMessage<T>,
 ): Promise<DbWorkerResultValue<T>> {
   return new Promise((resolve) => {
-    let dbWorker: Worker = new DbWorker();
+    const dbWorker: Worker = new DbWorker();
 
     dbWorker.addEventListener(
       "message",

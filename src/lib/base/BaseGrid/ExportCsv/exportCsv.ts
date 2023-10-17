@@ -37,7 +37,7 @@ function getParamsForCsv(
   skipColumnHeaders: boolean,
   fileName: string | undefined = undefined,
 ): CsvExportParams {
-  let targetColIds: string[] | undefined = gridOptions.columnApi
+  const targetColIds: string[] | undefined = gridOptions.columnApi
     ?.getColumns()
     ?.map((column: Column) => {
       return column.getColId();
@@ -49,7 +49,7 @@ function getParamsForCsv(
     );
     targetColIds!.splice(indexOfRowNumber, 1);
   }
-  let csvExportParams: CsvExportParams = {
+  const csvExportParams: CsvExportParams = {
     columnKeys: targetColIds,
     columnSeparator: columnSeparator,
     suppressQuotes: suppressQuotes,
