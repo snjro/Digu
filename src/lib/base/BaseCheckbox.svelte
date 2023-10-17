@@ -8,8 +8,8 @@
   import classNames from "classnames";
   import { radioSizes } from "./BaseRadio.svelte";
   import type { BaseSize } from "./baseSizes";
-  import {base} from "$app/paths"
-  
+  import { base } from "$app/paths";
+
   export let size: BaseSize = "md";
   export let group: string[] = [];
   export let value: string = "";
