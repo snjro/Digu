@@ -7,7 +7,7 @@ node_modules
 .env.*
 !.env.example
 *.test.ts
-_deploy
+_build
 
 # Ignore files for Tauri
 /src-tauri/target

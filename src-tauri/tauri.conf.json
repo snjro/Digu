@@ -4,7 +4,7 @@
     "beforeBuildCommand": "npm run build",
     "beforeDevCommand": "npm run dev",
     "devPath": "http://localhost:5173",
-    "distDir": "../_deploy"
+    "distDir": "../_build"
   },
   "package": {
     "productName": "contract-viewer",

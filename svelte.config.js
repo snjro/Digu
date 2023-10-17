@@ -1479,8 +1479,8 @@ const config = {
   // noExternal: ["svelte-hero-icons"],
   kit: {
     adapter: adapter({
-      pages: "_deploy",
-      assets: "_deploy",
+      pages: "_build",
+      assets: "_build",
       precompress: false,
     }),
     prerender: { entries: entries },

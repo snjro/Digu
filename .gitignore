@@ -1,4 +1,4 @@
-_deploy
+_build
 node_modules
 .svelte-kit
 *.code-workspace
