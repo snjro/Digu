@@ -82,5 +82,5 @@ async function fetchBlockFromNodeProvider(
   }
 }
 function isPureBlock(value: Block | null): value is Block {
-  return typeof value !== null;
+  return value !== null;
 }
