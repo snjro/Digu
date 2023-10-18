@@ -177,8 +177,6 @@ const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
 function getArgChildValue(argChildValue: any, indexArgChild: number): any {
   if (Array.isArray(argChildValue)) {
     argChildValue = argChildValue[indexArgChild];
-  } else {
-    argChildValue = argChildValue;
   }
   return argChildValue;
 }
