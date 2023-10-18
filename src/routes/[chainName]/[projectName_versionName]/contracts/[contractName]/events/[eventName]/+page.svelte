@@ -55,7 +55,6 @@
     {:else if tabsDefinition.selected === "ABI"}
       <AbiJsonViewer
         targetAbi={data.targetEventAbiFragment}
-        abiFormatType="json"
         fragment
         bind:isFullScreen
       />
