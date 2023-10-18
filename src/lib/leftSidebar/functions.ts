@@ -1,5 +1,5 @@
 import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
-import { DbSettingsDataHandlers } from "@db/dbSettings";
+import { updateDbItemUserSettings } from "@db/dbSettingsDataHandlers";
 import { trailingSlash } from "@routes/+layout";
 import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
 import { storeUserSettings } from "@stores/storeUserSettings";
@@ -7,10 +7,7 @@ import { get } from "svelte/store";
 
 export async function toggleLeftSideBar(): Promise<void> {
   const isOpenSidebar = get(storeUserSettings).isOpenSidebar;
-  await DbSettingsDataHandlers.updateDbItemUserSettings(
-    "isOpenSidebar",
-    !isOpenSidebar,
-  );
+  await updateDbItemUserSettings("isOpenSidebar", !isOpenSidebar);
 }
 export async function toggleLeftSideBarWithCondition(): Promise<void> {
   if (get(storeNoDbCurrentWidth) <= breakPointWidths.sm) {

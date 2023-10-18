@@ -4,11 +4,11 @@
   import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { openDialog } from "$lib/base/BaseDialog/BaseDialogHandler";
-  import { DbSettingsDataHandlers } from "@db/dbSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
   import NavButtonsSettingsDialog from "./NavButtonsSettingsDialog.svelte";
+  import { updateDbItemUserSettings } from "@db/dbSettingsDataHandlers";
 
   let currentThemeColor: ThemeColor;
   $: currentThemeColor = $storeUserSettings.themeColor;
@@ -39,10 +39,7 @@
         tooltipXPosition: "left",
         tooltipYPosition: "bottom",
         onClickEventFunction: async () => {
-          await DbSettingsDataHandlers.updateDbItemUserSettings(
-            "themeColor",
-            newThemeColor,
-          );
+          await updateDbItemUserSettings("themeColor", newThemeColor);
         },
       },
     ],

@@ -4,7 +4,7 @@
   import BaseSelect from "$lib/base/BaseSelect.svelte";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import CommonOpenLink from "$lib/common/CommonOpenLink.svelte";
-  import { DbSettingsDataHandlers } from "@db/dbSettings";
+  import { updateDbItemRpcSettings } from "@db/dbSettingsDataHandlers";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getTargetChain } from "@utils/utlisDb";
@@ -20,7 +20,7 @@
     const chainExplorerIndex: number = parseInt(
       (event.target as HTMLInputElement).value,
     );
-    await DbSettingsDataHandlers.updateDbItemRpcSettings(
+    await updateDbItemRpcSettings(
       targetChainName,
       "chainExplorerIndex",
       chainExplorerIndex,
