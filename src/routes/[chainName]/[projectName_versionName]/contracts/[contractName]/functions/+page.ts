@@ -19,7 +19,7 @@ export function load({
   params,
 }: {
   params: LoadEvent["params"];
-}): LoadFunctionsData | {} {
+}): LoadFunctionsData | Record<string, never> {
   return _loadFunctionsData({ params });
 }
 function _loadFunctionsData({
