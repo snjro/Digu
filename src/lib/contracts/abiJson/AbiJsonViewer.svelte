@@ -13,59 +13,74 @@
   import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseHighlight from "$lib/base/BaseHighlight.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
   import { showSnackBarAsCopied } from "$lib/common/CommonCopyButton.svelte";
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { jsonStringifyFormatted } from "@utils/utilsCommon";
-  import type { AbiFormatType } from "@utils/utilsEthers";
   import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
+  import type { BaseIconProps } from "$lib/base/BaseIcon";
 
   export let targetAbi: TargetAbi;
-  export let abiFormatType: AbiFormatType;
   export let fragment: boolean = false;
   export let isFullScreen: boolean;
 
   type TargetAbi = ContractInterface | EventAbiFragment | FunctionAbiFragment;
 
-  let formattedAbi: () => string[] | string;
-  formattedAbi = (): string[] | string => {
-    if (isTargetContractInterface(targetAbi)) {
-      if (abiFormatType === "json") {
-        return targetAbi.formatJson();
-      } else {
-        return targetAbi.format(abiFormatType === "minimal");
-      }
-    } else {
-      if (abiFormatType === "json") {
-        return targetAbi.format(abiFormatType);
-      } else {
-        return [targetAbi.format(abiFormatType)];
-      }
+  let abiFormatButtonIndex: number = 0;
+
+  $: targetFragment = () => {
+    switch (abiFormatButtonIndex) {
+      case 0:
+        return isTargetContractInterface(targetAbi)
+          ? targetAbi.fragments
+          : targetAbi;
+      case 1:
+        return isTargetContractInterface(targetAbi)
+          ? targetAbi.format(false)
+          : targetAbi.format("full");
+      default:
+        return isTargetContractInterface(targetAbi)
+          ? targetAbi.format(true)
+          : targetAbi.format("minimal");
     }
   };
 
   let isExpanded: boolean = true;
-  let abiText: string = jsonStringifyFormatted(formattedAbi());
+  $: abiText = isExpanded
+    ? jsonStringifyFormatted(targetFragment())
+    : jsonStringifyFormatted(targetFragment(), 0);
 
   const expandBottunClicked: () => void = () => {
     isExpanded = !isExpanded;
-    abiText = isExpanded
-      ? jsonStringifyFormatted(formattedAbi())
-      : formattedAbi().toString();
   };
-  let expandButtonIconName: BaseIconProps["name"];
-  $: expandButtonIconName = isExpanded
-    ? "arrowCollapseVertical"
-    : "arrowExpandVertical";
-  let expandButtonTooltipText: string;
-  $: expandButtonTooltipText = isExpanded ? "Unformatted" : "Formatted";
+
+  const abiFormatButtonDefinitions: {
+    iconName: BaseIconProps["name"];
+    tooltipText: string;
+  }[] = [
+    { iconName: "textLong", tooltipText: "Human readable (full)" },
+    { iconName: "textShort", tooltipText: "Human readable (minimal)" },
+    { iconName: "codeJson", tooltipText: "Json" },
+  ];
+  const changeFormatButtonClicked: () => void = () => {
+    abiFormatButtonIndex =
+      (abiFormatButtonIndex + 1) % abiFormatButtonDefinitions.length;
+  };
 
   let buttonsDefinition: PageWrapperContentFunctionBarDefinition["buttonsDefinition"];
   $: buttonsDefinition = [
     [
       {
-        iconName: expandButtonIconName,
-        tooltipText: expandButtonTooltipText,
+        iconName: abiFormatButtonDefinitions[abiFormatButtonIndex].iconName,
+        tooltipText:
+          abiFormatButtonDefinitions[abiFormatButtonIndex].tooltipText,
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: changeFormatButtonClicked,
+      },
+
+      {
+        iconName: isExpanded ? "arrowCollapseVertical" : "arrowExpandVertical",
+        tooltipText: isExpanded ? "Trim" : "Format",
         tooltipXPosition: "left",
         tooltipYPosition: "top",
         onClickEventFunction: expandBottunClicked,
@@ -91,7 +106,7 @@
             getExportFileName(
               fragment ? "ABIfragment" : "ABI",
               $page.params,
-              "json",
+              abiFormatButtonIndex === 0 ? "json" : "txt",
             ),
             "json",
           ),
