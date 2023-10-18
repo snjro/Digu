@@ -4,7 +4,7 @@ import type { ColumnDef } from "../types";
 export function getColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
   const editedColumnDefs: ColumnDef[] = addRowNumberColumnDefs(paramColumnDefs);
   for (const targetColumnDef of editedColumnDefs) {
-    if (targetColumnDef.hasOwnProperty("children")) {
+    if (Object.prototype.hasOwnProperty.call(targetColumnDef, "children")) {
       setGroupColumnClass(targetColumnDef as ColGroupDef);
     } else {
       setSingleColumnClass(targetColumnDef);

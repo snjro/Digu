@@ -7,7 +7,7 @@
   export function isTargetContractInterface(
     targetAbi: TargetAbi,
   ): targetAbi is ContractInterface {
-    return targetAbi.hasOwnProperty("fragments");
+    return Object.prototype.hasOwnProperty.call(targetAbi, "fragments");
   }
 </script>
 
