@@ -14,7 +14,7 @@ import {
   type ExportFilePrefix,
 } from "./utilsFile";
 
-type ExportFileExtention = "csv" | "json" | "text";
+type ExportFileExtention = "csv" | "json" | "txt";
 
 beforeAll(() => {
   // Mocking system time
@@ -51,8 +51,8 @@ describe("ExportDataToFile", () => {
   test("should create a file with the correct data and trigger a download", () => {
     const targetData: string = "Hello, world!";
     const exportFileName: `${ExportFilePrefix}${string}${ExportFileExtention}` =
-      "contracts.text";
-    const extention: ExportFileExtention = "text";
+      "contracts.txt";
+    const extention: ExportFileExtention = "txt";
 
     ExportDataToFile(targetData, exportFileName, extention);
 

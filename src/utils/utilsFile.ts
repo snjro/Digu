@@ -14,7 +14,7 @@ type ExportDataType = { mimeType: MimeType };
 const dataTypes: {
   csv: ExportDataType;
   json: ExportDataType;
-  text: ExportDataType;
+  txt: ExportDataType;
 } = {
   csv: {
     mimeType: "text/csv",
@@ -22,7 +22,7 @@ const dataTypes: {
   json: {
     mimeType: "application/json",
   },
-  text: {
+  txt: {
     mimeType: "text/plain",
   },
 };
