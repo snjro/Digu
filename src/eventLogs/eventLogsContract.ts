@@ -62,6 +62,7 @@ export async function fetchEventLogsContract(
   let fetchingTargetInfo: FetchingTargetInfo;
   let ethersEventLogs: EthersEventLog[];
 
+  /*eslint no-constant-condition: ["error", { "checkLoops": false }]*/
   while (true) {
     if (syncStatusContract(contractIdentifier).isAbort) {
       await stopSyncingInContract(dbEventLogs, targetContract.name);
