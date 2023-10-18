@@ -42,6 +42,7 @@
   class={classNames(
     "w-full",
     "min-w-fit",
+    "whitespace-pre-wrap",
     baseTextSizes[sizeSettings.abiJsonText],
   )}
   {code}
