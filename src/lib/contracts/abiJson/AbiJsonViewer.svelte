@@ -1,16 +1,3 @@
-<script lang="ts" context="module">
-  export type TargetAbi =
-    | ContractInterface
-    | EventAbiFragment
-    | FunctionAbiFragment;
-
-  export function isTargetContractInterface(
-    targetAbi: TargetAbi,
-  ): targetAbi is ContractInterface {
-    return Object.prototype.hasOwnProperty.call(targetAbi, "fragments");
-  }
-</script>
-
 <script lang="ts">
   import type {
     ContractInterface,
@@ -37,6 +24,8 @@
   export let abiFormatType: AbiFormatType;
   export let fragment: boolean = false;
   export let isFullScreen: boolean;
+
+  type TargetAbi = ContractInterface | EventAbiFragment | FunctionAbiFragment;
 
   let formattedAbi: () => string[] | string;
   formattedAbi = (): string[] | string => {
@@ -115,6 +104,11 @@
       },
     ],
   ];
+  function isTargetContractInterface(
+    targetAbi: TargetAbi,
+  ): targetAbi is ContractInterface {
+    return Object.prototype.hasOwnProperty.call(targetAbi, "fragments");
+  }
 </script>
 
 <PageWrapperContent>
