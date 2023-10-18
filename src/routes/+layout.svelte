@@ -34,7 +34,7 @@
   }
 
   onNavigate((navigation: OnNavigate) => {
-    const documentAsAny: any = document;
+    const documentAsAny: any = document; // eslint-disable-line @typescript-eslint/no-explicit-any
     if (!documentAsAny.startViewTransition) return;
 
     return new Promise((resolve) => {
