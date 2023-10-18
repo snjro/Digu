@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-explicit-any: 0 */
 import { convertTimestampSecToIso8601 } from "./utilsTime";
 export class customLogger {
   // eslint-disable-next-line

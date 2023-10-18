@@ -157,7 +157,7 @@ export type EthersEventLog = OriginalEthersEventLog;
 export type ConvertedEventLog = {
   eventName: EthersEventLog["eventName"];
   eventSignature: EthersEventLog["eventSignature"];
-  args: Array<any>;
+  args: Array<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   blockNumber: EthersEventLog["blockNumber"];
   jsDate: Date;
   blockHash: HexString;

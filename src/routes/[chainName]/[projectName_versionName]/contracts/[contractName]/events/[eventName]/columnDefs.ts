@@ -173,14 +173,14 @@ const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
     },
   ];
 };
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 function getArgChildValue(argChildValue: any, indexArgChild: number): any {
+  /* eslint-enable @typescript-eslint/no-explicit-any */
   if (Array.isArray(argChildValue)) {
     argChildValue = argChildValue[indexArgChild];
   }
   return argChildValue;
 }
-
 const argsColumnDef = (
   targetEventAbiFragment: EventAbiFragment,
   eachArgsMaxLengths: number[],

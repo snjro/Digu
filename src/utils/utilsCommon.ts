@@ -27,8 +27,9 @@ export function numberWithCommas(n: number): string {
     (parts[1] ? "." + parts[1] : "")
   );
 }
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function jsonStringifyFormatted(value: any): string {
+  /* eslint-enable @typescript-eslint/no-explicit-any */
   return JSON.stringify(value, null, 2);
 }
 
