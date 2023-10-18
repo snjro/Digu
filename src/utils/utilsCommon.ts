@@ -28,9 +28,12 @@ export function numberWithCommas(n: number): string {
   );
 }
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export function jsonStringifyFormatted(value: any): string {
+export function jsonStringifyFormatted(
+  value: any,
+  numOfSpace: number = 2,
+): string {
   /* eslint-enable @typescript-eslint/no-explicit-any */
-  return JSON.stringify(value, null, 2);
+  return JSON.stringify(value, null, numOfSpace);
 }
 
 type SortType = "asc" | "desc";
