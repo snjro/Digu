@@ -167,7 +167,8 @@ function groupEventLogsByEventName(
 ): GroupedEventLogs {
   const groupedEventLogs: GroupedEventLogs = {};
   for (const convertedEventLog of convertedEventLogs) {
-    const eventName: ConvertedEventLog["eventName"] = convertedEventLog.eventName;
+    const eventName: ConvertedEventLog["eventName"] =
+      convertedEventLog.eventName;
 
     if (!(eventName in groupedEventLogs)) {
       groupedEventLogs[eventName] = [];

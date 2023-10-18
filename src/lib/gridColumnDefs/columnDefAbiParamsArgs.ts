@@ -15,7 +15,10 @@ export const columnDefAbiParamsArgs = <T extends AbiRow>(
     indexOfArgs <= maxLengthOfArgs - 1;
     indexOfArgs++
   ) {
-    const abiParamArgHeaderName: string = headerName(paramTypeName, indexOfArgs);
+    const abiParamArgHeaderName: string = headerName(
+      paramTypeName,
+      indexOfArgs,
+    );
     const columnDefAbiParamsArgsChild: ColumnDef = {
       headerName: abiParamArgHeaderName,
       columnGroupShow: "open",

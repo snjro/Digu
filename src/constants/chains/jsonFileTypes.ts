@@ -11,7 +11,7 @@ type JsonFileAbiFragmentParam = {
     | `string${string}`
     | `uint${string}`
     | `tuple${string}`;
-  readonly internalType?: any;// eslint-disable-line @typescript-eslint/no-explicit-any
+  readonly internalType?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   readonly components?: ReadonlyArray<JsonFileAbiFragmentParam>;
 };
 type JsonFileAbiFragmentType =
