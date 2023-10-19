@@ -110,7 +110,7 @@ export async function getEthersEventLogs(
   eventNames: EventAbiFragment["name"][],
   ethersContract: EthersContract,
   fromBlock: number,
-  toBLock: number,
+  toBlock: number,
 ): Promise<EthersEventLog[]> {
   let ethersEventLogs: EthersEventLog[] = [];
   for (const eventName of eventNames) {
@@ -118,7 +118,7 @@ export async function getEthersEventLogs(
       ethersContract,
       eventName,
       fromBlock,
-      toBLock,
+      toBlock,
     );
     ethersEventLogs = ethersEventLogs.concat(fetchedEthersEventLogs);
   }
@@ -129,9 +129,9 @@ async function queryFilter(
   ethersContract: EthersContract,
   eventName: string,
   fromBlock: number,
-  toBLock: number,
+  toBlock: number,
 ): Promise<EthersEventLog[]> {
   const ethersEventLog: Array<EventLog | Log> =
-    await ethersContract.queryFilter(eventName, fromBlock, toBLock);
+    await ethersContract.queryFilter(eventName, fromBlock, toBlock);
   return ethersEventLog as EthersEventLog[];
 }
