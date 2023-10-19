@@ -8,7 +8,7 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
   import NavButtonsSettingsDialog from "./NavButtonsSettingsDialog.svelte";
-  import { updateDbItemUserSettings } from "@db/dbSettingsDataHandlers";
+  import { updateDbItemUserSettings } from "@db/dbSettings";
 
   let currentThemeColor: ThemeColor;
   $: currentThemeColor = $storeUserSettings.themeColor;

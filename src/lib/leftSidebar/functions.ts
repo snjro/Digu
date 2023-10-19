@@ -1,5 +1,5 @@
 import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
-import { updateDbItemUserSettings } from "@db/dbSettingsDataHandlers";
+import { updateDbItemUserSettings } from "@db/dbSettings";
 import { trailingSlash } from "@routes/+layout";
 import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
 import { storeUserSettings } from "@stores/storeUserSettings";

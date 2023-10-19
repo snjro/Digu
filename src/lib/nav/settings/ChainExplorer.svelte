@@ -4,7 +4,7 @@
   import BaseSelect from "$lib/base/BaseSelect.svelte";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import CommonOpenLink from "$lib/common/CommonOpenLink.svelte";
-  import { updateDbItemRpcSettings } from "@db/dbSettingsDataHandlers";
+  import { updateDbItemRpcSettings } from "@db/dbSettings";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getTargetChain } from "@utils/utlisDb";

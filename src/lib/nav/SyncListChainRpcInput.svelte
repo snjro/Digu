@@ -18,7 +18,7 @@
   import classNames from "classnames";
   import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
   import type { HelperTextState } from "./settings/rpcConfig/RpcConfigChanger.svelte";
-  import { updateDbItemRpcSettings } from "@db/dbSettingsDataHandlers";
+  import { updateDbItemRpcSettings } from "@db/dbSettings";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
   $: rpc = $storeRpcSettings[targetChainName].rpc;

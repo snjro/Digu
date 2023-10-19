@@ -10,7 +10,7 @@
   import { storeNodbShowLoader } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { base } from "$app/paths";
-  import { updateDbItemUserSettings } from "@db/dbSettingsDataHandlers";
+  import { updateDbItemUserSettings } from "@db/dbSettings";
   const items: BaseSelectProps["items"] = TARGET_CHAINS.map(
     (targetChain: Chain) => {
       return {

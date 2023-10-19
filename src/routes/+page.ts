@@ -2,7 +2,7 @@ import { browser } from "$app/environment";
 import type { ChainName } from "@constants/chains/types";
 import { redirect } from "@sveltejs/kit";
 import { base } from "$app/paths";
-import { getDbItemUserSettings } from "@db/dbSettingsDataHandlers";
+import { getDbItemUserSettings } from "@db/dbSettings";
 
 export async function load() {
   if (browser) {

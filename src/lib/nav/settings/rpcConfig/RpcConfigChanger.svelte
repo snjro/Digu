@@ -17,7 +17,7 @@
   import RpcConfigChangerHelperText from "./RpcConfigChangerHelperText.svelte";
   import RpcConfigChangerInput from "./RpcConfigChangerInput.svelte";
   import RpcConfigChangerRange from "./RpcConfigChangerRange.svelte";
-  import { updateDbItemRpcSettings } from "@db/dbSettingsDataHandlers";
+  import { updateDbItemRpcSettings } from "@db/dbSettings";
 
   export let targetChainName: ChainName;
   export let rpcConfigParam: RpcConfigParam;

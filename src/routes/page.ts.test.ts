@@ -1,7 +1,7 @@
 import type { ChainName } from "@constants/chains/types";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { load } from "./+page";
-import * as dbSettingsDataHandlers from "@db/dbSettingsDataHandlers";
+import * as dbSettings from "@db/dbSettings";
 import * as kit from "@sveltejs/kit";
 import { redirect } from "@sveltejs/kit";
 
@@ -26,7 +26,7 @@ vi.mock("$app/navigation");
 describe("load", () => {
   const expectedSlelectedChainName: ChainName = "testChainName";
   const spyGetDbItemUserSettings = vi
-    .spyOn(dbSettingsDataHandlers, "getDbItemUserSettings")
+    .spyOn(dbSettings, "getDbItemUserSettings")
     .mockResolvedValue(expectedSlelectedChainName);
 
   const spyRedirect = vi.spyOn(kit, "redirect");

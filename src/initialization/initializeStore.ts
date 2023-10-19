@@ -19,7 +19,7 @@ import { extractEventContracts } from "@utils/utilsEthers";
 import {
   getDbRecordRpcSettings,
   getDbRecordUserSettings,
-} from "@db/dbSettingsDataHandlers";
+} from "@db/dbSettings";
 
 export async function initializeStore(): Promise<void> {
   const promiseUpdateStores: Promise<void>[] = [];
