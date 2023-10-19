@@ -74,17 +74,17 @@ const labelBgColor = (logLevel: LogLevel): CssColorKeyword => {
 };
 
 const logBase = (logLevel: LogLevel, messages: any[]) => {
-  const headerLabel: string = `%c${logLevel}%c ${convertTimestampSecToIso8601()}`;
+  const headerLabel: string = `%c${logLevel}%c${convertTimestampSecToIso8601()}`;
 
   const cssForLabel = (logLevel: LogLevel): string =>
     convertStringArrayToCssText([
       `background-color:${labelBgColor(logLevel)}`,
       "color:black",
       "padding: 1px 4px",
+      "margin-right: 4px",
       "font-family: monospace",
       "font-weight: 700",
       "border-radius: 4px",
-      ``,
     ]);
   const cssForTime: string = convertStringArrayToCssText([
     "font-family: monospace",
