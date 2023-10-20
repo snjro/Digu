@@ -1,124 +1,112 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 import { convertTimestampSecToIso8601 } from "./utilsTime";
 export class customLogger {
-  // eslint-disable-next-line
   static info(...messages: any[]) {
-    logBase("  info  ", messages);
+    logBase("info", messages);
   }
-  // eslint-disable-next-line
   static start(...messages: any[]) {
-    logBase(" start  ", messages);
+    logBase("start", messages);
   }
-  // eslint-disable-next-line
   static finished(...messages: any[]) {
     logBase("finished", messages);
   }
-  // eslint-disable-next-line
   static success(...messages: any[]) {
-    logBase("success ", messages);
+    logBase("success", messages);
   }
-  // eslint-disable-next-line
   static fail(...messages: any[]) {
-    logBase("  fail  ", messages);
+    logBase("fail", messages);
   }
-  // eslint-disable-next-line
   static error(...messages: any[]) {
-    logBase(" error  ", messages);
+    logBase("error", messages);
   }
-  // eslint-disable-next-line
   static fatal(...messages: any[]) {
-    logBase(" fatal  ", messages);
+    logBase("fatal", messages);
   }
-  // eslint-disable-next-line
   static warn(...messages: any[]) {
-    logBase("  warn  ", messages);
+    logBase("warn", messages);
   }
-  // eslint-disable-next-line
   static debug(...messages: any[]) {
-    logBase(" debug  ", messages);
+    logBase("debug", messages);
   }
 }
 
 type LogLevel =
-  | "  info  "
-  | " start  "
+  | "info"
+  | "start"
   | "finished"
-  | "success "
-  | "  fail  "
-  | " error  "
-  | " fatal  "
-  | "  warn  "
-  | " debug  ";
+  | "success"
+  | "fail"
+  | "error"
+  | "fatal"
+  | "warn"
+  | "debug";
 
 const labelBgColor = (logLevel: LogLevel): CssColorKeyword => {
   switch (logLevel) {
-    case "  info  ":
+    case "info":
       return "white";
-    case " start  ":
+    case "start":
       return "skyblue";
     case "finished":
       return "deepskyblue";
-    case "success ":
+    case "success":
       return "limegreen";
-    case "  fail  ":
+    case "fail":
       return "tomato";
-    case " error  ":
+    case "error":
       return "orangered";
-    case " fatal  ":
+    case "fatal":
       return "red";
-    case "  warn  ":
+    case "warn":
       return "gold";
-    case " debug  ":
+    default: //debug
       return "mediumpurple";
   }
 };
 
 const logBase = (logLevel: LogLevel, messages: any[]) => {
   const timestamp: string = convertTimestampSecToIso8601();
-  const headerLabel: string = `%c${logLevel}%c${timestamp}`;
+  const headerLabel: string = `%c${logLevel}%c %c${timestamp}`;
 
   const cssForLabel = (logLevel: LogLevel): string =>
     convertStringArrayToCssText([
       `background-color:${labelBgColor(logLevel)}`,
       "color:black",
       "padding: 1px 4px",
-      "margin-right: 4px",
       "font-family: monospace",
       "font-weight: 700",
       "border-radius: 4px",
+      "display: inline-block",
     ]);
   const cssForTime: string = convertStringArrayToCssText([
     "font-family: monospace",
     "color: gray",
   ]);
 
+  const consoleArgs: any = [
+    headerLabel,
+    cssForLabel(logLevel),
+    "",
+    cssForTime,
+    ...addNewline(messages),
+  ];
   switch (logLevel) {
-    case "  info  ":
-    case " start  ":
+    case "info":
+    case "start":
     case "finished":
-    case "success ":
-    case "  fail  ":
-      console.log(headerLabel, cssForLabel(logLevel), cssForTime, ...messages);
+    case "success":
+    case "fail":
+      console.log(...consoleArgs);
       break;
-    case " error  ":
-    case " fatal  ":
-      console.error(
-        headerLabel,
-        cssForLabel(logLevel),
-        cssForTime,
-        ...messages,
-      );
+    case "error":
+    case "fatal":
+      console.error(...consoleArgs);
       break;
-    case "  warn  ":
-      console.warn(headerLabel, cssForLabel(logLevel), cssForTime, ...messages);
+    case "warn":
+      console.warn(...consoleArgs);
       break;
-    case " debug  ":
-      console.debug(
-        headerLabel,
-        cssForLabel(logLevel),
-        cssForTime,
-        ...messages,
-      );
+    default:
+      console.debug(...consoleArgs);
       break;
   }
 };
@@ -126,6 +114,24 @@ const logBase = (logLevel: LogLevel, messages: any[]) => {
 function convertStringArrayToCssText(arrCss: string[]): string {
   return arrCss.join("; ") + ";";
 }
+/**
+ * This function takes an array of any type as input and returns a new array.
+ * For each element in the input array, if the element is a string and not the last element,
+ * it appends a newline character ('\n') to the end of the string.
+ * All other elements are returned as is.
+ *
+ * @param {any[]} messages - The input array.
+ * @returns {any[]} - The output array with newline characters appended to string elements.
+ */
+function addNewline(messages: any[]): any[] {
+  return messages.map((messageElement, index) => {
+    if (typeof messageElement === "string" && index !== messages.length - 1) {
+      return messageElement + "\n";
+    }
+    return messageElement;
+  });
+}
+
 type CssColorKeyword =
   | "aliceblue"
   | "antiquewhite"

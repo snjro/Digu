@@ -1,46 +1,46 @@
 import { type SpyInstance, expect, test, vi, describe } from "vitest";
 import { customLogger } from "./logger";
 type LogLevel =
-  | "  info  "
-  | " start  "
+  | "info"
+  | "start"
   | "finished"
-  | "success "
-  | "  fail  "
-  | " error  "
-  | " fatal  "
-  | "  warn  "
-  | " debug  ";
+  | "success"
+  | "fail"
+  | "error"
+  | "fatal"
+  | "warn"
+  | "debug";
 type LogDefinition = {
   logLevel: LogLevel;
   method: (...messages: any[]) => void;
 };
 const messages: any[] = ["test"];
 const logDefinitions: LogDefinition[] = [
-  { logLevel: "  info  ", method: customLogger.info },
-  { logLevel: " start  ", method: customLogger.start },
+  { logLevel: "info", method: customLogger.info },
+  { logLevel: "start", method: customLogger.start },
   { logLevel: "finished", method: customLogger.finished },
-  { logLevel: "success ", method: customLogger.success },
-  { logLevel: "  fail  ", method: customLogger.fail },
-  { logLevel: " error  ", method: customLogger.error },
-  { logLevel: " fatal  ", method: customLogger.fatal },
-  { logLevel: "  warn  ", method: customLogger.warn },
-  { logLevel: " debug  ", method: customLogger.debug },
+  { logLevel: "success", method: customLogger.success },
+  { logLevel: "fail", method: customLogger.fail },
+  { logLevel: "error", method: customLogger.error },
+  { logLevel: "fatal", method: customLogger.fatal },
+  { logLevel: "warn", method: customLogger.warn },
+  { logLevel: "debug", method: customLogger.debug },
 ];
 
 function getConsoleSpy(targetLogLevel: LogLevel): SpyInstance {
   switch (targetLogLevel) {
-    case "  info  ":
-    case " start  ":
+    case "info":
+    case "start":
     case "finished":
-    case "success ":
-    case "  fail  ":
+    case "success":
+    case "fail":
       return vi.spyOn(console, "log").mockImplementation(() => undefined);
-    case " error  ":
-    case " fatal  ":
+    case "error":
+    case "fatal":
       return vi.spyOn(console, "error").mockImplementation(() => undefined);
-    case "  warn  ":
+    case "warn":
       return vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    case " debug  ":
+    default:
       return vi.spyOn(console, "debug").mockImplementation(() => undefined);
   }
 }
@@ -53,6 +53,7 @@ describe("customLogger", () => {
       expect(consoleSpy).toHaveBeenCalled();
       expect(consoleSpy).toBeCalledTimes(1);
       expect(consoleSpy).toHaveBeenCalledWith(
+        expect.any(String),
         expect.any(String),
         expect.any(String),
         expect.any(String),
