@@ -44,7 +44,7 @@ type LogLevel =
 const labelBgColor = (logLevel: LogLevel): CssColorKeyword => {
   switch (logLevel) {
     case "info":
-      return "white";
+      return "ghostwhite";
     case "start":
       return "skyblue";
     case "finished":
@@ -72,10 +72,11 @@ const logBase = (logLevel: LogLevel, messages: any[]) => {
     convertStringArrayToCssText([
       `background-color:${labelBgColor(logLevel)}`,
       "color:black",
-      "padding: 1px 4px",
+      "padding: 0.5px 4px",
       "font-family: monospace",
       "font-weight: 700",
       "border-radius: 4px",
+      "border: 0.5px solid lightgray",
       "display: inline-block",
     ]);
   const cssForTime: string = convertStringArrayToCssText([
