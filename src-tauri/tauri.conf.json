@@ -58,7 +58,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "contract-viewer",
+        "title": "Contract Viewer",
         "width": 800
       }
     ]
