@@ -91,7 +91,7 @@ export async function fetchEventLogsContract(
       },
     };
 
-    if ((toBlockNumber = latestBlockNumber)) {
+    if (toBlockNumber === latestBlockNumber) {
       // If "toBlockNumber" reaches the latest,
       // sleep for fetching events to be called in the next loop
       await sleep(targetChain.blockIntervalMs);
