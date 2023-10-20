@@ -36,13 +36,6 @@
         : "border-transparent",
     )}
   >
-    <!-- <BaseLabel
-      text={label}
-      textSize={size}
-      cursorPointer
-      truncate
-      fontWeight={designatedFontWeight}
-    /> -->
     <span
       class={classNames(
         "truncate",
