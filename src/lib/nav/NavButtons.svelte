@@ -6,7 +6,6 @@
   import { openDialog } from "$lib/base/BaseDialog/BaseDialogHandler";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { capitalizeFirstLetter } from "@utils/utilsCommon";
   import NavButtonsSettingsDialog from "./NavButtonsSettingsDialog.svelte";
   import { updateDbItemUserSettings } from "@db/dbSettings";
 
@@ -23,6 +22,16 @@
   $: buttonsDefinition = [
     [
       {
+        iconName:
+          currentThemeColor === "dark" ? "weatherNight" : "whiteBalanceSunny",
+        tooltipText: `Change theme`,
+        tooltipXPosition: "left",
+        tooltipYPosition: "bottom",
+        onClickEventFunction: async () => {
+          await updateDbItemUserSettings("themeColor", newThemeColor);
+        },
+      },
+      {
         iconName: "cogOutline",
         tooltipText: "Settings",
         tooltipXPosition: "left",
@@ -30,16 +39,6 @@
         onClickEventFunction: () => {
           openDialog(dialogElement);
           initializeValue = true;
-        },
-      },
-      {
-        iconName:
-          currentThemeColor === "dark" ? "lightbulbOnOutline" : "weatherNight",
-        tooltipText: `Change theme to ${capitalizeFirstLetter(newThemeColor)}`,
-        tooltipXPosition: "left",
-        tooltipYPosition: "bottom",
-        onClickEventFunction: async () => {
-          await updateDbItemUserSettings("themeColor", newThemeColor);
         },
       },
     ],
