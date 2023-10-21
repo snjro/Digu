@@ -7,6 +7,12 @@
     DIR_NAME_EVENTS,
     DIR_NAME_FUNCTIONS,
   } from "@utils/utilsCostants";
+  import type { LoadChainData } from "./+page";
+  import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
+  import ChainOverview from "./ChainOverview.svelte";
+
+  export let data: LoadChainData;
+
   function testFunc() {
     console.log("test");
     let entries = ["/"];
@@ -49,13 +55,23 @@
     }
     console.log(entries);
   }
+  const titleCategoryLabelText: string = "Chain";
 </script>
 
-<div class="p-8">
-  <BaseButton
-    label="test Btn"
-    on:click={testFunc}
-    border
-    colorCategoryFront="interactive"
-  />
-</div>
+<PageWrapper
+  titleProps={{
+    titleText: data.targetChain.name,
+    titleCategoryLabelText: titleCategoryLabelText,
+  }}
+>
+  <svelte:fragment slot="PageWrapperContent">
+    <ChainOverview targetChain={data.targetChain}></ChainOverview>
+  </svelte:fragment>
+</PageWrapper>
+
+<BaseButton
+  label="test Btn"
+  on:click={testFunc}
+  border
+  colorCategoryFront="interactive"
+/>
