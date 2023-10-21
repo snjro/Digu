@@ -100,7 +100,7 @@
                   size={changeSize(textSize, -1)}
                 />
               {:else}
-                <BaseLabel text={NO_DATA} />
+                <BaseLabel text={NO_DATA} {textSize} />
               {/if}
             </BaseTableBodyCell>
             <BaseTableBodyCell
@@ -119,7 +119,7 @@
                   colorCategoryFront={colorSettings.itemMemberText}
                 />
               {:else}
-                <BaseLabel text={NO_DATA} />
+                <BaseLabel text={NO_DATA} {textSize} />
               {/if}
             </BaseTableBodyCell>
           </BaseTableRow>
