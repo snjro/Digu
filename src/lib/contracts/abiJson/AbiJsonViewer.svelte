@@ -49,7 +49,7 @@
     ? jsonStringifyFormatted(targetFragment())
     : jsonStringifyFormatted(targetFragment(), 0);
 
-  const expandBottunClicked: () => void = () => {
+  const expandButtonClicked: () => void = () => {
     isExpanded = !isExpanded;
   };
 
@@ -83,7 +83,7 @@
         tooltipText: isExpanded ? "With line breaks" : "No line breaks",
         tooltipXPosition: "left",
         tooltipYPosition: "top",
-        onClickEventFunction: expandBottunClicked,
+        onClickEventFunction: expandButtonClicked,
       },
       {
         iconName: "contentCopy",
