@@ -2,7 +2,6 @@
 import adapter from "@sveltejs/adapter-static";
 // import sveltePreprocess from "svelte-preprocess";
 import { vitePreprocess } from "@sveltejs/kit/vite";
-
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 
