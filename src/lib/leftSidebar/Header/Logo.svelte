@@ -7,7 +7,7 @@
 
 <BaseA
   href={"/"}
-  text="Contract Viewer"
+  text="Digu"
   appendClass={classNames("font-medium")}
   textSize={sizeSettings.leftSidebarLogo}
   colorCategory={colorSettings.leftSidebarHeader}

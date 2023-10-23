@@ -7,7 +7,7 @@
     "distDir": "../_build"
   },
   "package": {
-    "productName": "contract-viewer",
+    "productName": "digu",
     "version": "0.0.1"
   },
   "tauri": {
@@ -29,7 +29,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.snjr.contract-viewer",
+      "identifier": "com.snjr.digu",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -58,7 +58,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "Contract Viewer",
+        "title": "Digu",
         "width": 800
       }
     ]

@@ -48,7 +48,7 @@
 
 <svelte:window on:resize={onResize} />
 <svelte:head>
-  <title>Contract Viewer</title>
+  <title>Digu</title>
 </svelte:head>
 <div
   class={classNames(

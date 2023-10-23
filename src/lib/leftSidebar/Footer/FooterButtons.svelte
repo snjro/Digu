@@ -14,7 +14,7 @@
   }[] = [
     {
       iconName: "github",
-      href: "https://github.com/snjro/contract-viewer",
+      href: "https://github.com/snjro/digu",
       tooltipText: "GitHub",
       tooltipXPosition: "right",
       tooltipYPosition: "top",

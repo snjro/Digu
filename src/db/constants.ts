@@ -1,5 +1,5 @@
 export const DB_NAME = {
-  firstName: "Monju",
+  firstName: "Digu",
   secondNames: {
     eventLog: "EventLog",
     blockTimes: "BlockTimes",

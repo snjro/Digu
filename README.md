@@ -1,1 +1,1 @@
-# contract-viewer
+# Digu
