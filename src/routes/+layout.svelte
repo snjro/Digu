@@ -15,6 +15,8 @@
   import { getScreenWidth } from "@utils/utilsDom";
   import classNames from "classnames";
   import LoadingSpinner from "./LoadingSpinner.svelte";
+  import { capitalizeFirstLetter } from "@utils/utilsCommon";
+  import { PROJECT_NAME } from "@utils/utilsCostants";
 
   $: {
     if (browser) {
@@ -48,7 +50,7 @@
 
 <svelte:window on:resize={onResize} />
 <svelte:head>
-  <title>Digu</title>
+  <title>{capitalizeFirstLetter(PROJECT_NAME)}</title>
 </svelte:head>
 <div
   class={classNames(
