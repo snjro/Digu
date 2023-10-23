@@ -91,6 +91,7 @@
       "bg-transparent",
       colorDefinitions[themeColor][colorCategory].text,
       "placeholder:italic",
+      colorDefinitions[themeColor][colorCategory].textPlaceholder,
       baseTextSizes[size],
       inputPaddingSizes[size],
       "noborder",
@@ -162,7 +163,7 @@
       value={value ?? ""}
       spellcheck={false}
       {disabled}
-      {placeholder}
+      placeholder={isFocus ? undefined : placeholder}
       on:blur={() => {
         setFocused(false);
       }}
