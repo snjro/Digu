@@ -29,15 +29,15 @@
 
   $: targetFragment = () => {
     switch (abiFormatButtonIndex) {
-      case 0:
+      case 0: // JSON
         return isTargetContractInterface(targetAbi)
           ? targetAbi.fragments
           : targetAbi;
-      case 1:
+      case 1: // Human readable full
         return isTargetContractInterface(targetAbi)
           ? targetAbi.format(false)
           : targetAbi.format("full");
-      default:
+      default: // Human readable minimal
         return isTargetContractInterface(targetAbi)
           ? targetAbi.format(true)
           : targetAbi.format("minimal");
@@ -57,9 +57,9 @@
     iconName: BaseIconProps["name"];
     tooltipText: string;
   }[] = [
+    { iconName: "codeJson", tooltipText: "Json" },
     { iconName: "textLong", tooltipText: "Human readable (full)" },
     { iconName: "textShort", tooltipText: "Human readable (minimal)" },
-    { iconName: "codeJson", tooltipText: "Json" },
   ];
   const changeFormatButtonClicked: () => void = () => {
     abiFormatButtonIndex =
@@ -79,8 +79,8 @@
       },
 
       {
-        iconName: isExpanded ? "arrowCollapseVertical" : "arrowExpandVertical",
-        tooltipText: isExpanded ? "Trim" : "Format",
+        iconName: isExpanded ? "textWrap" : "textWrapOff",
+        tooltipText: isExpanded ? "With line breaks" : "No line breaks",
         tooltipXPosition: "left",
         tooltipYPosition: "top",
         onClickEventFunction: expandBottunClicked,
