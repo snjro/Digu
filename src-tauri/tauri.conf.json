@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "digu",
-    "version": "0.0.1"
+    "version": "../package.json"
   },
   "tauri": {
     "allowlist": {
