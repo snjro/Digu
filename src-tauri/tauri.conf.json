@@ -7,12 +7,15 @@
     "distDir": "../_build"
   },
   "package": {
-    "productName": "digu",
+    "productName": "Digu",
     "version": "../package.json"
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": false,
+      "shell": {
+        "open": true
+      }
     },
     "bundle": {
       "active": true,
@@ -59,7 +62,8 @@
         "height": 600,
         "resizable": true,
         "title": "Digu",
-        "width": 800
+        "width": 800,
+        "transparent": true
       }
     ]
   }
