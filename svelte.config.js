@@ -2,6 +2,13 @@
 import adapter from "@sveltejs/adapter-static";
 // import sveltePreprocess from "svelte-preprocess";
 import { vitePreprocess } from "@sveltejs/kit/vite";
+
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+
+const file = fileURLToPath(new URL("package.json", import.meta.url));
+const json = readFileSync(file, "utf8");
+const pkgJson = JSON.parse(json);
 const entries = [
   "/",
   "/eth",
@@ -1493,6 +1500,7 @@ const config = {
       "@static/*": "src/static/*",
       "@eventLogs": "src/eventLogs/*",
     },
+    version: { name: pkgJson.version },
   },
 };
 
