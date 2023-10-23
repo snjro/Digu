@@ -69,11 +69,11 @@
   $: {
     if (inputType === "text") {
       truncate = true;
-      eyeIconName = "eyeOff";
+      eyeIconName = "eye";
       eyeIconTooltipText = "hide";
     } else {
       truncate = false;
-      eyeIconName = "eye";
+      eyeIconName = "eyeOff";
       eyeIconTooltipText = "show";
     }
   }
