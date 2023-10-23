@@ -65,16 +65,16 @@
   $: inputType = $storeRpcSettings[targetChainName].inputType;
   let truncate = true;
   let eyeIconName: BaseIconProps["name"] = "eyeOff";
-  let eyeIconTooltipText: "show" | "hide" = "hide";
+  let eyeIconTooltipText: "show" | "hide" = "show";
   $: {
     if (inputType === "text") {
       truncate = true;
       eyeIconName = "eye";
-      eyeIconTooltipText = "hide";
+      eyeIconTooltipText = "show";
     } else {
       truncate = false;
       eyeIconName = "eyeOff";
-      eyeIconTooltipText = "show";
+      eyeIconTooltipText = "hide";
     }
   }
   async function toggleInputType(): Promise<void> {
