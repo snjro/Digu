@@ -22,8 +22,7 @@
   $: buttonsDefinition = [
     [
       {
-        iconName:
-          currentThemeColor === "dark" ? "weatherNight" : "whiteBalanceSunny",
+        iconName: currentThemeColor === "dark" ? "weatherNight" : "sun",
         tooltipText: `Change theme`,
         tooltipXPosition: "left",
         tooltipYPosition: "bottom",
