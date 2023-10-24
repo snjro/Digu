@@ -60,7 +60,7 @@
 
 <PageWrapper
   titleProps={{
-    titleText: data.targetChain.name,
+    titleText: data.targetChain.fullName,
     titleCategoryLabelText: titleCategoryLabelText,
   }}
 >
