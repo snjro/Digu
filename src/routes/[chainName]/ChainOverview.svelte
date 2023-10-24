@@ -13,7 +13,10 @@
 <PageWrapperContent gridCols="grid-cols-6" hasMultipulTabs={false}>
   <svelte:fragment slot="PageWrapperContentBody">
     {#each targetChain.projects as targetProject}
-      <CommonItemGroup text={targetProject.name} gridTrack={gridTrackContracts}>
+      <CommonItemGroup
+        text={`${targetProject.name}`}
+        gridTrack={gridTrackContracts}
+      >
         <ChainOverviewVersions {targetChain} {targetProject} />
       </CommonItemGroup>
     {/each}
