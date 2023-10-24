@@ -16,7 +16,7 @@ import { sortObjectArrayByProperty } from "@utils/utilsCommon";
 export function convertJsonFilesContractToContracts(
   jsonFileContracts: JsonFileContract[],
 ): Contract[] {
-  let convertedContracts: Contract[] = jsonFileContracts.map(
+  const convertedContracts: Contract[] = jsonFileContracts.map(
     (jsonFileContract: JsonFileContract): Contract => {
       const contractInterface: ContractInterface = new ethers.Interface(
         jsonFileContract.abi,

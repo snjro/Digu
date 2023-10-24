@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { version } from "$app/environment";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
@@ -6,7 +7,7 @@
 
 <div class="flex items-center">
   <BaseLabel
-    text="v0.0.1"
+    text={version}
     textSize={sizeSettings.leftSidebarVersion}
     colorCategoryFront={colorSettings.leftSidebarFooter}
   />

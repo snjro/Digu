@@ -8,7 +8,6 @@
   import { changeSize } from "$lib/base/baseSizes";
   import type { Chain } from "@constants/chains/types";
   import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
-  import { DbSettingsDataHandlers } from "@db/dbSettings";
   import type { NodeStatus, RpcInputType } from "@db/dbTypes";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
@@ -19,6 +18,7 @@
   import classNames from "classnames";
   import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
   import type { HelperTextState } from "./settings/rpcConfig/RpcConfigChanger.svelte";
+  import { updateDbItemRpcSettings } from "@db/dbSettings";
 
   $: targetChainName = $storeUserSettings.selectedChainName.toString();
   $: rpc = $storeRpcSettings[targetChainName].rpc;
@@ -46,11 +46,7 @@
     targetChain: Chain,
     newRpc: string = rpc,
   ): Promise<void> {
-    await DbSettingsDataHandlers.updateDbItemRpcSettings(
-      targetChain.name,
-      "rpc",
-      newRpc,
-    );
+    await updateDbItemRpcSettings(targetChain.name, "rpc", newRpc);
 
     //By calling "getNodeProvider", nodeStatus is updated
     await getNodeProvider(targetChain, newRpc);
@@ -69,26 +65,22 @@
   $: inputType = $storeRpcSettings[targetChainName].inputType;
   let truncate = true;
   let eyeIconName: BaseIconProps["name"] = "eyeOff";
-  let eyeIconTooltipText: "show" | "hide" = "hide";
+  let eyeIconTooltipText: "show" | "hide" = "show";
   $: {
     if (inputType === "text") {
       truncate = true;
-      eyeIconName = "eyeOff";
-      eyeIconTooltipText = "hide";
-    } else {
-      truncate = false;
       eyeIconName = "eye";
       eyeIconTooltipText = "show";
+    } else {
+      truncate = false;
+      eyeIconName = "eyeOff";
+      eyeIconTooltipText = "hide";
     }
   }
   async function toggleInputType(): Promise<void> {
     const newInputType: RpcInputType =
       inputType === "text" ? "password" : "text";
-    await DbSettingsDataHandlers.updateDbItemRpcSettings(
-      targetChainName,
-      "inputType",
-      newInputType,
-    );
+    await updateDbItemRpcSettings(targetChainName, "inputType", newInputType);
   }
 </script>
 

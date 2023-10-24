@@ -19,24 +19,9 @@ export function load({
   params,
 }: {
   params: LoadEvent["params"];
-}): LoadEventsData | {} {
+}): LoadEventsData {
   return _loadEventsData({ params });
 }
-// export async function load({
-//   params,
-//   parent,
-// }: {
-//   params: LoadEvent["params"];
-//   parent: LoadEvent["parent"];
-// }): Promise<LoadEventsData | {}> {
-
-//   const { initializing } = await parent();
-//   if (initializing) {
-//     return {};
-//   } else {
-//     return _loadEventsData({ params });
-//   }
-// }
 function _loadEventsData({
   params,
 }: {

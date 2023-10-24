@@ -45,9 +45,7 @@ export const columnDefsBasic = <T extends FunctionRow>(
                 target: cell.eGui,
                 props: {
                   text: cellRendererParams.data.functionName,
-                  href: `${urlPathName}/${
-                    cellRendererParams.data.functionName
-                  }${
+                  href: `${urlPathName}${cellRendererParams.data.functionName}${
                     cellRendererParams.data.functionSelectorWithSplitter
                   }#${convertToKebabCase(TAB_VALUES_FUNCTION[0])}`,
                   textSize: gridSize,

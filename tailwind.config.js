@@ -1,4 +1,6 @@
-const plugin = require("tailwindcss/plugin");
+import plugin from "tailwindcss/plugin";
+import tailwindScrollbar from "tailwind-scrollbar";
+
 const config = {
   content: [
     "./src/**/*.{html,js,svelte,ts}",
@@ -23,7 +25,7 @@ const config = {
   },
 
   plugins: [
-    require("tailwind-scrollbar")({ nocompatible: true }),
+    tailwindScrollbar({ nocompatible: true }),
     plugin(function ({ matchUtilities, theme }) {
       matchUtilities(
         {
@@ -40,4 +42,4 @@ const config = {
   // important: true,
 };
 
-module.exports = config;
+export default config;

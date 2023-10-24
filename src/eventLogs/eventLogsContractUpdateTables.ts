@@ -70,7 +70,7 @@ export async function registerEventLogsAndBlockTimes(
 function getUnregisterdBlockTimes(
   blockTimesForEventLogs: BlockTimeForEventLog[],
 ): BlockTime[] {
-  let unregisterdBlockTimes: BlockTime[] = [];
+  const unregisterdBlockTimes: BlockTime[] = [];
   for (const blockTimesForEventLog of blockTimesForEventLogs) {
     if (blockTimesForEventLog.fetchedFromProvider) {
       unregisterdBlockTimes.push(blockTimesForEventLog.fetchedBlockTime);
@@ -83,7 +83,7 @@ function getConvertedEventLogs(
   ethersEventLogs: EthersEventLog[],
   blockTimesForEventLogs: BlockTimeForEventLog[],
 ): ConvertedEventLog[] {
-  let convertedEventLogs: ConvertedEventLog[] = [];
+  const convertedEventLogs: ConvertedEventLog[] = [];
 
   for (const ethersEventLog of ethersEventLogs) {
     const targetBlockTime: BlockTime | undefined = blockTimesForEventLogs.find(
@@ -140,7 +140,7 @@ function convertEthersEventToEventLog(
       fragment: ethersEventLog.fragment,
     };
   } else {
-    let invalidProps = [];
+    const invalidProps = [];
     if (!isHexString(ethersEventLog.blockHash)) {
       invalidProps.push("blockHash");
     }
@@ -167,7 +167,8 @@ function groupEventLogsByEventName(
 ): GroupedEventLogs {
   const groupedEventLogs: GroupedEventLogs = {};
   for (const convertedEventLog of convertedEventLogs) {
-    let eventName: ConvertedEventLog["eventName"] = convertedEventLog.eventName;
+    const eventName: ConvertedEventLog["eventName"] =
+      convertedEventLog.eventName;
 
     if (!(eventName in groupedEventLogs)) {
       groupedEventLogs[eventName] = [];

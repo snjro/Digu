@@ -7,6 +7,7 @@ import { columnDefsFallback } from "./columnDefsFallback";
 import { columnDefsEventsFunctions } from "./columnDefsEventsFunctions";
 import type { Chain, Project, Version } from "@constants/chains/types";
 import { columnDefsSyncStatus } from "./columnDefsSyncStatus";
+import { DIR_NAME_EVENTS, DIR_NAME_FUNCTIONS } from "@utils/utilsCostants";
 
 export const columnDefs = <T extends ContractRow>(
   targetChain: Chain,
@@ -19,8 +20,8 @@ export const columnDefs = <T extends ContractRow>(
     columnDefsBasic<T>(urlPathName),
     columnDefsSyncStatus(targetChain, targetProject, targetVersion),
     columnDefsCreation<T>(),
-    columnDefsEventsFunctions<T>("events", urlPathName),
-    columnDefsEventsFunctions<T>("functions", urlPathName),
+    columnDefsEventsFunctions<T>(DIR_NAME_EVENTS, urlPathName),
+    columnDefsEventsFunctions<T>(DIR_NAME_FUNCTIONS, urlPathName),
     columnDefsFallback(),
     columnDefsConstructor<T>(maxLengthOfConstructorInputsParams),
   ];

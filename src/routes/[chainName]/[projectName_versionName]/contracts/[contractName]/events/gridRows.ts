@@ -9,7 +9,7 @@ export type EventRow = {
 export const gridRows = (
   targetEventAbiFragments: EventAbiFragment[],
 ): EventRow[] => {
-  let eventRows: EventRow[] = [];
+  const eventRows: EventRow[] = [];
   for (const eventAbiFragment of targetEventAbiFragments) {
     const eventRow: EventRow = {
       eventName: eventAbiFragment.name,

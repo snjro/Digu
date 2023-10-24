@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-explicit-any: 0 */
 /**
  * Base class for embedding a svelte component within an AGGrid call.
  * See: https://stackoverflow.com/a/72608215

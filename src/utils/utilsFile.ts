@@ -14,7 +14,7 @@ type ExportDataType = { mimeType: MimeType };
 const dataTypes: {
   csv: ExportDataType;
   json: ExportDataType;
-  text: ExportDataType;
+  txt: ExportDataType;
 } = {
   csv: {
     mimeType: "text/csv",
@@ -22,7 +22,7 @@ const dataTypes: {
   json: {
     mimeType: "application/json",
   },
-  text: {
+  txt: {
     mimeType: "text/plain",
   },
 };
@@ -32,10 +32,10 @@ export function ExportDataToFile(
   exportFileName: ExportFileName,
   extention: ExportFileExtention,
 ): void {
-  let fileLikeObject: Blob = new Blob([targetData], {
+  const fileLikeObject: Blob = new Blob([targetData], {
     type: dataTypes[extention].mimeType,
   });
-  let anchorElement: HTMLAnchorElement = document.createElement("a");
+  const anchorElement: HTMLAnchorElement = document.createElement("a");
   const url: string = URL.createObjectURL(fileLikeObject);
   anchorElement.href = url;
   anchorElement.download = exportFileName;

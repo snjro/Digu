@@ -16,7 +16,10 @@ import { storeChainStatus } from "@stores/storeChainStatus";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { extractEventContracts } from "@utils/utilsEthers";
-import { DbSettingsDataHandlers } from "@db/dbSettings";
+import {
+  getDbRecordRpcSettings,
+  getDbRecordUserSettings,
+} from "@db/dbSettings";
 
 export async function initializeStore(): Promise<void> {
   const promiseUpdateStores: Promise<void>[] = [];
@@ -53,13 +56,12 @@ async function InitializeStoreChainStatus(chainName: ChainName): Promise<void> {
   storeChainStatus.updateState(chainName, chainStatus);
 }
 async function InitializeStoreRpcSettings(chainName: ChainName): Promise<void> {
-  const rpcSetting: RpcSetting =
-    await DbSettingsDataHandlers.getDbRecordRpcSettings(chainName);
+  const rpcSetting: RpcSetting = await getDbRecordRpcSettings(chainName);
   storeRpcSettings.updateState(chainName, rpcSetting);
 }
 async function initializeStoreUserSettings(): Promise<void> {
   const userSettings: UserSetting =
-    await DbSettingsDataHandlers.getDbRecordUserSettings("userSetting01");
+    await getDbRecordUserSettings("userSetting01");
   storeUserSettings.updateState(userSettings);
 }
 async function InitializeStoreSyncStatus(

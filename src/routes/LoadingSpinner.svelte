@@ -7,18 +7,17 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeNodbShowLoader } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import type { AfterNavigate, BeforeNavigate } from "@sveltejs/kit";
   import classNames from "classnames";
 
-  export let showLoader: boolean = false;
+  let showLoader: boolean = false;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;
 
-  beforeNavigate((_navigation: BeforeNavigate) => {
+  beforeNavigate(() => {
     showLoader = true;
   });
 
-  afterNavigate((_navigation: AfterNavigate) => {
+  afterNavigate(() => {
     showLoader = false;
   });
 </script>

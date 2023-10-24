@@ -1,15 +1,13 @@
 import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
-import { DbSettingsDataHandlers } from "@db/dbSettings";
+import { updateDbItemUserSettings } from "@db/dbSettings";
+import { trailingSlash } from "@routes/+layout";
 import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { get } from "svelte/store";
 
 export async function toggleLeftSideBar(): Promise<void> {
   const isOpenSidebar = get(storeUserSettings).isOpenSidebar;
-  await DbSettingsDataHandlers.updateDbItemUserSettings(
-    "isOpenSidebar",
-    !isOpenSidebar,
-  );
+  await updateDbItemUserSettings("isOpenSidebar", !isOpenSidebar);
 }
 export async function toggleLeftSideBarWithCondition(): Promise<void> {
   if (get(storeNoDbCurrentWidth) <= breakPointWidths.sm) {
@@ -33,4 +31,9 @@ export function isHrefParentOfPathname(
     }
     return true;
   }
+}
+export function isSelectedDirectory(href: string, pathname: string): boolean {
+  const hrefWithTrailingSlash: string =
+    trailingSlash === "always" ? `${href}/` : href;
+  return pathname.endsWith(hrefWithTrailingSlash);
 }

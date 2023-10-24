@@ -92,7 +92,7 @@ export function getInitialDataOfSyncStatusesEvent(
   eventNames: EventAbiFragment["name"][],
 ): SyncStatusesEvent {
   const syncStatusesEvent: SyncStatusesEvent = {};
-  for (let eventName of eventNames) {
+  for (const eventName of eventNames) {
     syncStatusesEvent[eventName] = { recordCount: 0 };
   }
   return syncStatusesEvent;

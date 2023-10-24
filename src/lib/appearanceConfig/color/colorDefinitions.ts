@@ -9,6 +9,7 @@ export type ColorDefinitionForParts = {
   textOpacity: `text-${string}/${number}`;
   textEmphasis: `text-${string}`;
   textHover: `hover:text-${string}`;
+  textPlaceholder: `placeholder:text-${string}`;
   fill: `fill-${string}`;
   fillEmphasis: `fill-${string}`;
   fillOpacity: `fill-${string}/${number}`;

@@ -37,7 +37,7 @@
 </script>
 
 {#if fetchedBlockNumber}
-  <div class={classNames("h-full", "flex", "items-center")}>
+  <div class={classNames("h-full", "w-full", "flex", "items-center")}>
     <BaseProgressBarForBlockNumber
       startBlockNumber={targetContract.creation.blockNumber}
       colorCategoryFront={colorSettings.gridContainer}

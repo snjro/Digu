@@ -17,7 +17,7 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import { onMount } from "svelte";
-  import { isHrefParentOfPathname } from "../functions";
+  import { isHrefParentOfPathname, isSelectedDirectory } from "../functions";
   import BaseAccordionHeaderSuffixIcons, {
     type BaseAccordionHeaderSuffixIcon,
   } from "./BaseAccordionHeaderSuffixIcons.svelte";
@@ -65,22 +65,20 @@
   }
 
   function openCurrentDirectory(): void {
-    isOpenAccordion = !isSelected() && isParentDirectory();
+    isOpenAccordion = !isSelected && isParentDirectory();
   }
   onMount(() => {
     // open an accordion when a page is opened by using URL directly
     openCurrentDirectory();
   });
 
-  $: isSelected = (): boolean => {
-    return hrefWithoutUrlHash === $page.url.pathname;
-  };
+  $: isSelected = isSelectedDirectory(hrefWithoutUrlHash, $page.url.pathname);
   $: isParentDirectory = (): boolean => {
     return isHrefParentOfPathname(hrefWithoutUrlHash, $page.url.pathname);
   };
 
   $: bgColor =
-    isSelected() || hoverType !== undefined
+    isSelected || hoverType !== undefined
       ? colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis
       : undefined;
   let themeColor: ThemeColor;
@@ -112,7 +110,7 @@
   <BaseAccordionHeaderSuffixIcons
     {hoverType}
     height={leftSideBarItemHeight[size]}
-    isSelected={isSelected()}
+    {isSelected}
     {bgColor}
     {isOpenAccordion}
     {suffixIcons}

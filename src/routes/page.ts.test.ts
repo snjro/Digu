@@ -1,17 +1,9 @@
 import type { ChainName } from "@constants/chains/types";
-import { DbSettingsDataHandlers } from "@db/dbSettings";
-import {
-  afterAll,
-  beforeEach,
-  describe,
-  expect,
-  test,
-  vi,
-  type MockedFunction,
-} from "vitest";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { load } from "./+page";
-import * as appNav from "$app/navigation";
-import { goto } from "$app/navigation";
+import * as dbSettings from "@db/dbSettings";
+import * as kit from "@sveltejs/kit";
+import { redirect } from "@sveltejs/kit";
 
 type BrowserValue = { browserValue: boolean };
 const browserValues: BrowserValue[] = [
@@ -34,35 +26,39 @@ vi.mock("$app/navigation");
 describe("load", () => {
   const expectedSlelectedChainName: ChainName = "testChainName";
   const spyGetDbItemUserSettings = vi
-    .spyOn(DbSettingsDataHandlers, "getDbItemUserSettings")
+    .spyOn(dbSettings, "getDbItemUserSettings")
     .mockResolvedValue(expectedSlelectedChainName);
+
+  const spyRedirect = vi.spyOn(kit, "redirect");
 
   test.each(browserValues)(`should $browserValue`, async ({ browserValue }) => {
     mockBrowser = browserValue;
     beforeEach(() => {
       // clear call count
       spyGetDbItemUserSettings.mockClear();
-
-      // To get a mocked function, cast "goto" as MockedFunction.
-      // https://stackoverflow.com/questions/52457575/jest-typescript-property-mock-does-not-exist-on-type
-      (appNav.goto as MockedFunction<typeof appNav.goto>).mockClear();
     });
     afterAll(() => {
       vi.restoreAllMocks();
     });
-    await load();
+
+    // "redirect" throws, so need to catch.
+    try {
+      await load();
+    } catch (error) {}
+
     if (browserValue) {
       expect(spyGetDbItemUserSettings).toHaveBeenCalledWith(
         "userSetting01",
         "selectedChainName",
       );
+
       expect(spyGetDbItemUserSettings).toHaveReturnedWith(
         expectedSlelectedChainName,
       );
-      expect(goto).toHaveBeenCalledWith(`/${expectedSlelectedChainName}`);
+      expect(spyRedirect).toThrow();
     } else {
       expect(spyGetDbItemUserSettings).not.toBeCalled();
-      expect(goto).not.toHaveBeenCalled();
+      expect(redirect).toThrowError();
     }
   });
 });

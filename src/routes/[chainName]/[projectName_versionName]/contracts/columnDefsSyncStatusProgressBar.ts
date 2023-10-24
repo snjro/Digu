@@ -46,7 +46,7 @@ export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
     },
     columnGroupShow: undefined,
     valueGetter: (valueGetterParams: ValueGetterParams<T>): string => {
-      let contractName: ContractName = valueGetterParams.data!.contract.name;
+      const contractName: ContractName = valueGetterParams.data!.contract.name;
 
       let contractSyncStatus: SyncStatusContract | undefined = undefined;
       storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
@@ -62,10 +62,10 @@ export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
           stateChainStatuses[targetChain.name].latestBlockNumber;
       });
 
-      let startBlockNumber: number =
+      const startBlockNumber: number =
         valueGetterParams.data!.contract.creation.blockNumber;
 
-      let progressRate: string = contractSyncStatus
+      const progressRate: string = contractSyncStatus
         ? getProgressRateForLabel(
             getProgressRate(
               startBlockNumber,

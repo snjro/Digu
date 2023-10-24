@@ -39,7 +39,6 @@
     {:else if tabsDefinition.selected === "ABI"}
       <AbiJsonViewer
         targetAbi={data.targetContract.contractInterface}
-        abiFormatType="json"
         bind:isFullScreen
       />
     {/if}

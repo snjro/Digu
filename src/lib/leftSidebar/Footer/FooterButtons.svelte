@@ -4,6 +4,7 @@
   import type { BaseButtonProps } from "$lib/base/BaseButton.svelte";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import { PROJECT_NAME } from "@utils/utilsCostants";
 
   const buttons: {
     iconName: BaseIconProps["name"];
@@ -14,7 +15,7 @@
   }[] = [
     {
       iconName: "github",
-      href: "https://github.com/snjro/contract-viewer",
+      href: `https://github.com/snjro/${PROJECT_NAME}`,
       tooltipText: "GitHub",
       tooltipXPosition: "right",
       tooltipYPosition: "top",

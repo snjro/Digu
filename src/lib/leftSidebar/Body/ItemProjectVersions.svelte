@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from "$app/paths";
   import type { ChainName } from "@constants/chains/types";
   import {
     getProjectVersionNameForLabel,
@@ -12,7 +13,7 @@
   $: chainName = $storeUserSettings.selectedChainName.toString();
 
   let rootPath: string;
-  $: rootPath = `/${chainName}`;
+  $: rootPath = `${base}/${chainName}`;
 
   $: targetChain = getTargetChain({
     chainName: chainName,

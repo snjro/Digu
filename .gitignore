@@ -1,4 +1,7 @@
+_build
 node_modules
 .svelte-kit
 *.code-workspace
 coverage
+/src-tauri/target
+/src-tauri/WixTools

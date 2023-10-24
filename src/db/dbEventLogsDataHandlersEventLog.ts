@@ -40,7 +40,7 @@ export async function addEventLogs_updateFetchedBlockNumber(
         "events",
       );
 
-      let bulkPutInfo: (VersionIdentifier & {
+      const bulkPutInfo: (VersionIdentifier & {
         contractName: ContractName;
         eventName: string;
         tableName: string;
@@ -90,7 +90,7 @@ function getUpdateTargetTables(
   groupedEventLogs: GroupedEventLogs,
 ): Table[] {
   const eventNames: string[] = Object.keys(groupedEventLogs);
-  let updateTargetTables: Table[] = eventNames.map((eventName) => {
+  const updateTargetTables: Table[] = eventNames.map((eventName) => {
     const tableName: string = getEventLogTableName(contractName, eventName);
     return dbEventLogs.table(tableName);
   });

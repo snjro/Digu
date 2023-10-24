@@ -47,7 +47,7 @@ export const columnDefsSyncStatusTarget = <T extends ContractRow>(
       valueGetterParams: ValueGetterParams<T>,
     ): SyncTargetLabelText | typeof NO_DATA => {
       let contractSyncStatus: SyncStatusContract | undefined = undefined;
-      let contractName: ContractName = valueGetterParams.data!.contract.name;
+      const contractName: ContractName = valueGetterParams.data!.contract.name;
       storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
         contractSyncStatus =
           syncStatusesChain[targetChain.name].subSyncStatuses[

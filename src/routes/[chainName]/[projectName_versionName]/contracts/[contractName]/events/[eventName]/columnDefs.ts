@@ -97,7 +97,7 @@ function getTopicsLength(targetEventAbiFragment: EventAbiFragment): number {
   let topicsLength = targetEventAbiFragment.anonymous ? 0 : 1;
   const abiFragmentInputs: EventAbiFragment["inputs"] =
     targetEventAbiFragment.inputs;
-  for (let abiFragmentParam of abiFragmentInputs) {
+  for (const abiFragmentParam of abiFragmentInputs) {
     abiFragmentParam.indexed && topicsLength++;
   }
   return topicsLength;
@@ -173,16 +173,14 @@ const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
     },
   ];
 };
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 function getArgChildValue(argChildValue: any, indexArgChild: number): any {
+  /* eslint-enable @typescript-eslint/no-explicit-any */
   if (Array.isArray(argChildValue)) {
     argChildValue = argChildValue[indexArgChild];
-  } else {
-    argChildValue = argChildValue;
   }
   return argChildValue;
 }
-
 const argsColumnDef = (
   targetEventAbiFragment: EventAbiFragment,
   eachArgsMaxLengths: number[],
@@ -215,7 +213,7 @@ const argsColumnDef = (
     ) {
       const abiFragmentInput: AbiFragmentParam =
         abiFragmentInputs[indexOfInputs];
-      let argColumnDef: ColumnDef = {
+      const argColumnDef: ColumnDef = {
         headerName: `args[${indexOfInputs}]`,
         children: [],
         columnGroupShow: indexOfInputs === 0 ? undefined : "open",
@@ -287,7 +285,7 @@ const argChildColumnDef = (
           ? "text-right"
           : cellClass,
       valueFormatter: (valueFormatterParams: ValueFormatterParams) => {
-        let argChildValue = getArgChildValue(
+        const argChildValue = getArgChildValue(
           valueFormatterParams.data.args[indexOfInputs],
           indexOfArgChild,
         );

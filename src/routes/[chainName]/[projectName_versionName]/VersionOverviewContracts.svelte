@@ -20,8 +20,9 @@
   import CommonSyncStateText from "$lib/common/CommonSyncStateText.svelte";
   import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
   import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
+  import { trailingSlash } from "@routes/+layout";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { NO_DATA } from "@utils/utilsCostants";
+  import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsCostants";
 
   // export let contracts: Contract[];
   export let targetChain: Chain;
@@ -30,7 +31,10 @@
 
   const textSize: BaseSize = sizeSettings.itemMemberTable;
   const warnningTextSize: BaseSize = sizeSettings.itemWarnningMessage;
-  const hrefFrontPart: string = `${$page.url.pathname}/contracts`;
+  const hrefFrontPart: string =
+    trailingSlash === "always"
+      ? `${$page.url.pathname}${DIR_NAME_CONTRACTS}`
+      : `${$page.url.pathname}/${DIR_NAME_CONTRACTS}`;
   const noListMessage: string = `No contracts.`;
 </script>
 
@@ -96,7 +100,7 @@
                   size={changeSize(textSize, -1)}
                 />
               {:else}
-                <BaseLabel text={NO_DATA} />
+                <BaseLabel text={NO_DATA} {textSize} />
               {/if}
             </BaseTableBodyCell>
             <BaseTableBodyCell
@@ -115,7 +119,7 @@
                   colorCategoryFront={colorSettings.itemMemberText}
                 />
               {:else}
-                <BaseLabel text={NO_DATA} />
+                <BaseLabel text={NO_DATA} {textSize} />
               {/if}
             </BaseTableBodyCell>
           </BaseTableRow>

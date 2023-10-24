@@ -1,8 +1,9 @@
 {
-  "name": "monju",
+  "name": "digu",
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "tauri": "tauri",
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
@@ -20,8 +21,10 @@
   "devDependencies": {
     "@playwright/test": "^1.32.3",
     "@sveltejs/adapter-auto": "^2.0.0",
+    "@sveltejs/adapter-static": "^2.0.3",
     "@sveltejs/kit": "^1.17.1",
     "@tailwindcss/forms": "^0.5.3",
+    "@tauri-apps/cli": "^1.5.2",
     "@testing-library/svelte": "^4.0.3",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",

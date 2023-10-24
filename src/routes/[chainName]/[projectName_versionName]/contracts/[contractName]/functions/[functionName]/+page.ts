@@ -41,7 +41,7 @@ export async function load({
 }: {
   params: LoadEvent["params"];
   parent: LoadEvent["parent"];
-}): Promise<LoadFunction | {}> {
+}): Promise<LoadFunction | Record<string, never>> {
   const { initializing } = await parent();
   if (initializing) {
     return {};

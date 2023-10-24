@@ -9,14 +9,17 @@ export const columnDefAbiParamsArgs = <T extends AbiRow>(
   maxLengthOfArgs: number,
   showAbiParamsInputIndexedField: boolean,
 ): ColumnDef[] => {
-  let columnDefs: ColumnDef[] = [];
+  const columnDefs: ColumnDef[] = [];
   for (
     let indexOfArgs: number = 0;
     indexOfArgs <= maxLengthOfArgs - 1;
     indexOfArgs++
   ) {
-    let abiParamArgHeaderName: string = headerName(paramTypeName, indexOfArgs);
-    let columnDefAbiParamsArgsChild: ColumnDef = {
+    const abiParamArgHeaderName: string = headerName(
+      paramTypeName,
+      indexOfArgs,
+    );
+    const columnDefAbiParamsArgsChild: ColumnDef = {
       headerName: abiParamArgHeaderName,
       columnGroupShow: "open",
       children: columnDefAbiParamsArgsChildren(

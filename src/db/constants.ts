@@ -1,5 +1,8 @@
+import { capitalizeFirstLetter } from "@utils/utilsCommon";
+import { PROJECT_NAME } from "@utils/utilsCostants";
+
 export const DB_NAME = {
-  firstName: "Monju",
+  firstName: capitalizeFirstLetter(PROJECT_NAME),
   secondNames: {
     eventLog: "EventLog",
     blockTimes: "BlockTimes",

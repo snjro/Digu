@@ -30,7 +30,7 @@ export type ContractRow = {
   contractHasEvent: boolean;
 };
 export function gridRows(contracts: Contract[]): ContractRow[] {
-  let contractRows: ContractRow[] = [];
+  const contractRows: ContractRow[] = [];
   for (const targetContract of contracts) {
     const contractRow: ContractRow = {
       contract: targetContract,

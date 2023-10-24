@@ -21,10 +21,9 @@
       contractIdentifier.contractName
     ].events[targetEventName].recordCount;
 
-  const href: string = `${urlPathName}/${targetEventName}${convertTabValueForHref(
+  const href: string = `${urlPathName}${targetEventName}${convertTabValueForHref(
     "Event Logs (text)",
   )}`;
-
   let text: string;
   $: text = numberWithCommas(currentRecordCount);
 

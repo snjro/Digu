@@ -7,10 +7,10 @@
   } from "$lib/base/BaseSelect.svelte";
   import { TARGET_CHAINS } from "@constants/chains/_index";
   import type { Chain, ChainName } from "@constants/chains/types";
-  import { DbSettingsDataHandlers } from "@db/dbSettings";
   import { storeNodbShowLoader } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
-
+  import { base } from "$app/paths";
+  import { updateDbItemUserSettings } from "@db/dbSettings";
   const items: BaseSelectProps["items"] = TARGET_CHAINS.map(
     (targetChain: Chain) => {
       return {
@@ -24,12 +24,9 @@
     //update DB data and stored value
     const changedChainName: ChainName = (event.target as HTMLInputElement)
       .value;
-    await DbSettingsDataHandlers.updateDbItemUserSettings(
-      "selectedChainName",
-      changedChainName,
-    );
+    await updateDbItemUserSettings("selectedChainName", changedChainName);
     //jump to home
-    const rootUrl = `${location.origin}/${changedChainName}`;
+    const rootUrl = `${base}/${changedChainName}`;
     await goto(rootUrl);
     $storeNodbShowLoader = false;
   }

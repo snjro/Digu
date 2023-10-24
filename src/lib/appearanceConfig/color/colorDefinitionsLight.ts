@@ -6,6 +6,7 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     textOpacity: "text-green-600/50",
     textHover: "hover:text-green-700",
     textEmphasis: "text-green-700",
+    textPlaceholder: "placeholder:text-green-300",
     fill: "fill-green-600",
     fillOpacity: "fill-green-600/50",
     fillEmphasis: "fill-green-700",
@@ -26,6 +27,7 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     textOpacity: "text-red-600/50",
     textHover: "hover:text-red-700",
     textEmphasis: "text-red-700",
+    textPlaceholder: "placeholder:text-red-300",
     fill: "fill-red-600",
     fillOpacity: "fill-red-600/50",
     fillEmphasis: "fill-red-700",
@@ -46,6 +48,7 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     textOpacity: "text-sky-600/50",
     textHover: "hover:text-sky-700",
     textEmphasis: "text-sky-700",
+    textPlaceholder: "placeholder:text-sky-300",
     fill: "fill-sky-600",
     fillOpacity: "fill-sky-600/50",
     fillEmphasis: "fill-sky-700",
@@ -66,6 +69,7 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     textOpacity: "text-stone-600/50", //leftsidebar(header/footer) text
     textHover: "hover:text-stone-700",
     textEmphasis: "text-stone-700",
+    textPlaceholder: "placeholder:text-stone-300",
     fill: "fill-stone-600", //leftsidebar(header/footer) icon
     fillOpacity: "fill-stone-600/50", //leftsidebar(header/footer) icon
     fillEmphasis: "fill-stone-700", //leftsidebar(header/footer) icon
@@ -86,6 +90,7 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     textOpacity: "text-stone-700/50", //leftsidebar(header/footer) text
     textHover: "hover:text-stone-900",
     textEmphasis: "text-stone-900",
+    textPlaceholder: "placeholder:text-stone-300",
     fill: "fill-stone-700", //leftsidebar(header/footer) icon
     fillOpacity: "fill-stone-700/50", //leftsidebar(header/footer) icon
     fillEmphasis: "fill-stone-900", //leftsidebar(header/footer) icon
@@ -106,6 +111,7 @@ export const colorDefinitionsLight: ColorDefinitionCategories = {
     textOpacity: "text-stone-50/50",
     textHover: "hover:text-stone-50",
     textEmphasis: "text-stone-50",
+    textPlaceholder: "placeholder:text-stone-700",
     fill: "fill-stone-50",
     fillOpacity: "fill-stone-50/50",
     fillEmphasis: "fill-stone-50",

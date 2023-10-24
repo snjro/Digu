@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from "$app/paths";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseA from "$lib/base/BaseA.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
@@ -12,7 +13,7 @@
     Project,
     Version,
   } from "@constants/chains/types";
-  import { NO_DATA } from "@utils/utilsCostants";
+  import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsCostants";
   import { getProjectVersionNameForUrl } from "../../projectVersionNameHelper";
 
   export let targetChain: Chain;
@@ -25,11 +26,11 @@
 
   let hrefToContractName: string;
   $: hrefToContractName =
-    `/${targetChain.name}` +
+    `${base}/${targetChain.name}` +
     `/${getProjectVersionNameForUrl(
       targetProject.name,
       targetVersion.name,
-    )}/contracts/${targetContract.name}`;
+    )}/${DIR_NAME_CONTRACTS}/${targetContract.name}`;
 </script>
 
 <CommonItemMember text="Contract Name">

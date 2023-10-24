@@ -14,9 +14,9 @@
   import type { OnNavigate } from "@sveltejs/kit";
   import { getScreenWidth } from "@utils/utilsDom";
   import classNames from "classnames";
-  import type { LoadDataRoot } from "./+layout";
   import LoadingSpinner from "./LoadingSpinner.svelte";
-  export let data: LoadDataRoot;
+  import { capitalizeFirstLetter } from "@utils/utilsCommon";
+  import { PROJECT_NAME } from "@utils/utilsCostants";
 
   $: {
     if (browser) {
@@ -36,7 +36,7 @@
   }
 
   onNavigate((navigation: OnNavigate) => {
-    const documentAsAny: any = document;
+    const documentAsAny: any = document; // eslint-disable-line @typescript-eslint/no-explicit-any
     if (!documentAsAny.startViewTransition) return;
 
     return new Promise((resolve) => {
@@ -50,45 +50,41 @@
 
 <svelte:window on:resize={onResize} />
 <svelte:head>
-  <title>Contract Viewer</title>
+  <title>{capitalizeFirstLetter(PROJECT_NAME)}</title>
 </svelte:head>
-{#if data.initializing}
-  <LoadingSpinner showLoader={true} />
-{:else}
+<div
+  class={classNames(
+    "flex",
+    "flex-row",
+    "h-screen w-screen",
+    colorDefinitions[themeColor][colorSettings.main].bg,
+    colorDefinitions[themeColor][colorSettings.main].text,
+  )}
+>
+  <LoadingSpinner />
+  <LeftSidebar />
   <div
     class={classNames(
-      "flex",
-      "flex-row",
-      "h-screen w-screen",
-      colorDefinitions[themeColor][colorSettings.main].bg,
-      colorDefinitions[themeColor][colorSettings.main].text,
+      "min-w-0 flex-auto",
+      "flex flex-col",
+      $storeUserSettings.isOpenSidebar &&
+        $storeNoDbCurrentWidth <= breakPointWidths.sm &&
+        "blur-sm pointer-events-none",
     )}
   >
-    <LoadingSpinner />
-    <LeftSidebar />
+    <Nav />
     <div
       class={classNames(
-        "min-w-0 flex-auto",
+        "min-h-0 flex-auto",
         "flex flex-col",
-        $storeUserSettings.isOpenSidebar &&
-          $storeNoDbCurrentWidth <= breakPointWidths.sm &&
-          "blur-sm pointer-events-none",
+        "h-full w-full",
+        "px-3 pb-1.5",
+        "",
       )}
     >
-      <Nav />
-      <div
-        class={classNames(
-          "min-h-0 flex-auto",
-          "flex flex-col",
-          "h-full w-full",
-          "px-3 pb-1.5",
-          "",
-        )}
-      >
-        <Breadcrumb />
-        <slot />
-        <BaseSnackbar />
-      </div>
+      <Breadcrumb />
+      <slot />
+      <BaseSnackbar />
     </div>
   </div>
-{/if}
+</div>
