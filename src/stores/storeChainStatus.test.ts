@@ -5,13 +5,16 @@ import type { StateChainStatuses } from "./storeTypes";
 import { initialDataChainStatus } from "@db/dbChainStatus";
 import { get } from "svelte/store";
 import type { Chain } from "@constants/chains/types";
+import { TARGET_CHAINS } from "@constants/chains/_index";
 
-const chainNames: Chain["name"][] = ["eth", "matic"];
+const chainNames: Chain["name"][] = TARGET_CHAINS.map((targetChain: Chain) => {
+  return targetChain.name;
+});
 
 describe("storeChhainStatus", () => {
   test.each<Chain["name"]>(chainNames)(
     `should have the initial value: chainName "%s"`,
-    (chainName: string) => {
+    (chainName: Chain["name"]) => {
       const currenttStateChainStatuses: StateChainStatuses =
         get(storeChainStatus);
       expect(currenttStateChainStatuses).toHaveProperty(chainName);
