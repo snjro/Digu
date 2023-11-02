@@ -6,9 +6,6 @@ import {
 import { NO_DATA } from "@utils/utilsCostants";
 import type { SyncStateText } from "@db/dbTypes";
 import type { Chain } from "@constants/chains/types";
-import { convertJsonFilesContractToContracts } from "@constants/chains/convertJsonToABI";
-import Augur from "@constants/chains/ethereum-mainnet/augur/version2/Augur.json";
-import type { JsonFileContract } from "@constants/chains/jsonFileTypes";
 
 vitest.mock("@constants/chains/_index", (): { TARGET_CHAINS: Chain[] } => {
   return {
