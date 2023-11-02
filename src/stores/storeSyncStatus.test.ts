@@ -5,11 +5,11 @@ import { storeSyncStatus } from "./storeSyncStatus";
 import { NO_DATA } from "@utils/utilsCostants";
 import type { SyncStatusesChain } from "@db/dbTypes";
 
-const dummyChainName = "chain1";
-const dummyProjectName = "project1";
-const dummyVersionName = "version1";
-const dummyContractName = "contract1";
-const dummySyncStatusesChain: SyncStatusesChain = {
+export const dummyChainName = "chain1";
+export const dummyProjectName = "project1";
+export const dummyVersionName = "version1";
+export const dummyContractName = "contract1";
+export const dummySyncStatusesChain: SyncStatusesChain = {
   [dummyChainName]: {
     name: dummyChainName,
     isSyncTarget: false,
