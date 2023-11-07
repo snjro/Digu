@@ -22,6 +22,5 @@ function getDbName(dbNameElement: string[] | string): string {
   if (!Array.isArray(dbNameElement)) {
     dbNameElement = [dbNameElement];
   }
-  dbNameElement.unshift(DB_NAME.firstName);
-  return dbNameElement.join("_");
+  return [DB_NAME.firstName, ...dbNameElement].join("_");
 }
