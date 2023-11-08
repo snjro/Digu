@@ -5,7 +5,7 @@ import { getEventLogTableRecords } from "./dbEventLogsDataHandlersEventLog";
 
 export async function dbWorkerFuncGetConvertedEventLogs(
   eventIdentifier: AbiFragmentIdentifier,
-) {
+): Promise<ConvertedEventLog[]> {
   const eventLogTableName: string = getEventLogTableName(
     eventIdentifier.contractName,
     eventIdentifier.abiFragmentName,
