@@ -15,33 +15,35 @@
   export let eventLogType: EventLogType;
   export let isFullScreen: boolean;
 
-  let rows: ConvertedEventLog[] = [];
+  let rows: ConvertedEventLog[] | undefined = undefined;
   $: gridRows(targetEventIdentifier).then(
     (convertedEventLogs: ConvertedEventLog[]) => {
       rows = convertedEventLogs;
     },
   );
   function getEachArgsMaxLengths(
-    convertedEventLogs: ConvertedEventLog[],
+    convertedEventLogs: ConvertedEventLog[] | undefined,
   ): number[] {
     let maxLengths: number[] = [];
-    for (
-      let indexOfInput: number = 0;
-      indexOfInput < targetEventAbiFragment.inputs.length;
-      indexOfInput++
-    ) {
-      let maxLength: number = 0;
-      for (const convertedEventLog of convertedEventLogs) {
-        if (
-          Array.isArray(convertedEventLog.args[indexOfInput]) &&
-          convertedEventLog.args[indexOfInput].length > maxLength
-        ) {
-          maxLength = convertedEventLog.args[indexOfInput].length;
-        } else {
-          maxLength = 1;
+    if (convertedEventLogs) {
+      for (
+        let indexOfInput: number = 0;
+        indexOfInput < targetEventAbiFragment.inputs.length;
+        indexOfInput++
+      ) {
+        let maxLength: number = 0;
+        for (const convertedEventLog of convertedEventLogs) {
+          if (
+            Array.isArray(convertedEventLog.args[indexOfInput]) &&
+            convertedEventLog.args[indexOfInput].length > maxLength
+          ) {
+            maxLength = convertedEventLog.args[indexOfInput].length;
+          } else {
+            maxLength = 1;
+          }
         }
+        maxLengths.push(maxLength);
       }
-      maxLengths.push(maxLength);
     }
     return maxLengths;
   }

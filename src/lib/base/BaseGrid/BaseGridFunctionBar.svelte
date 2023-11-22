@@ -14,7 +14,7 @@
   import ExportCsv, { openDialogExportCsv } from "./ExportCsv/ExportCsv.svelte";
 
   export let gridOptions: GridOptions<GridRow>;
-  export let rows: GridRow[];
+  export let rows: GridRow[] | undefined;
   export let isFullScreen: boolean;
   export let exportFilePrefix: ExportFilePrefix;
 
@@ -151,8 +151,10 @@
       gridOptions.columnApi!.resetColumnGroupState();
       gridOptions.columnApi!.resetColumnState();
       //reload data
-      gridOptions.api!.setRowData(rows);
-      gridOptions.api!.refreshCells({ force: true });
+      if (rows) {
+        gridOptions.api!.setRowData(rows);
+        gridOptions.api!.refreshCells({ force: true });
+      }
     }, 500);
   }
   let dialogElement: HTMLDialogElement;

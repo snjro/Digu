@@ -16,7 +16,7 @@
 
   export let isFullScreen = false;
   export let paramColumnDefs: ColumnDef[];
-  export let rows: GridRow[];
+  export let rows: GridRow[] | undefined;
   export let exportFilePrefix: ExportFilePrefix;
   export let hasMultipulTabs: boolean;
   const rowHeight: number = 24;

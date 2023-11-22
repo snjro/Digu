@@ -29,6 +29,13 @@
 </script>
 
 <script lang="ts" generics="GridRow">
+  import BaseSpinner from "$lib/base/BaseSpinner.svelte";
+
+  import {
+    AbstractOverlayRenderer,
+    loadingOverlayRendererFactory,
+  } from "./loadingOverlayRenderFactory";
+
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import {
@@ -56,7 +63,7 @@
 
   export let gridOptions: GridOptions<GridRow>;
   export let paramColumnDefs: ColumnDef[] = [];
-  export let rows: GridRow[];
+  export let rows: GridRow[] | undefined;
 
   const gridTextSize: BaseSize = sizeSettings.grid;
 
@@ -74,6 +81,14 @@
     gridOptions.onGridReady = (
       gridReadyEvent: GridReadyEvent<GridRow>,
     ): void => {
+      gridOptions.loadingOverlayComponent = loadingOverlayRendererFactory(
+        (overLay: AbstractOverlayRenderer) => {
+          new BaseSpinner({
+            target: overLay.eGui,
+            props: { size: "xl", trackColor: "primary" },
+          });
+        },
+      );
       gridOptions.api = gridReadyEvent.api;
       gridOptions.columnApi = gridReadyEvent.columnApi;
       gridOptions.rowClassRules = {
@@ -94,12 +109,24 @@
   //set row data
   $: {
     if (gridOptions && gridOptions.api) {
-      // When columnDefs are updated,  an error occurs.
-      // Because they are redrawn with the old row data with the new columnDefs.
-      // To avoid errors, empty the row data beforehand
-      gridOptions.api.setRowData([]);
       gridOptions.api.setColumnDefs(getColumnDefs(paramColumnDefs));
-      gridOptions.api.setRowData(rows);
+      if (rows == undefined) {
+        gridOptions.api.hideOverlay();
+        gridOptions.suppressLoadingOverlay = false;
+        gridOptions.suppressNoRowsOverlay = true;
+        gridOptions.api.showLoadingOverlay();
+      } else {
+        if (rows && rows.length) {
+          gridOptions.suppressLoadingOverlay = false;
+          gridOptions.suppressNoRowsOverlay = true;
+          gridOptions.api.showLoadingOverlay();
+        } else {
+          gridOptions.suppressLoadingOverlay = true;
+          gridOptions.suppressNoRowsOverlay = false;
+          gridOptions.api.showNoRowsOverlay();
+        }
+        gridOptions.api.setRowData(rows);
+      }
     }
   }
   // Adjust all columns width only the first time it shows.
