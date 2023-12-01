@@ -13,12 +13,9 @@ import type { ChainName } from "@constants/chains/types";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { storeUserSettings } from "@stores/storeUserSettings";
 
-export class DbSettings extends dbBase {
-  constructor(dbNameForTest?: string) {
-    let dbName = DB_NAME.secondNames.settings;
-    if (dbNameForTest) {
-      dbName += dbNameForTest;
-    }
+class DbSettings extends dbBase {
+  constructor() {
+    const dbName = DB_NAME.secondNames.settings;
 
     super(dbName);
     const schemaDefinition: SchemaDefinition = this.getSchemaDefinition();
