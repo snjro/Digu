@@ -11,11 +11,6 @@ export async function setDbBlockTime(
   });
 }
 
-export async function getDbRecordBlockTimeRecords(
-  chainName: ChainName,
-): Promise<BlockTime[]> {
-  return await dbBlockTimes.table(chainName).toArray();
-}
 export async function getDbRecordBlockTime(
   chainName: ChainName,
   blockNumber: BlockTime["blockNumber"],
