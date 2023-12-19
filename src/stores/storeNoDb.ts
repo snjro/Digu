@@ -9,9 +9,8 @@ export type OpenStateLeftSidebarAccordion =
 export const storeNoDbOpenLeftSidebarAccordion: Writable<OpenStateLeftSidebarAccordion> =
   writable(undefined);
 
-export const storeNoDbCurrentWidth: Writable<number> = writable(
-  getScreenWidth(),
-);
+export const storeNoDbCurrentWidth: Writable<number> =
+  writable(getScreenWidth());
 
 export const storeNoDbSnackBarInitialValue: Readonly<BaseSnackbarProps> = {
   visible: false,

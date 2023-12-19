@@ -14,9 +14,8 @@
   export let hoverEffect: NonNullable<BaseIconProps["hoverEffect"]> = true;
   export let isHover: NonNullable<BaseIconProps["isHover"]> = false;
   export let focusable: NonNullable<BaseIconProps["focusable"]> = "false";
-  export let flipHorizontal: NonNullable<
-    BaseIconProps["flipHorizontal"]
-  > = false;
+  export let flipHorizontal: NonNullable<BaseIconProps["flipHorizontal"]> =
+    false;
   export let isHoverControledByParent: NonNullable<
     BaseIconProps["isHoverControledByParent"]
   > = false;
