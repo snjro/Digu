@@ -8,11 +8,8 @@ const TABLE_BLOCKTIMES_COLUMN_NAMES = {
 } as const;
 
 class DbBlockTimes extends dbBase {
-  constructor(dbNameForTest?: string) {
-    let dbName = DB_NAME.secondNames.blockTimes;
-    if (dbNameForTest) {
-      dbName += dbNameForTest;
-    }
+  constructor() {
+    const dbName = DB_NAME.secondNames.blockTimes;
     super(dbName);
     const schemaDefinition: SchemaDefinition = this.getSchemaDefinition();
     this.version(DB_VERSIONS.BlockTimes).stores(schemaDefinition);

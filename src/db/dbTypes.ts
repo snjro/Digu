@@ -5,7 +5,6 @@ import type {
   ContractName,
   AbiFragmentName,
   HexString,
-  ContractInterface,
   Chain,
 } from "@constants/chains/types";
 import type { NO_DATA } from "@utils/utilsCostants";
@@ -74,14 +73,12 @@ export type UserSetting = {
   selectedChainName: ChainName;
   isOpenSidebar: boolean;
 };
-export const initialDataUserSettings = (): UserSetting => {
-  return {
-    userSettingsId: "userSetting01",
-    themeColor: "light",
-    devMode: false,
-    selectedChainName: "eth",
-    isOpenSidebar: true,
-  };
+export const initialDataUserSettings: UserSetting = {
+  userSettingsId: "userSetting01",
+  themeColor: "light",
+  devMode: false,
+  selectedChainName: "eth",
+  isOpenSidebar: true,
 };
 /////////////////////////////////////////////////////////
 export type NodeStatus =
@@ -168,9 +165,6 @@ export type ConvertedEventLog = {
   address: HexString;
   transactionHash: HexString;
   transactionIndex: EthersEventLog["transactionIndex"];
-  provider: EthersEventLog["provider"];
-  fragment: EthersEventLog["fragment"];
-  interface: ContractInterface;
 };
 export type GroupedEventLogs = {
   [eventName: string]: ConvertedEventLog[];

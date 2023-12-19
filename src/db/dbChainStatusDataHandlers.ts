@@ -15,13 +15,6 @@ export async function getDbRecordChainStatus(
     },
   );
 }
-// export async function getDbItemChainStatus<T extends keyof ChainStatus>(
-//   chainName: ChainName,
-//   key: T
-// ): Promise<ChainStatus[T]> {
-//   const chainStatus: ChainStatus = await getDbRecordChainStatus(chainName);
-//   return chainStatus[key];
-// }
 
 export async function updateDbItemChainStatus<T extends keyof ChainStatus>(
   chainName: ChainName,

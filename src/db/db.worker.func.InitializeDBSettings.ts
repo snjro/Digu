@@ -1,5 +1,5 @@
-import { addInitialData } from "./dbSettings";
+import { addInitialDataOfDbSettings } from "./dbSettings";
 
 export async function dbWorkerFuncInitializeDBSettings(): Promise<void> {
-  await addInitialData();
+  await addInitialDataOfDbSettings();
 }
