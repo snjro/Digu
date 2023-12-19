@@ -16,5 +16,5 @@ function store() {
 export const storeUserSettings = store();
 
 function getInitialState(): StateUserSettings {
-  return initialDataUserSettings();
+  return initialDataUserSettings;
 }
