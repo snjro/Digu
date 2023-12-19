@@ -1,5 +1,7 @@
-import { tailwindcss } from "tailwindcss";
-import { autoprefixer } from "autoprefixer";
+/* eslint-disable @typescript-eslint/no-var-requires */
+const tailwindcss = require("tailwindcss");
+const autoprefixer = require("autoprefixer");
+/* eslint-enable @typescript-eslint/no-var-requires */
 
 const config = {
   plugins: [
