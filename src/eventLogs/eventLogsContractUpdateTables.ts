@@ -135,9 +135,6 @@ function convertEthersEventToEventLog(
       address: ethersEventLog.address,
       transactionHash: ethersEventLog.transactionHash,
       transactionIndex: ethersEventLog.transactionIndex,
-      interface: ethersEventLog.interface,
-      provider: ethersEventLog.provider,
-      fragment: ethersEventLog.fragment,
     };
   } else {
     const invalidProps = [];
