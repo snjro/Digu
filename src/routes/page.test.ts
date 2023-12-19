@@ -1,9 +1,8 @@
-import type { ChainName } from "@constants/chains/types";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { load } from "./+page";
-import * as dbSettings from "@db/dbSettings";
 import * as kit from "@sveltejs/kit";
 import { redirect } from "@sveltejs/kit";
+import * as dbSettingsDataHandlersUser from "@db/dbSettings";
 
 type BrowserValue = { browserValue: boolean };
 const browserValues: BrowserValue[] = [
@@ -24,9 +23,9 @@ vi.mock("$app/environment", () => {
 vi.mock("$app/navigation");
 
 describe("load", () => {
-  const expectedSlelectedChainName: ChainName = "testChainName";
+  const expectedSlelectedChainName: string = "testChainName";
   const spyGetDbItemUserSettings = vi
-    .spyOn(dbSettings, "getDbItemUserSettings")
+    .spyOn(dbSettingsDataHandlersUser, "getDbItemUserSettings")
     .mockResolvedValue(expectedSlelectedChainName);
 
   const spyRedirect = vi.spyOn(kit, "redirect");
