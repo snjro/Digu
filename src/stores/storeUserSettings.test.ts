@@ -7,7 +7,7 @@ import { initialDataUserSettings, type UserSetting } from "@db/dbTypes";
 describe("storeUserSettings", () => {
   test(`should have the initial value`, () => {
     const currenttStateUserSettings: StateUserSettings = get(storeUserSettings);
-    expect(currenttStateUserSettings).toEqual(initialDataUserSettings());
+    expect(currenttStateUserSettings).toEqual(initialDataUserSettings);
   });
   test("should set with the value of the argument passed", () => {
     const userSetting: UserSetting = {
