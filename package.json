@@ -41,7 +41,7 @@
     "fake-indexeddb": "^5.0.1",
     "happy-dom": "^12.1.5",
     "postcss": "^8.4.22",
-    "postcss-load-config": "^4.0.1",
+    "postcss-load-config": "^5.0.0",
     "prettier": "^3.0.0",
     "prettier-plugin-svelte": "^3.0.0",
     "puppeteer": "^21.2.1",
