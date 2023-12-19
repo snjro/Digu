@@ -20,6 +20,7 @@ import {
   getDbRecordRpcSettings,
   getDbRecordUserSettings,
 } from "@db/dbSettings";
+import { customLogger } from "@utils/logger";
 
 export async function initializeStore(): Promise<void> {
   const promiseUpdateStores: Promise<void>[] = [];
@@ -56,13 +57,28 @@ async function InitializeStoreChainStatus(chainName: ChainName): Promise<void> {
   storeChainStatus.updateState(chainName, chainStatus);
 }
 async function InitializeStoreRpcSettings(chainName: ChainName): Promise<void> {
-  const rpcSetting: RpcSetting = await getDbRecordRpcSettings(chainName);
-  storeRpcSettings.updateState(chainName, rpcSetting);
+  const rpcSetting: RpcSetting | undefined =
+    await getDbRecordRpcSettings(chainName);
+  if (rpcSetting) {
+    storeRpcSettings.updateState(chainName, rpcSetting);
+  } else {
+    customLogger.error(
+      `Error occured in "InitializeStoreRpcSettings"`,
+      `getDbRecordRpcSettings(${chainName}) returned "undefined"`,
+    );
+  }
 }
 async function initializeStoreUserSettings(): Promise<void> {
-  const userSettings: UserSetting =
+  const userSettings: UserSetting | undefined =
     await getDbRecordUserSettings("userSetting01");
-  storeUserSettings.updateState(userSettings);
+  if (userSettings) {
+    storeUserSettings.updateState(userSettings);
+  } else {
+    customLogger.error(
+      `Error occured in "initializeStoreUserSettings"`,
+      `getDbRecordUserSettings() returned "undefined"`,
+    );
+  }
 }
 async function InitializeStoreSyncStatus(
   dbEventLogs: DbEventLogs,
