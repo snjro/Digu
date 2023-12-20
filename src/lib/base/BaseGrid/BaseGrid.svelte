@@ -1,17 +1,9 @@
 <script lang="ts" generics="GridRow">
   import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
   import type { ExportFilePrefix } from "@utils/utilsFile";
-  import type {
-    FilterChangedEvent,
-    FirstDataRenderedEvent,
-    GridApi,
-    GridColumnsChangedEvent,
-    GridOptions,
-    SortChangedEvent,
-  } from "ag-grid-community";
+  import type { GridApi } from "ag-grid-community";
   import BaseGridFunctionBar from "./BaseGridFunctionBar.svelte";
-  import GridBody, { setAutoColumnWidth } from "./GridBody/GridBody.svelte";
-  import { ColIdRowSequenceNumber } from "./GridBody/getColumnDefs";
+  import GridBody from "./GridBody/GridBody.svelte";
   import type { ColumnDef } from "./types";
 
   export let isFullScreen = false;
@@ -19,66 +11,21 @@
   export let rows: GridRow[] | undefined;
   export let exportFilePrefix: ExportFilePrefix;
   export let hasMultipulTabs: boolean;
-  const rowHeight: number = 24;
-  let gridOptions: GridOptions<GridRow> = {
-    defaultColDef: {
-      flex: 1,
-      sortable: true,
-      filter: true,
-      editable: false,
-      suppressMenu: false,
-      resizable: true,
-    },
-    defaultColGroupDef: {
-      openByDefault: true,
-      marryChildren: true,
-    },
-    columnHoverHighlight: false,
-    groupHeaderHeight: rowHeight,
-    headerHeight: rowHeight,
-    rowHeight: rowHeight,
-    suppressFieldDotNotation: true,
-    suppressRowTransform: false,
-    suppressMovableColumns: false,
-    rowSelection: "multiple",
-    suppressColumnVirtualisation: true,
-    pagination: true,
-    paginationAutoPageSize: true,
-    overlayLoadingTemplate: "Loading...",
-    overlayNoRowsTemplate: "No data",
-    getRowClass: undefined,
-    onSortChanged: (sortChangeEvent: SortChangedEvent): void => {
-      refreshRowSeqenceNumber(sortChangeEvent.api);
-    },
-    onFilterChanged: (filterChangedEvent: FilterChangedEvent) => {
-      refreshRowSeqenceNumber(filterChangedEvent.api);
-    },
-    onGridColumnsChanged: (
-      gridColumnsChangedEvent: GridColumnsChangedEvent<GridRow>,
-    ) => {
-      setAutoColumnWidth(gridColumnsChangedEvent.columnApi);
-    },
 
-    onFirstDataRendered: (firstDataRenderedEvent: FirstDataRenderedEvent) => {
-      setAutoColumnWidth(firstDataRenderedEvent.columnApi!);
-    },
-  };
-  function refreshRowSeqenceNumber(gridApi: GridApi<GridRow>) {
-    gridApi.refreshCells({ columns: [ColIdRowSequenceNumber] });
-  }
+  let gridApi: GridApi<GridRow>;
 </script>
 
 <PageWrapperContent isAgGrid {hasMultipulTabs}>
   <BaseGridFunctionBar
     slot="PageWrapperContentFunctionBar"
-    {gridOptions}
+    {gridApi}
     {rows}
     bind:isFullScreen
     {exportFilePrefix}
   />
 
   <div class="flex flex-col h-full" slot="PageWrapperContentBody">
-    <GridBody bind:gridOptions {paramColumnDefs} {rows} />
+    <GridBody bind:gridApi {paramColumnDefs} {rows} />
   </div>
 </PageWrapperContent>
 <!-- <style>

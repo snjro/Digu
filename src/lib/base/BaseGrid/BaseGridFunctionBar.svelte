@@ -10,10 +10,10 @@
     fullScreenButtonDefinition,
     type PageWrapperContentFunctionBarButtonsDefinition,
   } from "$lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
-  import type { ColumnApi, GridOptions } from "ag-grid-community";
+  import type { GridApi } from "ag-grid-community";
   import ExportCsv, { openDialogExportCsv } from "./ExportCsv/ExportCsv.svelte";
 
-  export let gridOptions: GridOptions<GridRow>;
+  export let gridApi: GridApi<GridRow>;
   export let rows: GridRow[] | undefined;
   export let isFullScreen: boolean;
   export let exportFilePrefix: ExportFilePrefix;
@@ -27,16 +27,14 @@
       tooltipText: "Show all columns",
       tooltipXPosition: "left",
       tooltipYPosition: "top",
-      onClickEventFunction: () =>
-        setAllColumnGroupState(gridOptions.columnApi!, true),
+      onClickEventFunction: () => setAllColumnGroupState(gridApi, true),
     },
     {
       iconName: "arrowCollapseHorizontal",
       tooltipText: "Hide minor columns",
       tooltipXPosition: "left",
       tooltipYPosition: "top",
-      onClickEventFunction: () =>
-        setAllColumnGroupState(gridOptions.columnApi!, false),
+      onClickEventFunction: () => setAllColumnGroupState(gridApi, false),
     },
   ];
 
@@ -47,14 +45,14 @@
       tooltipText: "Fit columns in frame",
       tooltipXPosition: "left",
       tooltipYPosition: "top",
-      onClickEventFunction: () => gridOptions.api!.sizeColumnsToFit(),
+      onClickEventFunction: () => gridApi.sizeColumnsToFit(),
     },
     {
       iconName: "tableColumnWidth",
       tooltipText: "Auto fit columns",
       tooltipXPosition: "left",
       tooltipYPosition: "top",
-      onClickEventFunction: () => setAutoColumnWidth(gridOptions.columnApi!),
+      onClickEventFunction: () => setAutoColumnWidth(gridApi),
     },
   ];
 
@@ -107,60 +105,58 @@
     buttonDefinitionDownload,
     buttonDefinitionFullScreen,
   ];
-  function setAllColumnGroupState(columnApi: ColumnApi, open: boolean): void {
+  function setAllColumnGroupState(gridApi: GridApi, open: boolean): void {
     let stateItems: {
       groupId: string;
       open: boolean;
     }[] = [];
-    for (const columnGroupState of columnApi.getColumnGroupState()) {
+    for (const columnGroupState of gridApi.getColumnGroupState()) {
       stateItems.push({ groupId: columnGroupState.groupId, open: open });
     }
-    columnApi.setColumnGroupState(stateItems);
+    gridApi.setColumnGroupState(stateItems);
     if (open) {
-      setAutoColumnWidth(columnApi);
+      setAutoColumnWidth(gridApi);
     }
   }
   function setAutoColumnWidth(
-    columnApi: ColumnApi,
+    gridApi: GridApi,
     skipHeader: boolean = false,
     waitMilliSecond: number = 0,
   ): void {
-    columnApi.sizeColumnsToFit(0);
+    gridApi.sizeColumnsToFit(0);
     setTimeout(() => {
-      columnApi.autoSizeAllColumns(skipHeader);
+      gridApi.autoSizeAllColumns(skipHeader);
     }, waitMilliSecond);
     // columnApi.autoSizeAllColumns(skipHeader);
   }
   function resetAllFilters(): void {
-    if (gridOptions.api) {
-      gridOptions.api.setFilterModel(null);
-      gridOptions.api.setQuickFilter("");
-    }
+    gridApi.resetQuickFilter();
     quickSearchText = "";
   }
   async function reload(): Promise<void> {
-    gridOptions.api!.showLoadingOverlay();
+    gridApi.showLoadingOverlay();
     await setTimeout(() => {
       //reset filters
       resetAllFilters();
       //reset sort
-      gridOptions.columnApi!.applyColumnState({
+      gridApi.applyColumnState({
         defaultState: { sort: null },
       });
       //reset column moving
-      gridOptions.columnApi!.resetColumnGroupState();
-      gridOptions.columnApi!.resetColumnState();
+      gridApi.resetColumnGroupState();
+      gridApi.resetColumnState();
       //reload data
       if (rows) {
-        gridOptions.api!.setRowData(rows);
-        gridOptions.api!.refreshCells({ force: true });
+        gridApi.setGridOption("rowData", rows);
+        gridApi.refreshCells({ force: true });
+        setAutoColumnWidth(gridApi);
       }
     }, 500);
   }
   let dialogElement: HTMLDialogElement;
 </script>
 
-<ExportCsv {gridOptions} bind:dialogElement {exportFilePrefix} />
+<ExportCsv {gridApi} bind:dialogElement {exportFilePrefix} />
 <PageWrapperContentFunctionBar
   functionBarDefinition={{
     buttonsDefinition: buttonsDefinition,
@@ -170,5 +166,5 @@
       breakPointWidthThresholds.grigFunctionButtonForOpenedSidebar,
     horizontalAlignment: "between",
   }}
-  ><BaseGridFunctionBarQuickSearch bind:quickSearchText {gridOptions} />
+  ><BaseGridFunctionBarQuickSearch bind:quickSearchText {gridApi} />
 </PageWrapperContentFunctionBar>

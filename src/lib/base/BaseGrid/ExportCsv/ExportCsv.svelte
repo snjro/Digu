@@ -40,21 +40,21 @@
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { getExportFileName, type ExportFilePrefix } from "@utils/utilsFile";
-  import type { GridOptions } from "ag-grid-community";
+  import type { GridApi } from "ag-grid-community";
   import {
     exportCsvFile,
     type CsvColumnSeparator,
     type CsvFilteredSorted,
   } from "./exportCsv";
 
-  export let gridOptions: GridOptions<GridRow>;
+  export let gridApi: GridApi<GridRow>;
   export let dialogElement: HTMLDialogElement;
   export let exportFilePrefix: ExportFilePrefix;
 
   const colorCategory: ColorCategory = colorSettings.dialogHeader;
 
   let gridId: string | undefined = undefined;
-  $: gridId = gridOptions.api?.getGridId();
+  $: gridId = gridApi?.getGridId();
 
   // In order to avoid duplicate inputIds, add gridId to inputId.
   // This duplication occurs when multiple grids appear on a single page (including in tags).
@@ -167,7 +167,7 @@
 
   function downloadCsvFile(): void {
     exportCsvFile(
-      gridOptions,
+      gridApi,
       exportCsvRadioProps.skipRowNumber.selectedValue,
       exportCsvRadioProps.columnSeparator.selectedValue,
       exportCsvRadioProps.suppressDoubleQuotes.selectedValue,
@@ -178,7 +178,7 @@
   }
   function copyToClipboard(): void {
     const csvData: string = exportCsvFile(
-      gridOptions,
+      gridApi,
       exportCsvRadioProps.skipRowNumber.selectedValue,
       exportCsvRadioProps.columnSeparator.selectedValue,
       exportCsvRadioProps.suppressDoubleQuotes.selectedValue,

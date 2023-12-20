@@ -1,67 +1,62 @@
 <script lang="ts" context="module">
   export function setAutoColumnWidth(
-    columnApi: ColumnApi,
+    gridApi: GridApi,
     skipHeader: boolean = false,
     waitMilliSecond: number = 0,
   ): void {
-    columnApi.sizeColumnsToFit(0);
+    gridApi.sizeColumnsToFit(0);
     setTimeout(() => {
-      columnApi.autoSizeAllColumns(skipHeader);
+      gridApi.autoSizeAllColumns(skipHeader);
     }, waitMilliSecond);
     // columnApi.autoSizeAllColumns(skipHeader);
   }
   export function setAllColumnGroupState(
-    columnApi: ColumnApi,
+    gridApi: GridApi,
     open: boolean,
   ): void {
     let stateItems: {
       groupId: string;
       open: boolean;
     }[] = [];
-    for (const columnGroupState of columnApi.getColumnGroupState()) {
+    for (const columnGroupState of gridApi.getColumnGroupState()) {
       stateItems.push({ groupId: columnGroupState.groupId, open: open });
     }
-    columnApi.setColumnGroupState(stateItems);
+    gridApi.setColumnGroupState(stateItems);
     if (open) {
-      setAutoColumnWidth(columnApi);
+      setAutoColumnWidth(gridApi);
     }
   }
 </script>
 
 <script lang="ts" generics="GridRow">
   import BaseSpinner from "$lib/base/BaseSpinner.svelte";
-
   import {
     AbstractOverlayRenderer,
     loadingOverlayRendererFactory,
   } from "./loadingOverlayRenderFactory";
-
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import {
-    Grid,
-    type ColumnApi,
     type GridOptions,
-    type GridReadyEvent,
-    type RowClassParams,
+    GridApi,
+    type SortChangedEvent,
+    type FilterChangedEvent,
+    type GridColumnsChangedEvent,
+    type FirstDataRenderedEvent,
+    createGrid,
   } from "ag-grid-community";
   import "ag-grid-community/styles/ag-grid.css";
   import "ag-grid-community/styles/ag-theme-balham.css";
   import { onDestroy, onMount } from "svelte";
   import "./gridBodyStyle.css";
-  // import "ag-grid-community/styles/ag-theme-balham-dark.css";
   import { baseTextSizesPixel, type BaseSize } from "$lib/base/baseSizes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { ColumnDef } from "../types";
   import { getColorDefinitionsForGrid } from "./getColorDefs";
-  import {
-    // fColIdRowSequenceNumber,
-    getColumnDefs,
-  } from "./getColumnDefs";
-  // import { afterNavigate } from "$app/navigation";
+  import { getColumnDefs, ColIdRowSequenceNumber } from "./getColumnDefs";
 
-  export let gridOptions: GridOptions<GridRow>;
+  export let gridApi: GridApi<GridRow>;
   export let paramColumnDefs: ColumnDef[] = [];
   export let rows: GridRow[] | undefined;
 
@@ -73,59 +68,95 @@
     colorSettings.gridHeader,
     colorSettings.gridRow,
   );
+  function refreshRowSeqenceNumber(gridApi: GridApi<GridRow>) {
+    gridApi.refreshCells({ columns: [ColIdRowSequenceNumber] });
+  }
 
   let elementGridDiv: HTMLElement;
-  let gridMain: Grid;
+  const rowHeight: number = 24;
+  let gridOptions: GridOptions<GridRow> = {
+    defaultColDef: {
+      flex: 1,
+      sortable: true,
+      filter: true,
+      editable: false,
+      suppressMenu: false,
+      resizable: true,
+    },
+    defaultColGroupDef: {
+      openByDefault: true,
+      marryChildren: true,
+    },
+    columnHoverHighlight: false,
+    groupHeaderHeight: rowHeight,
+    headerHeight: rowHeight,
+    rowHeight: rowHeight,
+    suppressFieldDotNotation: true,
+    suppressRowTransform: false,
+    suppressMovableColumns: false,
+    rowSelection: "multiple",
+    suppressColumnVirtualisation: true,
+    pagination: true,
+    paginationAutoPageSize: true,
+    overlayLoadingTemplate: "Loading...",
+    overlayNoRowsTemplate: "No data",
+    getRowClass: undefined,
+    onSortChanged: (sortChangeEvent: SortChangedEvent): void => {
+      refreshRowSeqenceNumber(sortChangeEvent.api);
+    },
+    onFilterChanged: (filterChangedEvent: FilterChangedEvent) => {
+      refreshRowSeqenceNumber(filterChangedEvent.api);
+    },
+    onGridColumnsChanged: (
+      gridColumnsChangedEvent: GridColumnsChangedEvent<GridRow>,
+    ) => {
+      setAutoColumnWidth(gridColumnsChangedEvent.api);
+    },
+
+    onFirstDataRendered: (firstDataRenderedEvent: FirstDataRenderedEvent) => {
+      setAutoColumnWidth(firstDataRenderedEvent.api);
+    },
+    loadingOverlayComponent: loadingOverlayRendererFactory(
+      (overLay: AbstractOverlayRenderer) => {
+        new BaseSpinner({
+          target: overLay.eGui,
+          props: { size: "xl", trackColor: "primary" },
+        });
+      },
+    ),
+  };
+
   onMount(() => {
-    gridMain = new Grid(elementGridDiv, gridOptions);
-    gridOptions.onGridReady = (
-      gridReadyEvent: GridReadyEvent<GridRow>,
-    ): void => {
-      gridOptions.loadingOverlayComponent = loadingOverlayRendererFactory(
-        (overLay: AbstractOverlayRenderer) => {
-          new BaseSpinner({
-            target: overLay.eGui,
-            props: { size: "xl", trackColor: "primary" },
-          });
-        },
-      );
-      gridOptions.api = gridReadyEvent.api;
-      gridOptions.columnApi = gridReadyEvent.columnApi;
-      gridOptions.rowClassRules = {
-        "first-row-in-group": (params: RowClassParams) => {
-          return params.rowIndex !== 0 && params.data.isFirstRowInGroup;
-        },
-      };
-      setAutoColumnWidth(gridOptions.columnApi!);
+    gridApi = createGrid(elementGridDiv, gridOptions);
+    gridOptions = {
+      onGridReady: (): void => {
+        setAutoColumnWidth(gridApi);
+      },
     };
   });
 
   onDestroy(() => {
-    if (gridMain) {
-      gridMain.destroy();
+    if (gridApi) {
+      gridApi.destroy();
     }
   });
 
   //set row data
   $: {
-    if (gridOptions && gridOptions.api) {
-      gridOptions.api.setColumnDefs(getColumnDefs(paramColumnDefs));
+    if (gridOptions && gridApi) {
+      gridApi.setGridOption("columnDefs", getColumnDefs(paramColumnDefs));
       if (rows == undefined) {
-        gridOptions.api.hideOverlay();
-        gridOptions.suppressLoadingOverlay = false;
-        gridOptions.suppressNoRowsOverlay = true;
-        gridOptions.api.showLoadingOverlay();
+        gridApi.hideOverlay();
+        gridApi.showNoRowsOverlay();
       } else {
         if (rows && rows.length) {
-          gridOptions.suppressLoadingOverlay = false;
-          gridOptions.suppressNoRowsOverlay = true;
-          gridOptions.api.showLoadingOverlay();
+          gridApi.hideOverlay();
+          gridApi.showLoadingOverlay();
         } else {
-          gridOptions.suppressLoadingOverlay = true;
-          gridOptions.suppressNoRowsOverlay = false;
-          gridOptions.api.showNoRowsOverlay();
+          gridApi.hideOverlay();
+          gridApi.showNoRowsOverlay();
         }
-        gridOptions.api.setRowData(rows);
+        gridApi.setGridOption("rowData", rows);
       }
     }
   }
@@ -134,8 +165,8 @@
   // https://www.ag-grid.com/javascript-data-grid/column-sizing/#auto-size-columns
   let isActivated: boolean = false;
   $: {
-    if (isActivated === false && gridOptions.columnApi) {
-      setAutoColumnWidth(gridOptions.columnApi);
+    if (isActivated === false && gridApi) {
+      setAutoColumnWidth(gridApi);
       isActivated = true;
     }
   }

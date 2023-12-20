@@ -17,9 +17,6 @@
   /* border: var(--color-frame-border); */
   /* background-color: var(--color-header-bg); */
 }
-.first-row-in-group {
-  border-top: solid 1px var(--color-frame-border);
-}
 .ag-header-cell,
 .ag-header-group-cell {
   font-weight: normal;

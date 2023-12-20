@@ -5,13 +5,13 @@
   import BaseIcon from "$lib/base/BaseIcon.svelte";
   import BaseInput from "$lib/base/BaseInput.svelte";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
-  import type { GridOptions } from "ag-grid-community";
+  import type { GridApi } from "ag-grid-community";
   import classNames from "classnames";
 
-  export let gridOptions: GridOptions;
+  export let gridApi: GridApi;
   export let quickSearchText: string;
   $: {
-    gridOptions.api?.setQuickFilter(quickSearchText);
+    gridApi?.setGridOption("quickFilterText", quickSearchText);
   }
   const size: BaseSize = sizeSettings.gridFunctionQuickSearch;
 </script>

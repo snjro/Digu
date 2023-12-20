@@ -1,11 +1,11 @@
-import type { Column, CsvExportParams, GridOptions } from "ag-grid-community";
+import type { Column, CsvExportParams, GridApi } from "ag-grid-community";
 import { ColIdRowSequenceNumber } from "../GridBody/getColumnDefs";
 
 export type CsvColumnSeparator = "," | `\t` | "|";
 export type CsvFilteredSorted = "all" | "filteredAndSorted";
 
 export function exportCsvFile(
-  gridOptions: GridOptions,
+  gridApi: GridApi,
   skipRowNumber: boolean,
   columnSeparator: CsvColumnSeparator,
   suppressQuotes: boolean,
@@ -14,7 +14,7 @@ export function exportCsvFile(
   fileName: string | undefined = undefined,
 ): void | string {
   const csvExportParams: CsvExportParams = getParamsForCsv(
-    gridOptions,
+    gridApi,
     skipRowNumber,
     columnSeparator,
     suppressQuotes,
@@ -23,13 +23,13 @@ export function exportCsvFile(
     fileName,
   );
   if (fileName) {
-    gridOptions.api!.exportDataAsCsv(csvExportParams);
+    gridApi.exportDataAsCsv(csvExportParams);
   } else {
-    return gridOptions.api!.getDataAsCsv(csvExportParams);
+    return gridApi.getDataAsCsv(csvExportParams);
   }
 }
 function getParamsForCsv(
-  gridOptions: GridOptions,
+  gridApi: GridApi,
   skipRowNumber: boolean,
   columnSeparator: CsvColumnSeparator,
   suppressQuotes: boolean,
@@ -37,7 +37,7 @@ function getParamsForCsv(
   skipColumnHeaders: boolean,
   fileName: string | undefined = undefined,
 ): CsvExportParams {
-  const targetColIds: string[] | undefined = gridOptions.columnApi
+  const targetColIds: string[] | undefined = gridApi
     ?.getColumns()
     ?.map((column: Column) => {
       return column.getColId();
