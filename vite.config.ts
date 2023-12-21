@@ -1,6 +1,5 @@
 import { sveltekit } from "@sveltejs/kit/vite";
 import type { UserConfig } from "vite";
-import circleDependency from "vite-plugin-circular-dependency";
 
 const config: UserConfig = {
   server: {
@@ -15,7 +14,7 @@ const config: UserConfig = {
       allow: [".."],
     },
   },
-  plugins: [sveltekit(), circleDependency({})],
+  plugins: [sveltekit()],
   test: {
     globals: true,
     environment: "happy-dom",
