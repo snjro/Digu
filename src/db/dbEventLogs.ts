@@ -1,16 +1,8 @@
 import type { Transaction } from "dexie";
-import type {
-  Contract,
-  Version,
-  EventAbiFragment,
-} from "@constants/chains/types";
+import type { Contract, Version } from "@constants/chains/types";
 import { getEventTableNames, getTargetVersion } from "@utils/utlisDb";
 import { dbBase } from "./dbBase";
-import type {
-  SchemaDefinition,
-  SyncStatusesEvent,
-  VersionIdentifier,
-} from "@db/dbTypes";
+import type { SchemaDefinition, VersionIdentifier } from "@db/dbTypes";
 import {
   DB_NAME,
   DB_TABLE_NAMES,
@@ -19,7 +11,7 @@ import {
 } from "@db/constants";
 import type { SyncStatusContract } from "@db/dbTypes";
 import { extractEventContracts } from "@utils/utilsEthers";
-import { NO_DATA } from "@utils/utilsCostants";
+import { getInitialDataOfSyncStatusContract } from "./dbEventLogsAddInitialData";
 
 export class DbEventLogs extends dbBase {
   versionIdentifier: VersionIdentifier;
@@ -59,41 +51,11 @@ export class DbEventLogs extends dbBase {
     tx: Transaction,
     targetContracts: Contract[],
   ): Promise<void> {
-    const ArrayOfInitialData = [];
-    for (const targetContract of targetContracts) {
-      const initialData: SyncStatusContract =
-        getInitialDataOfSyncStatusContract(targetContract);
-      ArrayOfInitialData.push(initialData);
-    }
+    const arrayOfInitialData: SyncStatusContract[] = targetContracts.map(
+      (targetContract) => getInitialDataOfSyncStatusContract(targetContract),
+    );
     await tx
       .table(DB_TABLE_NAMES.EventLog.syncStatus)
-      .bulkAdd(ArrayOfInitialData);
+      .bulkAdd(arrayOfInitialData);
   }
-}
-
-function getInitialDataOfSyncStatusContract(
-  targetContract: Contract,
-): SyncStatusContract {
-  const creationBlockNumber: number = targetContract.creation.blockNumber;
-  return {
-    name: targetContract.name,
-    isSyncTarget: true,
-    isSyncing: false,
-    isAbort: false,
-    fetchedBlockNumber: creationBlockNumber,
-    creationBlockNumber: creationBlockNumber,
-    numOfSyncTargetContract: 1,
-    syncStateText: NO_DATA,
-    subSyncStatuses: null,
-    events: getInitialDataOfSyncStatusesEvent(targetContract.events.names),
-  };
-}
-export function getInitialDataOfSyncStatusesEvent(
-  eventNames: EventAbiFragment["name"][],
-): SyncStatusesEvent {
-  const syncStatusesEvent: SyncStatusesEvent = {};
-  for (const eventName of eventNames) {
-    syncStatusesEvent[eventName] = { recordCount: 0 };
-  }
-  return syncStatusesEvent;
 }

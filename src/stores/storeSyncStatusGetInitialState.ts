@@ -1,6 +1,6 @@
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Contract } from "@constants/chains/types";
-import { getInitialDataOfSyncStatusesEvent } from "@db/dbEventLogs";
+import { getInitialDataOfSyncStatusesEvent } from "@db/dbEventLogsAddInitialData";
 import { extractEventContracts } from "@utils/utilsEthers";
 import { NO_DATA } from "@utils/utilsCostants";
 import type {
