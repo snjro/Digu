@@ -90,11 +90,13 @@ function getUpdateTargetTables(
   groupedEventLogs: GroupedEventLogs,
 ): Table[] {
   const eventNames: string[] = Object.keys(groupedEventLogs);
+  // get table of eventLog
   const updateTargetTables: Table[] = eventNames.map((eventName) => {
     const tableName: string = getEventLogTableName(contractName, eventName);
     return dbEventLogs.table(tableName);
   });
 
+  // get table of syncStatus
   updateTargetTables.push(
     dbEventLogs.table(DB_TABLE_NAMES.EventLog.syncStatus),
   );
