@@ -15,6 +15,7 @@ import type {
   SyncStatusesEvent,
   VersionIdentifier,
 } from "./dbTypes";
+import * as itSelf from "./dbEventLogsDataHandlersEventLog";
 //====================== table "eventLogs" =======================
 export async function addEventLogs_updateFetchedBlockNumber(
   dbEventLogs: DbEventLogs,
@@ -119,11 +120,11 @@ export async function getEventLogTableRecords(
     .table(tableName)
     .toArray();
   if (sortModifier) {
-    eventLogs = sortEventLogs(eventLogs, sortModifier);
+    eventLogs = itSelf.sortEventLogs(eventLogs, sortModifier);
   }
   return eventLogs;
 }
-function sortEventLogs(
+export function sortEventLogs(
   convertedEventLogs: ConvertedEventLog[],
   sortModifier: "asc" | "desc",
 ): ConvertedEventLog[] {
