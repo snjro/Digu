@@ -7,7 +7,6 @@ import {
   getDbItemSyncStatus,
   updateDbItemSyncStatus,
 } from "./dbEventLogsDataHandlersSyncStatus";
-import { DB_TABLE_NAMES } from "./constants";
 import { customLogger } from "@utils/logger";
 import type {
   ConvertedEventLog,
@@ -16,6 +15,7 @@ import type {
   VersionIdentifier,
 } from "./dbTypes";
 import * as itSelf from "./dbEventLogsDataHandlersEventLog";
+import { getUpdateTargetEventLogTables } from "./dbEventLogsGetUpdateTargetEventLogTables";
 //====================== table "eventLogs" =======================
 export async function addEventLogs_updateFetchedBlockNumber(
   dbEventLogs: DbEventLogs,
@@ -23,7 +23,7 @@ export async function addEventLogs_updateFetchedBlockNumber(
   groupedEventLogs: GroupedEventLogs,
   toBlockNumber: number,
 ): Promise<void> {
-  const eventLogTables: Table[] = getUpdateTargetTables(
+  const eventLogTables: Table[] = getUpdateTargetEventLogTables(
     dbEventLogs,
     targetContract.name,
     groupedEventLogs,
@@ -85,25 +85,26 @@ export async function addEventLogs_updateFetchedBlockNumber(
   });
 }
 
-function getUpdateTargetTables(
-  dbEventLogs: DbEventLogs,
-  contractName: ContractName,
-  groupedEventLogs: GroupedEventLogs,
-): Table[] {
-  const eventNames: string[] = Object.keys(groupedEventLogs);
-  // get table of eventLog
-  const updateTargetTables: Table[] = eventNames.map((eventName) => {
-    const tableName: string = getEventLogTableName(contractName, eventName);
-    return dbEventLogs.table(tableName);
-  });
+// function getUpdateTargetTables(
+//   dbEventLogs: DbEventLogs,
+//   contractName: ContractName,
+//   groupedEventLogs: GroupedEventLogs,
+// ): Table[] {
+//   const eventNames: string[] = Object.keys(groupedEventLogs);
+//   // get table of eventLog
+//   const updateTargetEventLogTables: Table[] = eventNames.map((eventName) => {
+//     const tableName: string = getEventLogTableName(contractName, eventName);
+//     return dbEventLogs.table(tableName);
+//   });
 
-  // get table of syncStatus
-  updateTargetTables.push(
-    dbEventLogs.table(DB_TABLE_NAMES.EventLog.syncStatus),
-  );
+//   // get table of syncStatus.
+//   // ∵ when eventLog table(s) is/are updated, syncStatus table needs to be updated.
+//   updateTargetEventLogTables.push(
+//     dbEventLogs.table(DB_TABLE_NAMES.EventLog.syncStatus),
+//   );
 
-  return updateTargetTables;
-}
+//   return updateTargetEventLogTables;
+// }
 
 export async function getEventLogTableRecordCount(
   dbEventLogs: DbEventLogs,
