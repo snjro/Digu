@@ -33,7 +33,7 @@ export async function addEventLogs_updateFetchedBlockNumber(
     return eventLogTable.name;
   });
   await dbEventLogs.transaction("rw", eventLogTableNames, async () => {
-    if (groupedEventLogs) {
+    if (Object.keys(groupedEventLogs).length > 0) {
       const promiseBulkAdds = [];
       const syncStatusesEvent: SyncStatusesEvent = await getDbItemSyncStatus(
         dbEventLogs,
@@ -84,27 +84,6 @@ export async function addEventLogs_updateFetchedBlockNumber(
     );
   });
 }
-
-// function getUpdateTargetTables(
-//   dbEventLogs: DbEventLogs,
-//   contractName: ContractName,
-//   groupedEventLogs: GroupedEventLogs,
-// ): Table[] {
-//   const eventNames: string[] = Object.keys(groupedEventLogs);
-//   // get table of eventLog
-//   const updateTargetEventLogTables: Table[] = eventNames.map((eventName) => {
-//     const tableName: string = getEventLogTableName(contractName, eventName);
-//     return dbEventLogs.table(tableName);
-//   });
-
-//   // get table of syncStatus.
-//   // ∵ when eventLog table(s) is/are updated, syncStatus table needs to be updated.
-//   updateTargetEventLogTables.push(
-//     dbEventLogs.table(DB_TABLE_NAMES.EventLog.syncStatus),
-//   );
-
-//   return updateTargetEventLogTables;
-// }
 
 export async function getEventLogTableRecordCount(
   dbEventLogs: DbEventLogs,
