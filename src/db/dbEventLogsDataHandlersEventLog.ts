@@ -3,10 +3,7 @@ import type { DbEventLogs } from "./dbEventLogs";
 import type { Table } from "dexie";
 // import type { Event as EthersEvent } from "ethers";
 import { getEventLogTableName } from "@utils/utlisDb";
-import {
-  getDbItemSyncStatus,
-  updateDbItemSyncStatus,
-} from "./dbEventLogsDataHandlersSyncStatus";
+import { updateDbItemSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdaters";
 import { customLogger } from "@utils/logger";
 import type {
   ConvertedEventLog,
@@ -16,6 +13,7 @@ import type {
 } from "./dbTypes";
 import * as itSelf from "./dbEventLogsDataHandlersEventLog";
 import { getUpdateTargetEventLogTables } from "./dbEventLogsGetUpdateTargetEventLogTables";
+import { getDbItemSyncStatus } from "./dbEventLogsDataHandlersSyncStatusGetters";
 //====================== table "eventLogs" =======================
 export async function addEventLogs_updateFetchedBlockNumber(
   dbEventLogs: DbEventLogs,

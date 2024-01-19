@@ -3,7 +3,7 @@ import * as InitializeDBSyncStatusForContract from "./db.worker.func.InitializeD
 import { DbEventLogs } from "./dbEventLogs";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { VersionIdentifier } from "./dbTypes";
-import * as DbEventLogsDataHandlersSyncStatus from "./dbEventLogsDataHandlersSyncStatus";
+import * as DbEventLogsDataHandlersSyncStatusUpdaters from "./dbEventLogsDataHandlersSyncStatusUpdaters";
 import * as DbEventLogsDataHandlersEventLog from "./dbEventLogsDataHandlersEventLog";
 import type {
   Chain,
@@ -18,7 +18,7 @@ vi.mock("./dbEventLogs");
 vi.mock("./dbEventLogsDataHandlersEventLog");
 
 const spyUpdateDbRecordSyncStatus = vi
-  .spyOn(DbEventLogsDataHandlersSyncStatus, "updateDbRecordSyncStatus")
+  .spyOn(DbEventLogsDataHandlersSyncStatusUpdaters, "updateDbRecordSyncStatus")
   .mockImplementation((): Promise<void> => {
     return Promise.resolve();
   });

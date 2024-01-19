@@ -1,6 +1,6 @@
 import type { Contract, EventAbiFragment } from "@constants/chains/types";
 import type { SyncStatusContract, SyncStatusesEvent } from "./dbTypes";
-import { updateDbRecordSyncStatus } from "./dbEventLogsDataHandlersSyncStatus";
+import { updateDbRecordSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdaters";
 import { getEventLogTableName } from "@utils/utlisDb";
 import { getEventLogTableRecordCount } from "./dbEventLogsDataHandlersEventLog";
 import type { DbEventLogs } from "./dbEventLogs";

@@ -1,16 +1,11 @@
 import type { Chain, ChainName, ContractName } from "@constants/chains/types";
-import { DB_TABLE_NAMES } from "./constants";
 import { DbEventLogs } from "./dbEventLogs";
-import type {
-  ContractIdentifier,
-  SyncStatusContract,
-  VersionIdentifier,
-} from "./dbTypes";
+import type { SyncStatusContract, VersionIdentifier } from "./dbTypes";
 import { customLogger } from "@utils/logger";
 import { getTargetChain } from "@utils/utlisDb";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { getDbRecordsSyncStatusContractByKeyValue } from "./dbEventLogsDataHandlersSyncStatusGetters";
+import { updateDbItemSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdaters";
 
-const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 export async function startSyncingInChain(chainName: ChainName): Promise<void> {
   await setSyncStatusInChain(
     chainName,
@@ -110,75 +105,4 @@ export async function updateDbIsSyncTarget(
     "numOfSyncTargetContract",
     numOfSyncTargetContract,
   );
-}
-
-export async function getDbRecordSyncStatusContract(
-  dbEventLogs: DbEventLogs,
-  contractName: ContractName,
-): Promise<SyncStatusContract> {
-  return await dbEventLogs.transaction("r", tableNameSyncStatus, async () => {
-    return await dbEventLogs.table(tableNameSyncStatus).get(contractName);
-  });
-}
-export async function getDbRecordsSyncStatusContractByKeyValue<
-  T extends keyof SyncStatusContract,
->(
-  dbEventLogs: DbEventLogs,
-  key: T,
-  value: SyncStatusContract[T],
-): Promise<SyncStatusContract[]> {
-  return await dbEventLogs.transaction("r", tableNameSyncStatus, async () => {
-    const syncingSyncStatusesContract: SyncStatusContract[] = (
-      await dbEventLogs.table(tableNameSyncStatus).toArray()
-    ).filter((syncStatusContract: SyncStatusContract) => {
-      return syncStatusContract[key] === value;
-    });
-
-    return syncingSyncStatusesContract;
-  });
-}
-
-export async function getDbItemSyncStatus<T extends keyof SyncStatusContract>(
-  dbEventLogs: DbEventLogs,
-  contractName: ContractName,
-  key: T,
-): Promise<SyncStatusContract[T]> {
-  const syncStatusContract: SyncStatusContract =
-    await getDbRecordSyncStatusContract(dbEventLogs, contractName);
-  return syncStatusContract[key];
-}
-
-export async function updateDbItemSyncStatus<
-  T extends keyof SyncStatusContract,
->(
-  dbEventLogs: DbEventLogs,
-  contractName: ContractName,
-  key: T,
-  newValue: SyncStatusContract[T],
-): Promise<void> {
-  await updateDbRecordSyncStatus(dbEventLogs, contractName, {
-    [key]: newValue,
-  });
-}
-
-export async function updateDbRecordSyncStatus(
-  dbEventLogs: DbEventLogs,
-  contractName: ContractName,
-  newSyncStatusContract: Partial<SyncStatusContract>,
-): Promise<void> {
-  const contractIdentifier: ContractIdentifier = {
-    ...dbEventLogs.versionIdentifier,
-    contractName: contractName,
-  };
-  await dbEventLogs
-    .transaction("rw", dbEventLogs.table(tableNameSyncStatus), async () => {
-      // update table
-      await dbEventLogs
-        .table(tableNameSyncStatus)
-        .update(contractName, newSyncStatusContract);
-    })
-    .then(() => {
-      //update store
-      storeSyncStatus.updateState(contractIdentifier, newSyncStatusContract);
-    });
 }

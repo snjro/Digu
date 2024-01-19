@@ -23,7 +23,8 @@ import {
 } from "./dbEventLogsDataHandlersEventLog";
 import * as UtilDb from "@utils/utlisDb";
 import * as TargetModule from "./dbEventLogsDataHandlersEventLog";
-import * as DataHandlerSyncStatus from "./dbEventLogsDataHandlersSyncStatus";
+import * as DataHandlerSyncStatusGetters from "./dbEventLogsDataHandlersSyncStatusGetters";
+import * as DataHandlerSyncStatusUpdaters from "./dbEventLogsDataHandlersSyncStatusUpdaters";
 import * as GetUpdateTargetEventLogTables from "./dbEventLogsGetUpdateTargetEventLogTables";
 import type { Contract } from "@constants/chains/types";
 import Dexie from "dexie";
@@ -59,12 +60,12 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
               "getUpdateTargetEventLogTables",
             );
             spyGetDbItemSyncStatus = vi.spyOn(
-              DataHandlerSyncStatus,
+              DataHandlerSyncStatusGetters,
               "getDbItemSyncStatus",
             );
             spyGetEventLogTableName = vi.spyOn(UtilDb, "getEventLogTableName");
             spyUpdateDbItemSyncStatus = vi.spyOn(
-              DataHandlerSyncStatus,
+              DataHandlerSyncStatusUpdaters,
               "updateDbItemSyncStatus",
             );
           });

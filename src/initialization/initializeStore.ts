@@ -8,7 +8,7 @@ import type {
   SyncStatusContract,
   UserSetting,
 } from "@db/dbTypes";
-import { getDbRecordSyncStatusContract } from "@db/dbEventLogsDataHandlersSyncStatus";
+import { getDbRecordSyncStatusContract } from "@db/dbEventLogsDataHandlersSyncStatusGetters";
 import type { ChainName, ContractName } from "@constants/chains/types";
 import { getDbRecordChainStatus } from "@db/dbChainStatusDataHandlers";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
