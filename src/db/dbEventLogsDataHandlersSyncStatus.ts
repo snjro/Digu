@@ -84,25 +84,3 @@ async function setSyncStatusInChain<
   }
   await Promise.all(promiseUpdate);
 }
-
-export async function updateDbIsSyncTarget(
-  dbEventLogs: DbEventLogs,
-  contractName: ContractName,
-  newValue: boolean,
-) {
-  await updateDbItemSyncStatus(
-    dbEventLogs,
-    contractName,
-    "isSyncTarget",
-    newValue,
-  );
-
-  const numOfSyncTargetContract: number = newValue ? 1 : 0;
-
-  await updateDbItemSyncStatus(
-    dbEventLogs,
-    contractName,
-    "numOfSyncTargetContract",
-    numOfSyncTargetContract,
-  );
-}
