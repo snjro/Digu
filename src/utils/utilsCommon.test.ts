@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
+  areValuesEqual,
   assertIsDefined,
   capitalizeFirstLetter,
   convertToKebabCase,
@@ -142,5 +143,68 @@ describe("sleep", () => {
     const elapsedTime: number = end - start;
     expect(elapsedTime).toBeGreaterThanOrEqual(waitTime);
     expect(elapsedTime).toBeLessThan(waitTime + 100); // Allow for some leeway due to setTimeout's precision.
+  });
+});
+
+describe("areValuesEqual", () => {
+  test("should return true for equal primitive values", () => {
+    expect(areValuesEqual(1, 1)).toBe(true);
+    expect(areValuesEqual("a", "a")).toBe(true);
+    expect(areValuesEqual(true, true)).toBe(true);
+    expect(areValuesEqual(null, null)).toBe(true);
+    expect(areValuesEqual(undefined, undefined)).toBe(true);
+  });
+
+  test("should return false for unequal primitive values", () => {
+    expect(areValuesEqual(1, 2)).toBe(false);
+    expect(areValuesEqual("a", "b")).toBe(false);
+    expect(areValuesEqual(true, false)).toBe(false);
+    expect(areValuesEqual(null, undefined)).toBe(false);
+    expect(areValuesEqual(undefined, null)).toBe(false);
+  });
+
+  test("should return true for equal Date objects", () => {
+    const date1 = new Date(2020, 1, 1);
+    const date2 = new Date(2020, 1, 1);
+    expect(areValuesEqual(date1, date2)).toBe(true);
+  });
+
+  test("should return false for unequal Date objects", () => {
+    const date1 = new Date(2020, 1, 1);
+    const date2 = new Date(2020, 1, 2);
+    expect(areValuesEqual(date1, date2)).toBe(false);
+  });
+
+  test("should return true for equal arrays", () => {
+    expect(areValuesEqual([1, 2, 3], [1, 2, 3])).toBe(true);
+  });
+
+  test("should return false for unequal arrays", () => {
+    expect(areValuesEqual([1, 2, 3], [1, 2, 4])).toBe(false);
+    expect(areValuesEqual([1, 2, 3], [1, 2])).toBe(false);
+  });
+
+  test("should return true for equal functions", () => {
+    const func1 = () => 1;
+    const func2 = () => 1;
+    expect(areValuesEqual(func1, func2)).toBe(true);
+  });
+
+  test("should return false for unequal functions", () => {
+    const func1 = () => 1;
+    const func2 = () => 2;
+    expect(areValuesEqual(func1, func2)).toBe(false);
+  });
+
+  test("should return true for equal objects", () => {
+    const obj1 = { a: 1, b: 2, c: 3 };
+    const obj2 = { a: 1, b: 2, c: 3 };
+    expect(areValuesEqual(obj1, obj2)).toBe(true);
+  });
+
+  test("should return false for unequal objects", () => {
+    const obj1 = { a: 1, b: 2, c: 3 };
+    const obj2 = { a: 1, b: 2, c: 4 };
+    expect(areValuesEqual(obj1, obj2)).toBe(false);
   });
 });

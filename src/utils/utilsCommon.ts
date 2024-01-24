@@ -88,3 +88,48 @@ export function sleep(ms: number): Promise<void> {
     return setTimeout(resolve, ms);
   });
 }
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function areValuesEqual(target1: any, target2: any): boolean {
+  // For primitive types, simply compare
+  if (target1 === target2) return true;
+
+  // For Date objects
+  if (target1 instanceof Date && target2 instanceof Date)
+    return target1.getTime() === target2.getTime();
+
+  // For arrays
+  if (Array.isArray(target1) && Array.isArray(target2)) {
+    // If the lengths of the arrays are different, return false
+    if (target1.length !== target2.length) return false;
+
+    // Recursively compare each element
+    for (let i = 0; i < target1.length; i++) {
+      if (!areValuesEqual(target1[i], target2[i])) return false;
+    }
+
+    // If all elements are equal, return true
+    return true;
+  }
+
+  // For functions
+  if (typeof target1 === "function" && typeof target2 === "function")
+    return target1.toString() === target2.toString();
+
+  // For object types
+  if (typeof target1 === "object" && typeof target2 === "object") {
+    // If the number of keys is different, return false
+    if (Object.keys(target1).length !== Object.keys(target2).length)
+      return false;
+
+    // Recursively compare the value of each key
+    for (const key in target1) {
+      if (!areValuesEqual(target1[key], target2[key])) return false;
+    }
+
+    // If all keys' values are equal, return true
+    return true;
+  }
+
+  // For all other cases, return false
+  return false;
+}
