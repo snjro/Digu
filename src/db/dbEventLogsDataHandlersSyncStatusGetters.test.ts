@@ -11,6 +11,7 @@ import {
 
 import { DB_TABLE_NAMES } from "./constants";
 import type { Contract } from "@constants/chains/types";
+import { areValuesEqual } from "@utils/utilsCommon";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 
@@ -118,16 +119,32 @@ describe("getDbRecordsSyncStatusContractByKeyValue", async () => {
                 expect(spyToArray).toBeCalled();
               });
               test("should return expected value", async () => {
-                const expectedReturnValue = (
-                  await dbEventLogs.table(tableNameSyncStatus).toArray()
-                ).filter((syncStatusContract: SyncStatusContract) => {
-                  return (
-                    syncStatusContract[keyOfSyncStatusContract] ===
-                    targetSyncStatusContract[keyOfSyncStatusContract]
-                  );
-                });
+                const expectedReturnValue = async (): Promise<
+                  SyncStatusContract[]
+                > => {
+                  switch (keyOfSyncStatusContract) {
+                    case "isAbort":
+                    case "isSyncTarget":
+                    case "isSyncing":
+                    case "numOfSyncTargetContract":
+                    case "syncStateText":
+                    case "subSyncStatuses":
+                      return await dbEventLogs
+                        .table(tableNameSyncStatus)
+                        .toArray();
 
-                expect(actualReturnValue).toEqual(expectedReturnValue);
+                    default:
+                      return (
+                        await dbEventLogs.table(tableNameSyncStatus).toArray()
+                      ).filter((syncStatusContract: SyncStatusContract) => {
+                        return areValuesEqual(
+                          syncStatusContract[keyOfSyncStatusContract],
+                          targetSyncStatusContract[keyOfSyncStatusContract],
+                        );
+                      });
+                  }
+                };
+                expect(actualReturnValue).toEqual(await expectedReturnValue());
               });
             });
           }

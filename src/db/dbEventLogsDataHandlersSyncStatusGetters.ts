@@ -2,6 +2,7 @@ import type { ContractName } from "@constants/chains/types";
 import { DB_TABLE_NAMES } from "./constants";
 import { DbEventLogs } from "./dbEventLogs";
 import type { SyncStatusContract } from "./dbTypes";
+import { areValuesEqual } from "@utils/utilsCommon";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 export async function getDbRecordSyncStatusContract(
@@ -23,7 +24,7 @@ export async function getDbRecordsSyncStatusContractByKeyValue<
     const syncingSyncStatusesContract: SyncStatusContract[] = (
       await dbEventLogs.table(tableNameSyncStatus).toArray()
     ).filter((syncStatusContract: SyncStatusContract) => {
-      return syncStatusContract[key] === value;
+      return areValuesEqual(syncStatusContract[key], value);
     });
 
     return syncingSyncStatusesContract;
