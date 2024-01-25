@@ -12,6 +12,7 @@ import {
 import { DB_TABLE_NAMES } from "./constants";
 import type { Contract } from "@constants/chains/types";
 import { areValuesEqual } from "@utils/utilsCommon";
+import { extractEventContracts } from "@utils/utilsEthers";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 
@@ -34,10 +35,10 @@ describe("getDbRecordSyncStatusContract", async () => {
           "get",
         );
         // extract contracts that emit eventLogs
-        const eventEmittingContracts: Contract[] =
-          targetVersion.contracts.filter((contract) => {
-            return contract.events.abiFragments.length > 0;
-          });
+        // extract contracts that emit eventLogs
+        const eventEmittingContracts: Contract[] = extractEventContracts(
+          targetVersion.contracts,
+        );
 
         for (const targetContract of eventEmittingContracts) {
           // call target
@@ -87,10 +88,10 @@ describe("getDbRecordsSyncStatusContractByKeyValue", async () => {
           "toArray",
         );
         // extract contracts that emit eventLogs
-        const eventEmittingContracts: Contract[] =
-          targetVersion.contracts.filter((contract) => {
-            return contract.events.abiFragments.length > 0;
-          });
+        // extract contracts that emit eventLogs
+        const eventEmittingContracts: Contract[] = extractEventContracts(
+          targetVersion.contracts,
+        );
 
         for (const targetContract of eventEmittingContracts) {
           const targetSyncStatusContract: SyncStatusContract =
@@ -163,10 +164,10 @@ describe("getDbItemSyncStatus", async () => {
           versionName: targetVersion.name,
         };
         const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
-        const eventEmittingContracts: Contract[] =
-          targetVersion.contracts.filter((contract) => {
-            return contract.events.abiFragments.length > 0;
-          });
+        // extract contracts that emit eventLogs
+        const eventEmittingContracts: Contract[] = extractEventContracts(
+          targetVersion.contracts,
+        );
 
         for (const targetContract of eventEmittingContracts) {
           const targetSyncStatusContract: SyncStatusContract =

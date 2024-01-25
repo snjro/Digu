@@ -28,6 +28,7 @@ import * as DataHandlerSyncStatusUpdaters from "./dbEventLogsDataHandlersSyncSta
 import * as GetUpdateTargetEventLogTables from "./dbEventLogsGetUpdateTargetEventLogTables";
 import type { Contract } from "@constants/chains/types";
 import Dexie from "dexie";
+import { extractEventContracts } from "@utils/utilsEthers";
 
 describe("addEventLogs_updateFetchedBlockNumber", () => {
   for (const targetChain of TARGET_CHAINS) {
@@ -40,10 +41,9 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
         };
         const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
         // extract contracts that emit eventLogs
-        const eventEmittingContracts: Contract[] =
-          targetVersion.contracts.filter((contract) => {
-            return contract.events.abiFragments.length > 0;
-          });
+        const eventEmittingContracts: Contract[] = extractEventContracts(
+          targetVersion.contracts,
+        );
 
         for (const targetContract of eventEmittingContracts) {
           const toBlockNumber: number = targetContract.creation.blockNumber + 1;
