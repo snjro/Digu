@@ -3,7 +3,7 @@ import type { DbEventLogs } from "./dbEventLogs";
 import type { Table } from "dexie";
 // import type { Event as EthersEvent } from "ethers";
 import { getEventLogTableName } from "@utils/utlisDb";
-import { updateDbItemSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdaters";
+import { updateDbItemSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbItemSyncStatus";
 import { customLogger } from "@utils/logger";
 import type {
   ConvertedEventLog,

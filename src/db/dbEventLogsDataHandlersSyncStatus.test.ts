@@ -16,14 +16,15 @@ import {
 } from "./dbEventLogsDataHandlersSyncStatus";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Chain, Contract } from "@constants/chains/types";
-import * as SyncStatusUpdaters from "./dbEventLogsDataHandlersSyncStatusUpdaters";
+import * as UpdateSyncStatusInChain from "./dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain";
+import * as DbItemSyncStatus from "./dbEventLogsDataHandlersSyncStatusUpdateDbItemSyncStatus";
 import type { VersionIdentifier } from "./dbTypes";
 import { DbEventLogs } from "./dbEventLogs";
 
 describe("startSyncingInChain", () => {
   // set spy
   const spyUpdateSyncStatusInChain: MockInstance = vi.spyOn(
-    SyncStatusUpdaters,
+    UpdateSyncStatusInChain,
     "updateSyncStatusInChain",
   );
   for (const targetChain of TARGET_CHAINS) {
@@ -46,7 +47,7 @@ describe("startSyncingInChain", () => {
 describe("startAbortingInChain", () => {
   // set spy
   const spyUpdateSyncStatusInChain: MockInstance = vi.spyOn(
-    SyncStatusUpdaters,
+    UpdateSyncStatusInChain,
     "updateSyncStatusInChain",
   );
   for (const targetChain of TARGET_CHAINS) {
@@ -69,7 +70,7 @@ describe("startAbortingInChain", () => {
 describe("stopSyncingInChain", () => {
   // set spy
   const spyUpdateSyncStatusInChain: MockInstance = vi.spyOn(
-    SyncStatusUpdaters,
+    UpdateSyncStatusInChain,
     "updateSyncStatusInChain",
   );
   beforeEach(() => {
@@ -105,7 +106,7 @@ describe("stopSyncingInChain", () => {
 describe("stopSyncingInContract", () => {
   // set spy
   const spyUpdateDbItemSyncStatus: MockInstance = vi.spyOn(
-    SyncStatusUpdaters,
+    DbItemSyncStatus,
     "updateDbItemSyncStatus",
   );
   beforeEach(() => {

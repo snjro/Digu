@@ -24,7 +24,7 @@ import {
 import * as UtilDb from "@utils/utlisDb";
 import * as TargetModule from "./dbEventLogsDataHandlersEventLog";
 import * as DataHandlerSyncStatusGetters from "./dbEventLogsDataHandlersSyncStatusGetters";
-import * as DataHandlerSyncStatusUpdaters from "./dbEventLogsDataHandlersSyncStatusUpdaters";
+import * as DataHandlerSyncStatusUpdaters from "./dbEventLogsDataHandlersSyncStatusUpdateDbItemSyncStatus";
 import * as GetUpdateTargetEventLogTables from "./dbEventLogsGetUpdateTargetEventLogTables";
 import type { Contract } from "@constants/chains/types";
 import Dexie from "dexie";

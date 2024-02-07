@@ -1,10 +1,8 @@
 import type { ChainName, ContractName } from "@constants/chains/types";
 import { DbEventLogs } from "./dbEventLogs";
 import { customLogger } from "@utils/logger";
-import {
-  updateDbItemSyncStatus,
-  updateSyncStatusInChain,
-} from "./dbEventLogsDataHandlersSyncStatusUpdaters";
+import { updateDbItemSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbItemSyncStatus";
+import { updateSyncStatusInChain } from "./dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain";
 
 export async function startSyncingInChain(chainName: ChainName): Promise<void> {
   await updateSyncStatusInChain(

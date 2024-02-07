@@ -5,7 +5,7 @@ import type {
   VersionName,
 } from "@constants/chains/types";
 import { DbEventLogs } from "@db/dbEventLogs";
-import { updateDbIsSyncTarget } from "@db/dbEventLogsDataHandlersSyncStatusUpdaters";
+import { updateDbIsSyncTarget } from "@db/dbEventLogsDataHandlersSyncStatusUpdateDbIsSyncTarget";
 import type { SyncStatusesChain } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { get } from "svelte/store";

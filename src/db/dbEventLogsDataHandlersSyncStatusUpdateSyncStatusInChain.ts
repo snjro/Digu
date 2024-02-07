@@ -1,9 +1,9 @@
-import type { Chain, ChainName, ContractName } from "@constants/chains/types";
+import type { Chain, ChainName } from "@constants/chains/types";
 import { DbEventLogs } from "./dbEventLogs";
 import type { SyncStatusContract, VersionIdentifier } from "./dbTypes";
 import { getTargetChain } from "@utils/utlisDb";
 import { getDbRecordsSyncStatusContractByKeyValue } from "./dbEventLogsDataHandlersSyncStatusGetters";
-import { updateDbRecordSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdatersDbRecordSyncStatus";
+import { updateDbItemSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbItemSyncStatus";
 
 export async function updateSyncStatusInChain<
   T extends keyof SyncStatusContract,
@@ -42,39 +42,4 @@ export async function updateSyncStatusInChain<
     }
   }
   await Promise.all(promiseUpdate);
-}
-
-export async function updateDbIsSyncTarget(
-  dbEventLogs: DbEventLogs,
-  contractName: ContractName,
-  newValue: boolean,
-) {
-  await updateDbItemSyncStatus(
-    dbEventLogs,
-    contractName,
-    "isSyncTarget",
-    newValue,
-  );
-
-  const numOfSyncTargetContract: number = newValue ? 1 : 0;
-
-  await updateDbItemSyncStatus(
-    dbEventLogs,
-    contractName,
-    "numOfSyncTargetContract",
-    numOfSyncTargetContract,
-  );
-}
-
-export async function updateDbItemSyncStatus<
-  T extends keyof SyncStatusContract,
->(
-  dbEventLogs: DbEventLogs,
-  contractName: ContractName,
-  key: T,
-  newValue: SyncStatusContract[T],
-): Promise<void> {
-  await updateDbRecordSyncStatus(dbEventLogs, contractName, {
-    [key]: newValue,
-  });
 }
