@@ -107,7 +107,7 @@ describe('"getVerticalViewabilityInScroll"', () => {
   ];
 
   beforeAll(async (): Promise<void> => {
-    browser = await puppeteer.launch({ headless: "new" });
+    browser = await puppeteer.launch({ headless: true });
     page = await browser.newPage();
     await page.exposeFunction(
       "exposedGetVerticalViewabilityInScroll",
