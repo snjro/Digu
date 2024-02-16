@@ -9,8 +9,8 @@ If you have a [RPC endpoint](https://ethereum.org/en/developers/docs/apis/json-r
   Digu does _NOT_ collect any personal information. All data that requires preservation such as preferance, settings, RPC endpoint URL you set are stored locally, even event logs are all stored on your local database.
 - **Minimized dependencies:**  
   Digu is designed with a minimal reliance on npm packages. In the production, only the packages `ag-grid-community`, `dexie` and `ethers` are used. Even packages for UI componets are not used.
-- **Cross-platform:**  
-  Digu can be used as a desktop/web app on Windows, Mac, or Linux. However, it is not yet available as a mobile app. (Under development)
+- **Cross-platform(Under development👷):**  
+  Digu can be used as a desktop/web app on Windows, Mac, or Linux. However, it is not yet available as a mobile app.
 
 ## [How it works](#how-it-works)
 
