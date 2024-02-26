@@ -4,18 +4,18 @@ Digu is a user interface to view [smart contracts](https://ethereum.org/en/devel
 If you have a [RPC endpoint](https://ethereum.org/en/developers/docs/apis/json-rpc/) URL, Digu can retrieve the event logs emitted by contracts.
 
 - **Semi-Serverless:**  
-  Digu is a standalone application, basically it runs without a server. Only when using RPC to get event logs, it connects remote environment.
+  Digu is a standalone application, basically it runs without a server. Only when using RPC to get event logs, it connects remote environment. And these event logs are all stored on your local database.
 - **Zero personal data collection:**  
-  Digu does _NOT_ collect any personal information. All data that requires preservation such as preferance, settings, RPC endpoint URL you set are stored locally, even event logs are all stored on your local database.
+  Digu does _NOT_ collect any personal information. All data that requires preservation such as preferance, settings, RPC endpoint URL you set are stored locally.
 - **Minimized dependencies:**  
-  Digu is designed with a minimal reliance on npm packages. In the production, only the packages `ag-grid-community`, `dexie` and `ethers` are used. Even packages for UI componets are not used.
+  Digu is tried to design with a minimal reliance on npm packages. In the production, only the packages `ag-grid-community`, `dexie` and `ethers` are used. Even packages for UI componets are not used.
 - **Cross-platform(🚧Under development🚧):**  
   Digu can be used as a desktop/web app on Windows, Mac, or Linux. However, it is not yet available as a mobile app.
 
 ## [How it works](#how-it-works)
 
 without a connection to the RPC endpoint, Digu has fundamental data about blockchains and contracts. So even if you don't have an RPC endpoint, you can still browse those information.
-But if you provide Digu with an RPC endpoint, Digu will use it to retrieve and list the event logs emitted by the contracts. These logs are stored in your local browser database called [`IndexedDB`](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
+But if you provide Digu with an RPC endpoint, Digu will use it to retrieve and list event logs emitted by the contracts. These logs are stored in your local browser database called [`IndexedDB`](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
 
 The main libraries that are used to achieve this are:
 
