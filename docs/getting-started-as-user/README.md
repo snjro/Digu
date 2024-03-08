@@ -4,7 +4,7 @@ There are two ways to use Digu as a user:
 
 - [**Desktop application** (Need to install)](#desktop-application-need-to-install)
 - [**Web application** (Need a server)](#web-application-need-a-server)
-  - [Using Digu with `IPFS`](#using-digu-with-ipfs)
+  - [Using Digu with `GitHub Pages`](#using-digu-with-github-pages)
   - [Using Digu with `Visual Studio Code`](#using-digu-with-visual-studio-code)
   - [Using Digu with `Node.js`](#using-digu-with-nodejs)
 
@@ -19,17 +19,17 @@ To use Digu as an desktop app, **you need to install** it. Download the latest i
 
 ## [**Web application** (Need a server)](#web-application-need-a-server)
 
-To use Digu without installing, **you need (to set up) a server**. Digu is a semi-serverless application, in theory, it should start with opening a html file on your local environment with a browser. However, it won’t work due to the violation of [Same-Origin Policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy).
+To use Digu without installing, **you need (to set up) a server**. Digu is a semi-serverless application, it should start with opening a html file on your local environment with a browser in theory. However, it won’t work due to the violation of [Same-Origin Policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy).
 To comply this policy, you should use Digu with a server. I suggest the folowing methods, choose the one you prefer:
 |#|Method|Dificulty|
 |-|------|---------|
-|1|[Using IPFS](#using-digu-with-ipfs)|easy|
+|1|[Using GitHub Pages](#using-digu-with-github-pages)|easy|
 |2|[Using `Visual Studio Code`](./docs/webApplication/vsCode/README.md)|technical|
 |3|[Using `Node.js`](./docs/webApplication/nodejs/README.md)|technical|
 
-### [Using Digu with `IPFS`](#using-digu-with-ipfs)
+### [Using Digu with `GitHub Pages`](#using-digu-with-github-pages)
 
-This method uses [`IPFS`](https://ipfs.tech/), that means use [IPFS nodes](https://docs.ipfs.tech/concepts/nodes/) as a server. Pick one of these URLs to access:
+This method uses [`GitHub Pages`](https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages), that means use [IPFS nodes](https://docs.ipfs.tech/concepts/nodes/) as a server. Pick one of these URLs to access:
 
 - https://cf-ipfs.com/ipfs/QmRw5Kf76FouxZ96XA4YHtbB6A4XtZ4zrKWxKcovEkdGAi/
 - https://gateway.ipfs.io/ipfsQmRw5Kf76FouxZ96XA4YHtbB6A4XtZ4zrKWxKcovEkdGAi/
