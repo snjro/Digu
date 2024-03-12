@@ -20,7 +20,7 @@ To use Digu as an desktop app, **you need to install** it. Download the latest i
 ## [**Web application** (Need a server)](#web-application-need-a-server)
 
 To use Digu without installing, **you need (to set up) a server**. Digu is a semi-serverless application, it should start with opening a html file on your local environment with a browser in theory. However, it won’t work due to the violation of [Same-Origin Policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy).
-To comply this policy, you should use Digu with a server. I suggest the folowing methods, choose the one you prefer:
+To comply this policy, you need to use Digu with a server. I suggest the folowing methods, choose the one you prefer:
 |#|Method|Dificulty|
 |-|------|---------|
 |1|[Using GitHub Pages](#using-digu-with-github-pages)|easy|
@@ -29,11 +29,7 @@ To comply this policy, you should use Digu with a server. I suggest the folowing
 
 ### [Using Digu with `GitHub Pages`](#using-digu-with-github-pages)
 
-This method uses [`GitHub Pages`](https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages), that means use [IPFS nodes](https://docs.ipfs.tech/concepts/nodes/) as a server. Pick one of these URLs to access:
-
-- https://cf-ipfs.com/ipfs/QmRw5Kf76FouxZ96XA4YHtbB6A4XtZ4zrKWxKcovEkdGAi/
-- https://gateway.ipfs.io/ipfsQmRw5Kf76FouxZ96XA4YHtbB6A4XtZ4zrKWxKcovEkdGAi/
-- https://dweb.link/ipfs/QmRw5Kf76FouxZ96XA4YHtbB6A4XtZ4zrKWxKcovEkdGAi/
+This method uses [`GitHub Pages`](https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages). It hosts the files in the `/_build` folder in this repository. You can access it from [https://snjro.github.io/digu/](https://snjro.github.io/digu/).
 
 ### [Using Digu with `Visual Studio Code`](#using-digu-with-visual-studio-code)
 
