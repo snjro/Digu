@@ -33,9 +33,6 @@ const config = {
       "@eventLogs": "src/eventLogs/*",
     },
     version: { name: pkgJson.version },
-    paths: {
-      base: process.env.BASE_PATH,
-    },
     prerender: {
       entries: [
         "/",
