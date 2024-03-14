@@ -9,6 +9,7 @@
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import { GITHUB_PAGES_HOST_NAME, PROJECT_NAME } from "@utils/utilsCostants";
   import classNames from "classnames";
 
   let themeColor: ThemeColor;
@@ -65,7 +66,9 @@
     <BaseButton
       size="md"
       label="HOME"
-      href="/"
+      href={$page.url.hostname.includes(GITHUB_PAGES_HOST_NAME)
+        ? `/${PROJECT_NAME}`
+        : "/"}
       border
       shadowEffect
       hoverEffect

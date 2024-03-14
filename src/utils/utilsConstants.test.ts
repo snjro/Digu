@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { PROJECT_NAME } from "./utilsCostants";
+import { GITHUB_PAGES_HOST_NAME, PROJECT_NAME } from "./utilsCostants";
 import { NO_DATA } from "./utilsCostants";
 import { DIR_NAME_CONTRACTS } from "./utilsCostants";
 import { DIR_NAME_EVENTS } from "./utilsCostants";
@@ -25,6 +25,10 @@ const constants: Constant[] = [
   {
     constName: DIR_NAME_FUNCTIONS,
     constValue: "functions",
+  },
+  {
+    constName: GITHUB_PAGES_HOST_NAME,
+    constValue: "snjro.github.io",
   },
 ];
 describe("constants", () => {
