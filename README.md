@@ -1,16 +1,20 @@
 # **Digu**
 
-Digu is a user interface to view [smart contracts](https://ethereum.org/en/developers/docs/smart-contracts/) on an [EVM](https://ethereum.org/en/developers/docs/evm/)-compatible blockchain. You can browse contract data such as [ABI](https://docs.soliditylang.org/en/develop/abi-spec.html), creation info, [functions](https://ethereum.org/en/developers/docs/smart-contracts/anatomy/#functions), [events](https://ethereum.org/en/developers/docs/smart-contracts/anatomy/#events-and-logs) in detail.
+## [**Quick start** ](#quick-start)
+
+If you want to use Digu right away, open this site:
+
+**https://snjro.github.io/digu/**
+
+## [**Overview** ](#overview)
+
+Digu is a user interface to view [smart contracts](https://ethereum.org/en/developers/docs/smart-contracts/) for [Augur](https://github.com/AugurProject). You can browse contract data such as [ABI](https://docs.soliditylang.org/en/develop/abi-spec.html), creation info, [functions](https://ethereum.org/en/developers/docs/smart-contracts/anatomy/#functions), [events](https://ethereum.org/en/developers/docs/smart-contracts/anatomy/#events-and-logs) in detail.
 If you have a [RPC endpoint](https://ethereum.org/en/developers/docs/apis/json-rpc/) URL, Digu can retrieve the event logs emitted by contracts.
 
 - **Semi-Serverless:**  
   Digu is a standalone application, basically it runs without a server. Only when using RPC to get event logs, it connects remote environment. And these event logs are all stored on your local database.
 - **Zero personal data collection:**  
   Digu does _NOT_ collect any personal information. All data that requires preservation such as preferance, settings, RPC endpoint URL you set are stored locally.
-- **Minimized dependencies:**  
-  Digu is tried to design with a minimal reliance on npm packages. In the production, only the packages `ag-grid-community`, `dexie` and `ethers` are used. Even packages for UI componets are not used.
-- **Cross-platform(🚧Under development🚧):**  
-  Digu can be used as a desktop/web app on Windows, Mac, or Linux. However, it is not yet available as a mobile app.
 
 ## [How it works](#how-it-works)
 
