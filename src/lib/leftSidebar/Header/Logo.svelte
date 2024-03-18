@@ -6,7 +6,6 @@
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
   import { GITHUB_PAGES_HOST_NAME, PROJECT_NAME } from "@utils/utilsCostants";
   import classNames from "classnames";
-  console.log($page.url.hostname.includes(GITHUB_PAGES_HOST_NAME));
 </script>
 
 <BaseA
