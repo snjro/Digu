@@ -1,21 +1,18 @@
 # **Getting started as user**<!-- omit in toc -->
 
+## [**Quick start** ](#quick-start)<!-- omit in toc -->
+
+Open **https://snjro.github.io/digu/** to use Digu immediately
+
+## [**Index**](#index)<!-- omit in toc -->
+
 There are two ways to use Digu as a user:
 
-- [**Desktop application** (Need to install)](#desktop-application-need-to-install)
 - [**Web application** (Need a server)](#web-application-need-a-server)
   - [Using Digu with `GitHub Pages`](#using-digu-with-github-pages)
   - [Using Digu with `Visual Studio Code`](#using-digu-with-visual-studio-code)
   - [Using Digu with `Node.js`](#using-digu-with-nodejs)
-
-## [**Desktop application** (Need to install)](#desktop-application-need-to-install)
-
-To use Digu as an desktop app, **you need to install** it. Download the latest installer from [the release page](https://github.com/snjro/digu/releases) and install it. Choose the right one for the OS you are using:
-|OS |Installer<br>(`x.x.x` is a version name)|System Requirements|Test Status|
-|:-:|----------------------------------------|-------------------|-----------|
-|Windows|Digu\_`x.x.x`\_x64-setup.**exe** |Windows 10 64-bit or later.|Tested.|
-|Linux |digu\_`x.x.x`\_amd64.**AppImage** |Ubuntu 18.04 or later.|Tested only on `Ubuntu`.<br>But it would work with other distributions.|
-|macOS |Digu\_`x.x.x`\_x64.**dmg** |macOS 10.13 or later.|Sorry, not tested at all 😞|
+- [**Desktop application** (Need to install)](#desktop-application-need-to-install)
 
 ## [**Web application** (Need a server)](#web-application-need-a-server)
 
@@ -93,3 +90,12 @@ The steps:
    <img src="nodeJsRunHttpServer.png" width="60%">
 
    Visit `http://localhost:8080` with your browser to view Digu.
+
+## [**Desktop application** (Need to install)](#desktop-application-need-to-install)
+
+To use Digu as an desktop app, **you need to install** it. Download the latest installer from [the release page](https://github.com/snjro/digu/releases) and install it. Choose the right one for the OS you are using:
+|OS |Installer<br>(`x.x.x` is a version name)|System Requirements|Test Status|
+|:-:|----------------------------------------|-------------------|-----------|
+|Windows|Digu\_`x.x.x`\_x64-setup.**exe** |Windows 10 64-bit or later.|Tested.|
+|Linux |digu\_`x.x.x`\_amd64.**AppImage** |Ubuntu 18.04 or later.|Tested only on `Ubuntu`.<br>But it would work with other distributions.|
+|macOS |Digu\_`x.x.x`\_x64.**dmg** |macOS 10.13 or later.|Sorry, not tested at all 😞|
