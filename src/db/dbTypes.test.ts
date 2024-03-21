@@ -37,7 +37,7 @@ describe("initialDataRpcSetting", () => {
     const expectedRpcSetting = {
       chainName: dummyChain.name,
       rpc: dummyChain.rpc![0],
-      bulkUnit: 1000,
+      bulkUnit: 100,
       chainExplorerIndex: 0,
       blockIntervalMs: dummyChain.blockIntervalMs,
       tryCount: dummyChain.tryCount,
