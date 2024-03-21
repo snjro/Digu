@@ -56,7 +56,7 @@ export const initialDataRpcSetting = (targetChain: Chain): RpcSetting => {
     chainName: targetChain.name,
     rpc:
       targetChain.rpc && targetChain.rpc.length > 0 ? targetChain.rpc[0] : "",
-    bulkUnit: 1000,
+    bulkUnit: 100,
     chainExplorerIndex: 0,
     blockIntervalMs: targetChain.blockIntervalMs,
     tryCount: targetChain.tryCount,
