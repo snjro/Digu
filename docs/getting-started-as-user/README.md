@@ -97,5 +97,5 @@ To use Digu as an desktop app, **you need to install** it. Download the latest i
 |OS |Installer<br>(`x.x.x` is a version name)|System Requirements|Test Status|
 |:-:|----------------------------------------|-------------------|-----------|
 |Windows|Digu\_`x.x.x`\_x64-setup.**exe** |Windows 10 64-bit or later.|Tested.|
-|Linux |digu\_`x.x.x`\_amd64.**AppImage** |Ubuntu 18.04 or later.|Tested only on `Ubuntu`.<br>But it would work with other distributions.|
+|Linux |digu\_`x.x.x`\_amd64.**AppImage** |Ubuntu 20.04 or later.|Tested only on `Ubuntu`.<br>But it would work with other distributions.|
 |macOS |Digu\_`x.x.x`\_x64.**dmg** |macOS 10.13 or later.|Sorry, not tested at all 😞|
