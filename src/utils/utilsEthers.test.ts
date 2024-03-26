@@ -160,7 +160,7 @@ describe("getAndUpdateLatestBlockNumber", () => {
       .mockResolvedValue(expectedLatestBlockNumber);
   });
   afterAll(() => spyGetBlockNumber.mockRestore());
-  test("", async () => {
+  test("should get latestBlockNumber", async () => {
     const actualLatestBlockNumber: number = await getAndUpdateLatestBlockNumber(
       nodeProvider!,
       targetChainName,
