@@ -1,4 +1,4 @@
-export const PROJECT_NAME = "digu";
+export const PROJECT_NAME = "Digu";
 export const NO_DATA = "-";
 export const DIR_NAME_CONTRACTS = "contracts";
 export const DIR_NAME_EVENTS = "events";

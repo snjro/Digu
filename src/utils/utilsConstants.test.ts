@@ -13,7 +13,7 @@ type Constant = { constName: string; constValue: string };
 const constants: Constant[] = [
   {
     constName: PROJECT_NAME,
-    constValue: "digu",
+    constValue: "Digu",
   },
   {
     constName: NO_DATA,

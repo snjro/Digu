@@ -2,7 +2,7 @@
 
 ## [**Quick start** ](#quick-start)<!-- omit in toc -->
 
-Open **https://snjro.github.io/digu/** to use Digu immediately
+Open **https://snjro.github.io/Digu/** to use Digu immediately
 
 ## [**Index**](#index)<!-- omit in toc -->
 
@@ -26,7 +26,7 @@ To comply this policy, you need to use Digu with a server. I suggest the folowin
 
 ### [Using Digu with `GitHub Pages`](#using-digu-with-github-pages)
 
-This method uses [`GitHub Pages`](https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages). It hosts the files in the `/_build` folder in this repository. You can access it from [https://snjro.github.io/digu/](https://snjro.github.io/digu/).
+This method uses [`GitHub Pages`](https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages). It hosts the files in the `/_build` folder in this repository. You can access it from [https://snjro.github.io/Digu/](https://snjro.github.io/Digu/).
 
 ### [Using Digu with `Visual Studio Code`](#using-digu-with-visual-studio-code)
 
@@ -67,16 +67,16 @@ The steps:
 
 1. **Download deploy directory**  
    Download the directory `./_build` that is the deploy directory for the web application.
-   As an example, assume that the downloaded folder `_build` is place under the `D:\digu`. Then, the directory path would be `D:\digu\_build`
+   As an example, assume that the downloaded folder `_build` is place under the `D:\Digu`. Then, the directory path would be `D:\Digu\_build`
 
 2. **Install `Node.js`**  
    Download Node.js from [the official site](https://nodejs.org/en) and install it.
 
 3. **Navigate to the downloaded folder**  
-   In your terminal, run this command to navigate to the directory `D:\digu\_build`:
+   In your terminal, run this command to navigate to the directory `D:\Digu\_build`:
 
    ```bash
-   cd D:\digu\_build
+   cd D:\Digu\_build
    ```
 
 4. **Run `http-server` by npx**  
@@ -93,7 +93,7 @@ The steps:
 
 ## [**Desktop application** (Need to install)](#desktop-application-need-to-install)
 
-To use Digu as an desktop app, **you need to install** it. Download the latest installer from [the release page](https://github.com/snjro/digu/releases) and install it. Choose the right one for the OS you are using:
+To use Digu as an desktop app, **you need to install** it. Download the latest installer from [the release page](https://github.com/snjro/Digu/releases) and install it. Choose the right one for the OS you are using:
 |OS |Installer<br>(`x.x.x` is a version name)|Supported Platform|
 |:-:|----------------------------------------|-------------------|
 |Linux |digu\_`x.x.x`\_amd64.deb |`Ubuntu 18.04` and above|

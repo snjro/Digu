@@ -4,7 +4,7 @@
 
 If you want to use Digu right away, open this site:
 
-**https://snjro.github.io/digu/**
+**https://snjro.github.io/Digu/**
 
 ## [**Overview** ](#overview)
 
