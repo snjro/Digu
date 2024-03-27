@@ -1,6 +1,6 @@
 {
   "name": "digu",
-  "version": "0.0.1",
+  "version": "v0.0.0-alpha9",
   "private": true,
   "scripts": {
     "tauri": "tauri",
