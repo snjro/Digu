@@ -96,8 +96,8 @@ The steps:
 To use Digu as an desktop app, **you need to install** it. Download the latest installer from [the release page](https://github.com/snjro/digu/releases) and install it. Choose the right one for the OS you are using:
 |OS |Installer<br>(`x.x.x` is a version name)|Supported Platform|
 |:-:|----------------------------------------|-------------------|
-|Windows|Digu\_`x.x.x`\_x64-setup.**exe** |`Windows 7` and above |
-|Linux |digu\_`x.x.x`\_amd64.**AppImage** |`Ubuntu 18.04` and above|
-|macOS |Digu\_`x.x.x`\_x64.**dmg** |`macOS 10.15` and above|😞|
+|Linux |digu\_`x.x.x`\_amd64.deb |`Ubuntu 18.04` and above|
+|macOS |Digu\_`x.x.x`\_x64.dmg |`macOS 10.15` and above|😞|
+|Windows|Digu\_`x.x.x`\_x64-en-US.msi |`Windows 7` and above |
 
 <!-- Supported Platform: https://github.com/tauri-apps/tauri?tab=readme-ov-file#platforms -->
