@@ -1,5 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { GITHUB_PAGES_HOST_NAME, PROJECT_NAME } from "./utilsCostants";
+import {
+  GITHUB_OWNER_NAME,
+  GITHUB_PAGES_HOST_NAME,
+  GITHUB_REPOSITORY_URL,
+  PROJECT_NAME,
+} from "./utilsCostants";
 import { NO_DATA } from "./utilsCostants";
 import { DIR_NAME_CONTRACTS } from "./utilsCostants";
 import { DIR_NAME_EVENTS } from "./utilsCostants";
@@ -27,13 +32,21 @@ const constants: Constant[] = [
     constValue: "functions",
   },
   {
+    constName: GITHUB_OWNER_NAME,
+    constValue: "snjro",
+  },
+  {
     constName: GITHUB_PAGES_HOST_NAME,
-    constValue: "snjro.github.io",
+    constValue: `${GITHUB_OWNER_NAME}.github.io`,
+  },
+  {
+    constName: GITHUB_REPOSITORY_URL,
+    constValue: `https://github.com/${GITHUB_OWNER_NAME}/${PROJECT_NAME}`,
   },
 ];
 describe("constants", () => {
   test.each<Constant>(constants)(
-    `value of "$constName" should be equal to "$constValue"`,
+    `value of "constName" should be equal to "constValue"`,
     ({ constName, constValue }: Constant) => {
       expect(constName).toEqual(constValue);
     },
