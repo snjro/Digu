@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
+  build_installers:
     strategy:
       fail-fast: false
       matrix:
@@ -49,8 +49,7 @@ jobs:
           releaseName: v__VERSION__
           releaseDraft: true
 
-  # Single deploy job since we're just deploying
-  deploy:
+  deploy_GitHubPages:
     # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
     permissions:
       contents: read
