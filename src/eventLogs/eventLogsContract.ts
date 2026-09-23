@@ -56,6 +56,7 @@ export async function fetchEventLogsContract(
   const creationBlockNumber: number = targetContract.creation.blockNumber;
 
   // In order to optimize memory usage, declare variables OUTSIDE the loop
+  let fetchedBlockNumber: number;
   let fromBlockNumber: number;
   let latestBlockNumber: number;
   let toBlockNumber: number;
@@ -69,10 +70,14 @@ export async function fetchEventLogsContract(
       return;
     }
 
+    // Read it from the store in each loop, because it is updated after
+    // registering event logs.
+    fetchedBlockNumber =
+      syncStatusContract(contractIdentifier).fetchedBlockNumber;
     fromBlockNumber =
-      contractSyncStatus.fetchedBlockNumber === creationBlockNumber
-        ? contractSyncStatus.fetchedBlockNumber
-        : contractSyncStatus.fetchedBlockNumber + 1;
+      fetchedBlockNumber === creationBlockNumber
+        ? fetchedBlockNumber
+        : fetchedBlockNumber + 1;
 
     latestBlockNumber = get(storeChainStatus)[chainName].latestBlockNumber;
 

@@ -1,7 +1,6 @@
-import { describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
 import { getInitialState } from "./storeSyncStatusGetInitialState";
-import { storeSyncStatus } from "./storeSyncStatus";
 import { NO_DATA } from "@utils/utilsCostants";
 import type { SyncStatusesChain } from "@db/dbTypes";
 
@@ -60,18 +59,30 @@ export const dummySyncStatusesChain: SyncStatusesChain = {
   },
 };
 
+// Import a fresh store for each test, so that no test depends on the state
+// left by another test.
+async function importStoreSyncStatus() {
+  return (await import("./storeSyncStatus")).storeSyncStatus;
+}
+
 describe("storeSyncStaus", () => {
-  test(`should have the initial value`, () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+  test(`should have the initial value`, async () => {
+    const storeSyncStatus = await importStoreSyncStatus();
     const currentSyncStatusesChain: SyncStatusesChain = get(storeSyncStatus);
     expect(currentSyncStatusesChain).toEqual(getInitialState());
   });
-  test("should set with the value of the argument passed", () => {
+  test("should set with the value of the argument passed", async () => {
+    const storeSyncStatus = await importStoreSyncStatus();
     // set test data to the store by using `set`
     storeSyncStatus.set(dummySyncStatusesChain);
     const currentSyncStatusesChain: SyncStatusesChain = get(storeSyncStatus);
     expect(currentSyncStatusesChain).toEqual(dummySyncStatusesChain);
   });
-  test("should update state with the value passed", () => {
+  test("should update state with the value passed", async () => {
+    const storeSyncStatus = await importStoreSyncStatus();
     // set test data to the store by using `updateState`
     const targetChainName = "eth";
     const targetProjectName = "Augur";
@@ -164,5 +175,48 @@ describe("storeSyncStaus", () => {
     });
 
     expect(currentSyncStatusesChain).toEqual(expextedSyncStatusesChain);
+  });
+  test("should update the current value, not the initial value", async () => {
+    const storeSyncStatus = await importStoreSyncStatus();
+    const targetChainName = "eth";
+    const targetProjectName = "Augur";
+    const targetVersionName = "version2";
+    const targetContractName = "OICash";
+
+    // A value that differs from the initial value only in fetchedBlockNumber
+    const syncStatusesChain: SyncStatusesChain =
+      structuredClone(getInitialState());
+    syncStatusesChain[targetChainName].subSyncStatuses[
+      targetProjectName
+    ].subSyncStatuses[targetVersionName].subSyncStatuses[
+      targetContractName
+    ].fetchedBlockNumber = 5;
+    const expectedSyncStatusesChain: SyncStatusesChain =
+      structuredClone(syncStatusesChain);
+
+    storeSyncStatus.set(syncStatusesChain);
+    storeSyncStatus.updateState(
+      {
+        chainName: targetChainName,
+        projectName: targetProjectName,
+        versionName: targetVersionName,
+        contractName: targetContractName,
+      },
+      { isSyncing: true },
+    );
+
+    const expectedChain = expectedSyncStatusesChain[targetChainName];
+    const expectedProject = expectedChain.subSyncStatuses[targetProjectName];
+    const expectedVersion = expectedProject.subSyncStatuses[targetVersionName];
+    for (const expectedSyncStatus of [
+      expectedChain,
+      expectedProject,
+      expectedVersion,
+      expectedVersion.subSyncStatuses[targetContractName],
+    ]) {
+      expectedSyncStatus.isSyncing = true;
+      expectedSyncStatus.syncStateText = "syncing";
+    }
+    expect(get(storeSyncStatus)).toEqual(expectedSyncStatusesChain);
   });
 });

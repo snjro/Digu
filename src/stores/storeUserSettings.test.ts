@@ -55,4 +55,37 @@ describe("storeUserSettings", () => {
       devMode: true,
     });
   });
+  test("should update the current value, not the initial value", async () => {
+    const storeUserSettings = await importStoreUserSettings();
+    const userSetting: UserSetting = {
+      userSettingsId: "userSetting01",
+      themeColor: "dark",
+      devMode: true,
+      selectedChainName: "matic",
+      isOpenSidebar: false,
+    };
+    const expectedUserSetting: UserSetting = {
+      ...userSetting,
+      isOpenSidebar: true,
+    };
+    storeUserSettings.set(userSetting);
+    storeUserSettings.updateState({ isOpenSidebar: true });
+
+    expect(get(storeUserSettings)).toStrictEqual(expectedUserSetting);
+    // The object passed to `set` is not changed.
+    expect(userSetting.isOpenSidebar).toBe(false);
+  });
+  test("should not change the shared initial data", async () => {
+    const storeUserSettings = await importStoreUserSettings();
+    const { initialDataUserSettings } = await import("@db/dbTypes");
+    // Same as `$storeUserSettings.isOpenSidebar = false` in a component,
+    // which changes the current value in place.
+    storeUserSettings.update((state: StateUserSettings) => {
+      state.isOpenSidebar = false;
+      return state;
+    });
+    storeUserSettings.updateState({ themeColor: "dark" });
+
+    expect(initialDataUserSettings).toStrictEqual(expectedInitialUserSettings);
+  });
 });

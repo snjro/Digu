@@ -3,11 +3,9 @@ import type { StateUserSettings } from "./storeTypes";
 import { initialDataUserSettings, type UserSetting } from "@db/dbTypes";
 
 function store() {
-  const state: StateUserSettings = getInitialState();
-  const { subscribe, set, update } = writable(state);
+  const { subscribe, set, update } = writable(getInitialState());
   const updateState = (newUserSetting: Partial<UserSetting>): void => {
-    Object.assign(state, newUserSetting);
-    set(state);
+    update((state: StateUserSettings) => ({ ...state, ...newUserSetting }));
   };
 
   return { subscribe, set, update, updateState };
@@ -16,5 +14,6 @@ function store() {
 export const storeUserSettings = store();
 
 function getInitialState(): StateUserSettings {
-  return initialDataUserSettings;
+  // Copy it so that the store does not change the shared initial data.
+  return { ...initialDataUserSettings };
 }
