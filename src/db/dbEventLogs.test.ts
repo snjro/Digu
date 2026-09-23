@@ -53,7 +53,7 @@ describe("DbEventLogs", () => {
               primKey: {
                 name: "id",
                 keyPath: "id",
-                unique: false,
+                unique: true,
                 multi: false,
                 auto: true,
                 compound: false,
@@ -66,7 +66,7 @@ describe("DbEventLogs", () => {
             primKey: {
               name: "name",
               keyPath: "name",
-              unique: false,
+              unique: true,
               multi: false,
               auto: false,
               compound: false,

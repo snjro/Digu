@@ -23,7 +23,7 @@ describe("DbSettings", () => {
         primKey: {
           name: "chainName",
           keyPath: "chainName",
-          unique: false,
+          unique: true,
           multi: false,
           auto: false,
           compound: false,
@@ -38,7 +38,7 @@ describe("DbSettings", () => {
         primKey: {
           name: "userSettingsId",
           keyPath: "userSettingsId",
-          unique: false,
+          unique: true,
           multi: false,
           auto: false,
           compound: false,

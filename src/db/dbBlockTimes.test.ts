@@ -48,7 +48,7 @@ describe("DbBlockTimes", () => {
         multi: false,
         name: TABLE_BLOCKTIMES_COLUMN_NAMES.blockNumber,
         src: TABLE_BLOCKTIMES_COLUMN_NAMES.blockNumber,
-        unique: false,
+        unique: true,
       });
     }
   });
