@@ -41,27 +41,23 @@ Note: `src/utils/utilsDom.test.ts` fails in the container because it launches Ch
 
 ## [**Starting a development server**](#starting-a-development-server)
 
-Build web application for **development** using the following scripts.
+Start the development server using the following script.
 
-- For the **WEB** application:
+```bash
+npm run dev
+```
 
-  ```bash
-  npm run dev
-  ```
-
-  This launches the development server and compiles the web application.
+This launches the development server and compiles the web application.
 
 ## [**Building the application**](#building-the-application)
 
-Build web application for deployment using the following scripts.
+Build the web application for deployment using the following script.
 
-- For the **WEB** application:
+```bash
+npm run build
+```
 
-  ```bash
-  npm run build
-  ```
-
-  The deploy directory is `./_build`.
+The deploy directory is `./_build`.
 
 ## [**Testing**](#testing)
 
