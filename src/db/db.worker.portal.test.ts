@@ -12,7 +12,7 @@ vi.mock("@utils/logger", () => ({
 
 vi.mock("@db/db.worker?worker", () => {
   return {
-    default: vi.fn().mockImplementation(() => {
+    default: vi.fn().mockImplementation(function () {
       return {
         addEventListener: vi.fn((event, callback) => {
           console.log(event);
