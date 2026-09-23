@@ -1,6 +1,7 @@
 import type { FunctionAbiFragment } from "@constants/chains/types";
 import type { Contract } from "@constants/chains/types";
 import { NO_DATA } from "@utils/utilsCostants";
+import { hasSyncTargetEvents } from "@utils/utilsEthers";
 import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
 
 export type ContractRow = {
@@ -58,7 +59,7 @@ export function gridRows(contracts: Contract[]): ContractRow[] {
         : NO_DATA,
       contractConstructorInputs: targetContract.construction.abiFragment.inputs,
 
-      contractHasEvent: targetContract.events.abiFragments.length > 0,
+      contractHasEvent: hasSyncTargetEvents(targetContract),
     };
     contractRows.push(contractRow);
   }
