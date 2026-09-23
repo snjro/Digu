@@ -38,3 +38,35 @@ jobs:
       - name: "Report Coverage"
         if: always() # Also generate the report if tests are failing
         uses: davelosert/vitest-coverage-report-action@v2
+
+  run_lint_and_check:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read # Required to checkout the code
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.x"
+          cache: "npm"
+
+      - name: Install Dependencies
+        id: install
+        run: npm ci
+
+      # Not `npm run lint`, which runs `eslint --fix`
+      - name: Run prettier
+        run: npx prettier --check --plugin prettier-plugin-svelte .
+
+      - name: Run eslint
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }} # Also run if prettier fails
+        run: npx eslint .
+
+      - name: Run svelte-check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run check
