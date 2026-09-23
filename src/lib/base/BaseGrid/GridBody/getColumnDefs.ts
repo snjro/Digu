@@ -28,7 +28,7 @@ function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
     type: "numericColumn",
     maxWidth: 70,
     pinned: "left",
-    suppressMenu: true,
+    suppressHeaderMenuButton: true,
     sortable: false,
     suppressSizeToFit: true,
     suppressMovable: true,

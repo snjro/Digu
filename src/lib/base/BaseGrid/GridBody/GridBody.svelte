@@ -38,12 +38,14 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import {
     type GridOptions,
-    GridApi,
+    type GridApi,
     type SortChangedEvent,
     type FilterChangedEvent,
     type GridColumnsChangedEvent,
     type FirstDataRenderedEvent,
     createGrid,
+    ModuleRegistry,
+    AllCommunityModule,
   } from "ag-grid-community";
   import "ag-grid-community/styles/ag-grid.css";
   import "ag-grid-community/styles/ag-theme-balham.css";
@@ -75,12 +77,13 @@
   let elementGridDiv: HTMLElement;
   const rowHeight: number = 24;
   let gridOptions: GridOptions<GridRow> = {
+    theme: "legacy",
     defaultColDef: {
       flex: 1,
       sortable: true,
       filter: true,
       editable: false,
-      suppressMenu: false,
+      suppressHeaderMenuButton: false,
       resizable: true,
     },
     defaultColGroupDef: {
@@ -127,6 +130,7 @@
   };
 
   onMount(() => {
+    ModuleRegistry.registerModules([AllCommunityModule]);
     gridApi = createGrid(elementGridDiv, gridOptions);
     gridOptions = {
       onGridReady: (): void => {
