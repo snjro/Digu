@@ -134,9 +134,9 @@
     quickSearchText = "";
   }
   async function reload(): Promise<void> {
-    // A shown no-rows overlay keeps the loading overlay from hiding after rowData is set.
+    // Clear a shown no-rows overlay before showing the loading overlay.
     gridApi.hideOverlay();
-    gridApi.showLoadingOverlay();
+    gridApi.setGridOption("loading", true);
     await setTimeout(() => {
       //reset filters
       resetAllFilters();
@@ -148,6 +148,8 @@
       gridApi.resetColumnGroupState();
       gridApi.resetColumnState();
       //reload data
+      // While loading is true, the grid shows no other overlay.
+      gridApi.setGridOption("loading", false);
       if (rows) {
         gridApi.setGridOption("rowData", rows);
         if (rows.length === 0) {
@@ -155,6 +157,8 @@
         }
         gridApi.refreshCells({ force: true });
         setAutoColumnWidth(gridApi);
+      } else {
+        gridApi.showNoRowsOverlay();
       }
     }, 500);
   }

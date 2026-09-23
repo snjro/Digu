@@ -3,10 +3,12 @@ import type {
   ILoadingOverlayComp,
   ILoadingOverlayParams,
 } from "ag-grid-community";
+import { mount as svelteMount, unmount } from "svelte";
 
 export abstract class AbstractOverlayRenderer implements ILoadingOverlayComp {
   eGui: any;
   protected context: any;
+  private mountedComponents: ReturnType<typeof svelteMount>[] = [];
 
   constructor(parentElement = "div") {
     // create empty div to place svelte component in
@@ -27,11 +29,26 @@ export abstract class AbstractOverlayRenderer implements ILoadingOverlayComp {
     return this.eGui;
   }
 
-  refresh(loadingOverlayParams: ILoadingOverlayParams) {
+  refresh(loadingOverlayParams: ILoadingOverlayParams): void {
     this.context = loadingOverlayParams.context;
+    this.destroy();
     this.createComponent(loadingOverlayParams);
-    return true;
   }
+
+  destroy(): void {
+    for (const mountedComponent of this.mountedComponents) {
+      unmount(mountedComponent);
+    }
+    this.mountedComponents = [];
+  }
+
+  /** svelte's mount() that also unmounts the component on destroy. */
+  mount: typeof svelteMount = (component, options) => {
+    const mountedComponent = svelteMount(component, options);
+    this.mountedComponents.push(mountedComponent);
+    return mountedComponent;
+  };
+
   abstract createComponent(loadingOverlayParams: ILoadingOverlayParams): void;
 }
 

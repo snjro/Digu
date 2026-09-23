@@ -49,7 +49,7 @@
   } from "ag-grid-community";
   import "ag-grid-community/styles/ag-grid.css";
   import "ag-grid-community/styles/ag-theme-balham.css";
-  import { mount, onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import "./gridBodyStyle.css";
   import { baseTextSizesPixel, type BaseSize } from "$lib/base/baseSizes";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -97,7 +97,12 @@
     suppressFieldDotNotation: true,
     suppressRowTransform: false,
     suppressMovableColumns: false,
-    rowSelection: "multiple",
+    rowSelection: {
+      mode: "multiRow",
+      checkboxes: false,
+      headerCheckbox: false,
+      enableClickSelection: true,
+    },
     suppressColumnVirtualisation: true,
     pagination: true,
     paginationAutoPageSize: true,
@@ -121,7 +126,7 @@
     },
     loadingOverlayComponent: loadingOverlayRendererFactory(
       (overLay: AbstractOverlayRenderer) => {
-        mount(BaseSpinner, {
+        overLay.mount(BaseSpinner, {
           target: overLay.eGui,
           props: { size: "xl", trackColor: "primary" },
         });
@@ -155,12 +160,15 @@
       } else {
         if (rows && rows.length) {
           gridApi.hideOverlay();
-          gridApi.showLoadingOverlay();
+          gridApi.setGridOption("loading", true);
         } else {
           gridApi.hideOverlay();
           gridApi.showNoRowsOverlay();
         }
         gridApi.setGridOption("rowData", rows);
+        if (rows && rows.length) {
+          gridApi.setGridOption("loading", false);
+        }
       }
     }
   }
