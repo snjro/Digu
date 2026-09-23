@@ -14,11 +14,8 @@ import type {
 } from "@constants/chains/types";
 import GridCellSyncStatusSyncStateText from "./GridCellSyncStatusSyncStateText.svelte";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
-import type {
-  SyncStateText,
-  SyncStatusContract,
-  SyncStatusesChain,
-} from "@db/dbTypes";
+import type { SyncStateText, SyncStatusContract } from "@db/dbTypes";
+import { get } from "svelte/store";
 import { NO_DATA } from "@utils/utilsCostants";
 
 export const columnDefsSyncstatusCurrentState = <T extends ContractRow>(
@@ -34,20 +31,12 @@ export const columnDefsSyncstatusCurrentState = <T extends ContractRow>(
 
     columnGroupShow: undefined,
     valueGetter: (valueGetterParams: ValueGetterParams<T>): SyncStateText => {
-      let contractSyncStatus: SyncStatusContract | undefined = undefined;
-      let syncStateText: SyncStateText = NO_DATA;
       const contractName: ContractName = valueGetterParams.data!.contract.name;
-
-      storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
-        contractSyncStatus =
-          syncStatusesChain[targetChain.name].subSyncStatuses[
-            targetProject.name
-          ].subSyncStatuses[targetVersion.name].subSyncStatuses[contractName];
-        if (contractSyncStatus) {
-          syncStateText = contractSyncStatus.syncStateText;
-        }
-      });
-      return syncStateText;
+      const contractSyncStatus: SyncStatusContract | undefined =
+        get(storeSyncStatus)[targetChain.name].subSyncStatuses[
+          targetProject.name
+        ].subSyncStatuses[targetVersion.name].subSyncStatuses[contractName];
+      return contractSyncStatus ? contractSyncStatus.syncStateText : NO_DATA;
     },
     cellRenderer: cellRendererFactory(
       (

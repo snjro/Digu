@@ -1,4 +1,6 @@
 import type { JsonFileContract } from "@constants/chains/jsonFileTypes";
+import type { Readable } from "svelte/store";
+import { vi } from "vitest";
 
 const jsonFileContract1EventOnly: JsonFileContract = {
   name: "contractName1",
@@ -57,3 +59,26 @@ export const jsonFileContracts: JsonFileContract[] = [
   jsonFileContract2FunctionOnly,
   jsonFileContract3FunctionOnly,
 ];
+
+// Counts the subscriptions of a store that have not been unsubscribed yet.
+export function trackStoreSubscriptions<T>(store: Readable<T>): {
+  countActive: () => number;
+  restore: () => void;
+} {
+  let numOfActive: number = 0;
+  const originalSubscribe = store.subscribe;
+  const spySubscribe = vi
+    .spyOn(store, "subscribe")
+    .mockImplementation((...args: Parameters<Readable<T>["subscribe"]>) => {
+      numOfActive++;
+      const unsubscribe = originalSubscribe(...args);
+      return () => {
+        numOfActive--;
+        unsubscribe();
+      };
+    });
+  return {
+    countActive: () => numOfActive,
+    restore: () => spySubscribe.mockRestore(),
+  };
+}

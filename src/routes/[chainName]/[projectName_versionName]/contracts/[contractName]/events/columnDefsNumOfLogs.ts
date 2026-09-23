@@ -4,8 +4,9 @@ import {
 } from "$lib/base/BaseGrid/cellRenderFactory";
 import type { ColumnDef } from "$lib/base/BaseGrid/types";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
-import type { ContractIdentifier, SyncStatusesChain } from "@db/dbTypes";
+import type { ContractIdentifier } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { get } from "svelte/store";
 import type { EventRow } from "./gridRows";
 import type { AbiFragmentName } from "@constants/chains/types";
 import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
@@ -48,16 +49,12 @@ const recordCount = (
   contractIdentifier: ContractIdentifier,
   eventName: AbiFragmentName | undefined,
 ): number | undefined => {
-  let recordCount: number | undefined = 0;
-  if (eventName) {
-    storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
-      recordCount =
-        syncStatusesChain[contractIdentifier.chainName].subSyncStatuses[
-          contractIdentifier.projectName
-        ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
-          contractIdentifier.contractName
-        ].events[eventName]?.recordCount;
-    });
+  if (!eventName) {
+    return 0;
   }
-  return recordCount;
+  return get(storeSyncStatus)[contractIdentifier.chainName].subSyncStatuses[
+    contractIdentifier.projectName
+  ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
+    contractIdentifier.contractName
+  ].events[eventName]?.recordCount;
 };
