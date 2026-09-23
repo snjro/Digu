@@ -264,10 +264,21 @@ describe("getEventLogTableRecords", () => {
                 targetEventName,
               );
 
+              // A new array in an unsorted order for each call, because
+              // "sortEventLogs" sorts the array in place.
+              const tableRecords: ConvertedEventLog[] = [
+                dummyConvertedEventLog2,
+                dummyConvertedEventLog1,
+              ];
+              const expectedResult: ConvertedEventLog[] = [
+                dummyConvertedEventLog1,
+                dummyConvertedEventLog2,
+              ];
+
               // set spy
               const spyTableToArray = vi
                 .spyOn(dbEventLogs.table(tableName), "toArray")
-                .mockResolvedValue(returnValueOfTableToArray);
+                .mockResolvedValue(tableRecords);
               const spySortEventLogs = vi.spyOn(TargetModule, "sortEventLogs");
 
               // call target
@@ -278,11 +289,8 @@ describe("getEventLogTableRecords", () => {
               );
               // check
               expect(spyTableToArray).toBeCalled();
-              expect(spySortEventLogs).toBeCalledWith(
-                returnValueOfTableToArray,
-                "asc",
-              );
-              expect(result).toEqual(returnValueOfTableToArray);
+              expect(spySortEventLogs).toBeCalledWith(tableRecords, "asc");
+              expect(result).toEqual(expectedResult);
               // restore
               spySortEventLogs.mockRestore();
               spyTableToArray.mockRestore();
@@ -309,10 +317,21 @@ describe("getEventLogTableRecords", () => {
                 targetEventName,
               );
 
+              // A new array in an unsorted order for each call, because
+              // "sortEventLogs" sorts the array in place.
+              const tableRecords: ConvertedEventLog[] = [
+                dummyConvertedEventLog1,
+                dummyConvertedEventLog2,
+              ];
+              const expectedResult: ConvertedEventLog[] = [
+                dummyConvertedEventLog2,
+                dummyConvertedEventLog1,
+              ];
+
               // set spy
               const spyTableToArray = vi
                 .spyOn(dbEventLogs.table(tableName), "toArray")
-                .mockResolvedValue(returnValueOfTableToArray);
+                .mockResolvedValue(tableRecords);
               const spySortEventLogs = vi.spyOn(TargetModule, "sortEventLogs");
 
               // call target
@@ -323,11 +342,8 @@ describe("getEventLogTableRecords", () => {
               );
               // check
               expect(spyTableToArray).toBeCalled();
-              expect(spySortEventLogs).toBeCalledWith(
-                returnValueOfTableToArray,
-                "desc",
-              );
-              expect(result).toEqual(returnValueOfTableToArray.reverse());
+              expect(spySortEventLogs).toBeCalledWith(tableRecords, "desc");
+              expect(result).toEqual(expectedResult);
               // restore
               spySortEventLogs.mockRestore();
               spyTableToArray.mockRestore();
