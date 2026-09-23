@@ -4,7 +4,7 @@ import {
   stopSyncingInContract,
   startAbortingInChain,
 } from "@db/dbEventLogsDataHandlersSyncStatus";
-import type { Chain, ChainName, Contract } from "@constants/chains/types";
+import type { ChainName, Contract } from "@constants/chains/types";
 import { getEthersEventLogs, type NodeProvider } from "@utils/utilsEthers";
 import { customLogger } from "@utils/logger";
 import { get } from "svelte/store";
@@ -25,7 +25,6 @@ type FetchingTargetInfo = ContractIdentifier & {
 };
 export async function fetchEventLogsContract(
   dbEventLogs: DbEventLogs,
-  targetChain: Chain,
   targetContract: Contract,
   nodeProvider: NodeProvider,
 ): Promise<void> {
@@ -38,6 +37,7 @@ export async function fetchEventLogsContract(
     ...dbEventLogs.versionIdentifier,
     contractName: targetContract.name,
   });
+  // Read once: the RPC settings cannot be changed in this tab while syncing.
   const rpcSetting: RpcSetting = get(storeRpcSettings)[chainName];
   const maxErrorCount: number = rpcSetting.tryCount;
   let errorCount: number = 0;
@@ -99,7 +99,7 @@ export async function fetchEventLogsContract(
     if (toBlockNumber === latestBlockNumber) {
       // If "toBlockNumber" reaches the latest,
       // sleep for fetching events to be called in the next loop
-      await sleep(targetChain.blockIntervalMs);
+      await sleep(rpcSetting.blockIntervalMs);
       if (toBlockNumber < fromBlockNumber) {
         // If "fetchedBlockNumber" and "latestBlockNumber" have the same value,
         // the above condition is satisfied.

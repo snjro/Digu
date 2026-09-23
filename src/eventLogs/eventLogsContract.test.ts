@@ -90,7 +90,6 @@ describe("fetchEventLogsContract", () => {
 
     await fetchEventLogsContract(
       dbEventLogs,
-      targetChain,
       targetContract,
       null as unknown as NodeProvider,
     );

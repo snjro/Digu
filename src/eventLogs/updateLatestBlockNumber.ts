@@ -20,6 +20,7 @@ export async function startUpdateLatestBlockNumber(
     chainName: targetChainName,
     nodeProvider: nodeProvider,
   });
+  // Read once: the RPC settings cannot be changed in this tab while syncing.
   const rpcSetting: RpcSetting = get(storeRpcSettings)[targetChainName];
   const maxErrorCount: number = rpcSetting.tryCount;
   let errorCount: number = 0;
