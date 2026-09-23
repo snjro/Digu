@@ -90,12 +90,10 @@ async function waitFor(
 // directly.
 async function openTab() {
   vi.resetModules();
-  const { dbWorkerFuncInitializeDBSettings } = await import(
-    "@db/db.worker.func.InitializeDBSettings"
-  );
-  const { dbWorkerFuncInitializeDBSyncStatus } = await import(
-    "@db/db.worker.func.InitializeDBSyncStatus"
-  );
+  const { dbWorkerFuncInitializeDBSettings } =
+    await import("@db/db.worker.func.InitializeDBSettings");
+  const { dbWorkerFuncInitializeDBSyncStatus } =
+    await import("@db/db.worker.func.InitializeDBSyncStatus");
   const { initializeStore } = await import("../initialization/initializeStore");
   const syncLock = await import("./syncLock");
   await dbWorkerFuncInitializeDBSettings();
@@ -107,9 +105,8 @@ async function openTab() {
   const contract: Contract = extractEventContracts(version.contracts)[0];
   const { DbEventLogs } = await import("@db/dbEventLogs");
   const { fetchEventLogs } = await import("./eventLogs");
-  const { startAbortingInChain } = await import(
-    "@db/dbEventLogsDataHandlersSyncStatus"
-  );
+  const { startAbortingInChain } =
+    await import("@db/dbEventLogsDataHandlersSyncStatus");
   const { syncStatusContract } = await import("./eventLogsContract");
   const { storeSyncStatus } = await import("@stores/storeSyncStatus");
   const { storeChainStatus } = await import("@stores/storeChainStatus");
@@ -272,9 +269,8 @@ describe("sync with two tabs (issue #49)", () => {
     const a = await openTab();
     tabs.push(a);
     // Same module instance as tab A (openTab() resets modules only at start).
-    const initializeDBSyncStatus = await import(
-      "@db/db.worker.func.InitializeDBSyncStatus"
-    );
+    const initializeDBSyncStatus =
+      await import("@db/db.worker.func.InitializeDBSyncStatus");
     vi.spyOn(
       initializeDBSyncStatus,
       "initializeDBSyncStatusInChain",
