@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { load } from "./+page";
-import { redirect } from "@sveltejs/kit";
+import { isRedirect, redirect } from "@sveltejs/kit";
+import { base } from "$app/paths";
 import * as dbSettingsDataHandlersUser from "@db/dbSettings";
 
 type BrowserValue = { browserValue: boolean };
@@ -36,6 +37,7 @@ describe("load", () => {
   beforeEach(() => {
     // clear call count
     spyGetDbItemUserSettings.mockClear();
+    spyRedirect.mockClear();
   });
   afterAll(() => {
     vi.restoreAllMocks();
@@ -44,24 +46,36 @@ describe("load", () => {
   test.each(browserValues)(`should $browserValue`, async ({ browserValue }) => {
     mockBrowser = browserValue;
 
-    // "redirect" throws, so need to catch.
-    try {
-      await load();
-    } catch (error) {}
-
     if (browserValue) {
+      // "redirect" throws, so "load" rejects with the thrown value.
+      const thrown: unknown = await load().catch((error: unknown) => error);
+
       expect(spyGetDbItemUserSettings).toHaveBeenCalledWith(
         "userSetting01",
         "selectedChainName",
       );
-
       expect(spyGetDbItemUserSettings).toHaveResolvedWith(
         expectedSlelectedChainName,
       );
-      expect(spyRedirect).toThrow();
+      expect(spyRedirect).toHaveBeenCalledOnce();
+      expect(spyRedirect).toHaveBeenCalledWith(
+        308,
+        `${base}/${expectedSlelectedChainName}`,
+      );
+      expect(spyRedirect.mock.results[0]).toEqual({
+        type: "throw",
+        value: thrown,
+      });
+      expect(isRedirect(thrown)).toBe(true);
+      expect(thrown).toMatchObject({
+        status: 308,
+        location: `${base}/${expectedSlelectedChainName}`,
+      });
     } else {
+      await expect(load()).resolves.toBeUndefined();
+
       expect(spyGetDbItemUserSettings).not.toBeCalled();
-      expect(redirect).toThrowError();
+      expect(spyRedirect).not.toBeCalled();
     }
   });
 });
