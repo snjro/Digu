@@ -1,4 +1,5 @@
 import { sveltekit } from "@sveltejs/kit/vite";
+import tailwindcss from "@tailwindcss/vite";
 import { svelteTesting } from "@testing-library/svelte/vite";
 import { configDefaults } from "vitest/config";
 import type { UserConfig } from "vite";
@@ -16,7 +17,7 @@ const config: UserConfig = {
       allow: [".."],
     },
   },
-  plugins: [sveltekit()],
+  plugins: [tailwindcss(), sveltekit()],
   test: {
     globals: true,
     environment: "happy-dom",

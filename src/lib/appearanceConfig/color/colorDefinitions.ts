@@ -1,8 +1,9 @@
 import type { ThemeColor } from "@db/dbTypes";
 import colors from "tailwindcss/colors";
-import type { DefaultColors } from "tailwindcss/types/generated/colors";
 import { colorDefinitionsDark } from "./colorDefinitionsDark";
 import { colorDefinitionsLight } from "./colorDefinitionsLight";
+
+type DefaultColors = typeof colors;
 
 export type ColorDefinitionForParts = {
   text: `text-${string}`;
