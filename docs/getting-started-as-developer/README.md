@@ -79,11 +79,6 @@ Execute tests using the following scripts.
   npm run vitest:ui
   ```
 
-- To run all E2E tests:
-  ```bash
-  npm run playwright-test
-  ```
-
 ## [**Quality Checks**](#quality-checks)
 
 Perform quality checks and maintenance tasks:
@@ -100,10 +95,6 @@ Perform quality checks and maintenance tasks:
   ```bash
   npm run lint
   npm run format
-  ```
-- To print out all the unused exports in the source files
-  ```bash
-  npm run find-deadcode
   ```
 
 ## [**Accessing the database**](#accessing-the-database)
