@@ -1,6 +1,6 @@
 # **Getting started as user**<!-- omit in toc -->
 
-## [**Quick start** ](#quick-start)<!-- omit in toc -->
+## [**Quick start**](#quick-start)<!-- omit in toc -->
 
 Open **https://snjro.github.io/Digu/** to use Digu immediately
 
@@ -20,8 +20,8 @@ To comply this policy, you need to use Digu with a server. I suggest the folowin
 |#|Method|Dificulty|
 |-|------|---------|
 |1|[Using GitHub Pages](#using-digu-with-github-pages)|easy|
-|2|[Using `Visual Studio Code`](./docs/webApplication/vsCode/README.md)|technical|
-|3|[Using `Node.js`](./docs/webApplication/nodejs/README.md)|technical|
+|2|[Using `Visual Studio Code`](#using-digu-with-visual-studio-code)|technical|
+|3|[Using `Node.js`](#using-digu-with-nodejs)|technical|
 
 ### [Using Digu with `GitHub Pages`](#using-digu-with-github-pages)
 
