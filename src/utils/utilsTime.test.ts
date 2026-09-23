@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import {
   convertJsDateToIso8601,
   convertJsDateToTimestampSec,
@@ -9,10 +9,14 @@ test("convertTimestampSecToIso8601", () => {
   const result = convertTimestampSecToIso8601(timestampSec);
   expect(result).toBe("2022-01-01T00:00:00Z");
 
-  // Test when timestampSec is not provided
-  const resultWithoutTimestamp = convertTimestampSecToIso8601();
-  const dateFromResult = new Date(resultWithoutTimestamp);
-  expect(dateFromResult.getTime()).toBeGreaterThanOrEqual(timestampSec);
+  // Test when timestampSec is not provided: the current time is used
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2023-04-05T06:07:08.999Z"));
+  try {
+    expect(convertTimestampSecToIso8601()).toBe("2023-04-05T06:07:08Z");
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 describe("convertJsDateToTimestampSec", () => {
