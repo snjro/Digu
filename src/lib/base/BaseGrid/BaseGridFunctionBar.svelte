@@ -134,6 +134,8 @@
     quickSearchText = "";
   }
   async function reload(): Promise<void> {
+    // A shown no-rows overlay keeps the loading overlay from hiding after rowData is set.
+    gridApi.hideOverlay();
     gridApi.showLoadingOverlay();
     await setTimeout(() => {
       //reset filters
@@ -148,6 +150,9 @@
       //reload data
       if (rows) {
         gridApi.setGridOption("rowData", rows);
+        if (rows.length === 0) {
+          gridApi.showNoRowsOverlay();
+        }
         gridApi.refreshCells({ force: true });
         setAutoColumnWidth(gridApi);
       }
