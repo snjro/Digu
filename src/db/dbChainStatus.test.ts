@@ -32,7 +32,7 @@ describe("DbChainStatus", () => {
       multi: false,
       name: "chainName",
       src: "chainName",
-      unique: false,
+      unique: true,
     });
   });
 
