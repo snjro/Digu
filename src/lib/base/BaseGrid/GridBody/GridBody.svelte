@@ -47,7 +47,7 @@
   } from "ag-grid-community";
   import "ag-grid-community/styles/ag-grid.css";
   import "ag-grid-community/styles/ag-theme-balham.css";
-  import { onDestroy, onMount } from "svelte";
+  import { mount, onDestroy, onMount } from "svelte";
   import "./gridBodyStyle.css";
   import { baseTextSizesPixel, type BaseSize } from "$lib/base/baseSizes";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -118,7 +118,7 @@
     },
     loadingOverlayComponent: loadingOverlayRendererFactory(
       (overLay: AbstractOverlayRenderer) => {
-        new BaseSpinner({
+        mount(BaseSpinner, {
           target: overLay.eGui,
           props: { size: "xl", trackColor: "primary" },
         });

@@ -1,3 +1,4 @@
+import { mount } from "svelte";
 import BaseA from "$lib/base/BaseA.svelte";
 import {
   cellRendererFactory,
@@ -40,7 +41,7 @@ export const columnDefsBasic = <T extends EventRow>(
             cellRendererParams: ICellRendererParams<T>,
           ) => {
             if (cellRendererParams.data) {
-              new BaseA({
+              mount(BaseA, {
                 target: cell.eGui,
                 props: {
                   text: cellRendererParams.data.eventName,
@@ -87,7 +88,7 @@ export const columnDefsBasic = <T extends EventRow>(
             cellRendererParams: ICellRendererParams<T>,
           ) => {
             if (cellRendererParams.data) {
-              new BaseLabel({
+              mount(BaseLabel, {
                 target: cell.eGui,
                 props: {
                   text: cellRendererParams.data.eventTopicHash,

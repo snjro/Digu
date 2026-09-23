@@ -1,4 +1,6 @@
 import { sveltekit } from "@sveltejs/kit/vite";
+import { svelteTesting } from "@testing-library/svelte/vite";
+import { configDefaults } from "vitest/config";
 import type { UserConfig } from "vite";
 
 const config: UserConfig = {
@@ -22,6 +24,24 @@ const config: UserConfig = {
       provider: "v8",
       reporter: ["text", "html", "json-summary", "json"],
     },
+    projects: [
+      {
+        extends: true,
+        plugins: [svelteTesting()],
+        test: {
+          name: "client",
+          include: ["src/**/*.svelte.test.ts"],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "server",
+          include: ["src/**/*.test.ts"],
+          exclude: [...configDefaults.exclude, "src/**/*.svelte.test.ts"],
+        },
+      },
+    ],
   },
 };
 

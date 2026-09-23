@@ -3,14 +3,14 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseInput from "$lib/base/BaseInput.svelte";
   import classNames from "classnames";
-  import { createEventDispatcher, SvelteComponent } from "svelte";
+  import { createEventDispatcher } from "svelte";
   import type { HelperTextState } from "./RpcConfigChanger.svelte";
 
   export let disabled: boolean;
   export let value: number;
   export let helperTextState: HelperTextState;
   const dispatch = createEventDispatcher();
-  let baseInputElement: SvelteComponent;
+  let baseInputElement: ReturnType<typeof BaseInput>;
 
   $: if (disabled && helperTextState === "error") {
     baseInputElement.value = value;

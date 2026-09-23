@@ -1,3 +1,4 @@
+import { mount } from "svelte";
 import {
   AbstractCellRenderer,
   cellRendererFactory,
@@ -83,7 +84,7 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
             getComponents(cellRendererParams, abiParamsKey, indexOfArgs);
 
           if (components) {
-            new AbiParamComponentsDetailsButton({
+            mount(AbiParamComponentsDetailsButton, {
               target: cell.eGui,
               props: {
                 dialogHeaderText: capitalizeFirstLetter(abiParamArgHeaderName),
@@ -91,7 +92,7 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
               },
             });
           } else {
-            new BaseLabel({
+            mount(BaseLabel, {
               target: cell.eGui,
               props: {
                 text: NO_DATA,

@@ -1,3 +1,4 @@
+import { mount } from "svelte";
 import {
   AbstractCellRenderer,
   cellRendererFactory,
@@ -29,7 +30,7 @@ export const columnDefsNumOfLogs = <T extends EventRow>(
         cell: AbstractCellRenderer,
         cellRendererParams: ICellRendererParams<T>,
       ) => {
-        new GridCellNumOfLogs({
+        mount(GridCellNumOfLogs, {
           target: cell.eGui,
           props: {
             contractIdentifier: contractIdentifier,

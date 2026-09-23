@@ -1,3 +1,4 @@
+import { mount } from "svelte";
 import {
   cellRendererFactory,
   type AbstractCellRenderer,
@@ -259,7 +260,7 @@ const argChildColumnDef = (
           cell: AbstractCellRenderer,
           cellRendererParams: ICellRendererParams,
         ) => {
-          new CommonChainExplorerLink({
+          mount(CommonChainExplorerLink, {
             target: cell.eGui,
             props: {
               subdirectory: "address",
