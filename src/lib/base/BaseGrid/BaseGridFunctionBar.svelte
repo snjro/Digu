@@ -155,6 +155,8 @@
         }
         gridApi.refreshCells({ force: true });
         setAutoColumnWidth(gridApi);
+      } else {
+        gridApi.showNoRowsOverlay();
       }
     }, 500);
   }
