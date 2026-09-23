@@ -11,31 +11,32 @@ import type {
 } from "@db/dbTypes";
 
 function store() {
-  const state: SyncStatusesChain = getInitialState();
-  const { subscribe, set, update } = writable(state);
+  const { subscribe, set, update } = writable(getInitialState());
   const updateState = (
     contractIdentifier: ContractIdentifier,
     newSyncStatusContract: Partial<SyncStatusContract>,
   ): void => {
-    const syncStatusContract: SyncStatusContract =
-      state[contractIdentifier.chainName].subSyncStatuses[
-        contractIdentifier.projectName
-      ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
-        contractIdentifier.contractName
-      ];
-    Object.assign(syncStatusContract, newSyncStatusContract);
+    update((state: SyncStatusesChain) => {
+      const syncStatusContract: SyncStatusContract =
+        state[contractIdentifier.chainName].subSyncStatuses[
+          contractIdentifier.projectName
+        ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
+          contractIdentifier.contractName
+        ];
+      Object.assign(syncStatusContract, newSyncStatusContract);
 
-    updateStoreSyncStatusSyncStateText(
-      state,
-      contractIdentifier,
-      newSyncStatusContract,
-    );
-    updateStoreSyncStatusSummarized(
-      state,
-      contractIdentifier,
-      newSyncStatusContract,
-    );
-    set(state);
+      updateStoreSyncStatusSyncStateText(
+        state,
+        contractIdentifier,
+        newSyncStatusContract,
+      );
+      updateStoreSyncStatusSummarized(
+        state,
+        contractIdentifier,
+        newSyncStatusContract,
+      );
+      return state;
+    });
   };
   return { subscribe, set, update, updateState };
 }
