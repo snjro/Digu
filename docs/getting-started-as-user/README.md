@@ -1,6 +1,6 @@
 # **Getting started as user**<!-- omit in toc -->
 
-## [**Quick start** ](#quick-start)<!-- omit in toc -->
+## [**Quick start**](#quick-start)<!-- omit in toc -->
 
 Open **https://snjro.github.io/Digu/** to use Digu immediately
 

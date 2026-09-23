@@ -1,12 +1,12 @@
 # **Digu**
 
-## [**Quick start** ](#quick-start)
+## [**Quick start**](#quick-start)
 
 If you want to use Digu right away, open this site:
 
 **https://snjro.github.io/Digu/**
 
-## [**Overview** ](#overview)
+## [**Overview**](#overview)
 
 Digu is a user interface to view [smart contracts](https://ethereum.org/en/developers/docs/smart-contracts/) for [Augur](https://github.com/AugurProject). You can browse contract data such as [ABI](https://docs.soliditylang.org/en/develop/abi-spec.html), creation info, [functions](https://ethereum.org/en/developers/docs/smart-contracts/anatomy/#functions), [events](https://ethereum.org/en/developers/docs/smart-contracts/anatomy/#events-and-logs) in detail.
 If you have a [RPC endpoint](https://ethereum.org/en/developers/docs/apis/json-rpc/) URL, Digu can retrieve the event logs emitted by contracts.
