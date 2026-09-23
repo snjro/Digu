@@ -23,4 +23,4 @@
     "border-r",
     colorDefinitions[themeColor][colorCategory].border,
   )}
-/>
+></div>

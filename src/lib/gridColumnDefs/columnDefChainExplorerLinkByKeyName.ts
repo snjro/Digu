@@ -1,3 +1,4 @@
+import { mount } from "svelte";
 import {
   AbstractCellRenderer,
   cellRendererFactory,
@@ -59,7 +60,7 @@ export const columnDefChainExplorerLinkByKeyName = <T>(
         cellRendererParams: ICellRendererParams<T>,
       ) => {
         if (cellRendererParams.data && cellRendererParams.data[keyName]) {
-          new CommonChainExplorerLink({
+          mount(CommonChainExplorerLink, {
             target: cell.eGui,
             props: {
               subdirectory: subdirectory,
@@ -72,7 +73,7 @@ export const columnDefChainExplorerLinkByKeyName = <T>(
             },
           });
         } else {
-          new BaseLabel({
+          mount(BaseLabel, {
             target: cell.eGui,
             props: {
               text: NO_DATA,

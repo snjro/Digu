@@ -63,5 +63,5 @@
 {#if helperTextState}
   <BaseLabel {...helperLabelProps()} textSize={size} />
 {:else}
-  <div class={classNames(baseTextHeight[size])} />
+  <div class={classNames(baseTextHeight[size])}></div>
 {/if}

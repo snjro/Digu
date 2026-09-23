@@ -43,9 +43,9 @@ export abstract class AbstractCellRenderer implements ICellRendererComp {
   /**
    * Define and create the svelte component to use in the cell
    * @example
-   * // This is all you need to do within this method: create the component with new,
+   * // This is all you need to do within this method: create the component with mount,
    *    specify the target is the class, and pass in props via the params.
-   * new CampusIcon({
+   * mount(CampusIcon, {
    *    target: this.eGui,
    *    props: {
    *        color: params.data?.color,

@@ -21,4 +21,4 @@
     "border-t",
     colorDefinitions[themeColor][colorCategory].border,
   )}
-/>
+></div>

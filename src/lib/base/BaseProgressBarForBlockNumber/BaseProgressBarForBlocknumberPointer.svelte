@@ -41,4 +41,4 @@
     "",
   )}
   style:width="{progressRate}%"
-/>
+></div>
