@@ -5,6 +5,8 @@ import { describe, expect, test } from "vitest";
 import type { VersionIdentifier } from "./dbTypes";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import { getEventTableNames } from "@utils/utlisDb";
+import { extractEventContracts } from "@utils/utilsEthers";
+import { getInitialDataOfSyncStatusContract } from "./dbEventLogsAddInitialData";
 
 describe("DbEventLogs", () => {
   for (const targetChain of TARGET_CHAINS) {
@@ -31,8 +33,18 @@ describe("DbEventLogs", () => {
           );
         });
 
-        test("should set type correctly", () => {
-          expect(dbEventLogs).toBeInstanceOf(DbEventLogs);
+        test("should add the initial sync statuses when the database is created", async () => {
+          const expectedSyncStatuses = extractEventContracts(
+            targetVersion.contracts,
+          ).map(getInitialDataOfSyncStatusContract);
+
+          await dbEventLogs.open();
+          const actualSyncStatuses = await dbEventLogs
+            .table(DB_TABLE_NAMES.EventLog.syncStatus)
+            .toArray();
+          dbEventLogs.close();
+
+          expect(actualSyncStatuses).toEqual(expectedSyncStatuses);
         });
 
         test("should set versionIdentifier correctly", () => {

@@ -94,6 +94,7 @@ describe("getNodeProvider", async () => {
     state: string;
     lastNodeStatus: ChainStatus["nodeStatus"];
     targetChainId?: Chain["chainId"];
+    providerClass?: typeof JsonRpcProvider | typeof WebSocketProvider;
   };
   const rpcDefinitions: RpcDefinition[] = [
     {
@@ -105,11 +106,13 @@ describe("getNodeProvider", async () => {
       rpc: "https://bar",
       state: "valid URL(https)",
       lastNodeStatus: "SUCCESS",
+      providerClass: JsonRpcProvider,
     },
     {
       rpc: "wss://socketsbay.com/wss/v2/1/demo/",
       state: "valid URL(wss)",
       lastNodeStatus: "SUCCESS",
+      providerClass: WebSocketProvider,
     },
     { rpc: "invalid_url", state: "invalid URL", lastNodeStatus: "INVALID_URL" },
     {
@@ -126,7 +129,12 @@ describe("getNodeProvider", async () => {
   ];
   test.each(rpcDefinitions)(
     `Condition: $state`,
-    async ({ rpc, lastNodeStatus, targetChainId }: RpcDefinition) => {
+    async ({
+      rpc,
+      lastNodeStatus,
+      targetChainId,
+      providerClass,
+    }: RpcDefinition) => {
       // edit property of targetChain
       const editedTargetChain: Chain = targetChainId
         ? { ...targetChain, chainId: targetChainId }
@@ -146,8 +154,8 @@ describe("getNodeProvider", async () => {
       >(targetChainName, "nodeStatus", lastNodeStatus);
 
       // check return value
-      if (lastNodeStatus === "SUCCESS") {
-        expect(nodeProvider).toBeDefined();
+      if (providerClass) {
+        expect(nodeProvider).toBeInstanceOf(providerClass);
       } else {
         expect(nodeProvider).toBeUndefined();
       }
