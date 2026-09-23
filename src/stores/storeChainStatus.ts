@@ -5,14 +5,15 @@ import { initialDataChainStatus } from "@db/dbChainStatus";
 import { writable } from "svelte/store";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 function store() {
-  const state: StateChainStatuses = getInitialState();
-  const { subscribe, set, update } = writable(state);
+  const { subscribe, set, update } = writable(getInitialState());
   const updateState = (
     chainName: ChainName,
     newChainStatus: Partial<ChainStatus>,
   ): void => {
-    Object.assign(state[chainName], newChainStatus);
-    set(state);
+    update((state: StateChainStatuses) => ({
+      ...state,
+      [chainName]: { ...state[chainName], ...newChainStatus },
+    }));
   };
   return { subscribe, set, update, updateState };
 }
