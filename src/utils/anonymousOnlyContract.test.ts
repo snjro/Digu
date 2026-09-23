@@ -4,6 +4,11 @@ import { convertJsonFilesContractToContracts } from "@constants/chains/convertJs
 import type { JsonFileContract } from "@constants/chains/jsonFileTypes";
 import type { Contract } from "@constants/chains/types";
 import { gridRows } from "@routes/[chainName]/[projectName_versionName]/contracts/gridRows";
+import { columnDefsNumOfLogs } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/columnDefsNumOfLogs";
+import type { EventRow } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/gridRows";
+import { TARGET_CHAINS } from "@constants/chains/_index";
+import type { ContractIdentifier } from "@db/dbTypes";
+import type { ColDef, ValueGetterParams } from "ag-grid-community";
 import { jsonFileContracts } from "./testCommon";
 
 const jsonFileContractAnonymousOnly: JsonFileContract = {
@@ -87,5 +92,24 @@ describe("gridRows", () => {
     expect(anonymousOnlyRow.contractHasEvent).toBe(false);
     expect(anonymousOnlyRow.contractEventsTotalNumber).toBe(1);
     expect(namedAndAnonymousRow.contractHasEvent).toBe(true);
+  });
+});
+
+describe("columnDefsNumOfLogs", () => {
+  test("valueGetter should return undefined for a contract without sync status", () => {
+    const targetChain = TARGET_CHAINS[0];
+    const contractIdentifier: ContractIdentifier = {
+      chainName: targetChain.name,
+      projectName: targetChain.projects[0].name,
+      versionName: targetChain.projects[0].versions[0].name,
+      contractName: anonymousOnlyContract.name,
+    };
+    const valueGetter = (columnDefsNumOfLogs(contractIdentifier, "") as ColDef)
+      .valueGetter as (params: ValueGetterParams<EventRow>) => unknown;
+    expect(
+      valueGetter({
+        data: { eventName: "anonymousEvent" } as EventRow,
+      } as ValueGetterParams<EventRow>),
+    ).toBeUndefined();
   });
 });

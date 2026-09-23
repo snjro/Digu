@@ -13,14 +13,15 @@
   export let targetEventName: AbiFragmentName;
   export let urlPathName: string;
 
-  // undefined for events that are not synced (anonymous events)
+  // undefined for events that are not synced (anonymous events), and for
+  // contracts that have only anonymous events
   let currentRecordCount: number | undefined = undefined;
   $: currentRecordCount =
     $storeSyncStatus[contractIdentifier.chainName].subSyncStatuses[
       contractIdentifier.projectName
     ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
       contractIdentifier.contractName
-    ].events[targetEventName]?.recordCount;
+    ]?.events[targetEventName]?.recordCount;
 
   const href: string = `${urlPathName}${targetEventName}${convertTabValueForHref(
     "Event Logs (text)",

@@ -56,5 +56,5 @@ const recordCount = (
     contractIdentifier.projectName
   ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
     contractIdentifier.contractName
-  ].events[eventName]?.recordCount;
+  ]?.events[eventName]?.recordCount;
 };
