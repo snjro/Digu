@@ -63,7 +63,7 @@
 </script>
 
 <div class={classNames("flex flex-row", "w-fit", height())}>
-  <div class={classNames(left())} />
-  <div class={classNames(bgColor, center())} />
-  <div class={classNames(right())} />
+  <div class={classNames(left())}></div>
+  <div class={classNames(bgColor, center())}></div>
+  <div class={classNames(right())}></div>
 </div>

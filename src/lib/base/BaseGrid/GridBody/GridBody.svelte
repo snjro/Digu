@@ -188,7 +188,7 @@
     `--color-row-hover:${colorDefs.row.hover};`,
     `--color-row-border:${colorDefs.row.border};`,
   )}
-/>
+></div>
 
 <style>
   /* :global(.cell-span) {

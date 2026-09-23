@@ -5,4 +5,4 @@
   export let height: `h-${string}`;
 </script>
 
-<div class={classNames(bgColor, height, "w-full")} />
+<div class={classNames(bgColor, height, "w-full")}></div>

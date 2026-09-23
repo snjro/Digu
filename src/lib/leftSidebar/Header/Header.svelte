@@ -48,7 +48,7 @@
     <div class={classNames("row-span-1", "col-span-10")}>
       <Logo />
     </div>
-    <div class={classNames("row-span-1", "col-span-2")} />
+    <div class={classNames("row-span-1", "col-span-2")}></div>
     <div class={classNames("row-span-1", "col-span-8")}>
       <SelectChain />
     </div>
