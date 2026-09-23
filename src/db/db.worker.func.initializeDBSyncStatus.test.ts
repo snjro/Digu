@@ -3,7 +3,9 @@ import * as InitializeDBSyncStatusForContract from "./db.worker.func.InitializeD
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import * as InitializeDBSyncStatus from "./db.worker.func.InitializeDBSyncStatus";
 import { extractEventContracts } from "@utils/utilsEthers";
-import type { Chain } from "@constants/chains/types";
+import type { Chain, Contract } from "@constants/chains/types";
+import type { VersionIdentifier } from "./dbTypes";
+import { DbEventLogs } from "./dbEventLogs";
 import { getSyncLockName } from "./constants";
 import {
   installFakeLockManager,
@@ -17,19 +19,39 @@ const spyInitializeDBSyncStatusForContract = vi.spyOn(
   "initializeDBSyncStatusForContract",
 );
 
-function countEventContracts(targetChains: Chain[]): number {
-  let calledCounter = 0;
+type CalledArgs = { versionIdentifier: VersionIdentifier; contract: Contract };
+
+function expectedArgs(targetChains: Chain[]): CalledArgs[] {
+  const args: CalledArgs[] = [];
   for (const targetChain of targetChains) {
     for (const targetProject of targetChain.projects) {
       for (const targetVersion of targetProject.versions) {
-        const numOfEventContract: number = extractEventContracts(
-          targetVersion.contracts,
-        ).length;
-        calledCounter += numOfEventContract;
+        const versionIdentifier: VersionIdentifier = {
+          chainName: targetChain.name,
+          projectName: targetProject.name,
+          versionName: targetVersion.name,
+        };
+        for (const contract of extractEventContracts(targetVersion.contracts)) {
+          args.push({ versionIdentifier, contract });
+        }
       }
     }
   }
-  return calledCounter;
+  return args;
+}
+
+// DbEventLogs is mocked, so find the version from its constructor call.
+function calledArgs(): CalledArgs[] {
+  const mockedDbEventLogs = vi.mocked(DbEventLogs).mock;
+  return spyInitializeDBSyncStatusForContract.mock.calls.map(
+    ([dbEventLogs, contract]) => ({
+      versionIdentifier:
+        mockedDbEventLogs.calls[
+          mockedDbEventLogs.instances.indexOf(dbEventLogs)
+        ][0],
+      contract,
+    }),
+  );
 }
 
 describe("dbWorkerFuncInitializeDBSyncStatus", () => {
@@ -37,14 +59,15 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
   beforeEach(() => {
     lockManager = installFakeLockManager();
     spyInitializeDBSyncStatusForContract.mockClear();
+    vi.mocked(DbEventLogs).mockClear();
   });
 
   test("should initialize DB sync status for all contracts", async () => {
     await InitializeDBSyncStatus.dbWorkerFuncInitializeDBSyncStatus();
 
-    expect(spyInitializeDBSyncStatusForContract).toBeCalledTimes(
-      countEventContracts(TARGET_CHAINS),
-    );
+    const expected: CalledArgs[] = expectedArgs(TARGET_CHAINS);
+    expect(calledArgs()).toHaveLength(expected.length);
+    expect(calledArgs()).toEqual(expect.arrayContaining(expected));
   });
 
   test("should skip a chain that another tab syncs", async () => {
@@ -59,8 +82,8 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
     release();
     await heldLock;
 
-    expect(spyInitializeDBSyncStatusForContract).toBeCalledTimes(
-      countEventContracts(TARGET_CHAINS.slice(1)),
-    );
+    const expected: CalledArgs[] = expectedArgs(TARGET_CHAINS.slice(1));
+    expect(calledArgs()).toHaveLength(expected.length);
+    expect(calledArgs()).toEqual(expect.arrayContaining(expected));
   });
 });
