@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
   type RpcConfigKeyName = keyof Pick<
     RpcSetting,
-    "bulkUnit" | "tryCount" | "blockIntervalMs" | "abortWatchIntervalMs"
+    "bulkUnit" | "tryCount" | "blockIntervalMs"
   >;
   export type RpcConfigParam = {
     readonly name: RpcConfigKeyName;
@@ -46,13 +46,6 @@
         label: "Block Interval [ms]",
         minValue: 1,
         maxValue: targetChain.blockIntervalMs,
-        step: 1,
-      },
-      {
-        name: "abortWatchIntervalMs",
-        label: "Abort Watch Interval [ms]",
-        minValue: 1,
-        maxValue: targetChain.abortWatchIntervalMs,
         step: 1,
       },
     ];

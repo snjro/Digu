@@ -36,7 +36,6 @@ describe("storeRpcSettings", () => {
       chainExplorerIndex: 2,
       blockIntervalMs: 3,
       tryCount: 4,
-      abortWatchIntervalMs: 5,
       inputType: "password",
     };
     // set test data to the store by using `set`
@@ -59,7 +58,6 @@ describe("storeRpcSettings", () => {
       chainExplorerIndex: 20,
       blockIntervalMs: 30,
       tryCount: 40,
-      abortWatchIntervalMs: 50,
       inputType: "text",
     };
     // set test data to the store by using `updateState`
@@ -80,7 +78,6 @@ describe("storeRpcSettings", () => {
       chainExplorerIndex: 2,
       blockIntervalMs: 3,
       tryCount: 4,
-      abortWatchIntervalMs: 5,
       inputType: "password",
     };
     const rpcSettings: StateRpcSettings = { [chainNameEth]: rpcSetting };

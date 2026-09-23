@@ -48,7 +48,6 @@ export type RpcSetting = {
   chainExplorerIndex: number;
   blockIntervalMs: number;
   tryCount: number;
-  abortWatchIntervalMs: number;
   inputType: RpcInputType;
 };
 export const initialDataRpcSetting = (targetChain: Chain): RpcSetting => {
@@ -60,7 +59,6 @@ export const initialDataRpcSetting = (targetChain: Chain): RpcSetting => {
     chainExplorerIndex: 0,
     blockIntervalMs: targetChain.blockIntervalMs,
     tryCount: targetChain.tryCount,
-    abortWatchIntervalMs: targetChain.abortWatchIntervalMs,
     inputType: "text",
   };
 };

@@ -98,7 +98,6 @@ export type Chain = {
   readonly chainExplorers: ChainExplorer[];
   readonly blockIntervalMs: number;
   readonly tryCount: number;
-  readonly abortWatchIntervalMs: number;
   readonly projects: Project[];
 };
 export type ChainExplorer = {
