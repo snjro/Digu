@@ -29,7 +29,6 @@ describe("initialDataRpcSetting", () => {
       rpc: ["http://test-rpc"],
       blockIntervalMs: 3000,
       tryCount: 3,
-      abortWatchIntervalMs: 5000,
     };
 
     const result = initialDataRpcSetting(dummyChain);
@@ -41,7 +40,6 @@ describe("initialDataRpcSetting", () => {
       chainExplorerIndex: 0,
       blockIntervalMs: dummyChain.blockIntervalMs,
       tryCount: dummyChain.tryCount,
-      abortWatchIntervalMs: dummyChain.abortWatchIntervalMs,
       inputType: "text",
     };
 

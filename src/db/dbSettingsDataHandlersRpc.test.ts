@@ -107,7 +107,6 @@ describe("updateDbItemRpcSettings", () => {
     chainExplorerIndex: 20,
     blockIntervalMs: 30,
     tryCount: 40,
-    abortWatchIntervalMs: 50,
     inputType: "password",
   };
 
