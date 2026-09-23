@@ -1,4 +1,3 @@
-import { mount } from "svelte";
 import {
   AbstractCellRenderer,
   cellRendererFactory,
@@ -50,7 +49,7 @@ const cellRenderer = <T extends AbiRow>(
       cellRendererParams: ICellRendererParams<T>,
     ) => {
       if (cellRendererParams.data) {
-        mount(AbiParamsNumberButton, {
+        cell.mount(AbiParamsNumberButton, {
           target: cell.eGui,
           props: {
             paramTypes: getAbiParamsFromAbiRow<T>(

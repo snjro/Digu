@@ -1,4 +1,3 @@
-import { mount } from "svelte";
 import BaseA from "$lib/base/BaseA.svelte";
 import {
   cellRendererFactory,
@@ -49,7 +48,7 @@ export const columnDefsEventsFunctions = <T extends ContractRow>(
               if (totalNumber > 0) {
                 {
                   const href: string = `${urlPathName}${cellRendererParams.data.contractName}/${abiFragmentsType}`;
-                  mount(BaseA, {
+                  cell.mount(BaseA, {
                     target: cell.eGui,
                     props: {
                       text: numberWithCommas(totalNumber),
@@ -60,7 +59,7 @@ export const columnDefsEventsFunctions = <T extends ContractRow>(
                   });
                 }
               } else {
-                mount(BaseLabel, {
+                cell.mount(BaseLabel, {
                   target: cell.eGui,
                   props: {
                     text: numberWithCommas(totalNumber),
