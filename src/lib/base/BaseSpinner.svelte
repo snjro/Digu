@@ -1,7 +1,7 @@
 <script lang="ts">
   import {
     colorDefinitions,
-    getColorHexWithSharpFromTailwindColor,
+    getColorFromTailwindColor,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { ThemeColor } from "@db/dbTypes";
@@ -16,10 +16,10 @@
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;
 
-  $: bgColor = getColorHexWithSharpFromTailwindColor(
+  $: bgColor = getColorFromTailwindColor(
     colorDefinitions[themeColor][trackColor].bg,
   );
-  $: fillColor = getColorHexWithSharpFromTailwindColor(
+  $: fillColor = getColorFromTailwindColor(
     colorDefinitions[themeColor][thumbColor].fill,
   );
 </script>

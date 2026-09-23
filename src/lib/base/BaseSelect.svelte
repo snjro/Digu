@@ -40,7 +40,7 @@
     forcedClass ??
     classNames(
       "form-select",
-      "rounded",
+      "rounded-sm",
       "w-full",
       // "pr-2",
       // "py-0.5",
@@ -57,7 +57,7 @@
         : "border-inherit",
 
       "transition",
-      "outline-none",
+      "outline-hidden",
       baseTextSizes[size],
       "cursor-pointer",
       // "appearance-none",
@@ -70,7 +70,7 @@
     "flex",
     "flex-row",
     "justify-items-center",
-    "rounded",
+    "rounded-sm",
     colorCategoryBg
       ? colorDefinitions[themeColor][colorCategoryBg].bg
       : "bg-inherit",

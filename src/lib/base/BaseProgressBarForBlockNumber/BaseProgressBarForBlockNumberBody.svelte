@@ -1,7 +1,7 @@
 <script lang="ts">
   import {
     colorDefinitions,
-    getColorHexWithSharpFromTailwindColor,
+    getColorFromTailwindColor,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import { baseTextHeight, type BaseSize } from "$lib/base/baseSizes";
@@ -23,8 +23,8 @@
   const barHeights: { [key in BaseSize]: string } = baseTextHeight;
 
   const roundedSizes: { [key in BaseSize]: string } = {
-    xs: "rounded-sm",
-    sm: "rounded",
+    xs: "rounded-xs",
+    sm: "rounded-sm",
     md: "rounded-md",
     lg: "rounded-lg",
     xl: "rounded-xl",
@@ -37,17 +37,16 @@
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;
 
-  $: colorHexWithSharp = getColorHexWithSharpFromTailwindColor(
+  $: color = getColorFromTailwindColor(
     colorDefinitions[themeColor][colorCategoryProgress].bg,
   );
-  $: colorHexWithoutSharp = colorHexWithSharp.replace("#", "");
 
   $: backgroundImage = (): string => {
-    const url = `'data:image/svg+xml;charset=UTF-8, <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 24 24"><path fill="%23${colorHexWithoutSharp}" d="M12,10A2,2 0 0,0 10,12C10,13.11 10.9,14 12,14C13.11,14 14,13.11 14,12A2,2 0 0,0 12,10Z" /></svg>'`;
+    const url = `'data:image/svg+xml;charset=UTF-8, <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 24 24"><path fill="${encodeURIComponent(color)}" d="M12,10A2,2 0 0,0 10,12C10,13.11 10.9,14 12,14C13.11,14 14,13.11 14,12A2,2 0 0,0 12,10Z" /></svg>'`;
     return `background-image: url(${url});`;
   };
   $: progressColor = (): string => {
-    return `width: 100%; background: linear-gradient(to right, ${colorHexWithSharp} ${progressRate}%, transparent ${progressRate}%)`;
+    return `width: 100%; background: linear-gradient(to right, ${color} ${progressRate}%, transparent ${progressRate}%)`;
   };
   $: isProgressRateOver50 = progressRate >= 50;
 </script>

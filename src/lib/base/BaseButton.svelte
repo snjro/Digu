@@ -201,7 +201,7 @@
       borderColor(),
       type === "normal" && baseTextSizes[size],
       !href && padding(),
-      rounded && "rounded",
+      rounded && "rounded-sm",
       // "relative",
       shadowEffect && "flex items-center",
       shadowEffect && baseShadowSizes[size],

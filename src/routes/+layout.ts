@@ -1,7 +1,7 @@
 import { browser } from "$app/environment";
 import { initialize } from "../initialization/initialize";
 // import "../app.css";
-import "../app.postcss";
+import "../app.css";
 import { storeNodbShowLoader } from "@stores/storeNoDb";
 
 // If Vite hangs indefinitely in dev mode,

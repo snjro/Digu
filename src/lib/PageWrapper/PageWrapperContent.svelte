@@ -58,9 +58,9 @@
     "h-fit w-full flex flex-col",
     "pt-1.5",
     "pl-1.5",
-    "rounded-tr",
-    "rounded-b",
-    hasMultipulTabs ? "rounded-tl-none" : "rounded-tl",
+    "rounded-tr-sm",
+    "rounded-b-sm",
+    hasMultipulTabs ? "rounded-tl-none" : "rounded-tl-sm",
     colorDefinitions[themeColor][colorSettings.tabSelected].bg,
     "",
   )}

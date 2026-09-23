@@ -21,7 +21,7 @@
     colorDefinitions[themeColor][colorSettings.itemGroupContent].bg,
     "w-full",
     "h-full",
-    "rounded",
+    "rounded-sm",
     gridTrack,
     "",
   )}
@@ -34,8 +34,8 @@
         "pl-1.5",
         "pr-3",
         "pb-0.5",
-        "rounded-tl",
-        "rounded-br",
+        "rounded-tl-sm",
+        "rounded-br-sm",
       )}
       colorCategoryBg={colorSettings.itemGroupTitle}
       colorCategoryFront={colorSettings.itemGroupTitle}

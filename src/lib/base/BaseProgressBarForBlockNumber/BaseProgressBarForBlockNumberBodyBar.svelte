@@ -27,17 +27,17 @@
       if (progressRate <= 1) {
         return "rounded-none";
       } else if (progressRate >= 99) {
-        return "rounded";
+        return "rounded-sm";
       } else {
-        return "rounded-l";
+        return "rounded-l-sm";
       }
     } else {
       if (progressRate <= 1) {
-        return "rounded";
+        return "rounded-sm";
       } else if (progressRate >= 99) {
         return "rounded-none";
       } else {
-        return "rounded-r";
+        return "rounded-r-sm";
       }
     }
   };

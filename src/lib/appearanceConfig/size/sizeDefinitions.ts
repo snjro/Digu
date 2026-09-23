@@ -1,7 +1,7 @@
 export type BreakPointWidthKey = "sm" | "md" | "lg" | "xl" | "2xl";
 
-// The values in "tailwind.config.js" must be sync with the values here.
-// Ref: https://tailwindcss.com/docs/screens
+// The values in "src/app.css" (@theme --breakpoint-*) must be sync with the values here.
+// Ref: https://tailwindcss.com/docs/responsive-design
 export const breakPointWidths: { [key in BreakPointWidthKey]: number } = {
   sm: 640,
   md: 768,

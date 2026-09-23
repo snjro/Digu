@@ -49,9 +49,9 @@
       case "tl":
         switch (size) {
           case "xs":
-            return "rounded-tl-sm";
+            return "rounded-tl-xs";
           case "sm":
-            return "rounded-tl";
+            return "rounded-tl-sm";
           case "md":
             return "rounded-tl-md";
           case "lg":
@@ -68,9 +68,9 @@
       case "tr":
         switch (size) {
           case "xs":
-            return "rounded-tr-sm";
+            return "rounded-tr-xs";
           case "sm":
-            return "rounded-tr";
+            return "rounded-tr-sm";
           case "md":
             return "rounded-tr-md";
           case "lg":
@@ -87,9 +87,9 @@
       case "l":
         switch (size) {
           case "xs":
-            return "rounded-l-sm";
+            return "rounded-l-xs";
           case "sm":
-            return "rounded-l";
+            return "rounded-l-sm";
           case "md":
             return "rounded-l-md";
           case "lg":
@@ -106,9 +106,9 @@
       default:
         switch (size) {
           case "xs":
-            return "rounded-r-sm";
+            return "rounded-r-xs";
           case "sm":
-            return "rounded-r";
+            return "rounded-r-sm";
           case "md":
             return "rounded-r-md";
           case "lg":
@@ -220,7 +220,7 @@
       "flex-row",
       "h-fit",
       "w-fit",
-      // themeColor !== "dark" && radioButtonType === "tab" && "shadow-sm",
+      // themeColor !== "dark" && radioButtonType === "tab" && "shadow-xs",
       // colorDefinitions[themeColor][colorSettings.tabSelected].shadow,
       roundedSize(radioButtonType === "tab" ? "tl" : "l"),
       roundedSize(radioButtonType === "tab" ? "tr" : "r"),

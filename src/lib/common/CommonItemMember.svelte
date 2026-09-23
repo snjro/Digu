@@ -19,7 +19,7 @@
       {textSize}
       colorCategoryFront={colorSettings.itemMemberTitle}
       colorCategoryBg={colorSettings.itemMemberTitle}
-      appendClass={classNames("pl-1", "pr-1.5", "pb-[1px]", "rounded-sm")}
+      appendClass={classNames("pl-1", "pr-1.5", "pb-[1px]", "rounded-xs")}
     />
   {/if}
   <div class={classNames("pl-1", "pr-3", "w-full h-fit")}>

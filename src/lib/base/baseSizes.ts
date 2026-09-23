@@ -69,13 +69,13 @@ export const spinnerSize: { [key in BaseSize]: `h-${number} w-${number}` } = {
 };
 
 export const baseShadowSizes: { [key in BaseSize]: string } = {
-  xs: "shadow-sm",
-  sm: "shadow-sm",
-  md: "shadow-sm",
-  lg: "shadow",
-  xl: "shadow",
-  "2xl": "shadow",
-  "3xl": "shadow",
+  xs: "shadow-xs",
+  sm: "shadow-xs",
+  md: "shadow-xs",
+  lg: "shadow-sm",
+  xl: "shadow-sm",
+  "2xl": "shadow-sm",
+  "3xl": "shadow-sm",
   "4xl": "shadow-md",
   "5xl": "shadow-md",
 };

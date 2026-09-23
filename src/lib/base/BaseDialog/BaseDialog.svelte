@@ -25,7 +25,7 @@
           colorDefinitions[themeColor][colorSettings.dialogHeader].border,
         )
       : classNames(
-          "shadow",
+          "shadow-sm",
           colorDefinitions[themeColor][colorSettings.dialogHeader].shadow,
         ),
   );
@@ -36,8 +36,9 @@
     bind:this={dialogElement}
     class={classNames(
       "flex-initial",
+      "m-auto",
       "min-h-0",
-      "rounded",
+      "rounded-sm",
       shadowStyle,
       "w-fit",
       // "h-full",

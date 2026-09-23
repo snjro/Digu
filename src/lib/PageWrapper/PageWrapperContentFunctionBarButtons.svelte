@@ -80,12 +80,12 @@
           />
         {/each}
       </div>
-      <BaseDividerVertical
-        size={buttonSize}
-        colorCategory={colorSettings.gridFunctionButton}
-        hidden={buttonDefinitionIndex >=
-          functionBarDefinition.buttonsDefinition.length - 1}
-      />
+      {#if buttonDefinitionIndex < functionBarDefinition.buttonsDefinition.length - 1}
+        <BaseDividerVertical
+          size={buttonSize}
+          colorCategory={colorSettings.gridFunctionButton}
+        />
+      {/if}
     {/each}
   {/if}
 </div>
