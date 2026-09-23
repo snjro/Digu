@@ -5,15 +5,15 @@ import { TARGET_CHAINS } from "@constants/chains/_index";
 import { initialDataRpcSetting, type RpcSetting } from "@db/dbTypes";
 
 function store() {
-  const state: StateRpcSettings = getInitialState();
-  const { subscribe, set, update } = writable(state);
+  const { subscribe, set, update } = writable(getInitialState());
   const updateState = (
     chainName: ChainName,
     newRpcSetting: Partial<RpcSetting>,
   ): void => {
-    Object.assign(state[chainName], newRpcSetting);
-    // update((newState) => newState)
-    set(state);
+    update((state: StateRpcSettings) => ({
+      ...state,
+      [chainName]: { ...state[chainName], ...newRpcSetting },
+    }));
   };
   return { subscribe, set, update, updateState };
 }
