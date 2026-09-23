@@ -97,7 +97,6 @@ describe("cellRendererFactory in a grid", () => {
     const element = document.createElement("div");
     document.body.appendChild(element);
     const gridApi = createGrid<Row>(element, {
-      theme: "legacy",
       columnDefs: [
         {
           field: "a",

@@ -1,25 +1,23 @@
 #baseGridContainer {
   /* general */
   font-size: var(--font-size);
+  --ag-font-size: var(--font-size);
+  --ag-header-font-weight: normal;
   --ag-border-color: var(--color-frame-border);
   /* header */
-  --ag-header-column-separator-color: var(--color-frame-border);
-  --ag-header-foreground-color: var(--color-header-text);
+  --ag-header-column-border: solid 1px var(--color-frame-border);
+  --ag-header-text-color: var(--color-header-text);
   --ag-header-background-color: var(--color-header-bg);
   /* row */
   --ag-background-color: var(--color-row-bg);
   --ag-foreground-color: var(--color-row-text);
   --ag-odd-row-background-color: var(--color-row-bg);
-  --ag-row-border-color: var(--color-row-border);
+  --ag-row-border: solid 1px var(--color-row-border);
   --ag-row-hover-color: var(--color-row-hover);
 
   font-size: var(--font-size);
   /* border: var(--color-frame-border); */
   /* background-color: var(--color-header-bg); */
-}
-.ag-header-cell,
-.ag-header-group-cell {
-  font-weight: normal;
 }
 .ag-cell-label-container {
   padding: 1px 0px;

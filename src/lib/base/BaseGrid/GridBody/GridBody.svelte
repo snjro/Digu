@@ -46,9 +46,9 @@
     createGrid,
     ModuleRegistry,
     AllCommunityModule,
+    enableDevValidations,
+    themeBalham,
   } from "ag-grid-community";
-  import "ag-grid-community/styles/ag-grid.css";
-  import "ag-grid-community/styles/ag-theme-balham.css";
   import { onDestroy, onMount } from "svelte";
   import "./gridBodyStyle.css";
   import { baseTextSizesPixel, type BaseSize } from "$lib/base/baseSizes";
@@ -77,7 +77,7 @@
   let elementGridDiv: HTMLElement;
   const rowHeight: number = 24;
   let gridOptions: GridOptions<GridRow> = {
-    theme: "legacy",
+    theme: themeBalham,
     defaultColDef: {
       flex: 1,
       sortable: true,
@@ -135,6 +135,9 @@
   };
 
   onMount(() => {
+    if (import.meta.env.DEV) {
+      enableDevValidations();
+    }
     ModuleRegistry.registerModules([AllCommunityModule]);
     gridApi = createGrid(elementGridDiv, gridOptions);
     gridOptions = {
@@ -182,14 +185,12 @@
       isActivated = true;
     }
   }
-
-  $: agTheme = isThemeLight ? "ag-theme-balham" : "ag-theme-balham-dark";
 </script>
 
 <div
   id="baseGridContainer"
   bind:this={elementGridDiv}
-  class={classNames(agTheme, "h-full", "w-full", "")}
+  class={classNames("h-full", "w-full", "")}
   style={classNames(
     `--font-size:${baseTextSizesPixel[gridTextSize]};`,
     `--color-frame-border:${colorDefs.frame.border};`,
@@ -199,6 +200,7 @@
     `--color-row-text:${colorDefs.row.text};`,
     `--color-row-hover:${colorDefs.row.hover};`,
     `--color-row-border:${colorDefs.row.border};`,
+    `--ag-browser-color-scheme:${isThemeLight ? "light" : "dark"};`,
   )}
 ></div>
 
