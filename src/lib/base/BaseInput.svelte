@@ -1,5 +1,3 @@
-<svelte:options accessors={true} />
-
 <script lang="ts" context="module">
   export type BaseInputProps = {
     type: HTMLInputTypeAttribute;
@@ -97,6 +95,10 @@
       "noborder",
       appendClass,
     );
+  /** Sets `value` from a parent that holds this component with `bind:this`. */
+  export function setValue(newValue: BaseInputProps["value"]): void {
+    value = newValue;
+  }
   const handleInput = (event: Event): void => {
     value = (event.target as HTMLInputElement).value;
   };

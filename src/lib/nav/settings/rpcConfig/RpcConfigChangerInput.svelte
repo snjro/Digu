@@ -12,7 +12,7 @@
   let baseInputElement: ReturnType<typeof BaseInput>;
 
   $: if (disabled && helperTextState === "error") {
-    baseInputElement.value = value;
+    baseInputElement.setValue(value);
   }
   async function change(event: Event): Promise<void> {
     const newValue: number = parseInt((event.target as HTMLInputElement).value);
