@@ -5,6 +5,7 @@ Digu uses the framework [`Svelte`](https://svelte.dev/) and [`SvelteKit`](https:
 Do the following steps/commands depending on what you want to do:
 
 - [**Installation**](#installation)
+- [**Using Docker**](#using-docker)
 - [**Starting a development server**](#starting-a-development-server)
 - [**Building the application**](#building-the-application)
 - [**Testing**](#testing)
@@ -18,6 +19,25 @@ Run the following command to install the necessary dependencies:
 ```bash
 npm install
 ```
+
+## [**Using Docker**](#using-docker)
+
+If Node.js is not installed on your machine, you can run the npm scripts in a Docker container with `compose.yaml`.
+
+- To install the dependencies:
+  ```bash
+  docker compose run --rm app npm ci
+  ```
+- To start the development server at `http://127.0.0.1:5173/`:
+  ```bash
+  docker compose up
+  ```
+- To run any other script, pass it to `docker compose run`:
+  ```bash
+  docker compose run --rm app npm run vitest
+  ```
+
+Note: `src/utils/utilsDom.test.ts` fails in the container because it launches Chrome with Puppeteer, and the image does not include the libraries Chrome needs.
 
 ## [**Starting a development server**](#starting-a-development-server)
 
