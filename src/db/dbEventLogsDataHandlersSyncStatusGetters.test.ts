@@ -1,6 +1,14 @@
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import "fake-indexeddb/auto";
-import { describe, vi, type MockInstance, test, expect } from "vitest";
+import {
+  beforeEach,
+  describe,
+  vi,
+  type MockInstance,
+  test,
+  expect,
+} from "vitest";
+import { isDeepStrictEqual } from "node:util";
 import type { SyncStatusContract, VersionIdentifier } from "./dbTypes";
 import { DbEventLogs } from "./dbEventLogs";
 import {
@@ -11,7 +19,6 @@ import {
 
 import { DB_TABLE_NAMES } from "./constants";
 import type { Contract } from "@constants/chains/types";
-import { areValuesEqual } from "@utils/utilsCommon";
 import { extractEventContracts } from "@utils/utilsEthers";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
@@ -41,14 +48,19 @@ describe("getDbRecordSyncStatusContract", async () => {
         );
 
         for (const targetContract of eventEmittingContracts) {
-          // call target
-          const actualReturnValue: SyncStatusContract =
-            await getDbRecordSyncStatusContract(
-              dbEventLogs,
-              targetContract.name,
-            );
           describe(`chainName:${targetChain.name}, projectName:${targetProject.name}, versionName:${targetVersion.name}, contractName:${targetContract.name}`, async () => {
+            let actualReturnValue: SyncStatusContract;
+            beforeEach(async () => {
+              spyTransaction.mockClear();
+              spyGet.mockClear();
+              // call target
+              actualReturnValue = await getDbRecordSyncStatusContract(
+                dbEventLogs,
+                targetContract.name,
+              );
+            });
             test("should start transaction", () => {
+              expect(spyTransaction).toHaveBeenCalledOnce();
               expect(spyTransaction).toBeCalledWith(
                 "r",
                 tableNameSyncStatus,
@@ -56,6 +68,7 @@ describe("getDbRecordSyncStatusContract", async () => {
               );
             });
             test("should call with contract name", () => {
+              expect(spyGet).toHaveBeenCalledOnce();
               expect(spyGet).toBeCalledWith(targetContract.name);
             });
             test("should return expected value", () => {
@@ -101,15 +114,21 @@ describe("getDbRecordsSyncStatusContractByKeyValue", async () => {
             const keyOfSyncStatusContract: keyof SyncStatusContract =
               key as keyof SyncStatusContract;
             describe(`chainName:${targetChain.name}, projectName:${targetProject.name}, versionName:${targetVersion.name}, contractName:${targetContract.name}, key:${keyOfSyncStatusContract}, value:${targetSyncStatusContract[keyOfSyncStatusContract]}`, async () => {
-              // call target
-              const actualReturnValue: SyncStatusContract[] =
-                await getDbRecordsSyncStatusContractByKeyValue(
-                  dbEventLogs,
-                  keyOfSyncStatusContract,
-                  targetSyncStatusContract[keyOfSyncStatusContract],
-                );
+              let actualReturnValue: SyncStatusContract[];
+              beforeEach(async () => {
+                spyTransaction.mockClear();
+                spyToArray.mockClear();
+                // call target
+                actualReturnValue =
+                  await getDbRecordsSyncStatusContractByKeyValue(
+                    dbEventLogs,
+                    keyOfSyncStatusContract,
+                    targetSyncStatusContract[keyOfSyncStatusContract],
+                  );
+              });
 
               test("should start transaction", () => {
+                expect(spyTransaction).toHaveBeenCalledOnce();
                 expect(spyTransaction).toBeCalledWith(
                   "r",
                   tableNameSyncStatus,
@@ -117,35 +136,27 @@ describe("getDbRecordsSyncStatusContractByKeyValue", async () => {
                 );
               });
               test("should call ToArray", () => {
-                expect(spyToArray).toBeCalled();
+                expect(spyToArray).toHaveBeenCalledOnce();
               });
-              test("should return expected value", async () => {
-                const expectedReturnValue = async (): Promise<
-                  SyncStatusContract[]
-                > => {
-                  switch (keyOfSyncStatusContract) {
-                    case "isAbort":
-                    case "isSyncTarget":
-                    case "isSyncing":
-                    case "numOfSyncTargetContract":
-                    case "syncStateText":
-                    case "subSyncStatuses":
-                      return await dbEventLogs
-                        .table(tableNameSyncStatus)
-                        .toArray();
-
-                    default:
-                      return (
-                        await dbEventLogs.table(tableNameSyncStatus).toArray()
-                      ).filter((syncStatusContract: SyncStatusContract) => {
-                        return areValuesEqual(
-                          syncStatusContract[keyOfSyncStatusContract],
-                          targetSyncStatusContract[keyOfSyncStatusContract],
-                        );
-                      });
-                  }
-                };
-                expect(actualReturnValue).toEqual(await expectedReturnValue());
+              test("should return expected value", () => {
+                // The table holds the initial data of every contract that
+                // emits eventLogs. Build the expected records from that data,
+                // not from the table.
+                const expectedReturnValue: SyncStatusContract[] =
+                  eventEmittingContracts
+                    .map(syncStatusForSpecificContract)
+                    .filter((syncStatusContract: SyncStatusContract) =>
+                      isDeepStrictEqual(
+                        syncStatusContract[keyOfSyncStatusContract],
+                        targetSyncStatusContract[keyOfSyncStatusContract],
+                      ),
+                    );
+                expect(actualReturnValue).toHaveLength(
+                  expectedReturnValue.length,
+                );
+                expect(actualReturnValue).toEqual(
+                  expect.arrayContaining(expectedReturnValue),
+                );
               });
             });
           }
@@ -177,14 +188,14 @@ describe("getDbItemSyncStatus", async () => {
             const keyOfSyncStatusContract: keyof SyncStatusContract =
               key as keyof SyncStatusContract;
             describe(`chainName:${targetChain.name}, projectName:${targetProject.name}, versionName:${targetVersion.name}, contractName:${targetContract.name}, key:${keyOfSyncStatusContract}, value:${targetSyncStatusContract[keyOfSyncStatusContract]}`, async () => {
-              // call target
-              const actualReturnValue = await getDbItemSyncStatus(
-                dbEventLogs,
-                targetContract.name,
-                keyOfSyncStatusContract,
-              );
-
               test("should return expected value", async () => {
+                // call target
+                const actualReturnValue = await getDbItemSyncStatus(
+                  dbEventLogs,
+                  targetContract.name,
+                  keyOfSyncStatusContract,
+                );
+
                 const expectedReturnValue =
                   syncStatusForSpecificContract(targetContract)[
                     keyOfSyncStatusContract
