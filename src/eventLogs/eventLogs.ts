@@ -64,12 +64,7 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
       )) {
         // await setSyncing(dbEventLogs, targetContract.name);
         promiseFetchAndInsertEthersEvents.push(
-          fetchEventLogsContract(
-            dbEventLogs,
-            targetChain,
-            targetContract,
-            nodeProvider,
-          ),
+          fetchEventLogsContract(dbEventLogs, targetContract, nodeProvider),
         );
       }
     }
