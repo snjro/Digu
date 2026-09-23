@@ -95,8 +95,8 @@
     disabled={$storeSyncStatus[targetChainName].isSyncing}
     helperTextState={helperTextState()}
     placeholder="https://localhost:8545"
-    on:focus={focusRpc}
-    on:blur={blurRpc}
+    onfocus={focusRpc}
+    onblur={blurRpc}
   >
     <BaseIcon
       slot="prefixIcon"

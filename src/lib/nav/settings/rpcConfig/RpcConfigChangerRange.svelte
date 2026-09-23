@@ -27,5 +27,5 @@
   colorCategoryFront="interactive"
   colorCategoryBg={colorSettings.navSettings}
   {value}
-  on:change={change}
+  onchange={change}
 />

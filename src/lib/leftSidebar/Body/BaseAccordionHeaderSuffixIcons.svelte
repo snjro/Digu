@@ -27,6 +27,13 @@
   export let hoverType: HoverType;
   export let isOpenAccordion = true;
   export let suffixIcons: BaseAccordionHeaderSuffixIcon[];
+  export let onclick: ((event: MouseEvent) => void) | undefined = undefined;
+  export let onmouseenter: ((event: MouseEvent) => void) | undefined =
+    undefined;
+  export let onmouseleave: ((event: MouseEvent) => void) | undefined =
+    undefined;
+  export let onkeydown: ((event: KeyboardEvent) => void) | undefined =
+    undefined;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;
@@ -60,10 +67,10 @@
     leftSidebarItemRoundedStyle,
     "",
   )}
-  on:click
-  on:mouseenter
-  on:mouseleave
-  on:keydown
+  on:click={onclick}
+  on:mouseenter={onmouseenter}
+  on:mouseleave={onmouseleave}
+  on:keydown={onkeydown}
 >
   {#if suffixIcons.length > 0}
     <div class={classNames("grow", "justify-end", "flex", "flex-row")}>

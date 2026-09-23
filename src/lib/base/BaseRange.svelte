@@ -41,6 +41,7 @@
   export let appendClass: BaseRangeProps["appendClass"] = undefined;
   export let colorCategoryFront: ColorCategory | undefined = undefined;
   export let colorCategoryBg: ColorCategory | undefined = undefined;
+  export let onchange: ((event: Event) => void) | undefined = undefined;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;
@@ -83,9 +84,5 @@
   {max}
   {step}
   {disabled}
-  on:change
-  on:click
-  on:keydown
-  on:keypress
-  on:keyup
+  on:change={onchange}
 />

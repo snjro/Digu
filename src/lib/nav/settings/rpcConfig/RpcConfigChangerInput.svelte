@@ -41,8 +41,8 @@
     {helperTextState}
     colorCategoryBorder={colorSettings.navSettings}
     colorCategory={colorSettings.navSettings}
-    on:change={change}
-    on:focus={focus}
-    on:blur={blur}
+    onchange={change}
+    onfocus={focus}
+    onblur={blur}
   />
 </div>

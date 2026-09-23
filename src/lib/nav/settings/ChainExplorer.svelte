@@ -39,7 +39,7 @@
       size={sizeSettings.navSettings}
       colorCategoryFront={colorSettings.navSettings}
       colorCategoryBg={colorSettings.navSettings}
-      on:change={change}
+      onchange={change}
     />
     <CommonOpenLink
       href={targetChainExplorerUrl}

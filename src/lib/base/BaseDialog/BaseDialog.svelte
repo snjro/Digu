@@ -13,6 +13,7 @@
   export let dialogElement: HTMLDialogElement;
   export let headerIconName: BaseIconProps["name"] | undefined = undefined;
   export let headerText: string | undefined;
+  export let onclose: ((event: Event) => void) | undefined = undefined;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;
@@ -47,7 +48,7 @@
       colorDefinitions[themeColor][colorSettings.dialogHeader].bg,
       "flex-col",
     )}
-    on:close
+    on:close={onclose}
     on:cancel={() => closeDialog(dialogElement)}
   >
     <div class={classNames("flex-initial", "min-h-0", "flex", "flex-col")}>

@@ -95,6 +95,9 @@
       "noborder",
       appendClass,
     );
+  export let onchange: ((event: Event) => void) | undefined = undefined;
+  export let onfocus: ((event: FocusEvent) => void) | undefined = undefined;
+  export let onblur: ((event: FocusEvent) => void) | undefined = undefined;
   /** Sets `value` from a parent that holds this component with `bind:this`. */
   export function setValue(newValue: BaseInputProps["value"]): void {
     value = newValue;
@@ -166,23 +169,15 @@
       spellcheck={false}
       {disabled}
       placeholder={isFocus ? undefined : placeholder}
-      on:blur={() => {
+      on:blur={(event) => {
         setFocused(false);
+        onblur?.(event);
       }}
-      on:blur
-      on:change
-      on:click
-      on:focus={() => {
+      on:change={onchange}
+      on:focus={(event) => {
         setFocused(true);
+        onfocus?.(event);
       }}
-      on:focus
-      on:keydown
-      on:keypress
-      on:keyup
-      on:mouseover
-      on:mouseenter
-      on:mouseleave
-      on:paste
       on:input={handleInput}
       class={customClass}
     />
