@@ -121,46 +121,47 @@ describe("storeSyncStaus", () => {
 
     const currentSyncStatusesChain: SyncStatusesChain = get(storeSyncStatus);
 
-    let expextedSyncStatusesChain: SyncStatusesChain = get(storeSyncStatus);
-    // chain
-    expextedSyncStatusesChain[targetChainName].isSyncing = true;
-    expextedSyncStatusesChain[targetChainName].isAbort = true;
-    // project
-    expextedSyncStatusesChain[targetChainName].subSyncStatuses[
-      targetProjectName
-    ].isSyncing = true;
-    expextedSyncStatusesChain[targetChainName].subSyncStatuses[
-      targetProjectName
-    ].isAbort = true;
-    // version
-    expextedSyncStatusesChain[targetChainName].subSyncStatuses[
-      targetProjectName
-    ].subSyncStatuses[targetVersionName].isSyncing = true;
-    expextedSyncStatusesChain[targetChainName].subSyncStatuses[
-      targetProjectName
-    ].subSyncStatuses[targetVersionName].isAbort = true;
+    // Build the expected value from a separate object, not from the store.
+    const expextedSyncStatusesChain: SyncStatusesChain =
+      structuredClone(getInitialState());
+    const expectedChain = expextedSyncStatusesChain[targetChainName];
+    const expectedProject = expectedChain.subSyncStatuses[targetProjectName];
+    const expectedVersion = expectedProject.subSyncStatuses[targetVersionName];
+    // chain, project and version
+    for (const expectedParent of [
+      expectedChain,
+      expectedProject,
+      expectedVersion,
+    ]) {
+      expectedParent.isSyncing = true;
+      expectedParent.isAbort = true;
+      expectedParent.syncStateText = "stopping";
+    }
     // contract1
-    expextedSyncStatusesChain[targetChainName].subSyncStatuses[
-      targetProjectName
-    ].subSyncStatuses[targetVersionName].subSyncStatuses[
-      targetContractName1
-    ].isSyncing = true;
-    expextedSyncStatusesChain[targetChainName].subSyncStatuses[
-      targetProjectName
-    ].subSyncStatuses[targetVersionName].subSyncStatuses[
-      targetContractName1
-    ].isAbort = true;
+    Object.assign(expectedVersion.subSyncStatuses[targetContractName1], {
+      isSyncTarget: false,
+      isSyncing: true,
+      isAbort: true,
+      fetchedBlockNumber: 1,
+      creationBlockNumber: 1,
+      numOfSyncTargetContract: 1,
+      syncStateText: "stopping",
+      events: { Approval: { recordCount: 1 }, Transfer: { recordCount: 0 } },
+    });
     // contract2
-    expextedSyncStatusesChain[targetChainName].subSyncStatuses[
-      targetProjectName
-    ].subSyncStatuses[targetVersionName].subSyncStatuses[
-      targetContractName2
-    ].isSyncing = true;
-    expextedSyncStatusesChain[targetChainName].subSyncStatuses[
-      targetProjectName
-    ].subSyncStatuses[targetVersionName].subSyncStatuses[
-      targetContractName2
-    ].isAbort = true;
+    Object.assign(expectedVersion.subSyncStatuses[targetContractName2], {
+      isSyncTarget: false,
+      isSyncing: true,
+      isAbort: false,
+      fetchedBlockNumber: 1,
+      creationBlockNumber: 1,
+      numOfSyncTargetContract: 1,
+      syncStateText: "syncing",
+      events: {
+        ExecuteTransactionStatus: { recordCount: 1 },
+        RelayHubChanged: { recordCount: 0 },
+      },
+    });
 
     expect(currentSyncStatusesChain).toEqual(expextedSyncStatusesChain);
   });

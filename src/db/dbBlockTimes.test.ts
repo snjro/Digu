@@ -1,3 +1,4 @@
+import "fake-indexeddb/auto";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { dbBlockTimes } from "./dbBlockTimes";
 import { DB_NAME, DB_VERSIONS } from "./constants";
@@ -53,9 +54,16 @@ describe("DbBlockTimes", () => {
     }
   });
 
-  test("should add initial data to the database", async () => {
-    const spyAddInitialData = vi.spyOn(dbBlockTimes, "addInitialData");
-    await dbBlockTimes.addInitialData();
-    expect(spyAddInitialData).toHaveBeenCalled();
+  // DbBlockTimes has no initial data. It does not register "populate", and
+  // "addInitialData" only implements the abstract method of dbBase.
+  test("should do nothing in addInitialData", async () => {
+    await expect(dbBlockTimes.addInitialData()).resolves.toBeUndefined();
+  });
+  test("should have no initial data after opening the database", async () => {
+    await dbBlockTimes.open();
+    for (const targetChain of TARGET_CHAINS) {
+      expect(await dbBlockTimes.table(targetChain.name).count()).toBe(0);
+    }
+    dbBlockTimes.close();
   });
 });
