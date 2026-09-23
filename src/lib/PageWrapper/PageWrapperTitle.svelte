@@ -51,7 +51,7 @@
     colorCategoryBg={colorSettings.titleCategoryBg}
     colorCategoryFront={colorSettings.titleCategoryFront}
     appendClass={classNames(
-      "rounded",
+      "rounded-sm",
       "px-1",
       "py-0.5",
       // "text-shadow-white"

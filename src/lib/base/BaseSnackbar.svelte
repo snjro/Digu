@@ -72,7 +72,7 @@
     class={classNames(
       positionStyle,
       "p-4",
-      "rounded",
+      "rounded-sm",
       frameLineStyle,
       colorDefinitions[themeColor][colorSettings.snackBarBg].bg,
     )}

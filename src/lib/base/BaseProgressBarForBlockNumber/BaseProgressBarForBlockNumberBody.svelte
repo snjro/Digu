@@ -23,8 +23,8 @@
   const barHeights: { [key in BaseSize]: string } = baseTextHeight;
 
   const roundedSizes: { [key in BaseSize]: string } = {
-    xs: "rounded-sm",
-    sm: "rounded",
+    xs: "rounded-xs",
+    sm: "rounded-sm",
     md: "rounded-md",
     lg: "rounded-lg",
     xl: "rounded-xl",

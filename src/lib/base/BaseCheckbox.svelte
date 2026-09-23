@@ -68,7 +68,7 @@
   {disabled}
   class={classNames(
     radioSizes[size],
-    "rounded",
+    "rounded-sm",
     backgroundColor,
     "appearance-none",
     "disabled:opacity-50",

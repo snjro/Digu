@@ -56,7 +56,7 @@
       colorCategoryBg
         ? colorDefinitions[themeColor][colorCategoryBg].bg
         : "bg-inherit",
-      "shadow dark:shadow-none",
+      "shadow-sm dark:shadow-none",
       colorCategoryBg
         ? colorDefinitions[themeColor][colorCategoryBg].shadow
         : "shadow-inherit",

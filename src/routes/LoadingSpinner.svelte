@@ -29,12 +29,19 @@
       "fixed",
       "flex items-center justify-center",
       "h-screen w-screen",
-      colorDefinitions[themeColor][colorSettings.main].bg,
-      "bg-opacity-60",
       zIndex.loadingSpinner,
       "",
     )}
   >
-    <BaseSpinner size="5xl" trackColor={colorSettings.sub} />
+    <div
+      class={classNames(
+        "absolute inset-0",
+        colorDefinitions[themeColor][colorSettings.main].bg,
+        "opacity-60",
+      )}
+    ></div>
+    <div class="relative">
+      <BaseSpinner size="5xl" trackColor={colorSettings.sub} />
+    </div>
   </div>
 {/if}

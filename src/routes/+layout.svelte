@@ -69,7 +69,7 @@
       "flex flex-col",
       $storeUserSettings.isOpenSidebar &&
         $storeNoDbCurrentWidth <= breakPointWidths.sm &&
-        "blur-sm pointer-events-none",
+        "blur-xs pointer-events-none",
     )}
   >
     <Nav />
