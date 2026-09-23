@@ -17,6 +17,7 @@ const config: UserConfig = {
       allow: [".."],
     },
   },
+  // No PostCSS plugins: with them, svelte-highlight 7.22 fails to build.
   plugins: [tailwindcss(), sveltekit()],
   test: {
     globals: true,

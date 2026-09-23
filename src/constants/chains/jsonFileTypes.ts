@@ -15,11 +15,7 @@ type JsonFileAbiFragmentParam = {
   readonly components?: ReadonlyArray<JsonFileAbiFragmentParam>;
 };
 type JsonFileAbiFragmentType =
-  | "constructor"
-  | "function"
-  | "event"
-  | "error"
-  | "fallback";
+  "constructor" | "function" | "event" | "error" | "fallback";
 
 type JsonFileAbiFragment = {
   readonly name?: string;

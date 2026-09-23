@@ -1,11 +1,6 @@
 <script lang="ts" context="module">
   export type HelperTextState =
-    | "error"
-    | "success"
-    | "warning"
-    | "info"
-    | "indeterminate"
-    | undefined;
+    "error" | "success" | "warning" | "info" | "indeterminate" | undefined;
 </script>
 
 <script lang="ts">

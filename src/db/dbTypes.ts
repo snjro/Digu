@@ -98,25 +98,14 @@ export type ChainStatus = {
 
 /////////////////////////////////////////////////////////
 export type IdentifierName =
-  | ChainName
-  | ProjectName
-  | VersionName
-  | ContractName;
+  ChainName | ProjectName | VersionName | ContractName;
 export type SyncStatus =
-  | SyncStatusChain
-  | SyncStatusProject
-  | SyncStatusVersion
-  | SyncStatusContract;
+  SyncStatusChain | SyncStatusProject | SyncStatusVersion | SyncStatusContract;
 export type SubSyncStatus =
-  | SyncStatusProject
-  | SyncStatusVersion
-  | SyncStatusContract;
+  SyncStatusProject | SyncStatusVersion | SyncStatusContract;
 
 export type SubSyncStatuses =
-  | SyncStatusesProject
-  | SyncStatusesVersion
-  | SyncStatusesContract
-  | null;
+  SyncStatusesProject | SyncStatusesVersion | SyncStatusesContract | null;
 
 //=====chain=====
 export type SyncStatusesChain = {

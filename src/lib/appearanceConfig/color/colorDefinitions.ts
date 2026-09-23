@@ -27,12 +27,7 @@ export type ColorDefinitionForParts = {
   accent: `accent-${string}`;
 };
 export type ColorCategory =
-  | "success"
-  | "error"
-  | "interactive"
-  | "primary"
-  | "secondary"
-  | "white";
+  "success" | "error" | "interactive" | "primary" | "secondary" | "white";
 export type ColorDefinitionCategories = {
   [key in ColorCategory]: ColorDefinitionForParts;
 };

@@ -22,8 +22,7 @@
   import { getProgressRate } from "./progressRate";
 
   export let size: BaseProgressBarForBlockNumberProps["size"] = "md";
-  export let processing: BaseProgressBarForBlockNumberProps["processing"] =
-    false;
+  export let processing: BaseProgressBarForBlockNumberProps["processing"] = false;
   export let colorCategoryProgress: BaseProgressBarForBlockNumberProps["colorCategoryProgress"] =
     "interactive";
   export let startBlockNumber: BaseProgressBarForBlockNumberProps["startBlockNumber"];

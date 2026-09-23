@@ -110,7 +110,7 @@ If you are curious about how your settings and event logs are sotred in the data
 ---
 
 <font color="#f39c12">**⚠ CAUTION ⚠**</font>  
- <font color="#f39c12"><b>NEVER EDIT THE VALUES ON THE DATABASE<b></font> with [`developer tools`](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/Tools_and_setup/What_are_browser_developer_tools). It could cause Digu to stop working.
+<font color="#f39c12"><b>NEVER EDIT THE VALUES ON THE DATABASE<b></font> with [`developer tools`](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/Tools_and_setup/What_are_browser_developer_tools). It could cause Digu to stop working.
 
 ---
 
@@ -121,16 +121,18 @@ The Steps:
 
 2. **Open `developer tools`**  
    Press following keys to open `developer tools`:
-   |OS|Pressing Keys|
-   |:-:|:----------:|
-   |Windows/Linux|<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>i</kbd>|
-   |macOS|<kbd>Cmd</kbd> + <kbd>Option</kbd> + <kbd>i</kbd>|
 
-3. **Select the tab that displays IndexedDB**  
-   |Browser|Tab Name|
-   |:-----:|:------:|
-   |Chrome/Edge|`Application`|
-   |Firefox|`Storage`|
+   |      OS       |                   Pressing Keys                   |
+   | :-----------: | :-----------------------------------------------: |
+   | Windows/Linux | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>i</kbd> |
+   |     macOS     | <kbd>Cmd</kbd> + <kbd>Option</kbd> + <kbd>i</kbd> |
+
+3. **Select the tab that displays IndexedDB**
+
+   |   Browser   |   Tab Name    |
+   | :---------: | :-----------: |
+   | Chrome/Edge | `Application` |
+   |   Firefox   |   `Storage`   |
 
 4. **Access IndexedDB**  
    Look for `Storage` in the left panel, and click it to expand. Then you can see the database for Digu.<br>

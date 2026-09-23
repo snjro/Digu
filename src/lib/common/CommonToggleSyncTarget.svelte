@@ -21,11 +21,7 @@
   };
 
   export type SyncTargetLabelText =
-    | "Partially"
-    | "All"
-    | "Nothing"
-    | "Yes"
-    | "No";
+    "Partially" | "All" | "Nothing" | "Yes" | "No";
   export const syncTargetLabelText = (
     targetSyncStatus: SyncStatus,
   ): SyncTargetLabelText => {

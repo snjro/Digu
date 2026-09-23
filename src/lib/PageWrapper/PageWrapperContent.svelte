@@ -27,10 +27,7 @@
   export let isAgGrid: boolean = false;
   export let hasMultipulTabs: boolean = true;
   export let gridCols:
-    | "grid-cols-1"
-    | "grid-cols-2"
-    | "grid-cols-6"
-    | undefined = undefined;
+    "grid-cols-1" | "grid-cols-2" | "grid-cols-6" | undefined = undefined;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;

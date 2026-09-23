@@ -1,9 +1,7 @@
 import type { AbiFragmentIdentifier, ConvertedEventLog } from "./dbTypes";
 
 export type TargetFunctionName =
-  | "initializeDBSyncStatus"
-  | "initializeDbSettings"
-  | "getConvertedEventLogs";
+  "initializeDBSyncStatus" | "initializeDbSettings" | "getConvertedEventLogs";
 
 export type DbWorkerMessageParams<T extends TargetFunctionName> =
   T extends "getConvertedEventLogs" ? AbiFragmentIdentifier : undefined;

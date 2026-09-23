@@ -32,17 +32,13 @@
   export let textSize: BaseTableHeaderCellProps["textSize"];
   export let align: BaseTableHeaderCellProps["align"];
   export let width: BaseTableHeaderCellProps["width"] = "w-full";
-  export let showBorderRight: BaseTableHeaderCellProps["showBorderRight"] =
-    false;
+  export let showBorderRight: BaseTableHeaderCellProps["showBorderRight"] = false;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;
 
   const celldAlign = ():
-    | "justify-start"
-    | "justify-center"
-    | "justify-end"
-    | "justify-stretch" => {
+    "justify-start" | "justify-center" | "justify-end" | "justify-stretch" => {
     switch (align) {
       case "left":
         return "justify-start";

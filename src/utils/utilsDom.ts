@@ -1,10 +1,7 @@
 import { browser } from "$app/environment";
 
 export type VerticalViewability =
-  | "hiddenInTop"
-  | "viewable"
-  | "hiddenInBottom"
-  | undefined;
+  "hiddenInTop" | "viewable" | "hiddenInBottom" | undefined;
 export function getVerticalViewabilityInScroll(
   parentElement: HTMLElement | null,
   childElement: HTMLElement,
