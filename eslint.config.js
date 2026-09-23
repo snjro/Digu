@@ -8,7 +8,14 @@ import svelteConfig from "./svelte.config.js";
 
 export default defineConfig(
   {
-    ignores: [".svelte-kit/", "build/", "_build/", "package/", "**/*.test.ts"],
+    ignores: [
+      ".svelte-kit/",
+      "build/",
+      "_build/",
+      "package/",
+      "coverage/",
+      "**/*.test.ts",
+    ],
   },
   js.configs.recommended,
   ts.configs.recommended,
