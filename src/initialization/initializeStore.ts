@@ -1,12 +1,13 @@
 import { DbEventLogs } from "@db/dbEventLogs";
 import { TARGET_CHAINS } from "@constants/chains/_index";
-import type {
-  ChainStatus,
-  RpcSetting,
-  ContractIdentifier,
-  VersionIdentifier,
-  SyncStatusContract,
-  UserSetting,
+import {
+  initialDataUserSettings,
+  type ChainStatus,
+  type RpcSetting,
+  type ContractIdentifier,
+  type VersionIdentifier,
+  type SyncStatusContract,
+  type UserSetting,
 } from "@db/dbTypes";
 import { getDbRecordSyncStatusContract } from "@db/dbEventLogsDataHandlersSyncStatusGetters";
 import type { ChainName, ContractName } from "@constants/chains/types";
@@ -69,8 +70,9 @@ async function InitializeStoreRpcSettings(chainName: ChainName): Promise<void> {
   }
 }
 async function initializeStoreUserSettings(): Promise<void> {
-  const userSettings: UserSetting | undefined =
-    await getDbRecordUserSettings("userSetting01");
+  const userSettings: UserSetting | undefined = await getDbRecordUserSettings(
+    initialDataUserSettings.userSettingsId,
+  );
   if (userSettings) {
     storeUserSettings.updateState(userSettings);
   } else {
