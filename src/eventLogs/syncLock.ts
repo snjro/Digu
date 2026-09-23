@@ -111,7 +111,16 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
         { ifAvailable: true },
         async (lock: Lock | null): Promise<void> => {
           if (lock) {
-            await resetSyncStatusInChain(targetChain.name);
+            // A failure only leaves this chain's status stale; do not fail
+            // the startup.
+            await resetSyncStatusInChain(targetChain.name).catch(
+              (error: unknown) => {
+                customLogger.error("Reset sync status at startup.", {
+                  chainName: targetChain.name,
+                  errorObject: error,
+                });
+              },
+            );
           } else {
             waitForSyncLockRelease(targetChain.name);
           }

@@ -343,6 +343,22 @@ describe("sync with two tabs (issue #49)", () => {
     expect((await dbStatus(b)).isSyncing).toBe(false);
   }, 30_000);
 
+  test("opens the tab even when the startup reset fails", async () => {
+    const a = await openTab(async () => {
+      // Same module instance as the tab being opened.
+      const initializeDBSyncStatus =
+        await import("@db/db.worker.func.InitializeDBSyncStatus");
+      vi.spyOn(
+        initializeDBSyncStatus,
+        "initializeDBSyncStatusInChain",
+      ).mockRejectedValueOnce(new Error("DB error"));
+    });
+    tabs.push(a);
+
+    expect(await isSyncLockHeld()).toBe(false);
+    expect(a.isLockedByOtherTab()).toBe(false);
+  }, 30_000);
+
   test("does not wait for the lock that the same tab holds", async () => {
     const a = await openTab();
     tabs.push(a);
