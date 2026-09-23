@@ -31,24 +31,31 @@ describe("ExportDataToFile", () => {
   const appendChildMock = vi.fn();
   const removeChildMock = vi.fn();
   const clickMock = vi.fn();
+  const createObjectURLMock = vi.fn();
+  const revokeObjectURLMock = vi.fn();
+  const dummyUrl: string = "blob:dummy";
+  let anchorElement: {
+    href: string;
+    download: string;
+    click: typeof clickMock;
+  };
 
   beforeEach(() => {
-    global.URL.createObjectURL = vi.fn(); // Mocking URL.createObjectURL
+    global.URL.createObjectURL = createObjectURLMock;
+    global.URL.revokeObjectURL = revokeObjectURLMock;
     document.createElement = createElementMock;
     document.body.appendChild = appendChildMock;
     document.body.removeChild = removeChildMock;
 
-    createElementMock.mockReturnValue({
-      href: "",
-      download: "",
-      click: clickMock,
-    });
+    anchorElement = { href: "", download: "", click: clickMock };
+    createElementMock.mockReturnValue(anchorElement);
+    createObjectURLMock.mockReturnValue(dummyUrl);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
-  test("should create a file with the correct data and trigger a download", () => {
+  test("should create a file with the correct data and trigger a download", async () => {
     const targetData: string = "Hello, world!";
     const exportFileName: `${ExportFilePrefix}${string}${ExportFileExtention}` =
       "contracts.txt";
@@ -56,13 +63,26 @@ describe("ExportDataToFile", () => {
 
     ExportDataToFile(targetData, exportFileName, extention);
 
+    // check the file
+    expect(createObjectURLMock).toHaveBeenCalledTimes(1);
+    const blob: Blob = createObjectURLMock.mock.calls[0][0];
+    expect(blob.type).toBe("text/plain");
+    expect(await blob.text()).toBe(targetData);
+    // check the download link
+    expect(createElementMock).toHaveBeenCalledWith("a");
+    expect(anchorElement.href).toBe(dummyUrl);
+    expect(anchorElement.download).toBe(exportFileName);
+    expect(appendChildMock).toHaveBeenCalledWith(anchorElement);
+    expect(clickMock).toHaveBeenCalledTimes(1);
+    // the link is removed after the timer
+    expect(removeChildMock).not.toHaveBeenCalled();
+    expect(revokeObjectURLMock).not.toHaveBeenCalled();
+
     // Advancing all timers immediately
     vi.runAllTimers();
 
-    expect(createElementMock).toHaveBeenCalledWith("a");
-    expect(appendChildMock).toHaveBeenCalled();
-    expect(removeChildMock).toHaveBeenCalled();
-    expect(clickMock).toHaveBeenCalled();
+    expect(removeChildMock).toHaveBeenCalledWith(anchorElement);
+    expect(revokeObjectURLMock).toHaveBeenCalledWith(dummyUrl);
   });
 });
 
