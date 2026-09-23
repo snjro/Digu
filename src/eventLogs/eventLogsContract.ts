@@ -38,6 +38,7 @@ export async function fetchEventLogsContract(
     ...dbEventLogs.versionIdentifier,
     contractName: targetContract.name,
   });
+  // Read once: the RPC settings cannot be changed in this tab while syncing.
   const rpcSetting: RpcSetting = get(storeRpcSettings)[chainName];
   const maxErrorCount: number = rpcSetting.tryCount;
   let errorCount: number = 0;
