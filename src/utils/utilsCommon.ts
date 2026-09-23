@@ -84,7 +84,9 @@ export function convertToKebabCase(targetString: string): string {
 }
 
 export function sleep(ms: number): Promise<void> {
-  return new Promise<void>(function (resolve: () => void): NodeJS.Timeout {
+  return new Promise<void>(function (
+    resolve: () => void,
+  ): ReturnType<typeof setTimeout> {
     return setTimeout(resolve, ms);
   });
 }
