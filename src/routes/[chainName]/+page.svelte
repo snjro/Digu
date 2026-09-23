@@ -71,7 +71,7 @@
 
 <!-- <BaseButton
   label="test Btn"
-  on:click={testFunc}
+  onclick={testFunc}
   border
   colorCategoryFront="interactive"
 /> -->

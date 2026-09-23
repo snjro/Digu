@@ -24,7 +24,6 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
-  import { createEventDispatcher } from "svelte";
   import BaseButton from "./BaseButton.svelte";
   import BaseIcon from "./BaseIcon.svelte";
   import BaseLabel from "./BaseLabel.svelte";
@@ -37,8 +36,7 @@
   export let labelAndValues: RadioLabelAndValues<RadioValue>;
   export let disabled: boolean = false;
   export let appendLabelClass: string | undefined = undefined;
-
-  const dispatch = createEventDispatcher();
+  export let onchanged: ((value: RadioValue) => void) | undefined = undefined;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;
@@ -124,7 +122,6 @@
         }
     }
   };
-  createEventDispatcher;
   const buttonRoundStyle = (
     currentButtonIndex: number,
     lastButtonIndex: number,
@@ -281,9 +278,9 @@
             buttonRoundStyle(i, labelAndValues.length - 1),
             "",
           )}
-          on:click={() => {
+          onclick={() => {
             selectedValue = value;
-            dispatch("changed", selectedValue);
+            onchanged?.(selectedValue);
           }}
         />
       </div>

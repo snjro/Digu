@@ -153,9 +153,9 @@
         isHover={hoverType !== undefined}
         rounded={false}
         {underlineLabel}
-        on:mouseenter={onMouseEnter}
-        on:mouseleave={onMouseLeave}
-        on:click={onClick}
+        onmouseenter={onMouseEnter}
+        onmouseleave={onMouseLeave}
+        onclick={onClick}
       />
     {:else}
       <BaseButton
@@ -175,9 +175,9 @@
         isHover={hoverType !== undefined}
         rounded={false}
         {underlineLabel}
-        on:mouseenter={onMouseEnter}
-        on:mouseleave={onMouseLeave}
-        on:click={onClick}
+        onmouseenter={onMouseEnter}
+        onmouseleave={onMouseLeave}
+        onclick={onClick}
       />
     {/if}
   </div>

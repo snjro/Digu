@@ -15,5 +15,5 @@
   tooltipYPosition="bottom"
   colorCategoryBg={colorSettings.leftSidebarHeader}
   colorCategoryFront={colorSettings.leftSidebarHeader}
-  on:click={clickCloseSidebar}
+  onclick={clickCloseSidebar}
 />

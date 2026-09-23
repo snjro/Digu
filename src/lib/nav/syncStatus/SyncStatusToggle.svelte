@@ -102,6 +102,6 @@
       : colorSettings.navToggleOff}
     colorCategoryThumbToggleOn={colorSettings.navToggleOn}
     {iconProps}
-    on:toggleChanged={toggleChanged}
+    ontogglechanged={toggleChanged}
   />
 </div>

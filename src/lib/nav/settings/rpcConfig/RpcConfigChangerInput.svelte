@@ -3,13 +3,12 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseInput from "$lib/base/BaseInput.svelte";
   import classNames from "classnames";
-  import { createEventDispatcher } from "svelte";
   import type { HelperTextState } from "./RpcConfigChanger.svelte";
 
   export let disabled: boolean;
   export let value: number;
+  export let onchange: ((newValue: number) => void) | undefined = undefined;
   export let helperTextState: HelperTextState;
-  const dispatch = createEventDispatcher();
   let baseInputElement: ReturnType<typeof BaseInput>;
 
   $: if (disabled && helperTextState === "error") {
@@ -17,7 +16,7 @@
   }
   async function change(event: Event): Promise<void> {
     const newValue: number = parseInt((event.target as HTMLInputElement).value);
-    dispatch("change", { newValue: newValue });
+    onchange?.(newValue);
   }
   async function focus(event: Event): Promise<void> {
     const newValue: number = parseInt((event.target as HTMLInputElement).value);

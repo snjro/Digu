@@ -12,7 +12,7 @@
     size={sizeSettings.navButton}
     colorCategoryFront={colorSettings.navButton}
     colorCategoryBg={colorSettings.navButton}
-    on:click={async () => {
+    onclick={async () => {
       await toggleLeftSideBar();
     }}
   />

@@ -29,7 +29,7 @@
   prefixIcon
   popupEffect={false}
   colorCategoryFront={"interactive"}
-  on:click={showDialog}
+  onclick={showDialog}
 />
 <BaseDialog
   bind:dialogElement

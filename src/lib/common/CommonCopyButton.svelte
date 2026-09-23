@@ -50,7 +50,7 @@
   hoverEffect
   colorCategoryFront={colorCategory}
   colorCategoryBg={colorCategory}
-  on:click={() => {
+  onclick={() => {
     copyToClipBoard();
   }}
 />

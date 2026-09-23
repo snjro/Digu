@@ -71,7 +71,6 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
-  import { createEventDispatcher } from "svelte";
   import BaseA from "./BaseA.svelte";
   import BaseButtonContent from "./BaseButtonContent.svelte";
   import type { BaseLabelProps } from "./BaseLabel.svelte";
@@ -105,15 +104,19 @@
   export let designatedFontWeight: BaseButtonProps["designatedFontWeight"] =
     undefined;
   export let rounded: BaseButtonProps["rounded"] = true;
+  export let onclick: ((event: MouseEvent) => void) | undefined = undefined;
+  export let onmouseenter: ((event: MouseEvent) => void) | undefined =
+    undefined;
+  export let onmouseleave: ((event: MouseEvent) => void) | undefined =
+    undefined;
 
-  const dispatch = createEventDispatcher();
   function onMouseEnter(event: MouseEvent) {
     if (!isHoverControledByParent) isHover = true;
-    dispatch("mouseenter", event.detail);
+    onmouseenter?.(event);
   }
   function onMouseLeave(event: MouseEvent) {
     if (!isHoverControledByParent) isHover = false;
-    dispatch("mouseleave", event.detail);
+    onmouseleave?.(event);
   }
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;
@@ -224,13 +227,9 @@
   <button
     class={customClass}
     {disabled}
-    on:click
-    on:change
-    on:keydown
-    on:keyup
+    on:click={onclick}
     on:mouseenter={onMouseEnter}
     on:mouseleave={onMouseLeave}
-    on:animationend
   >
     {#if href}
       <BaseA

@@ -59,7 +59,7 @@
       {tooltipYPosition}
       colorCategoryBg={colorSettings.leftSidebarHeader}
       colorCategoryFront={colorSettings.leftSidebarHeader}
-      on:click={() => {
+      onclick={() => {
         onClick(openState);
       }}
     />

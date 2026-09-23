@@ -36,7 +36,7 @@
         colorCategoryBg={"interactive"}
         colorCategoryFront={"white"}
         appendClassButton={buttonHeight[footerDefinition.buttonSize]}
-        on:click={onClickEventFunction}
+        onclick={onClickEventFunction}
       />
     {/each}
   </div>

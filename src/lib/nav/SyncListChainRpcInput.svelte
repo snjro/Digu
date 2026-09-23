@@ -106,7 +106,7 @@
     />
     <BaseButtonIcon
       slot="suffixIcon"
-      on:click={toggleInputType}
+      onclick={toggleInputType}
       size={changeSize(sizeSettings.navInput, -1)}
       tooltipText={eyeIconTooltipText}
       tooltipXPosition="right"
