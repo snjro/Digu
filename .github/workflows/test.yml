@@ -28,6 +28,10 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      # ubuntu-24.04 restricts unprivileged user namespaces, which Chrome's sandbox needs
+      - name: Allow Chrome Sandbox
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
       - name: Run vitest Tests
         run: npm run vitest:coverage
 
