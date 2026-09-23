@@ -2,7 +2,7 @@ name: digu
 
 services:
   app:
-    image: node:20-slim
+    image: node:24-slim
     user: "1001:1001"
     working_dir: /app
     environment:
