@@ -13,6 +13,7 @@
     SyncStatus,
   } from "@db/dbTypes";
   import { fetchEventLogs } from "@eventLogs/eventLogs";
+  import { storeSyncLockedByOtherTab } from "@eventLogs/syncLock";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -20,6 +21,7 @@
   import classNames from "classnames";
 
   let toggleOn: boolean = false;
+  let isStarting: boolean = false;
   $: {
     if (syncStateText === "stopped") toggleOn = false;
   }
@@ -44,7 +46,11 @@
   const toggleChanged = async (): Promise<void> => {
     toggleOn = !toggleOn;
     if (toggleOn) {
-      fetchEventLogs(targetChain);
+      // Until the sync has started, stopping it would miss some contracts.
+      isStarting = true;
+      const started: boolean = await fetchEventLogs(targetChain);
+      isStarting = false;
+      if (!started) toggleOn = false;
     } else {
       await startAbortingInChain(targetChain.name);
     }
@@ -59,7 +65,10 @@
   let isStopping: boolean;
   $: isStopping = syncStateText === "stopping";
   let disabled: boolean;
-  $: disabled = !isAbleToSync || isStopping;
+  let isSyncingInOtherTab: boolean;
+  $: isSyncingInOtherTab = $storeSyncLockedByOtherTab[targetChainName];
+  $: disabled =
+    !isAbleToSync || isStopping || isStarting || isSyncingInOtherTab;
 
   let iconProps: BaseIconProps;
   $: iconProps = {
@@ -70,7 +79,13 @@
   };
 
   let tooltipText: string;
-  $: tooltipText = toggleOn ? "stop sync" : "start sync";
+  $: tooltipText = isSyncingInOtherTab
+    ? "syncing in another tab"
+    : isStarting
+      ? "starting sync"
+      : toggleOn
+        ? "stop sync"
+        : "start sync";
 </script>
 
 <div class={classNames(isStopping && "animate-pulse")}>
