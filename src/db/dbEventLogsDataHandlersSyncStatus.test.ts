@@ -27,12 +27,16 @@ describe("startSyncingInChain", () => {
     UpdateSyncStatusInChain,
     "updateSyncStatusInChain",
   );
+  beforeEach(() => {
+    spyUpdateSyncStatusInChain.mockClear().mockResolvedValue(undefined);
+  });
   for (const targetChain of TARGET_CHAINS) {
     const chainName: Chain["name"] = targetChain.name;
     test(`should be called with chainName:"${chainName}"`, async () => {
       // call target
       await startSyncingInChain(chainName);
       // expect
+      expect(spyUpdateSyncStatusInChain).toBeCalledTimes(1);
       expect(spyUpdateSyncStatusInChain).toBeCalledWith(
         chainName,
         "isSyncTarget",
@@ -50,12 +54,16 @@ describe("startAbortingInChain", () => {
     UpdateSyncStatusInChain,
     "updateSyncStatusInChain",
   );
+  beforeEach(() => {
+    spyUpdateSyncStatusInChain.mockClear().mockResolvedValue(undefined);
+  });
   for (const targetChain of TARGET_CHAINS) {
     const chainName: Chain["name"] = targetChain.name;
     test(`should be called with chainName:"${chainName}"`, async () => {
       // call target
       await startAbortingInChain(chainName);
       // expect
+      expect(spyUpdateSyncStatusInChain).toBeCalledTimes(1);
       expect(spyUpdateSyncStatusInChain).toBeCalledWith(
         chainName,
         "isSyncing",
