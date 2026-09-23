@@ -12,8 +12,8 @@ import {
   JsonRpcProvider,
   Network,
   WebSocketProvider,
+  EventLog,
   type Contract as EthersContract,
-  type EventLog,
   type Log,
   type JsonRpcApiProviderOptions,
 } from "ethers";
@@ -131,7 +131,32 @@ async function queryFilter(
   fromBlock: number,
   toBlock: number,
 ): Promise<EthersEventLog[]> {
-  const ethersEventLog: Array<EventLog | Log> =
-    await ethersContract.queryFilter(eventName, fromBlock, toBlock);
-  return ethersEventLog as EthersEventLog[];
+  const logs: Array<EventLog | Log> = await ethersContract.queryFilter(
+    eventName,
+    fromBlock,
+    toBlock,
+  );
+  return extractDecodedEventLogs(logs, eventName);
+}
+
+// Logs that could not be decoded (e.g. "UndecodedEventLog") are skipped
+// so that they are not registered under a wrong event name.
+export function extractDecodedEventLogs(
+  logs: Array<EventLog | Log>,
+  eventName: string,
+): EthersEventLog[] {
+  const decodedEventLogs: EthersEventLog[] = [];
+  for (const log of logs) {
+    if (log instanceof EventLog) {
+      decodedEventLogs.push(log);
+    } else {
+      customLogger.error("Skip an event log that could not be decoded.", {
+        eventName: eventName,
+        blockNumber: log.blockNumber,
+        transactionHash: log.transactionHash,
+        logIndex: log.index,
+      });
+    }
+  }
+  return decodedEventLogs;
 }
