@@ -1,6 +1,6 @@
 import {
   vi,
-  type SpyInstance,
+  type MockInstance,
   describe,
   test,
   expect,
@@ -25,7 +25,7 @@ const dummyChainStatus: ChainStatus = {
   nodeStatus: "CONNECTING",
 };
 
-const spyDbChainStatusTransaction: SpyInstance = vi.spyOn(
+const spyDbChainStatusTransaction: MockInstance = vi.spyOn(
   dbChainStatus,
   "transaction",
 );

@@ -74,7 +74,7 @@ describe("stopSyncingInChain", () => {
     "updateSyncStatusInChain",
   );
   beforeEach(() => {
-    spyUpdateSyncStatusInChain.mockReset();
+    spyUpdateSyncStatusInChain.mockClear().mockResolvedValue(undefined);
   });
   for (const targetChain of TARGET_CHAINS) {
     const chainName: Chain["name"] = targetChain.name;
@@ -105,12 +105,11 @@ describe("stopSyncingInChain", () => {
 
 describe("stopSyncingInContract", () => {
   // set spy
-  const spyUpdateDbItemSyncStatus: MockInstance = vi.spyOn(
-    DbItemSyncStatus,
-    "updateDbItemSyncStatus",
-  );
+  const spyUpdateDbItemSyncStatus: MockInstance = vi
+    .spyOn(DbItemSyncStatus, "updateDbItemSyncStatus")
+    .mockResolvedValue(undefined);
   beforeEach(() => {
-    spyUpdateDbItemSyncStatus.mockReset();
+    spyUpdateDbItemSyncStatus.mockClear();
   });
   for (const targetChain of TARGET_CHAINS) {
     const chainName: Chain["name"] = targetChain.name;

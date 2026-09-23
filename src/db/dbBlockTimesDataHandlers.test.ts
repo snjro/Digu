@@ -1,6 +1,6 @@
 import {
   vi,
-  type SpyInstance,
+  type MockInstance,
   describe,
   test,
   expect,
@@ -22,7 +22,7 @@ const dummyBlockTime: BlockTime = {
   isoDatetime: "isoDummy",
 };
 
-const spyDbBlockTimeTransaction: SpyInstance = vi.spyOn(
+const spyDbBlockTimeTransaction: MockInstance = vi.spyOn(
   dbBlockTimes,
   "transaction",
 );

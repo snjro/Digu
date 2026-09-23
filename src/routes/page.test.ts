@@ -33,16 +33,16 @@ describe("load", () => {
     .mockResolvedValue(expectedSlelectedChainName);
 
   const spyRedirect = vi.mocked(redirect);
+  beforeEach(() => {
+    // clear call count
+    spyGetDbItemUserSettings.mockClear();
+  });
+  afterAll(() => {
+    vi.restoreAllMocks();
+  });
 
   test.each(browserValues)(`should $browserValue`, async ({ browserValue }) => {
     mockBrowser = browserValue;
-    beforeEach(() => {
-      // clear call count
-      spyGetDbItemUserSettings.mockClear();
-    });
-    afterAll(() => {
-      vi.restoreAllMocks();
-    });
 
     // "redirect" throws, so need to catch.
     try {
@@ -55,7 +55,7 @@ describe("load", () => {
         "selectedChainName",
       );
 
-      expect(spyGetDbItemUserSettings).toHaveReturnedWith(
+      expect(spyGetDbItemUserSettings).toHaveResolvedWith(
         expectedSlelectedChainName,
       );
       expect(spyRedirect).toThrow();

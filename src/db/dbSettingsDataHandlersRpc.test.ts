@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { describe, expect, test, vi, type SpyInstance } from "vitest";
+import { describe, expect, test, vi, type MockInstance } from "vitest";
 import { initialDataRpcSetting, type RpcSetting } from "./dbTypes";
 import { dbSettings } from "./dbSettings";
 import {
@@ -116,7 +116,7 @@ describe("updateDbItemRpcSettings", () => {
     const newValue: RpcSetting[keyof RpcSetting] = updatedRpcSetting[targetKey];
     test(`should update selected item "${targetKey}"`, async () => {
       // set spy
-      const spyTableUpdate: SpyInstance = vi.spyOn(
+      const spyTableUpdate: MockInstance = vi.spyOn(
         dbSettings.table(tableName),
         "update",
       );
