@@ -25,6 +25,8 @@ const config: UserConfig = {
     environment: "happy-dom",
     coverage: {
       provider: "v8",
+      include: ["src/**/*.{js,ts,svelte}"],
+      exclude: ["src/app.d.ts"],
       reporter: ["text", "html", "json-summary", "json"],
     },
     projects: [
