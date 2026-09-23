@@ -20,13 +20,23 @@
   import EventOverviewFetchedLogsEdge from "./EventOverviewFetchedLogsEdge.svelte";
   import { MESSAGE_ANONYMOUS_EVENT_LOGS } from "./EventLogs.svelte";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
-  export let targetContract: Contract;
-  export let targetEventAbiFragment: EventAbiFragment;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+    targetContract: Contract;
+    targetEventAbiFragment: EventAbiFragment;
+  }
 
-  let convertedEventLogs: ConvertedEventLog[] = [];
+  let {
+    targetChain,
+    targetProject,
+    targetVersion,
+    targetContract,
+    targetEventAbiFragment,
+  }: Props = $props();
+
+  let convertedEventLogs: ConvertedEventLog[] = $state.raw([]);
   const eventLogsFetcherFromDB = async (
     targetChainName: Chain["name"],
     targetProjectName: Project["name"],
@@ -55,13 +65,15 @@
       "asc",
     );
   };
-  $: eventLogsFetcherFromDB(
-    targetChain.name,
-    targetProject.name,
-    targetVersion.name,
-    targetContract.name,
-    targetEventAbiFragment.name,
-  );
+  $effect.pre(() => {
+    eventLogsFetcherFromDB(
+      targetChain.name,
+      targetProject.name,
+      targetVersion.name,
+      targetContract.name,
+      targetEventAbiFragment.name,
+    );
+  });
 
   const gridMain: string = classNames(
     "grid",

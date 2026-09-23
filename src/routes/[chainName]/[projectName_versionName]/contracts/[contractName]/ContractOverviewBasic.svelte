@@ -14,23 +14,36 @@
     Version,
   } from "@constants/chains/types";
   import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsCostants";
+  import type { Snippet } from "svelte";
   import { getProjectVersionNameForUrl } from "../../projectVersionNameHelper";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
-  export let targetContract: Contract;
-  export let activateLinkOfContractName: boolean = false;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+    targetContract: Contract;
+    activateLinkOfContractName?: boolean;
+    children?: Snippet;
+  }
+
+  let {
+    targetChain,
+    targetProject,
+    targetVersion,
+    targetContract,
+    activateLinkOfContractName = false,
+    children,
+  }: Props = $props();
 
   const textSize: BaseSize = sizeSettings.itemMember;
 
-  let hrefToContractName: string;
-  $: hrefToContractName =
+  let hrefToContractName: string = $derived(
     `${base}/${targetChain.name}` +
-    `/${getProjectVersionNameForUrl(
-      targetProject.name,
-      targetVersion.name,
-    )}/${DIR_NAME_CONTRACTS}/${targetContract.name}`;
+      `/${getProjectVersionNameForUrl(
+        targetProject.name,
+        targetVersion.name,
+      )}/${DIR_NAME_CONTRACTS}/${targetContract.name}`,
+  );
 </script>
 
 <CommonItemMember text="Contract Name">
@@ -64,4 +77,4 @@
     <BaseLabel text={NO_DATA} {textSize} />
   {/if}
 </CommonItemMember>
-<slot />
+{@render children?.()}

@@ -8,10 +8,15 @@
     keyof FunctionAbiFragment,
     "inputs" | "outputs"
   >;
-  export let targetFunctionAbiFragment: FunctionAbiFragment;
-  export let paramIdentifier: ParamIdentifier;
-  const paramTypes: FunctionAbiFragment[ParamIdentifier] =
-    targetFunctionAbiFragment[paramIdentifier];
+  interface Props {
+    targetFunctionAbiFragment: FunctionAbiFragment;
+    paramIdentifier: ParamIdentifier;
+  }
+
+  let { targetFunctionAbiFragment, paramIdentifier }: Props = $props();
+  const paramTypes: FunctionAbiFragment[ParamIdentifier] = $derived(
+    targetFunctionAbiFragment[paramIdentifier],
+  );
 </script>
 
 {#if paramTypes.length > 0}

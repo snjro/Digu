@@ -13,11 +13,21 @@
   import EventOverviewContract from "./EventOverviewContract.svelte";
   import EventOverviewFetchedLogs from "./EventOverviewFetchedLogs.svelte";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
-  export let targetContract: Contract;
-  export let targetEventAbiFragment: EventAbiFragment;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+    targetContract: Contract;
+    targetEventAbiFragment: EventAbiFragment;
+  }
+
+  let {
+    targetChain,
+    targetProject,
+    targetVersion,
+    targetContract,
+    targetEventAbiFragment,
+  }: Props = $props();
 
   const gridTrackBasic: string = classNames("col-span-full lg:col-span-1");
   const gridTrackFetchedLogs: string = classNames("col-span-full");

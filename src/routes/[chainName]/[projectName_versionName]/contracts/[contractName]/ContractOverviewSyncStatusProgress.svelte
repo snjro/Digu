@@ -16,33 +16,41 @@
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
-  export let targetContract: Contract;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+    targetContract: Contract;
+  }
+
+  let { targetChain, targetProject, targetVersion, targetContract }: Props =
+    $props();
 
   const itemSize: BaseSize = sizeSettings.itemMember;
-  let targetContractSyncStatus: SyncStatusContract;
-  $: targetContractSyncStatus =
+  let targetContractSyncStatus: SyncStatusContract = $derived(
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
-      .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name];
+      .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name],
+  );
 
-  let latestBlockNumber: number;
-  $: latestBlockNumber = $storeChainStatus[targetChain.name].latestBlockNumber;
+  let latestBlockNumber: number = $derived(
+    $storeChainStatus[targetChain.name].latestBlockNumber,
+  );
 
-  let fetchedBlockNumber: number | undefined;
-  $: fetchedBlockNumber = targetContractSyncStatus
-    ? targetContractSyncStatus.fetchedBlockNumber
-    : undefined;
+  let fetchedBlockNumber: number | undefined = $derived(
+    targetContractSyncStatus
+      ? targetContractSyncStatus.fetchedBlockNumber
+      : undefined,
+  );
 
-  let detailsTextSize: BaseSize;
-  $: detailsTextSize =
+  let detailsTextSize: BaseSize = $derived(
     $storeNoDbCurrentWidth <= breakPointWidths.md
       ? changeSize(itemSize, -1)
-      : itemSize;
+      : itemSize,
+  );
 
-  let syncStateText: SyncStateText;
-  $: syncStateText = targetContractSyncStatus.syncStateText;
+  let syncStateText: SyncStateText = $derived(
+    targetContractSyncStatus.syncStateText,
+  );
 </script>
 
 <CommonItemMember text="Progress">

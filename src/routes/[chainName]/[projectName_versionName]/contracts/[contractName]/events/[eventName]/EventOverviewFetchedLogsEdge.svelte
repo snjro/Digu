@@ -7,19 +7,23 @@
   import { convertJsDateToIso8601 } from "@utils/utilsTime";
   import classNames from "classnames";
 
-  export let convertedEventLogs: ConvertedEventLog[];
-  export let edgeType: "latest" | "oldest";
+  interface Props {
+    convertedEventLogs: ConvertedEventLog[];
+    edgeType: "latest" | "oldest";
+  }
+
+  let { convertedEventLogs, edgeType }: Props = $props();
 
   const textSizeTltle: BaseSize = sizeSettings.itemMember;
   const textSizeValue: BaseSize = changeSize(sizeSettings.itemMember, -1);
 
-  $: edgeEventLog = (): ConvertedEventLog => {
+  let edgeEventLog = $derived((): ConvertedEventLog => {
     if (edgeType === "latest") {
       return convertedEventLogs[convertedEventLogs.length - 1];
     } else {
       return convertedEventLogs[0];
     }
-  };
+  });
 
   const itemStyle: string = classNames(
     "flex",

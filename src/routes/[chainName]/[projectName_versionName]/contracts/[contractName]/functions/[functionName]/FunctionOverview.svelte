@@ -13,11 +13,21 @@
   import FunctionOverviewBasic from "./FunctionOverviewBasic.svelte";
   import FunctionOverviewParams from "./FunctionOverviewParams.svelte";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
-  export let targetContract: Contract;
-  export let targetFunctionAbiFragment: FunctionAbiFragment;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+    targetContract: Contract;
+    targetFunctionAbiFragment: FunctionAbiFragment;
+  }
+
+  let {
+    targetChain,
+    targetProject,
+    targetVersion,
+    targetContract,
+    targetFunctionAbiFragment,
+  }: Props = $props();
 
   const gridTrackBasic: string = classNames("col-span-full lg:col-span-1");
   const gridTrackParams: string = classNames("col-span-full lg:col-span-1");

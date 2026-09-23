@@ -7,19 +7,23 @@
   import type { LoadFunction } from "./+page";
   import FunctionOverview from "./FunctionOverview.svelte";
 
-  export let data: LoadFunction;
+  interface Props {
+    data: LoadFunction;
+  }
+
+  let { data }: Props = $props();
 
   // let selectedTabValue: SelectedTabValueFunction = "Overview";
-  let tabsDefinition: TabsDefinitionFunction = {
+  let tabsDefinition: TabsDefinitionFunction = $state({
     selected: "Overview",
     values: TAB_VALUES_FUNCTION,
     groupName: "tabGroupFunction",
-  };
+  });
 
   const titleCategoryLabelText: string = "Function";
-  $: titleText = data.targetFunctionAbiFragment.name!;
+  let titleText = $derived(data.targetFunctionAbiFragment.name!);
 
-  let isFullScreen = false;
+  let isFullScreen = $state(false);
 </script>
 
 <PageWrapper

@@ -6,7 +6,11 @@
   import AbiParamsTable from "$lib/contracts/abiParams/AbiParamsTable.svelte";
   import type { EventAbiFragment } from "@constants/chains/types";
 
-  export let targetEventAbiFragment: EventAbiFragment;
+  interface Props {
+    targetEventAbiFragment: EventAbiFragment;
+  }
+
+  let { targetEventAbiFragment }: Props = $props();
 
   const textSize: BaseSize = sizeSettings.itemMember;
 </script>

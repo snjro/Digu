@@ -16,22 +16,29 @@
   import { hasSyncTargetEvents } from "@utils/utilsEthers";
   import ContractOverviewBasic from "../../ContractOverviewBasic.svelte";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
-  export let targetContract: Contract;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+    targetContract: Contract;
+  }
+
+  let { targetChain, targetProject, targetVersion, targetContract }: Props =
+    $props();
 
   // undefined for contracts that have no event to sync (anonymous events only)
-  let targetContractSyncStatus: SyncStatusContract | undefined;
-  $: targetContractSyncStatus = hasSyncTargetEvents(targetContract)
-    ? $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
-        .subSyncStatuses[targetVersion.name].subSyncStatuses[
-        targetContract.name
-      ]
-    : undefined;
+  let targetContractSyncStatus: SyncStatusContract | undefined = $derived(
+    hasSyncTargetEvents(targetContract)
+      ? $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
+          .subSyncStatuses[targetVersion.name].subSyncStatuses[
+          targetContract.name
+        ]
+      : undefined,
+  );
 
-  let latestBlockNumber: number;
-  $: latestBlockNumber = $storeChainStatus[targetChain.name].latestBlockNumber;
+  let latestBlockNumber: number = $derived(
+    $storeChainStatus[targetChain.name].latestBlockNumber,
+  );
 </script>
 
 <ContractOverviewBasic

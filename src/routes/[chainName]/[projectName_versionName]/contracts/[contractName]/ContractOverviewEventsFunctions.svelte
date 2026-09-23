@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type AbiFragmentsType = keyof Pick<Contract, "events" | "functions">;
 </script>
 
@@ -32,27 +32,33 @@
     convertToKebabCase,
   } from "@utils/utilsCommon";
 
-  export let abiFragmentsType: AbiFragmentsType;
-  export let targetContract: Contract;
+  interface Props {
+    abiFragmentsType: AbiFragmentsType;
+    targetContract: Contract;
+  }
+
+  let { abiFragmentsType, targetContract }: Props = $props();
 
   const textSize: BaseSize = sizeSettings.itemMemberTable;
-  const iconName: BaseIconProps["name"] =
-    abiFragmentsType === "events" ? "databaseOutline" : "function";
+  const iconName: BaseIconProps["name"] = $derived(
+    abiFragmentsType === "events" ? "databaseOutline" : "function",
+  );
 
-  let abiFragments: FunctionAbiFragment[] | EventAbiFragment[];
-  $: abiFragments = targetContract[abiFragmentsType].abiFragments;
+  let abiFragments: FunctionAbiFragment[] | EventAbiFragment[] = $derived(
+    targetContract[abiFragmentsType].abiFragments,
+  );
 
-  const singularListType: string = abiFragmentsType.slice(0, -1);
-  const headerLabel: string = `${capitalizeFirstLetter(singularListType)} Name`;
-  $: hrefFrontPart =
+  const singularListType: string = $derived(abiFragmentsType.slice(0, -1));
+  const headerLabel: string = $derived(
+    `${capitalizeFirstLetter(singularListType)} Name`,
+  );
+  let hrefFrontPart = $derived(
     trailingSlash === "always"
       ? `${$page.url.pathname}${abiFragmentsType}`
-      : `${$page.url.pathname}/${abiFragmentsType}`;
+      : `${$page.url.pathname}/${abiFragmentsType}`,
+  );
 
-  let hrefEventFunctionName: (
-    abiFragment: FunctionAbiFragment | EventAbiFragment,
-  ) => string;
-  hrefEventFunctionName = (
+  const hrefEventFunctionName = (
     abiFragment: FunctionAbiFragment | EventAbiFragment,
   ): string => {
     const functionSelectorWithSplitter: string =
