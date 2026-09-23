@@ -5,14 +5,6 @@ export const chain: Chain = {
   name: "matic",
   fullName: "Polygon Mainnet",
   chain: "Polygon",
-  rpc: [
-    "https://polygon-rpc.com/",
-    "https://rpc-mainnet.matic.network",
-    "https://matic-mainnet.chainstacklabs.com",
-    "https://rpc-mainnet.maticvigil.com",
-    "https://rpc-mainnet.matic.quiknode.pro",
-    "https://matic-mainnet-full-rpc.bwarelabs.com",
-  ],
   faucets: [],
   nativeCurrency: {
     name: "MATIC",
