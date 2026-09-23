@@ -1,10 +1,14 @@
 <script lang="ts" context="module">
   export type EventLogType = "hex" | "text";
+  export const MESSAGE_ANONYMOUS_EVENT_LOGS: string =
+    "Logs of anonymous events are not fetched.";
 </script>
 
 <script lang="ts">
+  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
   import type { ColumnDef } from "$lib/base/BaseGrid/types";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { EventAbiFragment } from "@constants/chains/types";
   import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
   import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
@@ -59,10 +63,18 @@
       : columnDefs(targetEventAbiFragment, getEachArgsMaxLengths(rows));
 </script>
 
-<BaseGrid
-  paramColumnDefs={eventLogColumnDefs}
-  {rows}
-  exportFilePrefix={`eventLogs(${eventLogType})`}
-  hasMultipulTabs={true}
-  bind:isFullScreen
-/>
+{#if targetEventAbiFragment.anonymous}
+  <BaseLabel
+    text={MESSAGE_ANONYMOUS_EVENT_LOGS}
+    italic
+    textSize={sizeSettings.itemWarnningMessage}
+  />
+{:else}
+  <BaseGrid
+    paramColumnDefs={eventLogColumnDefs}
+    {rows}
+    exportFilePrefix={`eventLogs(${eventLogType})`}
+    hasMultipulTabs={true}
+    bind:isFullScreen
+  />
+{/if}
