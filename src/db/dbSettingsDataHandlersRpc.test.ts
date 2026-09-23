@@ -116,10 +116,10 @@ describe("updateDbItemRpcSettings", () => {
     const newValue: RpcSetting[keyof RpcSetting] = updatedRpcSetting[targetKey];
     test(`should update selected item "${targetKey}"`, async () => {
       // set spy
-      const spyTableUpdate: MockInstance = vi.spyOn(
-        dbSettings.table(tableName),
-        "update",
-      );
+      // stub the table so that the real record is not changed
+      const spyTableUpdate: MockInstance = vi
+        .spyOn(dbSettings.table(tableName), "update")
+        .mockResolvedValue(1);
       const spyStoreRpcSettingsUpdateState = vi
         .spyOn(storeRpcSettings, "updateState")
         .mockImplementation(() => {
@@ -130,9 +130,11 @@ describe("updateDbItemRpcSettings", () => {
       await updateDbItemRpcSettings(dummyChainName, targetKey, newValue);
 
       //check
+      expect(spyTableUpdate).toBeCalledTimes(1);
       expect(spyTableUpdate).toBeCalledWith(dummyChainName, {
         [targetKey]: newValue,
       });
+      expect(spyStoreRpcSettingsUpdateState).toBeCalledTimes(1);
       expect(spyStoreRpcSettingsUpdateState).toBeCalledWith(dummyChainName, {
         [targetKey]: newValue,
       });

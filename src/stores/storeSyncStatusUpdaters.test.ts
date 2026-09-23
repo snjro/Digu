@@ -4,52 +4,93 @@ import type {
   SyncStatusContract,
   SyncStatusesChain,
 } from "@db/dbTypes";
-import {
-  dummyChainName,
-  dummyContractName,
-  dummyProjectName,
-  dummySyncStatusesChain,
-  dummyVersionName,
-} from "./storeSyncStatus.test";
+import { NO_DATA } from "@utils/utilsCostants";
 import {
   updateStoreSyncStatusSummarized,
   updateStoreSyncStatusSyncStateText,
 } from "./storeSyncStatusUpdaters";
 
+const dummyChainName = "chain1";
+const dummyProjectName = "project1";
+const dummyVersionName = "version1";
+const dummyContractName = "contract1";
+const syncStatusBase = {
+  isSyncTarget: false,
+  isSyncing: false,
+  isAbort: false,
+  fetchedBlockNumber: 0,
+  creationBlockNumber: 0,
+  numOfSyncTargetContract: 0,
+  syncStateText: NO_DATA,
+} as const;
+const dummySyncStatusesChain: SyncStatusesChain = {
+  [dummyChainName]: {
+    ...syncStatusBase,
+    name: dummyChainName,
+    subSyncStatuses: {
+      [dummyProjectName]: {
+        ...syncStatusBase,
+        name: dummyProjectName,
+        subSyncStatuses: {
+          [dummyVersionName]: {
+            ...syncStatusBase,
+            name: dummyVersionName,
+            subSyncStatuses: {
+              [dummyContractName]: {
+                ...syncStatusBase,
+                name: dummyContractName,
+                events: { event1: { recordCount: 0 } },
+                subSyncStatuses: null,
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+const contractIdentifier: ContractIdentifier = {
+  chainName: dummyChainName,
+  projectName: dummyProjectName,
+  versionName: dummyVersionName,
+  contractName: dummyContractName,
+};
+
+// Returns the chain, project, version and contract statuses of the state.
+function levels(state: SyncStatusesChain) {
+  const chain = state[dummyChainName];
+  const project = chain.subSyncStatuses[dummyProjectName];
+  const version = project.subSyncStatuses[dummyVersionName];
+  const contract = version.subSyncStatuses[dummyContractName];
+  return { chain, project, version, contract };
+}
+
+// storeSyncStatus.updateState assigns the new values to the contract
+// before calling the updaters. Do the same here.
+function stateWithContract(
+  newSyncStatusContract: Partial<SyncStatusContract>,
+): SyncStatusesChain {
+  const state: SyncStatusesChain = structuredClone(dummySyncStatusesChain);
+  Object.assign(levels(state).contract, newSyncStatusContract);
+  return state;
+}
+
 describe("updateStoreSyncStatusSyncStateText", () => {
   test("should NOT update state when newSyncStatusContract has neither `isSyncing` nor `isAbort`", () => {
-    let state: SyncStatusesChain = structuredClone(dummySyncStatusesChain);
-    const newSyncStatusContract: Partial<SyncStatusContract> = {};
-    const contractIdentifier: ContractIdentifier = {
-      chainName: dummyChainName,
-      projectName: dummyProjectName,
-      versionName: dummyVersionName,
-      contractName: dummyContractName,
-    };
+    const state: SyncStatusesChain = structuredClone(dummySyncStatusesChain);
 
-    updateStoreSyncStatusSyncStateText(
-      state,
-      contractIdentifier,
-      newSyncStatusContract,
-    );
+    updateStoreSyncStatusSyncStateText(state, contractIdentifier, {});
+
     expect(state).toEqual(dummySyncStatusesChain);
   });
 
   test("should update state when newSyncStatusContract has `isSyncing`", () => {
-    let state: SyncStatusesChain = structuredClone(dummySyncStatusesChain);
     const newSyncStatusContract: Partial<SyncStatusContract> = {
-      isSyncing:
-        !dummySyncStatusesChain[dummyChainName].subSyncStatuses[
-          dummyProjectName
-        ].subSyncStatuses[dummyVersionName].subSyncStatuses[dummyContractName]
-          .isSyncing,
+      isSyncing: true,
     };
-    const contractIdentifier: ContractIdentifier = {
-      chainName: dummyChainName,
-      projectName: dummyProjectName,
-      versionName: dummyVersionName,
-      contractName: dummyContractName,
-    };
+    const state: SyncStatusesChain = stateWithContract(newSyncStatusContract);
+    const expected: SyncStatusesChain = structuredClone(state);
+    levels(expected).contract.syncStateText = "syncing";
 
     updateStoreSyncStatusSyncStateText(
       state,
@@ -57,23 +98,18 @@ describe("updateStoreSyncStatusSyncStateText", () => {
       newSyncStatusContract,
     );
 
-    expect(state).not.toEqual(dummySyncStatusesChain);
+    expect(state).toEqual(expected);
   });
   test("should update state when newSyncStatusContract has `isAbort`", () => {
-    let state: SyncStatusesChain = structuredClone(dummySyncStatusesChain);
     const newSyncStatusContract: Partial<SyncStatusContract> = {
-      isAbort:
-        !dummySyncStatusesChain[dummyChainName].subSyncStatuses[
-          dummyProjectName
-        ].subSyncStatuses[dummyVersionName].subSyncStatuses[dummyContractName]
-          .isAbort,
+      isAbort: true,
     };
-    const contractIdentifier: ContractIdentifier = {
-      chainName: dummyChainName,
-      projectName: dummyProjectName,
-      versionName: dummyVersionName,
-      contractName: dummyContractName,
-    };
+    const state: SyncStatusesChain = stateWithContract({
+      isSyncing: true,
+      ...newSyncStatusContract,
+    });
+    const expected: SyncStatusesChain = structuredClone(state);
+    levels(expected).contract.syncStateText = "stopping";
 
     updateStoreSyncStatusSyncStateText(
       state,
@@ -81,44 +117,30 @@ describe("updateStoreSyncStatusSyncStateText", () => {
       newSyncStatusContract,
     );
 
-    expect(state).not.toEqual(dummySyncStatusesChain);
+    expect(state).toEqual(expected);
   });
 });
 
 describe("updateStoreSyncStatusSummarized", () => {
   test("should NOT update state when newSyncStatusContract has neither `isSyncing` nor `isAbort`", () => {
-    let state: SyncStatusesChain = structuredClone(dummySyncStatusesChain);
-    const newSyncStatusContract: Partial<SyncStatusContract> = {};
-    const contractIdentifier: ContractIdentifier = {
-      chainName: dummyChainName,
-      projectName: dummyProjectName,
-      versionName: dummyVersionName,
-      contractName: dummyContractName,
-    };
+    const state: SyncStatusesChain = structuredClone(dummySyncStatusesChain);
 
-    updateStoreSyncStatusSummarized(
-      state,
-      contractIdentifier,
-      newSyncStatusContract,
-    );
+    updateStoreSyncStatusSummarized(state, contractIdentifier, {});
+
     expect(state).toEqual(dummySyncStatusesChain);
   });
 
   test("should update state when newSyncStatusContract has `isSyncing`", () => {
-    let state: SyncStatusesChain = structuredClone(dummySyncStatusesChain);
     const newSyncStatusContract: Partial<SyncStatusContract> = {
-      isSyncing:
-        !dummySyncStatusesChain[dummyChainName].subSyncStatuses[
-          dummyProjectName
-        ].subSyncStatuses[dummyVersionName].subSyncStatuses[dummyContractName]
-          .isSyncing,
+      isSyncing: true,
     };
-    const contractIdentifier: ContractIdentifier = {
-      chainName: dummyChainName,
-      projectName: dummyProjectName,
-      versionName: dummyVersionName,
-      contractName: dummyContractName,
-    };
+    const state: SyncStatusesChain = stateWithContract(newSyncStatusContract);
+    const expected: SyncStatusesChain = structuredClone(state);
+    const { chain, project, version } = levels(expected);
+    for (const syncStatus of [chain, project, version]) {
+      syncStatus.isSyncing = true;
+      syncStatus.syncStateText = "syncing";
+    }
 
     updateStoreSyncStatusSummarized(
       state,
@@ -126,23 +148,26 @@ describe("updateStoreSyncStatusSummarized", () => {
       newSyncStatusContract,
     );
 
-    expect(state).not.toEqual(dummySyncStatusesChain);
+    expect(state).toEqual(expected);
   });
   test("should update state when newSyncStatusContract has `isAbort`", () => {
-    let state: SyncStatusesChain = structuredClone(dummySyncStatusesChain);
     const newSyncStatusContract: Partial<SyncStatusContract> = {
-      isAbort:
-        !dummySyncStatusesChain[dummyChainName].subSyncStatuses[
-          dummyProjectName
-        ].subSyncStatuses[dummyVersionName].subSyncStatuses[dummyContractName]
-          .isAbort,
+      isAbort: true,
     };
-    const contractIdentifier: ContractIdentifier = {
-      chainName: dummyChainName,
-      projectName: dummyProjectName,
-      versionName: dummyVersionName,
-      contractName: dummyContractName,
-    };
+    // the contract is syncing, and the upper levels already know it
+    const state: SyncStatusesChain = stateWithContract({
+      isSyncing: true,
+      ...newSyncStatusContract,
+    });
+    for (const syncStatus of Object.values(levels(state))) {
+      syncStatus.isSyncing = true;
+    }
+    const expected: SyncStatusesChain = structuredClone(state);
+    const { chain, project, version } = levels(expected);
+    for (const syncStatus of [chain, project, version]) {
+      syncStatus.isAbort = true;
+      syncStatus.syncStateText = "stopping";
+    }
 
     updateStoreSyncStatusSummarized(
       state,
@@ -150,6 +175,6 @@ describe("updateStoreSyncStatusSummarized", () => {
       newSyncStatusContract,
     );
 
-    expect(state).not.toEqual(dummySyncStatusesChain);
+    expect(state).toEqual(expected);
   });
 });

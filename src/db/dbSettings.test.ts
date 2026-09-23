@@ -2,6 +2,7 @@ import "fake-indexeddb/auto";
 import { DB_NAME, DB_TABLE_NAMES, DB_VERSIONS } from "@db/constants";
 import { describe, expect, test, vi } from "vitest";
 import { addInitialDataOfDbSettings, dbSettings } from "./dbSettings";
+import type { Transaction } from "dexie";
 
 const tableNameRpcSettings = DB_TABLE_NAMES.Settings.rpcSettings;
 const tableNameUserSettings = DB_TABLE_NAMES.Settings.userSettings;
@@ -55,6 +56,8 @@ describe("DbSettings", () => {
 
 describe("addInitialDataOfDbSettings", () => {
   test("should be called with correct arguments", async () => {
+    // open the DB first so that "populate" does not call addInitialData
+    await dbSettings.open();
     // set spy
     const spyADbSettingsTransaction = vi.spyOn(dbSettings, "transaction");
     const spyAddinitialData = vi
@@ -71,7 +74,13 @@ describe("addInitialDataOfDbSettings", () => {
       dbSettings.table(tableNameUserSettings),
       expect.any(Function),
     );
-    expect(spyAddinitialData).toBeCalled();
+    // addInitialData should run in the transaction of both tables
+    expect(spyAddinitialData).toBeCalledTimes(1);
+    const tx: Transaction = spyAddinitialData.mock.calls[0][0];
+    expect(tx.mode).toBe("readwrite");
+    expect([...tx.storeNames].sort()).toEqual(
+      [tableNameRpcSettings, tableNameUserSettings].sort(),
+    );
     // restore
     spyADbSettingsTransaction.mockRestore();
     spyAddinitialData.mockRestore();

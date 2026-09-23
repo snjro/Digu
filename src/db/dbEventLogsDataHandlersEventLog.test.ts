@@ -52,43 +52,52 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
           let spyGetEventLogTableName: MockInstance;
           let spyUpdateDbItemSyncStatus: MockInstance;
 
-          // set spy
-          beforeEach(() => {
-            // set spy
-            spyGetUpdateTargetEventLogTables = vi.spyOn(
-              GetUpdateTargetEventLogTables,
-              "getUpdateTargetEventLogTables",
-            );
-            spyGetDbItemSyncStatus = vi.spyOn(
-              DataHandlerSyncStatusGetters,
-              "getDbItemSyncStatus",
-            );
-            spyGetEventLogTableName = vi.spyOn(UtilDb, "getEventLogTableName");
-            spyUpdateDbItemSyncStatus = vi.spyOn(
-              DataHandlerSyncStatusUpdaters,
-              "updateDbItemSyncStatus",
-            );
-          });
-          // resotre
-          afterEach(() => {
-            if (spyGetDbItemSyncStatus) {
-              spyGetDbItemSyncStatus.mockRestore();
-            }
-            if (spyGetUpdateTargetEventLogTables) {
-              spyGetUpdateTargetEventLogTables.mockRestore();
-            }
-            if (spyGetEventLogTableName) {
-              spyGetEventLogTableName.mockRestore();
-            }
-            if (spyUpdateDbItemSyncStatus) {
-              spyUpdateDbItemSyncStatus.mockRestore();
-            }
-          });
           afterAll(async () => {
             await Dexie.delete(dbEventLogs.name);
           });
 
           describe(`chainName:${targetChain.name}, projectName:${targetProject.name}, versionName:${targetVersion.name}, contractName:${targetContract.name}`, () => {
+            // set spy
+            beforeEach(() => {
+              // set spy
+              spyGetUpdateTargetEventLogTables = vi.spyOn(
+                GetUpdateTargetEventLogTables,
+                "getUpdateTargetEventLogTables",
+              );
+              // stub the sync status table so that each test starts from 0
+              spyGetDbItemSyncStatus = vi
+                .spyOn(DataHandlerSyncStatusGetters, "getDbItemSyncStatus")
+                .mockImplementation(async () => {
+                  return Object.fromEntries(
+                    targetContract.events.names.map((eventName) => [
+                      eventName,
+                      { recordCount: 0 },
+                    ]),
+                  );
+                });
+              spyGetEventLogTableName = vi.spyOn(
+                UtilDb,
+                "getEventLogTableName",
+              );
+              spyUpdateDbItemSyncStatus = vi
+                .spyOn(DataHandlerSyncStatusUpdaters, "updateDbItemSyncStatus")
+                .mockResolvedValue(undefined);
+            });
+            // resotre
+            afterEach(() => {
+              if (spyGetDbItemSyncStatus) {
+                spyGetDbItemSyncStatus.mockRestore();
+              }
+              if (spyGetUpdateTargetEventLogTables) {
+                spyGetUpdateTargetEventLogTables.mockRestore();
+              }
+              if (spyGetEventLogTableName) {
+                spyGetEventLogTableName.mockRestore();
+              }
+              if (spyUpdateDbItemSyncStatus) {
+                spyUpdateDbItemSyncStatus.mockRestore();
+              }
+            });
             test(`when "groupedEventlogs" is empty, only "fetchedBlockNumber" should be updated `, async () => {
               // make "groupedEventlogs" empty
               const groupedEventLogs: GroupedEventLogs = {};
@@ -115,6 +124,7 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
                 expect.anything(),
               );
               // check the function IS called
+              expect(spyUpdateDbItemSyncStatus).toBeCalledTimes(1);
               expect(spyUpdateDbItemSyncStatus).toBeCalledWith(
                 dbEventLogs,
                 targetContract.name,
@@ -131,12 +141,31 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
                 ];
               }
 
+              const tableNames: string[] = targetContract.events.names.map(
+                (eventName) =>
+                  UtilDb.getEventLogTableName(targetContract.name, eventName),
+              );
+              const countsBefore: number[] = await Promise.all(
+                tableNames.map((tableName) =>
+                  dbEventLogs.table(tableName).count(),
+                ),
+              );
+
               // call target
               await addEventLogs_updateFetchedBlockNumber(
                 dbEventLogs,
                 targetContract,
                 groupedEventLogs,
                 toBlockNumber,
+              );
+              // check each table got one log
+              const countsAfter: number[] = await Promise.all(
+                tableNames.map((tableName) =>
+                  dbEventLogs.table(tableName).count(),
+                ),
+              );
+              expect(countsAfter).toEqual(
+                countsBefore.map((count) => count + 1),
               );
               // check the functions ARE called
               expect(spyGetUpdateTargetEventLogTables).toBeCalledWith(
@@ -149,15 +178,24 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
                 targetContract.name,
                 "events",
               );
-              expect(spyGetEventLogTableName).toBeCalledWith(
-                targetContract.name,
-                expect.anything(),
-              );
+              for (const eventName of targetContract.events.names) {
+                expect(spyGetEventLogTableName).toBeCalledWith(
+                  targetContract.name,
+                  eventName,
+                );
+              }
+              // recordCount of each event should be increased by one
+              expect(spyUpdateDbItemSyncStatus).toBeCalledTimes(2);
               expect(spyUpdateDbItemSyncStatus).toBeCalledWith(
                 dbEventLogs,
                 targetContract.name,
                 "events",
-                expect.anything(),
+                Object.fromEntries(
+                  targetContract.events.names.map((eventName) => [
+                    eventName,
+                    { recordCount: 1 },
+                  ]),
+                ),
               );
               expect(spyUpdateDbItemSyncStatus).toBeCalledWith(
                 dbEventLogs,
