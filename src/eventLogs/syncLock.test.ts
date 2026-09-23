@@ -88,8 +88,8 @@ async function waitFor(
 }
 
 // Opens a tab: what initialize() does, with the worker functions called
-// directly.
-async function openTab() {
+// directly. `beforeWatch` runs just before the tab watches the locks.
+async function openTab(beforeWatch?: () => Promise<void>) {
   vi.resetModules();
   const { dbWorkerFuncInitializeDBSettings } =
     await import("@db/db.worker.func.InitializeDBSettings");
@@ -100,6 +100,7 @@ async function openTab() {
   await dbWorkerFuncInitializeDBSettings();
   await dbWorkerFuncInitializeDBSyncStatus();
   await initializeStore();
+  await beforeWatch?.();
   await syncLock.watchSyncLocksOfOtherTabs();
 
   const { extractEventContracts } = await import("@utils/utilsEthers");
@@ -307,6 +308,39 @@ describe("sync with two tabs (issue #49)", () => {
     expect(a.isLockedByOtherTab()).toBe(false);
     await heldLock;
     await stopAndWait(a);
+  }, 30_000);
+
+  test("resets a chain whose syncing tab closed while this tab opened", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    // Tab C was stopping when it held the lock, and is closed before tab B
+    // watches the locks.
+    let closeTabC: () => void = () => {};
+    const heldLock = lockManager.request(
+      getSyncLockName(chain.name),
+      () => new Promise<void>((resolve) => (closeTabC = resolve)),
+    );
+    await a.db
+      .table("SyncStatus")
+      .update(a.contract.name, { isSyncing: true, isAbort: true });
+
+    const b = await openTab(async () => {
+      // Same module instances as tab B.
+      const { syncStatusContract } = await import("./eventLogsContract");
+      expect(
+        syncStatusContract({
+          ...versionIdentifier,
+          contractName: a.contract.name,
+        }).syncStateText,
+      ).toBe("stopping");
+      closeTabC();
+      await heldLock;
+    });
+    tabs.push(b);
+
+    expect(b.isLockedByOtherTab()).toBe(false);
+    expect(b.storeStatus().syncStateText).toBe("stopped");
+    expect((await dbStatus(b)).isSyncing).toBe(false);
   }, 30_000);
 
   test("does not wait for the lock that the same tab holds", async () => {

@@ -99,15 +99,26 @@ async function tryToStart(
   }
 }
 
+// Resets each free chain, and waits for the others to be released. The
+// startup reset in the Worker skips a chain another tab syncs, and that tab
+// may have been closed since then.
 export async function watchSyncLocksOfOtherTabs(): Promise<void> {
   if (!navigator.locks) return;
-  const { held } = await navigator.locks.query();
-  for (const targetChain of TARGET_CHAINS) {
-    const lockName: string = getSyncLockName(targetChain.name);
-    if (held?.some((lock: LockInfo) => lock.name === lockName)) {
-      waitForSyncLockRelease(targetChain.name);
-    }
-  }
+  await Promise.all(
+    TARGET_CHAINS.map((targetChain: Chain) =>
+      navigator.locks.request(
+        getSyncLockName(targetChain.name),
+        { ifAvailable: true },
+        async (lock: Lock | null): Promise<void> => {
+          if (lock) {
+            await resetSyncStatusInChain(targetChain.name);
+          } else {
+            waitForSyncLockRelease(targetChain.name);
+          }
+        },
+      ),
+    ),
+  );
 }
 
 function waitForSyncLockRelease(chainName: ChainName): void {
