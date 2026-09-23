@@ -6,13 +6,12 @@ Open **https://snjro.github.io/Digu/** to use Digu immediately
 
 ## [**Index**](#index)<!-- omit in toc -->
 
-There are two ways to use Digu as a user:
+There is one way to use Digu as a user:
 
 - [**Web application** (Need a server)](#web-application-need-a-server)
   - [Using Digu with `GitHub Pages`](#using-digu-with-github-pages)
   - [Using Digu with `Visual Studio Code`](#using-digu-with-visual-studio-code)
   - [Using Digu with `Node.js`](#using-digu-with-nodejs)
-- [**Desktop application** (Need to install)](#desktop-application-need-to-install)
 
 ## [**Web application** (Need a server)](#web-application-need-a-server)
 
@@ -90,14 +89,3 @@ The steps:
    <img src="nodeJsRunHttpServer.png" width="60%">
 
    Visit `http://localhost:8080` with your browser to view Digu.
-
-## [**Desktop application** (Need to install)](#desktop-application-need-to-install)
-
-To use Digu as an desktop app, **you need to install** it. Download the latest installer from [the release page](https://github.com/snjro/Digu/releases) and install it. Choose the right one for the OS you are using:
-|OS |Installer<br>(`x.x.x` is a version name)|Supported Platform|
-|:-:|----------------------------------------|-------------------|
-|Linux |digu\_`x.x.x`\_amd64.deb |`Ubuntu 18.04` and above|
-|macOS |Digu\_`x.x.x`\_x64.dmg |`macOS 10.15` and above|😞|
-|Windows|Digu\_`x.x.x`\_x64-en-US.msi |`Windows 7` and above |
-
-<!-- Supported Platform: https://github.com/tauri-apps/tauri?tab=readme-ov-file#platforms -->
