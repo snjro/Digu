@@ -72,7 +72,6 @@ describe("loadingOverlayRendererFactory in a grid", () => {
     const element = document.createElement("div");
     document.body.appendChild(element);
     const gridApi = createGrid(element, {
-      theme: "legacy",
       columnDefs: [{ field: "a" }],
       rowData: [{ a: 1 }],
       loadingOverlayComponent: loadingOverlayRendererFactory(mountInOverlay),
