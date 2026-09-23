@@ -8,6 +8,7 @@ import type {
 } from "@constants/chains/types";
 import { getTargetContract } from "@utils/utlisDb";
 import { _LoadVersionData, type LoadVersionData } from "../../+page";
+import { throwNotFoundAs404 } from "@routes/targetNotFound";
 
 export type LoadContractData = {
   targetChain: Chain;
@@ -37,7 +38,9 @@ export function _LoadContractData({
     versionName: loadedVersionData.targetVersion.name,
     contractName: params.contractName!,
   };
-  const targetContract: Contract = getTargetContract(contractIdentifier);
+  const targetContract: Contract = throwNotFoundAs404(() =>
+    getTargetContract(contractIdentifier),
+  );
   return {
     ...loadedVersionData,
     targetContract: targetContract,
