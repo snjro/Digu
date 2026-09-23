@@ -18,7 +18,8 @@ import { requestSyncLock } from "./syncLock";
 
 // Resolves true once every sync target is marked as syncing, so that an abort
 // reaches all of them. Resolves false without syncing when the chain is
-// already synced (by another tab or by this tab).
+// already synced (by another tab or by this tab). Waits up to a second for
+// another tab that holds the lock briefly.
 export async function fetchEventLogs(targetChain: Chain): Promise<boolean> {
   return await requestSyncLock(
     targetChain.name,

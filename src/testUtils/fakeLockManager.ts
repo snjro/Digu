@@ -1,5 +1,6 @@
 // Minimal in-memory Web Locks API for tests. happy-dom has no navigator.locks.
-// Exclusive locks only, granted in request order.
+// Exclusive locks only, granted in request order. Supports ifAvailable and
+// signal.
 export class FakeLockManager {
   private held: Set<string> = new Set();
   private queues: Map<string, (() => void)[]> = new Map();
@@ -16,12 +17,10 @@ export class FakeLockManager {
         ? optionsOrCallback
         : maybeCallback!;
 
+    options.signal?.throwIfAborted();
     if (this.held.has(name)) {
       if (options.ifAvailable) return await callback(null);
-      // Wait until release() hands the lock over.
-      await new Promise<void>((resolve) => {
-        this.queues.set(name, [...(this.queues.get(name) ?? []), resolve]);
-      });
+      await this.waitForRelease(name, options.signal);
     } else {
       this.held.add(name);
     }
@@ -39,6 +38,27 @@ export class FakeLockManager {
         queue.map(() => ({ name, mode: "exclusive" as LockMode })),
       ),
     };
+  }
+
+  // Resolves when release() hands the lock over. Rejects with the abort
+  // reason if the signal aborts first.
+  private waitForRelease(name: string, signal?: AbortSignal): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const grant = (): void => {
+        signal?.removeEventListener("abort", abort);
+        resolve();
+      };
+      const abort = (): void => {
+        const queue = this.queues.get(name) ?? [];
+        this.queues.set(
+          name,
+          queue.filter((waiter) => waiter !== grant),
+        );
+        reject(signal!.reason);
+      };
+      signal?.addEventListener("abort", abort, { once: true });
+      this.queues.set(name, [...(this.queues.get(name) ?? []), grant]);
+    });
   }
 
   private release(name: string): void {
