@@ -14,21 +14,13 @@ const showParams: ShowParam[] = [
   },
   {
     storeShow: false,
-    state: "show",
-  },
-  {
-    storeShow: true,
-    state: "show",
-  },
-  {
-    storeShow: false,
     state: "hide",
   },
 ];
 describe("LoadingSpinner.svelte", () => {
   test.each<ShowParam>(showParams)(
-    `$state loader. paramShow=$paramShow, storeShow=$storeShow`,
-    ({ storeShow }: ShowParam) => {
+    `$state loader. storeShow=$storeShow`,
+    ({ storeShow, state }: ShowParam) => {
       //set store value
       storeNodbShowLoader.set(storeShow);
 
@@ -38,7 +30,7 @@ describe("LoadingSpinner.svelte", () => {
         {},
       ).queryByTestId("loadingSpinner-test");
 
-      if (storeShow) {
+      if (state === "show") {
         expect(actualHtmlElement).not.toBeNull();
       } else {
         expect(actualHtmlElement).toBeNull();
