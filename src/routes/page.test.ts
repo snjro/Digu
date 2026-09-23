@@ -1,6 +1,5 @@
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { load } from "./+page";
-import * as kit from "@sveltejs/kit";
 import { redirect } from "@sveltejs/kit";
 import * as dbSettingsDataHandlersUser from "@db/dbSettings";
 
@@ -21,6 +20,11 @@ vi.mock("$app/environment", () => {
   };
 });
 vi.mock("$app/navigation");
+// ESM exports of "@sveltejs/kit" cannot be spied on directly
+vi.mock("@sveltejs/kit", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@sveltejs/kit")>();
+  return { ...original, redirect: vi.fn(original.redirect) };
+});
 
 describe("load", () => {
   const expectedSlelectedChainName: string = "testChainName";
@@ -28,7 +32,7 @@ describe("load", () => {
     .spyOn(dbSettingsDataHandlersUser, "getDbItemUserSettings")
     .mockResolvedValue(expectedSlelectedChainName);
 
-  const spyRedirect = vi.spyOn(kit, "redirect");
+  const spyRedirect = vi.mocked(redirect);
 
   test.each(browserValues)(`should $browserValue`, async ({ browserValue }) => {
     mockBrowser = browserValue;

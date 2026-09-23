@@ -14,7 +14,7 @@
 
   export let data: LoadVersionData;
 
-  const projectVersionName: string = $page.params.projectName_versionName;
+  const projectVersionName: string = $page.params.projectName_versionName!;
   const titleText = (): string => {
     const splitProjectVersionName: {
       projectName: ProjectName;
