@@ -142,6 +142,12 @@ function waitForSyncLockRelease(chainName: ChainName): void {
     async (): Promise<void> => {
       try {
         await resetSyncStatusInChain(chainName);
+      } catch (error) {
+        // A failure only leaves this chain's status stale.
+        customLogger.error("Reset sync status after release.", {
+          chainName: chainName,
+          errorObject: error,
+        });
       } finally {
         storeSyncLockedByOtherTab.update((state) => ({
           ...state,

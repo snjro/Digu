@@ -359,6 +359,33 @@ describe("sync with two tabs (issue #49)", () => {
     expect(a.isLockedByOtherTab()).toBe(false);
   }, 30_000);
 
+  test("tab B stops waiting even when its reset after release fails", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    expect(await a.fetchEventLogs()).toBe(true);
+    await sleep(50);
+    // Not in `tabs`: B's store stays stale, so afterEach must not stop it.
+    const b = await openTab();
+    expect(b.isLockedByOtherTab()).toBe(true);
+    // Same module instances as tab B (openTab() resets modules only at start).
+    const initializeDBSyncStatus =
+      await import("@db/db.worker.func.InitializeDBSyncStatus");
+    vi.spyOn(
+      initializeDBSyncStatus,
+      "initializeDBSyncStatusInChain",
+    ).mockRejectedValueOnce(new Error("DB error"));
+    const { customLogger } = await import("@utils/logger");
+    const spyError = vi.spyOn(customLogger, "error");
+
+    await stopAndWait(a);
+    expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
+    expect(spyError).toHaveBeenCalledWith(
+      "Reset sync status after release.",
+      expect.objectContaining({ chainName: chain.name }),
+    );
+    expect(b.storeStatus().syncStateText).toBe("syncing");
+  }, 30_000);
+
   test("does not wait for the lock that the same tab holds", async () => {
     const a = await openTab();
     tabs.push(a);
