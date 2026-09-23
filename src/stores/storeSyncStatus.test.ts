@@ -219,6 +219,39 @@ describe("storeSyncStaus", () => {
     }
     expect(get(storeSyncStatus)).toEqual(expectedSyncStatusesChain);
   });
+  test("should ignore a contract that is not in the store", async () => {
+    const storeSyncStatus = await importStoreSyncStatus();
+    const { customLogger } = await import("@utils/logger");
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    const previousSyncStatusesChain: SyncStatusesChain = get(storeSyncStatus);
+    const expectedSyncStatusesChain: SyncStatusesChain = structuredClone(
+      previousSyncStatusesChain,
+    );
+    const contractIdentifier = {
+      chainName: "eth",
+      projectName: "Augur",
+      versionName: "version2",
+      contractName: "NotInTheStore",
+    } as const;
+
+    expect(() =>
+      storeSyncStatus.updateState(contractIdentifier, {
+        isSyncing: true,
+        fetchedBlockNumber: 5,
+      }),
+    ).not.toThrow();
+
+    expect(get(storeSyncStatus)).toBe(previousSyncStatusesChain);
+    expect(get(storeSyncStatus)).toEqual(expectedSyncStatusesChain);
+    expect(spyError).toHaveBeenCalledTimes(1);
+    expect(spyError).toHaveBeenCalledWith(
+      "Skip updating the sync status of a contract that is not in the store.",
+      contractIdentifier,
+    );
+    spyError.mockRestore();
+  });
   describe("updateState should not change the previous value", () => {
     const contractIdentifier = {
       chainName: "eth",

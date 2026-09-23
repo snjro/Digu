@@ -12,6 +12,7 @@ import type {
   SyncStatusProject,
   SyncStatusVersion,
 } from "@db/dbTypes";
+import { customLogger } from "@utils/logger";
 
 function store() {
   const { subscribe, set, update } = writable(getInitialState());
@@ -20,6 +21,14 @@ function store() {
     newSyncStatusContract: Partial<SyncStatusContract>,
   ): void => {
     update((state: SyncStatusesChain) => {
+      // Adding the contract would count it in the summarized statuses.
+      if (!isContractInState(state, contractIdentifier)) {
+        customLogger.error(
+          "Skip updating the sync status of a contract that is not in the store.",
+          contractIdentifier,
+        );
+        return state;
+      }
       const newState: SyncStatusesChain = copyPath(
         state,
         contractIdentifier,
@@ -42,6 +51,18 @@ function store() {
   return { subscribe, set, update, updateState };
 }
 export const storeSyncStatus = store();
+
+function isContractInState(
+  state: SyncStatusesChain,
+  contractIdentifier: ContractIdentifier,
+): boolean {
+  const { chainName, projectName, versionName, contractName } =
+    contractIdentifier;
+  return (
+    state[chainName]?.subSyncStatuses[projectName]?.subSyncStatuses[versionName]
+      ?.subSyncStatuses[contractName] !== undefined
+  );
+}
 
 // Copy the chain, project, version and contract on the path, and merge the
 // new status into the contract. Keep the other objects as they are.
