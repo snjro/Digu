@@ -21,7 +21,9 @@ export const columnDefsNumOfLogs = <T extends EventRow>(
     editable: false,
     cellStyle: cellAlign("end"),
     columnGroupShow: undefined,
-    valueGetter: (valueGetterParams: ValueGetterParams<T>): number => {
+    valueGetter: (
+      valueGetterParams: ValueGetterParams<T>,
+    ): number | undefined => {
       return recordCount(contractIdentifier, valueGetterParams.data?.eventName);
     },
     cellRenderer: cellRendererFactory(
@@ -45,8 +47,8 @@ export const columnDefsNumOfLogs = <T extends EventRow>(
 const recordCount = (
   contractIdentifier: ContractIdentifier,
   eventName: AbiFragmentName | undefined,
-): number => {
-  let recordCount: number = 0;
+): number | undefined => {
+  let recordCount: number | undefined = 0;
   if (eventName) {
     storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
       recordCount =
@@ -54,7 +56,7 @@ const recordCount = (
           contractIdentifier.projectName
         ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
           contractIdentifier.contractName
-        ].events[eventName].recordCount;
+        ].events[eventName]?.recordCount;
     });
   }
   return recordCount;

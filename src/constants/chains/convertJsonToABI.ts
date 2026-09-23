@@ -33,11 +33,15 @@ export function convertJsonFilesContractToContracts(
       // const errorAbiFragments: ErrorAbiFragment[] =
       //   getErrorAbiFragmentsFromContractInterface(contractInterface);
 
-      const eventNames: EventAbiFragment["name"][] = eventAbiFragments.map(
-        (eventAbiFragment: EventAbiFragment) => {
+      // Anonymous events are excluded from sync targets because their logs
+      // cannot be fetched by event name. Their ABI is still shown.
+      const eventNames: EventAbiFragment["name"][] = eventAbiFragments
+        .filter((eventAbiFragment: EventAbiFragment) => {
+          return !eventAbiFragment.anonymous;
+        })
+        .map((eventAbiFragment: EventAbiFragment) => {
           return eventAbiFragment.name;
-        },
-      );
+        });
       const functionNames: FunctionAbiFragment["name"][] =
         functionAbiFragments.map((functionAbiFragment: FunctionAbiFragment) => {
           return functionAbiFragment.name;

@@ -126,4 +126,24 @@ describe("getEventTableNames", () => {
     const actualEventTableName: string[] = getEventTableNames(targetContracts);
     expect(actualEventTableName).toEqual(expectedEventTabeName);
   });
+  test("should not return table names for anonymous events", () => {
+    const targetContracts = convertJsonFilesContractToContracts([
+      {
+        ...jsonFileContracts[0],
+        abi: [
+          ...jsonFileContracts[0].abi,
+          {
+            name: "anonymousEvent",
+            type: "event",
+            anonymous: true,
+            inputs: [{ name: "param1", type: "bytes4", indexed: true }],
+          },
+        ],
+      },
+    ]);
+    const actualEventTableName: string[] = getEventTableNames(targetContracts);
+    expect(actualEventTableName).toEqual([
+      `${jsonFileContracts[0].name}_${jsonFileContracts[0].abi[0].name}`,
+    ]);
+  });
 });

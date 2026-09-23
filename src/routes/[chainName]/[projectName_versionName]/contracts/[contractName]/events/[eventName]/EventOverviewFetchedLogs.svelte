@@ -18,6 +18,7 @@
   import { getEventLogTableName } from "@utils/utlisDb";
   import classNames from "classnames";
   import EventOverviewFetchedLogsEdge from "./EventOverviewFetchedLogsEdge.svelte";
+  import { MESSAGE_ANONYMOUS_EVENT_LOGS } from "./EventLogs.svelte";
 
   export let targetChain: Chain;
   export let targetProject: Project;
@@ -33,6 +34,11 @@
     targetContractName: Contract["name"],
     targetEventAbiFragmentName: EventAbiFragment["name"],
   ): Promise<void> => {
+    // Logs of anonymous events are not fetched, so their table does not exist.
+    if (targetEventAbiFragment.anonymous) {
+      convertedEventLogs = [];
+      return;
+    }
     const dbEventLogs: DbEventLogs = new DbEventLogs({
       chainName: targetChainName,
       projectName: targetProjectName,
@@ -65,7 +71,13 @@
   );
 </script>
 
-{#if convertedEventLogs.length > 0}
+{#if targetEventAbiFragment.anonymous}
+  <BaseLabel
+    text={MESSAGE_ANONYMOUS_EVENT_LOGS}
+    italic
+    textSize={sizeSettings.itemWarnningMessage}
+  />
+{:else if convertedEventLogs.length > 0}
   <CommonItemMember text="Number of Fetched Logs">
     <BaseLabel
       text={numberWithCommas(convertedEventLogs.length)}

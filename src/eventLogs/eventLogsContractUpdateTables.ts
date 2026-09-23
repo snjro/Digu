@@ -122,7 +122,7 @@ function convertEthersEventToEventLog(
     isHexString(ethersEventLog.transactionHash)
   ) {
     return {
-      eventName: ethersEventLog.eventName ?? "LogNote",
+      eventName: ethersEventLog.eventName,
       eventSignature: ethersEventLog.eventSignature,
       args: Dexie.deepClone(ethersEventLog.args),
       blockNumber: ethersEventLog.blockNumber,

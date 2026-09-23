@@ -1,6 +1,7 @@
 import type { Chain, ChainName, Contract } from "@constants/chains/types";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import {
+  extractDecodedEventLogs,
   extractEventContracts,
   getAndUpdateLatestBlockNumber,
   getEthersEventLogs,
@@ -12,12 +13,17 @@ import { TARGET_CHAINS } from "@constants/chains/_index";
 import * as dbChainStatusDataHandlers from "@db/dbChainStatusDataHandlers";
 import type { ChainStatus, EthersEventLog } from "@db/dbTypes";
 import {
+  EventLog,
   JsonRpcProvider,
+  Log,
   Network,
+  UndecodedEventLog,
   WebSocketProvider,
   ethers,
   type Contract as EthersContract,
+  type Provider,
 } from "ethers";
+import { customLogger } from "./logger";
 import { jsonFileContracts } from "./testCommon";
 const targetChainName: ChainName = "matic";
 const targetChain: Chain = TARGET_CHAINS.find(
@@ -209,5 +215,83 @@ describe("getEthersEventLogs", async () => {
     );
     const expectedEthersEventLogs: EthersEventLog[] = [];
     expect(actualEthersEventLogs).toStrictEqual(expectedEthersEventLogs);
+  });
+});
+
+describe("extractDecodedEventLogs", () => {
+  const targetContract: Contract =
+    convertJsonFilesContractToContracts(jsonFileContracts)[0];
+  const contractInterface = targetContract.contractInterface;
+  const eventFragment = contractInterface.getEvent("event1")!;
+  const encodedEventLog = contractInterface.encodeEventLog(eventFragment, [
+    "0x0000000000000000000000000000000000000001",
+  ]);
+  const provider = null as unknown as Provider;
+  const baseLog = {
+    transactionHash: `0x${"a".repeat(64)}`,
+    blockHash: `0x${"b".repeat(64)}`,
+    blockNumber: 10,
+    removed: false,
+    address: "0x0000000000000000000000000000000000000011",
+    data: encodedEventLog.data,
+    topics: encodedEventLog.topics,
+    index: 0,
+    transactionIndex: 0,
+  };
+  const eventLog: EventLog = new EventLog(
+    new Log(baseLog, provider),
+    contractInterface,
+    eventFragment,
+  );
+  const undecodedEventLog: UndecodedEventLog = new UndecodedEventLog(
+    new Log({ ...baseLog, data: "0x", index: 1 }, provider),
+    new Error("could not decode"),
+  );
+  const plainLog: Log = new Log({ ...baseLog, index: 2 }, provider);
+
+  test("should return only decoded event logs", () => {
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    const actual: EthersEventLog[] = extractDecodedEventLogs(
+      [eventLog, undecodedEventLog, plainLog],
+      "event1",
+    );
+    expect(actual).toStrictEqual([eventLog]);
+    expect(actual[0].eventName).toBe("event1");
+    expect(spyError).toHaveBeenCalledTimes(2);
+    expect(spyError).toHaveBeenNthCalledWith(
+      1,
+      "Skip an event log that could not be decoded.",
+      {
+        eventName: "event1",
+        blockNumber: 10,
+        transactionHash: baseLog.transactionHash,
+        logIndex: 1,
+      },
+    );
+    spyError.mockRestore();
+  });
+  test("should be used by getEthersEventLogs", async () => {
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    const ethersContract: EthersContract = new ethers.Contract(
+      targetContract.address,
+      targetContract.contractInterface.fragments,
+    );
+    const spyQueryFilter = vi
+      .spyOn(ethersContract, "queryFilter")
+      .mockResolvedValue([eventLog, undecodedEventLog]);
+    const actual: EthersEventLog[] = await getEthersEventLogs(
+      ["event1"],
+      ethersContract,
+      0,
+      1,
+    );
+    expect(actual).toStrictEqual([eventLog]);
+    expect(spyError).toHaveBeenCalledTimes(1);
+    spyQueryFilter.mockRestore();
+    spyError.mockRestore();
   });
 });
