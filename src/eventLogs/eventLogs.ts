@@ -14,11 +14,21 @@ import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { get } from "svelte/store";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { storeChainStatus } from "@stores/storeChainStatus";
+import { requestSyncLock } from "./syncLock";
 
-export async function fetchEventLogs(targetChain: Chain): Promise<void> {
+// Resolves true once every sync target is marked as syncing, so that an abort
+// reaches all of them. Resolves false without syncing when the chain is
+// already synced (by another tab or by this tab).
+export async function fetchEventLogs(targetChain: Chain): Promise<boolean> {
+  return await requestSyncLock(
+    targetChain.name,
+    () => startSyncingInChain(targetChain.name),
+    () => syncEventLogs(targetChain),
+  );
+}
+async function syncEventLogs(targetChain: Chain): Promise<void> {
   customLogger.start(`Fetch event logs. Chain: ${targetChain.name}`);
 
-  await startSyncingInChain(targetChain.name);
   const promiseFetchAndInsertEthersEvents: Promise<void>[] = [];
   const rpc: string = get(storeRpcSettings)[targetChain.name].rpc;
   const nodeProvider: NodeProvider | undefined = await getNodeProvider(
