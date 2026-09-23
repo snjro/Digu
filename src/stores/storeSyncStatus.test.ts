@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
 import { getInitialState } from "./storeSyncStatusGetInitialState";
 import { NO_DATA } from "@utils/utilsCostants";
-import type { SyncStatusesChain } from "@db/dbTypes";
+import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
 
 export const dummyChainName = "chain1";
 export const dummyProjectName = "project1";
@@ -218,5 +218,100 @@ describe("storeSyncStaus", () => {
       expectedSyncStatus.syncStateText = "syncing";
     }
     expect(get(storeSyncStatus)).toEqual(expectedSyncStatusesChain);
+  });
+  describe("updateState should not change the previous value", () => {
+    const contractIdentifier = {
+      chainName: "eth",
+      projectName: "Augur",
+      versionName: "version2",
+      contractName: "OICash",
+    } as const;
+    const newSyncStatusContract: Partial<SyncStatusContract> = {
+      isSyncTarget: false,
+      isSyncing: true,
+      isAbort: true,
+      fetchedBlockNumber: 5,
+    };
+
+    test("the value got before updateState", async () => {
+      const storeSyncStatus = await importStoreSyncStatus();
+      const previousSyncStatusesChain: SyncStatusesChain = get(storeSyncStatus);
+      const expectedSyncStatusesChain: SyncStatusesChain = structuredClone(
+        previousSyncStatusesChain,
+      );
+
+      storeSyncStatus.updateState(contractIdentifier, newSyncStatusContract);
+
+      expect(previousSyncStatusesChain).toEqual(expectedSyncStatusesChain);
+      expect(get(storeSyncStatus)).not.toBe(previousSyncStatusesChain);
+    });
+    test("the value passed to set", async () => {
+      const storeSyncStatus = await importStoreSyncStatus();
+      const syncStatusesChain: SyncStatusesChain =
+        structuredClone(getInitialState());
+      const expectedSyncStatusesChain: SyncStatusesChain =
+        structuredClone(syncStatusesChain);
+
+      storeSyncStatus.set(syncStatusesChain);
+      storeSyncStatus.updateState(contractIdentifier, newSyncStatusContract);
+
+      expect(syncStatusesChain).toEqual(expectedSyncStatusesChain);
+    });
+    test("should keep the references outside the updated path", async () => {
+      const storeSyncStatus = await importStoreSyncStatus();
+      const { chainName, projectName, versionName, contractName } =
+        contractIdentifier;
+      const previousSyncStatusesChain: SyncStatusesChain = get(storeSyncStatus);
+      const previousVersion =
+        previousSyncStatusesChain[chainName].subSyncStatuses[projectName]
+          .subSyncStatuses[versionName];
+
+      storeSyncStatus.updateState(contractIdentifier, newSyncStatusContract);
+
+      const currentSyncStatusesChain: SyncStatusesChain = get(storeSyncStatus);
+      const currentVersion =
+        currentSyncStatusesChain[chainName].subSyncStatuses[projectName]
+          .subSyncStatuses[versionName];
+      // The updated path gets new objects.
+      expect(currentVersion).not.toBe(previousVersion);
+      expect(currentVersion.subSyncStatuses[contractName]).not.toBe(
+        previousVersion.subSyncStatuses[contractName],
+      );
+      // Sibling contracts, other versions, projects and chains keep theirs.
+      for (const siblingContractName in previousVersion.subSyncStatuses) {
+        if (siblingContractName === contractName) continue;
+        expect(currentVersion.subSyncStatuses[siblingContractName]).toBe(
+          previousVersion.subSyncStatuses[siblingContractName],
+        );
+      }
+      for (const otherVersionName in previousSyncStatusesChain[chainName]
+        .subSyncStatuses[projectName].subSyncStatuses) {
+        if (otherVersionName === versionName) continue;
+        expect(
+          currentSyncStatusesChain[chainName].subSyncStatuses[projectName]
+            .subSyncStatuses[otherVersionName],
+        ).toBe(
+          previousSyncStatusesChain[chainName].subSyncStatuses[projectName]
+            .subSyncStatuses[otherVersionName],
+        );
+      }
+      for (const otherProjectName in previousSyncStatusesChain[chainName]
+        .subSyncStatuses) {
+        if (otherProjectName === projectName) continue;
+        expect(
+          currentSyncStatusesChain[chainName].subSyncStatuses[otherProjectName],
+        ).toBe(
+          previousSyncStatusesChain[chainName].subSyncStatuses[
+            otherProjectName
+          ],
+        );
+      }
+      for (const otherChainName in previousSyncStatusesChain) {
+        if (otherChainName === chainName) continue;
+        expect(currentSyncStatusesChain[otherChainName]).toBe(
+          previousSyncStatusesChain[otherChainName],
+        );
+      }
+    });
   });
 });
