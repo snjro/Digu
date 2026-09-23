@@ -38,5 +38,5 @@
   value={$storeUserSettings.selectedChainName.toString()}
   colorCategoryFront={colorSettings.leftSidebarHeader}
   colorCategoryBg={colorSettings.leftSidebarHeader}
-  on:change={change}
+  onchange={change}
 />

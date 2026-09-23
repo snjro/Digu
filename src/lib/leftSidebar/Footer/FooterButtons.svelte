@@ -42,6 +42,5 @@
     {href}
     shadowEffect={true}
     openNewTab
-    on:click
   />
 {/each}

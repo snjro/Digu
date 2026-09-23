@@ -113,7 +113,7 @@
     indeterminate={isSyncTargetIndeterminate(targetSyncStatus.subSyncStatuses)}
     {size}
     disabled={syncStatus(targetChain).isSyncing}
-    on:click={checkChanged}
+    onclick={checkChanged}
   />
   <BaseLabel
     textSize={changeSize(size, 1)}

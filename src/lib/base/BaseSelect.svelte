@@ -31,6 +31,7 @@
   export let colorCategoryBg: BaseSelectProps["colorCategory"] = undefined;
   export let forcedClass: BaseSelectProps["forcedClass"] = undefined;
   export let appendClass: BaseSelectProps["appendClass"] = undefined;
+  export let onchange: ((event: Event) => void) | undefined = undefined;
 
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;
@@ -85,7 +86,7 @@
     "",
   )}
 >
-  <select bind:value class={customClass} on:change on:input>
+  <select bind:value class={customClass} on:change={onchange}>
     {#each items as { value, name }}
       <option
         {value}

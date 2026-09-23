@@ -114,9 +114,9 @@
     {bgColor}
     {isOpenAccordion}
     {suffixIcons}
-    on:click={flipAccordion}
-    on:mouseenter={onMouseEnter}
-    on:mouseleave={onMouseLeave}
-    on:keydown={onKeyDown}
+    onclick={flipAccordion}
+    onmouseenter={onMouseEnter}
+    onmouseleave={onMouseLeave}
+    onkeydown={onKeyDown}
   />
 </div>

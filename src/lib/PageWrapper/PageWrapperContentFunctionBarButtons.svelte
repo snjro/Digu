@@ -76,7 +76,7 @@
             {tooltipYPosition}
             colorCategoryBg={colorSettings.gridFunctionButton}
             colorCategoryFront={colorSettings.gridFunctionButton}
-            on:click={onClickEventFunction}
+            onclick={onClickEventFunction}
           />
         {/each}
       </div>

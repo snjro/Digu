@@ -78,7 +78,7 @@
     iconName="dotsVertical"
     colorCategoryBg={colorCategory}
     colorCategoryFront={colorCategory}
-    on:click={toggleShowChildren}
+    onclick={toggleShowChildren}
   />
   <div
     class={classNames(
@@ -115,8 +115,10 @@
             colorCategoryFront={colorSettings.gridFunctionButton}
             appendClassButton={classNames("w-full", "justify-start")}
             shadowEffect={false}
-            on:click={onClickEventFunction}
-            on:click={toggleShowChildren}
+            onclick={() => {
+              onClickEventFunction();
+              toggleShowChildren();
+            }}
           />
         {/each}
       </div>

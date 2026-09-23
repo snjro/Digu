@@ -61,6 +61,6 @@
     colorCategoryBg={headerColor}
     tooltipXPosition="left"
     tooltipYPosition="bottom"
-    on:click={() => closeDialog(dialogElement)}
+    onclick={() => closeDialog(dialogElement)}
   />
 </div>

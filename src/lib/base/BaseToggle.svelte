@@ -6,7 +6,6 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
-  import { createEventDispatcher } from "svelte";
   import type { BaseButtonProps } from "./BaseButton.svelte";
   import type { BaseIconProps } from "./BaseIcon";
   import BaseIcon from "./BaseIcon.svelte";
@@ -23,11 +22,11 @@
   export let disabled: boolean;
   export let toggleValue: boolean;
   export let iconProps: BaseIconProps | undefined = undefined;
+  export let ontogglechanged: (() => void) | undefined = undefined;
 
-  const dispatcher = createEventDispatcher();
   function onToggle(): void {
     toggleValue = !toggleValue;
-    dispatcher("toggleChanged");
+    ontogglechanged?.();
   }
 
   const trackSizes: { [key in BaseSize]: string } = {

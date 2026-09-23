@@ -47,8 +47,8 @@
       helperTextState = "error";
     }
   }
-  async function change(customEvent: CustomEvent) {
-    await updateNumberItemValue(customEvent.detail.newValue);
+  async function change(newValue: number) {
+    await updateNumberItemValue(newValue);
   }
 </script>
 
@@ -66,13 +66,13 @@
       {helperTextState}
       bind:value={storedValue}
       disabled={isSyncingChain}
-      on:change={change}
+      onchange={change}
     />
     <RpcConfigChangerRange
       disabled={isSyncingChain}
       value={storedValue}
       {rpcConfigParam}
-      on:change={change}
+      onchange={change}
     />
   </div>
   <div class={classNames("col-span-full")}>

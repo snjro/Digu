@@ -16,6 +16,7 @@
   export let checked: boolean | undefined = undefined;
   export let indeterminate: boolean = false;
   export let disabled: boolean = false;
+  export let onclick: ((event: MouseEvent) => void) | undefined = undefined;
   let themeColor: ThemeColor;
   $: themeColor = $storeUserSettings.themeColor;
 
@@ -53,16 +54,7 @@
 <input
   type="checkbox"
   bind:checked
-  on:keyup
-  on:keydown
-  on:keypress
-  on:focus
-  on:blur
-  on:click
-  on:mouseover
-  on:mouseenter
-  on:mouseleave
-  on:paste
+  on:click={onclick}
   bind:indeterminate
   {value}
   {disabled}

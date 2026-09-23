@@ -19,7 +19,7 @@
   bind:dialogElement
   headerText="Settings"
   headerIconName="cogOutline"
-  on:close={closeDialog}
+  onclose={closeDialog}
 >
   <PageWrapperContent
     hasMultipulTabs={false}

@@ -15,7 +15,6 @@
   } from "$lib/base/BaseButton.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import BaseIcon from "$lib/base/BaseIcon.svelte";
-  import { createEventDispatcher } from "svelte";
 
   export let label: BaseButtonProps["label"] = undefined;
   export let href: BaseButtonProps["href"] = undefined;
@@ -42,14 +41,18 @@
     undefined;
   export let underlineLabel: BaseButtonProps["underlineLabel"] = false;
   export let rounded: BaseButtonProps["rounded"] = true;
-  const dispatch = createEventDispatcher();
-  function onMouseEnter(event: CustomEvent) {
+  export let onclick: ((event: MouseEvent) => void) | undefined = undefined;
+  export let onmouseenter: ((event: MouseEvent) => void) | undefined =
+    undefined;
+  export let onmouseleave: ((event: MouseEvent) => void) | undefined =
+    undefined;
+  function onMouseEnter(event: MouseEvent) {
     if (!isHoverControledByParent) isHover = true;
-    dispatch("mouseenter", event.detail);
+    onmouseenter?.(event);
   }
-  function onMouseLeave(event: CustomEvent) {
+  function onMouseLeave(event: MouseEvent) {
     if (!isHoverControledByParent) isHover = false;
-    dispatch("mouseleave", event.detail);
+    onmouseleave?.(event);
   }
   let type: NonNullable<BaseButtonProps["type"]> = label ? "normal" : "icon";
 </script>
@@ -78,9 +81,9 @@
   {underlineLabel}
   {rounded}
   appendClass={appendClassButton}
-  on:click
-  on:mouseenter={onMouseEnter}
-  on:mouseleave={onMouseLeave}
+  {onclick}
+  onmouseenter={onMouseEnter}
+  onmouseleave={onMouseLeave}
 >
   <svelte:fragment slot="prefixIcon">
     {#if prefixIcon}

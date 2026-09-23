@@ -95,8 +95,8 @@
     disabled={$storeSyncStatus[targetChainName].isSyncing}
     helperTextState={helperTextState()}
     placeholder="https://localhost:8545"
-    on:focus={focusRpc}
-    on:blur={blurRpc}
+    onfocus={focusRpc}
+    onblur={blurRpc}
   >
     <BaseIcon
       slot="prefixIcon"
@@ -106,7 +106,7 @@
     />
     <BaseButtonIcon
       slot="suffixIcon"
-      on:click={toggleInputType}
+      onclick={toggleInputType}
       size={changeSize(sizeSettings.navInput, -1)}
       tooltipText={eyeIconTooltipText}
       tooltipXPosition="right"

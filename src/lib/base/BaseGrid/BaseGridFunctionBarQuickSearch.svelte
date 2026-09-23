@@ -41,7 +41,7 @@
       iconName="close"
       colorCategoryBg={colorSettings.gridFunctionButton}
       colorCategoryFront={colorSettings.gridFunctionButton}
-      on:click={() => {
+      onclick={() => {
         quickSearchText = "";
       }}
     />
