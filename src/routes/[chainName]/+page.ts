@@ -2,6 +2,7 @@ import type { LoadEvent } from "@sveltejs/kit";
 import type { ChainIdentifier } from "@db/dbTypes";
 import type { Chain } from "@constants/chains/types";
 import { getTargetChain } from "@utils/utlisDb";
+import { throwNotFoundAs404 } from "@routes/targetNotFound";
 
 export type LoadChainData = {
   targetChain: Chain;
@@ -24,7 +25,9 @@ export function _LoadChainData({
     chainName: params.chainName!,
   };
 
-  const targetChain: Chain = getTargetChain(chainIdentifier);
+  const targetChain: Chain = throwNotFoundAs404(() =>
+    getTargetChain(chainIdentifier),
+  );
 
   return {
     targetChain: targetChain,

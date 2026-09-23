@@ -27,6 +27,7 @@ import {
   getTargetVersion,
   getTargetFunctionAbiFragment,
 } from "@utils/utlisDb";
+import { throwNotFoundAs404 } from "@routes/targetNotFound";
 
 export type LoadFunction = {
   targetChain: Chain;
@@ -85,18 +86,20 @@ export async function load({
       functionSelector: functionSelector,
     };
 
-    const targetChain: Chain = getTargetChain(chainIdentifier);
-    const targetProject: Project = getTargetProject(projectIdentifier);
-    const targetVersion: Version = getTargetVersion(versionIdentifier);
-    const targetContract: Contract = getTargetContract(contractIdentifier);
-    const targetFunctionAbiFragment: FunctionAbiFragment =
-      getTargetFunctionAbiFragment(abiFragmentIdentifier);
-    return {
-      targetChain: targetChain,
-      targetProject: targetProject,
-      targetVersion: targetVersion,
-      targetContract: targetContract,
-      targetFunctionAbiFragment: targetFunctionAbiFragment,
-    };
+    return throwNotFoundAs404(() => {
+      const targetChain: Chain = getTargetChain(chainIdentifier);
+      const targetProject: Project = getTargetProject(projectIdentifier);
+      const targetVersion: Version = getTargetVersion(versionIdentifier);
+      const targetContract: Contract = getTargetContract(contractIdentifier);
+      const targetFunctionAbiFragment: FunctionAbiFragment =
+        getTargetFunctionAbiFragment(abiFragmentIdentifier);
+      return {
+        targetChain: targetChain,
+        targetProject: targetProject,
+        targetVersion: targetVersion,
+        targetContract: targetContract,
+        targetFunctionAbiFragment: targetFunctionAbiFragment,
+      };
+    });
   }
 }

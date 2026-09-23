@@ -9,6 +9,7 @@ import type { AbiFragmentIdentifier } from "@db/dbTypes";
 import type { LoadEvent } from "@sveltejs/kit";
 import { getTargetEventAbiFragment } from "@utils/utlisDb";
 import { _LoadContractData, type LoadContractData } from "../../+page";
+import { throwNotFoundAs404 } from "@routes/targetNotFound";
 
 export type LoadEventLogs = {
   targetChain: Chain;
@@ -49,7 +50,9 @@ function _loadEventData({
 
   return {
     ...loadedContractData,
-    targetEventAbiFragment: getTargetEventAbiFragment(eventIdentifier),
+    targetEventAbiFragment: throwNotFoundAs404(() =>
+      getTargetEventAbiFragment(eventIdentifier),
+    ),
     targetEventIdentifier: eventIdentifier,
   };
 }

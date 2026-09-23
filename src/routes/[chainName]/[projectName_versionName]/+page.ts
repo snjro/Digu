@@ -7,6 +7,7 @@ import {
   getTargetVersion,
 } from "@utils/utlisDb";
 import { getSplitProjectVersionName } from "./projectVersionNameHelper";
+import { throwNotFoundAs404 } from "@routes/targetNotFound";
 
 export type LoadVersionData = {
   targetChain: Chain;
@@ -41,13 +42,15 @@ export function _LoadVersionData({
       .versionName,
   };
 
-  const targetChain: Chain = getTargetChain(chainIdentifier);
-  const targetProject: Project = getTargetProject(projectIdentifier);
-  const targetVersion: Version = getTargetVersion(versionIdentifier);
+  return throwNotFoundAs404(() => {
+    const targetChain: Chain = getTargetChain(chainIdentifier);
+    const targetProject: Project = getTargetProject(projectIdentifier);
+    const targetVersion: Version = getTargetVersion(versionIdentifier);
 
-  return {
-    targetChain: targetChain,
-    targetProject: targetProject,
-    targetVersion: targetVersion,
-  };
+    return {
+      targetChain: targetChain,
+      targetProject: targetProject,
+      targetVersion: targetVersion,
+    };
+  });
 }

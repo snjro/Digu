@@ -17,6 +17,13 @@ import type {
   VersionIdentifier,
 } from "@db/dbTypes";
 
+export class TargetNotFoundError extends Error {
+  constructor(target: string, identifier: object) {
+    super(`${target} not found: ${Object.values(identifier).join("/")}`);
+    this.name = "TargetNotFoundError";
+  }
+}
+
 export function getEventLogTableName(
   contractName: ContractName,
   eventName: AbiFragmentName,
@@ -27,7 +34,10 @@ export function getTargetChain(chainIdentifier: ChainIdentifier): Chain {
   const targetChain: Chain | undefined = TARGET_CHAINS.find((chain) => {
     return chain.name === chainIdentifier.chainName;
   });
-  return targetChain!;
+  if (targetChain === undefined) {
+    throw new TargetNotFoundError("chain", chainIdentifier);
+  }
+  return targetChain;
 }
 export function getTargetProject(
   projectIdentifier: ProjectIdentifier,
@@ -37,7 +47,10 @@ export function getTargetProject(
   }).projects.find((project: Project) => {
     return project.name === projectIdentifier.projectName;
   });
-  return targetProject!;
+  if (targetProject === undefined) {
+    throw new TargetNotFoundError("project", projectIdentifier);
+  }
+  return targetProject;
 }
 export function getTargetVersion(
   versionIdentifier: VersionIdentifier,
@@ -48,7 +61,10 @@ export function getTargetVersion(
   }).versions.find((version: Version) => {
     return version.name === versionIdentifier.versionName;
   });
-  return targetVersion!;
+  if (targetVersion === undefined) {
+    throw new TargetNotFoundError("version", versionIdentifier);
+  }
+  return targetVersion;
 }
 
 export function getTargetContract(
@@ -61,7 +77,10 @@ export function getTargetContract(
   }).contracts.find((contract: Contract) => {
     return contract.name === contractIdentifier.contractName;
   });
-  return targetContract!;
+  if (targetContract === undefined) {
+    throw new TargetNotFoundError("contract", contractIdentifier);
+  }
+  return targetContract;
 }
 export function getTargetEventAbiFragment(
   eventIdentifier: AbiFragmentIdentifier,
@@ -72,9 +91,11 @@ export function getTargetEventAbiFragment(
     versionName: eventIdentifier.versionName,
     contractName: eventIdentifier.contractName,
   });
-  const eventAbiFragment: EventAbiFragment =
-    targetContract.contractInterface.getEvent(eventIdentifier.abiFragmentName)!;
-
+  const eventAbiFragment: EventAbiFragment | null =
+    targetContract.contractInterface.getEvent(eventIdentifier.abiFragmentName);
+  if (eventAbiFragment === null) {
+    throw new TargetNotFoundError("event", eventIdentifier);
+  }
   return eventAbiFragment;
 }
 export function getTargetFunctionAbiFragment(
@@ -86,10 +107,13 @@ export function getTargetFunctionAbiFragment(
     versionName: functionIdentifier.versionName,
     contractName: functionIdentifier.contractName,
   });
-  const functionAbiFragment: FunctionAbiFragment =
+  const functionAbiFragment: FunctionAbiFragment | null =
     targetContract.contractInterface.getFunction(
       functionIdentifier.functionSelector!,
-    )!;
+    );
+  if (functionAbiFragment === null) {
+    throw new TargetNotFoundError("function", functionIdentifier);
+  }
   return functionAbiFragment;
 }
 export function getEventTableNames(targetContracts: Contract[]): string[] {

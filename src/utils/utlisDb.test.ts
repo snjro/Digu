@@ -13,6 +13,7 @@ import {
   getTargetFunctionAbiFragment,
   getTargetProject,
   getTargetVersion,
+  TargetNotFoundError,
 } from "./utlisDb";
 import type {
   AbiFragmentIdentifier,
@@ -159,4 +160,63 @@ describe("getEventTableNames", () => {
       `${jsonFileContracts[0].name}_${jsonFileContracts[0].abi[0].name}`,
     ]);
   });
+});
+
+describe("not found", () => {
+  const cases: { name: string; call: () => unknown; message: string }[] = [
+    {
+      name: "getTargetChain",
+      call: () => getTargetChain({ chainName: "foo" }),
+      message: "chain not found: foo",
+    },
+    {
+      name: "getTargetProject",
+      call: () => getTargetProject({ ...chainIdentifier, projectName: "foo" }),
+      message: "project not found: eth/foo",
+    },
+    {
+      name: "getTargetVersion",
+      call: () =>
+        getTargetVersion({ ...projectIdentifier, versionName: "foo" }),
+      message: "version not found: eth/Augur/foo",
+    },
+    {
+      name: "getTargetContract",
+      call: () =>
+        getTargetContract({ ...versionIdentifier, contractName: "foo" }),
+      message: "contract not found: eth/Augur/version1/foo",
+    },
+    {
+      name: "getTargetEventAbiFragment",
+      call: () =>
+        getTargetEventAbiFragment({
+          ...contractIdentifier,
+          abiFragmentName: "foo",
+        }),
+      message: "event not found: eth/Augur/version1/Augur/foo",
+    },
+    {
+      name: "getTargetFunctionAbiFragment",
+      call: () =>
+        getTargetFunctionAbiFragment({
+          ...functionIdentifier,
+          functionSelector: "0x00000000",
+        }),
+      message:
+        "function not found: eth/Augur/version1/Augur/disputeCrowdsourcerCreated/0x00000000",
+    },
+    {
+      name: "getTargetContract when the chain is missing",
+      call: () =>
+        getTargetContract({ ...contractIdentifier, chainName: "foo" }),
+      message: "chain not found: foo",
+    },
+  ];
+  test.each(cases)(
+    "$name should throw TargetNotFoundError",
+    ({ call, message }) => {
+      expect(call).toThrow(TargetNotFoundError);
+      expect(call).toThrow(message);
+    },
+  );
 });
