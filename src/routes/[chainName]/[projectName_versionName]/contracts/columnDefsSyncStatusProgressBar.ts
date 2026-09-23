@@ -18,10 +18,10 @@ import type {
   Version,
 } from "@constants/chains/types";
 import GridCellSyncStatusProgressBar from "./GridCellSyncStatusProgressBar.svelte";
-import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
+import type { SyncStatusContract } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
-import type { StateChainStatuses } from "@stores/storeTypes";
+import { get } from "svelte/store";
 import {
   getProgressRate,
   getProgressRateForLabel,
@@ -48,19 +48,13 @@ export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
     valueGetter: (valueGetterParams: ValueGetterParams<T>): string => {
       const contractName: ContractName = valueGetterParams.data!.contract.name;
 
-      let contractSyncStatus: SyncStatusContract | undefined = undefined;
-      storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
-        contractSyncStatus =
-          syncStatusesChain[targetChain.name].subSyncStatuses[
-            targetProject.name
-          ].subSyncStatuses[targetVersion.name].subSyncStatuses[contractName];
-      });
+      const contractSyncStatus: SyncStatusContract | undefined =
+        get(storeSyncStatus)[targetChain.name].subSyncStatuses[
+          targetProject.name
+        ].subSyncStatuses[targetVersion.name].subSyncStatuses[contractName];
 
-      let latestBlockNumber: number = 0;
-      storeChainStatus.subscribe((stateChainStatuses: StateChainStatuses) => {
-        latestBlockNumber =
-          stateChainStatuses[targetChain.name].latestBlockNumber;
-      });
+      const latestBlockNumber: number =
+        get(storeChainStatus)[targetChain.name].latestBlockNumber;
 
       const startBlockNumber: number =
         valueGetterParams.data!.contract.creation.blockNumber;
@@ -70,7 +64,7 @@ export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
             getProgressRate(
               startBlockNumber,
               latestBlockNumber,
-              (contractSyncStatus as SyncStatusContract).fetchedBlockNumber,
+              contractSyncStatus.fetchedBlockNumber,
             ),
           )
         : NO_DATA;

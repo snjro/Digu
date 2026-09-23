@@ -18,8 +18,9 @@ import type {
   Version,
 } from "@constants/chains/types";
 import GridCellSyncStatusTarget from "./GridCellSyncStatusTarget.svelte";
-import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
+import type { SyncStatusContract } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { get } from "svelte/store";
 import {
   syncTargetLabelText,
   type SyncTargetLabelText,
@@ -46,14 +47,11 @@ export const columnDefsSyncStatusTarget = <T extends ContractRow>(
     valueGetter: (
       valueGetterParams: ValueGetterParams<T>,
     ): SyncTargetLabelText | typeof NO_DATA => {
-      let contractSyncStatus: SyncStatusContract | undefined = undefined;
       const contractName: ContractName = valueGetterParams.data!.contract.name;
-      storeSyncStatus.subscribe((syncStatusesChain: SyncStatusesChain) => {
-        contractSyncStatus =
-          syncStatusesChain[targetChain.name].subSyncStatuses[
-            targetProject.name
-          ].subSyncStatuses[targetVersion.name].subSyncStatuses[contractName];
-      });
+      const contractSyncStatus: SyncStatusContract | undefined =
+        get(storeSyncStatus)[targetChain.name].subSyncStatuses[
+          targetProject.name
+        ].subSyncStatuses[targetVersion.name].subSyncStatuses[contractName];
       return contractSyncStatus
         ? syncTargetLabelText(contractSyncStatus)
         : NO_DATA;

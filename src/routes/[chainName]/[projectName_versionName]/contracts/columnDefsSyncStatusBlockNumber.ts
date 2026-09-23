@@ -23,7 +23,6 @@ import GridCellSyncStatusBlockNumber, {
 import type { SyncStatusContract } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
-import type { StateChainStatuses } from "@stores/storeTypes";
 import { get } from "svelte/store";
 import { NO_DATA } from "@utils/utilsCostants";
 
@@ -53,11 +52,8 @@ export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
         ].subSyncStatuses[targetVersion.name].subSyncStatuses[
           targetContract.name
         ];
-      let latestBlockNumber: number = 0;
-      storeChainStatus.subscribe((storeChainStatus: StateChainStatuses) => {
-        latestBlockNumber =
-          storeChainStatus[targetChain.name].latestBlockNumber;
-      });
+      const latestBlockNumber: number =
+        get(storeChainStatus)[targetChain.name].latestBlockNumber;
 
       const blockNumber: number = getBlockNumberByHeaderName(
         headerName,
