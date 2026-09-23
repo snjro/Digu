@@ -97,7 +97,12 @@
     suppressFieldDotNotation: true,
     suppressRowTransform: false,
     suppressMovableColumns: false,
-    rowSelection: "multiple",
+    rowSelection: {
+      mode: "multiRow",
+      checkboxes: false,
+      headerCheckbox: false,
+      enableClickSelection: true,
+    },
     suppressColumnVirtualisation: true,
     pagination: true,
     paginationAutoPageSize: true,
@@ -155,12 +160,15 @@
       } else {
         if (rows && rows.length) {
           gridApi.hideOverlay();
-          gridApi.showLoadingOverlay();
+          gridApi.setGridOption("loading", true);
         } else {
           gridApi.hideOverlay();
           gridApi.showNoRowsOverlay();
         }
         gridApi.setGridOption("rowData", rows);
+        if (rows && rows.length) {
+          gridApi.setGridOption("loading", false);
+        }
       }
     }
   }
