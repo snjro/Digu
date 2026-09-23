@@ -38,7 +38,10 @@ const PAGES = [
     "/eth/Augur-version1/contracts/Augur/functions/createChildUniverse-0x8892bb73/",
   ],
 ];
-// Screens after an action. Each starts from a fresh load of `url`.
+const VERSION = "/eth/Augur-version1/";
+// Screens after an action. Each starts from a fresh browser profile, so that
+// what an action saves in IndexedDB (settings, the chain) does not carry over.
+// With `keepMouse`, the mouse stays where the action put it (for hover).
 const STATES = [
   ["settings", EVENTS, (page) => clickByTooltip(page, "Settings")],
   ["export-csv", EVENTS, (page) => clickByTooltip(page, "Export as CSV")],
@@ -53,19 +56,7 @@ const STATES = [
     "sidebar-version2",
     EVENTS,
     async (page) => {
-      // The arrow next to the item opens the accordion. The item itself is a link.
-      const clicked = await page.evaluate(() => {
-        const item = [...document.querySelectorAll("button")].find(
-          (e) => e.innerText.trim() === "Augur version2",
-        );
-        let arrow;
-        for (let e = item; e && !arrow; e = e.parentElement) {
-          arrow = e.querySelector(':scope > [role="button"]');
-        }
-        arrow?.click();
-        return Boolean(arrow);
-      });
-      if (!clicked) throw new Error("No accordion for Augur version2");
+      await (await accordionArrow(page, "Augur version2")).click();
     },
   ],
   // GitHub Pages has no page for an unknown URL, so +error.svelte is
@@ -90,6 +81,129 @@ const STATES = [
       await page.setViewport(NARROW_VIEWPORT);
     },
   ],
+  [
+    "export-csv-row-number-no",
+    EVENTS,
+    async (page) => {
+      await clickByTooltip(page, "Export as CSV");
+      await settle(page);
+      // The first "No" is the one of "Row number".
+      await clickByText(page, "No");
+    },
+  ],
+  [
+    "settings-close",
+    EVENTS,
+    async (page) => {
+      await clickByTooltip(page, "Settings");
+      await settle(page);
+      await page.click("dialog[open] button");
+    },
+  ],
+  [
+    "settings-escape",
+    EVENTS,
+    async (page) => {
+      await clickByTooltip(page, "Settings");
+      await settle(page);
+      await page.keyboard.press("Escape");
+    },
+  ],
+  [
+    "settings-range",
+    EVENTS,
+    async (page) => {
+      await clickByTooltip(page, "Settings");
+      await settle(page);
+      await page.$eval('dialog[open] input[type="range"]', (range) => {
+        range.value = range.max;
+        range.dispatchEvent(new Event("input", { bubbles: true }));
+        range.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    },
+  ],
+  ["settings-input", EVENTS, (page) => typeSetting(page, "250")],
+  ["settings-input-error", EVENTS, (page) => typeSetting(page, "0")],
+  [
+    "hover-sidebar-item",
+    EVENTS,
+    async (page) => {
+      await hover(page, await buttonByText(page, "Cash"));
+    },
+    { keepMouse: true },
+  ],
+  [
+    "hover-accordion-arrow",
+    EVENTS,
+    async (page) => {
+      await hover(page, await accordionArrow(page, "Augur version2"));
+    },
+    { keepMouse: true },
+  ],
+  [
+    "accordion-enter",
+    EVENTS,
+    async (page) => {
+      await (await accordionArrow(page, "Augur version2")).focus();
+      await page.keyboard.press("Enter");
+    },
+  ],
+  [
+    "select-chain",
+    EVENTS,
+    async (page) => {
+      const value = await page.$eval(
+        "select",
+        (select) =>
+          [...select.options].find((o) => o.textContent.includes("Polygon"))
+            .value,
+      );
+      await page.select("select", value);
+    },
+  ],
+  [
+    "version-sync-target",
+    VERSION,
+    async (page) => {
+      await page.evaluate(() => {
+        const row = [...document.querySelectorAll("tr")].find((e) =>
+          e.innerText.includes("LegacyReputationToken"),
+        );
+        row.querySelector('input[type="checkbox"]').click();
+      });
+    },
+  ],
+  [
+    "quick-search-clear",
+    EVENTS,
+    async (page) => {
+      await page.type('input[placeholder="Quick search..."]', "Market");
+      await settle(page);
+      await clickByTooltip(page, "clear");
+    },
+  ],
+  [
+    "narrow-three-dots",
+    EVENTS,
+    async (page) => {
+      await page.setViewport(NARROW_VIEWPORT);
+      await settle(page);
+      await openThreeDots(page, "Settings");
+    },
+  ],
+  [
+    "narrow-three-dots-settings",
+    EVENTS,
+    async (page) => {
+      await page.setViewport(NARROW_VIEWPORT);
+      await settle(page);
+      await openThreeDots(page, "Settings");
+      await settle(page);
+      await clickByText(page, "Settings");
+    },
+  ],
+  // There is no RPC, so the sync does not start.
+  ["sync-toggle", EVENTS, (page) => clickByTooltip(page, "start sync")],
 ];
 
 const TYPES = {
@@ -126,7 +240,7 @@ const NO_MOTION_CSS = `*, *::before, *::after {
   caret-color: transparent !important;
 }`;
 
-async function settle(page) {
+async function settle(page, { keepMouse = false } = {}) {
   await page.waitForNetworkIdle({ idleTime: 500 });
   await page.waitForFunction(
     () => !document.querySelector('[data-testid="loadingSpinner-test"]'),
@@ -134,7 +248,7 @@ async function settle(page) {
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({ content: NO_MOTION_CSS });
   // Keep the mouse off the buttons, so that no tooltip is shown.
-  await page.mouse.move(0, VIEWPORT.height - 1);
+  if (!keepMouse) await page.mouse.move(0, VIEWPORT.height - 1);
   await page.evaluate(
     () => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 300))),
   );
@@ -169,6 +283,68 @@ async function clickByTooltip(page, text) {
   if (!clicked) throw new Error(`No visible button with the tooltip "${text}"`);
 }
 
+async function buttonByText(page, text) {
+  const button = await page.evaluateHandle(
+    (text) =>
+      [...document.querySelectorAll("button")].find(
+        (e) => e.innerText.trim() === text && e.getClientRects().length > 0,
+      ),
+    text,
+  );
+  if (!button.asElement()) throw new Error(`No visible button "${text}"`);
+  return button;
+}
+
+async function clickByText(page, text) {
+  await (await buttonByText(page, text)).click();
+}
+
+// The arrow next to a sidebar item opens its accordion. The item is a link.
+async function accordionArrow(page, text) {
+  const item = await buttonByText(page, text);
+  return item.evaluateHandle((item) => {
+    for (let e = item; e; e = e.parentElement) {
+      const arrow = e.querySelector(':scope > [role="button"]');
+      if (arrow) return arrow;
+    }
+    throw new Error("No accordion arrow");
+  });
+}
+
+async function hover(page, element) {
+  const box = await element.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+}
+
+// Opens the "three dots" menu that holds the button `itemText`.
+async function openThreeDots(page, itemText) {
+  const clicked = await page.evaluate((itemText) => {
+    const buttons = [...document.querySelectorAll("button")].filter(
+      (b) => b.querySelector("svg#dotsVertical") && b.getClientRects().length,
+    );
+    const button = buttons.find((b) =>
+      [...b.closest(".relative").querySelectorAll("button")].some(
+        (e) => e.innerText.trim() === itemText,
+      ),
+    );
+    button?.click();
+    return Boolean(button);
+  }, itemText);
+  if (!clicked) throw new Error(`No "three dots" menu with "${itemText}"`);
+}
+
+// Types `text` into the first number input of the settings dialog.
+async function typeSetting(page, text) {
+  await clickByTooltip(page, "Settings");
+  await settle(page);
+  await page.focus('dialog[open] input[type="number"]');
+  await page.keyboard.down("Control");
+  await page.keyboard.press("a");
+  await page.keyboard.up("Control");
+  await page.keyboard.type(text);
+  await page.keyboard.press("Tab");
+}
+
 async function setTheme(page, theme) {
   const isDark = () =>
     page.evaluate(() => document.documentElement.classList.contains("dark"));
@@ -197,45 +373,57 @@ const browser = await puppeteer.launch({
     "--disable-checker-imaging",
   ],
 });
-const page = await browser.newPage();
-page.on("console", (m) => {
-  if (m.type() === "error" || m.type() === "warn") {
-    log.push(`[${m.type()}] ${m.text()}`);
-  }
-});
-page.on("pageerror", (e) => log.push(`[pageerror] ${e.message}`));
-// No request leaves the container (for example, to an RPC).
-await page.setRequestInterception(true);
-page.on("request", (req) => {
-  const url = new URL(req.url());
-  if (url.protocol.startsWith("http") && url.origin !== ORIGIN) {
-    log.push(`[blocked] ${req.url()}`);
-    req.abort();
-  } else {
-    req.continue();
-  }
-});
+
+// A page in a fresh browser profile.
+async function newPage() {
+  const context = await browser.createBrowserContext();
+  const page = await context.newPage();
+  page.on("console", (m) => {
+    if (m.type() === "error" || m.type() === "warn") {
+      log.push(`[${m.type()}] ${m.text()}`);
+    }
+  });
+  page.on("pageerror", (e) => log.push(`[pageerror] ${e.message}`));
+  // No request leaves the container (for example, to an RPC).
+  await page.setRequestInterception(true);
+  page.on("request", (req) => {
+    const url = new URL(req.url());
+    if (url.protocol.startsWith("http") && url.origin !== ORIGIN) {
+      log.push(`[blocked] ${req.url()}`);
+      req.abort();
+    } else {
+      req.continue();
+    }
+  });
+  return { page, close: () => context.close() };
+}
+
+async function shoot(page, name) {
+  await page.screenshot({ path: path.join(outDir, `${name}.png`) });
+}
 
 try {
-  // The theme is kept in IndexedDB, so it stays across the pages.
   for (const theme of ["light", "dark"]) {
+    // The theme is kept in IndexedDB, so it stays across the pages.
+    const { page, close } = await newPage();
     await open(page, "/");
     await setTheme(page, theme);
     for (const [name, url] of PAGES) {
       log.push(`${theme}-${name} ${url}`);
       await open(page, url);
-      await page.screenshot({
-        path: path.join(outDir, `${theme}-${name}.png`),
-      });
+      await shoot(page, `${theme}-${name}`);
     }
-    for (const [name, url, action] of STATES) {
+    await close();
+    for (const [name, url, action, options] of STATES) {
       log.push(`${theme}-${name} ${url}`);
+      const { page, close } = await newPage();
       await open(page, url);
-      await action(page);
+      await setTheme(page, theme);
       await settle(page);
-      await page.screenshot({
-        path: path.join(outDir, `${theme}-${name}.png`),
-      });
+      await action(page);
+      await settle(page, options);
+      await shoot(page, `${theme}-${name}`);
+      await close();
     }
   }
 } finally {

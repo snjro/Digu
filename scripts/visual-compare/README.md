@@ -57,10 +57,22 @@ Light and dark theme of:
 
 - the pages: home, chain, version, contracts, contract, events, event,
   functions, function
-- the events page after an action: the settings dialog, the "Export as CSV"
-  dialog, a quick search, the sidebar accordion of "Augur version2", and a
-  narrow window (760 px)
+- the events page after an action:
+  - the settings dialog: opened, closed with its close button or Escape,
+    after moving a slider, after typing a valid and an invalid value
+  - the "Export as CSV" dialog: opened, after choosing "No"
+  - a quick search, and after clearing it
+  - the sidebar: the accordion of "Augur version2" opened by a click or the
+    Enter key, the mouse over an item or an accordion arrow
+  - another chain chosen in the sidebar
+  - the sync toggle clicked (there is no RPC, so the sync does not start)
+  - a narrow window (760 px), its "three dots" menu, and the settings dialog
+    opened from that menu
+- the version page after unchecking the sync target of a contract
 - the error page (404), after a link to an unknown chain
+
+Each action starts from a fresh browser profile, so what it saves in the
+browser (settings, the chain) does not change the next screen.
 
 To add a screen, edit `PAGES` or `STATES` in `shots.mjs`.
 
