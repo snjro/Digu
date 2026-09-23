@@ -4,7 +4,8 @@
  * See: https://stackoverflow.com/a/72608215
  */
 import type { ICellRendererComp, ICellRendererParams } from "ag-grid-community";
-import { mount as svelteMount, unmount } from "svelte";
+import type { mount as svelteMount } from "svelte";
+import { MountedComponents } from "./mountedComponents";
 
 /**
  * Class for defining a cell renderer.
@@ -14,7 +15,7 @@ import { mount as svelteMount, unmount } from "svelte";
 export abstract class AbstractCellRenderer implements ICellRendererComp {
   eGui: any;
   protected value: any;
-  private mountedComponents: ReturnType<typeof svelteMount>[] = [];
+  private mountedComponents = new MountedComponents();
 
   constructor(parentElement = "div") {
     // create empty span (or other element) to place svelte component in
@@ -41,18 +42,11 @@ export abstract class AbstractCellRenderer implements ICellRendererComp {
   }
 
   destroy(): void {
-    for (const mountedComponent of this.mountedComponents) {
-      unmount(mountedComponent);
-    }
-    this.mountedComponents = [];
+    this.mountedComponents.unmountAll();
   }
 
   /** svelte's mount() that also unmounts the component on destroy. */
-  mount: typeof svelteMount = (component, options) => {
-    const mountedComponent = svelteMount(component, options);
-    this.mountedComponents.push(mountedComponent);
-    return mountedComponent;
-  };
+  mount: typeof svelteMount = this.mountedComponents.mount;
 
   /**
    * Define and create the svelte component to use in the cell
