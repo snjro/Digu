@@ -19,10 +19,15 @@ import {
 } from "ethers";
 export type AbiFormatType = "json" | "full" | "minimal";
 
+// Anonymous events are not synced, so a contract that has only anonymous
+// events has no event to sync.
+export function hasSyncTargetEvents(contract: Contract): boolean {
+  return contract.events.names.length > 0;
+}
 export function extractEventContracts(targetContracts: Contract[]): Contract[] {
   const eventContracts: Contract[] = targetContracts.filter(
     (contract: Contract) => {
-      return contract.events.abiFragments.length > 0 ? true : false;
+      return hasSyncTargetEvents(contract);
     },
   );
   return eventContracts;

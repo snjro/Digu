@@ -23,6 +23,7 @@
   import { trailingSlash } from "@routes/+layout";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsCostants";
+  import { hasSyncTargetEvents } from "@utils/utilsEthers";
 
   // export let contracts: Contract[];
   export let targetChain: Chain;
@@ -86,12 +87,10 @@
               />
             </BaseTableBodyCell>
             <BaseTableBodyCell
-              align={targetContract.events.abiFragments.length > 0
-                ? "left"
-                : "center"}
+              align={hasSyncTargetEvents(targetContract) ? "left" : "center"}
               {textSize}
             >
-              {#if targetContract.events.abiFragments.length > 0}
+              {#if hasSyncTargetEvents(targetContract)}
                 <CommonToggleSyncTarget
                   {targetChain}
                   {targetProject}
@@ -104,12 +103,10 @@
               {/if}
             </BaseTableBodyCell>
             <BaseTableBodyCell
-              align={targetContract.events.abiFragments.length > 0
-                ? "left"
-                : "center"}
+              align={hasSyncTargetEvents(targetContract) ? "left" : "center"}
               {textSize}
             >
-              {#if targetContract.events.abiFragments.length > 0}
+              {#if hasSyncTargetEvents(targetContract)}
                 <CommonSyncStateText
                   syncStateText={$storeSyncStatus[targetChain.name]
                     .subSyncStatuses[targetProject.name].subSyncStatuses[

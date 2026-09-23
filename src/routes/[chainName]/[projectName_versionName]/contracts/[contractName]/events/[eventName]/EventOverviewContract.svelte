@@ -13,6 +13,7 @@
   import type { SyncStatusContract } from "@db/dbTypes";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import { hasSyncTargetEvents } from "@utils/utilsEthers";
   import ContractOverviewBasic from "../../ContractOverviewBasic.svelte";
 
   export let targetChain: Chain;
@@ -20,13 +21,14 @@
   export let targetVersion: Version;
   export let targetContract: Contract;
 
-  let targetContractSyncStatus: SyncStatusContract;
-  $: targetContractSyncStatus =
-    $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
-      .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name];
-
-  let fetchedBlockNumber: number;
-  $: fetchedBlockNumber = targetContractSyncStatus.fetchedBlockNumber;
+  // undefined for contracts that have no event to sync (anonymous events only)
+  let targetContractSyncStatus: SyncStatusContract | undefined;
+  $: targetContractSyncStatus = hasSyncTargetEvents(targetContract)
+    ? $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
+        .subSyncStatuses[targetVersion.name].subSyncStatuses[
+        targetContract.name
+      ]
+    : undefined;
 
   let latestBlockNumber: number;
   $: latestBlockNumber = $storeChainStatus[targetChain.name].latestBlockNumber;
@@ -39,28 +41,30 @@
   {targetContract}
   activateLinkOfContractName
 >
-  <CommonItemMember text="Sync Target">
-    <CommonToggleSyncTarget
-      size={sizeSettings.itemMember}
-      {targetChain}
-      {targetProject}
-      {targetVersion}
-      {targetContract}
-    />
-  </CommonItemMember>
+  {#if targetContractSyncStatus}
+    <CommonItemMember text="Sync Target">
+      <CommonToggleSyncTarget
+        size={sizeSettings.itemMember}
+        {targetChain}
+        {targetProject}
+        {targetVersion}
+        {targetContract}
+      />
+    </CommonItemMember>
 
-  <CommonItemMember text="Sync Progress">
-    <BaseProgressBarForBlockNumber
-      startBlockNumber={targetContract.creation.blockNumber}
-      endBlockNumber={latestBlockNumber}
-      showBlockNumber={true}
-      {fetchedBlockNumber}
-      colorCategoryFront={colorSettings.itemMemberProgressBarFront}
-      colorCategoryBg={colorSettings.itemMemberProgressBarBg}
-      rounded
-      size={sizeSettings.itemMember}
-      shadowBar={false}
-      processing={targetContractSyncStatus.isSyncing}
-    />
-  </CommonItemMember>
+    <CommonItemMember text="Sync Progress">
+      <BaseProgressBarForBlockNumber
+        startBlockNumber={targetContract.creation.blockNumber}
+        endBlockNumber={latestBlockNumber}
+        showBlockNumber={true}
+        fetchedBlockNumber={targetContractSyncStatus.fetchedBlockNumber}
+        colorCategoryFront={colorSettings.itemMemberProgressBarFront}
+        colorCategoryBg={colorSettings.itemMemberProgressBarBg}
+        rounded
+        size={sizeSettings.itemMember}
+        shadowBar={false}
+        processing={targetContractSyncStatus.isSyncing}
+      />
+    </CommonItemMember>
+  {/if}
 </ContractOverviewBasic>

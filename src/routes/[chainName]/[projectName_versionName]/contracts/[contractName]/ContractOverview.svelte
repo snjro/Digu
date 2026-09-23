@@ -7,6 +7,7 @@
     Project,
     Version,
   } from "@constants/chains/types";
+  import { hasSyncTargetEvents } from "@utils/utilsEthers";
   import classNames from "classnames";
   import ContractOverviewBasic from "./ContractOverviewBasic.svelte";
   import ContractOverviewConstructor from "./ContractOverviewConstructor.svelte";
@@ -21,7 +22,7 @@
   export let targetContract: Contract;
 
   let hasEvent: boolean;
-  $: hasEvent = targetContract.events.abiFragments.length > 0;
+  $: hasEvent = hasSyncTargetEvents(targetContract);
 
   let gridTrackBasic: string;
   $: gridTrackBasic = classNames(
