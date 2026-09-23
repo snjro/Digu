@@ -1,4 +1,3 @@
-import { mount } from "svelte";
 import BaseA from "$lib/base/BaseA.svelte";
 import {
   cellRendererFactory,
@@ -45,7 +44,7 @@ export const columnDefsBasic = <T extends ContractRow>(
             cellRendererParams: ICellRendererParams<T>,
           ) => {
             if (cellRendererParams.data) {
-              mount(BaseA, {
+              cell.mount(BaseA, {
                 target: cell.eGui,
                 props: {
                   text: cellRendererParams.data?.contractName,
@@ -86,7 +85,7 @@ export const columnDefsBasic = <T extends ContractRow>(
             cellRendererParams: ICellRendererParams<T>,
           ) => {
             if (cellRendererParams.data?.contractSourceCodeUrl) {
-              mount(CommonOpenLink, {
+              cell.mount(CommonOpenLink, {
                 target: cell.eGui,
                 props: {
                   text: cellRendererParams.data?.contractSourceCodeUrl,
@@ -96,7 +95,7 @@ export const columnDefsBasic = <T extends ContractRow>(
                 },
               });
             } else {
-              mount(BaseLabel, {
+              cell.mount(BaseLabel, {
                 target: cell.eGui,
                 props: {
                   text: NO_DATA,

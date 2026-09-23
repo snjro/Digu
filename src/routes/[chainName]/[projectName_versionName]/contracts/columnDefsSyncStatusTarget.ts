@@ -1,4 +1,3 @@
-import { mount } from "svelte";
 import {
   cellRendererFactory,
   type AbstractCellRenderer,
@@ -64,7 +63,7 @@ export const columnDefsSyncStatusTarget = <T extends ContractRow>(
         cell: AbstractCellRenderer,
         cellRendererParams: ICellRendererParams<T>,
       ) => {
-        mount(GridCellSyncStatusTarget, {
+        cell.mount(GridCellSyncStatusTarget, {
           target: cell.eGui,
           props: {
             targetChain: targetChain,

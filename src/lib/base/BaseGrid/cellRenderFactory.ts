@@ -4,6 +4,7 @@
  * See: https://stackoverflow.com/a/72608215
  */
 import type { ICellRendererComp, ICellRendererParams } from "ag-grid-community";
+import { mount as svelteMount, unmount } from "svelte";
 
 /**
  * Class for defining a cell renderer.
@@ -13,6 +14,7 @@ import type { ICellRendererComp, ICellRendererParams } from "ag-grid-community";
 export abstract class AbstractCellRenderer implements ICellRendererComp {
   eGui: any;
   protected value: any;
+  private mountedComponents: ReturnType<typeof svelteMount>[] = [];
 
   constructor(parentElement = "div") {
     // create empty span (or other element) to place svelte component in
@@ -33,19 +35,31 @@ export abstract class AbstractCellRenderer implements ICellRendererComp {
     return this.eGui;
   }
 
-  refresh(cellRendererParams: ICellRendererParams) {
-    this.value = cellRendererParams.value;
-    this.eGui.innerHTML = "";
-
-    return true;
+  // Returning false makes ag-grid destroy this renderer and create a new one.
+  refresh(): boolean {
+    return false;
   }
+
+  destroy(): void {
+    for (const mountedComponent of this.mountedComponents) {
+      unmount(mountedComponent);
+    }
+    this.mountedComponents = [];
+  }
+
+  /** svelte's mount() that also unmounts the component on destroy. */
+  mount: typeof svelteMount = (component, options) => {
+    const mountedComponent = svelteMount(component, options);
+    this.mountedComponents.push(mountedComponent);
+    return mountedComponent;
+  };
 
   /**
    * Define and create the svelte component to use in the cell
    * @example
-   * // This is all you need to do within this method: create the component with mount,
+   * // This is all you need to do within this method: create the component with this.mount,
    *    specify the target is the class, and pass in props via the params.
-   * mount(CampusIcon, {
+   * this.mount(CampusIcon, {
    *    target: this.eGui,
    *    props: {
    *        color: params.data?.color,
