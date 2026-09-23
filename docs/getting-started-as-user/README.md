@@ -17,11 +17,12 @@ There is one way to use Digu as a user:
 
 To use Digu without installing, **you need (to set up) a server**. Digu is a semi-serverless application, it should start with opening a html file on your local environment with a browser in theory. However, it won’t work due to the violation of [Same-Origin Policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy).
 To comply this policy, you need to use Digu with a server. I suggest the folowing methods, choose the one you prefer:
-|#|Method|Dificulty|
-|-|------|---------|
-|1|[Using GitHub Pages](#using-digu-with-github-pages)|easy|
-|2|[Using `Visual Studio Code`](#using-digu-with-visual-studio-code)|technical|
-|3|[Using `Node.js`](#using-digu-with-nodejs)|technical|
+
+| #   | Method                                                            | Dificulty |
+| --- | ----------------------------------------------------------------- | --------- |
+| 1   | [Using GitHub Pages](#using-digu-with-github-pages)               | easy      |
+| 2   | [Using `Visual Studio Code`](#using-digu-with-visual-studio-code) | technical |
+| 3   | [Using `Node.js`](#using-digu-with-nodejs)                        | technical |
 
 ### [Using Digu with `GitHub Pages`](#using-digu-with-github-pages)
 

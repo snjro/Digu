@@ -15,9 +15,7 @@
   export let footerDefinition: PageWrapperContentFooterDefinition;
 
   const horizontalAlignment: () =>
-    | "justify-start"
-    | "justify-between"
-    | "justify-end" = () => {
+    "justify-start" | "justify-between" | "justify-end" = () => {
     switch (footerDefinition.horizontalAlignment) {
       case "start":
         return "justify-start";

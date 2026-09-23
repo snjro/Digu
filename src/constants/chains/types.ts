@@ -30,8 +30,7 @@ export type FunctionAbiFragment = FunctionFragment;
 export type ConstructorAbiFragment = ConstructorFragment &
   Pick<FunctionAbiFragment, "stateMutability">;
 export type FallbackAbiFragment =
-  | (FallbackFragment & Pick<FunctionAbiFragment, "stateMutability">)
-  | null;
+  (FallbackFragment & Pick<FunctionAbiFragment, "stateMutability">) | null;
 export type ContractInterface = Interface;
 //Contract
 export type BaseContract = {

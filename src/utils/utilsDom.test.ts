@@ -121,32 +121,28 @@ describe('"getVerticalViewabilityInScroll"', () => {
     async ({ parent, child, expected }: FamilyStyle) => {
       parentElement = document.createElement("div");
       childElement = document.createElement("div");
-      parentElement.getBoundingClientRect = vi.fn(
-        (): DOMRect => ({
-          top: parent.top,
-          bottom: parent.buttom,
-          width: 0,
-          height: 0,
-          x: 0,
-          y: 0,
-          left: 0,
-          right: 0,
-          toJSON: () => {},
-        }),
-      );
-      childElement.getBoundingClientRect = vi.fn(
-        (): DOMRect => ({
-          top: child.top,
-          bottom: child.buttom,
-          width: 0,
-          height: 0,
-          x: 0,
-          y: 0,
-          left: 0,
-          right: 0,
-          toJSON: () => {},
-        }),
-      );
+      parentElement.getBoundingClientRect = vi.fn((): DOMRect => ({
+        top: parent.top,
+        bottom: parent.buttom,
+        width: 0,
+        height: 0,
+        x: 0,
+        y: 0,
+        left: 0,
+        right: 0,
+        toJSON: () => {},
+      }));
+      childElement.getBoundingClientRect = vi.fn((): DOMRect => ({
+        top: child.top,
+        bottom: child.buttom,
+        width: 0,
+        height: 0,
+        x: 0,
+        y: 0,
+        left: 0,
+        right: 0,
+        toJSON: () => {},
+      }));
       const viewability: VerticalViewability = getVerticalViewabilityInScroll(
         parentElement,
         childElement,

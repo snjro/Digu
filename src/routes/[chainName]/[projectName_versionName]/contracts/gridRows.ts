@@ -19,12 +19,10 @@ export type ContractRow = {
   contractFunctionsTotalNumber: number;
 
   contractFallbackStateMutability:
-    | FunctionAbiFragment["stateMutability"]
-    | typeof NO_DATA;
+    FunctionAbiFragment["stateMutability"] | typeof NO_DATA;
 
   contractConstructorStateMutability:
-    | FunctionAbiFragment["stateMutability"]
-    | typeof NO_DATA;
+    FunctionAbiFragment["stateMutability"] | typeof NO_DATA;
   contractConstructorInputs: FunctionAbiFragment["inputs"];
 
   contractHasEvent: boolean;

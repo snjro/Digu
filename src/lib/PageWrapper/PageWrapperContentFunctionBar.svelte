@@ -18,9 +18,7 @@
   export let functionBarDefinition: PageWrapperContentFunctionBarDefinition;
 
   const horizontalAlignment: () =>
-    | "justify-start"
-    | "justify-between"
-    | "justify-end" = () => {
+    "justify-start" | "justify-between" | "justify-end" = () => {
     switch (functionBarDefinition.horizontalAlignment) {
       case "start":
         return "justify-start";

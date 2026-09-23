@@ -20,12 +20,7 @@
   export let circleSize: BaseSize;
   export let detailsTextSize: BaseSize = circleSize;
   export let detailsPosition:
-    | "inner"
-    | "right"
-    | "left"
-    | "bottom"
-    | "top"
-    | "none" = "inner";
+    "inner" | "right" | "left" | "bottom" | "top" | "none" = "inner";
 
   export let colorCategoryCircleBg: ColorCategory =
     colorSettings.progressCircleBg;

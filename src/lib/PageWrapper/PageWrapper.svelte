@@ -26,9 +26,7 @@
 
   export function convertTabValueForHref<
     TabsDefinition extends
-      | TabsDefinitionContract
-      | TabsDefinitionEvent
-      | TabsDefinitionFunction,
+      TabsDefinitionContract | TabsDefinitionEvent | TabsDefinitionFunction,
   >(tabValue: TabsDefinition["values"][number]): `#${string}` {
     let convertedTabValue: string = convertToKebabCase(tabValue as string);
     convertedTabValue = convertedTabValue.replace("(", "").replace(")", "");
@@ -70,10 +68,7 @@
   $: breakPointWidthKey = $storeUserSettings.isOpenSidebar ? "md" : "sm";
 
   type ConvertContentNameForLabelText =
-    | "Overv"
-    | "ABI"
-    | `EL (${EventLogType})`
-    | TabsDefinition["values"][number];
+    "Overv" | "ABI" | `EL (${EventLogType})` | TabsDefinition["values"][number];
 
   $: convertTabValueForLabelText = (
     targetTabValue: TabsDefinition["values"][number],
@@ -125,13 +120,13 @@
   $: {
     if (hasMultipulTabs && tabsDefinition) {
       const selectedTabValueFoundByUrl:
-        | TabsDefinition["values"][number]
-        | undefined = tabsDefinition.values.find(
-        (targetTabValue: TabsDefinition["values"][number]) => {
-          const href: string = convertTabValueForHref(targetTabValue);
-          return href === $page.url.hash;
-        },
-      );
+        TabsDefinition["values"][number] | undefined =
+        tabsDefinition.values.find(
+          (targetTabValue: TabsDefinition["values"][number]) => {
+            const href: string = convertTabValueForHref(targetTabValue);
+            return href === $page.url.hash;
+          },
+        );
       if (tabsDefinition.selected === selectedTabValueFoundByUrl) {
         // There is nothing to do.
         // Because a selected tab and a URL hash matched.

@@ -38,10 +38,7 @@
   $: themeColor = $storeUserSettings.themeColor;
 
   const celldAlign = ():
-    | "justify-start"
-    | "justify-center"
-    | "justify-end"
-    | "justify-stretch" => {
+    "justify-start" | "justify-center" | "justify-end" | "justify-stretch" => {
     switch (align) {
       case "left":
         return "justify-start";
