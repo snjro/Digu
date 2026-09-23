@@ -1,6 +1,6 @@
 # **Getting started as developer**<!-- omit in toc -->
 
-Digu uses the framework [`Svelte`](https://svelte.dev/) and [`SvelteKit`](https://kit.svelte.dev/) for developing the web application, and uses [`Tauri`](https://tauri.app/) which build a desktop app from the source for a web app.
+Digu uses the framework [`Svelte`](https://svelte.dev/) and [`SvelteKit`](https://kit.svelte.dev/) for developing the web application.
 
 Do the following steps/commands depending on what you want to do:
 
@@ -41,7 +41,7 @@ Note: `src/utils/utilsDom.test.ts` fails in the container because it launches Ch
 
 ## [**Starting a development server**](#starting-a-development-server)
 
-Build web/desktop application for **development** using the following scripts.
+Build web application for **development** using the following scripts.
 
 - For the **WEB** application:
 
@@ -51,17 +51,9 @@ Build web/desktop application for **development** using the following scripts.
 
   This launches the development server and compiles the web application.
 
-- For the **WEB** and **DESKTOP** application:
-
-  ```bash
-  npm run tauri dev
-  ```
-
-  This works the same as `npm run dev`, plus compiles the desktop application.
-
 ## [**Building the application**](#building-the-application)
 
-Build web/desktop application for deployment using the following scripts.
+Build web application for deployment using the following scripts.
 
 - For the **WEB** application:
 
@@ -69,17 +61,7 @@ Build web/desktop application for deployment using the following scripts.
   npm run build
   ```
 
-- For the **WEB** and **DESKTOP** application:
-
-  ```bash
-  npm run tauri build
-  ```
-
-  The deploy directories are:  
-  |Application|Path from the root|
-  |:---------:|------------------|
-  |Web|`./_build`|
-  |Desktop|`./src-tauri/target/release`|
+  The deploy directory is `./_build`.
 
 ## [**Testing**](#testing)
 
@@ -142,7 +124,7 @@ If you are curious about how your settings and event logs are sotred in the data
 The Steps:
 
 1. **Open the app**  
-   Open Digu. Either the web/desktop app can be used.
+   Open Digu.
 
 2. **Open `developer tools`**  
    Press following keys to open `developer tools`:

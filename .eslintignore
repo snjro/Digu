@@ -9,9 +9,6 @@ node_modules
 *.test.ts
 _build
 
-# Ignore files for Tauri
-/src-tauri/target
-
 # Ignore files for PNPM, NPM and YARN
 pnpm-lock.yaml
 package-lock.json
