@@ -23,9 +23,13 @@ export const storeSyncLockedByOtherTab: Writable<Record<ChainName, boolean>> =
 // Chains whose sync lock this tab holds.
 const chainsSyncedByThisTab: Set<ChainName> = new Set();
 
+// How long to wait for the lock. Other tabs hold it briefly to reset the sync
+// status, so do not give up at once.
+const SYNC_LOCK_TIMEOUT_MS: number = 1000;
+
 // Runs `start` and then `sync` while holding the lock. Resolves true once
-// `start` has finished, or false when the lock is held (by another tab or by
-// this tab) or the sync could not be started.
+// `start` has finished, or false when the lock is held (by another tab for
+// SYNC_LOCK_TIMEOUT_MS, or by this tab) or the sync could not be started.
 export async function requestSyncLock(
   chainName: ChainName,
   start: () => Promise<void>,
@@ -40,31 +44,42 @@ export async function requestSyncLock(
     void syncing.finally(() => chainsSyncedByThisTab.delete(chainName));
     return started;
   }
+  const signal: AbortSignal = AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS);
+  let granted: boolean = false;
   return await new Promise((resolve) => {
-    navigator.locks.request(
-      getSyncLockName(chainName),
-      { ifAvailable: true },
-      async (lock: Lock | null): Promise<void> => {
-        if (!lock) {
+    navigator.locks
+      .request(
+        getSyncLockName(chainName),
+        { signal: signal },
+        async (): Promise<void> => {
+          granted = true;
+          chainsSyncedByThisTab.add(chainName);
+          try {
+            const started: boolean = await tryToStart(chainName, async () => {
+              // The store may be stale: another tab may have synced since
+              // this tab was opened, or left flags behind when it was closed.
+              await resetSyncStatusInChain(chainName);
+              await start();
+            });
+            resolve(started);
+            if (started) await sync();
+          } finally {
+            chainsSyncedByThisTab.delete(chainName);
+          }
+        },
+      )
+      .catch((error: unknown) => {
+        // Rejected with a TimeoutError when the lock was not granted in time.
+        if (!granted) {
           resolve(false);
           waitForSyncLockRelease(chainName);
           return;
         }
-        chainsSyncedByThisTab.add(chainName);
-        try {
-          const started: boolean = await tryToStart(chainName, async () => {
-            // The store may be stale: another tab may have synced since this
-            // tab was opened, or left flags behind when it was closed.
-            await resetSyncStatusInChain(chainName);
-            await start();
-          });
-          resolve(started);
-          if (started) await sync();
-        } finally {
-          chainsSyncedByThisTab.delete(chainName);
-        }
-      },
-    );
+        customLogger.error("Sync event logs.", {
+          chainName: chainName,
+          errorObject: error,
+        });
+      });
   });
 }
 

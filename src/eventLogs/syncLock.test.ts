@@ -7,6 +7,7 @@ import { getSyncLockName } from "@db/constants";
 import {
   installFakeLockManager,
   removeLockManager,
+  type FakeLockManager,
 } from "../testUtils/fakeLockManager";
 
 // Two browser tabs: each has its own copy of the modules (stores), and both
@@ -167,8 +168,9 @@ async function isSyncLockHeld(): Promise<boolean> {
 
 describe("sync with two tabs (issue #49)", () => {
   let tabs: Tab[] = [];
+  let lockManager: FakeLockManager;
   beforeEach(async () => {
-    installFakeLockManager();
+    lockManager = installFakeLockManager();
     const { Dexie } = await import("dexie");
     for (const name of await Dexie.getDatabaseNames()) await Dexie.delete(name);
   });
@@ -290,6 +292,20 @@ describe("sync with two tabs (issue #49)", () => {
     tabs.push(a);
     expect(await a.fetchEventLogs()).toBe(true);
     // Every contract is already marked as syncing, so the abort reaches all.
+    await stopAndWait(a);
+  }, 30_000);
+
+  test("waits for another tab that holds the lock briefly", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    // Like another tab's reset after it stops syncing.
+    const heldLock = lockManager.request(getSyncLockName(chain.name), () =>
+      sleep(200),
+    );
+
+    expect(await a.fetchEventLogs()).toBe(true);
+    expect(a.isLockedByOtherTab()).toBe(false);
+    await heldLock;
     await stopAndWait(a);
   }, 30_000);
 
