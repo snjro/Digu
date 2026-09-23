@@ -20,8 +20,6 @@ const config: UserConfig = {
   plugins: [tailwindcss(), sveltekit()],
   test: {
     globals: true,
-    // Keep calls recorded at collection time (Vitest 5 defaults to true)
-    clearMocks: false,
     environment: "happy-dom",
     coverage: {
       provider: "v8",
