@@ -12,3 +12,20 @@ services:
     ports:
       - "127.0.0.1:5173:5173"
     command: npm run dev -- --host 0.0.0.0
+
+  # Runs the tests with Chrome, which src/utils/utilsDom.test.ts needs.
+  # Keep the image tag the same as the puppeteer version in package-lock.json.
+  test:
+    image: ghcr.io/puppeteer/puppeteer:25.11.0
+    profiles: ["test"]
+    user: "1001:1001"
+    working_dir: /app
+    environment:
+      HOME: /tmp
+      PUPPETEER_CACHE_DIR: /home/pptruser/.cache/puppeteer
+    # Chrome's sandbox needs it; the tests launch Chrome without --no-sandbox.
+    cap_add:
+      - SYS_ADMIN
+    volumes:
+      - .:/app
+    command: npm run vitest

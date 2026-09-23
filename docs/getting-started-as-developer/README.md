@@ -33,11 +33,17 @@ If Node.js is not installed on your machine, you can run the npm scripts in a Do
   docker compose up
   ```
 - To run any other script, pass it to `docker compose run`:
+
   ```bash
   docker compose run --rm app npm run vitest
   ```
 
-Note: `src/utils/utilsDom.test.ts` fails in the container because it launches Chrome with Puppeteer, and the image does not include the libraries Chrome needs.
+- To run the tests, use the `test` service, whose image includes Chrome:
+  ```bash
+  docker compose run --rm test npx vitest run
+  ```
+
+Note: `src/utils/utilsDom.test.ts` launches Chrome with Puppeteer, so it fails in the `app` service, whose image does not include Chrome. The `test` service uses the Puppeteer image and needs `SYS_ADMIN` because Chrome's sandbox cannot start in a container without it. Keep its image tag the same as the `puppeteer` version in `package-lock.json`.
 
 ## [**Starting a development server**](#starting-a-development-server)
 
