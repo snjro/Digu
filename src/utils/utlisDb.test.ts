@@ -23,6 +23,7 @@ import type {
 } from "@db/dbTypes";
 import { convertJsonFilesContractToContracts } from "@constants/chains/convertJsonToABI";
 import { jsonFileContracts } from "./testCommon";
+import { TARGET_CHAINS } from "@constants/chains/_index";
 const chainIdentifier: ChainIdentifier = { chainName: "eth" };
 const projectIdentifier: ProjectIdentifier = {
   ...chainIdentifier,
@@ -44,6 +45,19 @@ const functionIdentifier: AbiFragmentIdentifier = {
   ...contractIdentifier,
   abiFragmentName: "disputeCrowdsourcerCreated",
 };
+// expected values are taken from TARGET_CHAINS directly, not via the functions under test
+const expectedChain = TARGET_CHAINS.find(
+  (chain) => chain.name === chainIdentifier.chainName,
+)!;
+const expectedProject = expectedChain.projects.find(
+  (project) => project.name === projectIdentifier.projectName,
+)!;
+const expectedVersion = expectedProject.versions.find(
+  (version) => version.name === versionIdentifier.versionName,
+)!;
+const expectedContract = expectedVersion.contracts.find(
+  (contract) => contract.name === contractIdentifier.contractName,
+)!;
 describe("getEventLogTableName", () => {
   test("should return a table name based on the contract name and event name", () => {
     const contractName: ContractName = "contract1";
@@ -58,7 +72,7 @@ describe("getTargetChain", () => {
   test("should return the target chain based on the chain identifier", () => {
     const targetChain = getTargetChain(chainIdentifier);
 
-    expect(targetChain).toBeDefined();
+    expect(targetChain).toBe(expectedChain);
     expect(targetChain.name).toBe(chainIdentifier.chainName);
   });
 });
@@ -66,7 +80,7 @@ describe("getTargetProject", () => {
   test("should return the target project based on the project identifier", () => {
     const targetProject = getTargetProject(projectIdentifier);
 
-    expect(targetProject).toBeDefined();
+    expect(targetProject).toBe(expectedProject);
     expect(targetProject.name).toBe(projectIdentifier.projectName);
   });
 });
@@ -74,7 +88,7 @@ describe("getTargetProject", () => {
 describe("getTargetVersion", () => {
   test("should return the target version based on the version identifier", () => {
     const targetVersion = getTargetVersion(versionIdentifier);
-    expect(targetVersion).toBeDefined();
+    expect(targetVersion).toBe(expectedVersion);
     expect(targetVersion.name).toBe(versionIdentifier.versionName);
   });
 });
@@ -82,7 +96,7 @@ describe("getTargetVersion", () => {
 describe("getTargetContract", () => {
   test("should return the target contract based on the contract identifier", () => {
     const targetContract = getTargetContract(contractIdentifier);
-    expect(targetContract).toBeDefined();
+    expect(targetContract).toBe(expectedContract);
     expect(targetContract.name).toBe(contractIdentifier.contractName);
   });
 });
@@ -90,7 +104,7 @@ describe("getTargetContract", () => {
 describe("getTargetEventAbiFragment", () => {
   test("should return the target event ABI fragment based on the ABI fragment identifier", () => {
     const targetEventAbiFragment = getTargetEventAbiFragment(eventIdentifier);
-    expect(targetEventAbiFragment).toBeDefined();
+    expect(targetEventAbiFragment.type).toBe("event");
     expect(targetEventAbiFragment.name).toBe(eventIdentifier.abiFragmentName);
   });
 });
@@ -111,8 +125,7 @@ describe("getTargetFunctionAbiFragment", () => {
         ...functionIdentifier,
         functionSelector: expectedFunctionFragment.selector as `0x${string}`,
       });
-    expect(actualFunctionAbiFragment).toBeDefined();
-    expect(expectedFunctionFragment).toEqual(actualFunctionAbiFragment);
+    expect(actualFunctionAbiFragment).toEqual(expectedFunctionFragment);
   });
 });
 
