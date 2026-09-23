@@ -13,24 +13,28 @@
   export let targetEventName: AbiFragmentName;
   export let urlPathName: string;
 
-  let currentRecordCount: number = 0;
+  // undefined for events that are not synced (anonymous events)
+  let currentRecordCount: number | undefined = undefined;
   $: currentRecordCount =
     $storeSyncStatus[contractIdentifier.chainName].subSyncStatuses[
       contractIdentifier.projectName
     ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
       contractIdentifier.contractName
-    ].events[targetEventName].recordCount;
+    ].events[targetEventName]?.recordCount;
 
   const href: string = `${urlPathName}${targetEventName}${convertTabValueForHref(
     "Event Logs (text)",
   )}`;
   let text: string;
-  $: text = numberWithCommas(currentRecordCount);
+  $: text =
+    currentRecordCount === undefined
+      ? "-"
+      : numberWithCommas(currentRecordCount);
 
   const textSize: BaseSize = sizeSettings.grid;
 </script>
 
-{#if currentRecordCount > 0}
+{#if currentRecordCount !== undefined && currentRecordCount > 0}
   <BaseA {text} {href} {textSize} openNewTab={false} />
 {:else}
   <BaseLabel {text} {textSize} />

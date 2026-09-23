@@ -16,11 +16,16 @@
   export let isFullScreen: boolean;
 
   let rows: ConvertedEventLog[] | undefined = undefined;
-  $: gridRows(targetEventIdentifier).then(
-    (convertedEventLogs: ConvertedEventLog[]) => {
-      rows = convertedEventLogs;
-    },
-  );
+  // Logs of anonymous events are not fetched, so their table does not exist.
+  $: if (targetEventAbiFragment.anonymous) {
+    rows = [];
+  } else {
+    gridRows(targetEventIdentifier).then(
+      (convertedEventLogs: ConvertedEventLog[]) => {
+        rows = convertedEventLogs;
+      },
+    );
+  }
   function getEachArgsMaxLengths(
     convertedEventLogs: ConvertedEventLog[] | undefined,
   ): number[] {

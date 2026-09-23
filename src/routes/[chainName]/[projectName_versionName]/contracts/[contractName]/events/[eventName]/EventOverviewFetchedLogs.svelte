@@ -33,6 +33,11 @@
     targetContractName: Contract["name"],
     targetEventAbiFragmentName: EventAbiFragment["name"],
   ): Promise<void> => {
+    // Logs of anonymous events are not fetched, so their table does not exist.
+    if (targetEventAbiFragment.anonymous) {
+      convertedEventLogs = [];
+      return;
+    }
     const dbEventLogs: DbEventLogs = new DbEventLogs({
       chainName: targetChainName,
       projectName: targetProjectName,
