@@ -29,6 +29,12 @@ const spyDbChainStatusTransaction: MockInstance = vi.spyOn(
   dbChainStatus,
   "transaction",
 );
+const spyTableUpdate: MockInstance = vi
+  .spyOn(dbChainStatus.table(tableNameChainStatus), "update")
+  .mockResolvedValue(1);
+const spyTableGet: MockInstance = vi
+  .spyOn(dbChainStatus.table(tableNameChainStatus), "get")
+  .mockResolvedValue(dummyChainStatus);
 const spyStoreChainStatus = vi
   .spyOn(storeChainStatus, "updateState")
   .mockImplementation(() => {
@@ -36,7 +42,16 @@ const spyStoreChainStatus = vi
   });
 
 beforeEach(() => {
-  spyDbChainStatusTransaction.mockClear();
+  // run the callback passed to transaction without opening the DB
+  spyDbChainStatusTransaction
+    .mockClear()
+    .mockImplementation(
+      (_mode: string, _tableName: string, callback: () => Promise<unknown>) => {
+        return Dexie.Promise.resolve(callback());
+      },
+    );
+  spyTableUpdate.mockClear();
+  spyTableGet.mockClear();
   spyStoreChainStatus.mockClear();
 });
 
@@ -44,9 +59,6 @@ describe("updateDbItemChainStatus", () => {
   for (const key of Object.keys(dummyChainStatus)) {
     const definedKey: keyof ChainStatus = key as keyof ChainStatus;
     test(`should set selected item "${definedKey}"`, async () => {
-      spyDbChainStatusTransaction.mockImplementation(() => {
-        return Dexie.Promise.resolve().then(() => {});
-      });
       await updateDbItemChainStatus(
         dummyChainName,
         definedKey,
@@ -57,6 +69,11 @@ describe("updateDbItemChainStatus", () => {
         tableNameChainStatus,
         expect.any(Function),
       );
+      expect(spyTableUpdate).toBeCalledTimes(1);
+      expect(spyTableUpdate).toBeCalledWith(dummyChainName, {
+        [definedKey]: dummyChainStatus[definedKey],
+      });
+      expect(spyStoreChainStatus).toBeCalledTimes(1);
       expect(spyStoreChainStatus).toBeCalledWith(dummyChainName, {
         [definedKey]: dummyChainStatus[definedKey],
       });
@@ -65,14 +82,13 @@ describe("updateDbItemChainStatus", () => {
 });
 describe("getDbRecordChainStatus", () => {
   test("should get record correctly", async () => {
-    spyDbChainStatusTransaction.mockImplementation(() => {
-      return Dexie.Promise.resolve().then(() => {});
-    });
-    await getDbRecordChainStatus(dummyChainName);
+    const result: ChainStatus = await getDbRecordChainStatus(dummyChainName);
     expect(spyDbChainStatusTransaction).toHaveBeenCalledWith(
       "r",
       tableNameChainStatus,
       expect.any(Function),
     );
+    expect(spyTableGet).toBeCalledWith(dummyChainName);
+    expect(result).toEqual(dummyChainStatus);
   });
 });
