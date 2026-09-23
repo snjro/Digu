@@ -1,4 +1,5 @@
 import { capitalizeFirstLetter } from "@utils/utilsCommon";
+import type { ChainName } from "@constants/chains/types";
 import { PROJECT_NAME } from "@utils/utilsCostants";
 
 export const DB_NAME = {
@@ -27,3 +28,8 @@ export const DB_TABLE_NAMES = {
 } as const;
 
 export const PK_AUTO_INCREMENTED = "++id";
+
+// Web Lock held by the tab that syncs the chain.
+export function getSyncLockName(chainName: ChainName): string {
+  return `${DB_NAME.firstName}_sync_${chainName}`;
+}
