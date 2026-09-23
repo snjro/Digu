@@ -3,6 +3,7 @@ import type { ChainName } from "@constants/chains/types";
 import { error, redirect } from "@sveltejs/kit";
 import { base } from "$app/paths";
 import { getDbItemUserSettings } from "@db/dbSettings";
+import { initialDataUserSettings } from "@db/dbTypes";
 
 export async function load() {
   if (browser) {
@@ -10,7 +11,10 @@ export async function load() {
     // Because the value in Store is still default value here.
     // Store values will be updated after "initialized()" in "./+layout.ts".
     const selectedChainName: ChainName | undefined =
-      await getDbItemUserSettings("userSetting01", "selectedChainName");
+      await getDbItemUserSettings(
+        initialDataUserSettings.userSettingsId,
+        "selectedChainName",
+      );
 
     // In a load function, you should use "redirect" instead of "goto"
     // https://kit.svelte.jp/docs/load#redirects

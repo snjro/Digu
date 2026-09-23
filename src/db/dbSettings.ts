@@ -60,7 +60,11 @@ export async function addInitialDataUserSettings(
   tx: Transaction,
 ): Promise<void> {
   const adds: UserSetting[] = [];
-  if ((await itSelf.getDbRecordUserSettings("userSetting01")) === undefined) {
+  if (
+    (await itSelf.getDbRecordUserSettings(
+      initialDataUserSettings.userSettingsId,
+    )) === undefined
+  ) {
     adds.push(initialDataUserSettings);
   }
 
@@ -146,7 +150,7 @@ export async function updateDbItemUserSettings<T extends keyof UserSetting>(
       //update table
       await dbSettings
         .table(tableNameUserSettings)
-        .update("userSetting01", { [key]: newValue });
+        .update(initialDataUserSettings.userSettingsId, { [key]: newValue });
     })
     .then(() => {
       //update store
