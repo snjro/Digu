@@ -36,6 +36,7 @@
     bind:this={dialogElement}
     class={classNames(
       "flex-initial",
+      "m-auto",
       "min-h-0",
       "rounded-sm",
       shadowStyle,

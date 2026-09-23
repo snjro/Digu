@@ -43,16 +43,16 @@ export const colorDefinitions: ColorDefinitions = {
   light: colorDefinitionsLight,
   dark: colorDefinitionsDark,
 };
-export function getColorHexWithSharpFromTailwindColor(
+export function getColorFromTailwindColor(
   tailWindColorClass: ColorDefinitionForParts[keyof ColorDefinitionForParts],
-): `#${string}` {
+): string {
   const splitTailwindColorClass: string[] = tailWindColorClass.split("-");
   const colorName: keyof DefaultColors =
     splitTailwindColorClass[1] as keyof DefaultColors;
   const colorDepth =
     splitTailwindColorClass[2] as keyof DefaultColors[typeof colorName];
-  const colorHexWithSharp = colors[colorName][
+  const color = colors[colorName][
     colorDepth
   ] as DefaultColors[typeof colorName][typeof colorDepth];
-  return colorHexWithSharp;
+  return color;
 }

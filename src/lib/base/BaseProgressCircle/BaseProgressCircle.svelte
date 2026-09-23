@@ -1,7 +1,7 @@
 <script lang="ts">
   import {
     colorDefinitions,
-    getColorHexWithSharpFromTailwindColor,
+    getColorFromTailwindColor,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
@@ -109,7 +109,7 @@
       cx={radiusPure}
       cy={radiusPure}
       fill="transparent"
-      stroke={getColorHexWithSharpFromTailwindColor(
+      stroke={getColorFromTailwindColor(
         colorDefinitions[themeColor][colorCategoryCircleBg].bg,
       )}
       stroke-width={targetSize.strokeWidth}
@@ -120,7 +120,7 @@
       cx={radiusPure}
       cy={radiusPure}
       fill="transparent"
-      stroke={getColorHexWithSharpFromTailwindColor(
+      stroke={getColorFromTailwindColor(
         colorDefinitions[themeColor][colorCategoryCircleProgress()].bg,
       )}
       stroke-width={targetSize.strokeWidth}

@@ -1,5 +1,5 @@
 import {
-  getColorHexWithSharpFromTailwindColor,
+  getColorFromTailwindColor,
   type ColorCategory,
   colorDefinitions,
 } from "$lib/appearanceConfig/color/colorDefinitions";
@@ -11,29 +11,29 @@ export function getColorDefinitionsForGrid(
 ) {
   const colorDef = {
     frame: {
-      border: getColorHexWithSharpFromTailwindColor(
+      border: getColorFromTailwindColor(
         colorDefinitions[themeColor][colorCategoryGridHeader].border,
       ),
     },
     header: {
-      text: getColorHexWithSharpFromTailwindColor(
+      text: getColorFromTailwindColor(
         colorDefinitions[themeColor][colorCategoryGridHeader].text,
       ),
-      bg: getColorHexWithSharpFromTailwindColor(
+      bg: getColorFromTailwindColor(
         colorDefinitions[themeColor][colorCategoryGridHeader].bg,
       ),
     },
     row: {
-      text: getColorHexWithSharpFromTailwindColor(
+      text: getColorFromTailwindColor(
         colorDefinitions[themeColor][colorCategoryGridRow].text,
       ),
-      bg: getColorHexWithSharpFromTailwindColor(
+      bg: getColorFromTailwindColor(
         colorDefinitions[themeColor][colorCategoryGridRow].bg,
       ),
-      border: getColorHexWithSharpFromTailwindColor(
+      border: getColorFromTailwindColor(
         colorDefinitions[themeColor][colorCategoryGridRow].border,
       ),
-      hover: getColorHexWithSharpFromTailwindColor(
+      hover: getColorFromTailwindColor(
         colorDefinitions[themeColor][colorCategoryGridRow].bgHover,
       ),
     },

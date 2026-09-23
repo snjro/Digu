@@ -1,7 +1,7 @@
 <script lang="ts">
   import {
     colorDefinitions,
-    getColorHexWithSharpFromTailwindColor,
+    getColorFromTailwindColor,
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
@@ -29,8 +29,8 @@
 
   let colorBg: `bg-${string}`;
   $: colorBg = colorDefinitions[themeColor][colorSettings.itemGroupContent].bg;
-  let colorHexBg: `#${string}`;
-  $: colorHexBg = getColorHexWithSharpFromTailwindColor(colorBg);
+  let colorBgValue: string;
+  $: colorBgValue = getColorFromTailwindColor(colorBg);
 </script>
 
 <svelte:head>
@@ -46,5 +46,5 @@
     baseTextSizes[sizeSettings.abiJsonText],
   )}
   {code}
-  style={classNames(`--base-highlight-background-color:${colorHexBg};`)}
+  style={classNames(`--base-highlight-background-color:${colorBgValue};`)}
 />

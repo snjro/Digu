@@ -71,7 +71,7 @@
 
 <div
   bind:this={thisElement}
-  class={classNames("flex", "flex-col", "items-end", "space-y-0.5", "relative")}
+  class={classNames("flex", "flex-col", "items-end", "relative")}
 >
   <BaseButtonIcon
     size={buttonSize}
@@ -84,6 +84,7 @@
     class={classNames(
       "absolute",
       top(),
+      "mt-0.5",
       zIndex.threeDotsMenu,
       "p-2",
       "rounded-sm",
@@ -119,10 +120,11 @@
           />
         {/each}
       </div>
-      <BaseDividerHorizontal
-        colorCategory={colorSettings.gridFunctionButton}
-        hidden={buttonDefinitionIndex >= buttonsDefinition.length - 1}
-      />
+      {#if buttonDefinitionIndex < buttonsDefinition.length - 1}
+        <BaseDividerHorizontal
+          colorCategory={colorSettings.gridFunctionButton}
+        />
+      {/if}
     {/each}
   </div>
 </div>

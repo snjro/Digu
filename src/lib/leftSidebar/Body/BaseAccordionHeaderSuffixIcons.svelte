@@ -56,6 +56,7 @@
     height,
     "justify-end",
     "pr-1",
+    "cursor-pointer",
     leftSidebarItemRoundedStyle,
     "",
   )}
