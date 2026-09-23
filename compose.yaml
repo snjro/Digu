@@ -1,0 +1,14 @@
+name: digu
+
+services:
+  app:
+    image: node:20-slim
+    user: "1001:1001"
+    working_dir: /app
+    environment:
+      HOME: /tmp
+    volumes:
+      - .:/app
+    ports:
+      - "127.0.0.1:5173:5173"
+    command: npm run dev -- --host 0.0.0.0
