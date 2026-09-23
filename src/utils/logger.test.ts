@@ -1,4 +1,4 @@
-import { type SpyInstance, expect, test, vi, describe } from "vitest";
+import { type MockInstance, expect, test, vi, describe } from "vitest";
 import { customLogger } from "./logger";
 type LogLevel =
   | "info"
@@ -27,7 +27,7 @@ const logDefinitions: LogDefinition[] = [
   { logLevel: "debug", method: customLogger.debug },
 ];
 
-function getConsoleSpy(targetLogLevel: LogLevel): SpyInstance {
+function getConsoleSpy(targetLogLevel: LogLevel): MockInstance {
   switch (targetLogLevel) {
     case "info":
     case "start":
@@ -48,7 +48,7 @@ describe("customLogger", () => {
   test.each<LogDefinition>(logDefinitions)(
     `should log messages with the level "$logLevel"`,
     ({ logLevel, method }: LogDefinition) => {
-      let consoleSpy: SpyInstance = getConsoleSpy(logLevel);
+      let consoleSpy: MockInstance = getConsoleSpy(logLevel);
       method(...messages);
       expect(consoleSpy).toHaveBeenCalled();
       expect(consoleSpy).toBeCalledTimes(1);
