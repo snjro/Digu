@@ -16,7 +16,7 @@
   );
 
   let initializeValue: boolean = $state(false);
-  let dialogElement = $state() as HTMLDialogElement;
+  let dialogElement = $state<HTMLDialogElement>();
 
   let buttonsDefinition: PageWrapperContentFunctionBarDefinition["buttonsDefinition"] =
     $derived([

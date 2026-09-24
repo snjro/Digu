@@ -5,30 +5,42 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
+  import type { Snippet } from "svelte";
   import type { BaseIconProps } from "../BaseIcon";
   import BaseSnackbar from "../BaseSnackbar.svelte";
   import { closeDialog } from "./BaseDialogHandler";
   import BaseDialogHeader from "./BaseDialogHeader.svelte";
 
-  export let dialogElement: HTMLDialogElement;
-  export let headerIconName: BaseIconProps["name"] | undefined = undefined;
-  export let headerText: string | undefined;
-  export let onclose: ((event: Event) => void) | undefined = undefined;
+  interface Props {
+    dialogElement?: HTMLDialogElement;
+    headerIconName?: BaseIconProps["name"] | undefined;
+    headerText: string | undefined;
+    onclose?: ((event: Event) => void) | undefined;
+    dialogBody?: Snippet;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let {
+    dialogElement = $bindable(),
+    headerIconName = undefined,
+    headerText,
+    onclose = undefined,
+    dialogBody,
+  }: Props = $props();
 
-  let shadowStyle: string;
-  $: shadowStyle = classNames(
-    themeColor === "dark"
-      ? classNames(
-          "border",
-          colorDefinitions[themeColor][colorSettings.dialogHeader].border,
-        )
-      : classNames(
-          "shadow-sm",
-          colorDefinitions[themeColor][colorSettings.dialogHeader].shadow,
-        ),
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let shadowStyle: string = $derived(
+    classNames(
+      themeColor === "dark"
+        ? classNames(
+            "border",
+            colorDefinitions[themeColor][colorSettings.dialogHeader].border,
+          )
+        : classNames(
+            "shadow-sm",
+            colorDefinitions[themeColor][colorSettings.dialogHeader].shadow,
+          ),
+    ),
   );
 </script>
 
@@ -48,12 +60,12 @@
       colorDefinitions[themeColor][colorSettings.dialogHeader].bg,
       "flex-col",
     )}
-    on:close={onclose}
-    on:cancel={() => closeDialog(dialogElement)}
+    {onclose}
+    oncancel={() => closeDialog(dialogElement)}
   >
     <div class={classNames("flex-initial", "min-h-0", "flex", "flex-col")}>
       <BaseDialogHeader {dialogElement} {headerIconName} {headerText} />
-      <slot name="dialogBody" />
+      {@render dialogBody?.()}
     </div>
     <BaseSnackbar />
   </dialog>

@@ -15,7 +15,7 @@
 </script>
 
 <PageWrapperContent gridCols="grid-cols-6" hasMultipulTabs={false}>
-  <svelte:fragment slot="PageWrapperContentBody">
+  {#snippet PageWrapperContentBody()}
     {#each targetChain.projects as targetProject}
       <CommonItemGroup
         text={`${targetProject.name}`}
@@ -24,5 +24,5 @@
         <ChainOverviewVersions {targetChain} {targetProject} />
       </CommonItemGroup>
     {/each}
-  </svelte:fragment>
+  {/snippet}
 </PageWrapperContent>

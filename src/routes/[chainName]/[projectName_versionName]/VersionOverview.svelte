@@ -24,7 +24,7 @@
 </script>
 
 <PageWrapperContent gridCols="grid-cols-6" hasMultipulTabs={false}>
-  <svelte:fragment slot="PageWrapperContentBody">
+  {#snippet PageWrapperContentBody()}
     <CommonItemGroup text="Contracts" gridTrack={gridTrackContracts}>
       <VersionOverviewContracts {targetChain} {targetProject} {targetVersion} />
     </CommonItemGroup>
@@ -36,5 +36,5 @@
         {targetVersion}
       />
     </CommonItemGroup>
-  </svelte:fragment>
+  {/snippet}
 </PageWrapperContent>

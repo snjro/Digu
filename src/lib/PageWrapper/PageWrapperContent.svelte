@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type TabsDefinition = {
     selectedTabName: TabContent["name"];
     tabContents: TabContent[];
@@ -23,29 +23,45 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
+  import type { Snippet } from "svelte";
 
-  export let isAgGrid: boolean = false;
-  export let hasMultipulTabs: boolean = true;
-  export let gridCols:
-    "grid-cols-1" | "grid-cols-2" | "grid-cols-6" | undefined = undefined;
+  interface Props {
+    isAgGrid?: boolean;
+    hasMultipulTabs?: boolean;
+    gridCols?: "grid-cols-1" | "grid-cols-2" | "grid-cols-6" | undefined;
+    PageWrapperContentFunctionBar?: Snippet;
+    PageWrapperContentBody?: Snippet;
+    PageWrapperContentFooter?: Snippet;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let {
+    isAgGrid = false,
+    hasMultipulTabs = true,
+    gridCols = undefined,
+    PageWrapperContentFunctionBar,
+    PageWrapperContentBody,
+    PageWrapperContentFooter,
+  }: Props = $props();
 
-  let scrollStyle: string;
-  $: scrollStyle = classNames(
-    "overflow-scroll",
-    getScrollbarStyle(colorSettings.tabSelected, themeColor).thin,
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let scrollStyle: string = $derived(
+    classNames(
+      "overflow-scroll",
+      getScrollbarStyle(colorSettings.tabSelected, themeColor).thin,
+    ),
   );
 
   // when showing Ag-Grid, flex style need to be "flex-auto".
-  let flexStyleForGrid: "flex-auto" | "flex-initial";
-  $: flexStyleForGrid = isAgGrid ? "flex-auto" : "flex-initial";
+  let flexStyleForGrid: "flex-auto" | "flex-initial" = $derived(
+    isAgGrid ? "flex-auto" : "flex-initial",
+  );
 
-  let gridMain: string | undefined;
-  $: gridMain = gridCols
-    ? classNames("grid", gridCols, "grid-flow-dense", "gap-1.5")
-    : undefined;
+  let gridMain: string | undefined = $derived(
+    gridCols
+      ? classNames("grid", gridCols, "grid-flow-dense", "gap-1.5")
+      : undefined,
+  );
 </script>
 
 <div
@@ -63,15 +79,15 @@
   )}
 >
   <!-- function bar -->
-  <slot name="PageWrapperContentFunctionBar" />
+  {@render PageWrapperContentFunctionBar?.()}
   <!-- content with scrollbar -->
   <div
     class={classNames("flex-auto min-h-0", "h-full w-full", scrollStyle, "")}
   >
     <div class={classNames(gridMain, "w-full", "h-full", "")}>
-      <slot name="PageWrapperContentBody" />
+      {@render PageWrapperContentBody?.()}
     </div>
   </div>
   <!-- footer -->
-  <slot name="PageWrapperContentFooter" />
+  {@render PageWrapperContentFooter?.()}
 </div>

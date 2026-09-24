@@ -6,27 +6,40 @@
   import GridBody from "./GridBody/GridBody.svelte";
   import type { ColumnDef } from "./types";
 
-  export let isFullScreen = false;
-  export let paramColumnDefs: ColumnDef[];
-  export let rows: GridRow[] | undefined;
-  export let exportFilePrefix: ExportFilePrefix;
-  export let hasMultipulTabs: boolean;
+  interface Props {
+    isFullScreen?: boolean;
+    paramColumnDefs: ColumnDef[];
+    rows: GridRow[] | undefined;
+    exportFilePrefix: ExportFilePrefix;
+    hasMultipulTabs: boolean;
+  }
 
-  let gridApi: GridApi<GridRow>;
+  let {
+    isFullScreen = $bindable(false),
+    paramColumnDefs,
+    rows,
+    exportFilePrefix,
+    hasMultipulTabs,
+  }: Props = $props();
+
+  let gridApi: GridApi<GridRow> = $state.raw() as GridApi<GridRow>;
 </script>
 
 <PageWrapperContent isAgGrid {hasMultipulTabs}>
-  <BaseGridFunctionBar
-    slot="PageWrapperContentFunctionBar"
-    {gridApi}
-    {rows}
-    bind:isFullScreen
-    {exportFilePrefix}
-  />
+  {#snippet PageWrapperContentFunctionBar()}
+    <BaseGridFunctionBar
+      {gridApi}
+      {rows}
+      bind:isFullScreen
+      {exportFilePrefix}
+    />
+  {/snippet}
 
-  <div class="flex flex-col h-full" slot="PageWrapperContentBody">
-    <GridBody bind:gridApi {paramColumnDefs} {rows} />
-  </div>
+  {#snippet PageWrapperContentBody()}
+    <div class="flex flex-col h-full">
+      <GridBody bind:gridApi {paramColumnDefs} {rows} />
+    </div>
+  {/snippet}
 </PageWrapperContent>
 <!-- <style>
   :global(.abi-row-border-only-first) {
