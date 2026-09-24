@@ -10,22 +10,22 @@
   import SyncListChainRpcInput from "./SyncListChainRpcInput.svelte";
   import SyncStatus from "./syncStatus/SyncStatus.svelte";
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
-  let navClass: string;
-  $: navClass = classNames(
-    "px-3",
-    "flex-none",
-    leftSidebarHeaderHeight,
-    colorDefinitions[themeColor][colorSettings.navBg].bg,
-    "flex",
-    "flex-row",
-    "items-center",
-    "space-x-3",
-    "border-b",
-    colorDefinitions[themeColor][colorSettings.navBg].border,
-    "",
+  let navClass: string = $derived(
+    classNames(
+      "px-3",
+      "flex-none",
+      leftSidebarHeaderHeight,
+      colorDefinitions[themeColor][colorSettings.navBg].bg,
+      "flex",
+      "flex-row",
+      "items-center",
+      "space-x-3",
+      "border-b",
+      colorDefinitions[themeColor][colorSettings.navBg].border,
+      "",
+    ),
   );
 </script>
 

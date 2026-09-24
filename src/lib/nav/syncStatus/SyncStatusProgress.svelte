@@ -15,38 +15,45 @@
   import { getTargetChain } from "@utils/utlisDb";
   import classNames from "classnames";
 
-  export let hideProgressCircle: boolean;
+  interface Props {
+    hideProgressCircle: boolean;
+  }
+
+  let { hideProgressCircle }: Props = $props();
 
   const progressCircleSize: BaseSize = sizeSettings.navProgressCircle;
 
-  let targetChainName: ChainName;
-  $: targetChainName = $storeUserSettings.selectedChainName.toString();
+  let targetChainName: ChainName = $derived(
+    $storeUserSettings.selectedChainName.toString(),
+  );
 
-  let targetChain: Chain;
-  $: targetChain = getTargetChain({ chainName: targetChainName });
+  let targetChain: Chain = $derived(
+    getTargetChain({ chainName: targetChainName }),
+  );
 
-  let latestBlockNumber: number;
-  $: latestBlockNumber = $storeChainStatus[targetChainName].latestBlockNumber;
+  let latestBlockNumber: number = $derived(
+    $storeChainStatus[targetChainName].latestBlockNumber,
+  );
 
-  let creationBlockNumber: number;
-  $: creationBlockNumber =
-    $storeSyncStatus[targetChainName].creationBlockNumber;
+  let creationBlockNumber: number = $derived(
+    $storeSyncStatus[targetChainName].creationBlockNumber,
+  );
 
-  let numOfSyncTargetContract: number;
-  $: numOfSyncTargetContract =
-    $storeSyncStatus[targetChainName].numOfSyncTargetContract;
+  let numOfSyncTargetContract: number = $derived(
+    $storeSyncStatus[targetChainName].numOfSyncTargetContract,
+  );
 
-  let fetchedBlockNumber: number;
-  $: fetchedBlockNumber = $storeSyncStatus[targetChainName].fetchedBlockNumber;
+  let fetchedBlockNumber: number = $derived(
+    $storeSyncStatus[targetChainName].fetchedBlockNumber,
+  );
 
-  let syncStateText: SyncStateText;
-  $: syncStateText = $storeSyncStatus[targetChain.name].syncStateText;
+  let syncStateText: SyncStateText = $derived(
+    $storeSyncStatus[targetChain.name].syncStateText,
+  );
 
-  let isStopping: boolean;
-  $: isStopping = syncStateText === "stopping";
+  let isStopping: boolean = $derived(syncStateText === "stopping");
 
-  let syncStateTextLabelProps: SyncStateTextLabelProps;
-  $: syncStateTextLabelProps = {
+  let syncStateTextLabelProps: SyncStateTextLabelProps = $derived({
     syncStateText: syncStateText,
     colorCategoryFront: colorSettings.navText,
     size: hideProgressCircle
@@ -54,7 +61,7 @@
       : changeSize(progressCircleSize, 3),
     showIcon: false,
     currentSyncingState: NO_DATA,
-  };
+  });
 </script>
 
 <div class={classNames("w-[70px]", "h-full")}>

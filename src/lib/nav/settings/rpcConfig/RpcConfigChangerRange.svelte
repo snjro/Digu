@@ -4,13 +4,26 @@
   import BaseRange from "$lib/base/BaseRange.svelte";
   import type { RpcConfigParam } from "./RpcConfig.svelte";
 
-  export let rpcConfigParam: RpcConfigParam;
-  export let disabled: boolean;
-  export let value: number;
-  export let onchange: ((newValue: number) => void) | undefined = undefined;
-  const rpcConfigMinValue: RpcConfigParam["minValue"] = rpcConfigParam.minValue;
-  const rpcConfigMaxValue: RpcConfigParam["maxValue"] = rpcConfigParam.maxValue;
-  const rpcConfigStem: RpcConfigParam["step"] = rpcConfigParam.step;
+  interface Props {
+    rpcConfigParam: RpcConfigParam;
+    disabled: boolean;
+    value: number;
+    onchange?: ((newValue: number) => void) | undefined;
+  }
+
+  let {
+    rpcConfigParam,
+    disabled,
+    value,
+    onchange = undefined,
+  }: Props = $props();
+  let rpcConfigMinValue: RpcConfigParam["minValue"] = $derived(
+    rpcConfigParam.minValue,
+  );
+  let rpcConfigMaxValue: RpcConfigParam["maxValue"] = $derived(
+    rpcConfigParam.maxValue,
+  );
+  let rpcConfigStem: RpcConfigParam["step"] = $derived(rpcConfigParam.step);
 
   async function change(event: Event): Promise<void> {
     const newValue: number = parseInt((event.target as HTMLInputElement).value);

@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type HelperTextState =
     "error" | "success" | "warning" | "info" | "indeterminate" | undefined;
 </script>
@@ -13,24 +13,33 @@
   import RpcConfigChangerInput from "./RpcConfigChangerInput.svelte";
   import RpcConfigChangerRange from "./RpcConfigChangerRange.svelte";
   import { updateDbItemRpcSettings } from "@db/dbSettings";
+  import { untrack } from "svelte";
 
-  export let targetChainName: ChainName;
-  export let rpcConfigParam: RpcConfigParam;
-  export let initializeValue: boolean;
-
-  $: isSyncingChain = $storeSyncStatus[targetChainName].isSyncing;
-  $: storedValue = $storeRpcSettings[targetChainName][rpcConfigParam.name];
-
-  $: {
-    if (initializeValue) {
-      initialization();
-    }
+  interface Props {
+    targetChainName: ChainName;
+    rpcConfigParam: RpcConfigParam;
+    initializeValue: boolean;
   }
+
+  let { targetChainName, rpcConfigParam, initializeValue }: Props = $props();
+
+  let isSyncingChain = $derived($storeSyncStatus[targetChainName].isSyncing);
+  let storedValue = $derived(
+    $storeRpcSettings[targetChainName][rpcConfigParam.name],
+  );
+
+  let helperTextState: HelperTextState = $state(undefined);
+
+  $effect.pre(() => {
+    if (initializeValue) {
+      // Rerun only when initializeValue changes, not when the store changes.
+      untrack(initialization);
+    }
+  });
   function initialization(): void {
     helperTextState = undefined;
     storedValue = $storeRpcSettings[targetChainName][rpcConfigParam.name];
   }
-  let helperTextState: HelperTextState = undefined;
   async function updateNumberItemValue(newValue: number): Promise<void> {
     helperTextState = "indeterminate";
     if (
