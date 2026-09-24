@@ -6,7 +6,7 @@
   import type { ChainName } from "@constants/chains/types";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import classNames from "classnames";
-  import type { RpcConfigParam } from "./RpcConfig.svelte";
+  import type { RpcConfigParam } from "./rpcConfigParams";
   import type { HelperTextState } from "./RpcConfigChanger.svelte";
 
   interface Props {

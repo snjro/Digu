@@ -19,6 +19,7 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getTargetChain } from "@utils/utlisDb";
   import classNames from "classnames";
+  import { isSyncToggleDisabled } from "./syncToggleDisabled";
 
   let toggleOn: boolean = $state(false);
   let isStarting: boolean = $state(false);
@@ -61,15 +62,18 @@
     if (syncStateText === "stopped") toggleOn = false;
   });
 
-  let isAbleToSync: boolean = $derived(
-    nodeStatus === "SUCCESS" && targetChainSyncStatus.isSyncTarget,
-  );
   let isStopping: boolean = $derived(syncStateText === "stopping");
   let isSyncingInOtherTab: boolean = $derived(
     $storeSyncLockedByOtherTab[targetChainName],
   );
   let disabled: boolean = $derived(
-    !isAbleToSync || isStopping || isStarting || isSyncingInOtherTab,
+    isSyncToggleDisabled({
+      nodeStatus,
+      isSyncTarget: targetChainSyncStatus.isSyncTarget,
+      syncStateText,
+      isStarting,
+      isSyncingInOtherTab,
+    }),
   );
 
   let iconProps: BaseIconProps = $derived({

@@ -7,13 +7,9 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import NavButtonsSettingsDialog from "./NavButtonsSettingsDialog.svelte";
-  import { updateDbItemUserSettings } from "@db/dbSettings";
+  import { toggleThemeColor } from "./themeColor";
 
   let currentThemeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
-  let newThemeColor: ThemeColor = $derived(
-    currentThemeColor === "dark" ? "light" : "dark",
-  );
 
   let initializeValue: boolean = $state(false);
   let dialogElement = $state<HTMLDialogElement>();
@@ -27,7 +23,7 @@
           tooltipXPosition: "left",
           tooltipYPosition: "bottom",
           onClickEventFunction: async () => {
-            await updateDbItemUserSettings("themeColor", newThemeColor);
+            await toggleThemeColor(currentThemeColor);
           },
         },
         {

@@ -8,11 +8,12 @@
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import classNames from "classnames";
-  import type { RpcConfigParam } from "./RpcConfig.svelte";
+  import type { RpcConfigParam } from "./rpcConfigParams";
+  import { isInRpcConfigRange } from "./rpcConfigValidation";
+  import { saveRpcConfigValue } from "./rpcConfigSave";
   import RpcConfigChangerHelperText from "./RpcConfigChangerHelperText.svelte";
   import RpcConfigChangerInput from "./RpcConfigChangerInput.svelte";
   import RpcConfigChangerRange from "./RpcConfigChangerRange.svelte";
-  import { updateDbItemRpcSettings } from "@db/dbSettings";
   import { untrack } from "svelte";
 
   interface Props {
@@ -42,15 +43,8 @@
   }
   async function updateNumberItemValue(newValue: number): Promise<void> {
     helperTextState = "indeterminate";
-    if (
-      rpcConfigParam.minValue <= newValue &&
-      newValue <= rpcConfigParam.maxValue
-    ) {
-      await updateDbItemRpcSettings(
-        targetChainName,
-        rpcConfigParam.name,
-        newValue,
-      );
+    if (isInRpcConfigRange(rpcConfigParam, newValue)) {
+      await saveRpcConfigValue(targetChainName, rpcConfigParam.name, newValue);
       helperTextState = "success";
     } else {
       helperTextState = "error";
