@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type EventLogType = "hex" | "text";
   export const MESSAGE_ANONYMOUS_EVENT_LOGS: string =
     "Logs of anonymous events are not fetched.";
@@ -14,22 +14,33 @@
   import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
   import { gridRows } from "./gridRows";
 
-  export let targetEventIdentifier: AbiFragmentIdentifier;
-  export let targetEventAbiFragment: EventAbiFragment;
-  export let eventLogType: EventLogType;
-  export let isFullScreen: boolean;
-
-  let rows: ConvertedEventLog[] | undefined = undefined;
-  // Logs of anonymous events are not fetched, so their table does not exist.
-  $: if (targetEventAbiFragment.anonymous) {
-    rows = [];
-  } else {
-    gridRows(targetEventIdentifier).then(
-      (convertedEventLogs: ConvertedEventLog[]) => {
-        rows = convertedEventLogs;
-      },
-    );
+  interface Props {
+    targetEventIdentifier: AbiFragmentIdentifier;
+    targetEventAbiFragment: EventAbiFragment;
+    eventLogType: EventLogType;
+    isFullScreen: boolean;
   }
+
+  let {
+    targetEventIdentifier,
+    targetEventAbiFragment,
+    eventLogType,
+    isFullScreen = $bindable(),
+  }: Props = $props();
+
+  let rows: ConvertedEventLog[] | undefined = $state.raw(undefined);
+  // Logs of anonymous events are not fetched, so their table does not exist.
+  $effect.pre(() => {
+    if (targetEventAbiFragment.anonymous) {
+      rows = [];
+    } else {
+      gridRows(targetEventIdentifier).then(
+        (convertedEventLogs: ConvertedEventLog[]) => {
+          rows = convertedEventLogs;
+        },
+      );
+    }
+  });
   function getEachArgsMaxLengths(
     convertedEventLogs: ConvertedEventLog[] | undefined,
   ): number[] {
@@ -56,11 +67,11 @@
     }
     return maxLengths;
   }
-  let eventLogColumnDefs: ColumnDef[];
-  $: eventLogColumnDefs =
+  let eventLogColumnDefs: ColumnDef[] = $derived(
     eventLogType === "hex"
       ? getHexEventLogColumnDefs(targetEventAbiFragment)
-      : columnDefs(targetEventAbiFragment, getEachArgsMaxLengths(rows));
+      : columnDefs(targetEventAbiFragment, getEachArgsMaxLengths(rows)),
+  );
 </script>
 
 {#if targetEventAbiFragment.anonymous}

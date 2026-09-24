@@ -8,10 +8,15 @@
   import ContractOverviewSyncStatusProgress from "./ContractOverviewSyncStatusProgress.svelte";
   import ContractOverviewSyncStatusTarget from "./ContractOverviewSyncStatusTarget.svelte";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
-  export let targetContract: Contract;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+    targetContract: Contract;
+  }
+
+  let { targetChain, targetProject, targetVersion, targetContract }: Props =
+    $props();
 </script>
 
 <ContractOverviewSyncStatusTarget

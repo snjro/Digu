@@ -5,7 +5,11 @@
   import AbiParamsTable from "$lib/contracts/abiParams/AbiParamsTable.svelte";
   import type { Contract } from "@constants/chains/types";
 
-  export let targetContract: Contract;
+  interface Props {
+    targetContract: Contract;
+  }
+
+  let { targetContract }: Props = $props();
 </script>
 
 <CommonItemMember text="State Mutability">

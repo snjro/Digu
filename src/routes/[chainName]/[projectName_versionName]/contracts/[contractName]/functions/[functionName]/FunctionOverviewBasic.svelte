@@ -4,7 +4,11 @@
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import type { FunctionAbiFragment } from "@constants/chains/types";
 
-  export let targetFunctionAbiFragment: FunctionAbiFragment;
+  interface Props {
+    targetFunctionAbiFragment: FunctionAbiFragment;
+  }
+
+  let { targetFunctionAbiFragment }: Props = $props();
 
   const textSize = sizeSettings.itemMember;
 </script>

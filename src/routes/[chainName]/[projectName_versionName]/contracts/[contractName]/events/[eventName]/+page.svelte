@@ -7,18 +7,22 @@
   import type { LoadEventLogs } from "./+page";
   import EventLogs from "./EventLogs.svelte";
   import EventOverview from "./EventOverview.svelte";
-  export let data: LoadEventLogs;
+  interface Props {
+    data: LoadEventLogs;
+  }
 
-  let tabsDefinition: TabsDefinitionEvent = {
+  let { data }: Props = $props();
+
+  let tabsDefinition: TabsDefinitionEvent = $state({
     selected: "Overview",
     values: TAB_VALUES_EVENT,
     groupName: "tabGroupEvent",
-  };
+  });
   const titleCategoryLabelText: string = "Event";
 
-  $: titleText = data.targetEventAbiFragment.name;
+  let titleText = $derived(data.targetEventAbiFragment.name);
 
-  let isFullScreen = false;
+  let isFullScreen = $state(false);
 </script>
 
 <PageWrapper

@@ -7,17 +7,21 @@
   import type { LoadContractData } from "./+page";
   import ContractOverview from "./ContractOverview.svelte";
 
-  export let data: LoadContractData;
+  interface Props {
+    data: LoadContractData;
+  }
 
-  let tabsDefinition: TabsDefinitionContract = {
+  let { data }: Props = $props();
+
+  let tabsDefinition: TabsDefinitionContract = $state({
     selected: "Overview",
     values: TAB_VALUES_CONTRACT,
     groupName: "tabGroupContract",
-  };
+  });
   const titleCategoryLabelText: string = "Contract";
-  let titleText: string;
-  $: titleText = data.targetContract.name;
-  let isFullScreen = false;
+  let titleText: string = $derived(data.targetContract.name);
+
+  let isFullScreen = $state(false);
 </script>
 
 <PageWrapper

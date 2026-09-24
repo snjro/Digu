@@ -8,15 +8,17 @@
   import { columnDefs } from "./columnDefs";
   import { gridRows, type FunctionRow } from "./gridRows";
 
-  export let data: LoadFunctionsData;
+  interface Props {
+    data: LoadFunctionsData;
+  }
 
-  let titleText: Contract["name"];
-  $: titleText = data.targetContract.name;
+  let { data }: Props = $props();
+
+  let titleText: Contract["name"] = $derived(data.targetContract.name);
 
   const titleCategoryLabelText: string = "Functions";
 
-  let rows: FunctionRow[] = [];
-  $: rows = gridRows(data.targetFunctionAbiFragments);
+  let rows: FunctionRow[] = $derived(gridRows(data.targetFunctionAbiFragments));
 
   const maxLengthOfFunctionInputsParams = (): number => {
     let maxIndex: number = 0;
@@ -36,7 +38,7 @@
     });
     return maxIndex;
   };
-  let isFullScreen = false;
+  let isFullScreen = $state(false);
 </script>
 
 <PageWrapper

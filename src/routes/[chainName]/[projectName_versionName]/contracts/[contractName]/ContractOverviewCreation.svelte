@@ -7,7 +7,11 @@
   import type { Contract } from "@constants/chains/types";
   import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
 
-  export let targetContract: Contract;
+  interface Props {
+    targetContract: Contract;
+  }
+
+  let { targetContract }: Props = $props();
   const textSize: BaseSize = sizeSettings.itemMember;
 </script>
 

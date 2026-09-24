@@ -9,28 +9,34 @@
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { numberWithCommas } from "@utils/utilsCommon";
 
-  export let contractIdentifier: ContractIdentifier;
-  export let targetEventName: AbiFragmentName;
-  export let urlPathName: string;
+  interface Props {
+    contractIdentifier: ContractIdentifier;
+    targetEventName: AbiFragmentName;
+    urlPathName: string;
+  }
+
+  let { contractIdentifier, targetEventName, urlPathName }: Props = $props();
 
   // undefined for events that are not synced (anonymous events), and for
   // contracts that have only anonymous events
-  let currentRecordCount: number | undefined = undefined;
-  $: currentRecordCount =
+  let currentRecordCount: number | undefined = $derived(
     $storeSyncStatus[contractIdentifier.chainName].subSyncStatuses[
       contractIdentifier.projectName
     ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
       contractIdentifier.contractName
-    ]?.events[targetEventName]?.recordCount;
+    ]?.events[targetEventName]?.recordCount,
+  );
 
-  const href: string = `${urlPathName}${targetEventName}${convertTabValueForHref(
-    "Event Logs (text)",
-  )}`;
-  let text: string;
-  $: text =
+  const href: string = $derived(
+    `${urlPathName}${targetEventName}${convertTabValueForHref(
+      "Event Logs (text)",
+    )}`,
+  );
+  let text: string = $derived(
     currentRecordCount === undefined
       ? "-"
-      : numberWithCommas(currentRecordCount);
+      : numberWithCommas(currentRecordCount),
+  );
 
   const textSize: BaseSize = sizeSettings.grid;
 </script>

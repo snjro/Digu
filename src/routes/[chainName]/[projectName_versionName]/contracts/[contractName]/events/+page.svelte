@@ -8,15 +8,17 @@
   import { columnDefs } from "./columnDefs";
   import { gridRows, type EventRow } from "./gridRows";
 
-  export let data: LoadEventsData;
+  interface Props {
+    data: LoadEventsData;
+  }
 
-  let titleText: Contract["name"];
-  $: titleText = data.targetContract.name;
+  let { data }: Props = $props();
+
+  let titleText: Contract["name"] = $derived(data.targetContract.name);
 
   const titleCategoryLabelText: string = "Events";
 
-  let rows: EventRow[] = [];
-  $: rows = gridRows(data.targetEventAbiFragments);
+  let rows: EventRow[] = $derived(gridRows(data.targetEventAbiFragments));
 
   const maxLengthOfEventInputsParams = (): number => {
     let maxIndex: number = 0;
@@ -27,7 +29,7 @@
     });
     return maxIndex;
   };
-  let isFullScreen = false;
+  let isFullScreen = $state(false);
 </script>
 
 <PageWrapper

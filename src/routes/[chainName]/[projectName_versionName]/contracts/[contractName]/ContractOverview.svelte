@@ -16,20 +16,22 @@
   import ContractOverviewFallback from "./ContractOverviewFallback.svelte";
   import ContractOverviewSyncStatus from "./ContractOverviewSyncStatus.svelte";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
-  export let targetContract: Contract;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+    targetContract: Contract;
+  }
 
-  let hasEvent: boolean;
-  $: hasEvent = hasSyncTargetEvents(targetContract);
+  let { targetChain, targetProject, targetVersion, targetContract }: Props =
+    $props();
 
-  let gridTrackBasic: string;
-  $: gridTrackBasic = classNames(
-    "col-span-full",
-    hasEvent && "md:col-span-4",
-    "",
+  let hasEvent: boolean = $derived(hasSyncTargetEvents(targetContract));
+
+  let gridTrackBasic: string = $derived(
+    classNames("col-span-full", hasEvent && "md:col-span-4", ""),
   );
+
   const gridTrackSync: string = classNames(
     "col-span-full",
     "md:col-span-2",
