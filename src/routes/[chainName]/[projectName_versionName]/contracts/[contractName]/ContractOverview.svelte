@@ -47,7 +47,7 @@
 </script>
 
 <PageWrapperContent gridCols="grid-cols-6">
-  <svelte:fragment slot="PageWrapperContentBody">
+  {#snippet PageWrapperContentBody()}
     <CommonItemGroup text="Basic" gridTrack={gridTrackBasic}>
       <ContractOverviewBasic
         {targetChain}
@@ -90,5 +90,5 @@
     <CommonItemGroup text="Constructor" gridTrack={gridTrackEvents}>
       <ContractOverviewConstructor {targetContract} />
     </CommonItemGroup>
-  </svelte:fragment>
+  {/snippet}
 </PageWrapperContent>

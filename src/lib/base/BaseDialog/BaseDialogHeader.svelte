@@ -14,21 +14,30 @@
   import type { BaseSize } from "../baseSizes";
   import { closeDialog } from "./BaseDialogHandler";
 
-  export let dialogElement: HTMLDialogElement;
-  export let headerIconName: BaseIconProps["name"] | undefined = undefined;
-  export let headerText: string | undefined;
+  interface Props {
+    dialogElement: HTMLDialogElement | undefined;
+    headerIconName?: BaseIconProps["name"] | undefined;
+    headerText: string | undefined;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let {
+    dialogElement,
+    headerIconName = undefined,
+    headerText,
+  }: Props = $props();
+
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   const headerSize: BaseSize = sizeSettings.dialogHeader;
   const headerColor: ColorCategory = colorSettings.dialogHeader;
-  const prefixIcon: BaseLabelProps["prefixIcon"] = headerIconName
-    ? {
-        name: headerIconName,
-        colorCategory: headerColor,
-      }
-    : undefined;
+  const prefixIcon: BaseLabelProps["prefixIcon"] = $derived(
+    headerIconName
+      ? {
+          name: headerIconName,
+          colorCategory: headerColor,
+        }
+      : undefined,
+  );
 </script>
 
 <div

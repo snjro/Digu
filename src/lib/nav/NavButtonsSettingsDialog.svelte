@@ -8,7 +8,7 @@
 
   interface Props {
     initializeValue: boolean;
-    dialogElement: HTMLDialogElement;
+    dialogElement: HTMLDialogElement | undefined;
   }
 
   let { initializeValue = $bindable(), dialogElement = $bindable() }: Props =
@@ -26,18 +26,16 @@
   headerIconName="cogOutline"
   onclose={closeDialog}
 >
-  <PageWrapperContent
-    hasMultipulTabs={false}
-    gridCols="grid-cols-1"
-    slot="dialogBody"
-  >
-    <svelte:fragment slot="PageWrapperContentBody">
-      <CommonItemGroup text="RPC configuration" gridTrack={gridTrackRpc}>
-        <RpcConfig {initializeValue} />
-      </CommonItemGroup>
-      <CommonItemGroup text="Chain Explorer" gridTrack={gridTrackRpc}>
-        <ChainExplorer />
-      </CommonItemGroup>
-    </svelte:fragment>
-  </PageWrapperContent>
+  {#snippet dialogBody()}
+    <PageWrapperContent hasMultipulTabs={false} gridCols="grid-cols-1">
+      {#snippet PageWrapperContentBody()}
+        <CommonItemGroup text="RPC configuration" gridTrack={gridTrackRpc}>
+          <RpcConfig {initializeValue} />
+        </CommonItemGroup>
+        <CommonItemGroup text="Chain Explorer" gridTrack={gridTrackRpc}>
+          <ChainExplorer />
+        </CommonItemGroup>
+      {/snippet}
+    </PageWrapperContent>
+  {/snippet}
 </BaseDialog>

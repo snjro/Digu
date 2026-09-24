@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export function setAutoColumnWidth(
     gridApi: GridApi,
     skipHeader: boolean = false,
@@ -49,7 +49,7 @@
     enableDevValidations,
     themeBalham,
   } from "ag-grid-community";
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, untrack } from "svelte";
   import "./gridBodyStyle.css";
   import { baseTextSizesPixel, type BaseSize } from "$lib/base/baseSizes";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -58,25 +58,31 @@
   import { getColorDefinitionsForGrid } from "./getColorDefs";
   import { getColumnDefs, ColIdRowSequenceNumber } from "./getColumnDefs";
 
-  export let gridApi: GridApi<GridRow>;
-  export let paramColumnDefs: ColumnDef[] = [];
-  export let rows: GridRow[] | undefined;
+  interface Props {
+    gridApi: GridApi<GridRow>;
+    paramColumnDefs?: ColumnDef[];
+    rows: GridRow[] | undefined;
+  }
+
+  let { gridApi = $bindable(), paramColumnDefs = [], rows }: Props = $props();
 
   const gridTextSize: BaseSize = sizeSettings.grid;
 
-  $: isThemeLight = $storeUserSettings.themeColor === "light";
-  $: colorDefs = getColorDefinitionsForGrid(
-    $storeUserSettings.themeColor,
-    colorSettings.gridHeader,
-    colorSettings.gridRow,
+  let isThemeLight = $derived($storeUserSettings.themeColor === "light");
+  let colorDefs = $derived(
+    getColorDefinitionsForGrid(
+      $storeUserSettings.themeColor,
+      colorSettings.gridHeader,
+      colorSettings.gridRow,
+    ),
   );
   function refreshRowSeqenceNumber(gridApi: GridApi<GridRow>) {
     gridApi.refreshCells({ columns: [ColIdRowSequenceNumber] });
   }
 
-  let elementGridDiv: HTMLElement;
+  let elementGridDiv: HTMLElement = $state() as HTMLElement;
   const rowHeight: number = 24;
-  let gridOptions: GridOptions<GridRow> = {
+  let gridOptions: GridOptions<GridRow> = $state.raw({
     theme: themeBalham,
     defaultColDef: {
       flex: 1,
@@ -132,7 +138,7 @@
         });
       },
     ),
-  };
+  });
 
   onMount(() => {
     if (import.meta.env.DEV) {
@@ -154,37 +160,44 @@
   });
 
   //set row data
-  $: {
+  $effect.pre(() => {
     if (gridOptions && gridApi) {
-      gridApi.setGridOption("columnDefs", getColumnDefs(paramColumnDefs));
-      if (rows == undefined) {
-        gridApi.hideOverlay();
-        gridApi.showNoRowsOverlay();
-      } else {
-        if (rows && rows.length) {
-          gridApi.hideOverlay();
-          gridApi.setGridOption("loading", true);
-        } else {
+      const columnDefs: ColumnDef[] = paramColumnDefs;
+      const rowData: GridRow[] | undefined = rows;
+      // Like the legacy `$:`, rerun only when the values read above change, and
+      // keep the components that ag-grid mounts here out of this effect.
+      untrack(() => {
+        gridApi.setGridOption("columnDefs", getColumnDefs(columnDefs));
+        if (rowData == undefined) {
           gridApi.hideOverlay();
           gridApi.showNoRowsOverlay();
+        } else {
+          if (rowData && rowData.length) {
+            gridApi.hideOverlay();
+            gridApi.setGridOption("loading", true);
+          } else {
+            gridApi.hideOverlay();
+            gridApi.showNoRowsOverlay();
+          }
+          gridApi.setGridOption("rowData", rowData);
+          if (rowData && rowData.length) {
+            gridApi.setGridOption("loading", false);
+          }
         }
-        gridApi.setGridOption("rowData", rows);
-        if (rows && rows.length) {
-          gridApi.setGridOption("loading", false);
-        }
-      }
+      });
     }
-  }
+  });
   // Adjust all columns width only the first time it shows.
   // Because it not possible to autosize a column that is not visible on the screen.
   // https://www.ag-grid.com/javascript-data-grid/column-sizing/#auto-size-columns
   let isActivated: boolean = false;
-  $: {
+  $effect.pre(() => {
     if (isActivated === false && gridApi) {
-      setAutoColumnWidth(gridApi);
+      // Same as above: ag-grid may mount components while sizing the columns.
+      untrack(() => setAutoColumnWidth(gridApi));
       isActivated = true;
     }
-  }
+  });
 </script>
 
 <div

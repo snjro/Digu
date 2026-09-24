@@ -13,98 +13,107 @@
   import type { GridApi } from "ag-grid-community";
   import ExportCsv, { openDialogExportCsv } from "./ExportCsv/ExportCsv.svelte";
 
-  export let gridApi: GridApi<GridRow>;
-  export let rows: GridRow[] | undefined;
-  export let isFullScreen: boolean;
-  export let exportFilePrefix: ExportFilePrefix;
+  interface Props {
+    gridApi: GridApi<GridRow>;
+    rows: GridRow[] | undefined;
+    isFullScreen: boolean;
+    exportFilePrefix: ExportFilePrefix;
+  }
 
-  let quickSearchText: string = "";
+  let {
+    gridApi,
+    rows,
+    isFullScreen = $bindable(),
+    exportFilePrefix,
+  }: Props = $props();
 
-  let buttonDefinitionShowHideColumns: PageWrapperContentFunctionBarButtonsDefinition[number];
-  $: buttonDefinitionShowHideColumns = [
-    {
-      iconName: "arrowExpandHorizontal",
-      tooltipText: "Show all columns",
-      tooltipXPosition: "left",
-      tooltipYPosition: "top",
-      onClickEventFunction: () => setAllColumnGroupState(gridApi, true),
-    },
-    {
-      iconName: "arrowCollapseHorizontal",
-      tooltipText: "Hide minor columns",
-      tooltipXPosition: "left",
-      tooltipYPosition: "top",
-      onClickEventFunction: () => setAllColumnGroupState(gridApi, false),
-    },
-  ];
+  let quickSearchText: string = $state("");
 
-  let buttonDefinitionColumnWidthHandler: PageWrapperContentFunctionBarButtonsDefinition[number];
-  $: buttonDefinitionColumnWidthHandler = [
-    {
-      iconName: "fitToPageOutline",
-      tooltipText: "Fit columns in frame",
-      tooltipXPosition: "left",
-      tooltipYPosition: "top",
-      onClickEventFunction: () => gridApi.sizeColumnsToFit(),
-    },
-    {
-      iconName: "tableColumnWidth",
-      tooltipText: "Auto fit columns",
-      tooltipXPosition: "left",
-      tooltipYPosition: "top",
-      onClickEventFunction: () => setAutoColumnWidth(gridApi),
-    },
-  ];
-
-  let buttonDefinitionReset: PageWrapperContentFunctionBarButtonsDefinition[number];
-  $: buttonDefinitionReset = [
-    {
-      iconName: "filterRemove",
-      tooltipText: "Reset all filters",
-      tooltipXPosition: "left",
-      tooltipYPosition: "top",
-      onClickEventFunction: resetAllFilters,
-    },
-    {
-      iconName: "refresh",
-      tooltipText: "Reload",
-      tooltipXPosition: "left",
-      tooltipYPosition: "top",
-      onClickEventFunction: reload,
-    },
-  ];
-
-  let buttonDefinitionDownload: PageWrapperContentFunctionBarButtonsDefinition[number];
-  $: buttonDefinitionDownload = [
-    {
-      iconName: "download",
-      tooltipText: "Export as CSV",
-      tooltipXPosition: "left",
-      tooltipYPosition: "top",
-      onClickEventFunction: () => {
-        openDialogExportCsv(dialogElement);
+  let buttonDefinitionShowHideColumns: PageWrapperContentFunctionBarButtonsDefinition[number] =
+    $derived([
+      {
+        iconName: "arrowExpandHorizontal",
+        tooltipText: "Show all columns",
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: () => setAllColumnGroupState(gridApi, true),
       },
-    },
-  ];
-
-  let buttonDefinitionFullScreen: PageWrapperContentFunctionBarButtonsDefinition[number];
-  $: buttonDefinitionFullScreen = [
-    {
-      ...fullScreenButtonDefinition(isFullScreen),
-      onClickEventFunction: () => {
-        isFullScreen = !isFullScreen;
+      {
+        iconName: "arrowCollapseHorizontal",
+        tooltipText: "Hide minor columns",
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: () => setAllColumnGroupState(gridApi, false),
       },
-    },
-  ];
+    ]);
 
-  let buttonsDefinition: PageWrapperContentFunctionBarButtonsDefinition;
-  $: buttonsDefinition = [
-    buttonDefinitionShowHideColumns,
-    buttonDefinitionColumnWidthHandler,
-    buttonDefinitionReset,
-    buttonDefinitionDownload,
-    buttonDefinitionFullScreen,
-  ];
+  let buttonDefinitionColumnWidthHandler: PageWrapperContentFunctionBarButtonsDefinition[number] =
+    $derived([
+      {
+        iconName: "fitToPageOutline",
+        tooltipText: "Fit columns in frame",
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: () => gridApi.sizeColumnsToFit(),
+      },
+      {
+        iconName: "tableColumnWidth",
+        tooltipText: "Auto fit columns",
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: () => setAutoColumnWidth(gridApi),
+      },
+    ]);
+
+  let buttonDefinitionReset: PageWrapperContentFunctionBarButtonsDefinition[number] =
+    $derived([
+      {
+        iconName: "filterRemove",
+        tooltipText: "Reset all filters",
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: resetAllFilters,
+      },
+      {
+        iconName: "refresh",
+        tooltipText: "Reload",
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: reload,
+      },
+    ]);
+
+  let buttonDefinitionDownload: PageWrapperContentFunctionBarButtonsDefinition[number] =
+    $derived([
+      {
+        iconName: "download",
+        tooltipText: "Export as CSV",
+        tooltipXPosition: "left",
+        tooltipYPosition: "top",
+        onClickEventFunction: () => {
+          openDialogExportCsv(dialogElement);
+        },
+      },
+    ]);
+
+  let buttonDefinitionFullScreen: PageWrapperContentFunctionBarButtonsDefinition[number] =
+    $derived([
+      {
+        ...fullScreenButtonDefinition(isFullScreen),
+        onClickEventFunction: () => {
+          isFullScreen = !isFullScreen;
+        },
+      },
+    ]);
+
+  let buttonsDefinition: PageWrapperContentFunctionBarButtonsDefinition =
+    $derived([
+      buttonDefinitionShowHideColumns,
+      buttonDefinitionColumnWidthHandler,
+      buttonDefinitionReset,
+      buttonDefinitionDownload,
+      buttonDefinitionFullScreen,
+    ]);
   function setAllColumnGroupState(gridApi: GridApi, open: boolean): void {
     let stateItems: {
       groupId: string;
@@ -162,7 +171,7 @@
       }
     }, 500);
   }
-  let dialogElement: HTMLDialogElement;
+  let dialogElement: HTMLDialogElement | undefined = $state();
 </script>
 
 <ExportCsv {gridApi} bind:dialogElement {exportFilePrefix} />

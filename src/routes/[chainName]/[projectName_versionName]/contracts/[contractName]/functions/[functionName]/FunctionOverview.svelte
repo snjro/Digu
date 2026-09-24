@@ -34,7 +34,7 @@
 </script>
 
 <PageWrapperContent gridCols="grid-cols-2">
-  <svelte:fragment slot="PageWrapperContentBody">
+  {#snippet PageWrapperContentBody()}
     <CommonItemGroup text="Basic" gridTrack={gridTrackBasic}>
       <FunctionOverviewBasic {targetFunctionAbiFragment} />
     </CommonItemGroup>
@@ -60,5 +60,5 @@
         paramIdentifier="outputs"
       />
     </CommonItemGroup>
-  </svelte:fragment>
+  {/snippet}
 </PageWrapperContent>

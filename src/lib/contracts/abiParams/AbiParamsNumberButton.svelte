@@ -25,7 +25,7 @@
 
   const textSize: BaseSize = sizeSettings.abiParamsTable;
 
-  let dialogElement = $state() as HTMLDialogElement;
+  let dialogElement = $state<HTMLDialogElement>();
   function showDialog() {
     openDialog(dialogElement);
   }
@@ -46,15 +46,17 @@
     headerText={`${dialogHeaderText}`}
     headerIconName={undefined}
   >
-    <PageWrapperContent hasMultipulTabs={false} slot="dialogBody">
-      <svelte:fragment slot="PageWrapperContentBody">
-        <AbiParamsTable
-          {paramTypes}
-          {dialogHeaderText}
-          showInputIndexedField={showAbiParamsInputIndexedField}
-        />
-      </svelte:fragment>
-    </PageWrapperContent>
+    {#snippet dialogBody()}
+      <PageWrapperContent hasMultipulTabs={false}>
+        {#snippet PageWrapperContentBody()}
+          <AbiParamsTable
+            {paramTypes}
+            {dialogHeaderText}
+            showInputIndexedField={showAbiParamsInputIndexedField}
+          />
+        {/snippet}
+      </PageWrapperContent>
+    {/snippet}
   </BaseDialog>
 {:else}
   <BaseLabel

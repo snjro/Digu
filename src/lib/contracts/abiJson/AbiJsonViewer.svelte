@@ -8,7 +8,8 @@
   import { page } from "$app/stores";
   import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
   import type { PageWrapperContentFunctionBarDefinition } from "$lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
-  import PageWrapperContentFunctionBar from "$lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
+  // Named apart from the snippet PageWrapperContentFunctionBar of PageWrapperContent.
+  import PageWrapperContentFunctionBarComponent from "$lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
   import { fullScreenButtonDefinition } from "$lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
   import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
@@ -136,20 +137,19 @@
 </script>
 
 <PageWrapperContent>
-  <PageWrapperContentFunctionBar
-    slot="PageWrapperContentFunctionBar"
-    functionBarDefinition={{
-      buttonsDefinition: buttonsDefinition,
-      showThreeDotsButton: false,
-      buttonSize: sizeSettings.gridFunctionButton,
-      breakPointWidthForOpendSidebar:
-        breakPointWidthThresholds.grigFunctionButtonForOpenedSidebar,
-      horizontalAlignment: "end",
-    }}
-  />
-  <BaseHighlight
-    slot="PageWrapperContentBody"
-    code={abiText}
-    targetLanguageName="json"
-  />
+  {#snippet PageWrapperContentFunctionBar()}
+    <PageWrapperContentFunctionBarComponent
+      functionBarDefinition={{
+        buttonsDefinition: buttonsDefinition,
+        showThreeDotsButton: false,
+        buttonSize: sizeSettings.gridFunctionButton,
+        breakPointWidthForOpendSidebar:
+          breakPointWidthThresholds.grigFunctionButtonForOpenedSidebar,
+        horizontalAlignment: "end",
+      }}
+    />
+  {/snippet}
+  {#snippet PageWrapperContentBody()}
+    <BaseHighlight code={abiText} targetLanguageName="json" />
+  {/snippet}
 </PageWrapperContent>

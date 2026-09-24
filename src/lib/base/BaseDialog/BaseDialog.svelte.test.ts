@@ -19,8 +19,6 @@ type Props = {
 
 function renderDialog(props: Props) {
   const result = render(BaseDialog, {
-    // BaseDialog sets dialogElement with bind:this.
-    dialogElement: undefined as unknown as HTMLDialogElement,
     ...props,
     ...slotProps({
       dialogBody: htmlSnippet("<p data-testid='body'>body</p>"),

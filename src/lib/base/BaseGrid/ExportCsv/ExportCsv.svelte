@@ -1,7 +1,9 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import { openDialog } from "$lib/base/BaseDialog/BaseDialogHandler";
 
-  export function openDialogExportCsv(dialogElement: HTMLDialogElement) {
+  export function openDialogExportCsv(
+    dialogElement: HTMLDialogElement | undefined,
+  ) {
     openDialog(dialogElement);
   }
   type ExportCsvRadioProp<RadioValue> = {
@@ -24,7 +26,8 @@
 <script lang="ts" generics="GridRow">
   import { page } from "$app/stores";
   import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
-  import PageWrapperContentFooter, {
+  // Named apart from the snippet PageWrapperContentFooter of PageWrapperContent.
+  import PageWrapperContentFooterComponent, {
     type PageWrapperContentFooterDefinition,
   } from "$lib/PageWrapper/PageWrapperContentFooter.svelte";
   import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
@@ -47,23 +50,29 @@
     type CsvFilteredSorted,
   } from "./exportCsv";
 
-  export let gridApi: GridApi<GridRow>;
-  export let dialogElement: HTMLDialogElement;
-  export let exportFilePrefix: ExportFilePrefix;
+  interface Props {
+    gridApi: GridApi<GridRow>;
+    dialogElement?: HTMLDialogElement;
+    exportFilePrefix: ExportFilePrefix;
+  }
+
+  let {
+    gridApi,
+    dialogElement = $bindable(),
+    exportFilePrefix,
+  }: Props = $props();
 
   const colorCategory: ColorCategory = colorSettings.dialogHeader;
 
-  let gridId: string | undefined = undefined;
-  $: gridId = gridApi?.getGridId();
+  let gridId: string | undefined = $derived(gridApi?.getGridId());
 
   // In order to avoid duplicate inputIds, add gridId to inputId.
   // This duplication occurs when multiple grids appear on a single page (including in tags).
-  $: addGridIdToInputId = (id: string): string => {
+  const addGridIdToInputId = (id: string): string => {
     return `${id}${gridId ?? ""}`;
   };
 
-  let exportCsvRadioProps: ExportCsvRadioProps;
-  $: exportCsvRadioProps = {
+  let exportCsvRadioProps: ExportCsvRadioProps = $derived({
     skipRowNumber: {
       title: "Row number",
       subTitle: "Include the row number which is the first column?",
@@ -159,11 +168,11 @@
         },
       ],
     },
-  };
+  });
 
-  $: radioPropsKeys = Object.keys(
-    exportCsvRadioProps ?? {},
-  ) as (keyof ExportCsvRadioProps)[];
+  let radioPropsKeys = $derived(
+    Object.keys(exportCsvRadioProps ?? {}) as (keyof ExportCsvRadioProps)[],
+  );
 
   function downloadCsvFile(): void {
     exportCsvFile(
@@ -212,41 +221,38 @@
 </script>
 
 <BaseDialog bind:dialogElement headerText="Export CSV File">
-  <PageWrapperContent
-    hasMultipulTabs={false}
-    gridCols="grid-cols-1"
-    slot="dialogBody"
-  >
-    <svelte:fragment slot="PageWrapperContentBody">
-      <CommonItemGroup text="CSV File Format" gridTrack="col-span-full">
-        {#each radioPropsKeys as key}
-          <CommonItemMember text={exportCsvRadioProps[key].title}>
-            <BaseLabel
-              textSize={sizeSettings.dialogBodyContent}
-              text={exportCsvRadioProps[key].subTitle}
-              colorCategoryFront={colorCategory}
-            />
-            <BaseRadio
-              radioButtonType="button"
-              border
-              size={sizeSettings.dialogBodyContent}
-              labelAndValues={exportCsvRadioProps[key].radioLabelAndValues}
-              groupName={exportCsvRadioProps[key].groupName}
-              selectedValue={exportCsvRadioProps[key].selectedValue}
-              onchanged={(value) => {
-                // update selectedValue.
-                // I tried to updete it by using `bing:selectedValue={exportCsv...}`,
-                // but that did not work. I looked into it, but couldn't figure out why.
-                exportCsvRadioProps[key].selectedValue = value;
-              }}
-            />
-          </CommonItemMember>
-        {/each}
-      </CommonItemGroup>
-    </svelte:fragment>
-    <PageWrapperContentFooter
-      {footerDefinition}
-      slot="PageWrapperContentFooter"
-    />
-  </PageWrapperContent>
+  {#snippet dialogBody()}
+    <PageWrapperContent hasMultipulTabs={false} gridCols="grid-cols-1">
+      {#snippet PageWrapperContentBody()}
+        <CommonItemGroup text="CSV File Format" gridTrack="col-span-full">
+          {#each radioPropsKeys as key}
+            <CommonItemMember text={exportCsvRadioProps[key].title}>
+              <BaseLabel
+                textSize={sizeSettings.dialogBodyContent}
+                text={exportCsvRadioProps[key].subTitle}
+                colorCategoryFront={colorCategory}
+              />
+              <BaseRadio
+                radioButtonType="button"
+                border
+                size={sizeSettings.dialogBodyContent}
+                labelAndValues={exportCsvRadioProps[key].radioLabelAndValues}
+                groupName={exportCsvRadioProps[key].groupName}
+                selectedValue={exportCsvRadioProps[key].selectedValue}
+                onchanged={(value) => {
+                  // update selectedValue.
+                  // I tried to updete it by using `bing:selectedValue={exportCsv...}`,
+                  // but that did not work. I looked into it, but couldn't figure out why.
+                  exportCsvRadioProps[key].selectedValue = value;
+                }}
+              />
+            </CommonItemMember>
+          {/each}
+        </CommonItemGroup>
+      {/snippet}
+      {#snippet PageWrapperContentFooter()}
+        <PageWrapperContentFooterComponent {footerDefinition} />
+      {/snippet}
+    </PageWrapperContent>
+  {/snippet}
 </BaseDialog>

@@ -17,7 +17,7 @@
   let { dialogHeaderText, components }: Props = $props();
 
   const iconName: BaseIconProps["name"] = "loupe";
-  let dialogElement = $state() as HTMLDialogElement;
+  let dialogElement = $state<HTMLDialogElement>();
   function showDialog() {
     openDialog(dialogElement);
   }
@@ -40,9 +40,11 @@
   headerText={`Components of ${dialogHeaderText}`}
   headerIconName={undefined}
 >
-  <PageWrapperContent hasMultipulTabs={false} slot="dialogBody">
-    <svelte:fragment slot="PageWrapperContentBody">
-      <BaseHighlight targetLanguageName="json" code={dialogText} />
-    </svelte:fragment>
-  </PageWrapperContent>
+  {#snippet dialogBody()}
+    <PageWrapperContent hasMultipulTabs={false}>
+      {#snippet PageWrapperContentBody()}
+        <BaseHighlight targetLanguageName="json" code={dialogText} />
+      {/snippet}
+    </PageWrapperContent>
+  {/snippet}
 </BaseDialog>

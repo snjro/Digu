@@ -1,4 +1,5 @@
-export function openDialog(dialogElement: HTMLDialogElement): void {
+export function openDialog(dialogElement: HTMLDialogElement | undefined): void {
+  if (!dialogElement) return;
   dialogElement.showModal();
   dialogElement.addEventListener("click", (mouseEvent: MouseEvent) => {
     if (mouseEvent.target === dialogElement) {
@@ -6,6 +7,8 @@ export function openDialog(dialogElement: HTMLDialogElement): void {
     }
   });
 }
-export function closeDialog(dialogElement: HTMLDialogElement): void {
-  dialogElement.close();
+export function closeDialog(
+  dialogElement: HTMLDialogElement | undefined,
+): void {
+  dialogElement?.close();
 }
