@@ -4,25 +4,31 @@
     type BaseTableHeaderCellProps,
   } from "./BaseTableHeaderCell.svelte";
 
-  export let colorCategoryBg: BaseTableHeaderCellProps["colorCategoryBg"] =
-    undefined;
-  export let colorCategoryBorder: BaseTableHeaderCellProps["colorCategoryBorder"] =
-    undefined;
-  export let textSize: BaseSize;
-  export let numOfTableRows: number;
-
-  let width: `w-${number}`;
-  $: {
-    if (numOfTableRows > 999) {
-      width = "w-12";
-    } else if (numOfTableRows > 99) {
-      width = "w-10";
-    } else if (numOfTableRows > 9) {
-      width = "w-8";
-    } else {
-      width = "w-6";
-    }
+  interface Props {
+    colorCategoryBg?: BaseTableHeaderCellProps["colorCategoryBg"];
+    colorCategoryBorder?: BaseTableHeaderCellProps["colorCategoryBorder"];
+    textSize: BaseSize;
+    numOfTableRows: number;
   }
+
+  let {
+    colorCategoryBg = undefined,
+    colorCategoryBorder = undefined,
+    textSize,
+    numOfTableRows,
+  }: Props = $props();
+
+  let width: `w-${number}` = $derived.by(() => {
+    if (numOfTableRows > 999) {
+      return "w-12";
+    } else if (numOfTableRows > 99) {
+      return "w-10";
+    } else if (numOfTableRows > 9) {
+      return "w-8";
+    } else {
+      return "w-6";
+    }
+  });
 </script>
 
 <BaseTableHeaderCell

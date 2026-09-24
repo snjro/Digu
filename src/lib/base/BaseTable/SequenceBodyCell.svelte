@@ -3,12 +3,19 @@
   import BaseTableBodyCell, {
     type BaseTableBodyCellProps,
   } from "./BaseTableBodyCell.svelte";
-  export let textSize: BaseSize;
-  export let rowIndex: number;
-  export let colorCategoryBg: BaseTableBodyCellProps["colorCategoryBg"] =
-    undefined;
-  export let colorCategoryBorder: BaseTableBodyCellProps["colorCategoryBorder"] =
-    undefined;
+  interface Props {
+    textSize: BaseSize;
+    rowIndex: number;
+    colorCategoryBg?: BaseTableBodyCellProps["colorCategoryBg"];
+    colorCategoryBorder?: BaseTableBodyCellProps["colorCategoryBorder"];
+  }
+
+  let {
+    textSize,
+    rowIndex,
+    colorCategoryBg = undefined,
+    colorCategoryBorder = undefined,
+  }: Props = $props();
 </script>
 
 <BaseTableBodyCell

@@ -4,13 +4,18 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
+  import type { Snippet } from "svelte";
 
-  export let hoverEffect: boolean = true;
+  interface Props {
+    hoverEffect?: boolean;
+    children?: Snippet;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let { hoverEffect = true, children }: Props = $props();
 
-  $: hoverBgColor = (): `hover:bg-${string}` | undefined => {
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  const hoverBgColor = (): `hover:bg-${string}` | undefined => {
     if (hoverEffect) {
       return colorDefinitions[themeColor][colorSettings.itemMemberTableBg]
         .bgHover;
@@ -21,5 +26,5 @@
 </script>
 
 <tr class={classNames(hoverBgColor(), "")}>
-  <slot />
+  {@render children?.()}
 </tr>
