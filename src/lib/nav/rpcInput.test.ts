@@ -3,7 +3,7 @@ import type { Chain } from "@constants/chains/types";
 import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
 import { updateDbItemRpcSettings } from "@db/dbSettings";
 import type { NodeStatus } from "@db/dbTypes";
-import { getNodeProvider } from "@utils/utilsEthers";
+import { getNodeProvider, type NodeProvider } from "@utils/utilsEthers";
 import {
   clearSucceededNodeStatus,
   getToggledRpcInputType,
@@ -40,6 +40,22 @@ describe("updateRpc", () => {
     expect(
       vi.mocked(updateDbItemRpcSettings).mock.invocationCallOrder[0],
     ).toBeLessThan(vi.mocked(getNodeProvider).mock.invocationCallOrder[0]);
+  });
+
+  test("should destroy the provider after connecting", async () => {
+    const destroy = vi.fn();
+    vi.mocked(getNodeProvider).mockResolvedValueOnce({
+      destroy,
+    } as unknown as NodeProvider);
+    await updateRpc(targetChain, "https://localhost:8545");
+    expect(destroy).toHaveBeenCalledTimes(1);
+  });
+
+  test("should do nothing more when there is no provider", async () => {
+    vi.mocked(getNodeProvider).mockResolvedValueOnce(undefined);
+    await expect(
+      updateRpc(targetChain, "https://localhost:8545"),
+    ).resolves.toBeUndefined();
   });
 
   test("should save an empty rpc as it is", async () => {
