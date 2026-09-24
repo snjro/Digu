@@ -10,6 +10,11 @@ const pkgJson = JSON.parse(json);
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   preprocess: vitePreprocess(),
+  compilerOptions: {
+    // Libraries in node_modules (svelte-highlight) are still in legacy mode.
+    runes: ({ filename }) =>
+      filename.split(/[/\\]/).includes("node_modules") ? undefined : true,
+  },
 
   // noExternal: ["svelte-hero-icons"],
   kit: {
