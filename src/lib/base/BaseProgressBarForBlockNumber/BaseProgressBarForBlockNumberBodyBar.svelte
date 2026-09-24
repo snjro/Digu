@@ -10,19 +10,30 @@
   import classNames from "classnames";
   import { getProgressRateForLabel } from "./progressRate";
 
-  export let progressRate: number;
-  export let size: BaseSize;
-  export let colorCategoryFront: ColorCategory;
-  export let colorCategoryBg: ColorCategory;
-  export let isColoredBar: boolean;
-  export let showLabel: boolean;
-  export let shadow: boolean = true;
+  interface Props {
+    progressRate: number;
+    size: BaseSize;
+    colorCategoryFront: ColorCategory;
+    colorCategoryBg: ColorCategory;
+    isColoredBar: boolean;
+    showLabel: boolean;
+    shadow?: boolean;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let {
+    progressRate,
+    size,
+    colorCategoryFront,
+    colorCategoryBg,
+    isColoredBar,
+    showLabel,
+    shadow = true,
+  }: Props = $props();
 
-  $: barWidth = isColoredBar ? progressRate : 100 - progressRate;
-  $: roundedStyle = (): `rounded${string}` => {
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let barWidth = $derived(isColoredBar ? progressRate : 100 - progressRate);
+  let roundedStyle = $derived((): `rounded${string}` => {
     if (isColoredBar) {
       if (progressRate <= 1) {
         return "rounded-none";
@@ -40,14 +51,14 @@
         return "rounded-r-sm";
       }
     }
-  };
-  $: shadowStyle = (): `shadow-${string}` => {
+  });
+  let shadowStyle = $derived((): `shadow-${string}` => {
     if (!isColoredBar && shadow && themeColor !== "dark") {
       return `shadow-inner ${colorDefinitions[themeColor][colorCategoryFront].shadow}`;
     } else {
       return "shadow-none";
     }
-  };
+  });
 </script>
 
 <div

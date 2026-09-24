@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type BaseProgressBarForBlockNumberProps = {
     processing: boolean;
     size: BaseSize;
@@ -21,26 +21,38 @@
   import BaseProgressBarForBlocknumberEdgePointer from "./BaseProgressBarForBlocknumberEdgePointer.svelte";
   import { getProgressRate } from "./progressRate";
 
-  export let size: BaseProgressBarForBlockNumberProps["size"] = "md";
-  export let processing: BaseProgressBarForBlockNumberProps["processing"] = false;
-  export let colorCategoryProgress: BaseProgressBarForBlockNumberProps["colorCategoryProgress"] =
-    "interactive";
-  export let startBlockNumber: BaseProgressBarForBlockNumberProps["startBlockNumber"];
-  export let endBlockNumber: BaseProgressBarForBlockNumberProps["endBlockNumber"];
-  export let fetchedBlockNumber: BaseProgressBarForBlockNumberProps["fetchedBlockNumber"];
-  export let showBlockNumber: boolean = true;
-  export let rounded: boolean = false;
-  export let shadowBar: boolean = true;
+  interface Props {
+    size?: BaseProgressBarForBlockNumberProps["size"];
+    processing?: BaseProgressBarForBlockNumberProps["processing"];
+    colorCategoryProgress?: BaseProgressBarForBlockNumberProps["colorCategoryProgress"];
+    startBlockNumber: BaseProgressBarForBlockNumberProps["startBlockNumber"];
+    endBlockNumber: BaseProgressBarForBlockNumberProps["endBlockNumber"];
+    fetchedBlockNumber: BaseProgressBarForBlockNumberProps["fetchedBlockNumber"];
+    showBlockNumber?: boolean;
+    rounded?: boolean;
+    shadowBar?: boolean;
+    colorCategoryFront: BaseProgressBarForBlockNumberProps["colorCategoryFront"];
+    colorCategoryBg: BaseProgressBarForBlockNumberProps["colorCategoryBg"];
+  }
 
-  export let colorCategoryFront: BaseProgressBarForBlockNumberProps["colorCategoryFront"];
-  export let colorCategoryBg: BaseProgressBarForBlockNumberProps["colorCategoryBg"];
-
-  const blockNumberTextSize: BaseSize = changeSize(size, -1);
-
-  $: progressRate = getProgressRate(
+  let {
+    size = "md",
+    processing = false,
+    colorCategoryProgress = "interactive",
     startBlockNumber,
     endBlockNumber,
     fetchedBlockNumber,
+    showBlockNumber = true,
+    rounded = false,
+    shadowBar = true,
+    colorCategoryFront,
+    colorCategoryBg,
+  }: Props = $props();
+
+  let blockNumberTextSize: BaseSize = $derived(changeSize(size, -1));
+
+  let progressRate = $derived(
+    getProgressRate(startBlockNumber, endBlockNumber, fetchedBlockNumber),
   );
 </script>
 

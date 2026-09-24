@@ -11,14 +11,27 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   // import BaseLabel from "./BaseLabel.svelte";
   import BaseProgressBarForBlockNumberBodyBar from "./BaseProgressBarForBlockNumberBodyBar.svelte";
-  export let processing: boolean;
-  export let rounded: boolean;
-  export let progressRate: number;
-  export let size: BaseSize;
-  export let colorCategoryFront: ColorCategory;
-  export let colorCategoryBg: ColorCategory;
-  export let colorCategoryProgress: ColorCategory;
-  export let shadowBar: boolean = true;
+  interface Props {
+    processing: boolean;
+    rounded: boolean;
+    progressRate: number;
+    size: BaseSize;
+    colorCategoryFront: ColorCategory;
+    colorCategoryBg: ColorCategory;
+    colorCategoryProgress: ColorCategory;
+    shadowBar?: boolean;
+  }
+
+  let {
+    processing,
+    rounded,
+    progressRate,
+    size,
+    colorCategoryFront,
+    colorCategoryBg,
+    colorCategoryProgress,
+    shadowBar = true,
+  }: Props = $props();
 
   const barHeights: { [key in BaseSize]: string } = baseTextHeight;
 
@@ -34,21 +47,22 @@
     "5xl": "rounded-3xl",
   };
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
-  $: color = getColorFromTailwindColor(
-    colorDefinitions[themeColor][colorCategoryProgress].bg,
+  let color = $derived(
+    getColorFromTailwindColor(
+      colorDefinitions[themeColor][colorCategoryProgress].bg,
+    ),
   );
 
-  $: backgroundImage = (): string => {
+  let backgroundImage = $derived((): string => {
     const url = `'data:image/svg+xml;charset=UTF-8, <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 24 24"><path fill="${encodeURIComponent(color)}" d="M12,10A2,2 0 0,0 10,12C10,13.11 10.9,14 12,14C13.11,14 14,13.11 14,12A2,2 0 0,0 12,10Z" /></svg>'`;
     return `background-image: url(${url});`;
-  };
-  $: progressColor = (): string => {
+  });
+  let progressColor = $derived((): string => {
     return `width: 100%; background: linear-gradient(to right, ${color} ${progressRate}%, transparent ${progressRate}%)`;
-  };
-  $: isProgressRateOver50 = progressRate >= 50;
+  });
+  let isProgressRateOver50 = $derived(progressRate >= 50);
 </script>
 
 <div

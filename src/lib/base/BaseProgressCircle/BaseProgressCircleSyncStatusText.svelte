@@ -3,8 +3,11 @@
   import CommonSyncStateText, {
     type SyncStateTextLabelProps,
   } from "$lib/common/CommonSyncStateText.svelte";
-  export let syncStateTextLabelProps: SyncStateTextLabelProps | undefined =
-    undefined;
+  interface Props {
+    syncStateTextLabelProps?: SyncStateTextLabelProps | undefined;
+  }
+
+  let { syncStateTextLabelProps = undefined }: Props = $props();
 </script>
 
 {#if syncStateTextLabelProps}

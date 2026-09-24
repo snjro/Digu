@@ -3,11 +3,16 @@
   import type { BaseSize } from "../baseSizes";
   import BaseProgressCircleDetailsItem from "./BaseProgressCircleDetailsItem.svelte";
 
-  export let startValue: number;
-  export let currentValue: number;
-  export let goalValue: number;
-  export let textSize: BaseSize;
-  export let fullLength: boolean;
+  interface Props {
+    startValue: number;
+    currentValue: number;
+    goalValue: number;
+    textSize: BaseSize;
+    fullLength: boolean;
+  }
+
+  let { startValue, currentValue, goalValue, textSize, fullLength }: Props =
+    $props();
   const pxSizes: { [key in BaseSize]: `px-${string}` } = {
     xs: "px-2",
     sm: "px-3",

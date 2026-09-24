@@ -7,10 +7,13 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
-  export let colorCategory: ColorCategory;
-  export let hidden: boolean = false;
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  interface Props {
+    colorCategory: ColorCategory;
+    hidden?: boolean;
+  }
+
+  let { colorCategory, hidden = false }: Props = $props();
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 </script>
 
 <div

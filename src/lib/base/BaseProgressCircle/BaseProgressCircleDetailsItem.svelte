@@ -5,9 +5,13 @@
   import type { BaseSize } from "../baseSizes";
   import { NO_DATA } from "@utils/utilsCostants";
 
-  export let title: "start" | "curr" | "current" | "goal";
-  export let value: number;
-  export let textSize: BaseSize;
+  interface Props {
+    title: "start" | "curr" | "current" | "goal";
+    value: number;
+    textSize: BaseSize;
+  }
+
+  let { title, value, textSize }: Props = $props();
 </script>
 
 <div

@@ -4,11 +4,21 @@
   import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import BaseProgressBarForBlockNumberChainExplorerLink from "./BaseProgressBarForBlockNumberChainExplorerLink.svelte";
   import BaseProgressBarForBlocknumberPointer from "./BaseProgressBarForBlocknumberPointer.svelte";
-  export let size: BaseSize;
-  export let colorCategoryFront: ColorCategory;
-  export let colorCategoryBg: ColorCategory;
-  export let startBlockNumber: number;
-  export let endBlockNumber: number;
+  interface Props {
+    size: BaseSize;
+    colorCategoryFront: ColorCategory;
+    colorCategoryBg: ColorCategory;
+    startBlockNumber: number;
+    endBlockNumber: number;
+  }
+
+  let {
+    size,
+    colorCategoryFront,
+    colorCategoryBg,
+    startBlockNumber,
+    endBlockNumber,
+  }: Props = $props();
 </script>
 
 <BaseProgressBarForBlocknumberPointer
