@@ -133,12 +133,14 @@
 
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
-  document.addEventListener("keydown", (event: KeyboardEvent) => {
+  const onKeydown = (event: KeyboardEvent): void => {
     if (isFullScreen && event.key == "Escape") {
       isFullScreen = false;
     }
-  });
+  };
 </script>
+
+<svelte:document onkeydown={onKeydown} />
 
 <div
   class={classNames(
