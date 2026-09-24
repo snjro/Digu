@@ -14,14 +14,17 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
-  export let buttonsDefinition: PageWrapperContentFunctionBarButtonsDefinition;
-  export let buttonSize: BaseSize;
-  export let colorCategory: ColorCategory;
+  interface Props {
+    buttonsDefinition: PageWrapperContentFunctionBarButtonsDefinition;
+    buttonSize: BaseSize;
+    colorCategory: ColorCategory;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let { buttonsDefinition, buttonSize, colorCategory }: Props = $props();
 
-  let showChildren: boolean = false;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let showChildren: boolean = $state(false);
 
   const toggleShowChildren = () => {
     showChildren = !showChildren;
@@ -49,7 +52,7 @@
     }
   };
 
-  let thisElement: HTMLElement;
+  let thisElement: HTMLElement | undefined = $state();
 
   //hide children when `Esc` is pressed.
   document.addEventListener("keydown", (event: KeyboardEvent) => {

@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type PageWrapperContentFooterDefinition = {
     buttonsDefinition: PageWrapperContentFooterButtonsDefinition;
     buttonSize: BaseSize;
@@ -9,10 +9,16 @@
 <script lang="ts">
   import type { BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
+  import type { Snippet } from "svelte";
   import type { PageWrapperContentFooterButtonsDefinition } from "./PageWrapperContentFooterButtons.svelte";
   import PageWrapperContentFooterButtons from "./PageWrapperContentFooterButtons.svelte";
 
-  export let footerDefinition: PageWrapperContentFooterDefinition;
+  interface Props {
+    footerDefinition: PageWrapperContentFooterDefinition;
+    children?: Snippet;
+  }
+
+  let { footerDefinition, children }: Props = $props();
 
   const horizontalAlignment: () =>
     "justify-start" | "justify-between" | "justify-end" = () => {
@@ -40,6 +46,6 @@
     "px-3",
   )}
 >
-  <slot />
+  {@render children?.()}
   <PageWrapperContentFooterButtons {footerDefinition} />
 </div>

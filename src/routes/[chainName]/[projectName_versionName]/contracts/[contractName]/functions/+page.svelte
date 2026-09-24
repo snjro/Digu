@@ -48,7 +48,7 @@
   }}
   bind:isFullScreen
 >
-  <svelte:fragment slot="PageWrapperContent">
+  {#snippet PageWrapperContent()}
     <BaseGrid
       {rows}
       paramColumnDefs={columnDefs(
@@ -62,5 +62,5 @@
       hasMultipulTabs={false}
       bind:isFullScreen
     />
-  </svelte:fragment>
+  {/snippet}
 </PageWrapper>

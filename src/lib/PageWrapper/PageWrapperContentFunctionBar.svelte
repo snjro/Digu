@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type PageWrapperContentFunctionBarDefinition = {
     buttonsDefinition: PageWrapperContentFunctionBarButtonsDefinition;
     showThreeDotsButton: boolean;
@@ -14,8 +14,14 @@
   import type { BreakPointWidthValue } from "$lib/appearanceConfig/size/sizeDefinitions";
   import type { BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
+  import type { Snippet } from "svelte";
 
-  export let functionBarDefinition: PageWrapperContentFunctionBarDefinition;
+  interface Props {
+    functionBarDefinition: PageWrapperContentFunctionBarDefinition;
+    children?: Snippet;
+  }
+
+  let { functionBarDefinition, children }: Props = $props();
 
   const horizontalAlignment: () =>
     "justify-start" | "justify-between" | "justify-end" = () => {
@@ -44,6 +50,6 @@
     "pr-3",
   )}
 >
-  <slot />
+  {@render children?.()}
   <PageWrapperContentFunctionBarButtons {functionBarDefinition} />
 </div>

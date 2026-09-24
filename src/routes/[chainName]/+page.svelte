@@ -68,9 +68,9 @@
     titleCategoryLabelText: titleCategoryLabelText,
   }}
 >
-  <svelte:fragment slot="PageWrapperContent">
+  {#snippet PageWrapperContent()}
     <ChainOverview targetChain={data.targetChain}></ChainOverview>
-  </svelte:fragment>
+  {/snippet}
 </PageWrapper>
 
 <!-- <BaseButton

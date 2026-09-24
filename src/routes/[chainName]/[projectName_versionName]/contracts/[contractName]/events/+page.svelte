@@ -39,7 +39,7 @@
   }}
   bind:isFullScreen
 >
-  <svelte:fragment slot="PageWrapperContent">
+  {#snippet PageWrapperContent()}
     <BaseGrid
       {rows}
       paramColumnDefs={columnDefs(
@@ -58,5 +58,5 @@
       exportFilePrefix="events"
       bind:isFullScreen
     />
-  </svelte:fragment>
+  {/snippet}
 </PageWrapper>
