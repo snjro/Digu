@@ -8,6 +8,7 @@ import {
 const enabled: SyncToggleConditions = {
   nodeStatus: "SUCCESS",
   isSyncTarget: true,
+  isToggleOn: false,
   syncStateText: "stopped",
   isStarting: false,
   isSyncingInOtherTab: false,
@@ -48,6 +49,51 @@ describe("isSyncToggleDisabled", () => {
       );
     },
   );
+
+  test.each<NodeStatus>([
+    "CONNECTING",
+    "INVALID_URL",
+    "INVALID_PROTOCOL",
+    "NETWORK_ERROR",
+    "WRONG_CHAIN",
+    undefined,
+  ])(
+    "should be enabled to stop the sync when the node status is %j",
+    (nodeStatus) => {
+      expect(
+        isSyncToggleDisabled({ ...enabled, isToggleOn: true, nodeStatus }),
+      ).toBe(false);
+    },
+  );
+
+  test("should be enabled to stop the sync when the chain is not a sync target", () => {
+    expect(
+      isSyncToggleDisabled({
+        ...enabled,
+        isToggleOn: true,
+        isSyncTarget: false,
+      }),
+    ).toBe(false);
+  });
+
+  test.each<keyof SyncToggleConditions>(["isStarting", "isSyncingInOtherTab"])(
+    "should be disabled when on and %s",
+    (key) => {
+      expect(
+        isSyncToggleDisabled({ ...enabled, isToggleOn: true, [key]: true }),
+      ).toBe(true);
+    },
+  );
+
+  test("should be disabled when on and stopping", () => {
+    expect(
+      isSyncToggleDisabled({
+        ...enabled,
+        isToggleOn: true,
+        syncStateText: "stopping",
+      }),
+    ).toBe(true);
+  });
 
   test("should be disabled while starting", () => {
     expect(isSyncToggleDisabled({ ...enabled, isStarting: true })).toBe(true);

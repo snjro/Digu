@@ -70,6 +70,7 @@
     isSyncToggleDisabled({
       nodeStatus,
       isSyncTarget: targetChainSyncStatus.isSyncTarget,
+      isToggleOn: toggleOn,
       syncStateText,
       isStarting,
       isSyncingInOtherTab,
