@@ -107,10 +107,12 @@ export function getTargetFunctionAbiFragment(
     versionName: functionIdentifier.versionName,
     contractName: functionIdentifier.contractName,
   });
+  const selector: string | undefined = functionIdentifier.functionSelector;
+  // getFunction also looks up a name, so only a selector is passed to it.
   const functionAbiFragment: FunctionAbiFragment | null =
-    targetContract.contractInterface.getFunction(
-      functionIdentifier.functionSelector!,
-    );
+    selector !== undefined && /^0x[0-9a-fA-F]{8}$/.test(selector)
+      ? targetContract.contractInterface.getFunction(selector)
+      : null;
   if (functionAbiFragment === null) {
     throw new TargetNotFoundError("function", functionIdentifier);
   }

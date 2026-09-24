@@ -206,6 +206,24 @@ describe("not found", () => {
         "function not found: eth/Augur/version1/Augur/disputeCrowdsourcerCreated/0x00000000",
     },
     {
+      name: "getTargetFunctionAbiFragment without a selector",
+      call: () => getTargetFunctionAbiFragment(functionIdentifier),
+      message:
+        "function not found: eth/Augur/version1/Augur/disputeCrowdsourcerCreated",
+    },
+    {
+      // getFunction of ethers would find the function by this name.
+      name: "getTargetFunctionAbiFragment with a name as the selector",
+      call: () =>
+        getTargetFunctionAbiFragment({
+          ...functionIdentifier,
+          functionSelector:
+            "disputeCrowdsourcerCreated" as AbiFragmentIdentifier["functionSelector"],
+        }),
+      message:
+        "function not found: eth/Augur/version1/Augur/disputeCrowdsourcerCreated/disputeCrowdsourcerCreated",
+    },
+    {
       name: "getTargetContract when the chain is missing",
       call: () =>
         getTargetContract({ ...contractIdentifier, chainName: "foo" }),

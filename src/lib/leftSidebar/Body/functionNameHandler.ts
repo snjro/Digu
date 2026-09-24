@@ -2,7 +2,6 @@ import type {
   EventAbiFragment,
   FunctionAbiFragment,
 } from "@constants/chains/types";
-import { customLogger } from "@utils/logger";
 
 const FUNC_NAME_SPLITTER = "-";
 function isFunctionAbiFragment(
@@ -17,25 +16,17 @@ export function getFunctionSelectorWithSplitter(
     ? `${FUNC_NAME_SPLITTER}${targetAbiFragment.selector}` // hyphens are not allowed in function names on Solidity.
     : "";
 }
+// The selector is undefined when the text does not split into two, so that
+// the function getter shows the 404 page for such a URL.
 export function getSplittedFunctionNameAndSelector(
   functionNameAndSelector: string,
 ): {
   functionName: FunctionAbiFragment["name"];
-  functionSelector: FunctionAbiFragment["selector"];
+  functionSelector: FunctionAbiFragment["selector"] | undefined;
 } {
   const splitted: string[] = functionNameAndSelector.split(FUNC_NAME_SPLITTER);
-  if (splitted.length === 2) {
-    return {
-      functionName: splitted[0],
-      functionSelector: splitted[1],
-    };
-  } else {
-    const errorMessage: string = `The lengh of splitted FunctionNameAndSelector should be 2.`;
-    customLogger.error(
-      errorMessage,
-      `splitted.length: ${splitted.length}`,
-      `functionNameAndSelector: ${functionNameAndSelector}`,
-    );
-    throw new Error(errorMessage);
-  }
+  return {
+    functionName: splitted[0],
+    functionSelector: splitted.length === 2 ? splitted[1] : undefined,
+  };
 }
