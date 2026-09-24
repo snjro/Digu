@@ -25,7 +25,7 @@
   export let noPadding: NonNullable<BaseButtonProps["noPadding"]> = false;
   export let appendClassButton: BaseButtonProps["appendClass"] = undefined;
   export let iconName: BaseIconProps["name"];
-  export let prefixIcon: boolean = true;
+  export let isPrefixIcon: boolean = true;
   export let tooltipText: BaseButtonProps["tooltipText"] = undefined;
   export let tooltipXPosition: BaseButtonProps["tooltipXPosition"] = "right";
   export let tooltipYPosition: BaseButtonProps["tooltipYPosition"] = "top";
@@ -86,7 +86,7 @@
   onmouseleave={onMouseLeave}
 >
   <svelte:fragment slot="prefixIcon">
-    {#if prefixIcon}
+    {#if isPrefixIcon}
       <BaseIcon
         name={iconName}
         {size}
@@ -98,7 +98,7 @@
     {/if}
   </svelte:fragment>
   <svelte:fragment slot="suffixIcon">
-    {#if !prefixIcon}
+    {#if !isPrefixIcon}
       <BaseIcon
         name={iconName}
         {size}
