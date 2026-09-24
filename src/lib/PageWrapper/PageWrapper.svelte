@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export const TAB_VALUES_COMMON = ["Overview", "ABI"] as const;
   export const TAB_VALUES_CONTRACT = TAB_VALUES_COMMON;
   export const TAB_VALUES_EVENT = [
@@ -60,17 +60,29 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { convertToKebabCase } from "@utils/utilsCommon";
   import classNames from "classnames";
+  import type { Snippet } from "svelte";
 
-  export let titleProps: PageWrapperTitleProps | undefined = undefined;
-  export let tabsDefinition: TabsDefinition | undefined = undefined;
-  export let isFullScreen: boolean = false;
-  let breakPointWidthKey: BreakPointWidthKey;
-  $: breakPointWidthKey = $storeUserSettings.isOpenSidebar ? "md" : "sm";
+  interface Props {
+    titleProps?: PageWrapperTitleProps | undefined;
+    tabsDefinition?: TabsDefinition | undefined;
+    isFullScreen?: boolean;
+    PageWrapperContent?: Snippet;
+  }
+
+  let {
+    titleProps = undefined,
+    tabsDefinition = $bindable(undefined),
+    isFullScreen = $bindable(false),
+    PageWrapperContent,
+  }: Props = $props();
+  let breakPointWidthKey: BreakPointWidthKey = $derived(
+    $storeUserSettings.isOpenSidebar ? "md" : "sm",
+  );
 
   type ConvertContentNameForLabelText =
     "Overv" | "ABI" | `EL (${EventLogType})` | TabsDefinition["values"][number];
 
-  $: convertTabValueForLabelText = (
+  const convertTabValueForLabelText = (
     targetTabValue: TabsDefinition["values"][number],
   ): ConvertContentNameForLabelText => {
     if ($storeNoDbCurrentWidth <= breakPointWidths[breakPointWidthKey]) {
@@ -90,9 +102,9 @@
       return targetTabValue;
     }
   };
-  $: radioLabelAndValues = (): RadioLabelAndValues<
+  let radioLabelAndValues: RadioLabelAndValues<
     TabsDefinition["values"][number]
-  > =>
+  > = $derived(
     tabsDefinition
       ? tabsDefinition.values.map(
           (targetTabValue: TabsDefinition["values"][number]) => {
@@ -111,13 +123,14 @@
             inputId: "",
             href: "",
           },
-        ];
+        ],
+  );
 
-  const hasMultipulTabs = tabsDefinition
-    ? tabsDefinition.values.length > 1
-    : false;
+  let hasMultipulTabs: boolean = $derived(
+    tabsDefinition ? tabsDefinition.values.length > 1 : false,
+  );
 
-  $: {
+  $effect.pre(() => {
     if (hasMultipulTabs && tabsDefinition) {
       const selectedTabValueFoundByUrl:
         TabsDefinition["values"][number] | undefined =
@@ -147,7 +160,7 @@
         }
       }
     }
-  }
+  });
   function convertTabValueForHref(
     selectedTabName: TabsDefinition["selected"],
   ): `#${string}` {
@@ -158,8 +171,7 @@
     return `#${convertedTabValue}`;
   }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   document.addEventListener("keydown", (event: KeyboardEvent) => {
     if (isFullScreen && event.key == "Escape") {
@@ -207,9 +219,9 @@
         groupName={tabsDefinition.groupName}
         bind:selectedValue={tabsDefinition.selected}
         size={sizeSettings.tab}
-        labelAndValues={radioLabelAndValues()}
+        labelAndValues={radioLabelAndValues}
       />
     {/if}
-    <slot name="PageWrapperContent" />
+    {@render PageWrapperContent?.()}
   </div>
 </div>

@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type PageWrapperContentFunctionBarButtonsDefinition = Array<
     SimplifiedButtonDefinition[]
   >;
@@ -28,10 +28,13 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
-  export let functionBarDefinition: PageWrapperContentFunctionBarDefinition;
+  interface Props {
+    functionBarDefinition: PageWrapperContentFunctionBarDefinition;
+  }
 
-  let showThreeDotsButtonResponsive: () => boolean;
-  $: showThreeDotsButtonResponsive = (): boolean => {
+  let { functionBarDefinition }: Props = $props();
+
+  let showThreeDotsButtonResponsive: boolean = $derived.by((): boolean => {
     if (!functionBarDefinition.showThreeDotsButton) return false;
     if ($storeNoDbCurrentWidth <= breakPointWidths.sm) return true;
     if (
@@ -42,8 +45,9 @@
       return true;
 
     return false;
-  };
-  const buttonSize: BaseSize = functionBarDefinition.buttonSize;
+  });
+
+  let buttonSize: BaseSize = $derived(functionBarDefinition.buttonSize);
 </script>
 
 <div
@@ -56,7 +60,7 @@
     "",
   )}
 >
-  {#if showThreeDotsButtonResponsive()}
+  {#if showThreeDotsButtonResponsive}
     <PageWrapperContentFunctionBarButtonsThreeDots
       {buttonSize}
       buttonsDefinition={functionBarDefinition.buttonsDefinition}

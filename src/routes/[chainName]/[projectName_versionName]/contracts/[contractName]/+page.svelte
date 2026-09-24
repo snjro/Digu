@@ -32,7 +32,7 @@
   bind:tabsDefinition
   bind:isFullScreen
 >
-  <svelte:fragment slot="PageWrapperContent">
+  {#snippet PageWrapperContent()}
     {#if tabsDefinition.selected === "Overview"}
       <ContractOverview
         targetChain={data.targetChain}
@@ -46,5 +46,5 @@
         bind:isFullScreen
       />
     {/if}
-  </svelte:fragment>
+  {/snippet}
 </PageWrapper>

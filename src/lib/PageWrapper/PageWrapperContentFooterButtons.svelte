@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type PageWrapperContentFooterButtonsDefinition =
     SimplifiedButtonDefinition[];
 </script>
@@ -11,7 +11,11 @@
   import classNames from "classnames";
   import type { PageWrapperContentFooterDefinition } from "./PageWrapperContentFooter.svelte";
 
-  export let footerDefinition: PageWrapperContentFooterDefinition;
+  interface Props {
+    footerDefinition: PageWrapperContentFooterDefinition;
+  }
+
+  let { footerDefinition }: Props = $props();
 </script>
 
 <div

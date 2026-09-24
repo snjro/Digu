@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type PageWrapperTitleProps = {
     titleText: string;
     titleCategoryLabelText: string;
@@ -13,25 +13,31 @@
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
 
-  export let titleText: PageWrapperTitleProps["titleText"];
-  export let titleCategoryLabelText: PageWrapperTitleProps["titleCategoryLabelText"];
-  export let isFullScreen: boolean = false;
-
-  let titleCategorySize: BaseSize;
-  let titleTextSize: BaseSize;
-  let titleTextColorCategory: ColorCategory;
-
-  $: {
-    if (isFullScreen) {
-      titleCategorySize = changeSize(sizeSettings.title, -5);
-      titleTextSize = changeSize(sizeSettings.title, -4);
-      titleTextColorCategory = colorSettings.titleTextFullScreen;
-    } else {
-      titleCategorySize = changeSize(sizeSettings.title, -2);
-      titleTextSize = sizeSettings.title;
-      titleTextColorCategory = colorSettings.titleTextNormal;
-    }
+  interface Props {
+    titleText: PageWrapperTitleProps["titleText"];
+    titleCategoryLabelText: PageWrapperTitleProps["titleCategoryLabelText"];
+    isFullScreen?: boolean;
   }
+
+  let {
+    titleText,
+    titleCategoryLabelText,
+    isFullScreen = false,
+  }: Props = $props();
+
+  let titleCategorySize: BaseSize = $derived(
+    isFullScreen
+      ? changeSize(sizeSettings.title, -5)
+      : changeSize(sizeSettings.title, -2),
+  );
+  let titleTextSize: BaseSize = $derived(
+    isFullScreen ? changeSize(sizeSettings.title, -4) : sizeSettings.title,
+  );
+  let titleTextColorCategory: ColorCategory = $derived(
+    isFullScreen
+      ? colorSettings.titleTextFullScreen
+      : colorSettings.titleTextNormal,
+  );
 </script>
 
 <div

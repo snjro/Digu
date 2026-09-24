@@ -26,11 +26,11 @@
     titleCategoryLabelText: titleCategoryLabelText,
   }}
 >
-  <svelte:fragment slot="PageWrapperContent">
+  {#snippet PageWrapperContent()}
     <VersionOverview
       targetChain={data.targetChain}
       targetProject={data.targetProject}
       targetVersion={data.targetVersion}
     />
-  </svelte:fragment>
+  {/snippet}
 </PageWrapper>
