@@ -1,12 +1,3 @@
-<script lang="ts" module>
-  export type BaseSnackbarProps = {
-    visible: boolean;
-    text?: string;
-    iconProps?: BaseIconProps;
-    displayTimeInMilliseconds?: number;
-  };
-</script>
-
 <script lang="ts">
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
@@ -20,7 +11,6 @@
   import classNames from "classnames";
   import { expoInOut } from "svelte/easing";
   import { fly } from "svelte/transition";
-  import type { BaseIconProps } from "./BaseIcon";
   import BaseLabel from "./BaseLabel.svelte";
   import type { BaseSize } from "./baseSizes";
 

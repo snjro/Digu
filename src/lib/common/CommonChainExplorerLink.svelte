@@ -1,21 +1,6 @@
-<script lang="ts" module>
-  export type CommonChainExplorerLinkProps = {
-    subdirectory: keyof ChainExplorer["subdirectory"];
-    value: string | undefined;
-    textSize: NonNullable<BaseAProps["textSize"]>;
-    forcedClass: BaseAProps["forcedClass"];
-    appendClass: BaseAProps["appendClass"];
-    withIcon: boolean;
-    showCopyButton: boolean;
-    isFontMono: boolean;
-    justifyEnd: boolean;
-  };
-</script>
-
 <script lang="ts">
-  import BaseA, { type BaseAProps } from "$lib/base/BaseA.svelte";
+  import BaseA from "$lib/base/BaseA.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import type { ChainExplorer } from "@constants/chains/types";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { numberWithCommas } from "@utils/utilsCommon";
@@ -25,6 +10,7 @@
   import { getTargetChain } from "@utils/utlisDb";
   import classNames from "classnames";
   import CommonCopyButton from "./CommonCopyButton.svelte";
+  import type { CommonChainExplorerLinkProps } from "./chainExplorerLink";
 
   interface Props {
     subdirectory: CommonChainExplorerLinkProps["subdirectory"];

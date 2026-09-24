@@ -1,4 +1,4 @@
-import type { EventLogType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/EventLogs.svelte";
+import type { EventLogType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/eventLogType";
 import { convertTimestampSecToIso8601 } from "./utilsTime";
 
 export type ExportFilePrefix =

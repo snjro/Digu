@@ -4,7 +4,7 @@
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
-  import type { AbiFragmentsType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/ContractOverviewEventsFunctions.svelte";
+  import type { AbiFragmentsType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/abiFragmentsType";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
   import BaseAccordion from "./BaseAccordion.svelte";
   import ItemEventsFunctionsMember from "./ItemEventsFunctionsMember.svelte";
