@@ -24,7 +24,7 @@ import { get } from "svelte/store";
 import {
   syncTargetLabelText,
   type SyncTargetLabelText,
-} from "$lib/common/CommonToggleSyncTarget.svelte";
+} from "$lib/common/syncTargetStatus";
 import { NO_DATA } from "@utils/utilsCostants";
 
 export const columnDefsSyncStatusTarget = <T extends ContractRow>(

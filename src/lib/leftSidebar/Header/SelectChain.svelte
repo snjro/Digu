@@ -10,7 +10,7 @@
   import { storeNodbShowLoader } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { base } from "$app/paths";
-  import { updateDbItemUserSettings } from "@db/dbSettings";
+  import { getChainRootUrl, saveSelectedChainName } from "./selectChain";
   const items: BaseSelectProps["items"] = TARGET_CHAINS.map(
     (targetChain: Chain) => {
       return {
@@ -24,9 +24,9 @@
     //update DB data and stored value
     const changedChainName: ChainName = (event.target as HTMLInputElement)
       .value;
-    await updateDbItemUserSettings("selectedChainName", changedChainName);
+    await saveSelectedChainName(changedChainName);
     //jump to home
-    const rootUrl = `${base}/${changedChainName}`;
+    const rootUrl = getChainRootUrl(base, changedChainName);
     await goto(rootUrl);
     $storeNodbShowLoader = false;
   }
