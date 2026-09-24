@@ -3,13 +3,25 @@
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import classNames from "classnames";
 
-  export let text: NonNullable<BaseAProps["text"]>;
-  export let href: BaseAProps["href"];
-  export let textSize: BaseAProps["textSize"] = "md";
-  export let forcedClass: BaseAProps["forcedClass"] = undefined;
-  export let appendClass: BaseAProps["appendClass"] = undefined;
-  export let withIcon: boolean = true;
-  export let openNewTab: boolean = true;
+  interface Props {
+    text: NonNullable<BaseAProps["text"]>;
+    href: BaseAProps["href"];
+    textSize?: BaseAProps["textSize"];
+    forcedClass?: BaseAProps["forcedClass"];
+    appendClass?: BaseAProps["appendClass"];
+    withIcon?: boolean;
+    openNewTab?: boolean;
+  }
+
+  let {
+    text,
+    href,
+    textSize = "md",
+    forcedClass = undefined,
+    appendClass = undefined,
+    withIcon = true,
+    openNewTab = true,
+  }: Props = $props();
   const suffixIcon = (): BaseIconProps | undefined => {
     return withIcon
       ? {

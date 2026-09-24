@@ -19,35 +19,23 @@
   import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
 
-  export let targetAbi: TargetAbi;
-  export let fragment: boolean = false;
-  export let isFullScreen: boolean;
+  interface Props {
+    targetAbi: TargetAbi;
+    fragment?: boolean;
+    isFullScreen: boolean;
+  }
+
+  let {
+    targetAbi,
+    fragment = false,
+    isFullScreen = $bindable(),
+  }: Props = $props();
 
   type TargetAbi = ContractInterface | EventAbiFragment | FunctionAbiFragment;
 
-  let abiFormatButtonIndex: number = 0;
+  let abiFormatButtonIndex: number = $state(0);
 
-  $: targetFragment = () => {
-    switch (abiFormatButtonIndex) {
-      case 0: // JSON
-        return isTargetContractInterface(targetAbi)
-          ? targetAbi.fragments
-          : targetAbi;
-      case 1: // Human readable full
-        return isTargetContractInterface(targetAbi)
-          ? targetAbi.format(false)
-          : targetAbi.format("full");
-      default: // Human readable minimal
-        return isTargetContractInterface(targetAbi)
-          ? targetAbi.format(true)
-          : targetAbi.format("minimal");
-    }
-  };
-
-  let isExpanded: boolean = true;
-  $: abiText = isExpanded
-    ? jsonStringifyFormatted(targetFragment())
-    : jsonStringifyFormatted(targetFragment(), 0);
+  let isExpanded: boolean = $state(true);
 
   const expandButtonClicked: () => void = () => {
     isExpanded = !isExpanded;
@@ -66,64 +54,85 @@
       (abiFormatButtonIndex + 1) % abiFormatButtonDefinitions.length;
   };
 
-  let buttonsDefinition: PageWrapperContentFunctionBarDefinition["buttonsDefinition"];
-  $: buttonsDefinition = [
-    [
-      {
-        iconName: abiFormatButtonDefinitions[abiFormatButtonIndex].iconName,
-        tooltipText:
-          abiFormatButtonDefinitions[abiFormatButtonIndex].tooltipText,
-        tooltipXPosition: "left",
-        tooltipYPosition: "top",
-        onClickEventFunction: changeFormatButtonClicked,
-      },
+  let buttonsDefinition: PageWrapperContentFunctionBarDefinition["buttonsDefinition"] =
+    $derived([
+      [
+        {
+          iconName: abiFormatButtonDefinitions[abiFormatButtonIndex].iconName,
+          tooltipText:
+            abiFormatButtonDefinitions[abiFormatButtonIndex].tooltipText,
+          tooltipXPosition: "left",
+          tooltipYPosition: "top",
+          onClickEventFunction: changeFormatButtonClicked,
+        },
 
-      {
-        iconName: isExpanded ? "textWrap" : "textWrapOff",
-        tooltipText: isExpanded ? "With line breaks" : "No line breaks",
-        tooltipXPosition: "left",
-        tooltipYPosition: "top",
-        onClickEventFunction: expandButtonClicked,
-      },
-      {
-        iconName: "contentCopy",
-        tooltipText: "Copy to clipboard",
-        tooltipXPosition: "left",
-        tooltipYPosition: "top",
-        onClickEventFunction: () => {
-          navigator.clipboard.writeText(abiText);
-          $storeNoDbSnackBar = showSnackBarAsCopied;
+        {
+          iconName: isExpanded ? "textWrap" : "textWrapOff",
+          tooltipText: isExpanded ? "With line breaks" : "No line breaks",
+          tooltipXPosition: "left",
+          tooltipYPosition: "top",
+          onClickEventFunction: expandButtonClicked,
         },
-      },
-      {
-        iconName: "download",
-        tooltipText: "Export as JSON",
-        tooltipXPosition: "left",
-        tooltipYPosition: "top",
-        onClickEventFunction: () =>
-          ExportDataToFile(
-            abiText,
-            getExportFileName(
-              fragment ? "ABIfragment" : "ABI",
-              $page.params,
-              abiFormatButtonIndex === 0 ? "json" : "txt",
+        {
+          iconName: "contentCopy",
+          tooltipText: "Copy to clipboard",
+          tooltipXPosition: "left",
+          tooltipYPosition: "top",
+          onClickEventFunction: () => {
+            navigator.clipboard.writeText(abiText);
+            $storeNoDbSnackBar = showSnackBarAsCopied;
+          },
+        },
+        {
+          iconName: "download",
+          tooltipText: "Export as JSON",
+          tooltipXPosition: "left",
+          tooltipYPosition: "top",
+          onClickEventFunction: () =>
+            ExportDataToFile(
+              abiText,
+              getExportFileName(
+                fragment ? "ABIfragment" : "ABI",
+                $page.params,
+                abiFormatButtonIndex === 0 ? "json" : "txt",
+              ),
+              "json",
             ),
-            "json",
-          ),
-      },
-      {
-        ...fullScreenButtonDefinition(isFullScreen),
-        onClickEventFunction: () => {
-          isFullScreen = !isFullScreen;
         },
-      },
-    ],
-  ];
+        {
+          ...fullScreenButtonDefinition(isFullScreen),
+          onClickEventFunction: () => {
+            isFullScreen = !isFullScreen;
+          },
+        },
+      ],
+    ]);
   function isTargetContractInterface(
     targetAbi: TargetAbi,
   ): targetAbi is ContractInterface {
     return Object.prototype.hasOwnProperty.call(targetAbi, "fragments");
   }
+  const targetFragment = () => {
+    switch (abiFormatButtonIndex) {
+      case 0: // JSON
+        return isTargetContractInterface(targetAbi)
+          ? targetAbi.fragments
+          : targetAbi;
+      case 1: // Human readable full
+        return isTargetContractInterface(targetAbi)
+          ? targetAbi.format(false)
+          : targetAbi.format("full");
+      default: // Human readable minimal
+        return isTargetContractInterface(targetAbi)
+          ? targetAbi.format(true)
+          : targetAbi.format("minimal");
+    }
+  };
+  let abiText = $derived(
+    isExpanded
+      ? jsonStringifyFormatted(targetFragment())
+      : jsonStringifyFormatted(targetFragment(), 0),
+  );
 </script>
 
 <PageWrapperContent>

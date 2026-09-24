@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   const isSyncTargetIndeterminate = (
     subSyncStatuses: SubSyncStatuses,
   ): boolean => {
@@ -52,13 +52,23 @@
   import classNames from "classnames";
   import { toggleIsSyncTarget } from "./toggleSyncTarget";
 
-  export let targetChain: Chain;
-  export let targetProject: Project | undefined = undefined;
-  export let targetVersion: Version | undefined = undefined;
-  export let targetContract: Contract | undefined = undefined;
-  export let size: BaseSize;
+  interface Props {
+    targetChain: Chain;
+    targetProject?: Project | undefined;
+    targetVersion?: Version | undefined;
+    targetContract?: Contract | undefined;
+    size: BaseSize;
+  }
 
-  $: syncStatus = <
+  let {
+    targetChain,
+    targetProject = undefined,
+    targetVersion = undefined,
+    targetContract = undefined,
+    size,
+  }: Props = $props();
+
+  const syncStatus = <
     CH extends Chain,
     PR extends Project | undefined = undefined,
     VE extends Version | undefined = undefined,
@@ -87,12 +97,8 @@
       return $storeSyncStatus[targetChain.name];
     }
   };
-  let targetSyncStatus: SyncStatus;
-  $: targetSyncStatus = syncStatus(
-    targetChain,
-    targetProject,
-    targetVersion,
-    targetContract,
+  let targetSyncStatus: SyncStatus = $derived(
+    syncStatus(targetChain, targetProject, targetVersion, targetContract),
   );
 
   const checkChanged = async () => {

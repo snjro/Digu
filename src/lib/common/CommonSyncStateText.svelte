@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type SyncStateTextLabelProps = {
     colorCategoryFront: ColorCategory;
     size: BaseSize;
@@ -25,23 +25,35 @@
   import type { SyncStateText } from "@db/dbTypes";
   import classNames from "classnames";
 
-  export let showIcon: SyncStateTextLabelProps["showIcon"] = true;
-  export let colorCategoryFront: SyncStateTextLabelProps["colorCategoryFront"];
-  export let size: SyncStateTextLabelProps["size"];
-  export let syncStateText: SyncStateTextLabelProps["syncStateText"];
+  interface Props {
+    showIcon?: SyncStateTextLabelProps["showIcon"];
+    colorCategoryFront: SyncStateTextLabelProps["colorCategoryFront"];
+    size: SyncStateTextLabelProps["size"];
+    syncStateText: SyncStateTextLabelProps["syncStateText"];
+  }
 
-  let animatePulse: "animate-pulse" | undefined = undefined;
-  $: animatePulse = syncStateText === "stopping" ? "animate-pulse" : undefined;
-  let animateSpin: "animate-spin" | undefined = undefined;
-  $: animateSpin = syncStateText === "syncing" ? "animate-spin" : undefined;
+  let {
+    showIcon = true,
+    colorCategoryFront,
+    size,
+    syncStateText,
+  }: Props = $props();
 
-  let prefixIcon: BaseIconProps | undefined;
-  $: prefixIcon = showIcon
-    ? {
-        name: iconNameForSyncStateText(syncStateText),
-        appendClass: classNames(animateSpin, animatePulse),
-      }
-    : undefined;
+  let animatePulse: "animate-pulse" | undefined = $derived(
+    syncStateText === "stopping" ? "animate-pulse" : undefined,
+  );
+  let animateSpin: "animate-spin" | undefined = $derived(
+    syncStateText === "syncing" ? "animate-spin" : undefined,
+  );
+
+  let prefixIcon: BaseIconProps | undefined = $derived(
+    showIcon
+      ? {
+          name: iconNameForSyncStateText(syncStateText),
+          appendClass: classNames(animateSpin, animatePulse),
+        }
+      : undefined,
+  );
 </script>
 
 <BaseLabel
