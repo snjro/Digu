@@ -12,7 +12,7 @@ import type {
 import type { SyncStatusContract } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
-import { syncTargetLabelText } from "$lib/common/CommonToggleSyncTarget.svelte";
+import { syncTargetLabelText } from "$lib/common/syncTargetStatus";
 import { extractEventContracts } from "@utils/utilsEthers";
 import { trackStoreSubscriptions } from "@utils/testCommon";
 import { columnDefsSyncStatusBlockNumber } from "./columnDefsSyncStatusBlockNumber";

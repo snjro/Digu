@@ -6,7 +6,7 @@
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
-  import type { CrumbItem } from "./Breadcrumb.svelte";
+  import type { CrumbItem } from "./crumbs";
   import BreadcrumnItemSeparater from "./BreadcrumnItemSeparater.svelte";
   interface Props {
     targetCrumbItem: CrumbItem;
