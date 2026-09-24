@@ -13,6 +13,7 @@
   import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
   import type { EventLogType } from "./eventLogType";
   import { gridRows } from "./gridRows";
+  import { applyLatestLoad } from "./latestLoad";
   import { getEachArgsMaxLengths } from "../../../maxParamsLength";
 
   interface Props {
@@ -34,13 +35,14 @@
   $effect.pre(() => {
     if (targetEventAbiFragment.anonymous) {
       rows = [];
-    } else {
-      gridRows(targetEventIdentifier).then(
-        (convertedEventLogs: ConvertedEventLog[]) => {
-          rows = convertedEventLogs;
-        },
-      );
+      return;
     }
+    return applyLatestLoad(
+      gridRows(targetEventIdentifier),
+      (convertedEventLogs: ConvertedEventLog[]) => {
+        rows = convertedEventLogs;
+      },
+    );
   });
   let eventLogColumnDefs: ColumnDef[] = $derived(
     eventLogType === "hex"

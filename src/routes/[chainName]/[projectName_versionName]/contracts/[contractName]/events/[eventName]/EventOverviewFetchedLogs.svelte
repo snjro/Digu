@@ -17,6 +17,7 @@
   import classNames from "classnames";
   import EventOverviewFetchedLogsEdge from "./EventOverviewFetchedLogsEdge.svelte";
   import { MESSAGE_ANONYMOUS_EVENT_LOGS } from "./EventLogs.svelte";
+  import { applyLatestLoad } from "./latestLoad";
 
   interface Props {
     targetChain: Chain;
@@ -35,33 +36,23 @@
   }: Props = $props();
 
   let convertedEventLogs: ConvertedEventLog[] = $state.raw([]);
-  const eventLogsFetcherFromDB = async (
-    targetChainName: Chain["name"],
-    targetProjectName: Project["name"],
-    targetVersionName: Version["name"],
-    targetContractName: Contract["name"],
-    targetEventAbiFragmentName: EventAbiFragment["name"],
-  ): Promise<void> => {
+  $effect.pre(() => {
     // Logs of anonymous events are not fetched, so their table does not exist.
     if (targetEventAbiFragment.anonymous) {
       convertedEventLogs = [];
       return;
     }
-    convertedEventLogs = await dbWorkerFuncGetConvertedEventLogs({
-      chainName: targetChainName,
-      projectName: targetProjectName,
-      versionName: targetVersionName,
-      contractName: targetContractName,
-      abiFragmentName: targetEventAbiFragmentName,
-    });
-  };
-  $effect.pre(() => {
-    eventLogsFetcherFromDB(
-      targetChain.name,
-      targetProject.name,
-      targetVersion.name,
-      targetContract.name,
-      targetEventAbiFragment.name,
+    return applyLatestLoad(
+      dbWorkerFuncGetConvertedEventLogs({
+        chainName: targetChain.name,
+        projectName: targetProject.name,
+        versionName: targetVersion.name,
+        contractName: targetContract.name,
+        abiFragmentName: targetEventAbiFragment.name,
+      }),
+      (logs: ConvertedEventLog[]) => {
+        convertedEventLogs = logs;
+      },
     );
   });
 
