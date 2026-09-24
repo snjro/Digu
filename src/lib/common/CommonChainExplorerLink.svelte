@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from "$app/state";
   import BaseA from "$lib/base/BaseA.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
@@ -8,6 +9,7 @@
   import { changeSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
   import CommonCopyButton from "./CommonCopyButton.svelte";
+  import { getPageChainName } from "./pageChainName";
   import {
     getChainExplorerHref,
     getChainExplorerLinkText,
@@ -55,7 +57,10 @@
   let appendClass = $derived(classNames(appendClassProp, "tabular-nums"));
   let chainExplorerUrl = $derived(
     getChainExplorerUrl(
-      $storeUserSettings.selectedChainName.toString(),
+      getPageChainName(
+        page.params.chainName,
+        $storeUserSettings.selectedChainName.toString(),
+      ),
       $storeRpcSettings,
     ),
   );
