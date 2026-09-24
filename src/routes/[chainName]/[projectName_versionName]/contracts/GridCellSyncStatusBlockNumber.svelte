@@ -1,24 +1,3 @@
-<script lang="ts" module>
-  type HeaderName = "Start" | "Current" | "Goal";
-  export function getBlockNumberByHeaderName(
-    headerName: HeaderName,
-    latestBlockNumber: number,
-    targetContractSyncStatus: SyncStatusContract,
-  ): number {
-    if (!targetContractSyncStatus) {
-      // When a contract has no event, "targetContractSyncStatus" is undefined.
-      return 0;
-    }
-    if (headerName === "Goal") {
-      return latestBlockNumber;
-    } else if (headerName === "Current") {
-      return targetContractSyncStatus.fetchedBlockNumber;
-    } else {
-      return targetContractSyncStatus.creationBlockNumber;
-    }
-  }
-</script>
-
 <script lang="ts">
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
@@ -34,6 +13,10 @@
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { NO_DATA } from "@utils/utilsCostants";
+  import {
+    getBlockNumberByHeaderName,
+    type HeaderName,
+  } from "./syncStatusBlockNumber";
 
   interface Props {
     targetChain: Chain;

@@ -1,12 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
-  import type {
-    Chain,
-    Contract,
-    Project,
-    Version,
-  } from "@constants/chains/types";
+  import type { Chain, Project, Version } from "@constants/chains/types";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseA from "$lib/base/BaseA.svelte";
@@ -24,7 +19,11 @@
   import BaseProgressBarForBlockNumber from "$lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import type { SyncStatusProject } from "@db/dbTypes";
-  import { getProjectVersionNameForUrl } from "./[projectName_versionName]/projectVersionNameHelper";
+  import {
+    getVersionHref,
+    hasVersionEvents,
+    numberOfEventsInVersion,
+  } from "./versions";
 
   interface Props {
     // export let contracts: Contract[];
@@ -40,29 +39,15 @@
   //   trailingSlash === "always"
   //     ? `${page.url.pathname}`
   //     : `${page.url.pathname}/`;
-  const hrefFrontPart = (targetVersion: Version): string => {
-    const pageUrlPathname: string =
-      trailingSlash === "always"
-        ? `${page.url.pathname}`
-        : `${page.url.pathname}/`;
-
-    return `${pageUrlPathname}${getProjectVersionNameForUrl(
+  const hrefFrontPart = (targetVersion: Version): string =>
+    getVersionHref(
+      page.url.pathname,
+      trailingSlash,
       targetProject.name,
       targetVersion.name,
-    )}`;
-  };
+    );
 
   const noListMessage: string = `No versions.`;
-  const numberOfEventsInVersion = (targetVersion: Version): number => {
-    let numOfEvents: number = 0;
-    targetVersion.contracts.forEach((targetContract: Contract) => {
-      numOfEvents += targetContract.events.abiFragments.length;
-    });
-    return numOfEvents;
-  };
-  const hasVersionEvents = (targetVersion: Version): boolean => {
-    return numberOfEventsInVersion(targetVersion) > 0;
-  };
   let targetProjectSyncStatus: SyncStatusProject = $derived(
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name],
   );
