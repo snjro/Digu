@@ -17,9 +17,8 @@ import type {
   Project,
   Version,
 } from "@constants/chains/types";
-import GridCellSyncStatusBlockNumber, {
-  getBlockNumberByHeaderName,
-} from "./GridCellSyncStatusBlockNumber.svelte";
+import GridCellSyncStatusBlockNumber from "./GridCellSyncStatusBlockNumber.svelte";
+import { getBlockNumberByHeaderName } from "./syncStatusBlockNumber";
 import type { SyncStatusContract } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";

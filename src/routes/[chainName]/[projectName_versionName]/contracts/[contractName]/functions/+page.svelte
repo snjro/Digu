@@ -7,6 +7,7 @@
   import type { LoadFunctionsData } from "./+page";
   import { columnDefs } from "./columnDefs";
   import { gridRows, type FunctionRow } from "./gridRows";
+  import { getMaxParamsLength } from "../../maxParamsLength";
 
   interface Props {
     data: LoadFunctionsData;
@@ -20,24 +21,6 @@
 
   let rows: FunctionRow[] = $derived(gridRows(data.targetFunctionAbiFragments));
 
-  const maxLengthOfFunctionInputsParams = (): number => {
-    let maxIndex: number = 0;
-    rows.forEach((row: FunctionRow) => {
-      if (row.functionInputs.length > maxIndex) {
-        maxIndex = row.functionInputs.length;
-      }
-    });
-    return maxIndex;
-  };
-  const maxLengthOfFunctionOutputsParams = (): number => {
-    let maxIndex: number = 0;
-    rows.forEach((row: FunctionRow) => {
-      if (row.functionOutputs.length > maxIndex) {
-        maxIndex = row.functionOutputs.length;
-      }
-    });
-    return maxIndex;
-  };
   let isFullScreen = $state(false);
 </script>
 
@@ -55,8 +38,8 @@
         trailingSlash === "always"
           ? page.url.pathname
           : `${page.url.pathname}/`,
-        maxLengthOfFunctionInputsParams(),
-        maxLengthOfFunctionOutputsParams(),
+        getMaxParamsLength(rows, (row: FunctionRow) => row.functionInputs),
+        getMaxParamsLength(rows, (row: FunctionRow) => row.functionOutputs),
       )}
       exportFilePrefix={"functions"}
       hasMultipulTabs={false}

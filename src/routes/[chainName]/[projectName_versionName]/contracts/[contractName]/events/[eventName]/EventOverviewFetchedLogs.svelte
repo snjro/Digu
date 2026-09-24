@@ -11,11 +11,9 @@
     Project,
     Version,
   } from "@constants/chains/types";
-  import { DbEventLogs } from "@db/dbEventLogs";
-  import { getEventLogTableRecords } from "@db/dbEventLogsDataHandlersEventLog";
+  import { dbWorkerFuncGetConvertedEventLogs } from "@db/db.worker.func.getConvertedEventLogs";
   import type { ConvertedEventLog } from "@db/dbTypes";
   import { numberWithCommas } from "@utils/utilsCommon";
-  import { getEventLogTableName } from "@utils/utlisDb";
   import classNames from "classnames";
   import EventOverviewFetchedLogsEdge from "./EventOverviewFetchedLogsEdge.svelte";
   import { MESSAGE_ANONYMOUS_EVENT_LOGS } from "./EventLogs.svelte";
@@ -49,21 +47,13 @@
       convertedEventLogs = [];
       return;
     }
-    const dbEventLogs: DbEventLogs = new DbEventLogs({
+    convertedEventLogs = await dbWorkerFuncGetConvertedEventLogs({
       chainName: targetChainName,
       projectName: targetProjectName,
       versionName: targetVersionName,
+      contractName: targetContractName,
+      abiFragmentName: targetEventAbiFragmentName,
     });
-    const eventLogTableName: string = getEventLogTableName(
-      targetContractName,
-      targetEventAbiFragmentName,
-    );
-
-    convertedEventLogs = await getEventLogTableRecords(
-      dbEventLogs,
-      eventLogTableName,
-      "asc",
-    );
   };
   $effect.pre(() => {
     eventLogsFetcherFromDB(

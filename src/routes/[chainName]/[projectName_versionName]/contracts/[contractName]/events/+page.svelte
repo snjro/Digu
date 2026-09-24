@@ -7,6 +7,7 @@
   import type { LoadEventsData } from "./+page";
   import { columnDefs } from "./columnDefs";
   import { gridRows, type EventRow } from "./gridRows";
+  import { getMaxParamsLength } from "../../maxParamsLength";
 
   interface Props {
     data: LoadEventsData;
@@ -20,15 +21,6 @@
 
   let rows: EventRow[] = $derived(gridRows(data.targetEventAbiFragments));
 
-  const maxLengthOfEventInputsParams = (): number => {
-    let maxIndex: number = 0;
-    rows.forEach((row: EventRow) => {
-      if (row.eventInputs.length > maxIndex) {
-        maxIndex = row.eventInputs.length;
-      }
-    });
-    return maxIndex;
-  };
   let isFullScreen = $state(false);
 </script>
 
@@ -46,7 +38,7 @@
         trailingSlash === "always"
           ? page.url.pathname
           : `${page.url.pathname}/`,
-        maxLengthOfEventInputsParams(),
+        getMaxParamsLength(rows, (row: EventRow) => row.eventInputs),
         {
           chainName: data.targetChain.name,
           projectName: data.targetProject.name,

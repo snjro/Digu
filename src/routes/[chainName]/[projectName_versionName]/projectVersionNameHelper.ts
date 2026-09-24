@@ -22,3 +22,16 @@ export function getSplitProjectVersionName(projectVersionName: string): {
     versionName: projectVersionName.split("-")[1],
   };
 }
+
+export function getProjectVersionNameForLabelFromUrl(
+  projectVersionName: string,
+): string {
+  const splitProjectVersionName: {
+    projectName: ProjectName;
+    versionName: VersionName;
+  } = getSplitProjectVersionName(projectVersionName);
+  return getProjectVersionNameForLabel(
+    splitProjectVersionName.projectName,
+    splitProjectVersionName.versionName,
+  );
+}
