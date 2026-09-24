@@ -97,23 +97,27 @@
     onfocus={focusRpc}
     onblur={blurRpc}
   >
-    <BaseIcon
-      slot="prefixIcon"
-      name="networkOutline"
-      size={sizeSettings.navInput}
-      colorCategory={colorSettings.navInput}
-    />
-    <BaseButtonIcon
-      slot="suffixIcon"
-      onclick={toggleInputType}
-      size={changeSize(sizeSettings.navInput, -1)}
-      tooltipText={eyeIconTooltipText}
-      tooltipXPosition="right"
-      tooltipYPosition="bottom"
-      iconName={eyeIconName}
-      colorCategoryFront={colorSettings.navButton}
-      colorCategoryBg={colorSettings.navButton}
-    />
-    <SyncListChainRpcInputHelperLabel slot="inputHelper" />
+    {#snippet prefixIcon()}
+      <BaseIcon
+        name="networkOutline"
+        size={sizeSettings.navInput}
+        colorCategory={colorSettings.navInput}
+      />
+    {/snippet}
+    {#snippet suffixIcon()}
+      <BaseButtonIcon
+        onclick={toggleInputType}
+        size={changeSize(sizeSettings.navInput, -1)}
+        tooltipText={eyeIconTooltipText}
+        tooltipXPosition="right"
+        tooltipYPosition="bottom"
+        iconName={eyeIconName}
+        colorCategoryFront={colorSettings.navButton}
+        colorCategoryBg={colorSettings.navButton}
+      />
+    {/snippet}
+    {#snippet inputHelper()}
+      <SyncListChainRpcInputHelperLabel />
+    {/snippet}
   </BaseInput>
 </div>

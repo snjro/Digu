@@ -1,7 +1,11 @@
 <script lang="ts">
   import BaseInput from "./BaseInput.svelte";
 
-  export let value: string | number | undefined = undefined;
+  interface Props {
+    value?: string | number | undefined;
+  }
+
+  let { value = $bindable(undefined) }: Props = $props();
 </script>
 
 <BaseInput

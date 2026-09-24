@@ -7,12 +7,20 @@
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import type { GridApi } from "ag-grid-community";
   import classNames from "classnames";
+  import { untrack } from "svelte";
 
-  export let gridApi: GridApi;
-  export let quickSearchText: string;
-  $: {
-    gridApi?.setGridOption("quickFilterText", quickSearchText);
+  interface Props {
+    gridApi: GridApi;
+    quickSearchText: string;
   }
+
+  let { gridApi, quickSearchText = $bindable() }: Props = $props();
+  $effect.pre(() => {
+    const api: GridApi = gridApi;
+    const text: string = quickSearchText;
+    // Rerun only when these two change, not on what ag-grid reads while filtering.
+    untrack(() => api?.setGridOption("quickFilterText", text));
+  });
   const size: BaseSize = sizeSettings.gridFunctionQuickSearch;
 </script>
 
@@ -25,25 +33,27 @@
     colorCategory={colorSettings.gridFunctionInput}
     colorCategoryBorder={colorSettings.gridFunctionInputBorder}
   >
-    <BaseIcon
-      slot="prefixIcon"
-      name="magnify"
-      {size}
-      hoverEffect={false}
-      colorCategory={colorSettings.gridFunctionInput}
-    />
-    <BaseButtonIcon
-      slot="suffixIcon"
-      size={changeSize(size, -1)}
-      tooltipText="clear"
-      tooltipXPosition="right"
-      tooltipYPosition="bottom"
-      iconName="close"
-      colorCategoryBg={colorSettings.gridFunctionButton}
-      colorCategoryFront={colorSettings.gridFunctionButton}
-      onclick={() => {
-        quickSearchText = "";
-      }}
-    />
+    {#snippet prefixIcon()}
+      <BaseIcon
+        name="magnify"
+        {size}
+        hoverEffect={false}
+        colorCategory={colorSettings.gridFunctionInput}
+      />
+    {/snippet}
+    {#snippet suffixIcon()}
+      <BaseButtonIcon
+        size={changeSize(size, -1)}
+        tooltipText="clear"
+        tooltipXPosition="right"
+        tooltipYPosition="bottom"
+        iconName="close"
+        colorCategoryBg={colorSettings.gridFunctionButton}
+        colorCategoryFront={colorSettings.gridFunctionButton}
+        onclick={() => {
+          quickSearchText = "";
+        }}
+      />
+    {/snippet}
   </BaseInput>
 </div>
