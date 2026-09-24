@@ -1,6 +1,7 @@
 <script lang="ts">
   import { base } from "$app/paths";
   import { page } from "$app/state";
+  import { getPageChainName } from "$lib/common/pageChainName";
   import { trailingSlash } from "@routes/+layout";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
@@ -8,7 +9,10 @@
   import { getCrumbItems, type CrumbItem } from "./crumbs";
 
   let targetChainName = $derived(
-    $storeUserSettings.selectedChainName.toString(),
+    getPageChainName(
+      page.params.chainName,
+      $storeUserSettings.selectedChainName.toString(),
+    ),
   );
   const crumbItems = (): CrumbItem[] => {
     return getCrumbItems(
