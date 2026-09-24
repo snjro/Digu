@@ -3,9 +3,17 @@
   import type { Contract } from "@constants/chains/types";
   import BaseAccordion from "./BaseAccordion.svelte";
   import ItemContracts from "./ItemContracts.svelte";
-  export let targetProjectVersionNameForLabel: string;
-  export let targetProjectVersionHref: string;
-  export let targetContracts: Contract[];
+  interface Props {
+    targetProjectVersionNameForLabel: string;
+    targetProjectVersionHref: string;
+    targetContracts: Contract[];
+  }
+
+  let {
+    targetProjectVersionNameForLabel,
+    targetProjectVersionHref,
+    targetContracts,
+  }: Props = $props();
 </script>
 
 <BaseAccordion
@@ -16,7 +24,7 @@
   showVerticalLine={false}
   size={sizeSettings.leftSidebarTree1st}
 >
-  <svelte:fragment slot="baseAccordionChildren">
+  {#snippet baseAccordionChildren()}
     <ItemContracts {targetContracts} {targetProjectVersionHref} />
-  </svelte:fragment>
+  {/snippet}
 </BaseAccordion>

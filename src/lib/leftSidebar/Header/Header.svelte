@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export const leftSidebarHeaderHeight: string = "h-[84px]";
 </script>
 
@@ -12,8 +12,7 @@
   import ButtonClose from "./ButtonClose.svelte";
   import Logo from "./Logo.svelte";
   import SelectChain from "./SelectChain.svelte";
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 </script>
 
 <div

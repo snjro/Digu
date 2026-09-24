@@ -12,8 +12,7 @@
   import Footer from "./Footer/Footer.svelte";
   import Header from "./Header/Header.svelte";
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   function clickOutside(node: HTMLDivElement): ActionReturn {
     const handleClick = (event: Event) => {
@@ -50,7 +49,7 @@
       classNames("absolute top-0", "left-0"),
     zIndex.leftSidebar,
   )}
-  on:click_outside={() => {
+  onclick_outside={() => {
     if (
       $storeNoDbCurrentWidth <= breakPointWidths.sm &&
       $storeUserSettings.isOpenSidebar

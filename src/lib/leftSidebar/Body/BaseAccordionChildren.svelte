@@ -1,10 +1,17 @@
 <script lang="ts">
   import classNames from "classnames";
+  import type { Snippet } from "svelte";
   import BaseItemIndicator from "./BaseItemIndicator.svelte";
 
-  export let showVerticalLine: boolean;
-  export let isOpenAccordion: boolean;
-  let leftPadding: `pl-${0 | 3}` = showVerticalLine ? "pl-0" : "pl-3";
+  interface Props {
+    showVerticalLine: boolean;
+    isOpenAccordion: boolean;
+    baseAccordionChildren?: Snippet;
+  }
+
+  let { showVerticalLine, isOpenAccordion, baseAccordionChildren }: Props =
+    $props();
+  let leftPadding: `pl-${0 | 3}` = $derived(showVerticalLine ? "pl-0" : "pl-3");
 </script>
 
 <div
@@ -30,6 +37,6 @@
   <div
     class={classNames("flex-auto", "min-w-0", "flex", "flex-col", leftPadding)}
   >
-    <slot name="baseAccordionChildren" />
+    {@render baseAccordionChildren?.()}
   </div>
 </div>

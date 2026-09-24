@@ -7,8 +7,7 @@
   import FooterButtons from "./FooterButtons.svelte";
   import FooterVersion from "./FooterVersion.svelte";
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 </script>
 
 <div

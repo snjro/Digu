@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type BaseAccordionHeaderSuffixIcon = {
     name: BaseIconProps["name"];
     size: BaseSize;
@@ -21,34 +21,46 @@
   import { leftSidebarItemRoundedStyle } from "./BaseItem.svelte";
   import { getFrontColorCategory } from "./fontStyle";
 
-  export let height: `h-${string}`;
-  export let bgColor: `bg-${string}` | undefined;
-  export let isSelected: boolean;
-  export let hoverType: HoverType;
-  export let isOpenAccordion = true;
-  export let suffixIcons: BaseAccordionHeaderSuffixIcon[];
-  export let onclick: ((event: MouseEvent) => void) | undefined = undefined;
-  export let onmouseenter: ((event: MouseEvent) => void) | undefined =
-    undefined;
-  export let onmouseleave: ((event: MouseEvent) => void) | undefined =
-    undefined;
-  export let onkeydown: ((event: KeyboardEvent) => void) | undefined =
-    undefined;
+  interface Props {
+    height: `h-${string}`;
+    bgColor: `bg-${string}` | undefined;
+    isSelected: boolean;
+    hoverType: HoverType;
+    isOpenAccordion?: boolean;
+    suffixIcons: BaseAccordionHeaderSuffixIcon[];
+    onclick?: ((event: MouseEvent) => void) | undefined;
+    onmouseenter?: ((event: MouseEvent) => void) | undefined;
+    onmouseleave?: ((event: MouseEvent) => void) | undefined;
+    onkeydown?: ((event: KeyboardEvent) => void) | undefined;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let {
+    height,
+    bgColor,
+    isSelected,
+    hoverType,
+    isOpenAccordion = true,
+    suffixIcons,
+    onclick = undefined,
+    onmouseenter = undefined,
+    onmouseleave = undefined,
+    onkeydown = undefined,
+  }: Props = $props();
 
-  let frontColorCategory: ColorCategory;
-  $: frontColorCategory = getFrontColorCategory(isSelected);
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
-  let shevronUnderlineStyle: string;
-  $: shevronUnderlineStyle =
+  let frontColorCategory: ColorCategory = $derived(
+    getFrontColorCategory(isSelected),
+  );
+
+  let shevronUnderlineStyle: string = $derived(
     hoverType === "onSpace"
       ? classNames(
           "border-b",
           colorDefinitions[themeColor]["interactive"].border,
         )
-      : "";
+      : "",
+  );
 </script>
 
 <div
@@ -67,10 +79,10 @@
     leftSidebarItemRoundedStyle,
     "",
   )}
-  on:click={onclick}
-  on:mouseenter={onmouseenter}
-  on:mouseleave={onmouseleave}
-  on:keydown={onkeydown}
+  {onclick}
+  {onmouseenter}
+  {onmouseleave}
+  {onkeydown}
 >
   {#if suffixIcons.length > 0}
     <div class={classNames("grow", "justify-end", "flex", "flex-row")}>

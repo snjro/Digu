@@ -11,12 +11,10 @@
   import ItemHome from "./ItemHome.svelte";
   import ItemProjectVersions from "./ItemProjectVersions.svelte";
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
-  let scrollbarStyle: ScrollbarStyle;
-  $: scrollbarStyle = getScrollbarStyle(
-    colorSettings.leftSidebarBodyBg,
-    themeColor,
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let scrollbarStyle: ScrollbarStyle = $derived(
+    getScrollbarStyle(colorSettings.leftSidebarBodyBg, themeColor),
   );
 </script>
 
