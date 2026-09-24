@@ -12,9 +12,15 @@
   import { columnDefs } from "./columnDefs";
   import { gridRows, type ContractRow } from "./gridRows";
 
-  export let data: LoadVersionData;
+  interface Props {
+    data: LoadVersionData;
+  }
 
-  const projectVersionName: string = $page.params.projectName_versionName!;
+  let { data }: Props = $props();
+
+  const projectVersionName: string = $derived(
+    $page.params.projectName_versionName!,
+  );
   const titleText = (): string => {
     const splitProjectVersionName: {
       projectName: ProjectName;
@@ -27,8 +33,7 @@
   };
   const titleCategoryLabelText: string = "Contracts";
 
-  let rows: ContractRow[] = [];
-  $: rows = gridRows(data.targetVersion.contracts);
+  let rows: ContractRow[] = $derived(gridRows(data.targetVersion.contracts));
 
   const maxLengthOfConstructorInputsParams = (): number => {
     let maxIndex: number = 0;
@@ -39,7 +44,7 @@
     });
     return maxIndex;
   };
-  let isFullScreen = false;
+  let isFullScreen = $state(false);
 </script>
 
 <PageWrapper

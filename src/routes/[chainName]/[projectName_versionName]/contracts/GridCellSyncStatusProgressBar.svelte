@@ -16,24 +16,31 @@
   import { NO_DATA } from "@utils/utilsCostants";
   import classNames from "classnames";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
-  export let targetContract: Contract;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+    targetContract: Contract;
+  }
+
+  let { targetChain, targetProject, targetVersion, targetContract }: Props =
+    $props();
   const girdSize: BaseSize = sizeSettings.grid;
 
-  let latestBlockNumber: number;
-  $: latestBlockNumber = $storeChainStatus[targetChain.name].latestBlockNumber;
+  let latestBlockNumber: number = $derived(
+    $storeChainStatus[targetChain.name].latestBlockNumber,
+  );
 
-  let targetContractSyncStatus: SyncStatusContract;
-  $: targetContractSyncStatus =
+  let targetContractSyncStatus: SyncStatusContract = $derived(
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
-      .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name];
+      .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name],
+  );
 
-  let fetchedBlockNumber: number | undefined;
-  $: fetchedBlockNumber = targetContractSyncStatus
-    ? targetContractSyncStatus.fetchedBlockNumber
-    : undefined;
+  let fetchedBlockNumber: number | undefined = $derived(
+    targetContractSyncStatus
+      ? targetContractSyncStatus.fetchedBlockNumber
+      : undefined,
+  );
 </script>
 
 {#if fetchedBlockNumber}

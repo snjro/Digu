@@ -9,9 +9,8 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
-  let showLoader: boolean = false;
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let showLoader: boolean = $state(false);
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   beforeNavigate(() => {
     showLoader = true;

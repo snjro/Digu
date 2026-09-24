@@ -6,9 +6,13 @@
   import VersionOverviewContracts from "./VersionOverviewContracts.svelte";
   import VersionOverviewSyncStatus from "./VersionOverviewSyncStatus.svelte";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+  }
+
+  let { targetChain, targetProject, targetVersion }: Props = $props();
 
   // let gridTrackBasic: string;
   // $: gridTrackBasic = classNames("col-span-full", "");

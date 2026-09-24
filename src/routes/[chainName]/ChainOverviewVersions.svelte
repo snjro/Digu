@@ -26,9 +26,13 @@
   import type { SyncStatusProject } from "@db/dbTypes";
   import { getProjectVersionNameForUrl } from "./[projectName_versionName]/projectVersionNameHelper";
 
-  // export let contracts: Contract[];
-  export let targetChain: Chain;
-  export let targetProject: Project;
+  interface Props {
+    // export let contracts: Contract[];
+    targetChain: Chain;
+    targetProject: Project;
+  }
+
+  let { targetChain, targetProject }: Props = $props();
 
   const textSize: BaseSize = sizeSettings.itemMemberTable;
   const warnningTextSize: BaseSize = sizeSettings.itemWarnningMessage;
@@ -36,7 +40,7 @@
   //   trailingSlash === "always"
   //     ? `${$page.url.pathname}`
   //     : `${$page.url.pathname}/`;
-  $: hrefFrontPart = (targetVersion: Version): string => {
+  const hrefFrontPart = (targetVersion: Version): string => {
     const pageUrlPathname: string =
       trailingSlash === "always"
         ? `${$page.url.pathname}`
@@ -59,9 +63,9 @@
   const hasVersionEvents = (targetVersion: Version): boolean => {
     return numberOfEventsInVersion(targetVersion) > 0;
   };
-  let targetProjectSyncStatus: SyncStatusProject;
-  $: targetProjectSyncStatus =
-    $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name];
+  let targetProjectSyncStatus: SyncStatusProject = $derived(
+    $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name],
+  );
 </script>
 
 <CommonItemMember>

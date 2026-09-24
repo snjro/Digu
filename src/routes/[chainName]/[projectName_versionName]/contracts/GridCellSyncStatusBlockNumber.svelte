@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   type HeaderName = "Start" | "Current" | "Goal";
   export function getBlockNumberByHeaderName(
     headerName: HeaderName,
@@ -35,26 +35,38 @@
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { NO_DATA } from "@utils/utilsCostants";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
-  export let targetContract: Contract;
-  export let headerName: HeaderName;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+    targetContract: Contract;
+    headerName: HeaderName;
+  }
+
+  let {
+    targetChain,
+    targetProject,
+    targetVersion,
+    targetContract,
+    headerName,
+  }: Props = $props();
   const girdSize: BaseSize = sizeSettings.grid;
 
-  let latestBlockNumber: number;
-  $: latestBlockNumber = $storeChainStatus[targetChain.name].latestBlockNumber;
+  let latestBlockNumber: number = $derived(
+    $storeChainStatus[targetChain.name].latestBlockNumber,
+  );
 
-  let targetContractSyncStatus: SyncStatusContract;
-  $: targetContractSyncStatus =
+  let targetContractSyncStatus: SyncStatusContract = $derived(
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
-      .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name];
+      .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name],
+  );
 
-  let blockNumber: number;
-  $: blockNumber = getBlockNumberByHeaderName(
-    headerName,
-    latestBlockNumber,
-    targetContractSyncStatus,
+  let blockNumber: number = $derived(
+    getBlockNumberByHeaderName(
+      headerName,
+      latestBlockNumber,
+      targetContractSyncStatus,
+    ),
   );
 </script>
 

@@ -12,8 +12,8 @@
   import { GITHUB_PAGES_HOST_NAME, PROJECT_NAME } from "@utils/utilsCostants";
   import classNames from "classnames";
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
   const colorCategory: ColorCategory = colorSettings.errorPage;
   const errorDetails: { title: string; value: string | undefined }[] = [
     { title: "Status", value: $page.status.toString() },
