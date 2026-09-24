@@ -10,63 +10,76 @@
   import type { BaseSize } from "./baseSizes";
   import { base } from "$app/paths";
 
-  export let size: BaseSize = "md";
-  export let group: string[] = [];
-  export let value: string = "";
-  export let checked: boolean | undefined = undefined;
-  export let indeterminate: boolean = false;
-  export let disabled: boolean = false;
-  export let onclick: ((event: MouseEvent) => void) | undefined = undefined;
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  interface Props {
+    size?: BaseSize;
+    group?: string[];
+    value?: string;
+    checked?: boolean | undefined;
+    indeterminate?: boolean;
+    disabled?: boolean;
+    onclick?: ((event: MouseEvent) => void) | undefined;
+  }
 
-  $: {
+  let {
+    size = "md",
+    group = $bindable([]),
+    value = "",
+    checked = $bindable(undefined),
+    indeterminate = $bindable(false),
+    disabled = false,
+    onclick = undefined,
+  }: Props = $props();
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  // New arrays, so that a parent in legacy mode also sees the change.
+  $effect.pre(() => {
     const index = group.indexOf(value);
     if (checked === undefined) checked = index >= 0;
     if (checked) {
-      if (index < 0) {
-        group.push(value);
-        group = group;
-      }
+      if (index < 0) group = [...group, value];
     } else {
-      if (index >= 0) {
-        group.splice(index, 1);
-        group = group;
-      }
+      if (index >= 0) group = group.filter((_, i) => i !== index);
     }
-  }
-  let backgroundColor: ColorDefinitionForParts["bg"];
-  let checkboxImageFile: string;
-  $: {
+  });
+  let checkboxStyle: {
+    backgroundColor: ColorDefinitionForParts["bg"];
+    checkboxImageFile: string;
+  } = $derived.by(() => {
     if (indeterminate) {
-      backgroundColor = "bg-yellow-500";
-      checkboxImageFile = `${base}/checkboxIndeterminate.svg`;
+      return {
+        backgroundColor: "bg-yellow-500",
+        checkboxImageFile: `${base}/checkboxIndeterminate.svg`,
+      };
     } else if (checked) {
-      backgroundColor = colorDefinitions[themeColor]["success"].bg;
-      checkboxImageFile = `${base}/checkboxChecked.svg`;
+      return {
+        backgroundColor: colorDefinitions[themeColor]["success"].bg,
+        checkboxImageFile: `${base}/checkboxChecked.svg`,
+      };
     } else {
-      backgroundColor = colorDefinitions[themeColor]["error"].bg;
-      checkboxImageFile = `${base}/checkboxCross.svg`;
+      return {
+        backgroundColor: colorDefinitions[themeColor]["error"].bg,
+        checkboxImageFile: `${base}/checkboxCross.svg`,
+      };
     }
-  }
+  });
 </script>
 
 <input
   type="checkbox"
   bind:checked
-  on:click={onclick}
+  {onclick}
   bind:indeterminate
   {value}
   {disabled}
   class={classNames(
     radioSizes[size],
     "rounded-sm",
-    backgroundColor,
+    checkboxStyle.backgroundColor,
     "appearance-none",
     "disabled:opacity-50",
     "cursor-pointer disabled:cursor-not-allowed",
   )}
-  style="--url: url({checkboxImageFile})"
+  style="--url: url({checkboxStyle.checkboxImageFile})"
 />
 
 <style lang="scss">

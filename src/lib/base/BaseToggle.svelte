@@ -11,18 +11,35 @@
   import BaseIcon from "./BaseIcon.svelte";
   import BaseTooltip from "./BaseTooltip.svelte";
   import type { BaseSize } from "./baseSizes";
-  export let size: BaseSize = "md";
-  // export let iconSize: BaseSize = "xl";
-  export let colorCategoryThumbToggleOn: ColorCategory = "interactive";
-  export let colorCategoryThumbToggleOff: ColorCategory = "interactive";
-  export let colorCategoryTrack: ColorCategory;
-  export let tooltipText: BaseButtonProps["tooltipText"] = undefined;
-  export let tooltipXPosition: BaseButtonProps["tooltipXPosition"] = "right";
-  export let tooltipYPosition: BaseButtonProps["tooltipYPosition"] = "top";
-  export let disabled: boolean;
-  export let toggleValue: boolean;
-  export let iconProps: BaseIconProps | undefined = undefined;
-  export let ontogglechanged: (() => void) | undefined = undefined;
+
+  interface Props {
+    size?: BaseSize;
+    // export let iconSize: BaseSize = "xl";
+    colorCategoryThumbToggleOn?: ColorCategory;
+    colorCategoryThumbToggleOff?: ColorCategory;
+    colorCategoryTrack: ColorCategory;
+    tooltipText?: BaseButtonProps["tooltipText"];
+    tooltipXPosition?: BaseButtonProps["tooltipXPosition"];
+    tooltipYPosition?: BaseButtonProps["tooltipYPosition"];
+    disabled: boolean;
+    toggleValue: boolean;
+    iconProps?: BaseIconProps | undefined;
+    ontogglechanged?: (() => void) | undefined;
+  }
+
+  let {
+    size = "md",
+    colorCategoryThumbToggleOn = "interactive",
+    colorCategoryThumbToggleOff = "interactive",
+    colorCategoryTrack,
+    tooltipText = undefined,
+    tooltipXPosition = "right",
+    tooltipYPosition = "top",
+    disabled,
+    toggleValue = $bindable(),
+    iconProps = undefined,
+    ontogglechanged = undefined,
+  }: Props = $props();
 
   function onToggle(): void {
     toggleValue = !toggleValue;
@@ -62,8 +79,7 @@
     "4xl": "px-4",
     "5xl": "px-5",
   };
-  let translateX: { [key in BaseSize]: string };
-  $: translateX = {
+  let translateX: { [key in BaseSize]: string } = $derived({
     xs: toggleValue ? "translate-x-2" : "-translate-x-2",
     sm: toggleValue ? "translate-x-3" : "-translate-x-3",
     md: toggleValue ? "translate-x-4" : "-translate-x-4",
@@ -73,56 +89,60 @@
     "3xl": toggleValue ? "translate-x-9" : "-translate-x-9",
     "4xl": toggleValue ? "translate-x-10" : "-translate-x-10",
     "5xl": toggleValue ? "translate-x-12" : "-translate-x-12",
-  };
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  });
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
-  $: trackClass = classNames(
-    trackSizes[size],
-    "rounded-full",
-    colorDefinitions[themeColor][colorCategoryTrack].bg,
-    colorDefinitions[themeColor][colorCategoryTrack].border,
-    colorDefinitions[themeColor][colorCategoryTrack].shadow,
-    "flex",
-    "items-center",
-    "justify-center",
-    "transition",
-    "duration-200",
-    "focus:outline-hidden",
-    "shadow-sm dark:shadow-none ",
-    "dark:border",
-    cursorStyle,
-    "",
-  );
-  let colorCategoryThumb: ColorCategory;
-  $: colorCategoryThumb = toggleValue
-    ? colorCategoryThumbToggleOn
-    : colorCategoryThumbToggleOff;
-
-  $: thumClass = classNames(
-    "flex",
-    "items-center",
-    "justify-center",
-    thumbSizes[size],
-    "relative",
-    "rounded-full",
-    "transition",
-    "duration-200",
-    "transform",
-    translateX[size],
-    colorDefinitions[themeColor][colorCategoryThumb].bg,
-    "dark:border",
-    colorDefinitions[themeColor][colorCategoryThumb].border,
-    disabled && "contrast-50",
-    cursorStyle,
+  let colorCategoryThumb: ColorCategory = $derived(
+    toggleValue ? colorCategoryThumbToggleOn : colorCategoryThumbToggleOff,
   );
 
-  let cursorStyle: `cursor-${string}`;
-  $: cursorStyle = disabled ? "cursor-not-allowed" : "cursor-pointer";
+  let cursorStyle: `cursor-${string}` = $derived(
+    disabled ? "cursor-not-allowed" : "cursor-pointer",
+  );
+
+  let trackClass = $derived(
+    classNames(
+      trackSizes[size],
+      "rounded-full",
+      colorDefinitions[themeColor][colorCategoryTrack].bg,
+      colorDefinitions[themeColor][colorCategoryTrack].border,
+      colorDefinitions[themeColor][colorCategoryTrack].shadow,
+      "flex",
+      "items-center",
+      "justify-center",
+      "transition",
+      "duration-200",
+      "focus:outline-hidden",
+      "shadow-sm dark:shadow-none ",
+      "dark:border",
+      cursorStyle,
+      "",
+    ),
+  );
+
+  let thumClass = $derived(
+    classNames(
+      "flex",
+      "items-center",
+      "justify-center",
+      thumbSizes[size],
+      "relative",
+      "rounded-full",
+      "transition",
+      "duration-200",
+      "transform",
+      translateX[size],
+      colorDefinitions[themeColor][colorCategoryThumb].bg,
+      "dark:border",
+      colorDefinitions[themeColor][colorCategoryThumb].border,
+      disabled && "contrast-50",
+      cursorStyle,
+    ),
+  );
 </script>
 
 <div class={classNames(paddingX[size])}>
-  <button class={trackClass} on:click={onToggle} {disabled}>
+  <button class={trackClass} onclick={onToggle} {disabled}>
     <BaseTooltip
       text={tooltipText}
       xPosition={tooltipXPosition}

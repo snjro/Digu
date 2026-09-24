@@ -1,9 +1,17 @@
 <script lang="ts">
   import BaseCheckbox from "./BaseCheckbox.svelte";
 
-  export let checked: boolean | undefined = undefined;
-  export let group: string[] = [];
-  export let value: string = "";
+  interface Props {
+    checked?: boolean | undefined;
+    group?: string[];
+    value?: string;
+  }
+
+  let {
+    checked = $bindable(undefined),
+    group = $bindable([]),
+    value = "",
+  }: Props = $props();
 </script>
 
 <BaseCheckbox bind:checked bind:group {value} />

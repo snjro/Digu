@@ -1,8 +1,12 @@
 <script lang="ts">
   import BaseSelect, { type BaseSelectProps } from "./BaseSelect.svelte";
 
-  export let items: BaseSelectProps["items"];
-  export let value: string;
+  interface Props {
+    items: BaseSelectProps["items"];
+    value: string;
+  }
+
+  let { items, value = $bindable() }: Props = $props();
 </script>
 
 <BaseSelect {items} size="md" bind:value />

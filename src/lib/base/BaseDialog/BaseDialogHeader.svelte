@@ -10,7 +10,7 @@
   import classNames from "classnames";
   import BaseButtonIcon from "../BaseButtonIcon.svelte";
   import type { BaseIconProps } from "../BaseIcon";
-  import BaseLabel from "../BaseLabel.svelte";
+  import BaseLabel, { type BaseLabelProps } from "../BaseLabel.svelte";
   import type { BaseSize } from "../baseSizes";
   import { closeDialog } from "./BaseDialogHandler";
 
@@ -23,7 +23,7 @@
 
   const headerSize: BaseSize = sizeSettings.dialogHeader;
   const headerColor: ColorCategory = colorSettings.dialogHeader;
-  const prefixIcon: BaseLabel["prefixIcon"] = headerIconName
+  const prefixIcon: BaseLabelProps["prefixIcon"] = headerIconName
     ? {
         name: headerIconName,
         colorCategory: headerColor,

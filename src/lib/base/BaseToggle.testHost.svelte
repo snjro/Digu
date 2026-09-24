@@ -1,7 +1,11 @@
 <script lang="ts">
   import BaseToggle from "./BaseToggle.svelte";
 
-  export let toggleValue: boolean;
+  interface Props {
+    toggleValue: boolean;
+  }
+
+  let { toggleValue = $bindable() }: Props = $props();
 </script>
 
 <BaseToggle colorCategoryTrack="primary" disabled={false} bind:toggleValue />
