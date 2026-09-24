@@ -9,15 +9,19 @@
   import type { AbiFragmentParam } from "@constants/chains/types";
   import { jsonStringifyFormatted } from "@utils/utilsCommon";
 
-  export let dialogHeaderText: string;
-  export let components: readonly AbiFragmentParam[];
+  interface Props {
+    dialogHeaderText: string;
+    components: readonly AbiFragmentParam[];
+  }
+
+  let { dialogHeaderText, components }: Props = $props();
 
   const iconName: BaseIconProps["name"] = "loupe";
-  let dialogElement: HTMLDialogElement;
+  let dialogElement = $state() as HTMLDialogElement;
   function showDialog() {
     openDialog(dialogElement);
   }
-  $: dialogText = jsonStringifyFormatted(components);
+  let dialogText = $derived(jsonStringifyFormatted(components));
 </script>
 
 <BaseButtonIcon

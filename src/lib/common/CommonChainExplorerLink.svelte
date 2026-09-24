@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type CommonChainExplorerLinkProps = {
     subdirectory: keyof ChainExplorer["subdirectory"];
     value: string | undefined;
@@ -26,29 +26,31 @@
   import classNames from "classnames";
   import CommonCopyButton from "./CommonCopyButton.svelte";
 
-  export let subdirectory: CommonChainExplorerLinkProps["subdirectory"];
-  // export let chainExplorerUrl: string;
-  export let value: CommonChainExplorerLinkProps["value"];
-  export let textSize: CommonChainExplorerLinkProps["textSize"] = "md";
-  export let forcedClass: CommonChainExplorerLinkProps["forcedClass"] =
-    undefined;
-  export let appendClass: CommonChainExplorerLinkProps["appendClass"] =
-    undefined;
-  export let withIcon: CommonChainExplorerLinkProps["withIcon"] = true;
-  export let showCopyButton: CommonChainExplorerLinkProps["showCopyButton"] = true;
-  export let isFontMono: CommonChainExplorerLinkProps["isFontMono"] = false;
-  export let justifyEnd: CommonChainExplorerLinkProps["justifyEnd"] = false;
+  interface Props {
+    subdirectory: CommonChainExplorerLinkProps["subdirectory"];
+    // export let chainExplorerUrl: string;
+    value: CommonChainExplorerLinkProps["value"];
+    textSize?: CommonChainExplorerLinkProps["textSize"];
+    forcedClass?: CommonChainExplorerLinkProps["forcedClass"];
+    appendClass?: CommonChainExplorerLinkProps["appendClass"];
+    withIcon?: CommonChainExplorerLinkProps["withIcon"];
+    showCopyButton?: CommonChainExplorerLinkProps["showCopyButton"];
+    isFontMono?: CommonChainExplorerLinkProps["isFontMono"];
+    justifyEnd?: CommonChainExplorerLinkProps["justifyEnd"];
+  }
 
-  $: href = () => {
-    return `${chainExplorerUrl}/${subdirectory}/${value}`;
-  };
-  $: linkText = () => {
-    if (value && subdirectory === "block") {
-      return numberWithCommas(parseInt(value));
-    } else {
-      return value;
-    }
-  };
+  let {
+    subdirectory,
+    value,
+    textSize = "md",
+    forcedClass = undefined,
+    appendClass: appendClassProp = undefined,
+    withIcon = true,
+    showCopyButton = true,
+    isFontMono = false,
+    justifyEnd = false,
+  }: Props = $props();
+
   const suffixIcon = (): BaseIconProps | undefined => {
     if (withIcon) {
       // return { name: "linkVariant", size: textSize, appendClass: "ml-1" };
@@ -60,15 +62,28 @@
       return undefined;
     }
   };
-  $: targetChain = getTargetChain({
-    chainName: $storeUserSettings.selectedChainName.toString(),
-  });
 
-  $: chainExplorerUrl =
+  let appendClass = $derived(classNames(appendClassProp, "tabular-nums"));
+  let targetChain = $derived(
+    getTargetChain({
+      chainName: $storeUserSettings.selectedChainName.toString(),
+    }),
+  );
+  let chainExplorerUrl = $derived(
     targetChain.chainExplorers[
       $storeRpcSettings[targetChain.name].chainExplorerIndex
-    ].url;
-  appendClass = classNames(appendClass, "tabular-nums");
+    ].url,
+  );
+  const href = () => {
+    return `${chainExplorerUrl}/${subdirectory}/${value}`;
+  };
+  const linkText = () => {
+    if (value && subdirectory === "block") {
+      return numberWithCommas(parseInt(value));
+    } else {
+      return value;
+    }
+  };
 </script>
 
 <div

@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export const showSnackBarAsCopied: BaseSnackbarProps = {
     visible: true,
     iconProps: {
@@ -17,19 +17,25 @@
   import type { BaseSize } from "$lib/base/baseSizes";
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
 
-  export let copyTarget: string | undefined = undefined;
-  export let size: BaseSize;
-  export let colorCategory: ColorCategory | undefined = colorSettings.main;
-  export let showTooltip: boolean = false;
+  interface Props {
+    copyTarget?: string | undefined;
+    size: BaseSize;
+    colorCategory?: ColorCategory | undefined;
+    showTooltip?: boolean;
+  }
+
+  let {
+    copyTarget = undefined,
+    size,
+    colorCategory = colorSettings.main,
+    showTooltip = false,
+  }: Props = $props();
   async function copyToClipBoard(): Promise<void> {
-    if (!copyTarget) {
-      copyTarget = "";
-    }
-    await navigator.clipboard.writeText(copyTarget);
+    await navigator.clipboard.writeText(copyTarget ?? "");
     $storeNoDbSnackBar = showSnackBarAsCopied;
   }
 
-  $: tooltipText = (): string | undefined => {
+  const tooltipText = (): string | undefined => {
     if (showTooltip) {
       if ($storeNoDbSnackBar.visible) {
         return "copied!";

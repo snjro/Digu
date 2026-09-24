@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type CommonAbiParamsTableProps = {
     paramTypes:
       | EventAbiFragment["inputs"]
@@ -20,9 +20,13 @@
   } from "@constants/chains/types";
   import AbiParamsTableRow from "./AbiParamsTableRow.svelte";
 
-  export let paramTypes: CommonAbiParamsTableProps["paramTypes"];
-  export let dialogHeaderText: CommonAbiParamsTableProps["dialogHeaderText"];
-  export let showInputIndexedField: boolean;
+  interface Props {
+    paramTypes: CommonAbiParamsTableProps["paramTypes"];
+    dialogHeaderText: CommonAbiParamsTableProps["dialogHeaderText"];
+    showInputIndexedField: boolean;
+  }
+
+  let { paramTypes, dialogHeaderText, showInputIndexedField }: Props = $props();
 
   const abiParamTabelSize: BaseSize = sizeSettings.abiParamsTable;
 

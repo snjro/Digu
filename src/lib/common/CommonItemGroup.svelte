@@ -6,12 +6,17 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
+  import type { Snippet } from "svelte";
 
-  export let text: BaseLabelProps["text"] = undefined;
-  export let gridTrack: string;
+  interface Props {
+    text?: BaseLabelProps["text"];
+    gridTrack: string;
+    children?: Snippet;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let { text = undefined, gridTrack, children }: Props = $props();
+
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 </script>
 
 <div
@@ -52,6 +57,6 @@
       "flex-col",
     )}
   >
-    <slot />
+    {@render children?.()}
   </div>
 </div>

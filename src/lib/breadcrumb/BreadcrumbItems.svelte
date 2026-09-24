@@ -8,9 +8,13 @@
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import type { CrumbItem } from "./Breadcrumb.svelte";
   import BreadcrumnItemSeparater from "./BreadcrumnItemSeparater.svelte";
-  export let targetCrumbItem: CrumbItem;
-  export let currentIndex: number;
-  export let lastIndex: number;
+  interface Props {
+    targetCrumbItem: CrumbItem;
+    currentIndex: number;
+    lastIndex: number;
+  }
+
+  let { targetCrumbItem, currentIndex, lastIndex }: Props = $props();
 
   const targetSize = (): BaseSize => {
     return currentIndex === 0

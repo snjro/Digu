@@ -4,8 +4,14 @@
   import BaseLabel, { type BaseLabelProps } from "$lib/base/BaseLabel.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
+  import type { Snippet } from "svelte";
 
-  export let text: BaseLabelProps["text"] | undefined = undefined;
+  interface Props {
+    text?: BaseLabelProps["text"] | undefined;
+    children?: Snippet;
+  }
+
+  let { text = undefined, children }: Props = $props();
 
   const textSize: BaseSize = sizeSettings.itemTitle;
 </script>
@@ -23,6 +29,6 @@
     />
   {/if}
   <div class={classNames("pl-1", "pr-3", "w-full h-fit")}>
-    <slot />
+    {@render children?.()}
   </div>
 </div>

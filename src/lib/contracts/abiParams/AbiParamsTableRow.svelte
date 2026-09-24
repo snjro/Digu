@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type CommonAbiParamsTableProps = {
     paramTypes:
       | EventAbiFragment["inputs"]
@@ -25,15 +25,21 @@
   import { NO_DATA } from "@utils/utilsCostants";
   import AbiParamComponentsDetailsButton from "./AbiParamComponentsDetailsButton.svelte";
 
-  export let paramType: AbiFragmentParam;
-  export let dialogHeaderText: CommonAbiParamsTableProps["dialogHeaderText"];
-  // export let colorCategoryBg: ColorCategory;
-  export let showInputIndexedField: boolean;
-  export let rowIndex: number;
+  interface Props {
+    paramType: AbiFragmentParam;
+    dialogHeaderText: CommonAbiParamsTableProps["dialogHeaderText"];
+    // export let colorCategoryBg: ColorCategory;
+    showInputIndexedField: boolean;
+    rowIndex: number;
+  }
+
+  let { paramType, dialogHeaderText, showInputIndexedField, rowIndex }: Props =
+    $props();
 
   const abiParamsTabeSize: BaseSize = sizeSettings.abiParamsTable;
-  const components: readonly AbiFragmentParam[] | undefined =
-    getComponentsFromAbiFragmentParam(paramType);
+  const components: readonly AbiFragmentParam[] | undefined = $derived(
+    getComponentsFromAbiFragmentParam(paramType),
+  );
 </script>
 
 <BaseTableRow>

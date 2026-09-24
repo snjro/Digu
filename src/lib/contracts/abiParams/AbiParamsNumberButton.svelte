@@ -11,13 +11,21 @@
     type CommonAbiParamsTableProps,
   } from "./AbiParamsTable.svelte";
 
-  export let paramTypes: CommonAbiParamsTableProps["paramTypes"];
-  export let dialogHeaderText: string;
-  export let showAbiParamsInputIndexedField: boolean = false;
+  interface Props {
+    paramTypes: CommonAbiParamsTableProps["paramTypes"];
+    dialogHeaderText: string;
+    showAbiParamsInputIndexedField?: boolean;
+  }
+
+  let {
+    paramTypes,
+    dialogHeaderText,
+    showAbiParamsInputIndexedField = false,
+  }: Props = $props();
 
   const textSize: BaseSize = sizeSettings.abiParamsTable;
 
-  let dialogElement: HTMLDialogElement;
+  let dialogElement = $state() as HTMLDialogElement;
   function showDialog() {
     openDialog(dialogElement);
   }

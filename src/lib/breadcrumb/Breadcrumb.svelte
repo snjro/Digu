@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type CrumbItem = {
     href: string;
     text: string | undefined;
@@ -27,9 +27,43 @@
   import classNames from "classnames";
   import BreadcrumbItems from "./BreadcrumbItems.svelte";
 
-  $: targetChainName = $storeUserSettings.selectedChainName.toString();
-
-  $: crumbItems = (): CrumbItem[] => {
+  function removeUrlHash(href: string): string {
+    const hashStartIndex: number = href.indexOf("#");
+    return hashStartIndex > 0 ? href.substring(0, hashStartIndex) : href;
+  }
+  function getPathNameWithUrlHash(
+    previousPathName: string,
+    currentPathName: string,
+  ): string {
+    let urlHash: string = "";
+    // if (indexPathNames === pathNames.length - 1) {
+    switch (previousPathName) {
+      case DIR_NAME_CONTRACTS:
+        urlHash = TAB_VALUES_CONTRACT[0];
+        break;
+      case DIR_NAME_EVENTS:
+        urlHash = TAB_VALUES_EVENT[0];
+        break;
+      case DIR_NAME_FUNCTIONS:
+        urlHash = TAB_VALUES_FUNCTION[0];
+        break;
+      default:
+        urlHash = "";
+        break;
+    }
+    if (urlHash) {
+      urlHash = `#${convertToKebabCase(urlHash)}`;
+    }
+    // }
+    return currentPathName + urlHash;
+  }
+  function convertUrlTextToLabelText(path: string): string {
+    return path.replaceAll("-", " ");
+  }
+  let targetChainName = $derived(
+    $storeUserSettings.selectedChainName.toString(),
+  );
+  const crumbItems = (): CrumbItem[] => {
     let crumbItems: CrumbItem[] = [];
     let href: CrumbItem["href"] = `${base}/${targetChainName}`;
     let text: CrumbItem["text"] = undefined;
@@ -74,39 +108,6 @@
     }
     return crumbItems;
   };
-  function removeUrlHash(href: string): string {
-    const hashStartIndex: number = href.indexOf("#");
-    return hashStartIndex > 0 ? href.substring(0, hashStartIndex) : href;
-  }
-  function getPathNameWithUrlHash(
-    previousPathName: string,
-    currentPathName: string,
-  ): string {
-    let urlHash: string = "";
-    // if (indexPathNames === pathNames.length - 1) {
-    switch (previousPathName) {
-      case DIR_NAME_CONTRACTS:
-        urlHash = TAB_VALUES_CONTRACT[0];
-        break;
-      case DIR_NAME_EVENTS:
-        urlHash = TAB_VALUES_EVENT[0];
-        break;
-      case DIR_NAME_FUNCTIONS:
-        urlHash = TAB_VALUES_FUNCTION[0];
-        break;
-      default:
-        urlHash = "";
-        break;
-    }
-    if (urlHash) {
-      urlHash = `#${convertToKebabCase(urlHash)}`;
-    }
-    // }
-    return currentPathName + urlHash;
-  }
-  function convertUrlTextToLabelText(path: string): string {
-    return path.replaceAll("-", " ");
-  }
 </script>
 
 <nav
