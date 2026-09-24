@@ -396,4 +396,67 @@ describe("sync with two tabs (issue #49)", () => {
     expect(a.isLockedByOtherTab()).toBe(false);
     await stopAndWait(a);
   }, 30_000);
+
+  // Only the startup in the Worker counts the records. The syncing tab adds
+  // to the counts in the DB, so they still match the rows.
+  describe("record counts", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+    // getEventLogTableRecordCount counts with count() of IndexedDB.
+    function spyCount() {
+      return vi.spyOn(IDBObjectStore.prototype, "count");
+    }
+    async function expectCountMatchesRows(tab: Tab): Promise<void> {
+      const { rows } = await countLogs(tab);
+      expect(rows).toBeGreaterThan(0);
+      expect(
+        tab.storeStatus().events[tab.contract.events.names[0]].recordCount,
+      ).toBe(rows);
+    }
+
+    test("counts only in the Worker at startup", async () => {
+      const spy = spyCount();
+      let countsInWorker: number = 0;
+      const a = await openTab(async () => {
+        countsInWorker = spy.mock.calls.length;
+        spy.mockClear();
+      });
+      tabs.push(a);
+
+      expect(countsInWorker).toBeGreaterThan(0);
+      expect(spy).not.toHaveBeenCalled();
+    }, 30_000);
+
+    test("does not count when a sync starts", async () => {
+      const a = await openTab();
+      tabs.push(a);
+      expect(await a.fetchEventLogs()).toBe(true);
+      await sleep(100);
+      await stopAndWait(a);
+
+      const spy = spyCount();
+      expect(await a.fetchEventLogs()).toBe(true);
+      expect(spy).not.toHaveBeenCalled();
+      await sleep(100);
+      await stopAndWait(a);
+      await expectCountMatchesRows(a);
+    }, 30_000);
+
+    test("does not count when another tab releases the lock", async () => {
+      const a = await openTab();
+      tabs.push(a);
+      expect(await a.fetchEventLogs()).toBe(true);
+      await sleep(100);
+      const b = await openTab();
+      tabs.push(b);
+      expect(b.isLockedByOtherTab()).toBe(true);
+
+      const spy = spyCount();
+      await stopAndWait(a);
+      expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
+      expect(spy).not.toHaveBeenCalled();
+      await expectCountMatchesRows(b);
+    }, 30_000);
+  });
 });

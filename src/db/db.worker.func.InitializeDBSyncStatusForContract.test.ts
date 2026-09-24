@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import * as InitializeDBSyncStatusForContract from "./db.worker.func.InitializeDBSyncStatusForContract";
 import { DbEventLogs } from "./dbEventLogs";
 import { TARGET_CHAINS } from "@constants/chains/_index";
@@ -31,22 +31,28 @@ const spyGetEventLogTableRecordCount = vi.spyOn(
   "getEventLogTableRecordCount",
 );
 
+const targetChain: Chain = TARGET_CHAINS[0];
+const targetProject: Project = targetChain.projects[0];
+const targetVersion: Version = targetProject.versions[0];
+const targetContract: Contract = targetVersion.contracts[0];
+const versionIdentifier: VersionIdentifier = {
+  chainName: targetChain.name,
+  projectName: targetProject.name,
+  versionName: targetVersion.name,
+};
+
 describe("initializeDBSyncStatusForContract", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   test("should initialize DB sync status for contract", async () => {
-    const targetChain: Chain = TARGET_CHAINS[0];
-    const targetProject: Project = targetChain.projects[0];
-    const targetVersion: Version = targetProject.versions[0];
-    const targetContract: Contract = targetVersion.contracts[0];
-    const versionIdentifier: VersionIdentifier = {
-      chainName: targetChain.name,
-      projectName: targetProject.name,
-      versionName: targetVersion.name,
-    };
     const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
 
     await InitializeDBSyncStatusForContract.initializeDBSyncStatusForContract(
       dbEventLogs,
       targetContract,
+      true,
     );
     for (const eventName of targetContract.events.names) {
       expect(spyGetEventLogTableName).toBeCalledWith(
@@ -58,6 +64,30 @@ describe("initializeDBSyncStatusForContract", () => {
         UtlisDb.getEventLogTableName(targetContract.name, eventName),
       );
     }
-    expect(spyUpdateDbRecordSyncStatus).toBeCalled();
+    expect(spyUpdateDbRecordSyncStatus).toBeCalledWith(
+      dbEventLogs,
+      targetContract.name,
+      expect.objectContaining({ events: expect.any(Object) }),
+    );
+  });
+
+  test("should keep the record counts in the DB without recount", async () => {
+    const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
+
+    await InitializeDBSyncStatusForContract.initializeDBSyncStatusForContract(
+      dbEventLogs,
+      targetContract,
+      false,
+    );
+    expect(spyGetEventLogTableRecordCount).not.toBeCalled();
+    expect(spyUpdateDbRecordSyncStatus).toBeCalledWith(
+      dbEventLogs,
+      targetContract.name,
+      {
+        isAbort: false,
+        isSyncing: false,
+        creationBlockNumber: targetContract.creation.blockNumber,
+      },
+    );
   });
 });

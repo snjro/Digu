@@ -9,7 +9,11 @@ import { initializeDBSyncStatusForContract } from "./db.worker.func.InitializeDB
 export async function dbWorkerFuncInitializeDBSyncStatus(): Promise<void> {
   // Without Web Locks (insecure context), work as a single tab.
   if (!navigator.locks) {
-    await Promise.all(TARGET_CHAINS.map(initializeDBSyncStatusInChain));
+    await Promise.all(
+      TARGET_CHAINS.map((targetChain: Chain) =>
+        initializeDBSyncStatusInChain(targetChain, true),
+      ),
+    );
     return;
   }
   await Promise.all(
@@ -19,7 +23,7 @@ export async function dbWorkerFuncInitializeDBSyncStatus(): Promise<void> {
         getSyncLockName(targetChain.name),
         { ifAvailable: true },
         async (lock: Lock | null): Promise<void> => {
-          if (lock) await initializeDBSyncStatusInChain(targetChain);
+          if (lock) await initializeDBSyncStatusInChain(targetChain, true);
         },
       ),
     ),
@@ -27,6 +31,7 @@ export async function dbWorkerFuncInitializeDBSyncStatus(): Promise<void> {
 }
 export async function initializeDBSyncStatusInChain(
   targetChain: Chain,
+  recount: boolean,
 ): Promise<void> {
   const promises: Promise<void>[] = [];
   for (const targetProject of targetChain.projects) {
@@ -41,7 +46,11 @@ export async function initializeDBSyncStatusInChain(
         targetVersion.contracts,
       )) {
         promises.push(
-          initializeDBSyncStatusForContract(dbEventLogs, targetContract),
+          initializeDBSyncStatusForContract(
+            dbEventLogs,
+            targetContract,
+            recount,
+          ),
         );
       }
     }
