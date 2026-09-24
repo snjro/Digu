@@ -8,7 +8,8 @@
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import classNames from "classnames";
-  import type { RpcConfigParam } from "./RpcConfig.svelte";
+  import type { RpcConfigParam } from "./rpcConfigParams";
+  import { isInRpcConfigRange } from "./rpcConfigValidation";
   import RpcConfigChangerHelperText from "./RpcConfigChangerHelperText.svelte";
   import RpcConfigChangerInput from "./RpcConfigChangerInput.svelte";
   import RpcConfigChangerRange from "./RpcConfigChangerRange.svelte";
@@ -42,10 +43,7 @@
   }
   async function updateNumberItemValue(newValue: number): Promise<void> {
     helperTextState = "indeterminate";
-    if (
-      rpcConfigParam.minValue <= newValue &&
-      newValue <= rpcConfigParam.maxValue
-    ) {
+    if (isInRpcConfigRange(rpcConfigParam, newValue)) {
       await updateDbItemRpcSettings(
         targetChainName,
         rpcConfigParam.name,

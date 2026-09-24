@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import RpcConfigChangerRange from "./RpcConfigChangerRange.svelte";
-import type { RpcConfigParam } from "./RpcConfig.svelte";
+import type { RpcConfigParam } from "./rpcConfigParams";
 
 const rpcConfigParam: RpcConfigParam = {
   name: "bulkUnit",

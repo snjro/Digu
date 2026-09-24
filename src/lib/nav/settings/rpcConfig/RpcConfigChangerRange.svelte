@@ -2,7 +2,7 @@
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseRange from "$lib/base/BaseRange.svelte";
-  import type { RpcConfigParam } from "./RpcConfig.svelte";
+  import type { RpcConfigParam } from "./rpcConfigParams";
 
   interface Props {
     rpcConfigParam: RpcConfigParam;

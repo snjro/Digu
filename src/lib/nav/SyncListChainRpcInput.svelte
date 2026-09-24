@@ -7,19 +7,21 @@
   import BaseInput from "$lib/base/BaseInput.svelte";
   import { changeSize } from "$lib/base/baseSizes";
   import type { Chain } from "@constants/chains/types";
-  import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
   import type { NodeStatus, RpcInputType } from "@db/dbTypes";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { getNodeProvider } from "@utils/utilsEthers";
   import { getTargetChain } from "@utils/utlisDb";
   import classNames from "classnames";
   import { untrack } from "svelte";
   import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
   import type { HelperTextState } from "./settings/rpcConfig/RpcConfigChanger.svelte";
-  import { updateDbItemRpcSettings } from "@db/dbSettings";
+  import {
+    clearSucceededNodeStatus,
+    toggleRpcInputType,
+    updateRpc,
+  } from "./rpcInput";
 
   let targetChainName = $derived(
     $storeUserSettings.selectedChainName.toString(),
@@ -43,23 +45,12 @@
   $effect.pre(() => {
     if (targetChainName) {
       const targetChain: Chain = getTargetChain({ chainName: targetChainName });
-      // Rerun only when the chain changes, not when rpc (the default argument) changes.
-      untrack(() => updateRpc(targetChain));
+      // Rerun only when the chain changes, not when rpc changes.
+      untrack(() => updateRpc(targetChain, rpc));
     }
   });
-  async function updateRpc(
-    targetChain: Chain,
-    newRpc: string = rpc,
-  ): Promise<void> {
-    await updateDbItemRpcSettings(targetChain.name, "rpc", newRpc);
-
-    //By calling "getNodeProvider", nodeStatus is updated
-    await getNodeProvider(targetChain, newRpc);
-  }
   async function focusRpc(): Promise<void> {
-    if (nodeStatus === "SUCCESS") {
-      await updateDbItemChainStatus(targetChainName, "nodeStatus", undefined);
-    }
+    await clearSucceededNodeStatus(targetChainName, nodeStatus);
   }
   async function blurRpc(event: Event): Promise<void> {
     const newRpc: string = (event.target as HTMLInputElement).value;
@@ -77,9 +68,7 @@
     inputType === "text" ? "show" : "hide",
   );
   async function toggleInputType(): Promise<void> {
-    const newInputType: RpcInputType =
-      inputType === "text" ? "password" : "text";
-    await updateDbItemRpcSettings(targetChainName, "inputType", newInputType);
+    await toggleRpcInputType(targetChainName, inputType);
   }
 </script>
 
