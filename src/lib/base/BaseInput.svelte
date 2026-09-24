@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type BaseInputProps = {
     type: HTMLInputTypeAttribute;
     value?: string | number;
@@ -24,23 +24,54 @@
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
+  import type { Snippet } from "svelte";
   import type { HTMLInputTypeAttribute } from "svelte/elements";
   import BaseLabel, { type BaseLabelProps } from "./BaseLabel.svelte";
   import type { BaseSize } from "./baseSizes";
   import { baseTextSizes } from "./baseSizes";
 
-  export let type: BaseInputProps["type"];
-  export let value: BaseInputProps["value"] = undefined;
-  export let size: NonNullable<BaseInputProps["size"]> = "md";
-  export let forcedClass: BaseInputProps["forcedClass"] = undefined;
-  export let appendClass: BaseInputProps["appendClass"] = undefined;
-  export let colorCategory: ColorCategory;
-  export let colorCategoryBorder: ColorCategory;
-  export let disabled: NonNullable<BaseInputProps["disabled"]> = false;
-  export let truncate: NonNullable<BaseInputProps["truncate"]> = true;
-  export let labelProps: BaseInputProps["labelProps"] = undefined;
-  export let helperTextState: BaseInputProps["helperTextState"] = undefined;
-  export let placeholder: BaseInputProps["placeholder"] = undefined;
+  interface Props {
+    type: BaseInputProps["type"];
+    value?: BaseInputProps["value"];
+    size?: NonNullable<BaseInputProps["size"]>;
+    forcedClass?: BaseInputProps["forcedClass"];
+    appendClass?: BaseInputProps["appendClass"];
+    colorCategory: ColorCategory;
+    colorCategoryBorder: ColorCategory;
+    disabled?: NonNullable<BaseInputProps["disabled"]>;
+    truncate?: NonNullable<BaseInputProps["truncate"]>;
+    labelProps?: BaseInputProps["labelProps"];
+    helperTextState?: BaseInputProps["helperTextState"];
+    placeholder?: BaseInputProps["placeholder"];
+    onchange?: ((event: Event) => void) | undefined;
+    onfocus?: ((event: FocusEvent) => void) | undefined;
+    onblur?: ((event: FocusEvent) => void) | undefined;
+    prefixIcon?: Snippet;
+    suffixIcon?: Snippet;
+    inputHelper?: Snippet;
+  }
+
+  let {
+    type,
+    value = $bindable(undefined),
+    size = "md",
+    forcedClass = undefined,
+    appendClass = undefined,
+    colorCategory,
+    colorCategoryBorder,
+    disabled = false,
+    truncate = true,
+    labelProps = undefined,
+    helperTextState = undefined,
+    placeholder = undefined,
+    onchange = undefined,
+    onfocus = undefined,
+    onblur = undefined,
+    prefixIcon,
+    suffixIcon,
+    inputHelper,
+  }: Props = $props();
+
   const inputPaddingSizes: { [key in BaseSize]: string } = {
     xs: "px-0.5 py-0.5",
     sm: "px-1 py-0.5",
@@ -75,29 +106,25 @@
     "5xl": "pr-4",
   };
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
-  let customClass: string;
-  $: customClass =
+  let customClass: string = $derived(
     forcedClass ??
-    classNames(
-      "w-full",
-      truncate && "truncate",
-      "disabled:cursor-not-allowed",
-      "disabled:opacity-50",
-      "bg-transparent",
-      colorDefinitions[themeColor][colorCategory].text,
-      "placeholder:italic",
-      colorDefinitions[themeColor][colorCategory].textPlaceholder,
-      baseTextSizes[size],
-      inputPaddingSizes[size],
-      "noborder",
-      appendClass,
-    );
-  export let onchange: ((event: Event) => void) | undefined = undefined;
-  export let onfocus: ((event: FocusEvent) => void) | undefined = undefined;
-  export let onblur: ((event: FocusEvent) => void) | undefined = undefined;
+      classNames(
+        "w-full",
+        truncate && "truncate",
+        "disabled:cursor-not-allowed",
+        "disabled:opacity-50",
+        "bg-transparent",
+        colorDefinitions[themeColor][colorCategory].text,
+        "placeholder:italic",
+        colorDefinitions[themeColor][colorCategory].textPlaceholder,
+        baseTextSizes[size],
+        inputPaddingSizes[size],
+        "noborder",
+        appendClass,
+      ),
+  );
   /** Sets `value` from a parent that holds this component with `bind:this`. */
   export function setValue(newValue: BaseInputProps["value"]): void {
     value = newValue;
@@ -105,25 +132,27 @@
   const handleInput = (event: Event): void => {
     value = (event.target as HTMLInputElement).value;
   };
-  let isFocus: boolean = false;
+  let isFocus: boolean = $state(false);
   const setFocused = (value: boolean) => {
     isFocus = value;
   };
-  let borderStyle: string;
-  $: borderStyle = classNames(
-    "border-2",
-    isFocus
-      ? colorDefinitions[themeColor]["interactive"].border
-      : colorDefinitions[themeColor][colorCategoryBorder].border,
-    "",
+  let borderStyle: string = $derived(
+    classNames(
+      "border-2",
+      isFocus
+        ? colorDefinitions[themeColor]["interactive"].border
+        : colorDefinitions[themeColor][colorCategoryBorder].border,
+      "",
+    ),
   );
-  let shadowStyle: string;
-  $: shadowStyle = classNames(
-    themeColor === "light" &&
-      classNames(
-        "shadow-inner",
-        colorDefinitions[themeColor][colorCategory].shadow,
-      ),
+  let shadowStyle: string = $derived(
+    classNames(
+      themeColor === "light" &&
+        classNames(
+          "shadow-inner",
+          colorDefinitions[themeColor][colorCategory].shadow,
+        ),
+    ),
   );
 </script>
 
@@ -151,7 +180,7 @@
       colorDefinitions[themeColor][colorCategory].bg,
     )}
   >
-    {#if $$slots.prefixIcon}
+    {#if prefixIcon}
       <div
         class={classNames(
           prefixIconPaddingSizes[size],
@@ -160,7 +189,7 @@
           "justify-items-start",
         )}
       >
-        <slot name="prefixIcon" />
+        {@render prefixIcon?.()}
       </div>
     {/if}
     <input
@@ -169,19 +198,19 @@
       spellcheck={false}
       {disabled}
       placeholder={isFocus ? undefined : placeholder}
-      on:blur={(event) => {
+      onblur={(event) => {
         setFocused(false);
         onblur?.(event);
       }}
-      on:change={onchange}
-      on:focus={(event) => {
+      {onchange}
+      onfocus={(event) => {
         setFocused(true);
         onfocus?.(event);
       }}
-      on:input={handleInput}
+      oninput={handleInput}
       class={customClass}
     />
-    {#if $$slots.suffixIcon}
+    {#if suffixIcon}
       <div
         class={classNames(
           sufixIconPaddingSizes[size],
@@ -190,17 +219,17 @@
           "justify-items-start",
         )}
       >
-        <slot name="suffixIcon" />
+        {@render suffixIcon?.()}
       </div>
     {/if}
   </div>
-  {#if $$slots.inputHelper}
+  {#if inputHelper}
     <div
       class={classNames("h-5", "font-light", {
         invisible: !helperTextState,
       })}
     >
-      <slot name="inputHelper" />
+      {@render inputHelper?.()}
     </div>
   {/if}
 </div>
