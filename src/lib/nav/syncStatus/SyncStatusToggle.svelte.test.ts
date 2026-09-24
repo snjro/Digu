@@ -182,6 +182,19 @@ describe("SyncStatusToggle.svelte", () => {
     expect(screen.getByText("start sync")).toBeTruthy();
   });
 
+  test("can still stop the sync when the node is not ready", async () => {
+    render(SyncStatusToggle);
+    await startSync();
+
+    setNodeStatus("eth", undefined);
+    await tick();
+    expect(getToggle().disabled).toBe(false);
+
+    await fireEvent.click(getToggle());
+    expect(startAbortingInChain).toHaveBeenCalledWith("eth");
+    expect(getToggle().disabled).toBe(true);
+  });
+
   test("turns off when the sync state becomes stopped", async () => {
     render(SyncStatusToggle);
     await startSync();
