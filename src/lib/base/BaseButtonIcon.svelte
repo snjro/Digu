@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type SimplifiedButtonDefinition = {
     iconName: BaseIconProps["name"];
     tooltipText: BaseButtonProps["tooltipText"];
@@ -16,36 +16,65 @@
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import BaseIcon from "$lib/base/BaseIcon.svelte";
 
-  export let label: BaseButtonProps["label"] = undefined;
-  export let href: BaseButtonProps["href"] = undefined;
-  export let openNewTab: BaseButtonProps["openNewTab"] = false;
-  export let hoverEffect: BaseButtonProps["hoverEffect"] = true;
-  export let shadowEffect: BaseButtonProps["shadowEffect"] = true;
-  export let popupEffect: BaseButtonProps["popupEffect"] = true;
-  export let noPadding: NonNullable<BaseButtonProps["noPadding"]> = false;
-  export let appendClassButton: BaseButtonProps["appendClass"] = undefined;
-  export let iconName: BaseIconProps["name"];
-  export let isPrefixIcon: boolean = true;
-  export let tooltipText: BaseButtonProps["tooltipText"] = undefined;
-  export let tooltipXPosition: BaseButtonProps["tooltipXPosition"] = "right";
-  export let tooltipYPosition: BaseButtonProps["tooltipYPosition"] = "top";
-  export let size: NonNullable<BaseIconProps["size"]>;
-  export let disabled: NonNullable<BaseButtonProps["disabled"]> = false;
-  export let colorCategoryFront: ColorCategory | undefined = undefined;
-  export let colorCategoryBg: ColorCategory | undefined = undefined;
-  export let justify: NonNullable<BaseButtonProps["justify"]> = "center";
-  export let isHoverControledByParent: boolean = false;
-  export let isHover: boolean = false;
-  export let border: boolean = false;
-  export let designatedFontWeight: BaseButtonProps["designatedFontWeight"] =
-    undefined;
-  export let underlineLabel: BaseButtonProps["underlineLabel"] = false;
-  export let rounded: BaseButtonProps["rounded"] = true;
-  export let onclick: ((event: MouseEvent) => void) | undefined = undefined;
-  export let onmouseenter: ((event: MouseEvent) => void) | undefined =
-    undefined;
-  export let onmouseleave: ((event: MouseEvent) => void) | undefined =
-    undefined;
+  interface Props {
+    label?: BaseButtonProps["label"];
+    href?: BaseButtonProps["href"];
+    openNewTab?: BaseButtonProps["openNewTab"];
+    hoverEffect?: BaseButtonProps["hoverEffect"];
+    shadowEffect?: BaseButtonProps["shadowEffect"];
+    popupEffect?: BaseButtonProps["popupEffect"];
+    noPadding?: NonNullable<BaseButtonProps["noPadding"]>;
+    appendClassButton?: BaseButtonProps["appendClass"];
+    iconName: BaseIconProps["name"];
+    isPrefixIcon?: boolean;
+    tooltipText?: BaseButtonProps["tooltipText"];
+    tooltipXPosition?: BaseButtonProps["tooltipXPosition"];
+    tooltipYPosition?: BaseButtonProps["tooltipYPosition"];
+    size: NonNullable<BaseIconProps["size"]>;
+    disabled?: NonNullable<BaseButtonProps["disabled"]>;
+    colorCategoryFront?: ColorCategory | undefined;
+    colorCategoryBg?: ColorCategory | undefined;
+    justify?: NonNullable<BaseButtonProps["justify"]>;
+    isHoverControledByParent?: boolean;
+    isHover?: boolean;
+    border?: boolean;
+    designatedFontWeight?: BaseButtonProps["designatedFontWeight"];
+    underlineLabel?: BaseButtonProps["underlineLabel"];
+    rounded?: BaseButtonProps["rounded"];
+    onclick?: ((event: MouseEvent) => void) | undefined;
+    onmouseenter?: ((event: MouseEvent) => void) | undefined;
+    onmouseleave?: ((event: MouseEvent) => void) | undefined;
+  }
+
+  let {
+    label = undefined,
+    href = undefined,
+    openNewTab = false,
+    hoverEffect = true,
+    shadowEffect = true,
+    popupEffect = true,
+    noPadding = false,
+    appendClassButton = undefined,
+    iconName,
+    isPrefixIcon = true,
+    tooltipText = undefined,
+    tooltipXPosition = "right",
+    tooltipYPosition = "top",
+    size,
+    disabled = false,
+    colorCategoryFront = undefined,
+    colorCategoryBg = undefined,
+    justify = "center",
+    isHoverControledByParent = false,
+    isHover = false,
+    border = false,
+    designatedFontWeight = undefined,
+    underlineLabel = false,
+    rounded = true,
+    onclick = undefined,
+    onmouseenter = undefined,
+    onmouseleave = undefined,
+  }: Props = $props();
   function onMouseEnter(event: MouseEvent) {
     if (!isHoverControledByParent) isHover = true;
     onmouseenter?.(event);
@@ -54,7 +83,9 @@
     if (!isHoverControledByParent) isHover = false;
     onmouseleave?.(event);
   }
-  let type: NonNullable<BaseButtonProps["type"]> = label ? "normal" : "icon";
+  const type: NonNullable<BaseButtonProps["type"]> = $derived(
+    label ? "normal" : "icon",
+  );
 </script>
 
 <BaseButton
@@ -85,7 +116,7 @@
   onmouseenter={onMouseEnter}
   onmouseleave={onMouseLeave}
 >
-  <svelte:fragment slot="prefixIcon">
+  {#snippet prefixIcon()}
     {#if isPrefixIcon}
       <BaseIcon
         name={iconName}
@@ -96,8 +127,8 @@
         cursor="cursor-pointer"
       />
     {/if}
-  </svelte:fragment>
-  <svelte:fragment slot="suffixIcon">
+  {/snippet}
+  {#snippet suffixIcon()}
     {#if !isPrefixIcon}
       <BaseIcon
         name={iconName}
@@ -108,5 +139,5 @@
         cursor="cursor-pointer"
       />
     {/if}
-  </svelte:fragment>
+  {/snippet}
 </BaseButton>
