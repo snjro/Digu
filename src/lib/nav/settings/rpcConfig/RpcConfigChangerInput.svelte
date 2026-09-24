@@ -22,7 +22,8 @@
 
   $effect.pre(() => {
     if (disabled && helperTextState === "error") {
-      baseInputElement.setValue(value);
+      // Runs before bind:this on creation, when the input already shows value.
+      baseInputElement?.setValue(value);
     }
   });
   async function change(event: Event): Promise<void> {

@@ -55,8 +55,6 @@ describe("RpcConfigChangerInput.svelte", () => {
     expect(onchange).toHaveBeenCalledWith(300);
   });
 
-  // Not rendered disabled with an error from the start: the component then
-  // calls setValue before bind:this is set, which is a known issue.
   test("shows value again when disabled with an error", async () => {
     const { container, rerender } = render(RpcConfigChangerInput, {
       value: 100,
@@ -69,5 +67,14 @@ describe("RpcConfigChangerInput.svelte", () => {
 
     await rerender({ value: 100, disabled: true, helperTextState: "error" });
     expect(input.value).toBe("100");
+  });
+
+  test("shows the value when created disabled with an error", () => {
+    const { container } = render(RpcConfigChangerInput, {
+      value: 100,
+      disabled: true,
+      helperTextState: "error",
+    });
+    expect(getInput(container).value).toBe("100");
   });
 });
