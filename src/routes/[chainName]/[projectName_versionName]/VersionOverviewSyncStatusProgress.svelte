@@ -9,22 +9,30 @@
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+  }
 
-  let targetVersionSyncStatus: SyncStatusVersion;
-  $: targetVersionSyncStatus =
+  let { targetChain, targetProject, targetVersion }: Props = $props();
+
+  let targetVersionSyncStatus: SyncStatusVersion = $derived(
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
-      .subSyncStatuses[targetVersion.name];
+      .subSyncStatuses[targetVersion.name],
+  );
 
-  let latestBlockNumber: number;
-  $: latestBlockNumber = $storeChainStatus[targetChain.name].latestBlockNumber;
-  let fetchedBlockNumber: number;
-  $: fetchedBlockNumber = targetVersionSyncStatus.fetchedBlockNumber;
+  let latestBlockNumber: number = $derived(
+    $storeChainStatus[targetChain.name].latestBlockNumber,
+  );
 
-  let syncStateText: SyncStateText;
-  $: syncStateText = targetVersionSyncStatus.syncStateText;
+  let fetchedBlockNumber: number = $derived(
+    targetVersionSyncStatus.fetchedBlockNumber,
+  );
+
+  let syncStateText: SyncStateText = $derived(
+    targetVersionSyncStatus.syncStateText,
+  );
 </script>
 
 <CommonItemMember text="Progress">

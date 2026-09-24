@@ -3,9 +3,13 @@
   import VersionOverviewSyncStatusProgress from "./VersionOverviewSyncStatusProgress.svelte";
   import VersionOverviewSyncStatusTarget from "./VersionOverviewSyncStatusTarget.svelte";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+  }
+
+  let { targetChain, targetProject, targetVersion }: Props = $props();
 </script>
 
 <VersionOverviewSyncStatusTarget

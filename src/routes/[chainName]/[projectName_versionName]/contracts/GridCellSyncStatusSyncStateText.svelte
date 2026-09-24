@@ -13,15 +13,20 @@
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { NO_DATA } from "@utils/utilsCostants";
 
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
-  export let targetContract: Contract;
+  interface Props {
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+    targetContract: Contract;
+  }
 
-  let syncStatusContract: SyncStatusContract;
-  $: syncStatusContract =
+  let { targetChain, targetProject, targetVersion, targetContract }: Props =
+    $props();
+
+  let syncStatusContract: SyncStatusContract = $derived(
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
-      .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name];
+      .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name],
+  );
 </script>
 
 {#if syncStatusContract}

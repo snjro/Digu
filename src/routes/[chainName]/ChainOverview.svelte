@@ -5,7 +5,11 @@
   import classNames from "classnames";
   import ChainOverviewVersions from "./ChainOverviewVersions.svelte";
 
-  export let targetChain: Chain;
+  interface Props {
+    targetChain: Chain;
+  }
+
+  let { targetChain }: Props = $props();
 
   const gridTrackContracts: string = classNames("col-span-full", "");
 </script>

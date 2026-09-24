@@ -17,8 +17,15 @@
   import LoadingSpinner from "./LoadingSpinner.svelte";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
   import { PROJECT_NAME } from "@utils/utilsCostants";
+  import type { Snippet } from "svelte";
 
-  $: {
+  interface Props {
+    children?: Snippet;
+  }
+
+  let { children }: Props = $props();
+
+  $effect.pre(() => {
     if (browser) {
       if ($storeUserSettings.themeColor === "dark") {
         window.document.documentElement.classList.add("dark");
@@ -26,10 +33,9 @@
         window.document.documentElement.classList.remove("dark");
       }
     }
-  }
+  });
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   function onResize(): void {
     storeNoDbCurrentWidth.set(getScreenWidth());
@@ -48,7 +54,7 @@
   });
 </script>
 
-<svelte:window on:resize={onResize} />
+<svelte:window onresize={onResize} />
 <svelte:head>
   <title>{capitalizeFirstLetter(PROJECT_NAME)}</title>
 </svelte:head>
@@ -83,7 +89,7 @@
       )}
     >
       <Breadcrumb />
-      <slot />
+      {@render children?.()}
       <BaseSnackbar />
     </div>
   </div>

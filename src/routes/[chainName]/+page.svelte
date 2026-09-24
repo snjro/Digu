@@ -11,7 +11,11 @@
   import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
   import ChainOverview from "./ChainOverview.svelte";
 
-  export let data: LoadChainData;
+  interface Props {
+    data: LoadChainData;
+  }
+
+  let { data }: Props = $props();
 
   // function testFunc() {
   //   console.log("test");

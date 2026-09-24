@@ -25,17 +25,22 @@
   import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsCostants";
   import { hasSyncTargetEvents } from "@utils/utilsEthers";
 
-  // export let contracts: Contract[];
-  export let targetChain: Chain;
-  export let targetProject: Project;
-  export let targetVersion: Version;
+  interface Props {
+    // export let contracts: Contract[];
+    targetChain: Chain;
+    targetProject: Project;
+    targetVersion: Version;
+  }
+
+  let { targetChain, targetProject, targetVersion }: Props = $props();
 
   const textSize: BaseSize = sizeSettings.itemMemberTable;
   const warnningTextSize: BaseSize = sizeSettings.itemWarnningMessage;
-  const hrefFrontPart: string =
+  const hrefFrontPart: string = $derived(
     trailingSlash === "always"
       ? `${$page.url.pathname}${DIR_NAME_CONTRACTS}`
-      : `${$page.url.pathname}/${DIR_NAME_CONTRACTS}`;
+      : `${$page.url.pathname}/${DIR_NAME_CONTRACTS}`,
+  );
   const noListMessage: string = `No contracts.`;
 </script>
 

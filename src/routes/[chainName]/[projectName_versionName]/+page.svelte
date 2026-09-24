@@ -4,14 +4,19 @@
   import VersionOverview from "./VersionOverview.svelte";
   import { getProjectVersionNameForLabel } from "./projectVersionNameHelper";
 
-  export let data: LoadVersionData;
+  interface Props {
+    data: LoadVersionData;
+  }
+
+  let { data }: Props = $props();
 
   const titleCategoryLabelText: string = "Version";
 
-  let titleText: string;
-  $: titleText = getProjectVersionNameForLabel(
-    data.targetProject.name,
-    data.targetVersion.name,
+  let titleText: string = $derived(
+    getProjectVersionNameForLabel(
+      data.targetProject.name,
+      data.targetVersion.name,
+    ),
   );
 </script>
 
