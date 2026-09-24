@@ -163,6 +163,75 @@ describe("getNodeProvider", async () => {
   );
 });
 
+describe("getNodeProvider destroys and orders", () => {
+  function deferredNetwork(): {
+    promise: Promise<Network>;
+    resolve: (network: Network) => void;
+  } {
+    let resolve: (network: Network) => void = () => {};
+    const promise = new Promise<Network>((r) => {
+      resolve = r;
+    });
+    return { promise, resolve };
+  }
+  const targetNetwork = (): Network =>
+    new Network("", BigInt(targetChain.chainId));
+
+  test("should destroy the provider when the node is not ready", async () => {
+    const spyGetNetwork = vi
+      .spyOn(JsonRpcProvider.prototype, "getNetwork")
+      .mockRejectedValueOnce(new Error());
+    const spyDestroy = vi.spyOn(JsonRpcProvider.prototype, "destroy");
+    expect(await getNodeProvider(targetChain, "https://foo")).toBeUndefined();
+    expect(spyDestroy).toHaveBeenCalledTimes(1);
+    spyGetNetwork.mockRestore();
+    spyDestroy.mockRestore();
+  });
+
+  test("should not destroy the provider it returns", async () => {
+    const spyGetNetwork = vi
+      .spyOn(JsonRpcProvider.prototype, "getNetwork")
+      .mockResolvedValueOnce(targetNetwork());
+    const spyDestroy = vi.spyOn(JsonRpcProvider.prototype, "destroy");
+    const nodeProvider = await getNodeProvider(targetChain, "https://bar");
+    expect(nodeProvider).toBeInstanceOf(JsonRpcProvider);
+    expect(spyDestroy).not.toHaveBeenCalled();
+    nodeProvider?.destroy();
+    spyGetNetwork.mockRestore();
+    spyDestroy.mockRestore();
+  });
+
+  test("should not write the status of an earlier call that ends last", async () => {
+    const earlier = deferredNetwork();
+    const later = deferredNetwork();
+    const spyGetNetwork = vi
+      .spyOn(JsonRpcProvider.prototype, "getNetwork")
+      .mockReturnValueOnce(earlier.promise)
+      .mockReturnValueOnce(later.promise);
+    spyUpdateDbItemChainStatus.mockClear();
+
+    const earlierCall = getNodeProvider(targetChain, "https://earlier");
+    const laterCall = getNodeProvider(targetChain, "https://later");
+    later.resolve(targetNetwork());
+    const laterProvider = await laterCall;
+    earlier.resolve(new Network("", BigInt(999)));
+    await earlierCall;
+
+    expect(spyUpdateDbItemChainStatus).toHaveBeenLastCalledWith(
+      targetChainName,
+      "nodeStatus",
+      "SUCCESS",
+    );
+    expect(spyUpdateDbItemChainStatus).not.toHaveBeenCalledWith(
+      targetChainName,
+      "nodeStatus",
+      "WRONG_CHAIN",
+    );
+    laterProvider?.destroy();
+    spyGetNetwork.mockRestore();
+  });
+});
+
 describe("getAndUpdateLatestBlockNumber", () => {
   let nodeProvider: NodeProvider | undefined;
   let spyGetBlockNumber: any;

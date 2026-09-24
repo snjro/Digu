@@ -34,10 +34,17 @@ export function extractEventContracts(targetContracts: Contract[]): Contract[] {
 }
 export type NodeProvider = JsonRpcProvider | WebSocketProvider;
 
+// The number of the latest call for each chain, so that an earlier call that
+// ends last does not overwrite the node status of a later one.
+const latestNodeProviderCalls: Record<ChainName, number> = {};
+
 export async function getNodeProvider(
   targetChain: Chain,
   rpc: string,
 ): Promise<NodeProvider | undefined> {
+  const callNumber: number =
+    (latestNodeProviderCalls[targetChain.name] ?? 0) + 1;
+  latestNodeProviderCalls[targetChain.name] = callNumber;
   const httpProtocols: string[] = ["http:", "https:"];
   const webSoketProtocols: string[] = ["ws:", "wss:"];
   const url: URL | undefined = getUrlObject(rpc);
@@ -95,8 +102,14 @@ export async function getNodeProvider(
     );
     nodeStatus = "INVALID_PROTOCOL";
   }
-  await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
-  return nodeStatus === "SUCCESS" ? nodeProvider : undefined;
+  if (latestNodeProviderCalls[targetChain.name] === callNumber) {
+    await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
+  }
+  if (nodeStatus !== "SUCCESS") {
+    await nodeProvider?.destroy();
+    return undefined;
+  }
+  return nodeProvider;
 }
 export async function getAndUpdateLatestBlockNumber(
   nodeProvider: NodeProvider,

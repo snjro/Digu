@@ -2,7 +2,7 @@ import type { Chain, ChainName } from "@constants/chains/types";
 import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
 import { updateDbItemRpcSettings } from "@db/dbSettings";
 import type { NodeStatus, RpcInputType } from "@db/dbTypes";
-import { getNodeProvider } from "@utils/utilsEthers";
+import { getNodeProvider, type NodeProvider } from "@utils/utilsEthers";
 
 export async function updateRpc(
   targetChain: Chain,
@@ -11,7 +11,12 @@ export async function updateRpc(
   await updateDbItemRpcSettings(targetChain.name, "rpc", newRpc);
 
   //By calling "getNodeProvider", nodeStatus is updated
-  await getNodeProvider(targetChain, newRpc);
+  const nodeProvider: NodeProvider | undefined = await getNodeProvider(
+    targetChain,
+    newRpc,
+  );
+  // The provider is used only to check the node here.
+  await nodeProvider?.destroy();
 }
 
 export async function clearSucceededNodeStatus(
