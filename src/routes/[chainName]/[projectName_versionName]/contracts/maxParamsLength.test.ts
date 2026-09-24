@@ -64,6 +64,19 @@ describe("getEachArgsMaxLengths", () => {
       ),
     ).toEqual([3]);
   });
+  test("should keep the longest length when a later array is shorter", () => {
+    expect(
+      getEachArgsMaxLengths(
+        [eventLog([["a", "b", "c"]]), eventLog([["a"]])],
+        1,
+      ),
+    ).toEqual([3]);
+  });
+  test("should keep the longest length when a later arg is not an array", () => {
+    expect(
+      getEachArgsMaxLengths([eventLog([["a", "b", "c"]]), eventLog(["x"])], 1),
+    ).toEqual([3]);
+  });
   test("should count each input separately", () => {
     expect(
       getEachArgsMaxLengths([eventLog([["a", "b"], "x", ["a"]])], 3),
