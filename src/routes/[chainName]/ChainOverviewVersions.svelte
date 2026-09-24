@@ -107,7 +107,7 @@
       numOfTableRows={targetProject.versions.length}
       borderBottom={false}
     >
-      <svelte:fragment slot="tableBody">
+      {#snippet tableBody()}
         {#each targetProject.versions as targetVersion, rowIndex}
           <BaseTableRow>
             <SequenceBodyCell
@@ -200,7 +200,7 @@
             </BaseTableBodyCell>
           </BaseTableRow>
         {/each}
-      </svelte:fragment>
+      {/snippet}
     </BaseTable>
   {:else}
     <BaseLabel text={noListMessage} textSize={warnningTextSize} italic />

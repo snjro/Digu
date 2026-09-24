@@ -16,24 +16,36 @@
   import BaseTableHeaderCell from "./BaseTableHeaderCell.svelte";
   import BaseTableRow from "./BaseTableRow.svelte";
   import SequenceHeaderCell from "./SequenceHeaderCell.svelte";
+  import type { Snippet } from "svelte";
 
-  export let tableHeaderCellProps: BaseTableHeaderCellProps[];
-  export let borderX: boolean = false;
-  export let borderTop: boolean = false;
-  export let borderBottom: boolean = false;
-  export let showSequenceNumbers = true;
-  export let textSize: BaseSize;
-  export let numOfTableRows: number;
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  interface Props {
+    tableHeaderCellProps: BaseTableHeaderCellProps[];
+    borderX?: boolean;
+    borderTop?: boolean;
+    borderBottom?: boolean;
+    showSequenceNumbers?: boolean;
+    textSize: BaseSize;
+    numOfTableRows: number;
+    tableBody?: Snippet;
+  }
+
+  let {
+    tableHeaderCellProps,
+    borderX = false,
+    borderTop = false,
+    borderBottom = false,
+    showSequenceNumbers = true,
+    textSize,
+    numOfTableRows,
+    tableBody,
+  }: Props = $props();
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   const colorCategoryBorder: ColorCategory =
     colorSettings.itemMemberTableBorder;
 
-  let scrollbarStyle: ScrollbarStyle;
-  $: scrollbarStyle = getScrollbarStyle(
-    colorSettings.itemMemberTableBg,
-    themeColor,
+  let scrollbarStyle: ScrollbarStyle = $derived(
+    getScrollbarStyle(colorSettings.itemMemberTableBg, themeColor),
   );
 </script>
 
@@ -68,7 +80,7 @@
       </BaseTableRow>
     </thead>
     <tbody class={classNames("")}>
-      <slot name="tableBody" />
+      {@render tableBody?.()}
     </tbody>
   </table>
 </div>

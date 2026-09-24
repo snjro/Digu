@@ -71,7 +71,7 @@
       numOfTableRows={targetVersion.contracts.length}
       borderBottom={false}
     >
-      <svelte:fragment slot="tableBody">
+      {#snippet tableBody()}
         {#each targetVersion.contracts as targetContract, indexSortedEventNames}
           <BaseTableRow>
             <SequenceBodyCell
@@ -126,7 +126,7 @@
             </BaseTableBodyCell>
           </BaseTableRow>
         {/each}
-      </svelte:fragment>
+      {/snippet}
     </BaseTable>
   {:else}
     <BaseLabel text={noListMessage} textSize={warnningTextSize} italic />

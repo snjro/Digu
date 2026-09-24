@@ -65,7 +65,7 @@
   textSize={abiParamTabelSize}
   numOfTableRows={paramTypes.length}
 >
-  <svelte:fragment slot="tableBody">
+  {#snippet tableBody()}
     {#each paramTypes as paramType, rowIndex}
       <AbiParamsTableRow
         {paramType}
@@ -74,5 +74,5 @@
         {rowIndex}
       />
     {/each}
-  </svelte:fragment>
+  {/snippet}
 </BaseTable>

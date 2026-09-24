@@ -87,7 +87,7 @@
       numOfTableRows={abiFragments.length}
       borderBottom={false}
     >
-      <svelte:fragment slot="tableBody">
+      {#snippet tableBody()}
         {#each abiFragments as abiFragment, indexSortedEventNames}
           <BaseTableRow>
             <SequenceBodyCell
@@ -109,7 +109,7 @@
             </BaseTableBodyCell>
           </BaseTableRow>
         {/each}
-      </svelte:fragment>
+      {/snippet}
     </BaseTable>
   {:else}
     <BaseLabel
