@@ -6,8 +6,13 @@
   import ChainExplorer from "./settings/ChainExplorer.svelte";
   import RpcConfig from "./settings/rpcConfig/RpcConfig.svelte";
 
-  export let initializeValue: boolean;
-  export let dialogElement: HTMLDialogElement;
+  interface Props {
+    initializeValue: boolean;
+    dialogElement: HTMLDialogElement;
+  }
+
+  let { initializeValue = $bindable(), dialogElement = $bindable() }: Props =
+    $props();
 
   function closeDialog(): void {
     initializeValue = false;

@@ -8,13 +8,17 @@
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getTargetChain } from "@utils/utlisDb";
-  $: targetChainName = $storeUserSettings.selectedChainName.toString();
-  $: targetChain = getTargetChain({ chainName: targetChainName });
-  $: selectedChainExplorerIndex =
-    $storeRpcSettings[targetChainName].chainExplorerIndex;
-  $: targetChainExplorers = targetChain.chainExplorers;
-  $: targetChainExplorerUrl =
-    targetChainExplorers[selectedChainExplorerIndex].url;
+  let targetChainName = $derived(
+    $storeUserSettings.selectedChainName.toString(),
+  );
+  let targetChain = $derived(getTargetChain({ chainName: targetChainName }));
+  let selectedChainExplorerIndex = $derived(
+    $storeRpcSettings[targetChainName].chainExplorerIndex,
+  );
+  let targetChainExplorers = $derived(targetChain.chainExplorers);
+  let targetChainExplorerUrl = $derived(
+    targetChainExplorers[selectedChainExplorerIndex].url,
+  );
 
   async function change(event: Event) {
     const chainExplorerIndex: number = parseInt(
@@ -26,9 +30,11 @@
       chainExplorerIndex,
     );
   }
-  $: items = targetChainExplorers.map((chainExplorer, index) => {
-    return { value: index.toString(), name: chainExplorer.name };
-  });
+  let items = $derived(
+    targetChainExplorers.map((chainExplorer, index) => {
+      return { value: index.toString(), name: chainExplorer.name };
+    }),
+  );
 </script>
 
 <CommonItemMember text={"Chain Explorer"}>

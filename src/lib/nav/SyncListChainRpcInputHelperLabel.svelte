@@ -9,11 +9,13 @@
   import classNames from "classnames";
 
   const size: BaseSize = sizeSettings.navInputHelperText;
-  $: targetChainName = $storeUserSettings.selectedChainName.toString();
-  $: nodeStatus = $storeChainStatus[targetChainName].nodeStatus;
-  $: rpc = $storeRpcSettings[targetChainName].rpc;
+  let targetChainName = $derived(
+    $storeUserSettings.selectedChainName.toString(),
+  );
+  let nodeStatus = $derived($storeChainStatus[targetChainName].nodeStatus);
+  let rpc = $derived($storeRpcSettings[targetChainName].rpc);
 
-  $: helperLabelProps = (): BaseLabelProps => {
+  let helperLabelProps = $derived((): BaseLabelProps => {
     let labelProps: BaseLabelProps;
     switch (nodeStatus) {
       case "SUCCESS": {
@@ -85,7 +87,7 @@
     }
     labelProps.appendClass = classNames("whitespace-pre-wrap");
     return labelProps;
-  };
+  });
 </script>
 
 <div class={classNames("ml-2")}>

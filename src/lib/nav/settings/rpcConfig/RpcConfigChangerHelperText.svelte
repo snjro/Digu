@@ -9,18 +9,28 @@
   import type { RpcConfigParam } from "./RpcConfig.svelte";
   import type { HelperTextState } from "./RpcConfigChanger.svelte";
 
-  export let targetChainName: ChainName;
-  export let helperTextState: HelperTextState;
-  export let rpcConfigParam: RpcConfigParam;
-  const rpcConfigMinValue: RpcConfigParam["minValue"] = rpcConfigParam.minValue;
-  const rpcConfigMaxValue: RpcConfigParam["maxValue"] = rpcConfigParam.maxValue;
-  $: isSyncingChain = $storeSyncStatus[targetChainName].isSyncing;
-
-  $: if (isSyncingChain && helperTextState === "error") {
-    helperTextState = undefined;
+  interface Props {
+    targetChainName: ChainName;
+    helperTextState: HelperTextState;
+    rpcConfigParam: RpcConfigParam;
   }
 
-  $: helperLabelProps = (): BaseLabelProps => {
+  let { targetChainName, helperTextState, rpcConfigParam }: Props = $props();
+  let rpcConfigMinValue: RpcConfigParam["minValue"] = $derived(
+    rpcConfigParam.minValue,
+  );
+  let rpcConfigMaxValue: RpcConfigParam["maxValue"] = $derived(
+    rpcConfigParam.maxValue,
+  );
+  let isSyncingChain = $derived($storeSyncStatus[targetChainName].isSyncing);
+
+  $effect.pre(() => {
+    if (isSyncingChain && helperTextState === "error") {
+      helperTextState = undefined;
+    }
+  });
+
+  let helperLabelProps = $derived((): BaseLabelProps => {
     switch (helperTextState) {
       case "success": {
         return {
@@ -56,7 +66,7 @@
         };
       }
     }
-  };
+  });
   const size: BaseSize = sizeSettings.navInputHelperText;
 </script>
 

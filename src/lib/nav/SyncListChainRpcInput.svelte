@@ -16,15 +16,19 @@
   import { getNodeProvider } from "@utils/utilsEthers";
   import { getTargetChain } from "@utils/utlisDb";
   import classNames from "classnames";
+  import { untrack } from "svelte";
   import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
   import type { HelperTextState } from "./settings/rpcConfig/RpcConfigChanger.svelte";
   import { updateDbItemRpcSettings } from "@db/dbSettings";
 
-  $: targetChainName = $storeUserSettings.selectedChainName.toString();
-  $: rpc = $storeRpcSettings[targetChainName].rpc;
-  let nodeStatus: NodeStatus;
-  $: nodeStatus = $storeChainStatus[targetChainName].nodeStatus;
-  $: helperTextState = (): HelperTextState => {
+  let targetChainName = $derived(
+    $storeUserSettings.selectedChainName.toString(),
+  );
+  let rpc = $derived($storeRpcSettings[targetChainName].rpc);
+  let nodeStatus: NodeStatus = $derived(
+    $storeChainStatus[targetChainName].nodeStatus,
+  );
+  let helperTextState = $derived((): HelperTextState => {
     switch (nodeStatus) {
       case "SUCCESS":
         return "success";
@@ -35,13 +39,14 @@
       default:
         return "error";
     }
-  };
-  $: {
+  });
+  $effect.pre(() => {
     if (targetChainName) {
       const targetChain: Chain = getTargetChain({ chainName: targetChainName });
-      updateRpc(targetChain);
+      // Rerun only when the chain changes, not when rpc (the default argument) changes.
+      untrack(() => updateRpc(targetChain));
     }
-  }
+  });
   async function updateRpc(
     targetChain: Chain,
     newRpc: string = rpc,
@@ -61,22 +66,16 @@
     const targetChain: Chain = getTargetChain({ chainName: targetChainName });
     await updateRpc(targetChain, newRpc);
   }
-  let inputType: RpcInputType;
-  $: inputType = $storeRpcSettings[targetChainName].inputType;
-  let truncate = true;
-  let eyeIconName: BaseIconProps["name"] = "eyeOff";
-  let eyeIconTooltipText: "show" | "hide" = "show";
-  $: {
-    if (inputType === "text") {
-      truncate = true;
-      eyeIconName = "eye";
-      eyeIconTooltipText = "show";
-    } else {
-      truncate = false;
-      eyeIconName = "eyeOff";
-      eyeIconTooltipText = "hide";
-    }
-  }
+  let inputType: RpcInputType = $derived(
+    $storeRpcSettings[targetChainName].inputType,
+  );
+  let truncate: boolean = $derived(inputType === "text");
+  let eyeIconName: BaseIconProps["name"] = $derived(
+    inputType === "text" ? "eye" : "eyeOff",
+  );
+  let eyeIconTooltipText: "show" | "hide" = $derived(
+    inputType === "text" ? "show" : "hide",
+  );
   async function toggleInputType(): Promise<void> {
     const newInputType: RpcInputType =
       inputType === "text" ? "password" : "text";

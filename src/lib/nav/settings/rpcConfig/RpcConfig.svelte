@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   type RpcConfigKeyName = keyof Pick<
     RpcSetting,
     "bulkUnit" | "tryCount" | "blockIntervalMs"
@@ -20,12 +20,20 @@
   import { getTargetChain } from "@utils/utlisDb";
   import RpcConfigChanger from "./RpcConfigChanger.svelte";
 
-  export let initializeValue: boolean;
-  let targetChainName: ChainName;
-  $: targetChainName = $storeUserSettings.selectedChainName.toString();
-  let targetChain: Chain;
-  $: targetChain = getTargetChain({ chainName: targetChainName });
-  $: rpcConfigParams = (): RpcConfigParam[] => {
+  interface Props {
+    initializeValue: boolean;
+  }
+
+  let { initializeValue }: Props = $props();
+  let targetChainName: ChainName = $derived(
+    $storeUserSettings.selectedChainName.toString(),
+  );
+
+  let targetChain: Chain = $derived(
+    getTargetChain({ chainName: targetChainName }),
+  );
+
+  let rpcConfigParams = $derived((): RpcConfigParam[] => {
     return [
       {
         name: "bulkUnit",
@@ -49,7 +57,7 @@
         step: 1,
       },
     ];
-  };
+  });
 </script>
 
 {#each rpcConfigParams() as rpcConfigParam}

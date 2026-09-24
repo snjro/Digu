@@ -9,39 +9,39 @@
   import NavButtonsSettingsDialog from "./NavButtonsSettingsDialog.svelte";
   import { updateDbItemUserSettings } from "@db/dbSettings";
 
-  let currentThemeColor: ThemeColor;
-  $: currentThemeColor = $storeUserSettings.themeColor;
+  let currentThemeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
-  let newThemeColor: ThemeColor;
-  $: newThemeColor = currentThemeColor === "dark" ? "light" : "dark";
+  let newThemeColor: ThemeColor = $derived(
+    currentThemeColor === "dark" ? "light" : "dark",
+  );
 
-  let initializeValue: boolean = false;
-  let dialogElement: HTMLDialogElement;
+  let initializeValue: boolean = $state(false);
+  let dialogElement = $state() as HTMLDialogElement;
 
-  let buttonsDefinition: PageWrapperContentFunctionBarDefinition["buttonsDefinition"];
-  $: buttonsDefinition = [
-    [
-      {
-        iconName: currentThemeColor === "dark" ? "weatherNight" : "sun",
-        tooltipText: `Change theme`,
-        tooltipXPosition: "left",
-        tooltipYPosition: "bottom",
-        onClickEventFunction: async () => {
-          await updateDbItemUserSettings("themeColor", newThemeColor);
+  let buttonsDefinition: PageWrapperContentFunctionBarDefinition["buttonsDefinition"] =
+    $derived([
+      [
+        {
+          iconName: currentThemeColor === "dark" ? "weatherNight" : "sun",
+          tooltipText: `Change theme`,
+          tooltipXPosition: "left",
+          tooltipYPosition: "bottom",
+          onClickEventFunction: async () => {
+            await updateDbItemUserSettings("themeColor", newThemeColor);
+          },
         },
-      },
-      {
-        iconName: "cogOutline",
-        tooltipText: "Settings",
-        tooltipXPosition: "left",
-        tooltipYPosition: "bottom",
-        onClickEventFunction: () => {
-          openDialog(dialogElement);
-          initializeValue = true;
+        {
+          iconName: "cogOutline",
+          tooltipText: "Settings",
+          tooltipXPosition: "left",
+          tooltipYPosition: "bottom",
+          onClickEventFunction: () => {
+            openDialog(dialogElement);
+            initializeValue = true;
+          },
         },
-      },
-    ],
-  ];
+      ],
+    ]);
 </script>
 
 <div>

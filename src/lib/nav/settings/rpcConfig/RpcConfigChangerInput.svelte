@@ -5,15 +5,26 @@
   import classNames from "classnames";
   import type { HelperTextState } from "./RpcConfigChanger.svelte";
 
-  export let disabled: boolean;
-  export let value: number;
-  export let onchange: ((newValue: number) => void) | undefined = undefined;
-  export let helperTextState: HelperTextState;
-  let baseInputElement: ReturnType<typeof BaseInput>;
-
-  $: if (disabled && helperTextState === "error") {
-    baseInputElement.setValue(value);
+  interface Props {
+    disabled: boolean;
+    value: number;
+    onchange?: ((newValue: number) => void) | undefined;
+    helperTextState: HelperTextState;
   }
+
+  let {
+    disabled,
+    value = $bindable(),
+    onchange = undefined,
+    helperTextState,
+  }: Props = $props();
+  let baseInputElement = $state() as ReturnType<typeof BaseInput>;
+
+  $effect.pre(() => {
+    if (disabled && helperTextState === "error") {
+      baseInputElement.setValue(value);
+    }
+  });
   async function change(event: Event): Promise<void> {
     const newValue: number = parseInt((event.target as HTMLInputElement).value);
     onchange?.(newValue);

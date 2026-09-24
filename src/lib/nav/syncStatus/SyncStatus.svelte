@@ -9,7 +9,7 @@
   import SyncStatusProgress from "./SyncStatusProgress.svelte";
   import SyncStatusToggle from "./SyncStatusToggle.svelte";
 
-  $: hideProgressCircle = (): boolean => {
+  let hideProgressCircle = $derived((): boolean => {
     if ($storeNoDbCurrentWidth <= breakPointWidths.sm) return true;
     if (
       $storeNoDbCurrentWidth <=
@@ -19,7 +19,7 @@
       return true;
 
     return false;
-  };
+  });
 </script>
 
 <div
