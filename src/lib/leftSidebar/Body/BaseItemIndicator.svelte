@@ -8,23 +8,36 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
-  export let isSelected: boolean = false;
-  export let isHover: boolean = false;
-  export let isUpdated: boolean = false;
-  export let invisible: boolean = false;
-  export let isTopLevelItem: boolean;
+  interface Props {
+    isSelected?: boolean;
+    isHover?: boolean;
+    isUpdated?: boolean;
+    invisible?: boolean;
+    isTopLevelItem: boolean;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let {
+    isSelected = false,
+    isHover = false,
+    isUpdated = false,
+    invisible = false,
+    isTopLevelItem,
+  }: Props = $props();
 
-  let colorCategory: ColorCategory;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let colorCategory: ColorCategory = $derived(
+    isSelected ? "interactive" : colorSettings.dialogHeader,
+  );
   // $: colorCategory = getFrontColorCategory(isSelected);
-  $: colorCategory = isSelected ? "interactive" : colorSettings.dialogHeader;
-  $: bgColor = isHover
-    ? colorDefinitions[themeColor][colorCategory].bgEmphasis
-    : colorDefinitions[themeColor][colorCategory].bg;
 
-  $: height = (): `h-${string}` | "self-stretch" => {
+  let bgColor = $derived(
+    isHover
+      ? colorDefinitions[themeColor][colorCategory].bgEmphasis
+      : colorDefinitions[themeColor][colorCategory].bg,
+  );
+
+  let height: `h-${string}` | "self-stretch" = $derived.by(() => {
     if (isSelected) {
       return "h-4/6";
     } else if (isUpdated) {
@@ -34,11 +47,11 @@
     } else {
       return "self-stretch";
     }
-  };
-  $: left = (): `pl-${string}` => {
+  });
+  let left: `pl-${string}` = $derived.by(() => {
     return isTopLevelItem ? "pl-0.5" : "pl-1.5";
-  };
-  $: center = (): string => {
+  });
+  let center: string = $derived.by(() => {
     if (isSelected) {
       return "w-[4px] rounded-br-full rounded-tr-full";
     } else if (isUpdated) {
@@ -48,8 +61,8 @@
     } else {
       return classNames("w-px rounded-none", invisible && "invisible");
     }
-  };
-  $: right = (): `pr-${string}` => {
+  });
+  let right: `pr-${string}` = $derived.by(() => {
     if (isSelected) {
       return "pr-[4px]";
     } else if (isUpdated) {
@@ -59,11 +72,11 @@
     } else {
       return "pr-[7px]";
     }
-  };
+  });
 </script>
 
-<div class={classNames("flex flex-row", "w-fit", height())}>
-  <div class={classNames(left())}></div>
-  <div class={classNames(bgColor, center())}></div>
-  <div class={classNames(right())}></div>
+<div class={classNames("flex flex-row", "w-fit", height)}>
+  <div class={classNames(left)}></div>
+  <div class={classNames(bgColor, center)}></div>
+  <div class={classNames(right)}></div>
 </div>

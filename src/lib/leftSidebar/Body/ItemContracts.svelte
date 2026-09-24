@@ -6,9 +6,15 @@
   import BaseAccordion from "./BaseAccordion.svelte";
   import ItemContractsMember from "./ItemContractsMember.svelte";
 
-  export let targetContracts: Contract[];
-  export let targetProjectVersionHref: string;
-  const targetContractsHref = `${targetProjectVersionHref}/${DIR_NAME_CONTRACTS}`;
+  interface Props {
+    targetContracts: Contract[];
+    targetProjectVersionHref: string;
+  }
+
+  let { targetContracts, targetProjectVersionHref }: Props = $props();
+  let targetContractsHref = $derived(
+    `${targetProjectVersionHref}/${DIR_NAME_CONTRACTS}`,
+  );
 </script>
 
 <BaseAccordion
@@ -17,9 +23,9 @@
   hrefWithoutUrlHash={targetContractsHref}
   size={sizeSettings.leftSidebarTree2nd}
 >
-  <svelte:fragment slot="baseAccordionChildren">
+  {#snippet baseAccordionChildren()}
     {#each targetContracts as targetContract (targetContract.name)}
       <ItemContractsMember {targetContract} {targetContractsHref} />
     {/each}
-  </svelte:fragment>
+  {/snippet}
 </BaseAccordion>

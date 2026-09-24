@@ -13,17 +13,26 @@
   import BaseItem from "./BaseItem.svelte";
   import { getFunctionSelectorWithSplitter } from "./functionNameHandler";
 
-  export let abiFragmentsType: AbiFragmentsType;
-  export let targetAbiFragment: EventAbiFragment | FunctionAbiFragment;
-  export let targetAbiFragmentsHref: string;
-  const urlHash: string = convertToKebabCase(
-    abiFragmentsType === "events"
-      ? TAB_VALUES_EVENT[0]
-      : TAB_VALUES_FUNCTION[0],
+  interface Props {
+    abiFragmentsType: AbiFragmentsType;
+    targetAbiFragment: EventAbiFragment | FunctionAbiFragment;
+    targetAbiFragmentsHref: string;
+  }
+
+  let { abiFragmentsType, targetAbiFragment, targetAbiFragmentsHref }: Props =
+    $props();
+  let urlHash: string = $derived(
+    convertToKebabCase(
+      abiFragmentsType === "events"
+        ? TAB_VALUES_EVENT[0]
+        : TAB_VALUES_FUNCTION[0],
+    ),
   );
-  const targetAbiFragmentHref: string = `${targetAbiFragmentsHref}/${
-    targetAbiFragment.name
-  }${getFunctionSelectorWithSplitter(targetAbiFragment)}`;
+  let targetAbiFragmentHref: string = $derived(
+    `${targetAbiFragmentsHref}/${
+      targetAbiFragment.name
+    }${getFunctionSelectorWithSplitter(targetAbiFragment)}`,
+  );
 </script>
 
 <BaseItem

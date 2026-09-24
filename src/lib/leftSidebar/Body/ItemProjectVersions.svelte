@@ -9,15 +9,17 @@
   import { getTargetChain } from "@utils/utlisDb";
   import ItemProjectVersionsMember from "./ItemProjectVersionsMember.svelte";
 
-  let chainName: ChainName;
-  $: chainName = $storeUserSettings.selectedChainName.toString();
+  let chainName: ChainName = $derived(
+    $storeUserSettings.selectedChainName.toString(),
+  );
 
-  let rootPath: string;
-  $: rootPath = `${base}/${chainName}`;
+  let rootPath: string = $derived(`${base}/${chainName}`);
 
-  $: targetChain = getTargetChain({
-    chainName: chainName,
-  });
+  let targetChain = $derived(
+    getTargetChain({
+      chainName: chainName,
+    }),
+  );
 </script>
 
 {#each targetChain.projects as targetProject (targetProject.name)}

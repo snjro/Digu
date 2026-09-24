@@ -9,8 +9,12 @@
   import BaseItem from "./BaseItem.svelte";
   import ItemEventsFunctions from "./ItemEventsFunctions.svelte";
 
-  export let targetContract: Contract;
-  export let targetContractsHref: string;
+  interface Props {
+    targetContract: Contract;
+    targetContractsHref: string;
+  }
+
+  let { targetContract, targetContractsHref }: Props = $props();
 
   const size: BaseSize = sizeSettings.leftSidebarTree2nd;
   const sizes: {
@@ -20,12 +24,17 @@
     contractSelf: changeSize(size, 0),
     contractSuffixIcon: changeSize(size, -1),
   };
-  const targetContractHref: string = `${targetContractsHref}/${targetContract.name}`;
+  let targetContractHref: string = $derived(
+    `${targetContractsHref}/${targetContract.name}`,
+  );
   const urlHash: string = convertToKebabCase(TAB_VALUES_CONTRACT[0]);
-  const hasEvents: boolean = targetContract.events.abiFragments.length > 0;
-  const hasFunctions: boolean =
-    targetContract.functions.abiFragments.length > 0;
-  const hasChildren: boolean = hasEvents || hasFunctions;
+  let hasEvents: boolean = $derived(
+    targetContract.events.abiFragments.length > 0,
+  );
+  let hasFunctions: boolean = $derived(
+    targetContract.functions.abiFragments.length > 0,
+  );
+  let hasChildren: boolean = $derived(hasEvents || hasFunctions);
 
   const suffixIcons = (): BaseAccordionHeaderSuffixIcon[] => {
     let icons: BaseAccordionHeaderSuffixIcon[] = [];
@@ -54,7 +63,7 @@
     size={sizes.contractSelf}
     suffixIcons={suffixIcons()}
   >
-    <svelte:fragment slot="baseAccordionChildren">
+    {#snippet baseAccordionChildren()}
       <ItemEventsFunctions
         targetAbiFragments={targetContract.events.abiFragments}
         abiFragmentsType="events"
@@ -65,7 +74,7 @@
         abiFragmentsType="functions"
         {targetContractHref}
       />
-    </svelte:fragment>
+    {/snippet}
   </BaseAccordion>
 {:else}
   <BaseItem

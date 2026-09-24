@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type HoverType = "onItem" | "onSpace" | undefined;
 </script>
 
@@ -23,32 +23,30 @@
   } from "./BaseAccordionHeaderSuffixIcons.svelte";
   import BaseItem from "./BaseItem.svelte";
 
-  export let label: string;
-  export let hrefWithoutUrlHash: string;
-  export let urlHash: string | undefined;
-  export let size: BaseSize;
-  export let iconName: BaseIconProps["name"] | undefined;
-  export let isTopLevelItem: boolean;
-  export let suffixIcons: BaseAccordionHeaderSuffixIcon[];
-  export let isOpenAccordion: boolean;
-
-  let hoverType: HoverType = undefined;
-
-  $: {
-    switch ($storeNoDbOpenLeftSidebarAccordion) {
-      case "openAll":
-        isOpenAccordion = true;
-        break;
-      case "closeAll":
-        isOpenAccordion = false;
-        break;
-      case "openCurrentOnly":
-        openCurrentDirectory();
-        break;
-      default:
-        break;
-    }
+  interface Props {
+    label: string;
+    hrefWithoutUrlHash: string;
+    urlHash: string | undefined;
+    size: BaseSize;
+    iconName: BaseIconProps["name"] | undefined;
+    isTopLevelItem: boolean;
+    suffixIcons: BaseAccordionHeaderSuffixIcon[];
+    isOpenAccordion: boolean;
   }
+
+  let {
+    label,
+    hrefWithoutUrlHash,
+    urlHash,
+    size,
+    iconName,
+    isTopLevelItem,
+    suffixIcons,
+    isOpenAccordion = $bindable(),
+  }: Props = $props();
+
+  let hoverType: HoverType = $state(undefined);
+
   function onMouseEnter(): void {
     hoverType = "onSpace";
   }
@@ -65,24 +63,41 @@
   }
 
   function openCurrentDirectory(): void {
-    isOpenAccordion = !isSelected && isParentDirectory();
+    isOpenAccordion = !isSelected && isParentDirectory;
   }
   onMount(() => {
     // open an accordion when a page is opened by using URL directly
     openCurrentDirectory();
   });
 
-  $: isSelected = isSelectedDirectory(hrefWithoutUrlHash, $page.url.pathname);
-  $: isParentDirectory = (): boolean => {
-    return isHrefParentOfPathname(hrefWithoutUrlHash, $page.url.pathname);
-  };
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+  $effect.pre(() => {
+    switch ($storeNoDbOpenLeftSidebarAccordion) {
+      case "openAll":
+        isOpenAccordion = true;
+        break;
+      case "closeAll":
+        isOpenAccordion = false;
+        break;
+      case "openCurrentOnly":
+        openCurrentDirectory();
+        break;
+      default:
+        break;
+    }
+  });
+  let isSelected = $derived(
+    isSelectedDirectory(hrefWithoutUrlHash, $page.url.pathname),
+  );
+  let isParentDirectory = $derived(
+    isHrefParentOfPathname(hrefWithoutUrlHash, $page.url.pathname),
+  );
 
-  $: bgColor =
+  let bgColor = $derived(
     isSelected || hoverType !== undefined
       ? colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis
-      : undefined;
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+      : undefined,
+  );
 </script>
 
 <div

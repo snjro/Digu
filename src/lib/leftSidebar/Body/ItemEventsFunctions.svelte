@@ -10,11 +10,18 @@
   import ItemEventsFunctionsMember from "./ItemEventsFunctionsMember.svelte";
   import { getFunctionSelectorWithSplitter } from "./functionNameHandler";
 
-  export let abiFragmentsType: AbiFragmentsType;
-  export let targetAbiFragments: EventAbiFragment[] | FunctionAbiFragment[];
-  export let targetContractHref: string;
+  interface Props {
+    abiFragmentsType: AbiFragmentsType;
+    targetAbiFragments: EventAbiFragment[] | FunctionAbiFragment[];
+    targetContractHref: string;
+  }
 
-  const targetAbiFragmentsHref: string = `${targetContractHref}/${abiFragmentsType}`;
+  let { abiFragmentsType, targetAbiFragments, targetContractHref }: Props =
+    $props();
+
+  let targetAbiFragmentsHref: string = $derived(
+    `${targetContractHref}/${abiFragmentsType}`,
+  );
 </script>
 
 {#if targetAbiFragments.length > 0}
@@ -24,9 +31,9 @@
     hrefWithoutUrlHash={targetAbiFragmentsHref}
     size={sizeSettings.leftSidebarTree3rd}
   >
-    <svelte:fragment slot="baseAccordionChildren">
+    {#snippet baseAccordionChildren()}
       <!-- Add functionSelector to the key because "targetAbiFragment.name" is not unique.
-           A contract can have overriding function. -->
+             A contract can have overriding function. -->
       {#each targetAbiFragments as targetAbiFragment (`${targetAbiFragment.name}${getFunctionSelectorWithSplitter(targetAbiFragment)}`)}
         <ItemEventsFunctionsMember
           {abiFragmentsType}
@@ -34,6 +41,6 @@
           {targetAbiFragmentsHref}
         />
       {/each}
-    </svelte:fragment>
+    {/snippet}
   </BaseAccordion>
 {/if}

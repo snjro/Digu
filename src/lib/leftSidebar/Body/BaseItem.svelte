@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export const leftSidebarItemRoundedStyle: `rounded-${string}` =
     "rounded-r-md";
 </script>
@@ -36,23 +36,39 @@
   import { getFrontColorCategory } from "./fontStyle";
   import { setChildElementInScroll } from "./scrollController";
 
-  export let label: string;
-  export let hrefWithoutUrlHash: string;
-  export let urlHash: string | undefined = undefined;
-  export let size: BaseSize;
-  export let iconName: BaseIconProps["name"] | undefined = undefined;
-  export let openNewTab: boolean = false;
-  export let isHoverControledByParent: boolean = false;
-  export let hoverType: HoverType = undefined;
-  export let isTopLevelItem: boolean = false;
-  export let hasChildren = true;
-  export let noGrow: boolean = false;
+  interface Props {
+    label: string;
+    hrefWithoutUrlHash: string;
+    urlHash?: string | undefined;
+    size: BaseSize;
+    iconName?: BaseIconProps["name"] | undefined;
+    openNewTab?: boolean;
+    isHoverControledByParent?: boolean;
+    hoverType?: HoverType;
+    isTopLevelItem?: boolean;
+    hasChildren?: boolean;
+    noGrow?: boolean;
+  }
 
-  const hrefWithUrlHash: string = urlHash
-    ? `${hrefWithoutUrlHash}#${urlHash}`
-    : hrefWithoutUrlHash;
+  let {
+    label,
+    hrefWithoutUrlHash,
+    urlHash = undefined,
+    size,
+    iconName = undefined,
+    openNewTab = false,
+    isHoverControledByParent = false,
+    hoverType = $bindable(undefined),
+    isTopLevelItem = false,
+    hasChildren = true,
+    noGrow = false,
+  }: Props = $props();
 
-  let thisElement: HTMLDivElement;
+  let hrefWithUrlHash: string = $derived(
+    urlHash ? `${hrefWithoutUrlHash}#${urlHash}` : hrefWithoutUrlHash,
+  );
+
+  let thisElement: HTMLDivElement | undefined = $state();
 
   async function onClick() {
     await Promise.all([
@@ -63,32 +79,38 @@
     ]);
   }
 
-  let isSelected: boolean;
-  $: isSelected = isSelectedDirectory(hrefWithoutUrlHash, $page.url.pathname);
+  let isSelected: boolean = $derived(
+    isSelectedDirectory(hrefWithoutUrlHash, $page.url.pathname),
+  );
 
-  $: {
+  $effect.pre(() => {
     setChildElementInScroll(
       browser,
       isSelected,
       document.getElementById("leftSidebarBody"),
-      thisElement,
+      thisElement ?? null,
       document.getElementById("leftSidebarHeader"),
       $storeNoDbOpenLeftSidebarAccordion,
     );
-  }
-  let frontColorCategory: ColorCategory;
-  $: frontColorCategory = getFrontColorCategory(isSelected);
+  });
+  let frontColorCategory: ColorCategory = $derived(
+    getFrontColorCategory(isSelected),
+  );
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
-  $: bgColor =
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let bgColor = $derived(
     (isSelected || hoverType !== undefined) &&
-    colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis;
+      colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis,
+  );
 
-  const widthForButton: `w-${string}` = hasChildren ? "w-fit" : "w-full";
+  let widthForButton: `w-${string}` = $derived(
+    hasChildren ? "w-fit" : "w-full",
+  );
 
-  let selectedFontWeight: BaseButtonProps["designatedFontWeight"];
-  $: selectedFontWeight = isSelected ? "font-bold" : undefined;
+  let selectedFontWeight: BaseButtonProps["designatedFontWeight"] = $derived(
+    isSelected ? "font-bold" : undefined,
+  );
 
   const onMouseEnter = () => {
     if (!isHoverControledByParent) hoverType = "onItem";
@@ -96,8 +118,7 @@
   const onMouseLeave = () => {
     if (!isHoverControledByParent) hoverType = undefined;
   };
-  let underlineLabel: boolean;
-  $: underlineLabel = !isSelected && hoverType === "onItem";
+  let underlineLabel: boolean = $derived(!isSelected && hoverType === "onItem");
 </script>
 
 <div
