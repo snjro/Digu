@@ -55,13 +55,13 @@
   let thisElement: HTMLElement | undefined = $state();
 
   //hide children when `Esc` is pressed.
-  document.addEventListener("keydown", (event: KeyboardEvent) => {
+  const onKeydown = (event: KeyboardEvent): void => {
     if (showChildren && event.key === "Escape") {
       toggleShowChildren();
     }
-  });
+  };
   //hide children when clicked outside of this component
-  document.addEventListener("click", (event: MouseEvent) => {
+  const onClick = (event: MouseEvent): void => {
     if (
       showChildren &&
       thisElement &&
@@ -69,8 +69,10 @@
     ) {
       toggleShowChildren();
     }
-  });
+  };
 </script>
+
+<svelte:document onkeydown={onKeydown} onclick={onClick} />
 
 <div
   bind:this={thisElement}
