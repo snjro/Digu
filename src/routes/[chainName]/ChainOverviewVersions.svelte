@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import type {
     Chain,
@@ -38,13 +38,13 @@
   const warnningTextSize: BaseSize = sizeSettings.itemWarnningMessage;
   // const hrefFrontPart: string =
   //   trailingSlash === "always"
-  //     ? `${$page.url.pathname}`
-  //     : `${$page.url.pathname}/`;
+  //     ? `${page.url.pathname}`
+  //     : `${page.url.pathname}/`;
   const hrefFrontPart = (targetVersion: Version): string => {
     const pageUrlPathname: string =
       trailingSlash === "always"
-        ? `${$page.url.pathname}`
-        : `${$page.url.pathname}/`;
+        ? `${page.url.pathname}`
+        : `${page.url.pathname}/`;
 
     return `${pageUrlPathname}${getProjectVersionNameForUrl(
       targetProject.name,

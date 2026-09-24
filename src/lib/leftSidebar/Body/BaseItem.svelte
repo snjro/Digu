@@ -6,7 +6,7 @@
 <script lang="ts">
   import { browser } from "$app/environment";
   import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import {
     colorDefinitions,
     type ColorCategory,
@@ -80,7 +80,7 @@
   }
 
   let isSelected: boolean = $derived(
-    isSelectedDirectory(hrefWithoutUrlHash, $page.url.pathname),
+    isSelectedDirectory(hrefWithoutUrlHash, page.url.pathname),
   );
 
   $effect.pre(() => {

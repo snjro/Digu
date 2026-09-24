@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import {
     colorDefinitions,
     type ColorCategory,
@@ -16,8 +16,8 @@
 
   const colorCategory: ColorCategory = colorSettings.errorPage;
   const errorDetails: { title: string; value: string | undefined }[] = [
-    { title: "Status", value: $page.status.toString() },
-    { title: "Message", value: $page.error?.message },
+    { title: "Status", value: page.status.toString() },
+    { title: "Message", value: page.error?.message },
   ];
 </script>
 
@@ -66,7 +66,7 @@
     <BaseButton
       size="md"
       label="HOME"
-      href={$page.url.hostname.includes(GITHUB_PAGES_HOST_NAME)
+      href={page.url.hostname.includes(GITHUB_PAGES_HOST_NAME)
         ? `/${PROJECT_NAME}`
         : "/"}
       border

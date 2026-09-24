@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import {
     TAB_VALUES_EVENT,
     TAB_VALUES_FUNCTION,
@@ -54,8 +54,8 @@
   );
   let hrefFrontPart = $derived(
     trailingSlash === "always"
-      ? `${$page.url.pathname}${abiFragmentsType}`
-      : `${$page.url.pathname}/${abiFragmentsType}`,
+      ? `${page.url.pathname}${abiFragmentsType}`
+      : `${page.url.pathname}/${abiFragmentsType}`,
   );
 
   const hrefEventFunctionName = (

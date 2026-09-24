@@ -5,7 +5,7 @@
     FunctionAbiFragment,
   } from "@constants/chains/types";
 
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
   import type { PageWrapperContentFunctionBarDefinition } from "$lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
   // Named apart from the snippet PageWrapperContentFunctionBar of PageWrapperContent.
@@ -94,7 +94,7 @@
               abiText,
               getExportFileName(
                 fragment ? "ABIfragment" : "ABI",
-                $page.params,
+                page.params,
                 abiFormatButtonIndex === 0 ? "json" : "txt",
               ),
               "json",

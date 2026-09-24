@@ -1,24 +1,24 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick } from "svelte";
-import type { Writable } from "svelte/store";
 import { fireEvent, render, screen } from "@testing-library/svelte";
-import { page } from "$app/stores";
 import BaseAccordion from "./BaseAccordion.svelte";
 import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
 import { htmlSnippet, slotProps } from "../../../testUtils/snippets";
+import { page } from "$app/state";
 
-vi.mock("$app/stores", async () => {
-  const { writable } = await import("svelte/store");
-  return { page: writable({ url: new URL("http://localhost/") }) };
+// page of $app/state is not a store. SvelteURL makes page.url reactive.
+vi.mock("$app/state", async () => {
+  const { SvelteURL } = await import("svelte/reactivity");
+  return { page: { url: new SvelteURL("http://localhost/") } };
 });
 vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
 vi.mock("$app/environment", () => ({ browser: false }));
 vi.mock("@routes/+layout", () => ({ trailingSlash: "always" }));
 vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
 
-const pageStore = page as unknown as Writable<{ url: URL }>;
-const setPathname = (pathname: string): void =>
-  pageStore.set({ url: new URL(`http://localhost${pathname}`) });
+const setPathname = (pathname: string): void => {
+  page.url.href = `http://localhost${pathname}`;
+};
 
 const HREF = "/eth/Augur-version1";
 const props = {

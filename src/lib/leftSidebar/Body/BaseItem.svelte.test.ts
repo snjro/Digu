@@ -1,27 +1,27 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick, type ComponentProps } from "svelte";
-import type { Writable } from "svelte/store";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { goto } from "$app/navigation";
-import { page } from "$app/stores";
 import BaseItem from "./BaseItem.svelte";
 import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
 import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
+import { page } from "$app/state";
 
-vi.mock("$app/stores", async () => {
-  const { writable } = await import("svelte/store");
-  return { page: writable({ url: new URL("http://localhost/") }) };
+// page of $app/state is not a store. SvelteURL makes page.url reactive.
+vi.mock("$app/state", async () => {
+  const { SvelteURL } = await import("svelte/reactivity");
+  return { page: { url: new SvelteURL("http://localhost/") } };
 });
 vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
 vi.mock("$app/environment", () => ({ browser: false }));
 vi.mock("@routes/+layout", () => ({ trailingSlash: "always" }));
 vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
 
-const pageStore = page as unknown as Writable<{ url: URL }>;
-const setPathname = (pathname: string): void =>
-  pageStore.set({ url: new URL(`http://localhost${pathname}`) });
+const setPathname = (pathname: string): void => {
+  page.url.href = `http://localhost${pathname}`;
+};
 
 const HREF = "/eth/Augur-version1";
 const OTHER_HREF = "/eth/Augur-version2";
