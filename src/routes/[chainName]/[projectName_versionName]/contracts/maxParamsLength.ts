@@ -32,7 +32,7 @@ export function getEachArgsMaxLengths(
         ) {
           maxLength = convertedEventLog.args[indexOfInput].length;
         } else {
-          maxLength = 1;
+          maxLength = Math.max(maxLength, 1);
         }
       }
       maxLengths.push(maxLength);
