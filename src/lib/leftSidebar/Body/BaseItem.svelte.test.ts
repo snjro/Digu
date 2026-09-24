@@ -1,0 +1,209 @@
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { tick, type ComponentProps } from "svelte";
+import type { Writable } from "svelte/store";
+import { fireEvent, render, screen } from "@testing-library/svelte";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
+import BaseItem from "./BaseItem.svelte";
+import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+import { initialDataUserSettings } from "@db/dbTypes";
+import { storeUserSettings } from "@stores/storeUserSettings";
+
+vi.mock("$app/stores", async () => {
+  const { writable } = await import("svelte/store");
+  return { page: writable({ url: new URL("http://localhost/") }) };
+});
+vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
+vi.mock("$app/environment", () => ({ browser: false }));
+vi.mock("@routes/+layout", () => ({ trailingSlash: "always" }));
+vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
+
+const pageStore = page as unknown as Writable<{ url: URL }>;
+const setPathname = (pathname: string): void =>
+  pageStore.set({ url: new URL(`http://localhost${pathname}`) });
+
+const HREF = "/eth/Augur-version1";
+const OTHER_HREF = "/eth/Augur-version2";
+const props: ComponentProps<typeof BaseItem> = {
+  label: "Augur version1",
+  hrefWithoutUrlHash: HREF,
+  size: "md",
+};
+
+type Parts = {
+  indicator: HTMLElement;
+  box: HTMLElement;
+  button: HTMLElement;
+  link: HTMLAnchorElement;
+  label: HTMLElement;
+};
+function getParts(container: HTMLElement): Parts {
+  const root = container.firstElementChild as HTMLElement;
+  const [indicator, box] = [...root.children] as HTMLElement[];
+  const button = screen.getByRole("button");
+  const link = button.querySelector("a") as HTMLAnchorElement;
+  const label = screen.getByText(props.label);
+  return { indicator, box, button, link, label };
+}
+const emphasis = (theme: "light" | "dark"): string =>
+  colorDefinitions[theme][colorSettings.leftSidebarBodyBg].bgEmphasis;
+const interactiveText = colorDefinitions.light.interactive.text;
+const interactiveBorder = colorDefinitions.light.interactive.border;
+
+function expectSelected(container: HTMLElement, selected: boolean): void {
+  const { indicator, box, button, label } = getParts(container);
+  expect(label.classList.contains("font-bold")).toBe(selected);
+  expect(button.classList.contains(interactiveText)).toBe(selected);
+  expect(box.classList.contains(emphasis("light"))).toBe(selected);
+  expect(indicator.classList.contains("h-4/6")).toBe(selected);
+}
+// The underline is the border of the box around the label.
+function isUnderlined(container: HTMLElement): boolean {
+  const underline = getParts(container).label.parentElement as HTMLElement;
+  return underline.classList.contains(interactiveBorder);
+}
+
+describe("BaseItem.svelte", () => {
+  beforeEach(() => {
+    setPathname("/");
+  });
+  afterEach(() => {
+    storeUserSettings.set({ ...initialDataUserSettings });
+    vi.clearAllMocks();
+  });
+
+  test.each([undefined, "home"] as const)(
+    "shows the label and links to the href. iconName=%s",
+    (iconName) => {
+      const { container } = render(BaseItem, { ...props, iconName });
+      const { link } = getParts(container);
+      expect(link.getAttribute("href")).toBe(HREF);
+      expect(link.querySelector("svg") !== null).toBe(iconName !== undefined);
+    },
+  );
+
+  test("adds the url hash to the href", () => {
+    const { container } = render(BaseItem, { ...props, urlHash: "abc" });
+    expect(getParts(container).link.getAttribute("href")).toBe(`${HREF}#abc`);
+  });
+
+  test("is not selected when the page is another one", () => {
+    setPathname(`${HREF}/contracts/`);
+    const { container } = render(BaseItem, props);
+    expectSelected(container, false);
+  });
+
+  test.each([undefined, "home"] as const)(
+    "is selected when the page is the item. iconName=%s",
+    (iconName) => {
+      setPathname(`${HREF}/`);
+      const { container } = render(BaseItem, { ...props, iconName });
+      expectSelected(container, true);
+    },
+  );
+
+  test("is selected by the href without the url hash", () => {
+    setPathname(`${HREF}/`);
+    const { container } = render(BaseItem, { ...props, urlHash: "abc" });
+    expectSelected(container, true);
+  });
+
+  test("updates the selection when the page changes", async () => {
+    const { container } = render(BaseItem, props);
+    expectSelected(container, false);
+
+    setPathname(`${HREF}/`);
+    await tick();
+    expectSelected(container, true);
+
+    setPathname(`${OTHER_HREF}/`);
+    await tick();
+    expectSelected(container, false);
+  });
+
+  test("updates the selection when the href changes", async () => {
+    setPathname(`${OTHER_HREF}/`);
+    const { container, rerender } = render(BaseItem, props);
+    expectSelected(container, false);
+
+    await rerender({ ...props, hrefWithoutUrlHash: OTHER_HREF });
+    expectSelected(container, true);
+
+    await rerender(props);
+    expectSelected(container, false);
+  });
+
+  test("emphasizes and underlines the item on hover", async () => {
+    const { container } = render(BaseItem, props);
+    const { box, button } = getParts(container);
+    expect(box.classList).not.toContain(emphasis("light"));
+    expect(isUnderlined(container)).toBe(false);
+
+    await fireEvent.mouseEnter(button);
+    expect(box.classList).toContain(emphasis("light"));
+    expect(isUnderlined(container)).toBe(true);
+
+    await fireEvent.mouseLeave(button);
+    expect(box.classList).not.toContain(emphasis("light"));
+    expect(isUnderlined(container)).toBe(false);
+  });
+
+  test("does not underline the selected item on hover", async () => {
+    setPathname(`${HREF}/`);
+    const { container } = render(BaseItem, props);
+
+    await fireEvent.mouseEnter(getParts(container).button);
+    expect(isUnderlined(container)).toBe(false);
+  });
+
+  test("follows hoverType from the parent", async () => {
+    const { container, rerender } = render(BaseItem, {
+      ...props,
+      isHoverControledByParent: true,
+    });
+    const { box, button } = getParts(container);
+
+    // The mouse does not change it.
+    await fireEvent.mouseEnter(button);
+    expect(box.classList).not.toContain(emphasis("light"));
+
+    await rerender({
+      ...props,
+      isHoverControledByParent: true,
+      hoverType: "onItem",
+    });
+    expect(box.classList).toContain(emphasis("light"));
+    expect(isUnderlined(container)).toBe(true);
+  });
+
+  test("follows the theme in storeUserSettings", async () => {
+    setPathname(`${HREF}/`);
+    const { container } = render(BaseItem, props);
+    expect(getParts(container).box.classList).toContain(emphasis("light"));
+
+    storeUserSettings.update((s) => ({ ...s, themeColor: "dark" }));
+    await tick();
+    expect(getParts(container).box.classList).toContain(emphasis("dark"));
+  });
+
+  test.each([
+    { hasChildren: true, width: "w-fit", rounded: false },
+    { hasChildren: false, width: "w-full", rounded: true },
+  ])(
+    "sizes the button by hasChildren. hasChildren=$hasChildren",
+    ({ hasChildren, width, rounded }) => {
+      const { container } = render(BaseItem, { ...props, hasChildren });
+      const { box, button } = getParts(container);
+      expect(button.classList).toContain(width);
+      expect(box.classList.contains("rounded-r-md")).toBe(rounded);
+    },
+  );
+
+  test("goes to the href with the url hash on click", async () => {
+    const { container } = render(BaseItem, { ...props, urlHash: "abc" });
+
+    await fireEvent.click(getParts(container).link);
+    expect(goto).toHaveBeenCalledWith(`${HREF}#abc`);
+  });
+});
