@@ -13,7 +13,7 @@
     TAB_VALUES_CONTRACT,
     TAB_VALUES_EVENT,
     TAB_VALUES_FUNCTION,
-  } from "$lib/PageWrapper/PageWrapper.svelte";
+  } from "$lib/PageWrapper/tabs";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/functionNameHandler";
   import { trailingSlash } from "@routes/+layout";

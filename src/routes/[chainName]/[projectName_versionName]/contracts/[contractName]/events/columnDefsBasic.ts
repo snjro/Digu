@@ -11,7 +11,7 @@ import type { EventRow } from "./gridRows";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
 import { convertToKebabCase } from "@utils/utilsCommon";
-import { TAB_VALUES_EVENT } from "$lib/PageWrapper/PageWrapper.svelte";
+import { TAB_VALUES_EVENT } from "$lib/PageWrapper/tabs";
 
 const girdSize: BaseSize = sizeSettings.grid;
 

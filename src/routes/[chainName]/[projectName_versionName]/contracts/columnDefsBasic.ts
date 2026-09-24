@@ -14,7 +14,7 @@ import { columnDefChainExplorerLinkByKeyName } from "$lib/gridColumnDefs/columnD
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
 import { convertToKebabCase } from "@utils/utilsCommon";
-import { TAB_VALUES_CONTRACT } from "$lib/PageWrapper/PageWrapper.svelte";
+import { TAB_VALUES_CONTRACT } from "$lib/PageWrapper/tabs";
 
 const girdSize: BaseSize = sizeSettings.grid;
 const cellClass: string = classNames("");

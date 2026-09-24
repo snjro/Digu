@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { convertTabValueForHref } from "$lib/PageWrapper/PageWrapper.svelte";
+  import { convertTabValueForHref } from "$lib/PageWrapper/tabs";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseA from "$lib/base/BaseA.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";

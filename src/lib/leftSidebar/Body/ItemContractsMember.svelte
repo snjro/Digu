@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { TAB_VALUES_CONTRACT } from "$lib/PageWrapper/PageWrapper.svelte";
+  import { TAB_VALUES_CONTRACT } from "$lib/PageWrapper/tabs";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import type { Contract } from "@constants/chains/types";

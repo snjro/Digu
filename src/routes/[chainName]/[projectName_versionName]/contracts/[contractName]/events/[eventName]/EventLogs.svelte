@@ -1,5 +1,4 @@
 <script lang="ts" module>
-  export type EventLogType = "hex" | "text";
   export const MESSAGE_ANONYMOUS_EVENT_LOGS: string =
     "Logs of anonymous events are not fetched.";
 </script>
@@ -12,6 +11,7 @@
   import type { EventAbiFragment } from "@constants/chains/types";
   import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
   import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
+  import type { EventLogType } from "./eventLogType";
   import { gridRows } from "./gridRows";
 
   interface Props {

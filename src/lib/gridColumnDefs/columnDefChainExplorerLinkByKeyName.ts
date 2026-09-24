@@ -3,9 +3,8 @@ import {
   cellRendererFactory,
 } from "$lib/base/BaseGrid/cellRenderFactory";
 import type { ColumnDef } from "$lib/base/BaseGrid/types";
-import CommonChainExplorerLink, {
-  type CommonChainExplorerLinkProps,
-} from "$lib/common/CommonChainExplorerLink.svelte";
+import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
+import type { CommonChainExplorerLinkProps } from "$lib/common/chainExplorerLink";
 import type { ChainExplorer } from "@constants/chains/types";
 import type {
   CellClassParams,

@@ -1,8 +1,9 @@
 <script lang="ts">
-  import PageWrapper, {
+  import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
+  import {
     TAB_VALUES_EVENT,
     type TabsDefinitionEvent,
-  } from "$lib/PageWrapper/PageWrapper.svelte";
+  } from "$lib/PageWrapper/tabs";
   import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
   import type { LoadEventLogs } from "./+page";
   import EventLogs from "./EventLogs.svelte";

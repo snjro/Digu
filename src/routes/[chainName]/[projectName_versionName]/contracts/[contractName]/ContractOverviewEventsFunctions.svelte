@@ -1,13 +1,6 @@
-<script lang="ts" module>
-  export type AbiFragmentsType = keyof Pick<Contract, "events" | "functions">;
-</script>
-
 <script lang="ts">
   import { page } from "$app/state";
-  import {
-    TAB_VALUES_EVENT,
-    TAB_VALUES_FUNCTION,
-  } from "$lib/PageWrapper/PageWrapper.svelte";
+  import { TAB_VALUES_EVENT, TAB_VALUES_FUNCTION } from "$lib/PageWrapper/tabs";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseA from "$lib/base/BaseA.svelte";
@@ -27,6 +20,7 @@
     FunctionAbiFragment,
   } from "@constants/chains/types";
   import { trailingSlash } from "@routes/+layout";
+  import type { AbiFragmentsType } from "./abiFragmentsType";
   import {
     capitalizeFirstLetter,
     convertToKebabCase,

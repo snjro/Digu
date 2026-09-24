@@ -1,39 +1,3 @@
-<script lang="ts" module>
-  export const TAB_VALUES_COMMON = ["Overview", "ABI"] as const;
-  export const TAB_VALUES_CONTRACT = TAB_VALUES_COMMON;
-  export const TAB_VALUES_EVENT = [
-    ...TAB_VALUES_COMMON,
-    "Event Logs (text)",
-    "Event Logs (hex)",
-  ] as const;
-  export const TAB_VALUES_FUNCTION = TAB_VALUES_COMMON;
-
-  export type TabsDefinitionContract = {
-    selected: (typeof TAB_VALUES_CONTRACT)[number];
-    values: typeof TAB_VALUES_CONTRACT;
-    groupName: "tabGroupContract";
-  };
-  export type TabsDefinitionEvent = {
-    selected: (typeof TAB_VALUES_EVENT)[number];
-    values: typeof TAB_VALUES_EVENT;
-    groupName: "tabGroupEvent";
-  };
-  export type TabsDefinitionFunction = {
-    selected: (typeof TAB_VALUES_FUNCTION)[number];
-    values: typeof TAB_VALUES_FUNCTION;
-    groupName: "tabGroupFunction";
-  };
-
-  export function convertTabValueForHref<
-    TabsDefinition extends
-      TabsDefinitionContract | TabsDefinitionEvent | TabsDefinitionFunction,
-  >(tabValue: TabsDefinition["values"][number]): `#${string}` {
-    let convertedTabValue: string = convertToKebabCase(tabValue as string);
-    convertedTabValue = convertedTabValue.replace("(", "").replace(")", "");
-    return `#${convertedTabValue}`;
-  }
-</script>
-
 <script
   lang="ts"
   generics=" TabsDefinition extends  TabsDefinitionContract|TabsDefinitionEvent|TabsDefinitionFunction"
@@ -43,6 +7,12 @@
   import PageWrapperTitle, {
     type PageWrapperTitleProps,
   } from "$lib/PageWrapper/PageWrapperTitle.svelte";
+  import {
+    convertTabValueForHref,
+    type TabsDefinitionContract,
+    type TabsDefinitionEvent,
+    type TabsDefinitionFunction,
+  } from "$lib/PageWrapper/tabs";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import {
@@ -55,10 +25,9 @@
     type RadioLabelAndValues,
   } from "$lib/base/BaseRadio.svelte";
   import type { ThemeColor } from "@db/dbTypes";
-  import type { EventLogType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/EventLogs.svelte";
+  import type { EventLogType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/eventLogType";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { convertToKebabCase } from "@utils/utilsCommon";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
 
@@ -161,15 +130,6 @@
       }
     }
   });
-  function convertTabValueForHref(
-    selectedTabName: TabsDefinition["selected"],
-  ): `#${string}` {
-    let convertedTabValue: string = convertToKebabCase(
-      selectedTabName as string,
-    );
-    convertedTabValue = convertedTabValue.replace("(", "").replace(")", "");
-    return `#${convertedTabValue}`;
-  }
 
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 

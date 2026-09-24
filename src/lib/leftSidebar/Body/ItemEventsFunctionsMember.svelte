@@ -1,14 +1,11 @@
 <script lang="ts" generics>
-  import {
-    TAB_VALUES_EVENT,
-    TAB_VALUES_FUNCTION,
-  } from "$lib/PageWrapper/PageWrapper.svelte";
+  import { TAB_VALUES_EVENT, TAB_VALUES_FUNCTION } from "$lib/PageWrapper/tabs";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type {
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
-  import type { AbiFragmentsType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/ContractOverviewEventsFunctions.svelte";
+  import type { AbiFragmentsType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/abiFragmentsType";
   import { convertToKebabCase } from "@utils/utilsCommon";
   import BaseItem from "./BaseItem.svelte";
   import { getFunctionSelectorWithSplitter } from "./functionNameHandler";

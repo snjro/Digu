@@ -11,7 +11,7 @@ import type { ContractRow } from "./gridRows";
 import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
-import type { AbiFragmentsType } from "./[contractName]/ContractOverviewEventsFunctions.svelte";
+import type { AbiFragmentsType } from "./[contractName]/abiFragmentsType";
 const gridSize: BaseSize = sizeSettings.grid;
 export const columnDefsEventsFunctions = <T extends ContractRow>(
   abiFragmentsType: AbiFragmentsType,

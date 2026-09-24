@@ -13,7 +13,7 @@
   import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import type { BaseSnackbarProps } from "$lib/base/BaseSnackbar.svelte";
+  import type { BaseSnackbarProps } from "$lib/base/snackbarProps";
   import type { BaseSize } from "$lib/base/baseSizes";
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
 
