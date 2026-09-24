@@ -1,9 +1,17 @@
 <script lang="ts">
   import BaseRadio, { type RadioLabelAndValues } from "./BaseRadio.svelte";
 
-  export let radioButtonType: "button" | "tab" | "circle";
-  export let labelAndValues: RadioLabelAndValues<string>;
-  export let selectedValue: string;
+  interface Props {
+    radioButtonType: "button" | "tab" | "circle";
+    labelAndValues: RadioLabelAndValues<string>;
+    selectedValue: string;
+  }
+
+  let {
+    radioButtonType,
+    labelAndValues,
+    selectedValue = $bindable(),
+  }: Props = $props();
 </script>
 
 <BaseRadio

@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import {
     colorDefinitions,
     type ColorCategory,
@@ -24,46 +24,58 @@
 <script lang="ts">
   import { baseShadowSizes } from "./baseSizes";
 
-  export let items: BaseSelectProps["items"];
-  export let value: BaseSelectProps["value"];
-  export let size: NonNullable<BaseSelectProps["size"]>;
-  export let colorCategoryFront: BaseSelectProps["colorCategory"] = undefined;
-  export let colorCategoryBg: BaseSelectProps["colorCategory"] = undefined;
-  export let forcedClass: BaseSelectProps["forcedClass"] = undefined;
-  export let appendClass: BaseSelectProps["appendClass"] = undefined;
-  export let onchange: ((event: Event) => void) | undefined = undefined;
+  interface Props {
+    items: BaseSelectProps["items"];
+    value: BaseSelectProps["value"];
+    size: NonNullable<BaseSelectProps["size"]>;
+    colorCategoryFront?: BaseSelectProps["colorCategory"];
+    colorCategoryBg?: BaseSelectProps["colorCategory"];
+    forcedClass?: BaseSelectProps["forcedClass"];
+    appendClass?: BaseSelectProps["appendClass"];
+    onchange?: ((event: Event) => void) | undefined;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let {
+    items,
+    value = $bindable(),
+    size,
+    colorCategoryFront = undefined,
+    colorCategoryBg = undefined,
+    forcedClass = undefined,
+    appendClass = undefined,
+    onchange = undefined,
+  }: Props = $props();
 
-  let customClass: string;
-  $: customClass =
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let customClass: string = $derived(
     forcedClass ??
-    classNames(
-      "form-select",
-      "rounded-sm",
-      "w-full",
-      // "pr-2",
-      // "py-0.5",
-      "p-1",
-      colorCategoryBg
-        ? colorDefinitions[themeColor][colorCategoryBg].bg
-        : "bg-inherit",
-      colorCategoryFront
-        ? colorDefinitions[themeColor][colorCategoryFront].text
-        : "text-inherit",
-      "dark:border-2",
-      colorCategoryFront
-        ? colorDefinitions[themeColor][colorCategoryFront].border
-        : "border-inherit",
+      classNames(
+        "form-select",
+        "rounded-sm",
+        "w-full",
+        // "pr-2",
+        // "py-0.5",
+        "p-1",
+        colorCategoryBg
+          ? colorDefinitions[themeColor][colorCategoryBg].bg
+          : "bg-inherit",
+        colorCategoryFront
+          ? colorDefinitions[themeColor][colorCategoryFront].text
+          : "text-inherit",
+        "dark:border-2",
+        colorCategoryFront
+          ? colorDefinitions[themeColor][colorCategoryFront].border
+          : "border-inherit",
 
-      "transition",
-      "outline-hidden",
-      baseTextSizes[size],
-      "cursor-pointer",
-      // "appearance-none",
-      appendClass,
-    );
+        "transition",
+        "outline-hidden",
+        baseTextSizes[size],
+        "cursor-pointer",
+        // "appearance-none",
+        appendClass,
+      ),
+  );
 </script>
 
 <div
@@ -86,7 +98,7 @@
     "",
   )}
 >
-  <select bind:value class={customClass} on:change={onchange}>
+  <select bind:value class={customClass} {onchange}>
     {#each items as { value, name }}
       <option
         {value}

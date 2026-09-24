@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type RadioLabelAndValues<RadioValue> = ReadonlyArray<{
     labelText: string;
     value: RadioValue;
@@ -29,17 +29,32 @@
   import BaseLabel from "./BaseLabel.svelte";
   import type { BaseSize } from "./baseSizes";
 
-  export let radioButtonType: "button" | "tab" | "circle" = "circle";
-  export let groupName: string;
-  export let selectedValue: RadioValue;
-  export let size: BaseSize;
-  export let labelAndValues: RadioLabelAndValues<RadioValue>;
-  export let disabled: boolean = false;
-  export let appendLabelClass: string | undefined = undefined;
-  export let onchanged: ((value: RadioValue) => void) | undefined = undefined;
+  interface Props {
+    radioButtonType?: "button" | "tab" | "circle";
+    groupName: string;
+    selectedValue: RadioValue;
+    size: BaseSize;
+    labelAndValues: RadioLabelAndValues<RadioValue>;
+    disabled?: boolean;
+    appendLabelClass?: string | undefined;
+    onchanged?: ((value: RadioValue) => void) | undefined;
+    [key: string]: unknown;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let {
+    radioButtonType = "circle",
+    groupName,
+    selectedValue = $bindable(),
+    size,
+    labelAndValues,
+    disabled = false,
+    appendLabelClass = undefined,
+    onchanged = undefined,
+    ...rest
+  }: Props = $props();
+
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
   const roundedSize = (
     roundPosition: "tl" | "tr" | "l" | "r",
   ): `rounded-${string}` => {
@@ -181,7 +196,7 @@
             name={groupName}
             bind:group={selectedValue}
             {value}
-            {...$$restProps}
+            {...rest}
             class={classNames(
               radioSizes[size],
               "rounded-full",
@@ -243,7 +258,7 @@
           name={groupName}
           bind:group={selectedValue}
           {value}
-          {...$$restProps}
+          {...rest}
           class={classNames(
             "w-0",
             "h-0",

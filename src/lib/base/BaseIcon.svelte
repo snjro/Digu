@@ -6,20 +6,35 @@
   import { iconNames, type BaseIconProps } from "./BaseIcon";
   import type { BaseSize } from "./baseSizes";
 
-  export let name: BaseIconProps["name"];
-  export let size: NonNullable<BaseIconProps["size"]> = "md";
-  export let colorCategory: BaseIconProps["colorCategory"] = undefined;
-  export let forcedClass: BaseIconProps["forcedClass"] = undefined;
-  export let appendClass: BaseIconProps["appendClass"] = undefined;
-  export let hoverEffect: NonNullable<BaseIconProps["hoverEffect"]> = true;
-  export let isHover: NonNullable<BaseIconProps["isHover"]> = false;
-  export let focusable: NonNullable<BaseIconProps["focusable"]> = "false";
-  export let flipHorizontal: NonNullable<BaseIconProps["flipHorizontal"]> =
-    false;
-  export let isHoverControledByParent: NonNullable<
-    BaseIconProps["isHoverControledByParent"]
-  > = false;
-  export let cursor: "cursor-default" | "cursor-pointer" = "cursor-default";
+  interface Props {
+    name: BaseIconProps["name"];
+    size?: NonNullable<BaseIconProps["size"]>;
+    colorCategory?: BaseIconProps["colorCategory"];
+    forcedClass?: BaseIconProps["forcedClass"];
+    appendClass?: BaseIconProps["appendClass"];
+    hoverEffect?: NonNullable<BaseIconProps["hoverEffect"]>;
+    isHover?: NonNullable<BaseIconProps["isHover"]>;
+    focusable?: NonNullable<BaseIconProps["focusable"]>;
+    flipHorizontal?: NonNullable<BaseIconProps["flipHorizontal"]>;
+    isHoverControledByParent?: NonNullable<
+      BaseIconProps["isHoverControledByParent"]
+    >;
+    cursor?: "cursor-default" | "cursor-pointer";
+  }
+
+  let {
+    name,
+    size = "md",
+    colorCategory = undefined,
+    forcedClass = undefined,
+    appendClass = undefined,
+    hoverEffect = true,
+    isHover = $bindable(false),
+    focusable = "false",
+    flipHorizontal = false,
+    isHoverControledByParent = false,
+    cursor = "cursor-default",
+  }: Props = $props();
   function onMouseEnter() {
     if (!isHoverControledByParent) isHover = true;
   }
@@ -47,43 +62,45 @@
     "5xl": 42,
   };
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
-  let customClass: string;
-  $: customClass =
+  let customClass: string = $derived(
     forcedClass ??
+      classNames(
+        appendClass,
+        // hoverEffect && isHover
+        //   ? colorCategory
+        //     ? colorDefinitions[themeColor][colorCategory].fillEmphasis
+        //     : "fill-inherit"
+        //   : colorCategory
+        //   ? colorDefinitions[themeColor][colorCategory].fill
+        //   : "fill-inherit",
+        // "",
+        colorCategory &&
+          classNames(
+            hoverEffect && isHover
+              ? colorDefinitions[themeColor][colorCategory].fillEmphasis
+              : colorDefinitions[themeColor][colorCategory].fill,
+          ),
+        "",
+      ),
+  );
+
+  let style = $derived(
     classNames(
-      appendClass,
-      // hoverEffect && isHover
-      //   ? colorCategory
-      //     ? colorDefinitions[themeColor][colorCategory].fillEmphasis
-      //     : "fill-inherit"
-      //   : colorCategory
-      //   ? colorDefinitions[themeColor][colorCategory].fill
-      //   : "fill-inherit",
-      // "",
-      colorCategory &&
-        classNames(
-          hoverEffect && isHover
-            ? colorDefinitions[themeColor][colorCategory].fillEmphasis
-            : colorDefinitions[themeColor][colorCategory].fill,
-        ),
-      "",
-    );
-  $: style = classNames(
-    `min-width:${sizes[size]};`,
-    `max-width:${sizes[size]};`,
-    `min-height:${sizes[size]};`,
-    `max-height:${sizes[size]};`,
-    flipHorizontal && "transform: scale(-1,1);",
+      `min-width:${sizes[size]};`,
+      `max-width:${sizes[size]};`,
+      `min-height:${sizes[size]};`,
+      `max-height:${sizes[size]};`,
+      flipHorizontal && "transform: scale(-1,1);",
+    ),
   );
 </script>
 
 <div
   {style}
-  on:mouseenter={onMouseEnter}
-  on:mouseleave={onMouseLeave}
+  onmouseenter={onMouseEnter}
+  onmouseleave={onMouseLeave}
   class={classNames(cursor, "w-fit", "h-fit")}
   role="presentation"
 >

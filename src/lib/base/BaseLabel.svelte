@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type BaseLabelProps = {
     text: string | undefined;
     inputId?: string;
@@ -34,63 +34,85 @@
   import { NO_DATA } from "@utils/utilsCostants";
   import classNames from "classnames";
   import { twMerge } from "tailwind-merge";
+  import type { Snippet } from "svelte";
   import type { BaseIconProps } from "./BaseIcon";
   import BaseIcon from "./BaseIcon.svelte";
   import type { BaseSize } from "./baseSizes";
   import { baseTextSizes, changeSize } from "./baseSizes";
-  export let text: BaseLabelProps["text"];
-  export let inputId: BaseLabelProps["inputId"] = undefined;
-  export let colorCategoryFront: BaseLabelProps["colorCategoryFront"] =
-    undefined;
-  export let colorCategoryBg: BaseLabelProps["colorCategoryBg"] = undefined;
-  export let textSize: NonNullable<BaseLabelProps["textSize"]> = "md";
-  export let forcedClass: BaseLabelProps["forcedClass"] = undefined;
-  export let appendClass: BaseLabelProps["appendClass"] = undefined;
-  export let disabled: NonNullable<BaseLabelProps["disabled"]> = false;
-  export let prefixIcon: BaseLabelProps["prefixIcon"] = undefined;
-  export let suffixIcon: BaseLabelProps["suffixIcon"] = undefined;
-  export let cursorPointer: boolean = false;
-  export let fontMono: boolean = false;
-  export let italic: boolean = false;
-  export let truncate: boolean = true;
-  export let showCopyButton: boolean = false;
-  export let fontWeight: BaseLabelProps["fontWeight"] = "font-normal";
-
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
-
-  function setIconProps(iconProps: BaseIconProps | undefined): void {
-    if (iconProps) {
-      if (!iconProps.size) {
-        iconProps.size = textSize;
-      }
-      if (!iconProps.colorCategory) {
-        iconProps.colorCategory = colorCategoryFront;
-      }
-    }
+  interface Props {
+    text: BaseLabelProps["text"];
+    inputId?: BaseLabelProps["inputId"];
+    colorCategoryFront?: BaseLabelProps["colorCategoryFront"];
+    colorCategoryBg?: BaseLabelProps["colorCategoryBg"];
+    textSize?: NonNullable<BaseLabelProps["textSize"]>;
+    forcedClass?: BaseLabelProps["forcedClass"];
+    appendClass?: BaseLabelProps["appendClass"];
+    disabled?: NonNullable<BaseLabelProps["disabled"]>;
+    prefixIcon?: BaseLabelProps["prefixIcon"];
+    suffixIcon?: BaseLabelProps["suffixIcon"];
+    cursorPointer?: boolean;
+    fontMono?: boolean;
+    italic?: boolean;
+    truncate?: boolean;
+    showCopyButton?: boolean;
+    fontWeight?: BaseLabelProps["fontWeight"];
+    children?: Snippet;
   }
-  $: setIconProps(prefixIcon);
-  $: setIconProps(suffixIcon);
 
-  $: customClass =
+  let {
+    text,
+    inputId = undefined,
+    colorCategoryFront = undefined,
+    colorCategoryBg = undefined,
+    textSize = "md",
+    forcedClass = undefined,
+    appendClass = undefined,
+    disabled = false,
+    prefixIcon = undefined,
+    suffixIcon = undefined,
+    cursorPointer = false,
+    fontMono = false,
+    italic = false,
+    truncate = true,
+    showCopyButton = false,
+    fontWeight = "font-normal",
+    children,
+  }: Props = $props();
+
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  // Returns a new object instead of changing the one in the props.
+  const withDefaults = (
+    iconProps: BaseIconProps | undefined,
+  ): BaseIconProps | undefined =>
+    iconProps && {
+      ...iconProps,
+      size: iconProps.size || textSize,
+      colorCategory: iconProps.colorCategory || colorCategoryFront,
+    };
+  let prefixIconProps = $derived(withDefaults(prefixIcon));
+  let suffixIconProps = $derived(withDefaults(suffixIcon));
+
+  let customClass = $derived(
     forcedClass ??
-    twMerge(
-      baseTextSizes[textSize],
-      "w-fit",
-      colorCategoryFront
-        ? colorDefinitions[themeColor][colorCategoryFront].text
-        : "text-inherit",
-      colorCategoryBg
-        ? colorDefinitions[themeColor][colorCategoryBg].bg
-        : "bg-transparent",
-      disabled && "disabled:opacity-75",
-      truncate && "truncate",
-      cursorPointer ? "cursor-pointer" : "cursor-text",
-      fontMono && "font-mono",
-      italic && "italic",
-      fontWeight,
-      appendClass,
-    );
+      twMerge(
+        baseTextSizes[textSize],
+        "w-fit",
+        colorCategoryFront
+          ? colorDefinitions[themeColor][colorCategoryFront].text
+          : "text-inherit",
+        colorCategoryBg
+          ? colorDefinitions[themeColor][colorCategoryBg].bg
+          : "bg-transparent",
+        disabled && "disabled:opacity-75",
+        truncate && "truncate",
+        cursorPointer ? "cursor-pointer" : "cursor-text",
+        fontMono && "font-mono",
+        italic && "italic",
+        fontWeight,
+        appendClass,
+      ),
+  );
 </script>
 
 <div
@@ -104,14 +126,14 @@
     "",
   )}
 >
-  {#if prefixIcon}
-    <BaseIcon {...prefixIcon} />
+  {#if prefixIconProps}
+    <BaseIcon {...prefixIconProps} />
   {/if}
   <label for={inputId} class={customClass}>
-    {text ? text : NO_DATA}<slot />
+    {text ? text : NO_DATA}{@render children?.()}
   </label>
-  {#if suffixIcon}
-    <BaseIcon {...suffixIcon} />
+  {#if suffixIconProps}
+    <BaseIcon {...suffixIconProps} />
   {/if}
   {#if showCopyButton}
     <CommonCopyButton

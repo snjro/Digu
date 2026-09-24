@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type BaseRangeProps = {
     min: number;
     max: number;
@@ -31,49 +31,64 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { BaseSize } from "./baseSizes";
-  export let min: BaseRangeProps["min"];
-  export let max: BaseRangeProps["max"];
-  export let value: BaseRangeProps["value"];
-  export let step: BaseRangeProps["step"];
-  export let size: NonNullable<BaseRangeProps["size"]> = "sm";
-  export let disabled: NonNullable<BaseRangeProps["disabled"]> = false;
-  export let forcedClass: BaseRangeProps["forcedClass"] = undefined;
-  export let appendClass: BaseRangeProps["appendClass"] = undefined;
-  export let colorCategoryFront: ColorCategory | undefined = undefined;
-  export let colorCategoryBg: ColorCategory | undefined = undefined;
-  export let onchange: ((event: Event) => void) | undefined = undefined;
+  interface Props {
+    min: BaseRangeProps["min"];
+    max: BaseRangeProps["max"];
+    value: BaseRangeProps["value"];
+    step: BaseRangeProps["step"];
+    size?: NonNullable<BaseRangeProps["size"]>;
+    disabled?: NonNullable<BaseRangeProps["disabled"]>;
+    forcedClass?: BaseRangeProps["forcedClass"];
+    appendClass?: BaseRangeProps["appendClass"];
+    colorCategoryFront?: ColorCategory | undefined;
+    colorCategoryBg?: ColorCategory | undefined;
+    onchange?: ((event: Event) => void) | undefined;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let {
+    min,
+    max,
+    value = $bindable(),
+    step,
+    size = "sm",
+    disabled = false,
+    forcedClass = undefined,
+    appendClass = undefined,
+    colorCategoryFront = undefined,
+    colorCategoryBg = undefined,
+    onchange = undefined,
+  }: Props = $props();
 
-  let customClass: string;
-  $: customClass =
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let customClass: string = $derived(
     forcedClass ??
-    classNames(
-      "w-full",
-      "rounded-lg",
-      "appearance-none",
-      disabled ? "cursor-not-allowed" : "cursor-pointer",
-      colorCategoryBg
-        ? colorDefinitions[themeColor][colorCategoryBg].bg
-        : "bg-inherit",
-      "shadow-sm dark:shadow-none",
-      colorCategoryBg
-        ? colorDefinitions[themeColor][colorCategoryBg].shadow
-        : "shadow-inherit",
-      colorCategoryFront
-        ? colorDefinitions[themeColor][colorCategoryFront].text
-        : "text-inherit",
-      colorCategoryFront
-        ? colorDefinitions[themeColor][colorCategoryFront].accent
-        : "accent-inherit",
-      "dark:border",
-      colorCategoryBg
-        ? colorDefinitions[themeColor][colorCategoryBg].border
-        : "border-inherit",
-      sizes[size],
-      appendClass,
-    );
+      classNames(
+        "w-full",
+        "rounded-lg",
+        "appearance-none",
+        disabled ? "cursor-not-allowed" : "cursor-pointer",
+        colorCategoryBg
+          ? colorDefinitions[themeColor][colorCategoryBg].bg
+          : "bg-inherit",
+        "shadow-sm dark:shadow-none",
+        colorCategoryBg
+          ? colorDefinitions[themeColor][colorCategoryBg].shadow
+          : "shadow-inherit",
+        colorCategoryFront
+          ? colorDefinitions[themeColor][colorCategoryFront].text
+          : "text-inherit",
+        colorCategoryFront
+          ? colorDefinitions[themeColor][colorCategoryFront].accent
+          : "accent-inherit",
+        "dark:border",
+        colorCategoryBg
+          ? colorDefinitions[themeColor][colorCategoryBg].border
+          : "border-inherit",
+        sizes[size],
+        appendClass,
+      ),
+  );
 </script>
 
 <input
@@ -84,5 +99,5 @@
   {max}
   {step}
   {disabled}
-  on:change={onchange}
+  {onchange}
 />
