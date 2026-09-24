@@ -4,6 +4,44 @@ import { ColIdRowSequenceNumber } from "../GridBody/getColumnDefs";
 export type CsvColumnSeparator = "," | `\t` | "|";
 export type CsvFilteredSorted = "all" | "filteredAndSorted";
 
+// The radio props of the dialog have this shape.
+export type CsvSelectedValues = {
+  skipRowNumber: { selectedValue: boolean };
+  columnSeparator: { selectedValue: CsvColumnSeparator };
+  suppressDoubleQuotes: { selectedValue: boolean };
+  skipColumnHeaders: { selectedValue: boolean };
+  filteredSorted: { selectedValue: CsvFilteredSorted };
+};
+
+export function downloadCsvFile(
+  gridApi: GridApi,
+  selectedValues: CsvSelectedValues,
+  fileName: string,
+): void {
+  exportCsvFile(
+    gridApi,
+    selectedValues.skipRowNumber.selectedValue,
+    selectedValues.columnSeparator.selectedValue,
+    selectedValues.suppressDoubleQuotes.selectedValue,
+    selectedValues.filteredSorted.selectedValue,
+    selectedValues.skipColumnHeaders.selectedValue,
+    fileName,
+  );
+}
+export function getCsvText(
+  gridApi: GridApi,
+  selectedValues: CsvSelectedValues,
+): string {
+  return exportCsvFile(
+    gridApi,
+    selectedValues.skipRowNumber.selectedValue,
+    selectedValues.columnSeparator.selectedValue,
+    selectedValues.suppressDoubleQuotes.selectedValue,
+    selectedValues.filteredSorted.selectedValue,
+    selectedValues.skipColumnHeaders.selectedValue,
+  ) as string;
+}
+
 export function exportCsvFile(
   gridApi: GridApi,
   skipRowNumber: boolean,

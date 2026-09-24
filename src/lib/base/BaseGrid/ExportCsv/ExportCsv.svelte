@@ -45,7 +45,8 @@
   import { getExportFileName, type ExportFilePrefix } from "@utils/utilsFile";
   import type { GridApi } from "ag-grid-community";
   import {
-    exportCsvFile,
+    downloadCsvFile,
+    getCsvText,
     type CsvColumnSeparator,
     type CsvFilteredSorted,
   } from "./exportCsv";
@@ -174,26 +175,15 @@
     Object.keys(exportCsvRadioProps ?? {}) as (keyof ExportCsvRadioProps)[],
   );
 
-  function downloadCsvFile(): void {
-    exportCsvFile(
+  function downloadCsv(): void {
+    downloadCsvFile(
       gridApi,
-      exportCsvRadioProps.skipRowNumber.selectedValue,
-      exportCsvRadioProps.columnSeparator.selectedValue,
-      exportCsvRadioProps.suppressDoubleQuotes.selectedValue,
-      exportCsvRadioProps.filteredSorted.selectedValue,
-      exportCsvRadioProps.skipColumnHeaders.selectedValue,
+      exportCsvRadioProps,
       getExportFileName(exportFilePrefix, page.params, "csv"),
     );
   }
   function copyToClipboard(): void {
-    const csvData: string = exportCsvFile(
-      gridApi,
-      exportCsvRadioProps.skipRowNumber.selectedValue,
-      exportCsvRadioProps.columnSeparator.selectedValue,
-      exportCsvRadioProps.suppressDoubleQuotes.selectedValue,
-      exportCsvRadioProps.filteredSorted.selectedValue,
-      exportCsvRadioProps.skipColumnHeaders.selectedValue,
-    ) as string;
+    const csvData: string = getCsvText(gridApi, exportCsvRadioProps);
     navigator.clipboard.writeText(csvData);
     $storeNoDbSnackBar = showSnackBarAsCopied;
   }
@@ -205,7 +195,7 @@
         tooltipText: "Export",
         tooltipXPosition: "left",
         tooltipYPosition: "top",
-        onClickEventFunction: downloadCsvFile,
+        onClickEventFunction: downloadCsv,
       },
       {
         iconName: "contentCopy",
