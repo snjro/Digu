@@ -161,7 +161,9 @@ function waitForSyncLockRelease(chainName: ChainName): void {
 // Call only while holding the sync lock of the chain.
 async function resetSyncStatusInChain(chainName: ChainName): Promise<void> {
   const targetChain: Chain = getTargetChain({ chainName: chainName });
-  await initializeDBSyncStatusInChain(targetChain);
+  // The Worker counted the records at startup, and the syncing tab keeps the
+  // counts in the DB up to date.
+  await initializeDBSyncStatusInChain(targetChain, false);
 
   // Reload the whole records, including fetchedBlockNumber.
   const promises: Promise<void>[] = [];

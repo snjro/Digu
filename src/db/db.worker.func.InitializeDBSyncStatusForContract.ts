@@ -5,21 +5,25 @@ import { getEventLogTableName } from "@utils/utlisDb";
 import { getEventLogTableRecordCount } from "./dbEventLogsDataHandlersEventLog";
 import type { DbEventLogs } from "./dbEventLogs";
 
+// With `recount`, the record counts are counted from the event log tables.
+// Without it, the counts in the DB are kept: they are added in the same
+// transaction as the logs, so only the startup recounts them.
 export async function initializeDBSyncStatusForContract(
   dbEventLogs: DbEventLogs,
   targetContract: Contract,
+  recount: boolean,
 ): Promise<void> {
-  const syncStatusesEvent: SyncStatusesEvent = await getSyncStatusesEvent(
-    dbEventLogs,
-    targetContract,
-  );
-
   const newSyncStatusContract: Partial<SyncStatusContract> = {
     isAbort: false,
     isSyncing: false,
     creationBlockNumber: targetContract.creation.blockNumber,
-    events: syncStatusesEvent,
   };
+  if (recount) {
+    newSyncStatusContract.events = await getSyncStatusesEvent(
+      dbEventLogs,
+      targetContract,
+    );
+  }
 
   await updateDbRecordSyncStatus(
     dbEventLogs,

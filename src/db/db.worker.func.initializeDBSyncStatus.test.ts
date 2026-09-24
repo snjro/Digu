@@ -19,7 +19,11 @@ const spyInitializeDBSyncStatusForContract = vi.spyOn(
   "initializeDBSyncStatusForContract",
 );
 
-type CalledArgs = { versionIdentifier: VersionIdentifier; contract: Contract };
+type CalledArgs = {
+  versionIdentifier: VersionIdentifier;
+  contract: Contract;
+  recount: boolean;
+};
 
 function expectedArgs(targetChains: Chain[]): CalledArgs[] {
   const args: CalledArgs[] = [];
@@ -32,7 +36,8 @@ function expectedArgs(targetChains: Chain[]): CalledArgs[] {
           versionName: targetVersion.name,
         };
         for (const contract of extractEventContracts(targetVersion.contracts)) {
-          args.push({ versionIdentifier, contract });
+          // The startup is the only place that recounts the records.
+          args.push({ versionIdentifier, contract, recount: true });
         }
       }
     }
@@ -44,12 +49,13 @@ function expectedArgs(targetChains: Chain[]): CalledArgs[] {
 function calledArgs(): CalledArgs[] {
   const mockedDbEventLogs = vi.mocked(DbEventLogs).mock;
   return spyInitializeDBSyncStatusForContract.mock.calls.map(
-    ([dbEventLogs, contract]) => ({
+    ([dbEventLogs, contract, recount]) => ({
       versionIdentifier:
         mockedDbEventLogs.calls[
           mockedDbEventLogs.instances.indexOf(dbEventLogs)
         ][0],
       contract,
+      recount,
     }),
   );
 }
