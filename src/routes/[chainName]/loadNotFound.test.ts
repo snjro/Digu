@@ -149,6 +149,11 @@ const loads: {
           "function not found: eth/Augur/version1/Augur/disputeCrowdsourcerCreated/0x00000000",
       },
       {
+        params: { ...validParams, functionName: "disputeCrowdsourcerCreated" },
+        message:
+          "function not found: eth/Augur/version1/Augur/disputeCrowdsourcerCreated/",
+      },
+      {
         params: { ...validParams, contractName: "foo" },
         message: "contract not found: eth/Augur/version1/foo",
       },
