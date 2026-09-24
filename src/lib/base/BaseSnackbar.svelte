@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type BaseSnackbarProps = {
     visible: boolean;
     text?: string;
@@ -26,29 +26,31 @@
 
   const displayTimeInMilliseconds: number = 1000;
 
-  $: (async () => {
-    if ($storeNoDbSnackBar.visible) {
-      await setTimeout(() => {
-        $storeNoDbSnackBar = { ...storeNoDbSnackBarInitialValue };
-      }, $storeNoDbSnackBar.displayTimeInMilliseconds ?? displayTimeInMilliseconds);
-    }
-  })();
+  $effect.pre(() => {
+    (async () => {
+      if ($storeNoDbSnackBar.visible) {
+        await setTimeout(() => {
+          $storeNoDbSnackBar = { ...storeNoDbSnackBarInitialValue };
+        }, $storeNoDbSnackBar.displayTimeInMilliseconds ?? displayTimeInMilliseconds);
+      }
+    })();
+  });
 
-  let frameLineStyle: string;
-  $: frameLineStyle = classNames(
-    themeColor === "light"
-      ? classNames(
-          "shadow-md",
-          colorDefinitions[themeColor][colorSettings.snackBarBg].shadow,
-        )
-      : classNames(
-          "border",
-          colorDefinitions[themeColor][colorSettings.snackBarBg].border,
-        ),
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let frameLineStyle: string = $derived(
+    classNames(
+      themeColor === "light"
+        ? classNames(
+            "shadow-md",
+            colorDefinitions[themeColor][colorSettings.snackBarBg].shadow,
+          )
+        : classNames(
+            "border",
+            colorDefinitions[themeColor][colorSettings.snackBarBg].border,
+          ),
+    ),
   );
-
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
 
   const positionStyle: string = classNames(
     "fixed",

@@ -8,11 +8,14 @@
   import classNames from "classnames";
   import { buttonHeight, type BaseSize } from "./baseSizes";
 
-  export let size: BaseSize;
-  export let colorCategory: ColorCategory;
-  export let hidden: boolean = false;
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  interface Props {
+    size: BaseSize;
+    colorCategory: ColorCategory;
+    hidden?: boolean;
+  }
+
+  let { size, colorCategory, hidden = false }: Props = $props();
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 </script>
 
 <div

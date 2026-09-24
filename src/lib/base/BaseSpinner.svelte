@@ -9,18 +9,21 @@
   import classNames from "classnames";
   import { spinnerSize, type BaseSize } from "./baseSizes";
 
-  export let size: BaseSize;
-  export let trackColor: ColorCategory;
-  export let thumbColor: ColorCategory = "interactive";
+  interface Props {
+    size: BaseSize;
+    trackColor: ColorCategory;
+    thumbColor?: ColorCategory;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let { size, trackColor, thumbColor = "interactive" }: Props = $props();
 
-  $: bgColor = getColorFromTailwindColor(
-    colorDefinitions[themeColor][trackColor].bg,
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let bgColor = $derived(
+    getColorFromTailwindColor(colorDefinitions[themeColor][trackColor].bg),
   );
-  $: fillColor = getColorFromTailwindColor(
-    colorDefinitions[themeColor][thumbColor].fill,
+  let fillColor = $derived(
+    getColorFromTailwindColor(colorDefinitions[themeColor][thumbColor].fill),
   );
 </script>
 

@@ -7,14 +7,23 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { BaseSize } from "../baseSizes";
-  export let size: BaseSize;
-  export let colorCategoryFront: ColorCategory;
-  export let colorCategoryBg: ColorCategory;
-  export let progressRate: number = 100;
-  export let isDynamicPointer: boolean = false;
+  interface Props {
+    size: BaseSize;
+    colorCategoryFront: ColorCategory;
+    colorCategoryBg: ColorCategory;
+    progressRate?: number;
+    isDynamicPointer?: boolean;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let {
+    size,
+    colorCategoryFront,
+    colorCategoryBg,
+    progressRate = 100,
+    isDynamicPointer = false,
+  }: Props = $props();
+
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   const pointerHeights: { [key in BaseSize]: string } = {
     xs: "h-1",

@@ -15,22 +15,26 @@
   import "./baseHighlight.css";
   import { baseTextSizes } from "./baseSizes";
 
-  export let targetLanguageName: keyof typeof languages;
-  export let code: string;
+  interface Props {
+    targetLanguageName: keyof typeof languages;
+    code: string;
+  }
 
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  let { targetLanguageName, code }: Props = $props();
 
-  let highlightStyle: string;
-  $: highlightStyle =
-    themeColor === "light" ? highlightStyleLight : highlightStyleDark;
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let highlightStyle: string = $derived(
+    themeColor === "light" ? highlightStyleLight : highlightStyleDark,
+  );
 
   const languages = { json: json };
 
-  let colorBg: `bg-${string}`;
-  $: colorBg = colorDefinitions[themeColor][colorSettings.itemGroupContent].bg;
-  let colorBgValue: string;
-  $: colorBgValue = getColorFromTailwindColor(colorBg);
+  let colorBg: `bg-${string}` = $derived(
+    colorDefinitions[themeColor][colorSettings.itemGroupContent].bg,
+  );
+
+  let colorBgValue: string = $derived(getColorFromTailwindColor(colorBg));
 </script>
 
 <svelte:head>

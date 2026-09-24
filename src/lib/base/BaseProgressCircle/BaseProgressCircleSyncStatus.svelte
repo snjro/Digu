@@ -4,10 +4,19 @@
   import BaseProgressCircleSyncStatusPercentage from "./BaseProgressCircleSyncStatusPercentage.svelte";
   import BaseProgressCircleSyncStatusText from "./BaseProgressCircleSyncStatusText.svelte";
 
-  export let progressRate: number;
-  export let percentageSize: BaseSize;
-  export let syncStateTextLabelProps: SyncStateTextLabelProps | undefined;
-  export let isAnimatePulse: boolean;
+  interface Props {
+    progressRate: number;
+    percentageSize: BaseSize;
+    syncStateTextLabelProps: SyncStateTextLabelProps | undefined;
+    isAnimatePulse: boolean;
+  }
+
+  let {
+    progressRate,
+    percentageSize,
+    syncStateTextLabelProps,
+    isAnimatePulse,
+  }: Props = $props();
 </script>
 
 <BaseProgressCircleSyncStatusPercentage

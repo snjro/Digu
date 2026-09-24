@@ -4,12 +4,17 @@
   import { changeSize, type BaseSize } from "../baseSizes";
   import { getProgressRateForLabel } from "../BaseProgressBarForBlockNumber/progressRate";
 
-  export let progressRate: number;
-  export let textSize: BaseSize;
-  export let isAnimatePulse: boolean;
+  interface Props {
+    progressRate: number;
+    textSize: BaseSize;
+    isAnimatePulse: boolean;
+  }
 
-  let animatePulse: "animate-pulse" | undefined;
-  $: animatePulse = isAnimatePulse ? "animate-pulse" : undefined;
+  let { progressRate, textSize, isAnimatePulse }: Props = $props();
+
+  let animatePulse: "animate-pulse" | undefined = $derived(
+    isAnimatePulse ? "animate-pulse" : undefined,
+  );
 </script>
 
 <div

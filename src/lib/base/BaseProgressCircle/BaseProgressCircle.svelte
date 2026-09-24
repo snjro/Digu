@@ -14,19 +14,27 @@
   import BaseProgressCircleDetails from "./BaseProgressCircleDetails.svelte";
   import BaseProgressCircleSyncStatus from "./BaseProgressCircleSyncStatus.svelte";
 
-  export let startValue: number;
-  export let goalValue: number;
-  export let currentValue: number;
-  export let circleSize: BaseSize;
-  export let detailsTextSize: BaseSize = circleSize;
-  export let detailsPosition:
-    "inner" | "right" | "left" | "bottom" | "top" | "none" = "inner";
+  interface Props {
+    startValue: number;
+    goalValue: number;
+    currentValue: number;
+    circleSize: BaseSize;
+    detailsTextSize?: BaseSize;
+    detailsPosition?: "inner" | "right" | "left" | "bottom" | "top" | "none";
+    colorCategoryCircleBg?: ColorCategory;
+    syncStateTextLabelProps?: SyncStateTextLabelProps | undefined;
+  }
 
-  export let colorCategoryCircleBg: ColorCategory =
-    colorSettings.progressCircleBg;
-
-  export let syncStateTextLabelProps: SyncStateTextLabelProps | undefined =
-    undefined;
+  let {
+    startValue,
+    goalValue,
+    currentValue,
+    circleSize,
+    detailsTextSize = circleSize,
+    detailsPosition = "inner",
+    colorCategoryCircleBg = colorSettings.progressCircleBg,
+    syncStateTextLabelProps = undefined,
+  }: Props = $props();
 
   type TargetSize = {
     svgSize: number;
@@ -44,35 +52,44 @@
     "4xl": { svgSize: 450, strokeWidth: 32, gapY: "gap-y-3" },
     "5xl": { svgSize: 500, strokeWidth: 38, gapY: "gap-y-3.5" },
   };
-  let targetSize: TargetSize;
-  $: targetSize = sizes[circleSize];
-  let radiusPure: number;
-  $: radiusPure = targetSize.svgSize / 2;
-  let radiusMinusStroke: number;
-  $: radiusMinusStroke = radiusPure - targetSize.strokeWidth / 2;
-  let circumference: number;
-  $: circumference = 2 * Math.PI * radiusMinusStroke;
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
-  let progressRate: number;
-  $: progressRate = getProgressRate(startValue, goalValue, currentValue);
-  let offset: number;
-  $: offset = (circumference * (100 - progressRate)) / 100;
-  let isStopping: boolean;
-  $: isStopping = syncStateTextLabelProps?.syncStateText === "stopping";
-  let animatePulse: "animate-pulse" | undefined;
-  $: animatePulse = isStopping ? "animate-pulse" : undefined;
-  let colorCategoryCircleProgress: () => ColorCategory;
-  $: colorCategoryCircleProgress = (): ColorCategory => {
-    switch (syncStateTextLabelProps?.syncStateText) {
-      case "syncing":
-        return "success";
-      case "stopping":
-        return "secondary";
-      default:
-        return "interactive";
-    }
-  };
+  let targetSize: TargetSize = $derived(sizes[circleSize]);
+
+  let radiusPure: number = $derived(targetSize.svgSize / 2);
+
+  let radiusMinusStroke: number = $derived(
+    radiusPure - targetSize.strokeWidth / 2,
+  );
+
+  let circumference: number = $derived(2 * Math.PI * radiusMinusStroke);
+
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+
+  let progressRate: number = $derived(
+    getProgressRate(startValue, goalValue, currentValue),
+  );
+
+  let offset: number = $derived((circumference * (100 - progressRate)) / 100);
+
+  let isStopping: boolean = $derived(
+    syncStateTextLabelProps?.syncStateText === "stopping",
+  );
+
+  let animatePulse: "animate-pulse" | undefined = $derived(
+    isStopping ? "animate-pulse" : undefined,
+  );
+
+  let colorCategoryCircleProgress: () => ColorCategory = $derived(
+    (): ColorCategory => {
+      switch (syncStateTextLabelProps?.syncStateText) {
+        case "syncing":
+          return "success";
+        case "stopping":
+          return "secondary";
+        default:
+          return "interactive";
+      }
+    },
+  );
 </script>
 
 <div
