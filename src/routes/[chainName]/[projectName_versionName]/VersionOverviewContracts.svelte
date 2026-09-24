@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import type {
     Chain,
@@ -38,8 +38,8 @@
   const warnningTextSize: BaseSize = sizeSettings.itemWarnningMessage;
   const hrefFrontPart: string = $derived(
     trailingSlash === "always"
-      ? `${$page.url.pathname}${DIR_NAME_CONTRACTS}`
-      : `${$page.url.pathname}/${DIR_NAME_CONTRACTS}`,
+      ? `${page.url.pathname}${DIR_NAME_CONTRACTS}`
+      : `${page.url.pathname}/${DIR_NAME_CONTRACTS}`,
   );
   const noListMessage: string = `No contracts.`;
 </script>

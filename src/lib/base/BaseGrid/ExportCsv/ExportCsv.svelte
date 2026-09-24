@@ -24,7 +24,7 @@
 </script>
 
 <script lang="ts" generics="GridRow">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
   // Named apart from the snippet PageWrapperContentFooter of PageWrapperContent.
   import PageWrapperContentFooterComponent, {
@@ -182,7 +182,7 @@
       exportCsvRadioProps.suppressDoubleQuotes.selectedValue,
       exportCsvRadioProps.filteredSorted.selectedValue,
       exportCsvRadioProps.skipColumnHeaders.selectedValue,
-      getExportFileName(exportFilePrefix, $page.params, "csv"),
+      getExportFileName(exportFilePrefix, page.params, "csv"),
     );
   }
   function copyToClipboard(): void {

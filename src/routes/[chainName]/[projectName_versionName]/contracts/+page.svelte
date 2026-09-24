@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
   import type { ProjectName, VersionName } from "@constants/chains/types";
@@ -19,7 +19,7 @@
   let { data }: Props = $props();
 
   const projectVersionName: string = $derived(
-    $page.params.projectName_versionName!,
+    page.params.projectName_versionName!,
   );
   const titleText = (): string => {
     const splitProjectVersionName: {
@@ -62,8 +62,8 @@
         data.targetProject,
         data.targetVersion,
         trailingSlash === "always"
-          ? $page.url.pathname
-          : `${$page.url.pathname}/`,
+          ? page.url.pathname
+          : `${page.url.pathname}/`,
 
         maxLengthOfConstructorInputsParams(),
       )}

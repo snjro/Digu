@@ -39,7 +39,7 @@
   generics=" TabsDefinition extends  TabsDefinitionContract|TabsDefinitionEvent|TabsDefinitionFunction"
 >
   import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import PageWrapperTitle, {
     type PageWrapperTitleProps,
   } from "$lib/PageWrapper/PageWrapperTitle.svelte";
@@ -137,7 +137,7 @@
         tabsDefinition.values.find(
           (targetTabValue: TabsDefinition["values"][number]) => {
             const href: string = convertTabValueForHref(targetTabValue);
-            return href === $page.url.hash;
+            return href === page.url.hash;
           },
         );
       if (tabsDefinition.selected === selectedTabValueFoundByUrl) {
@@ -153,7 +153,7 @@
           // Add hash to URL.
           // Because a tab is selected but that is not reflected in URL.
           goto(
-            `${$page.url.pathname}${convertTabValueForHref(
+            `${page.url.pathname}${convertTabValueForHref(
               tabsDefinition.selected,
             )}`,
           );

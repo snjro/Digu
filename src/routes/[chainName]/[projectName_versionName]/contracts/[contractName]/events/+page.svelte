@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
   import type { Contract } from "@constants/chains/types";
@@ -44,8 +44,8 @@
       {rows}
       paramColumnDefs={columnDefs(
         trailingSlash === "always"
-          ? $page.url.pathname
-          : `${$page.url.pathname}/`,
+          ? page.url.pathname
+          : `${page.url.pathname}/`,
         maxLengthOfEventInputsParams(),
         {
           chainName: data.targetChain.name,

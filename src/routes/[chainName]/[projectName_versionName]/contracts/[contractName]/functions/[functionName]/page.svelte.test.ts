@@ -11,10 +11,9 @@ import type {
 import Page from "./+page.svelte";
 import type { LoadFunction } from "./+page";
 
-vi.mock("$app/stores", async () => {
-  const { writable } = await import("svelte/store");
-  return { page: writable({ url: new URL("http://localhost/") }) };
-});
+vi.mock("$app/state", () => ({
+  page: { url: new URL("http://localhost/") },
+}));
 vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
 
 // The real children need the chain data, which loads ethers. ethers does not

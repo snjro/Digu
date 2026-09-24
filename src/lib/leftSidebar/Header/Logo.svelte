@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseA from "$lib/base/BaseA.svelte";
@@ -9,7 +9,7 @@
 </script>
 
 <BaseA
-  href={$page.url.hostname.includes(GITHUB_PAGES_HOST_NAME)
+  href={page.url.hostname.includes(GITHUB_PAGES_HOST_NAME)
     ? `/${PROJECT_NAME}`
     : "/"}
   text={capitalizeFirstLetter(PROJECT_NAME)}

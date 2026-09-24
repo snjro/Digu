@@ -8,7 +8,7 @@
 
 <script lang="ts">
   import { base } from "$app/paths";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import {
     TAB_VALUES_CONTRACT,
     TAB_VALUES_EVENT,
@@ -73,8 +73,8 @@
     // remove trailing slash
     const pathName: string =
       trailingSlash === "always"
-        ? $page.url.pathname.slice(0, -1)
-        : $page.url.pathname;
+        ? page.url.pathname.slice(0, -1)
+        : page.url.pathname;
 
     const pathNames: string[] = pathName.split("/");
 
@@ -111,7 +111,7 @@
 </script>
 
 <nav
-  class={classNames("mt-0.5", "mb-1", $page.status !== 200 && "hidden", "")}
+  class={classNames("mt-0.5", "mb-1", page.status !== 200 && "hidden", "")}
   aria-label="Breadcrumb"
 >
   <ol

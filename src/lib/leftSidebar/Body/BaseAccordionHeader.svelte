@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
@@ -87,10 +87,10 @@
     }
   });
   let isSelected = $derived(
-    isSelectedDirectory(hrefWithoutUrlHash, $page.url.pathname),
+    isSelectedDirectory(hrefWithoutUrlHash, page.url.pathname),
   );
   let isParentDirectory = $derived(
-    isHrefParentOfPathname(hrefWithoutUrlHash, $page.url.pathname),
+    isHrefParentOfPathname(hrefWithoutUrlHash, page.url.pathname),
   );
 
   let bgColor = $derived(
