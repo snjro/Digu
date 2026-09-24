@@ -1,30 +1,43 @@
 <script lang="ts">
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { ThemeColor } from "@db/dbTypes";
+  import type { Snippet } from "svelte";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import { baseTextSizes, type BaseSize } from "./baseSizes";
 
-  export let label: string | undefined;
-  export let size: BaseSize;
-  export let underlineLabel: boolean;
-  export let designatedFontWeight:
-    | "font-thin"
-    | "font-extralight"
-    | "font-light"
-    | "font-normal"
-    | "font-medium"
-    | "font-semibold"
-    | "font-bold"
-    | "font-extrabold"
-    | "font-black"
-    | undefined;
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
+  interface Props {
+    label: string | undefined;
+    size: BaseSize;
+    underlineLabel: boolean;
+    designatedFontWeight:
+      | "font-thin"
+      | "font-extralight"
+      | "font-light"
+      | "font-normal"
+      | "font-medium"
+      | "font-semibold"
+      | "font-bold"
+      | "font-extrabold"
+      | "font-black"
+      | undefined;
+    prefixIcon?: Snippet;
+    suffixIcon?: Snippet;
+  }
+
+  let {
+    label,
+    size,
+    underlineLabel,
+    designatedFontWeight,
+    prefixIcon,
+    suffixIcon,
+  }: Props = $props();
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 </script>
 
-{#if $$slots.prefixIcon}
-  <slot name="prefixIcon" />
+{#if prefixIcon}
+  {@render prefixIcon?.()}
 {/if}
 {#if label}
   <div
@@ -48,6 +61,6 @@
     </span>
   </div>
 {/if}
-{#if $$slots.suffixIcon}
-  <slot name="suffixIcon" />
+{#if suffixIcon}
+  {@render suffixIcon?.()}
 {/if}

@@ -30,7 +30,7 @@
   label="View"
   noPadding
   shadowEffect={false}
-  prefixIcon
+  isPrefixIcon
   popupEffect={false}
   colorCategoryFront={"interactive"}
   onclick={showDialog}

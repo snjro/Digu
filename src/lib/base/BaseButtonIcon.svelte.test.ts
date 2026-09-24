@@ -29,7 +29,7 @@ describe("BaseButtonIcon.svelte", () => {
     expect(onclick.mock.calls[0][0]).toBeInstanceOf(MouseEvent);
   });
 
-  test("puts the icon before or after the label by prefixIcon", () => {
+  test("puts the icon before or after the label by isPrefixIcon", () => {
     const before = render(BaseButtonIcon, {
       iconName: "close",
       size: "md",
@@ -46,7 +46,7 @@ describe("BaseButtonIcon.svelte", () => {
       iconName: "close",
       size: "md",
       label: "Close",
-      prefixIcon: false,
+      isPrefixIcon: false,
     });
     expect(
       after

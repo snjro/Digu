@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type BaseAProps = {
     href: string | undefined;
     text?: string;
@@ -31,6 +31,7 @@
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { ThemeColor } from "@db/dbTypes";
+  import type { Snippet } from "svelte";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { NO_DATA } from "@utils/utilsCostants";
   import classNames from "classnames";
@@ -39,87 +40,103 @@
   import BaseIcon from "./BaseIcon.svelte";
   import type { BaseSize } from "./baseSizes";
   import { baseTextSizes } from "./baseSizes";
-  export let href: BaseAProps["href"];
-  export let text: BaseAProps["text"] = undefined;
-  export let colorCategory: BaseAProps["colorCategory"] = undefined;
-  export let textSize: BaseSize = "md";
-  export let forcedClass: BaseAProps["forcedClass"] = undefined;
-  export let appendClass: BaseAProps["appendClass"] = undefined;
-  export let prefixIcon: BaseAProps["prefixIcon"] = undefined;
-  export let suffixIcon: BaseAProps["suffixIcon"] = undefined;
-  export let disabled: NonNullable<BaseAProps["disabled"]> = false;
-  export let openNewTab: NonNullable<BaseAProps["openNewTab"]> = true;
-  export let isFontMono: boolean = false;
-  export let isHoverControledByParent: NonNullable<
-    BaseAProps["isHoverControledByParent"]
-  > = false;
-  export let hoverEffect: NonNullable<BaseAProps["hoverEffect"]> = true;
-  export let truncate: NonNullable<BaseAProps["truncate"]> = true;
-  let isHover = false;
+  interface Props {
+    href: BaseAProps["href"];
+    text?: BaseAProps["text"];
+    colorCategory?: BaseAProps["colorCategory"];
+    textSize?: BaseSize;
+    forcedClass?: BaseAProps["forcedClass"];
+    appendClass?: BaseAProps["appendClass"];
+    prefixIcon?: BaseAProps["prefixIcon"];
+    suffixIcon?: BaseAProps["suffixIcon"];
+    disabled?: NonNullable<BaseAProps["disabled"]>;
+    openNewTab?: NonNullable<BaseAProps["openNewTab"]>;
+    isFontMono?: boolean;
+    isHoverControledByParent?: NonNullable<
+      BaseAProps["isHoverControledByParent"]
+    >;
+    hoverEffect?: NonNullable<BaseAProps["hoverEffect"]>;
+    truncate?: NonNullable<BaseAProps["truncate"]>;
+    anchorContent?: Snippet;
+  }
+
+  let {
+    href,
+    text = undefined,
+    colorCategory = undefined,
+    textSize = "md",
+    forcedClass = undefined,
+    appendClass = undefined,
+    prefixIcon = undefined,
+    suffixIcon = undefined,
+    disabled = false,
+    openNewTab = true,
+    isFontMono = false,
+    isHoverControledByParent = false,
+    hoverEffect = true,
+    truncate = true,
+    anchorContent,
+  }: Props = $props();
+  let isHover = $state(false);
   function onMouseEnter() {
     if (!isHoverControledByParent) isHover = true;
   }
   function onMouseLeave() {
     if (!isHoverControledByParent) isHover = false;
   }
-  $: editIconProps = (
+  // Returns a new object, so that the props of the parent are not changed.
+  const editIconProps = (
     iconProps: BaseIconProps | undefined,
   ): BaseIconProps | undefined => {
-    if (iconProps) {
-      iconProps.isHover = isHover;
-      if (!iconProps.size) {
-        iconProps.size = textSize;
-      }
-      if (!iconProps.colorCategory) {
-        iconProps.colorCategory = colorCategory ?? "interactive";
-      }
-    }
-    return iconProps;
+    if (!iconProps) return undefined;
+    return {
+      ...iconProps,
+      isHover,
+      size: iconProps.size || textSize,
+      colorCategory:
+        iconProps.colorCategory || (colorCategory ?? "interactive"),
+    };
   };
-  if (!text) {
-    text = href;
-  }
-  $: editedPrefixIcon = editIconProps(prefixIcon);
-  $: editedSuffixIcon = editIconProps(suffixIcon);
-  let themeColor: ThemeColor;
-  $: themeColor = $storeUserSettings.themeColor;
-  let customClass: string;
-  $: customClass =
+  const displayText: string | undefined = $derived(text || href);
+  let editedPrefixIcon = $derived(editIconProps(prefixIcon));
+  let editedSuffixIcon = $derived(editIconProps(suffixIcon));
+  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
+  let customClass: string = $derived(
     forcedClass ??
-    twMerge(
-      "flex",
-      "items-center",
-      "space-x-1",
-      "cursor-pointer",
-      "max-w-fit",
-      "overflow-x-hidden",
-      "whitespace-nowrap",
-      // "w-fit",
-      hoverEffect && "hover:underline",
-      baseTextSizes[textSize],
-      colorDefinitions[themeColor][colorCategory ?? "interactive"].text,
-      disabled && "disabled:opacity-75",
-      disabled && "pointer-events: none",
-      isFontMono && "font-mono",
-      appendClass,
-    );
+      twMerge(
+        "flex",
+        "items-center",
+        "space-x-1",
+        "cursor-pointer",
+        "max-w-fit",
+        "overflow-x-hidden",
+        "whitespace-nowrap",
+        // "w-fit",
+        hoverEffect && "hover:underline",
+        baseTextSizes[textSize],
+        colorDefinitions[themeColor][colorCategory ?? "interactive"].text,
+        disabled && "disabled:opacity-75",
+        disabled && "pointer-events: none",
+        isFontMono && "font-mono",
+        appendClass,
+      ),
+  );
 </script>
 
 <a
   href={href ?? NO_DATA}
   class={customClass}
   {...setPropsByOpenNewTab(openNewTab)}
-  on:click
-  on:mouseenter={onMouseEnter}
-  on:mouseleave={onMouseLeave}
+  onmouseenter={onMouseEnter}
+  onmouseleave={onMouseLeave}
 >
   {#if editedPrefixIcon}
     <BaseIcon {...editedPrefixIcon} />
   {/if}
-  {#if $$slots.anchorContent}
-    <slot name="anchorContent" />
+  {#if anchorContent}
+    {@render anchorContent?.()}
   {:else}
-    <p class={classNames(truncate && "truncate")}>{text ?? NO_DATA}</p>
+    <p class={classNames(truncate && "truncate")}>{displayText ?? NO_DATA}</p>
   {/if}
   {#if editedSuffixIcon}
     <BaseIcon {...editedSuffixIcon} />
