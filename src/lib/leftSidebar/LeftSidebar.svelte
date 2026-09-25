@@ -3,6 +3,7 @@
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { zIndex } from "$lib/appearanceConfig/zIndex";
+  import { updateDbItemUserSettings } from "@db/dbSettings";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
@@ -47,12 +48,13 @@
       classNames("absolute top-0", "left-0"),
     zIndex.leftSidebar,
   )}
-  onclick_outside={() => {
+  onclick_outside={async () => {
     if (
       $storeNoDbCurrentWidth <= breakPointWidths.sm &&
       $storeUserSettings.isOpenSidebar
     ) {
       $storeUserSettings.isOpenSidebar = false;
+      await updateDbItemUserSettings("isOpenSidebar", false);
     }
   }}
 >
