@@ -34,7 +34,12 @@ vi.mock("@stores/storeRpcSettings", async () => {
 vi.mock("@utils/utilsDb", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
-    chainExplorers: [{ url: "https://explorer.example" }],
+    chainExplorers: [
+      {
+        url: "https://explorer.example",
+        subdirectory: { address: "address", tx: "tx", block: "block" },
+      },
+    ],
   }),
 }));
 
