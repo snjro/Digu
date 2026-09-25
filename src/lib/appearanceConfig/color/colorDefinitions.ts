@@ -1,23 +1,16 @@
 import type { ThemeColor } from "@db/dbTypes";
-import colors from "tailwindcss/colors";
 import { colorDefinitionsDark } from "./colorDefinitionsDark";
 import { colorDefinitionsLight } from "./colorDefinitionsLight";
 
-type DefaultColors = typeof colors;
-
+/** The classes of colorClasses. */
 export type ColorDefinitionForParts = {
   text: `text-${string}`;
-  textOpacity: `text-${string}/${number}`;
   textEmphasis: `text-${string}`;
-  textHover: `hover:text-${string}`;
   textPlaceholder: `placeholder:text-${string}`;
   fill: `fill-${string}`;
   fillEmphasis: `fill-${string}`;
-  fillOpacity: `fill-${string}/${number}`;
-  fillHover: `hover:fill-${string}`;
   bg: `bg-${string}`;
   bgEmphasis: `bg-${string}`;
-  bgOpacity: `bg-${string}/${number}`;
   bgHover: `hover:bg-${string}`;
   shadow: `shadow-${string}`;
   border: `border-${string}`;
@@ -31,23 +24,16 @@ export type ColorCategory =
 export type ColorDefinitionCategories = {
   [key in ColorCategory]: ColorDefinitionForParts;
 };
+/** The Tailwind color of each part, such as "stone-100". */
+export type ColorNameCategories = {
+  [key in ColorCategory]: {
+    [key in keyof ColorDefinitionForParts]: `${string}-${number}`;
+  };
+};
 type ColorDefinitions = {
-  [key in ThemeColor]: ColorDefinitionCategories;
+  [key in ThemeColor]: ColorNameCategories;
 };
 export const colorDefinitions: ColorDefinitions = {
   light: colorDefinitionsLight,
   dark: colorDefinitionsDark,
 };
-export function getColorFromTailwindColor(
-  tailWindColorClass: ColorDefinitionForParts[keyof ColorDefinitionForParts],
-): string {
-  const splitTailwindColorClass: string[] = tailWindColorClass.split("-");
-  const colorName: keyof DefaultColors =
-    splitTailwindColorClass[1] as keyof DefaultColors;
-  const colorDepth =
-    splitTailwindColorClass[2] as keyof DefaultColors[typeof colorName];
-  const color = colors[colorName][
-    colorDepth
-  ] as DefaultColors[typeof colorName][typeof colorDepth];
-  return color;
-}

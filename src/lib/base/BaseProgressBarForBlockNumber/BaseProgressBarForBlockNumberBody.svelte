@@ -2,17 +2,12 @@
   import {
     colorClasses,
     colorVar,
+    dotsImageVar,
   } from "$lib/appearanceConfig/color/colorVariables";
-  import {
-    colorDefinitions,
-    getColorFromTailwindColor,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { baseTextHeight, type BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
 
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   // import BaseLabel from "./BaseLabel.svelte";
   import BaseProgressBarForBlockNumberBodyBar from "./BaseProgressBarForBlockNumberBodyBar.svelte";
   interface Props {
@@ -51,19 +46,10 @@
     "5xl": "rounded-3xl",
   };
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
-  // The dots are an SVG image, which cannot read the CSS variables of the page.
-  let colorValue = $derived(
-    getColorFromTailwindColor(
-      colorDefinitions[themeColor][colorCategoryProgress].bg,
-    ),
-  );
   let color = $derived(colorVar(colorCategoryProgress, "bg"));
 
   let backgroundImage = $derived((): string => {
-    const url = `'data:image/svg+xml;charset=UTF-8, <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 24 24"><path fill="${encodeURIComponent(colorValue)}" d="M12,10A2,2 0 0,0 10,12C10,13.11 10.9,14 12,14C13.11,14 14,13.11 14,12A2,2 0 0,0 12,10Z" /></svg>'`;
-    return `background-image: url(${url});`;
+    return `background-image: ${dotsImageVar(colorCategoryProgress)};`;
   });
   let progressColor = $derived((): string => {
     return `width: 100%; background: linear-gradient(to right, ${color} ${progressRate}%, transparent ${progressRate}%)`;
