@@ -5,6 +5,8 @@ export function isInRpcConfigRange(
   newValue: number,
 ): boolean {
   return (
-    rpcConfigParam.minValue <= newValue && newValue <= rpcConfigParam.maxValue
+    Number.isInteger(newValue) &&
+    rpcConfigParam.minValue <= newValue &&
+    newValue <= rpcConfigParam.maxValue
   );
 }

@@ -15,6 +15,7 @@ describe("isInRpcConfigRange", () => {
     [0, false],
     [0.5, false],
     [1, true],
+    [1.5, false],
     [5, true],
     [10, true],
     [10.5, false],

@@ -29,19 +29,19 @@
       baseInputElement?.setValue(value);
     }
   });
+  // Number("") is 0, so read an empty input as NaN.
+  function toNumber(text: string | number): number {
+    return String(text).trim() === "" ? NaN : Number(text);
+  }
   async function change(event: Event): Promise<void> {
-    const newValue: number = parseInt((event.target as HTMLInputElement).value);
+    const newValue: number = toNumber((event.target as HTMLInputElement).value);
     onchange?.(newValue);
   }
   async function focus(event: Event): Promise<void> {
-    const newValue: number = parseInt((event.target as HTMLInputElement).value);
-    if (newValue !== value) {
+    const newValue: number = toNumber((event.target as HTMLInputElement).value);
+    // BaseInput sets value to the typed string. Object.is treats NaN as NaN.
+    if (!Object.is(newValue, toNumber(value))) {
       change(event);
-    }
-  }
-  function blur(): void {
-    if (helperTextState !== "error") {
-      helperTextState = undefined;
     }
   }
 </script>
@@ -58,7 +58,6 @@
     colorCategory={colorSettings.navSettings}
     onchange={change}
     onfocus={focus}
-    onblur={blur}
     ariaLabel={rpcConfigParam.label}
   />
 </div>
