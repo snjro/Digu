@@ -11,7 +11,6 @@ import Dexie from "dexie";
 import type { Chain } from "@constants/chains/types";
 import type { BlockTime } from "./dbTypes";
 import {
-  getDbItemBlockTime,
   getDbRecordBlockTime,
   setDbBlockTime,
 } from "./dbBlockTimesDataHandlers";
@@ -75,32 +74,5 @@ describe("getDbRecordBlockTime", () => {
     );
     expect(spyTableGet).toBeCalledWith(dummyBlockNumber);
     expect(result).toEqual(dummyBlockTime);
-  });
-});
-describe("getDbItemBlockTime", () => {
-  for (const key of Object.keys(dummyBlockTime)) {
-    const definedKey: keyof BlockTime = key as keyof BlockTime;
-    test(`should return correct item "${definedKey}"`, async () => {
-      spyDbBlockTimeTransaction.mockImplementationOnce(() => {
-        return dummyBlockTime;
-      });
-      const result = await getDbItemBlockTime(
-        dummyChainName,
-        dummyBlockNumber,
-        definedKey,
-      );
-      expect(result).toBe(dummyBlockTime[definedKey]);
-    });
-  }
-  test("should return undefined when getDbRecordBlocktime returns undefined", async () => {
-    spyDbBlockTimeTransaction.mockImplementationOnce(() => {
-      return undefined;
-    });
-    const result = await getDbItemBlockTime(
-      dummyChainName,
-      dummyBlockNumber,
-      "blockNumber",
-    );
-    expect(result).toBeUndefined();
   });
 });

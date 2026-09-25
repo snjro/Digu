@@ -42,10 +42,6 @@ export function convertJsonFilesContractToContracts(
         .map((eventAbiFragment: EventAbiFragment) => {
           return eventAbiFragment.name;
         });
-      const functionNames: FunctionAbiFragment["name"][] =
-        functionAbiFragments.map((functionAbiFragment: FunctionAbiFragment) => {
-          return functionAbiFragment.name;
-        });
 
       const baseContract: BaseContract = {
         name: jsonFileContract.name,
@@ -54,7 +50,6 @@ export function convertJsonFilesContractToContracts(
         sourceCodeUrl: jsonFileContract.sourceCodeUrl,
       };
       const additionalContract: AdditionalContract = {
-        jsonFileAbi: jsonFileContract.abi,
         contractInterface: contractInterface,
         events: {
           abiFragments: eventAbiFragments,
@@ -62,7 +57,6 @@ export function convertJsonFilesContractToContracts(
         },
         functions: {
           abiFragments: functionAbiFragments,
-          names: functionNames,
         },
         construction: { abiFragment: constructorAbiFragment },
         fallback: {

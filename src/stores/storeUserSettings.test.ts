@@ -6,7 +6,6 @@ import type { UserSetting } from "@db/dbTypes";
 const expectedInitialUserSettings: UserSetting = {
   userSettingsId: "userSetting01",
   themeColor: "light",
-  devMode: false,
   selectedChainName: "eth",
   isOpenSidebar: true,
 };
@@ -33,7 +32,6 @@ describe("storeUserSettings", () => {
     const userSetting: UserSetting = {
       userSettingsId: "userSetting01",
       themeColor: "dark",
-      devMode: true,
       selectedChainName: "matic",
       isOpenSidebar: false,
     };
@@ -45,14 +43,13 @@ describe("storeUserSettings", () => {
   test("should update state with the value passed", async () => {
     const storeUserSettings = await importStoreUserSettings();
     // set test data to the store by using `updateState`
-    storeUserSettings.updateState({ themeColor: "dark", devMode: true });
+    storeUserSettings.updateState({ themeColor: "dark" });
 
     const currenttStateUserSettings: StateUserSettings = get(storeUserSettings);
 
     expect(currenttStateUserSettings).toStrictEqual({
       ...expectedInitialUserSettings,
       themeColor: "dark",
-      devMode: true,
     });
   });
   test("should update the current value, not the initial value", async () => {
@@ -60,7 +57,6 @@ describe("storeUserSettings", () => {
     const userSetting: UserSetting = {
       userSettingsId: "userSetting01",
       themeColor: "dark",
-      devMode: true,
       selectedChainName: "matic",
       isOpenSidebar: false,
     };

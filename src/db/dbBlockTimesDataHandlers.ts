@@ -27,14 +27,3 @@ export async function getDbRecordsBlockTime(
     return await dbBlockTimes.table(chainName).bulkGet(blockNumbers);
   });
 }
-export async function getDbItemBlockTime<T extends keyof BlockTime>(
-  chainName: ChainName,
-  blockNumber: BlockTime["blockNumber"],
-  key: T,
-): Promise<BlockTime[T] | undefined> {
-  const blockTimeRecord: BlockTime | undefined = await getDbRecordBlockTime(
-    chainName,
-    blockNumber,
-  );
-  return blockTimeRecord ? blockTimeRecord[key] : undefined;
-}

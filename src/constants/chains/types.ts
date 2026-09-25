@@ -7,7 +7,6 @@ import {
   type ParamType,
   type FallbackFragment,
 } from "ethers";
-import type { JsonFileAbi } from "./jsonFileTypes";
 
 export type HexString = `0x${string}`;
 export function isHexStrings(value: unknown): value is HexString[] {
@@ -45,7 +44,6 @@ export type BaseContract = {
   readonly sourceCodeUrl?: string;
 };
 export type AdditionalContract = {
-  readonly jsonFileAbi: JsonFileAbi;
   readonly contractInterface: ContractInterface;
   readonly events: {
     readonly abiFragments: EventAbiFragment[];
@@ -53,7 +51,6 @@ export type AdditionalContract = {
   };
   readonly functions: {
     readonly abiFragments: FunctionAbiFragment[];
-    readonly names: FunctionAbiFragment["name"][];
   };
   readonly construction: {
     readonly abiFragment: ConstructorAbiFragment;

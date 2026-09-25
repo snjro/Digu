@@ -67,14 +67,12 @@ export type ThemeColor = "dark" | "light";
 export type UserSetting = {
   userSettingsId: "userSetting01";
   themeColor: ThemeColor;
-  devMode: boolean;
   selectedChainName: ChainName;
   isOpenSidebar: boolean;
 };
 export const initialDataUserSettings: UserSetting = {
   userSettingsId: "userSetting01",
   themeColor: "light",
-  devMode: false,
   selectedChainName: "eth",
   isOpenSidebar: true,
 };
