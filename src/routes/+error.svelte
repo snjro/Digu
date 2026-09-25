@@ -1,18 +1,12 @@
 <script lang="ts">
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { page } from "$app/state";
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import BaseButton from "$lib/base/BaseButton.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import { GITHUB_PAGES_HOST_NAME, PROJECT_NAME } from "@utils/utilsConstants";
   import classNames from "classnames";
-
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   const colorCategory: ColorCategory = colorSettings.errorPage;
   const errorDetails: { title: string; value: string | undefined }[] = [
@@ -29,7 +23,7 @@
     "items-start",
     "space-y-3",
     "pt-3",
-    colorDefinitions[themeColor][colorCategory].bg,
+    colorClasses[colorCategory].bg,
     "",
   )}
 >
@@ -47,7 +41,7 @@
       "flex",
       "flex-col",
       "border-y",
-      colorDefinitions[themeColor][colorCategory].border,
+      colorClasses[colorCategory].border,
       "pl-3",
       "",
     )}

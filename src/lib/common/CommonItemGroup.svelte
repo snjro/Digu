@@ -1,10 +1,8 @@
 <script lang="ts">
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseLabel, { type BaseLabelProps } from "$lib/base/BaseLabel.svelte";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
 
@@ -15,15 +13,13 @@
   }
 
   let { text = undefined, gridTrack, children }: Props = $props();
-
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 </script>
 
 <div
   class={classNames(
     "flex",
     "flex-col",
-    colorDefinitions[themeColor][colorSettings.itemGroupContent].bg,
+    colorClasses[colorSettings.itemGroupContent].bg,
     "w-full",
     "h-full",
     "rounded-sm",
