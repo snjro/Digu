@@ -1,41 +1,22 @@
-import {
-  getColorFromTailwindColor,
-  type ColorCategory,
-  colorDefinitions,
-} from "$lib/appearanceConfig/color/colorDefinitions";
-import type { ThemeColor } from "@db/dbTypes";
+import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorVar } from "$lib/appearanceConfig/color/colorVariables";
 export function getColorDefinitionsForGrid(
-  themeColor: ThemeColor,
   colorCategoryGridHeader: ColorCategory,
   colorCategoryGridRow: ColorCategory,
 ) {
   const colorDef = {
     frame: {
-      border: getColorFromTailwindColor(
-        colorDefinitions[themeColor][colorCategoryGridHeader].border,
-      ),
+      border: colorVar(colorCategoryGridHeader, "border"),
     },
     header: {
-      text: getColorFromTailwindColor(
-        colorDefinitions[themeColor][colorCategoryGridHeader].text,
-      ),
-      bg: getColorFromTailwindColor(
-        colorDefinitions[themeColor][colorCategoryGridHeader].bg,
-      ),
+      text: colorVar(colorCategoryGridHeader, "text"),
+      bg: colorVar(colorCategoryGridHeader, "bg"),
     },
     row: {
-      text: getColorFromTailwindColor(
-        colorDefinitions[themeColor][colorCategoryGridRow].text,
-      ),
-      bg: getColorFromTailwindColor(
-        colorDefinitions[themeColor][colorCategoryGridRow].bg,
-      ),
-      border: getColorFromTailwindColor(
-        colorDefinitions[themeColor][colorCategoryGridRow].border,
-      ),
-      hover: getColorFromTailwindColor(
-        colorDefinitions[themeColor][colorCategoryGridRow].bgHover,
-      ),
+      text: colorVar(colorCategoryGridRow, "text"),
+      bg: colorVar(colorCategoryGridRow, "bg"),
+      border: colorVar(colorCategoryGridRow, "border"),
+      hover: colorVar(colorCategoryGridRow, "bgHover"),
     },
   };
   return colorDef;

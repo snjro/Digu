@@ -1,13 +1,8 @@
 <script lang="ts">
-  import {
-    colorDefinitions,
-    getColorFromTailwindColor,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { colorVar } from "$lib/appearanceConfig/color/colorVariables";
   import type { SyncStateTextLabelProps } from "$lib/common/CommonSyncStateText.svelte";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import { getProgressRate } from "../BaseProgressBarForBlockNumber/progressRate";
   import { changeSize, type BaseSize } from "../baseSizes";
@@ -61,8 +56,6 @@
   );
 
   let circumference: number = $derived(2 * Math.PI * radiusMinusStroke);
-
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   let progressRate: number = $derived(
     getProgressRate(startValue, goalValue, currentValue),
@@ -121,9 +114,7 @@
       cx={radiusPure}
       cy={radiusPure}
       fill="transparent"
-      stroke={getColorFromTailwindColor(
-        colorDefinitions[themeColor][colorCategoryCircleBg].bg,
-      )}
+      style:stroke={colorVar(colorCategoryCircleBg, "bg")}
       stroke-width={targetSize.strokeWidth}
       class={classNames(animatePulse)}
     />
@@ -132,9 +123,7 @@
       cx={radiusPure}
       cy={radiusPure}
       fill="transparent"
-      stroke={getColorFromTailwindColor(
-        colorDefinitions[themeColor][colorCategoryCircleProgress()].bg,
-      )}
+      style:stroke={colorVar(colorCategoryCircleProgress(), "bg")}
       stroke-width={targetSize.strokeWidth}
       stroke-dasharray={`${circumference}px`}
       stroke-dashoffset={`${offset}px`}
