@@ -36,6 +36,16 @@ jobs:
         with:
           node-version: 24
 
+      # The app shows the version in package.json, not the tag.
+      - name: Check the tag against the version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          version=$(jq -r .version package.json)
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error file=package.json::The tag ($GITHUB_REF_NAME) differs from v + the version in package.json (v$version)"
+            exit 1
+          fi
+
       - name: build
         run: npm ci && npm run build
 
@@ -67,6 +77,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
+
+      # The app shows the version in package.json, not the tag.
+      - name: Check the tag against the version
+        run: |
+          version=$(jq -r .version package.json)
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error file=package.json::The tag ($GITHUB_REF_NAME) differs from v + the version in package.json (v$version)"
+            exit 1
+          fi
 
       - name: build
         run: npm ci && npm run build
