@@ -3,6 +3,7 @@ import { describe, expect, test } from "vitest";
 import type { AbiFormatType } from "@utils/utilsEthers";
 import {
   formatTargetAbi,
+  getAbiExportTooltipText,
   getAbiFileExtention,
   getAbiText,
   isTargetContractInterface,
@@ -120,6 +121,18 @@ describe("getAbiFileExtention", () => {
     "returns txt for the human readable format %s",
     (abiFormat) => {
       expect(getAbiFileExtention(abiFormat)).toBe("txt");
+    },
+  );
+});
+
+describe("getAbiExportTooltipText", () => {
+  test("returns Export as JSON for the JSON format", () => {
+    expect(getAbiExportTooltipText("json")).toBe("Export as JSON");
+  });
+  test.each<AbiFormatType>(["full", "minimal"])(
+    "returns Export as text for the human readable format %s",
+    (abiFormat) => {
+      expect(getAbiExportTooltipText(abiFormat)).toBe("Export as text");
     },
   );
 });

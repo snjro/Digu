@@ -40,6 +40,12 @@ export function getAbiFileExtention(abiFormat: AbiFormatType): "json" | "txt" {
   return abiFormat === "json" ? "json" : "txt";
 }
 
+export function getAbiExportTooltipText(abiFormat: AbiFormatType): string {
+  return getAbiFileExtention(abiFormat) === "json"
+    ? "Export as JSON"
+    : "Export as text";
+}
+
 export function getAbiText(
   targetAbi: TargetAbi,
   abiFormat: AbiFormatType,

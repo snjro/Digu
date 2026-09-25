@@ -13,7 +13,12 @@
   import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import type { AbiFormatType } from "@utils/utilsEthers";
-  import { getAbiFileExtention, getAbiText, type TargetAbi } from "./abiText";
+  import {
+    getAbiExportTooltipText,
+    getAbiFileExtention,
+    getAbiText,
+    type TargetAbi,
+  } from "./abiText";
 
   interface Props {
     targetAbi: TargetAbi;
@@ -90,7 +95,7 @@
         },
         {
           iconName: "download",
-          tooltipText: "Export as JSON",
+          tooltipText: getAbiExportTooltipText(abiFormat),
           tooltipXPosition: "left",
           tooltipYPosition: "top",
           onClickEventFunction: () =>
