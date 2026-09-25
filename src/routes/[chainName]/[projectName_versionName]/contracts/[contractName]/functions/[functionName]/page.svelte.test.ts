@@ -13,6 +13,7 @@ import type { LoadFunction } from "./+page";
 
 vi.mock("$app/state", () => ({
   page: { url: new URL("http://localhost/") },
+  navigating: { type: null },
 }));
 vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
 

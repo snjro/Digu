@@ -62,6 +62,15 @@
   onNavigate((navigation: OnNavigate) => {
     const documentAsAny: any = document; // eslint-disable-line @typescript-eslint/no-explicit-any
     if (!documentAsAny.startViewTransition) return;
+    // Adding the tab hash (PageWrapper) does not change the screen,
+    // and a new view transition would skip the one of the page change.
+    const { from, to } = navigation;
+    if (
+      from?.url.hash === "" &&
+      from.url.pathname === to?.url.pathname &&
+      from.url.search === to.url.search
+    )
+      return;
 
     return new Promise((resolve) => {
       documentAsAny.startViewTransition(async () => {

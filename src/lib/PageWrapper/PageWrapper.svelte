@@ -3,7 +3,7 @@
   generics=" TabsDefinition extends  TabsDefinitionContract|TabsDefinitionEvent|TabsDefinitionFunction"
 >
   import { goto } from "$app/navigation";
-  import { page } from "$app/state";
+  import { navigating, page } from "$app/state";
   import PageWrapperTitle, {
     type PageWrapperTitleProps,
   } from "$lib/PageWrapper/PageWrapperTitle.svelte";
@@ -118,13 +118,15 @@
           // considering the case where the page is accessed by typing the URL directly,
           // URL hash is used as selected value here.
           tabsDefinition.selected = selectedTabValueFoundByUrl;
-        } else {
+        } else if (!navigating.type) {
           // Add hash to URL.
           // Because a tab is selected but that is not reflected in URL.
+          // Wait until the current navigation ends, because goto aborts it.
           goto(
             `${page.url.pathname}${convertTabValueForHref(
               tabsDefinition.selected,
             )}`,
+            { replaceState: true },
           );
         }
       }
