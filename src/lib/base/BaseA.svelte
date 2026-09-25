@@ -13,6 +13,7 @@
     openNewTab?: boolean;
     hoverEffect?: boolean;
     truncate?: boolean;
+    ariaLabel?: string;
   };
   export const setPropsByOpenNewTab = (
     openNewTab: boolean,
@@ -57,6 +58,7 @@
     >;
     hoverEffect?: NonNullable<BaseAProps["hoverEffect"]>;
     truncate?: NonNullable<BaseAProps["truncate"]>;
+    ariaLabel?: BaseAProps["ariaLabel"];
     anchorContent?: Snippet;
   }
 
@@ -75,6 +77,7 @@
     isHoverControledByParent = false,
     hoverEffect = true,
     truncate = true,
+    ariaLabel = undefined,
     anchorContent,
   }: Props = $props();
   let isHover = $state(false);
@@ -126,6 +129,7 @@
 <a
   href={href ?? NO_DATA}
   class={customClass}
+  aria-label={ariaLabel}
   {...setPropsByOpenNewTab(openNewTab)}
   onmouseenter={onMouseEnter}
   onmouseleave={onMouseLeave}

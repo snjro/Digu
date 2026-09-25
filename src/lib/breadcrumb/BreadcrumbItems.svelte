@@ -51,6 +51,7 @@
     <BaseButtonIcon
       size={targetSize()}
       iconName={targetCrumbItem.prefixIconName}
+      ariaLabel="Home"
       colorCategoryFront={"interactive"}
       href={targetCrumbItem.href}
       shadowEffect={false}

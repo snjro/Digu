@@ -120,4 +120,13 @@ describe("BaseButtonIcon.svelte", () => {
     await rerender({ disabled: false });
     expect(screen.getByRole("button").hasAttribute("disabled")).toBe(false);
   });
+
+  test("passes ariaLabel to the button", () => {
+    render(BaseButtonIcon, {
+      iconName: "close",
+      size: "md",
+      ariaLabel: "Close",
+    });
+    expect(screen.getByRole("button", { name: "Close" })).toBeTruthy();
+  });
 });

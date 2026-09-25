@@ -9,6 +9,7 @@
 {#if !$storeUserSettings.isOpenSidebar}
   <BaseButtonIcon
     iconName="menu"
+    ariaLabel="Open sidebar"
     size={sizeSettings.navButton}
     colorCategoryFront={colorSettings.navButton}
     colorCategoryBg={colorSettings.navButton}

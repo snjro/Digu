@@ -81,6 +81,7 @@
   <BaseButtonIcon
     size={buttonSize}
     iconName="dotsVertical"
+    ariaLabel="More"
     colorCategoryBg={colorCategory}
     colorCategoryFront={colorCategory}
     onclick={toggleShowChildren}

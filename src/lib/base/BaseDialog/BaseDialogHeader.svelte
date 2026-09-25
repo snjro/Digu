@@ -66,6 +66,7 @@
   <BaseButtonIcon
     size={headerSize}
     iconName="close"
+    ariaLabel="Close"
     colorCategoryFront={headerColor}
     colorCategoryBg={headerColor}
     tooltipXPosition="left"

@@ -71,4 +71,9 @@ describe("BaseA.svelte", () => {
     expect(container.querySelector("svg#openInNew")).not.toBeNull();
     expect(container.querySelector("svg#download")).not.toBeNull();
   });
+
+  test("puts ariaLabel on the link", () => {
+    render(BaseA, { href: "/a", ariaLabel: "Home" });
+    expect(screen.getByRole("link").getAttribute("aria-label")).toBe("Home");
+  });
 });

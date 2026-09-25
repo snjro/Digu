@@ -10,6 +10,7 @@
 
 <BaseButtonIcon
   iconName="close"
+  ariaLabel="Close sidebar"
   size={sizeSettings.leftSidebarButton}
   tooltipXPosition="right"
   tooltipYPosition="bottom"
