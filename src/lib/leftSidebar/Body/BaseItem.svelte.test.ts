@@ -34,17 +34,15 @@ const props: ComponentProps<typeof BaseItem> = {
 type Parts = {
   indicator: HTMLElement;
   box: HTMLElement;
-  button: HTMLElement;
   link: HTMLAnchorElement;
   label: HTMLElement;
 };
 function getParts(container: HTMLElement): Parts {
   const root = container.firstElementChild as HTMLElement;
   const [indicator, box] = [...root.children] as HTMLElement[];
-  const button = screen.getByRole("button");
-  const link = button.querySelector("a") as HTMLAnchorElement;
+  const link = screen.getByRole("link") as HTMLAnchorElement;
   const label = screen.getByText(props.label);
-  return { indicator, box, button, link, label };
+  return { indicator, box, link, label };
 }
 const emphasis = (theme: "light" | "dark"): string =>
   colorDefinitions[theme][colorSettings.leftSidebarBodyBg].bgEmphasis;
@@ -52,9 +50,9 @@ const interactiveText = colorDefinitions.light.interactive.text;
 const interactiveBorder = colorDefinitions.light.interactive.border;
 
 function expectSelected(container: HTMLElement, selected: boolean): void {
-  const { indicator, box, button, label } = getParts(container);
+  const { indicator, box, link, label } = getParts(container);
   expect(label.classList.contains("font-bold")).toBe(selected);
-  expect(button.classList.contains(interactiveText)).toBe(selected);
+  expect(link.classList.contains(interactiveText)).toBe(selected);
   expect(box.classList.contains(emphasis("light"))).toBe(selected);
   expect(indicator.classList.contains("h-4/6")).toBe(selected);
 }
@@ -136,15 +134,15 @@ describe("BaseItem.svelte", () => {
 
   test("emphasizes and underlines the item on hover", async () => {
     const { container } = render(BaseItem, props);
-    const { box, button } = getParts(container);
+    const { box, link } = getParts(container);
     expect(box.classList).not.toContain(emphasis("light"));
     expect(isUnderlined(container)).toBe(false);
 
-    await fireEvent.mouseEnter(button);
+    await fireEvent.mouseEnter(link);
     expect(box.classList).toContain(emphasis("light"));
     expect(isUnderlined(container)).toBe(true);
 
-    await fireEvent.mouseLeave(button);
+    await fireEvent.mouseLeave(link);
     expect(box.classList).not.toContain(emphasis("light"));
     expect(isUnderlined(container)).toBe(false);
   });
@@ -153,7 +151,7 @@ describe("BaseItem.svelte", () => {
     setPathname(`${HREF}/`);
     const { container } = render(BaseItem, props);
 
-    await fireEvent.mouseEnter(getParts(container).button);
+    await fireEvent.mouseEnter(getParts(container).link);
     expect(isUnderlined(container)).toBe(false);
   });
 
@@ -162,10 +160,10 @@ describe("BaseItem.svelte", () => {
       ...props,
       isHoverControledByParent: true,
     });
-    const { box, button } = getParts(container);
+    const { box, link } = getParts(container);
 
     // The mouse does not change it.
-    await fireEvent.mouseEnter(button);
+    await fireEvent.mouseEnter(link);
     expect(box.classList).not.toContain(emphasis("light"));
 
     await rerender({
@@ -194,8 +192,8 @@ describe("BaseItem.svelte", () => {
     "sizes the button by hasChildren. hasChildren=$hasChildren",
     ({ hasChildren, width, rounded }) => {
       const { container } = render(BaseItem, { ...props, hasChildren });
-      const { box, button } = getParts(container);
-      expect(button.classList).toContain(width);
+      const { box, link } = getParts(container);
+      expect(link.classList).toContain(width);
       expect(box.classList.contains("rounded-r-md")).toBe(rounded);
     },
   );

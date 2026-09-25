@@ -143,9 +143,34 @@ describe("BaseButton.svelte", () => {
     expect(screen.getByRole("button").hasAttribute("aria-label")).toBe(false);
   });
 
-  test("gives the same name to the link when href is set", () => {
+  test("gives the name to the link when href is set", () => {
     render(BaseButton, { href: "https://example.com/", ariaLabel: "Home" });
     expect(screen.getByRole("link").getAttribute("aria-label")).toBe("Home");
-    expect(screen.getByRole("button").getAttribute("aria-label")).toBe("Home");
+  });
+
+  test("renders a single link and no button when href is set", async () => {
+    const onclick = vi.fn();
+    render(BaseButton, {
+      href: "https://example.com/",
+      ariaLabel: "GitHub",
+      openNewTab: true,
+      onclick,
+    });
+    expect(screen.queryByRole("button")).toBeNull();
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(1);
+    const link = screen.getByRole("link", { name: "GitHub" });
+    expect(link.getAttribute("href")).toBe("https://example.com/");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noreferrer noopener");
+    await fireEvent.click(link);
+    expect(onclick).toHaveBeenCalledOnce();
+  });
+
+  test("does not open a new tab by default when href is set", () => {
+    render(BaseButton, { label: "Home", href: "/" });
+    const link = screen.getByRole("link", { name: "Home" });
+    expect(link.hasAttribute("target")).toBe(false);
+    expect(link.hasAttribute("rel")).toBe(false);
   });
 });
