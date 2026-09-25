@@ -1,6 +1,7 @@
 import type { Contract, Project, Version } from "@constants/chains/types";
 import type { trailingSlash } from "@routes/+layout";
 import { getProjectVersionNameForUrl } from "$lib/common/projectVersionNameHelper";
+import { getSubdirectoryHref } from "$lib/common/linkHref";
 
 export function getVersionHref(
   pageUrlPathname: string,
@@ -8,12 +9,11 @@ export function getVersionHref(
   projectName: Project["name"],
   versionName: Version["name"],
 ): string {
-  const pathname: string =
-    trailingSlashOption === "always"
-      ? `${pageUrlPathname}`
-      : `${pageUrlPathname}/`;
-
-  return `${pathname}${getProjectVersionNameForUrl(projectName, versionName)}`;
+  return getSubdirectoryHref(
+    pageUrlPathname,
+    trailingSlashOption,
+    getProjectVersionNameForUrl(projectName, versionName),
+  );
 }
 
 export function numberOfEventsInVersion(targetVersion: Version): number {

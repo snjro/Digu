@@ -10,8 +10,7 @@ import classNames from "classnames";
 import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
-import { convertToKebabCase } from "@utils/utilsCommon";
-import { TAB_VALUES_EVENT } from "$lib/PageWrapper/tabs";
+import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
 
 const girdSize: BaseSize = sizeSettings.grid;
 
@@ -46,7 +45,7 @@ export const columnDefsBasic = <T extends EventRow>(
                   text: cellRendererParams.data.eventName,
                   href: `${urlPathName}${
                     cellRendererParams.data.eventName
-                  }#${convertToKebabCase(TAB_VALUES_EVENT[0])}`,
+                  }#${getFirstTabUrlHash("events")}`,
                   textSize: girdSize,
                   openNewTab: false,
                   prefixIcon: {
