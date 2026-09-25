@@ -210,6 +210,26 @@ describe("SyncStatusToggle.svelte", () => {
     expect(screen.getByText("start sync")).toBeTruthy();
   });
 
+  test("follows the sync of a chain selected again, and can stop it", async () => {
+    render(SyncStatusToggle);
+    await startSync();
+    setSyncStatus("eth", { syncStateText: "syncing" });
+    await tick();
+
+    storeUserSettings.updateState({ selectedChainName: "matic" });
+    await tick();
+    expect(screen.getByText("start sync")).toBeTruthy();
+
+    storeUserSettings.updateState({ selectedChainName: "eth" });
+    await tick();
+    expect(screen.getByText("stop sync")).toBeTruthy();
+    expect(getIcon().classList).toContain("animate-spin");
+
+    await fireEvent.click(getToggle());
+    expect(startAbortingInChain).toHaveBeenCalledWith("eth");
+    expect(fetchEventLogs).toHaveBeenCalledTimes(1);
+  });
+
   test("is disabled and pulses while stopping", async () => {
     const { container } = render(SyncStatusToggle);
     setSyncStatus("eth", { syncStateText: "stopping" });

@@ -58,8 +58,10 @@
   let syncStateText: SyncStateText = $derived(
     $storeSyncStatus[targetChainName].syncStateText,
   );
+  // toggleOn is one for all chains, so it follows the selected chain's sync.
   $effect.pre(() => {
     if (syncStateText === "stopped") toggleOn = false;
+    else if (syncStateText === "syncing") toggleOn = true;
   });
 
   let isStopping: boolean = $derived(syncStateText === "stopping");
