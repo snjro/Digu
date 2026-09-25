@@ -30,7 +30,7 @@ This method uses [`GitHub Pages`](https://docs.github.com/en/pages/getting-start
 
 ### [Using Digu with `Visual Studio Code`](#using-digu-with-visual-studio-code)
 
-This method uses `Visual Studio Code` (`VSCode`) and its extention [`Live Server`](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) to set up a local server for using Digu.
+This method uses `Visual Studio Code` (`VSCode`) and its extension [`Live Server`](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) to set up a local server for using Digu.
 
 The steps:
 
@@ -47,7 +47,7 @@ The steps:
    4. The contents of the folder are displayed in the Explorer on the sidebar of VSCode.  
       <img src="vsCodeExplorer.png" width="60%">
 
-4. **Install the extention `Live Server`**
+4. **Install the extension `Live Server`**
 
    1. Go to the Extensions view by clicking on the Extensions icon in the Activity Bar on the side of the window.
    2. In the Extensions view search bar, type `Live Server` and install it.  
@@ -61,7 +61,7 @@ Then, Your local server is started at port: `5500`.<br>Digu will show up in your
 
 ### [Using Digu with `Node.js`](#using-digu-with-nodejs)
 
-This method uses `Node.js` and and its extention [`Live Server`](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) to set up a local server for using Digu.
+This method uses `Node.js` and its extension [`Live Server`](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) to set up a local server for using Digu.
 
 The steps:
 
