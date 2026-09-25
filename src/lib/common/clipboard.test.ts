@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { showSnackBarAsCopied } from "$lib/common/CommonCopyButton.svelte";
 import { customLogger } from "@utils/logger";
-import { copyTextToClipboard, showSnackBarAsCopyFailed } from "./clipboard";
+import {
+  copyTextToClipboard,
+  showSnackBarAsCopied,
+  showSnackBarAsCopyFailed,
+} from "./clipboard";
 
 function stubWriteText(writeText: (text: string) => Promise<void>): void {
   vi.stubGlobal("navigator", { clipboard: { writeText } });

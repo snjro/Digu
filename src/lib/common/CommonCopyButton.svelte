@@ -1,20 +1,9 @@
-<script lang="ts" module>
-  export const showSnackBarAsCopied: BaseSnackbarProps = {
-    visible: true,
-    iconProps: {
-      name: "checkBold",
-      colorCategory: "success",
-    },
-    text: "Copied",
-  };
-</script>
-
 <script lang="ts">
   import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import type { BaseSnackbarProps } from "$lib/base/snackbarProps";
   import type { BaseSize } from "$lib/base/baseSizes";
+  import { copyTextToClipboard } from "$lib/common/clipboard";
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
 
   interface Props {
@@ -31,8 +20,7 @@
     showTooltip = false,
   }: Props = $props();
   async function copyToClipBoard(): Promise<void> {
-    await navigator.clipboard.writeText(copyTarget ?? "");
-    $storeNoDbSnackBar = showSnackBarAsCopied;
+    $storeNoDbSnackBar = await copyTextToClipboard(copyTarget ?? "");
   }
 
   const tooltipText = (): string | undefined => {
