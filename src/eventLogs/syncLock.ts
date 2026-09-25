@@ -5,6 +5,8 @@ import { DbEventLogs } from "@db/dbEventLogs";
 import { getDbRecordSyncStatusContract } from "@db/dbEventLogsDataHandlersSyncStatusGetters";
 import type { SyncStatusContract, VersionIdentifier } from "@db/dbTypes";
 import { getSyncLockName } from "@db/constants";
+import { getDbRecordChainStatus } from "@db/dbChainStatusDataHandlers";
+import { storeChainStatus } from "@stores/storeChainStatus";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { extractEventContracts } from "@utils/utilsEthers";
 import { getTargetChain } from "@utils/utilsDb";
@@ -142,6 +144,9 @@ function waitForSyncLockRelease(chainName: ChainName): void {
     async (): Promise<void> => {
       try {
         await resetSyncStatusInChain(chainName);
+        // Only the syncing tab updates the latest block number.
+        const { latestBlockNumber } = await getDbRecordChainStatus(chainName);
+        storeChainStatus.updateState(chainName, { latestBlockNumber });
       } catch (error) {
         // A failure only leaves this chain's status stale.
         customLogger.error("Reset sync status after release.", {
