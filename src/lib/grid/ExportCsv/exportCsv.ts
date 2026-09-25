@@ -1,4 +1,9 @@
-import type { Column, CsvExportParams, GridApi } from "ag-grid-community";
+import type {
+  Column,
+  CsvExportParams,
+  GridApi,
+  ProcessCellForExportParams,
+} from "ag-grid-community";
 import { ColIdRowSequenceNumber } from "../GridBody/getColumnDefs";
 
 export type CsvColumnSeparator = "," | `\t` | "|";
@@ -95,6 +100,45 @@ function getParamsForCsv(
     skipColumnHeaders: skipColumnHeaders,
     skipColumnGroupHeaders: skipColumnHeaders,
     fileName: fileName,
+    processCellCallback: getProcessCellCallback(
+      columnSeparator,
+      suppressQuotes,
+    ),
   };
   return csvExportParams;
+}
+
+// A spreadsheet reads a cell that starts with one of these as a formula.
+const FORMULA_START = /^[=+\-@\t\r]/;
+
+// With this callback, ag-grid no longer formats the values, so it calls formatValue.
+function getProcessCellCallback(
+  columnSeparator: CsvColumnSeparator,
+  suppressQuotes: boolean,
+): (params: ProcessCellForExportParams) => string {
+  // rowIndex is the position on the screen, and a hidden row has none, so
+  // number the rows in the exported order.
+  let rowNumber: number = 0;
+  return (params: ProcessCellForExportParams): string => {
+    if (params.column.getColId() === ColIdRowSequenceNumber) {
+      rowNumber++;
+      return String(rowNumber);
+    }
+    // Without the digit grouping of the screen, which may be the separator.
+    const formattedValue: unknown =
+      typeof params.value === "bigint"
+        ? params.value.toString()
+        : params.formatValue(params.value);
+    let text: string = formattedValue == null ? "" : String(formattedValue);
+    if (typeof params.value === "string" && FORMULA_START.test(text)) {
+      text = "'" + text;
+    }
+    if (
+      suppressQuotes &&
+      (text.includes(columnSeparator) || /["\r\n]/.test(text))
+    ) {
+      text = '"' + text.replace(/"/g, '""') + '"';
+    }
+    return text;
+  };
 }
