@@ -1,6 +1,6 @@
 import type { Contract, Project, Version } from "@constants/chains/types";
 import type { trailingSlash } from "@routes/+layout";
-import { getProjectVersionNameForUrl } from "./[projectName_versionName]/projectVersionNameHelper";
+import { getProjectVersionNameForUrl } from "$lib/common/projectVersionNameHelper";
 
 export function getVersionHref(
   pageUrlPathname: string,

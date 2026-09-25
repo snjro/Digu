@@ -1,6 +1,6 @@
-import type { FunctionRow } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/functions/gridRows";
-import type { EventRow } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/gridRows";
-import type { ContractRow } from "@routes/[chainName]/[projectName_versionName]/contracts/gridRows";
+import type { FunctionRow } from "$lib/gridColumnDefs/rowTypes";
+import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
+import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
 
 export type AbiRow = ContractRow | FunctionRow | EventRow;
 export type AbiFragmentParamTypeName = "inputs" | "outputs";

@@ -1,5 +1,5 @@
 import type { ColumnDef } from "$lib/base/BaseGrid/types";
-import type { EventRow } from "./gridRows";
+import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
 // import { columnDefsOutputs } from "./columnDefsOutputs";
 import { columnDefsBasic } from "./columnDefsBasic";
 import { columnDefsInputs } from "./columnDefsInputs";

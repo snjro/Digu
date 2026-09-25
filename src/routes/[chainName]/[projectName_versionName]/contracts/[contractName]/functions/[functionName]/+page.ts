@@ -18,7 +18,7 @@ import type {
   AbiFragmentIdentifier,
   ProjectIdentifier,
 } from "@db/dbTypes";
-import { getSplitProjectVersionName } from "@routes/[chainName]/[projectName_versionName]/projectVersionNameHelper";
+import { getSplitProjectVersionName } from "$lib/common/projectVersionNameHelper";
 import type { LoadEvent } from "@sveltejs/kit";
 import {
   getTargetChain,

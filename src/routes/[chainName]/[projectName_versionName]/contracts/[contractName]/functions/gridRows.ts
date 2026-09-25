@@ -1,14 +1,7 @@
 import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/functionNameHandler";
 import type { FunctionAbiFragment } from "@constants/chains/types";
+import type { FunctionRow } from "$lib/gridColumnDefs/rowTypes";
 
-export type FunctionRow = {
-  functionName: FunctionAbiFragment["name"];
-  functionStateMutability: FunctionAbiFragment["stateMutability"];
-  functionSelector: FunctionAbiFragment["selector"];
-  functionInputs: FunctionAbiFragment["inputs"];
-  functionOutputs: FunctionAbiFragment["outputs"];
-  functionSelectorWithSplitter: string;
-};
 export const gridRows = (
   targetFunctionAbiFragments: FunctionAbiFragment[],
 ): FunctionRow[] => {

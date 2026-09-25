@@ -2,7 +2,7 @@
   import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
   import type { LoadVersionData } from "./+page";
   import VersionOverview from "./VersionOverview.svelte";
-  import { getProjectVersionNameForLabel } from "./projectVersionNameHelper";
+  import { getProjectVersionNameForLabel } from "$lib/common/projectVersionNameHelper";
 
   interface Props {
     data: LoadVersionData;

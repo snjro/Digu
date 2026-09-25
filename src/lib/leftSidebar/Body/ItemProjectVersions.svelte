@@ -5,7 +5,7 @@
   import {
     getProjectVersionNameForLabel,
     getProjectVersionNameForUrl,
-  } from "@routes/[chainName]/[projectName_versionName]/projectVersionNameHelper";
+  } from "$lib/common/projectVersionNameHelper";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getTargetChain } from "@utils/utlisDb";
   import ItemProjectVersionsMember from "./ItemProjectVersionsMember.svelte";

@@ -1,11 +1,6 @@
 import type { EventAbiFragment } from "@constants/chains/types";
+import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
 
-export type EventRow = {
-  eventName: EventAbiFragment["name"];
-  eventAnonymous: EventAbiFragment["anonymous"];
-  eventInputs: EventAbiFragment["inputs"];
-  eventTopicHash: EventAbiFragment["topicHash"];
-};
 export const gridRows = (
   targetEventAbiFragments: EventAbiFragment[],
 ): EventRow[] => {

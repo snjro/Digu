@@ -1,5 +1,5 @@
 import type { ColumnDef } from "$lib/base/BaseGrid/types";
-import type { ContractRow } from "./gridRows";
+import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
 import { columnDefsCreation } from "./columnDefsCreation";
 import { columnDefsBasic } from "./columnDefsBasic";
 import { columnDefsConstructor } from "./columnDefsConstructor";

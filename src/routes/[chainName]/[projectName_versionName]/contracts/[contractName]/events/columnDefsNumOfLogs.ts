@@ -7,7 +7,7 @@ import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import type { ContractIdentifier } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { get } from "svelte/store";
-import type { EventRow } from "./gridRows";
+import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
 import type { AbiFragmentName } from "@constants/chains/types";
 import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
 import GridCellNumOfLogs from "./GridCellNumOfLogs.svelte";

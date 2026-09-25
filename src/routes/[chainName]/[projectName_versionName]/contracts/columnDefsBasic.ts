@@ -9,7 +9,7 @@ import CommonOpenLink from "$lib/common/CommonOpenLink.svelte";
 import { NO_DATA } from "@utils/utilsCostants";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import classNames from "classnames";
-import type { ContractRow } from "./gridRows";
+import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
 import { columnDefChainExplorerLinkByKeyName } from "$lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";

@@ -1,7 +1,7 @@
 import type { ColumnDef } from "$lib/base/BaseGrid/types";
 import { columnDefStateMutability } from "$lib/gridColumnDefs/columnDefStateMutability";
 // import classNames from "classnames";
-import type { ContractRow } from "./gridRows";
+import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
 
 // const cellClass: string = classNames("text-center");
 // const sortable = true;
