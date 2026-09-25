@@ -10,7 +10,8 @@
   import { storeNodbShowLoader } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { base } from "$app/paths";
-  import { getChainRootUrl, saveSelectedChainName } from "./selectChain";
+  import { getChainRootUrl } from "$lib/common/chainRootUrl";
+  import { saveSelectedChainName } from "./selectChain";
   const items: BaseSelectProps["items"] = TARGET_CHAINS.map(
     (targetChain: Chain) => {
       return {

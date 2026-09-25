@@ -1,5 +1,6 @@
 <script lang="ts">
   import { base } from "$app/paths";
+  import { getChainRootUrl } from "$lib/common/chainRootUrl";
   import type { ChainName } from "@constants/chains/types";
   import {
     getProjectVersionNameForLabel,
@@ -13,7 +14,7 @@
     $storeUserSettings.selectedChainName.toString(),
   );
 
-  let rootPath: string = $derived(`${base}/${chainName}`);
+  let rootPath: string = $derived(getChainRootUrl(base, chainName));
 
   let targetChain = $derived(
     getTargetChain({

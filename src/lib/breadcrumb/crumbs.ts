@@ -4,6 +4,7 @@ import {
   TAB_VALUES_FUNCTION,
 } from "$lib/PageWrapper/tabs";
 import type { BaseIconProps } from "$lib/base/BaseIcon";
+import { getChainRootUrl } from "$lib/common/chainRootUrl";
 import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/functionNameHandler";
 import { convertToKebabCase } from "@utils/utilsCommon";
 import {
@@ -58,7 +59,7 @@ export const getCrumbItems = (
   trailingSlash: "never" | "always" | "ignore",
 ): CrumbItem[] => {
   const crumbItems: CrumbItem[] = [];
-  let href: CrumbItem["href"] = `${basePath}/${targetChainName}`;
+  let href: CrumbItem["href"] = getChainRootUrl(basePath, targetChainName);
   let text: CrumbItem["text"] = undefined;
   let prefixIconName: CrumbItem["prefixIconName"] = "home";
   crumbItems.push({ href: href, text: text, prefixIconName: prefixIconName });
