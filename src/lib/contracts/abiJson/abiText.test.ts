@@ -4,7 +4,7 @@ import type { AbiFormatType } from "@utils/utilsEthers";
 import {
   formatTargetAbi,
   getAbiExportTooltipText,
-  getAbiFileExtention,
+  getAbiFileExtension,
   getAbiText,
   isTargetContractInterface,
 } from "./abiText";
@@ -113,14 +113,14 @@ describe("getAbiText", () => {
   });
 });
 
-describe("getAbiFileExtention", () => {
+describe("getAbiFileExtension", () => {
   test("returns json for the JSON format", () => {
-    expect(getAbiFileExtention("json")).toBe("json");
+    expect(getAbiFileExtension("json")).toBe("json");
   });
   test.each<AbiFormatType>(["full", "minimal"])(
     "returns txt for the human readable format %s",
     (abiFormat) => {
-      expect(getAbiFileExtention(abiFormat)).toBe("txt");
+      expect(getAbiFileExtension(abiFormat)).toBe("txt");
     },
   );
 });

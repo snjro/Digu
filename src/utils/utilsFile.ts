@@ -26,14 +26,14 @@ const dataTypes: {
     mimeType: "text/plain",
   },
 };
-type ExportFileExtention = keyof typeof dataTypes;
+type ExportFileExtension = keyof typeof dataTypes;
 export function ExportDataToFile(
   targetData: string,
   exportFileName: ExportFileName,
-  extention: ExportFileExtention,
+  extension: ExportFileExtension,
 ): void {
   const fileLikeObject: Blob = new Blob([targetData], {
-    type: dataTypes[extention].mimeType,
+    type: dataTypes[extension].mimeType,
   });
   const anchorElement: HTMLAnchorElement = document.createElement("a");
   const url: string = URL.createObjectURL(fileLikeObject);
@@ -47,12 +47,12 @@ export function ExportDataToFile(
   }, 0);
 }
 
-type ExportFileName = `${ExportFilePrefix}${string}${ExportFileExtention}`;
+type ExportFileName = `${ExportFilePrefix}${string}${ExportFileExtension}`;
 
 export function getExportFileName(
   prefix: ExportFilePrefix,
   pageParams: Record<string, string>,
-  extention: ExportFileExtention,
+  extension: ExportFileExtension,
 ): ExportFileName {
   const chainFileName: string = getFileNameFragment(pageParams.chainName);
   const projectVersionFileName: string = getFileNameFragment(
@@ -65,7 +65,7 @@ export function getExportFileName(
     convertTimestampSecToIso8601(),
   );
 
-  const exportFileName: ExportFileName = `${prefix}${chainFileName}${projectVersionFileName}${contractFileName}${eventFileName}${functionFileName}${timeIso8601}.${extention}`;
+  const exportFileName: ExportFileName = `${prefix}${chainFileName}${projectVersionFileName}${contractFileName}${eventFileName}${functionFileName}${timeIso8601}.${extension}`;
 
   return exportFileName;
 }

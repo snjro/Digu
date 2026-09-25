@@ -14,7 +14,7 @@ import {
   type ExportFilePrefix,
 } from "./utilsFile";
 
-type ExportFileExtention = "csv" | "json" | "txt";
+type ExportFileExtension = "csv" | "json" | "txt";
 
 beforeAll(() => {
   // Mocking system time
@@ -57,11 +57,11 @@ describe("ExportDataToFile", () => {
   });
   test("should create a file with the correct data and trigger a download", async () => {
     const targetData: string = "Hello, world!";
-    const exportFileName: `${ExportFilePrefix}${string}${ExportFileExtention}` =
+    const exportFileName: `${ExportFilePrefix}${string}${ExportFileExtension}` =
       "contracts.txt";
-    const extention: ExportFileExtention = "txt";
+    const extension: ExportFileExtension = "txt";
 
-    ExportDataToFile(targetData, exportFileName, extention);
+    ExportDataToFile(targetData, exportFileName, extension);
 
     // check the file
     expect(createObjectURLMock).toHaveBeenCalledTimes(1);
@@ -88,7 +88,7 @@ describe("ExportDataToFile", () => {
 
 describe("getExportFileName", () => {
   const prefix: ExportFilePrefix = "contracts";
-  const extention: ExportFileExtention = "json";
+  const extension: ExportFileExtension = "json";
 
   test("should generate a file name based on the max provided parameters", () => {
     const pageParams: Record<string, string> = {
@@ -98,16 +98,16 @@ describe("getExportFileName", () => {
       eventName: "MyEvent",
       functionName: "MyFunction",
     };
-    const actualFileName = getExportFileName(prefix, pageParams, extention);
-    const expectedFileName = `${prefix}-Ethereum-MyProject_v1-MyContract-MyEvent-MyFunction-2016-06-20T12:08:10Z.${extention}`;
+    const actualFileName = getExportFileName(prefix, pageParams, extension);
+    const expectedFileName = `${prefix}-Ethereum-MyProject_v1-MyContract-MyEvent-MyFunction-2016-06-20T12:08:10Z.${extension}`;
     expect(actualFileName).toBe(expectedFileName);
   });
   test("should generate a file name based on the min provided parameters", () => {
     const pageParams: Record<string, string> = {
       chainName: "Ethereum",
     };
-    const actualFileName = getExportFileName(prefix, pageParams, extention);
-    const expectedFileName = `${prefix}-Ethereum-2016-06-20T12:08:10Z.${extention}`;
+    const actualFileName = getExportFileName(prefix, pageParams, extension);
+    const expectedFileName = `${prefix}-Ethereum-2016-06-20T12:08:10Z.${extension}`;
     expect(actualFileName).toBe(expectedFileName);
   });
 });

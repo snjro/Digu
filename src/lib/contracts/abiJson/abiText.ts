@@ -36,12 +36,12 @@ export function formatTargetAbi(
 }
 
 // Only the JSON format is JSON. The human readable formats are plain text.
-export function getAbiFileExtention(abiFormat: AbiFormatType): "json" | "txt" {
+export function getAbiFileExtension(abiFormat: AbiFormatType): "json" | "txt" {
   return abiFormat === "json" ? "json" : "txt";
 }
 
 export function getAbiExportTooltipText(abiFormat: AbiFormatType): string {
-  return getAbiFileExtention(abiFormat) === "json"
+  return getAbiFileExtension(abiFormat) === "json"
     ? "Export as JSON"
     : "Export as text";
 }
