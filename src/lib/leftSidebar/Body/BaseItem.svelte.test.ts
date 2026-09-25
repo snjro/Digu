@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick, type ComponentProps } from "svelte";
+import { get } from "svelte/store";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { goto } from "$app/navigation";
 import BaseItem from "./BaseItem.svelte";
@@ -8,6 +9,9 @@ import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { page } from "$app/state";
+import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
+import { updateDbItemUserSettings } from "@db/dbSettings";
+import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
 
 // page of $app/state is not a store. SvelteURL makes page.url reactive.
 vi.mock("$app/state", async () => {
@@ -23,6 +27,7 @@ const setPathname = (pathname: string): void => {
   page.url.href = `http://localhost${pathname}`;
 };
 
+const initialWidth: number = get(storeNoDbCurrentWidth);
 const HREF = "/eth/Augur-version1";
 const OTHER_HREF = "/eth/Augur-version2";
 const props: ComponentProps<typeof BaseItem> = {
@@ -69,6 +74,7 @@ describe("BaseItem.svelte", () => {
   });
   afterEach(() => {
     storeUserSettings.set({ ...initialDataUserSettings });
+    storeNoDbCurrentWidth.set(initialWidth);
     vi.clearAllMocks();
   });
 
@@ -199,10 +205,41 @@ describe("BaseItem.svelte", () => {
     },
   );
 
-  test("goes to the href with the url hash on click", async () => {
+  test("leaves the move to the link on click", async () => {
     const { container } = render(BaseItem, { ...props, urlHash: "abc" });
 
     await fireEvent.click(getParts(container).link);
-    expect(goto).toHaveBeenCalledWith(`${HREF}#abc`);
+    expect(goto).not.toHaveBeenCalled();
   });
+
+  test("closes the sidebar on click on a narrow screen", async () => {
+    storeNoDbCurrentWidth.set(breakPointWidths.sm);
+    storeUserSettings.update((s) => ({ ...s, isOpenSidebar: true }));
+    const { container } = render(BaseItem, props);
+
+    await fireEvent.click(getParts(container).link);
+    expect(updateDbItemUserSettings).toHaveBeenCalledOnce();
+    expect(updateDbItemUserSettings).toHaveBeenCalledWith(
+      "isOpenSidebar",
+      false,
+    );
+  });
+
+  test.each([
+    { ctrlKey: true },
+    { metaKey: true },
+    { shiftKey: true },
+    { button: 1 },
+  ])(
+    "keeps the sidebar open on a click to open a new tab. %j",
+    async (init) => {
+      storeNoDbCurrentWidth.set(breakPointWidths.sm);
+      storeUserSettings.update((s) => ({ ...s, isOpenSidebar: true }));
+      const { container } = render(BaseItem, props);
+
+      await fireEvent.click(getParts(container).link, init);
+      expect(goto).not.toHaveBeenCalled();
+      expect(updateDbItemUserSettings).not.toHaveBeenCalled();
+    },
+  );
 });

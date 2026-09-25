@@ -6,7 +6,6 @@
 <script lang="ts">
   import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { browser } from "$app/environment";
-  import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
@@ -66,13 +65,11 @@
 
   let thisElement: HTMLDivElement | undefined = $state();
 
-  async function onClick() {
-    await Promise.all([
-      // This `goto` triggers a page reloading.
-      // To avoid the reloading, add `preventDefault` as an event modifier to `on:click`
-      goto(hrefWithUrlHash),
-      toggleLeftSideBarWithCondition(),
-    ]);
+  // The link moves the page. A click to open a new tab keeps the sidebar.
+  async function onClick(event: MouseEvent) {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0)
+      return;
+    await toggleLeftSideBarWithCondition();
   }
 
   let isSelected: boolean = $derived(
