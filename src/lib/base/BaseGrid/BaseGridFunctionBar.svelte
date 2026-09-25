@@ -142,11 +142,11 @@
     gridApi.resetQuickFilter();
     quickSearchText = "";
   }
-  async function reload(): Promise<void> {
+  function reload(): void {
     // Clear a shown no-rows overlay before showing the loading overlay.
     gridApi.hideOverlay();
     gridApi.setGridOption("loading", true);
-    await setTimeout(() => {
+    setTimeout(() => {
       //reset filters
       resetAllFilters();
       //reset sort
