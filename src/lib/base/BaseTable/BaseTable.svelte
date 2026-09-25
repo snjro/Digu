@@ -17,6 +17,7 @@
   import BaseTableRow from "./BaseTableRow.svelte";
   import SequenceHeaderCell from "./SequenceHeaderCell.svelte";
   import type { Snippet } from "svelte";
+  import { focusableWhenScrolling } from "../focusableWhenScrolling";
 
   interface Props {
     tableHeaderCellProps: BaseTableHeaderCellProps[];
@@ -27,6 +28,7 @@
     textSize: BaseSize;
     numOfTableRows: number;
     tableBody?: Snippet;
+    scrollAreaLabel?: string;
   }
 
   let {
@@ -38,6 +40,7 @@
     textSize,
     numOfTableRows,
     tableBody,
+    scrollAreaLabel = "Table",
   }: Props = $props();
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
@@ -49,7 +52,10 @@
   );
 </script>
 
-<div class={classNames("overflow-x-auto", scrollbarStyle.thin, "")}>
+<div
+  class={classNames("overflow-x-auto", scrollbarStyle.thin, "")}
+  use:focusableWhenScrolling={scrollAreaLabel}
+>
   <table
     class={classNames(
       "table-fixed",

@@ -24,6 +24,7 @@
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
+  import { focusableWhenScrolling } from "$lib/base/focusableWhenScrolling";
 
   interface Props {
     isAgGrid?: boolean;
@@ -32,6 +33,7 @@
     PageWrapperContentFunctionBar?: Snippet;
     PageWrapperContentBody?: Snippet;
     PageWrapperContentFooter?: Snippet;
+    scrollAreaLabel?: string;
   }
 
   let {
@@ -41,6 +43,7 @@
     PageWrapperContentFunctionBar,
     PageWrapperContentBody,
     PageWrapperContentFooter,
+    scrollAreaLabel = "Content",
   }: Props = $props();
 
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
@@ -83,6 +86,7 @@
   <!-- content with scrollbar -->
   <div
     class={classNames("flex-auto min-h-0", "h-full w-full", scrollStyle, "")}
+    use:focusableWhenScrolling={scrollAreaLabel}
   >
     <div class={classNames(gridMain, "w-full", "h-full", "")}>
       {@render PageWrapperContentBody?.()}

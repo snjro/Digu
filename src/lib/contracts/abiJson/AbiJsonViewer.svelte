@@ -120,7 +120,7 @@
   let abiText = $derived(getAbiText(targetAbi, abiFormat, isExpanded));
 </script>
 
-<PageWrapperContent>
+<PageWrapperContent scrollAreaLabel="ABI JSON">
   {#snippet PageWrapperContentFunctionBar()}
     <PageWrapperContentFunctionBarComponent
       functionBarDefinition={{

@@ -27,6 +27,7 @@
 <div class={classNames("max-w-2xl", "min-w-min", "w-full")}>
   <BaseInput
     placeholder="Quick search..."
+    ariaLabel="Quick search"
     type="text"
     {size}
     bind:value={quickSearchText}

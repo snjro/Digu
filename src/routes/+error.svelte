@@ -33,12 +33,14 @@
     "",
   )}
 >
-  <BaseLabel
-    textSize="2xl"
-    text="Error"
-    colorCategoryFront={colorCategory}
-    fontMono
-  />
+  <h1>
+    <BaseLabel
+      textSize="2xl"
+      text="Error"
+      colorCategoryFront={colorCategory}
+      fontMono
+    />
+  </h1>
 
   <div
     class={classNames(

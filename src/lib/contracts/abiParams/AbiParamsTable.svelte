@@ -64,6 +64,7 @@
   tableHeaderCellProps={tableHeaderCellProps()}
   textSize={abiParamTabelSize}
   numOfTableRows={paramTypes.length}
+  scrollAreaLabel={dialogHeaderText}
 >
   {#snippet tableBody()}
     {#each paramTypes as paramType, rowIndex}
