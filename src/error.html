@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Digu - Error %sveltekit.status%</title>
+    <style>
+      body {
+        --bg: #ffffff;
+        --fg: #1f2937;
+        --muted: #6b7280;
+        --border: #d1d5db;
+        --code-bg: #f3f4f6;
+        margin: 0;
+        padding: 2rem 1rem;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: system-ui, sans-serif;
+        line-height: 1.5;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          --bg: #111827;
+          --fg: #e5e7eb;
+          --muted: #9ca3af;
+          --border: #374151;
+          --code-bg: #1f2937;
+        }
+      }
+      main {
+        max-width: 40rem;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 0.25rem;
+      }
+      h2 {
+        font-size: 1.1rem;
+        margin: 1.5rem 0 0.5rem;
+      }
+      .status {
+        color: var(--muted);
+        margin: 0;
+      }
+      .message {
+        margin: 1rem 0 0;
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: 0.25rem;
+        background: var(--code-bg);
+        font-family: ui-monospace, monospace;
+        font-size: 0.875rem;
+        overflow-wrap: anywhere;
+      }
+      ul {
+        margin: 0;
+        padding-left: 1.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Digu could not start</h1>
+      <p class="status">Error %sveltekit.status%</p>
+      <p class="message">%sveltekit.error.message%</p>
+
+      <h2>Common causes</h2>
+      <ul>
+        <li>The browser blocks cookies and site data for this site.</li>
+        <li>
+          This is a private window. Some browsers do not allow IndexedDB in it.
+        </li>
+        <li>The disk is almost full.</li>
+      </ul>
+
+      <h2>What to do</h2>
+      <ul>
+        <li>
+          Allow cookies and site data for this site, then reload the page.
+        </li>
+        <li>Open Digu in a normal window.</li>
+        <li>Free some disk space, or try another browser.</li>
+      </ul>
+    </main>
+  </body>
+</html>
