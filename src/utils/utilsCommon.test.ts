@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import {
   areValuesEqual,
   assertIsDefined,
@@ -135,14 +135,19 @@ describe("convertToKebabCase", () => {
 });
 
 describe("sleep", () => {
+  // Fake timers, because the time measured with Date.now() was sometimes 999 ms.
   test("should wait for the specified number of milliseconds", async (): Promise<void> => {
-    const start: number = Date.now();
-    const waitTime: number = 1000; // Wait for one second.
-    await sleep(waitTime);
-    const end: number = Date.now();
-    const elapsedTime: number = end - start;
-    expect(elapsedTime).toBeGreaterThanOrEqual(waitTime);
-    expect(elapsedTime).toBeLessThan(waitTime + 100); // Allow for some leeway due to setTimeout's precision.
+    vi.useFakeTimers();
+    let isResolved: boolean = false;
+    const sleeping: Promise<void> = sleep(1000).then(() => {
+      isResolved = true;
+    });
+    await vi.advanceTimersByTimeAsync(999);
+    expect(isResolved).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(isResolved).toBe(true);
+    await sleeping;
+    vi.useRealTimers();
   });
 });
 
