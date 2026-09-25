@@ -4,6 +4,7 @@ import type {
   FunctionAbiFragment,
 } from "@constants/chains/types";
 import { jsonStringifyFormatted } from "@utils/utilsCommon";
+import type { AbiFormatType } from "@utils/utilsEthers";
 
 export type TargetAbi =
   ContractInterface | EventAbiFragment | FunctionAbiFragment;
@@ -14,17 +15,20 @@ export function isTargetContractInterface(
   return Object.prototype.hasOwnProperty.call(targetAbi, "fragments");
 }
 
-export function formatTargetAbi(targetAbi: TargetAbi, abiFormatIndex: number) {
-  switch (abiFormatIndex) {
-    case 0: // JSON
+export function formatTargetAbi(
+  targetAbi: TargetAbi,
+  abiFormat: AbiFormatType,
+) {
+  switch (abiFormat) {
+    case "json":
       return isTargetContractInterface(targetAbi)
         ? targetAbi.fragments
         : targetAbi;
-    case 1: // Human readable full
+    case "full": // Human readable full
       return isTargetContractInterface(targetAbi)
         ? targetAbi.format(false)
         : targetAbi.format("full");
-    default: // Human readable minimal
+    case "minimal": // Human readable minimal
       return isTargetContractInterface(targetAbi)
         ? targetAbi.format(true)
         : targetAbi.format("minimal");
@@ -32,16 +36,16 @@ export function formatTargetAbi(targetAbi: TargetAbi, abiFormatIndex: number) {
 }
 
 // Only the JSON format is JSON. The human readable formats are plain text.
-export function getAbiFileExtention(abiFormatIndex: number): "json" | "txt" {
-  return abiFormatIndex === 0 ? "json" : "txt";
+export function getAbiFileExtention(abiFormat: AbiFormatType): "json" | "txt" {
+  return abiFormat === "json" ? "json" : "txt";
 }
 
 export function getAbiText(
   targetAbi: TargetAbi,
-  abiFormatIndex: number,
+  abiFormat: AbiFormatType,
   isExpanded: boolean,
 ): string {
   return isExpanded
-    ? jsonStringifyFormatted(formatTargetAbi(targetAbi, abiFormatIndex))
-    : jsonStringifyFormatted(formatTargetAbi(targetAbi, abiFormatIndex), 0);
+    ? jsonStringifyFormatted(formatTargetAbi(targetAbi, abiFormat))
+    : jsonStringifyFormatted(formatTargetAbi(targetAbi, abiFormat), 0);
 }

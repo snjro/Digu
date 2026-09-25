@@ -12,6 +12,7 @@
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import type { AbiFormatType } from "@utils/utilsEthers";
   import { getAbiFileExtention, getAbiText, type TargetAbi } from "./abiText";
 
   interface Props {
@@ -35,13 +36,25 @@
   };
 
   const abiFormatButtonDefinitions: {
+    abiFormat: AbiFormatType;
     iconName: BaseIconProps["name"];
     tooltipText: string;
   }[] = [
-    { iconName: "codeJson", tooltipText: "Json" },
-    { iconName: "textLong", tooltipText: "Human readable (full)" },
-    { iconName: "textShort", tooltipText: "Human readable (minimal)" },
+    { abiFormat: "json", iconName: "codeJson", tooltipText: "Json" },
+    {
+      abiFormat: "full",
+      iconName: "textLong",
+      tooltipText: "Human readable (full)",
+    },
+    {
+      abiFormat: "minimal",
+      iconName: "textShort",
+      tooltipText: "Human readable (minimal)",
+    },
   ];
+  let abiFormat: AbiFormatType = $derived(
+    abiFormatButtonDefinitions[abiFormatButtonIndex].abiFormat,
+  );
   const changeFormatButtonClicked: () => void = () => {
     abiFormatButtonIndex =
       (abiFormatButtonIndex + 1) % abiFormatButtonDefinitions.length;
@@ -86,9 +99,9 @@
               getExportFileName(
                 fragment ? "ABIfragment" : "ABI",
                 page.params,
-                getAbiFileExtention(abiFormatButtonIndex),
+                getAbiFileExtention(abiFormat),
               ),
-              getAbiFileExtention(abiFormatButtonIndex),
+              getAbiFileExtention(abiFormat),
             ),
         },
         {
@@ -99,9 +112,7 @@
         },
       ],
     ]);
-  let abiText = $derived(
-    getAbiText(targetAbi, abiFormatButtonIndex, isExpanded),
-  );
+  let abiText = $derived(getAbiText(targetAbi, abiFormat, isExpanded));
 </script>
 
 <PageWrapperContent>

@@ -1,5 +1,6 @@
 import { EventFragment, FunctionFragment, Interface } from "ethers";
 import { describe, expect, test } from "vitest";
+import type { AbiFormatType } from "@utils/utilsEthers";
 import {
   formatTargetAbi,
   getAbiFileExtention,
@@ -30,57 +31,51 @@ describe("isTargetContractInterface", () => {
 
 describe("formatTargetAbi", () => {
   describe("contract interface", () => {
-    test("0: returns the fragments as they are", () => {
-      expect(formatTargetAbi(contractInterface, 0)).toBe(
+    test("json: returns the fragments as they are", () => {
+      expect(formatTargetAbi(contractInterface, "json")).toBe(
         contractInterface.fragments,
       );
     });
-    test("1: returns the full human readable ABI", () => {
-      expect(formatTargetAbi(contractInterface, 1)).toEqual([
+    test("full: returns the full human readable ABI", () => {
+      expect(formatTargetAbi(contractInterface, "full")).toEqual([
         "event Transfer(address indexed from, address to, uint256 value)",
         "function balanceOf(address owner) view returns (uint256)",
       ]);
     });
-    test.each([2, 3])(
-      "%i: returns the minimal human readable ABI",
-      (abiFormatIndex) => {
-        expect(formatTargetAbi(contractInterface, abiFormatIndex)).toEqual([
-          "event Transfer(address indexed,address,uint256)",
-          "function balanceOf(address) view returns (uint256)",
-        ]);
-      },
-    );
+    test("minimal: returns the minimal human readable ABI", () => {
+      expect(formatTargetAbi(contractInterface, "minimal")).toEqual([
+        "event Transfer(address indexed,address,uint256)",
+        "function balanceOf(address) view returns (uint256)",
+      ]);
+    });
   });
 
   describe("fragment", () => {
-    test("0: returns the fragment as it is", () => {
-      expect(formatTargetAbi(eventFragment, 0)).toBe(eventFragment);
+    test("json: returns the fragment as it is", () => {
+      expect(formatTargetAbi(eventFragment, "json")).toBe(eventFragment);
     });
-    test("1: returns the full human readable fragment", () => {
-      expect(formatTargetAbi(eventFragment, 1)).toBe(
+    test("full: returns the full human readable fragment", () => {
+      expect(formatTargetAbi(eventFragment, "full")).toBe(
         "event Transfer(address indexed from, address to, uint256 value)",
       );
-      expect(formatTargetAbi(functionFragment, 1)).toBe(
+      expect(formatTargetAbi(functionFragment, "full")).toBe(
         "function balanceOf(address owner) view returns (uint256)",
       );
     });
-    test.each([2, 3])(
-      "%i: returns the minimal human readable fragment",
-      (abiFormatIndex) => {
-        expect(formatTargetAbi(eventFragment, abiFormatIndex)).toBe(
-          "event Transfer(address indexed,address,uint256)",
-        );
-        expect(formatTargetAbi(functionFragment, abiFormatIndex)).toBe(
-          "function balanceOf(address) view returns (uint256)",
-        );
-      },
-    );
+    test("minimal: returns the minimal human readable fragment", () => {
+      expect(formatTargetAbi(eventFragment, "minimal")).toBe(
+        "event Transfer(address indexed,address,uint256)",
+      );
+      expect(formatTargetAbi(functionFragment, "minimal")).toBe(
+        "function balanceOf(address) view returns (uint256)",
+      );
+    });
   });
 });
 
 describe("getAbiText", () => {
   test("expanded: indents with 2 spaces", () => {
-    expect(getAbiText(contractInterface, 1, true)).toBe(
+    expect(getAbiText(contractInterface, "full", true)).toBe(
       [
         "[",
         '  "event Transfer(address indexed from, address to, uint256 value)",',
@@ -90,17 +85,17 @@ describe("getAbiText", () => {
     );
   });
   test("not expanded: has no line breaks", () => {
-    expect(getAbiText(contractInterface, 1, false)).toBe(
+    expect(getAbiText(contractInterface, "full", false)).toBe(
       '["event Transfer(address indexed from, address to, uint256 value)","function balanceOf(address owner) view returns (uint256)"]',
     );
   });
   test("minimal fragment is a JSON string", () => {
-    expect(getAbiText(functionFragment, 2, false)).toBe(
+    expect(getAbiText(functionFragment, "minimal", false)).toBe(
       '"function balanceOf(address) view returns (uint256)"',
     );
   });
   test("JSON of a fragment has its type and name", () => {
-    const abiText: string = getAbiText(eventFragment, 0, false);
+    const abiText: string = getAbiText(eventFragment, "json", false);
     expect(abiText).not.toContain("\n");
     expect(JSON.parse(abiText)).toMatchObject({
       type: "event",
@@ -108,7 +103,7 @@ describe("getAbiText", () => {
     });
   });
   test("JSON of a contract interface is the list of fragments", () => {
-    const abiText: string = getAbiText(contractInterface, 0, true);
+    const abiText: string = getAbiText(contractInterface, "json", true);
     expect(abiText).toContain("\n");
     expect(JSON.parse(abiText)).toMatchObject([
       { type: "event", name: "Transfer" },
@@ -119,9 +114,12 @@ describe("getAbiText", () => {
 
 describe("getAbiFileExtention", () => {
   test("returns json for the JSON format", () => {
-    expect(getAbiFileExtention(0)).toBe("json");
+    expect(getAbiFileExtention("json")).toBe("json");
   });
-  test.each([1, 2])("returns txt for the human readable format %i", (index) => {
-    expect(getAbiFileExtention(index)).toBe("txt");
-  });
+  test.each<AbiFormatType>(["full", "minimal"])(
+    "returns txt for the human readable format %s",
+    (abiFormat) => {
+      expect(getAbiFileExtention(abiFormat)).toBe("txt");
+    },
+  );
 });
