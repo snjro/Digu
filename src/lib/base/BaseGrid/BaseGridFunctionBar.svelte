@@ -12,6 +12,7 @@
   } from "$lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
   import type { GridApi } from "ag-grid-community";
   import ExportCsv, { openDialogExportCsv } from "./ExportCsv/ExportCsv.svelte";
+  import { setAllColumnGroupState, setAutoColumnWidth } from "./gridColumns";
 
   interface Props {
     gridApi: GridApi<GridRow>;
@@ -114,30 +115,6 @@
       buttonDefinitionDownload,
       buttonDefinitionFullScreen,
     ]);
-  function setAllColumnGroupState(gridApi: GridApi, open: boolean): void {
-    let stateItems: {
-      groupId: string;
-      open: boolean;
-    }[] = [];
-    for (const columnGroupState of gridApi.getColumnGroupState()) {
-      stateItems.push({ groupId: columnGroupState.groupId, open: open });
-    }
-    gridApi.setColumnGroupState(stateItems);
-    if (open) {
-      setAutoColumnWidth(gridApi);
-    }
-  }
-  function setAutoColumnWidth(
-    gridApi: GridApi,
-    skipHeader: boolean = false,
-    waitMilliSecond: number = 0,
-  ): void {
-    gridApi.sizeColumnsToFit(0);
-    setTimeout(() => {
-      gridApi.autoSizeAllColumns(skipHeader);
-    }, waitMilliSecond);
-    // columnApi.autoSizeAllColumns(skipHeader);
-  }
   function resetAllFilters(): void {
     gridApi.resetQuickFilter();
     quickSearchText = "";
