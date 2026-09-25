@@ -1,17 +1,13 @@
 <script lang="ts">
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import type { PageWrapperContentFunctionBarButtonsDefinition } from "$lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { zIndex } from "$lib/appearanceConfig/zIndex";
   import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
   import BaseDividerHorizontal from "$lib/base/BaseDividerHorizontal.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
   interface Props {
@@ -21,8 +17,6 @@
   }
 
   let { buttonsDefinition, buttonSize, colorCategory }: Props = $props();
-
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   let showChildren: boolean = $state(false);
 
@@ -98,8 +92,8 @@
       "shadow-sm",
       "border",
       !showChildren && "hidden",
-      colorDefinitions[themeColor][colorSettings.gridFunctionButton].border,
-      colorDefinitions[themeColor][colorSettings.gridFunctionButton].bg,
+      colorClasses[colorSettings.gridFunctionButton].border,
+      colorClasses[colorSettings.gridFunctionButton].bg,
     )}
   >
     {#each buttonsDefinition as buttonGroup, buttonDefinitionIndex}

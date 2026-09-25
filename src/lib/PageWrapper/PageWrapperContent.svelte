@@ -16,12 +16,10 @@
 </script>
 
 <script lang="ts">
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { getScrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
   import { focusableWhenScrolling } from "$lib/base/focusableWhenScrolling";
@@ -45,8 +43,6 @@
     PageWrapperContentFooter,
     scrollAreaLabel = "Content",
   }: Props = $props();
-
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   let scrollStyle: string = $derived(
     classNames(
@@ -77,7 +73,7 @@
     "rounded-tr-sm",
     "rounded-b-sm",
     hasMultipulTabs ? "rounded-tl-none" : "rounded-tl-sm",
-    colorDefinitions[themeColor][colorSettings.tabSelected].bg,
+    colorClasses[colorSettings.tabSelected].bg,
     "",
   )}
 >
