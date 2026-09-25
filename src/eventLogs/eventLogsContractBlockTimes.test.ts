@@ -1,7 +1,10 @@
 import "fake-indexeddb/auto";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { Block } from "ethers";
-import { fetchBlockTimesForEventLogs } from "./eventLogsContractBlockTimes";
+import {
+  fetchBlockTimesForEventLogs,
+  MAX_CONCURRENT_BLOCK_REQUESTS,
+} from "./eventLogsContractBlockTimes";
 import { dbBlockTimes } from "@db/dbBlockTimes";
 import { setDbBlockTime } from "@db/dbBlockTimesDataHandlers";
 import { TARGET_CHAINS } from "@constants/chains/_index";
@@ -44,6 +47,7 @@ function fakeProvider(): {
 
 describe("fetchBlockTimesForEventLogs", () => {
   beforeEach(async () => {
+    vi.restoreAllMocks();
     await dbBlockTimes.table(chainName).clear();
   });
 
@@ -103,6 +107,54 @@ describe("fetchBlockTimesForEventLogs", () => {
       await fetchBlockTimesForEventLogs(nodeProvider, chainName, []),
     ).toEqual([]);
     expect(getBlock).not.toHaveBeenCalled();
+  });
+
+  test("should read the block times from the DB at once", async () => {
+    await setDbBlockTime(chainName, [blockTimeOf(10), blockTimeOf(30)]);
+    const table = dbBlockTimes.table(chainName);
+    const spyGet = vi.spyOn(table, "get");
+    const spyBulkGet = vi.spyOn(table, "bulkGet");
+    const { nodeProvider } = fakeProvider();
+
+    await fetchBlockTimesForEventLogs(
+      nodeProvider,
+      chainName,
+      eventLogsAt([10, 20, 10, 30]),
+    );
+
+    expect(spyBulkGet).toHaveBeenCalledExactlyOnceWith([10, 20, 30]);
+    expect(spyGet).not.toHaveBeenCalled();
+  });
+
+  test("should limit the number of concurrent requests for blocks", async () => {
+    const { nodeProvider, getBlock } = fakeProvider();
+    let inFlight: number = 0;
+    let maxInFlight: number = 0;
+    getBlock.mockImplementation(async (blockNumber: number) => {
+      inFlight++;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      inFlight--;
+      return { number: blockNumber, timestamp: timestampOf(blockNumber) };
+    });
+    const blockNumbers: number[] = Array.from(
+      { length: 3 * MAX_CONCURRENT_BLOCK_REQUESTS + 1 },
+      (_, index: number) => 100 + index,
+    );
+
+    const result = await fetchBlockTimesForEventLogs(
+      nodeProvider,
+      chainName,
+      eventLogsAt(blockNumbers),
+    );
+
+    expect(maxInFlight).toBe(MAX_CONCURRENT_BLOCK_REQUESTS);
+    expect(result).toEqual(
+      blockNumbers.map((blockNumber: number) => ({
+        fetchedBlockTime: blockTimeOf(blockNumber),
+        fetchedFromProvider: true,
+      })),
+    );
   });
 
   test("should throw when the provider returns no block", async () => {

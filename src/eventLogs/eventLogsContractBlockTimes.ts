@@ -1,10 +1,12 @@
 import type { ChainName } from "@constants/chains/types";
-import { getDbRecordBlockTime } from "@db/dbBlockTimesDataHandlers";
+import { dbBlockTimes } from "@db/dbBlockTimes";
 import type { BlockTime, EthersEventLog } from "@db/dbTypes";
 import { removeDuplicateValuesFromArray } from "@utils/utilsCommon";
 import type { NodeProvider } from "@utils/utilsEthers";
 import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
 import type { Block } from "ethers";
+
+export const MAX_CONCURRENT_BLOCK_REQUESTS: number = 5;
 
 export type BlockTimeForEventLog = {
   fetchedBlockTime: BlockTime;
@@ -24,44 +26,50 @@ export async function fetchBlockTimesForEventLogs(
   const eventLogBlockNumbers = removeDuplicateValuesFromArray<number>(
     deplicateEventLogBlockNumbers,
   );
-  const blockTimesForEventLogs: BlockTimeForEventLog[] = await Promise.all(
-    eventLogBlockNumbers.map(async (eventLogBlockNumber: number) => {
-      return await fetchBlockTimeFromDbOrProvider(
-        nodeProvider,
-        chainName,
-        eventLogBlockNumber,
-      );
-    }),
-  );
+  // Read at once, instead of one transaction for each block.
+  const blockTimesInDb: (BlockTime | undefined)[] = await dbBlockTimes
+    .table(chainName)
+    .bulkGet(eventLogBlockNumbers);
+  const blockTimesForEventLogs: BlockTimeForEventLog[] = [];
+  const blockNumbersNotInDb: number[] = [];
+  eventLogBlockNumbers.forEach((eventLogBlockNumber: number, index: number) => {
+    const blockTime: BlockTime | undefined = blockTimesInDb[index];
+    if (blockTime) {
+      blockTimesForEventLogs.push({
+        fetchedBlockTime: blockTime,
+        fetchedFromProvider: false,
+      });
+    } else {
+      blockNumbersNotInDb.push(eventLogBlockNumber);
+    }
+  });
+
+  // A few at a time, so that the RPC does not limit the requests.
+  for (
+    let index: number = 0;
+    index < blockNumbersNotInDb.length;
+    index += MAX_CONCURRENT_BLOCK_REQUESTS
+  ) {
+    const blocks: Block[] = await Promise.all(
+      blockNumbersNotInDb
+        .slice(index, index + MAX_CONCURRENT_BLOCK_REQUESTS)
+        .map((blockNumber: number) =>
+          fetchBlockFromNodeProvider(nodeProvider, blockNumber),
+        ),
+    );
+    for (const block of blocks) {
+      blockTimesForEventLogs.push({
+        fetchedBlockTime: {
+          blockNumber: block.number,
+          timestamp: block.timestamp,
+          isoDatetime: convertTimestampSecToIso8601(block.timestamp),
+        },
+        fetchedFromProvider: true,
+      });
+    }
+  }
 
   return blockTimesForEventLogs;
-}
-async function fetchBlockTimeFromDbOrProvider(
-  nodeProvider: NodeProvider,
-  chainName: ChainName,
-  targetBlockNumber: number,
-): Promise<BlockTimeForEventLog> {
-  const blockTime: BlockTime | undefined = await getDbRecordBlockTime(
-    chainName,
-    targetBlockNumber,
-  );
-
-  if (blockTime) {
-    return { fetchedBlockTime: blockTime, fetchedFromProvider: false };
-  } else {
-    const block: Block = await fetchBlockFromNodeProvider(
-      nodeProvider,
-      targetBlockNumber,
-    );
-    return {
-      fetchedBlockTime: {
-        blockNumber: block.number,
-        timestamp: block.timestamp,
-        isoDatetime: convertTimestampSecToIso8601(block.timestamp),
-      },
-      fetchedFromProvider: true,
-    };
-  }
 }
 async function fetchBlockFromNodeProvider(
   nodeProvider: NodeProvider,
