@@ -7,13 +7,23 @@ import type {
   TargetFunctionName,
 } from "./db.worker.types";
 
+// Aborting the signal stops the worker.
 export async function startDbWorker<T extends TargetFunctionName>(
   dbWorkerMessage: DbWorkerMessage<T>,
+  signal?: AbortSignal,
 ): Promise<DbWorkerResultValue<T>> {
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(signal.reason);
     const dbWorker: Worker = new DbWorker();
 
+    function onAbort(): void {
+      dbWorker.terminate();
+      reject(signal!.reason);
+    }
+    signal?.addEventListener("abort", onAbort, { once: true });
+
     function fail(message: string): void {
+      signal?.removeEventListener("abort", onAbort);
       dbWorker.terminate();
       reject(new Error(message));
     }
@@ -25,6 +35,7 @@ export async function startDbWorker<T extends TargetFunctionName>(
         if ("error" in message.data) {
           return fail(`${message.data.log}: ${message.data.error}`);
         }
+        signal?.removeEventListener("abort", onAbort);
         dbWorker.terminate();
         customLogger.finished(message.data.log);
         return resolve(message.data.value);

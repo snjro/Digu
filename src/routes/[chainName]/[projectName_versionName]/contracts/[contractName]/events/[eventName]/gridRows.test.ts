@@ -41,4 +41,26 @@ describe("gridRows", () => {
       errorObject: error,
     });
   });
+
+  test("should pass the signal to the worker", async () => {
+    vi.mocked(startDbWorker).mockResolvedValueOnce([]);
+    const controller = new AbortController();
+
+    await gridRows(eventIdentifier, controller.signal);
+    expect(startDbWorker).toHaveBeenCalledWith(
+      { targetFunctionName: "getConvertedEventLogs", params: eventIdentifier },
+      controller.signal,
+    );
+  });
+
+  test("should not log an error when the load was stopped", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    vi.mocked(startDbWorker).mockRejectedValueOnce(controller.signal.reason);
+
+    await expect(gridRows(eventIdentifier, controller.signal)).resolves.toEqual(
+      [],
+    );
+    expect(customLogger.error).not.toHaveBeenCalled();
+  });
 });
