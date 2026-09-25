@@ -14,7 +14,7 @@
 
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
-  function clickOutside(node: HTMLDivElement): ActionReturn {
+  function clickOutside(node: HTMLElement): ActionReturn {
     const handleClick = (event: Event) => {
       const target = event.target as HTMLDivElement;
       if (!event.target) {
@@ -33,7 +33,8 @@
   }
 </script>
 
-<div
+<aside
+  aria-label="Sidebar"
   use:clickOutside
   class={classNames(
     "flex-none",
@@ -61,4 +62,4 @@
   <Header />
   <Body />
   <Footer />
-</div>
+</aside>
