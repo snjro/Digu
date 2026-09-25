@@ -29,14 +29,18 @@
       baseInputElement?.setValue(value);
     }
   });
+  // Number("") is 0, so read an empty input as NaN.
+  function toNumber(text: string | number): number {
+    return String(text).trim() === "" ? NaN : Number(text);
+  }
   async function change(event: Event): Promise<void> {
-    const newValue: number = Number((event.target as HTMLInputElement).value);
+    const newValue: number = toNumber((event.target as HTMLInputElement).value);
     onchange?.(newValue);
   }
   async function focus(event: Event): Promise<void> {
-    const newValue: number = Number((event.target as HTMLInputElement).value);
-    // BaseInput sets value to the typed string.
-    if (newValue !== Number(value)) {
+    const newValue: number = toNumber((event.target as HTMLInputElement).value);
+    // BaseInput sets value to the typed string. Object.is treats NaN as NaN.
+    if (!Object.is(newValue, toNumber(value))) {
       change(event);
     }
   }

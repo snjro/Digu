@@ -87,6 +87,26 @@ describe("RpcConfigChangerInput.svelte", () => {
     expect(onchange).toHaveBeenCalledTimes(1);
   });
 
+  test("calls onchange with NaN for an empty input, and not again on focus", async () => {
+    const onchange = vi.fn();
+    const { container } = render(RpcConfigChangerInput, {
+      rpcConfigParam,
+      value: 100,
+      disabled: false,
+      helperTextState: undefined,
+      onchange,
+    });
+    const input = getInput(container);
+    await fireEvent.input(input, { target: { value: "" } });
+    await fireEvent.change(input);
+    expect(onchange).toHaveBeenCalledTimes(1);
+    expect(onchange).toHaveBeenCalledWith(NaN);
+
+    await fireEvent.blur(input);
+    await fireEvent.focus(input);
+    expect(onchange).toHaveBeenCalledTimes(1);
+  });
+
   test("calls onchange on focus when the shown value differs from value", async () => {
     const onchange = vi.fn();
     const { container } = render(RpcConfigChangerInput, {
