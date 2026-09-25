@@ -37,6 +37,12 @@
       untrack(initialization);
     }
   });
+  $effect.pre(() => {
+    if (isSyncingChain && helperTextState === "error") {
+      // The invalid value was not saved, so show the saved one while syncing.
+      untrack(initialization);
+    }
+  });
   function initialization(): void {
     helperTextState = undefined;
     storedValue = $storeRpcSettings[targetChainName][rpcConfigParam.name];
