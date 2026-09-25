@@ -46,6 +46,8 @@ function abort(): void {
 function providerFailingGetLogs(failCount: number): {
   provider: JsonRpcProvider;
   getLogsCount: () => number;
+  // [fromBlock, toBlock] of each eth_getLogs request.
+  getLogsRanges: () => number[][];
 } {
   const network: Network = Network.from(targetChain.chainId);
   const provider = new JsonRpcProvider("http://fake-rpc.invalid/", network, {
@@ -53,6 +55,7 @@ function providerFailingGetLogs(failCount: number): {
     batchMaxSize: 1,
   });
   let getLogsCount: number = 0;
+  const getLogsRanges: number[][] = [];
   vi.spyOn(provider, "_send").mockImplementation(
     async (
       payload: JsonRpcPayload | JsonRpcPayload[],
@@ -62,6 +65,10 @@ function providerFailingGetLogs(failCount: number): {
           throw new Error(`unexpected method: ${request.method}`);
         }
         getLogsCount++;
+        const { fromBlock, toBlock } = (
+          request.params as [{ fromBlock: string; toBlock: string }]
+        )[0];
+        getLogsRanges.push([Number(fromBlock), Number(toBlock)]);
         return getLogsCount <= failCount
           ? ({
               id: request.id,
@@ -71,7 +78,11 @@ function providerFailingGetLogs(failCount: number): {
       });
     },
   );
-  return { provider, getLogsCount: () => getLogsCount };
+  return {
+    provider,
+    getLogsCount: () => getLogsCount,
+    getLogsRanges: () => getLogsRanges,
+  };
 }
 
 describe("fetchEventLogsContract", () => {
@@ -80,6 +91,7 @@ describe("fetchEventLogsContract", () => {
   const tryCount: number = 2;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.useFakeTimers();
     storeSyncStatus.update((state: SyncStatusesChain) => {
       Object.assign(contractInState(state), {
@@ -122,5 +134,84 @@ describe("fetchEventLogsContract", () => {
     expect(startAbortingInChain).not.toHaveBeenCalled();
     expect(registerEventLogsAndBlockTimes).toHaveBeenCalledOnce();
     expect(getLogsCount()).toBe(tryCount + targetContract.events.names.length);
+  });
+
+  test("should abort the chain when the errors exceed Try Count", async () => {
+    const { provider, getLogsCount } = providerFailingGetLogs(tryCount + 1);
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(
+      targetChain.name,
+    );
+    expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
+    expect(getLogsCount()).toBe(tryCount + 1);
+  });
+
+  test("should halve the range after an error and return to Bulk Unit after a success", async () => {
+    const { provider, getLogsRanges } = providerFailingGetLogs(1);
+    // Register the fetched block number, and abort after the second
+    // registration.
+    let registerCount: number = 0;
+    vi.mocked(registerEventLogsAndBlockTimes).mockImplementation(
+      async (_dbEventLogs, _targetContract, _nodeProvider, _logs, to) => {
+        registerCount++;
+        storeSyncStatus.update((state: SyncStatusesChain) => {
+          contractInState(state).fetchedBlockNumber = to;
+          contractInState(state).isAbort = registerCount >= 2;
+          return state;
+        });
+      },
+    );
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    // The first request fails, and then one request for each event.
+    const eventCount: number = targetContract.events.names.length;
+    expect(getLogsRanges()).toEqual([
+      [creationBlockNumber, creationBlockNumber + bulkUnit - 1],
+      ...Array(eventCount).fill([
+        creationBlockNumber,
+        creationBlockNumber + bulkUnit / 2 - 1,
+      ]),
+      ...Array(eventCount).fill([
+        creationBlockNumber + bulkUnit / 2,
+        creationBlockNumber + bulkUnit / 2 + bulkUnit - 1,
+      ]),
+    ]);
+    expect(startAbortingInChain).not.toHaveBeenCalled();
+  });
+
+  test("should keep at least 2 blocks from the creation block after halving", async () => {
+    storeRpcSettings.updateState(targetChain.name, { bulkUnit: 2 });
+    const { provider, getLogsRanges } = providerFailingGetLogs(1);
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    // The first request fails, and then one request for each event.
+    expect(getLogsRanges()).toEqual(
+      Array(1 + targetContract.events.names.length).fill([
+        creationBlockNumber,
+        creationBlockNumber + 1,
+      ]),
+    );
   });
 });

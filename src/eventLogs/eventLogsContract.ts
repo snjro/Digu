@@ -44,6 +44,8 @@ export async function fetchEventLogsContract(
   const rpcSetting: RpcSetting = get(storeRpcSettings)[chainName];
   const maxErrorCount: number = rpcSetting.tryCount;
   let errorCount: number = 0;
+  // Halved after each error, in case the range exceeds a limit of the RPC.
+  let bulkUnit: number = rpcSetting.bulkUnit;
 
   // Skip sync process for a contract that is not sync target.
   if (!contractSyncStatus.isSyncTarget) {
@@ -84,7 +86,12 @@ export async function fetchEventLogsContract(
 
     latestBlockNumber = get(storeChainStatus)[chainName].latestBlockNumber;
 
-    toBlockNumber = fromBlockNumber + rpcSetting.bulkUnit - 1;
+    toBlockNumber = fromBlockNumber + bulkUnit - 1;
+    if (fetchedBlockNumber === creationBlockNumber) {
+      // At least 2 blocks: fetching only the creation block would leave
+      // fetchedBlockNumber unchanged and fetch it again.
+      toBlockNumber = Math.max(toBlockNumber, fromBlockNumber + 1);
+    }
 
     if (toBlockNumber >= latestBlockNumber) {
       toBlockNumber = latestBlockNumber;
@@ -142,8 +149,10 @@ export async function fetchEventLogsContract(
         });
       }
       errorCount = 0;
+      bulkUnit = rpcSetting.bulkUnit;
     } catch (error) {
       errorCount++;
+      bulkUnit = Math.max(1, Math.floor(bulkUnit / 2));
 
       customLogger.error("Fetch eventLogs. Error occurred:", {
         errorCount: `${errorCount}/${maxErrorCount}`,

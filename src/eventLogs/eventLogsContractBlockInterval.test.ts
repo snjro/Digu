@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { fetchEventLogsContract } from "./eventLogsContract";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
-import { extractEventContracts, type NodeProvider } from "@utils/utilsEthers";
+import {
+  extractEventContracts,
+  getEthersEventLogs,
+  type NodeProvider,
+} from "@utils/utilsEthers";
 import { sleep } from "@utils/utilsCommon";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
@@ -47,6 +51,7 @@ describe("fetchEventLogsContract", () => {
   const blockIntervalMs: number = targetChain.blockIntervalMs - 1;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     storeSyncStatus.update((state: SyncStatusesChain) => {
       Object.assign(contractInState(state), {
         isSyncTarget: true,
@@ -80,5 +85,30 @@ describe("fetchEventLogsContract", () => {
     );
 
     expect(vi.mocked(sleep).mock.calls).toEqual([[blockIntervalMs]]);
+  });
+
+  test("should skip fetching when no new block has been generated", async () => {
+    const latestBlockNumber: number = creationBlockNumber + 10;
+    storeSyncStatus.update((state: SyncStatusesChain) => {
+      contractInState(state).fetchedBlockNumber = latestBlockNumber;
+      return state;
+    });
+    // Abort while sleeping so that the loop ends.
+    vi.mocked(sleep).mockImplementationOnce(async () => {
+      storeSyncStatus.update((state: SyncStatusesChain) => {
+        contractInState(state).isAbort = true;
+        return state;
+      });
+    });
+
+    await fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      null as unknown as NodeProvider,
+    );
+
+    expect(vi.mocked(sleep).mock.calls).toEqual([[blockIntervalMs]]);
+    expect(getEthersEventLogs).not.toHaveBeenCalled();
+    expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
   });
 });

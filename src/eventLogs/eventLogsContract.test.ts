@@ -56,6 +56,7 @@ describe("fetchEventLogsContract", () => {
   const bulkUnit: number = 100;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     storeSyncStatus.update((state: SyncStatusesChain) => {
       Object.assign(contractInState(state), {
         isSyncTarget: true,
@@ -70,9 +71,9 @@ describe("fetchEventLogsContract", () => {
     });
   });
 
-  test("should fetch the next blocks after the store value is replaced", async () => {
-    // Register the fetched block number by replacing the store value with a
-    // new object, and abort after the third registration.
+  // Register the fetched block number by replacing the store value with a new
+  // object, and abort after the third registration.
+  function registerAndAbortAfterThird(): void {
     let registerCount: number = 0;
     vi.mocked(registerEventLogsAndBlockTimes).mockImplementation(
       async (_dbEventLogs, _targetContract, _nodeProvider, _logs, to) => {
@@ -87,6 +88,15 @@ describe("fetchEventLogsContract", () => {
         );
       },
     );
+  }
+  function fetchedRanges(): number[][] {
+    return vi
+      .mocked(getEthersEventLogs)
+      .mock.calls.map(([, , fromBlock, toBlock]) => [fromBlock, toBlock]);
+  }
+
+  test("should fetch the next blocks after the store value is replaced", async () => {
+    registerAndAbortAfterThird();
 
     await fetchEventLogsContract(
       dbEventLogs,
@@ -94,17 +104,31 @@ describe("fetchEventLogsContract", () => {
       null as unknown as NodeProvider,
     );
 
-    expect(
-      vi
-        .mocked(getEthersEventLogs)
-        .mock.calls.map(([, , fromBlock, toBlock]) => [fromBlock, toBlock]),
-    ).toEqual([
+    expect(fetchedRanges()).toEqual([
       [creationBlockNumber, creationBlockNumber + bulkUnit - 1],
       [creationBlockNumber + bulkUnit, creationBlockNumber + 2 * bulkUnit - 1],
       [
         creationBlockNumber + 2 * bulkUnit,
         creationBlockNumber + 3 * bulkUnit - 1,
       ],
+    ]);
+  });
+
+  test("should move past the creation block when Bulk Unit is 1", async () => {
+    storeRpcSettings.updateState(targetChain.name, { bulkUnit: 1 });
+    registerAndAbortAfterThird();
+
+    await fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      null as unknown as NodeProvider,
+    );
+
+    // The creation block is not marked as fetched until a later block is.
+    expect(fetchedRanges()).toEqual([
+      [creationBlockNumber, creationBlockNumber + 1],
+      [creationBlockNumber + 2, creationBlockNumber + 2],
+      [creationBlockNumber + 3, creationBlockNumber + 3],
     ]);
   });
 });
