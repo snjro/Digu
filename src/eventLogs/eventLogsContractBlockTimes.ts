@@ -1,5 +1,5 @@
 import type { ChainName } from "@constants/chains/types";
-import { dbBlockTimes } from "@db/dbBlockTimes";
+import { getDbRecordsBlockTime } from "@db/dbBlockTimesDataHandlers";
 import type { BlockTime, EthersEventLog } from "@db/dbTypes";
 import { removeDuplicateValuesFromArray } from "@utils/utilsCommon";
 import type { NodeProvider } from "@utils/utilsEthers";
@@ -27,9 +27,10 @@ export async function fetchBlockTimesForEventLogs(
     deplicateEventLogBlockNumbers,
   );
   // Read at once, instead of one transaction for each block.
-  const blockTimesInDb: (BlockTime | undefined)[] = await dbBlockTimes
-    .table(chainName)
-    .bulkGet(eventLogBlockNumbers);
+  const blockTimesInDb: (BlockTime | undefined)[] = await getDbRecordsBlockTime(
+    chainName,
+    eventLogBlockNumbers,
+  );
   const blockTimesForEventLogs: BlockTimeForEventLog[] = [];
   const blockNumbersNotInDb: number[] = [];
   eventLogBlockNumbers.forEach((eventLogBlockNumber: number, index: number) => {
