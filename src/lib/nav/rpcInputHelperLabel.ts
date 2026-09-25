@@ -19,6 +19,7 @@ export function getRpcInputHelperLabelProps(
           colorCategory: "success",
         },
         text: "Connected.",
+        textSize: size,
         colorCategoryFront: colorSettings.navText,
       };
       break;
@@ -31,6 +32,7 @@ export function getRpcInputHelperLabelProps(
           appendClass: "animate-spin",
         },
         text: "Connecting...",
+        textSize: size,
         colorCategoryFront: colorSettings.navText,
       };
       break;

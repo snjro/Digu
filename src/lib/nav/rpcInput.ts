@@ -19,6 +19,15 @@ export async function updateRpc(
   await nodeProvider?.destroy();
 }
 
+// Enter that ends an IME composition only fixes the text. Safari sends it
+// with isComposing false and keyCode 229.
+export function blurOnEnter(event: KeyboardEvent): void {
+  const isComposing: boolean = event.isComposing || event.keyCode === 229;
+  if (event.key === "Enter" && !isComposing) {
+    (event.currentTarget as HTMLElement).blur();
+  }
+}
+
 export async function clearSucceededNodeStatus(
   chainName: ChainName,
   nodeStatus: NodeStatus,
