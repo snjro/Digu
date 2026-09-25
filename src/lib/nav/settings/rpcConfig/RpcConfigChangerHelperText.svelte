@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseLabel, { type BaseLabelProps } from "$lib/base/BaseLabel.svelte";
+  import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { baseTextHeight, type BaseSize } from "$lib/base/baseSizes";
   import type { ChainName } from "@constants/chains/types";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import classNames from "classnames";
   import type { RpcConfigParam } from "./rpcConfigParams";
   import type { HelperTextState } from "./RpcConfigChanger.svelte";
+  import { getRpcConfigHelperTextProps } from "./rpcConfigHelperText";
 
   interface Props {
     targetChainName: ChainName;
@@ -30,43 +30,13 @@
     }
   });
 
-  let helperLabelProps = $derived((): BaseLabelProps => {
-    switch (helperTextState) {
-      case "success": {
-        return {
-          prefixIcon: {
-            name: "checkBold",
-            colorCategory: "success",
-          },
-          text: "Updated.",
-          colorCategoryFront: colorSettings.navSettings,
-        };
-      }
-      case "indeterminate": {
-        return {
-          text: "Checking...",
-          colorCategoryFront: colorSettings.navSettings,
-        };
-      }
-      case "error": {
-        return {
-          prefixIcon: {
-            name: "close",
-            colorCategory: "error",
-          },
-          text: `Error. The range should be ${rpcConfigMinValue}-${rpcConfigMaxValue}`,
-          colorCategoryFront: "error",
-        };
-      }
-      default: {
-        return {
-          prefixIcon: undefined,
-          text: undefined,
-          colorCategoryFront: undefined,
-        };
-      }
-    }
-  });
+  let helperLabelProps = $derived(() =>
+    getRpcConfigHelperTextProps(
+      helperTextState,
+      rpcConfigMinValue,
+      rpcConfigMaxValue,
+    ),
+  );
   const size: BaseSize = sizeSettings.navInputHelperText;
 </script>
 
