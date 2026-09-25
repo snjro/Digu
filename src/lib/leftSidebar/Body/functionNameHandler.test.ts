@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { getSplittedFunctionNameAndSelector } from "./functionNameHandler";
+import { EventFragment, FunctionFragment } from "ethers";
+import {
+  getAbiFragmentHref,
+  getSplittedFunctionNameAndSelector,
+} from "./functionNameHandler";
 
 describe("getSplittedFunctionNameAndSelector", () => {
   test("should split the name and the selector", () => {
@@ -19,4 +23,25 @@ describe("getSplittedFunctionNameAndSelector", () => {
       });
     },
   );
+});
+
+describe("getAbiFragmentHref", () => {
+  test("should add the event name", () => {
+    expect(
+      getAbiFragmentHref(
+        "/Digu/eth/Uniswap-v3/contracts/Pool/events",
+        EventFragment.from(
+          "event Transfer(address indexed from, address indexed to, uint256 value)",
+        ),
+      ),
+    ).toBe("/Digu/eth/Uniswap-v3/contracts/Pool/events/Transfer");
+  });
+  test("should add the function name and the selector", () => {
+    expect(
+      getAbiFragmentHref(
+        "/Digu/eth/Uniswap-v3/contracts/Pool/functions",
+        FunctionFragment.from("function transfer(address to, uint256 amount)"),
+      ),
+    ).toBe("/Digu/eth/Uniswap-v3/contracts/Pool/functions/transfer-0xa9059cbb");
+  });
 });

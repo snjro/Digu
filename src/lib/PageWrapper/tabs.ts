@@ -1,3 +1,4 @@
+import type { AbiFragmentsType } from "$lib/contracts/abiFragmentsType";
 import { convertToKebabCase } from "@utils/utilsCommon";
 
 export const TAB_VALUES_COMMON = ["Overview", "ABI"] as const;
@@ -32,4 +33,16 @@ export function convertTabValueForHref<
   let convertedTabValue: string = convertToKebabCase(tabValue as string);
   convertedTabValue = convertedTabValue.replace("(", "").replace(")", "");
   return `#${convertedTabValue}`;
+}
+
+// The URL hash without "#" of the first tab of the contract, event or function page.
+export function getFirstTabUrlHash(
+  pageType: "contracts" | AbiFragmentsType,
+): string {
+  const tabValues = {
+    contracts: TAB_VALUES_CONTRACT,
+    events: TAB_VALUES_EVENT,
+    functions: TAB_VALUES_FUNCTION,
+  }[pageType];
+  return convertToKebabCase(tabValues[0]);
 }

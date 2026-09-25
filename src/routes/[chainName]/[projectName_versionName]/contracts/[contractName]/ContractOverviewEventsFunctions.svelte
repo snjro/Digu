@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import { TAB_VALUES_EVENT, TAB_VALUES_FUNCTION } from "$lib/PageWrapper/tabs";
+  import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseA from "$lib/base/BaseA.svelte";
@@ -13,7 +13,8 @@
   import type { BaseSize } from "$lib/base/baseSizes";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
-  import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/functionNameHandler";
+  import { getAbiFragmentHref } from "$lib/leftSidebar/Body/functionNameHandler";
+  import { getSubdirectoryHref } from "$lib/common/linkHref";
   import type {
     Contract,
     EventAbiFragment,
@@ -21,10 +22,7 @@
   } from "@constants/chains/types";
   import { trailingSlash } from "@routes/+layout";
   import type { AbiFragmentsType } from "$lib/contracts/abiFragmentsType";
-  import {
-    capitalizeFirstLetter,
-    convertToKebabCase,
-  } from "@utils/utilsCommon";
+  import { capitalizeFirstLetter } from "@utils/utilsCommon";
 
   interface Props {
     abiFragmentsType: AbiFragmentsType;
@@ -47,23 +45,13 @@
     `${capitalizeFirstLetter(singularListType)} Name`,
   );
   let hrefFrontPart = $derived(
-    trailingSlash === "always"
-      ? `${page.url.pathname}${abiFragmentsType}`
-      : `${page.url.pathname}/${abiFragmentsType}`,
+    getSubdirectoryHref(page.url.pathname, trailingSlash, abiFragmentsType),
   );
 
   const hrefEventFunctionName = (
     abiFragment: FunctionAbiFragment | EventAbiFragment,
-  ): string => {
-    const functionSelectorWithSplitter: string =
-      getFunctionSelectorWithSplitter(abiFragment);
-
-    const urlHash: string =
-      abiFragmentsType === "functions"
-        ? convertToKebabCase(TAB_VALUES_FUNCTION[0])
-        : convertToKebabCase(TAB_VALUES_EVENT[0]);
-    return `${hrefFrontPart}/${abiFragment.name}${functionSelectorWithSplitter}#${urlHash}`;
-  };
+  ): string =>
+    `${getAbiFragmentHref(hrefFrontPart, abiFragment)}#${getFirstTabUrlHash(abiFragmentsType)}`;
 </script>
 
 <CommonItemMember>

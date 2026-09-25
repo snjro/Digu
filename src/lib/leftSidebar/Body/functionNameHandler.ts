@@ -16,6 +16,12 @@ export function getFunctionSelectorWithSplitter(
     ? `${FUNC_NAME_SPLITTER}${targetAbiFragment.selector}` // hyphens are not allowed in function names on Solidity.
     : "";
 }
+export function getAbiFragmentHref(
+  abiFragmentsHref: string,
+  targetAbiFragment: EventAbiFragment | FunctionAbiFragment,
+): string {
+  return `${abiFragmentsHref}/${targetAbiFragment.name}${getFunctionSelectorWithSplitter(targetAbiFragment)}`;
+}
 // The selector is undefined when the text does not split into two, so that
 // the function getter shows the 404 page for such a URL.
 export function getSplittedFunctionNameAndSelector(
