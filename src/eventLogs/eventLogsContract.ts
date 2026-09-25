@@ -85,6 +85,11 @@ export async function fetchEventLogsContract(
     latestBlockNumber = get(storeChainStatus)[chainName].latestBlockNumber;
 
     toBlockNumber = fromBlockNumber + rpcSetting.bulkUnit - 1;
+    if (fetchedBlockNumber === creationBlockNumber) {
+      // At least 2 blocks: fetching only the creation block would leave
+      // fetchedBlockNumber unchanged and fetch it again.
+      toBlockNumber = Math.max(toBlockNumber, fromBlockNumber + 1);
+    }
 
     if (toBlockNumber >= latestBlockNumber) {
       toBlockNumber = latestBlockNumber;
