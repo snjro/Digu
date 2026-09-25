@@ -25,6 +25,17 @@ import { storeChainStatus } from "@stores/storeChainStatus";
 import { get } from "svelte/store";
 import { NO_DATA } from "@utils/utilsConstants";
 
+// The values are strings (NO_DATA or a number), so compare them as numbers.
+export function compareSyncStatusValues(
+  valueA: string,
+  valueB: string,
+): number {
+  const numberA: number = valueA === NO_DATA ? -Infinity : Number(valueA);
+  const numberB: number = valueB === NO_DATA ? -Infinity : Number(valueB);
+  if (numberA === numberB) return 0;
+  return numberA < numberB ? -1 : 1;
+}
+
 export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
   targetChain: Chain,
   targetProject: Project,
@@ -34,6 +45,7 @@ export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
   const columnDef: ColumnDef = {
     headerName: headerName,
     sortable: true,
+    comparator: compareSyncStatusValues,
     editable: false,
     cellStyle: (cellClassParams: CellClassParams<T>): CellStyle | undefined => {
       if (cellClassParams.data && cellClassParams.data.contractHasEvent) {
@@ -59,7 +71,7 @@ export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
         latestBlockNumber,
         targetContractSyncStatus,
       );
-      // in order to sort the column, change type of "blockNumber"(=number) to string
+      // A string, so that the CSV shows NO_DATA. The comparator sorts it as a number.
       return blockNumber === 0 ? NO_DATA : blockNumber.toString();
     },
     cellRenderer: cellRendererFactory(
