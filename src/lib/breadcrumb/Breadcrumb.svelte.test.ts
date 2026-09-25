@@ -37,4 +37,15 @@ describe("Breadcrumb.svelte", () => {
     // home, separator, last label
     expect(children.map((child) => child.tagName)).toEqual(["LI", "LI", "LI"]);
   });
+
+  test("hides only the separators from screen readers", () => {
+    const { container } = render(Breadcrumb);
+    const children = [...container.querySelector("ol")!.children];
+    // home, separator, last label
+    expect(children.map((child) => child.getAttribute("aria-hidden"))).toEqual([
+      null,
+      "true",
+      null,
+    ]);
+  });
 });
