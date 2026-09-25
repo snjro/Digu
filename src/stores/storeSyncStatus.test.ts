@@ -176,6 +176,57 @@ describe("storeSyncStaus", () => {
 
     expect(currentSyncStatusesChain).toEqual(expextedSyncStatusesChain);
   });
+  test("should sum the numbers of the sync target contracts into the parents", async () => {
+    const storeSyncStatus = await importStoreSyncStatus();
+    const versionIdentifier = {
+      chainName: "eth",
+      projectName: "Augur",
+      versionName: "version2",
+    } as const;
+    const contractIdentifier1 = {
+      ...versionIdentifier,
+      contractName: "OICash",
+    } as const;
+    const contractIdentifier2 = {
+      ...versionIdentifier,
+      contractName: "AugurWalletRegistry",
+    } as const;
+    // Every contract is a sync target with 0 in the initial value.
+    storeSyncStatus.updateState(contractIdentifier1, {
+      fetchedBlockNumber: 150,
+      creationBlockNumber: 100,
+      numOfSyncTargetContract: 1,
+    });
+    storeSyncStatus.updateState(contractIdentifier2, {
+      fetchedBlockNumber: 300,
+      creationBlockNumber: 200,
+      numOfSyncTargetContract: 1,
+    });
+
+    function parents() {
+      const chain = get(storeSyncStatus)[versionIdentifier.chainName];
+      const project = chain.subSyncStatuses[versionIdentifier.projectName];
+      const version = project.subSyncStatuses[versionIdentifier.versionName];
+      return [chain, project, version];
+    }
+    for (const parent of parents()) {
+      expect(parent).toMatchObject({
+        fetchedBlockNumber: 450,
+        creationBlockNumber: 300,
+        numOfSyncTargetContract: 2,
+      });
+    }
+
+    // A contract that is no longer a sync target is left out of the sums.
+    storeSyncStatus.updateState(contractIdentifier1, { isSyncTarget: false });
+    for (const parent of parents()) {
+      expect(parent).toMatchObject({
+        fetchedBlockNumber: 300,
+        creationBlockNumber: 200,
+        numOfSyncTargetContract: 1,
+      });
+    }
+  });
   test("should update the current value, not the initial value", async () => {
     const storeSyncStatus = await importStoreSyncStatus();
     const targetChainName = "eth";
