@@ -2,6 +2,8 @@ import { describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/svelte";
 import ChainOverviewVersions from "./ChainOverviewVersions.svelte";
 import type { Chain, Project, Version } from "@constants/chains/types";
+import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { storeChainStatus } from "@stores/storeChainStatus";
 
 vi.mock("$app/state", () => ({
   page: { url: new URL("http://localhost/chain1/") },
@@ -46,5 +48,44 @@ describe("ChainOverviewVersions.svelte", () => {
     });
     expect(screen.getByText("Events")).toBeTruthy();
     expect(screen.queryByText("Contracts")).toBeNull();
+  });
+
+  test("shows the progress of a version with two sync target contracts", () => {
+    // The version values are the sums of the two contracts, so the goal is
+    // the latest block number times two: (300 - 200) / (600 - 200) = 25%.
+    const versionWithEvents = {
+      name: "version2",
+      contracts: [
+        { name: "contract1", events: { abiFragments: [{}] } },
+        { name: "contract2", events: { abiFragments: [{}] } },
+      ],
+    } as unknown as Version;
+    storeSyncStatus.set({
+      chain1: {
+        subSyncStatuses: {
+          project1: {
+            subSyncStatuses: {
+              version2: {
+                isSyncTarget: true,
+                isSyncing: false,
+                syncStateText: "stopped",
+                creationBlockNumber: 200,
+                fetchedBlockNumber: 300,
+                numOfSyncTargetContract: 2,
+              },
+            },
+          },
+        },
+      },
+    } as never);
+    storeChainStatus.set({ chain1: { latestBlockNumber: 300 } } as never);
+    render(ChainOverviewVersions, {
+      targetChain: chain,
+      targetProject: {
+        name: "project1",
+        versions: [versionWithEvents],
+      } as unknown as Project,
+    });
+    expect(screen.getByText("25.0%")).toBeTruthy();
   });
 });
