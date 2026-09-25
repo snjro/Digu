@@ -49,6 +49,44 @@ describe("RpcConfigChangerInput.svelte", () => {
     expect(onchange).toHaveBeenCalledWith(250);
   });
 
+  test.each([
+    ["1e3", 1000],
+    ["1.5", 1.5],
+  ])(
+    "calls onchange with %j read as a number, not cut to an integer",
+    async (typed, expected) => {
+      const onchange = vi.fn();
+      const { container } = render(RpcConfigChangerInput, {
+        rpcConfigParam,
+        value: 100,
+        disabled: false,
+        helperTextState: undefined,
+        onchange,
+      });
+      await fireEvent.change(getInput(container), { target: { value: typed } });
+      expect(onchange).toHaveBeenCalledWith(expected);
+    },
+  );
+
+  test("does not call onchange on focus after the typed value is changed", async () => {
+    const onchange = vi.fn();
+    const { container } = render(RpcConfigChangerInput, {
+      rpcConfigParam,
+      value: 100,
+      disabled: false,
+      helperTextState: undefined,
+      onchange,
+    });
+    const input = getInput(container);
+    await fireEvent.input(input, { target: { value: "250" } });
+    await fireEvent.change(input);
+    expect(onchange).toHaveBeenCalledTimes(1);
+
+    await fireEvent.blur(input);
+    await fireEvent.focus(input);
+    expect(onchange).toHaveBeenCalledTimes(1);
+  });
+
   test("calls onchange on focus when the shown value differs from value", async () => {
     const onchange = vi.fn();
     const { container } = render(RpcConfigChangerInput, {

@@ -30,18 +30,14 @@
     }
   });
   async function change(event: Event): Promise<void> {
-    const newValue: number = parseInt((event.target as HTMLInputElement).value);
+    const newValue: number = Number((event.target as HTMLInputElement).value);
     onchange?.(newValue);
   }
   async function focus(event: Event): Promise<void> {
-    const newValue: number = parseInt((event.target as HTMLInputElement).value);
-    if (newValue !== value) {
+    const newValue: number = Number((event.target as HTMLInputElement).value);
+    // BaseInput sets value to the typed string.
+    if (newValue !== Number(value)) {
       change(event);
-    }
-  }
-  function blur(): void {
-    if (helperTextState !== "error") {
-      helperTextState = undefined;
     }
   }
 </script>
@@ -58,7 +54,6 @@
     colorCategory={colorSettings.navSettings}
     onchange={change}
     onfocus={focus}
-    onblur={blur}
     ariaLabel={rpcConfigParam.label}
   />
 </div>
