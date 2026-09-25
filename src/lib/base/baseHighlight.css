@@ -1,3 +1,8 @@
 .hljs {
   background: var(--base-highlight-background-color) !important;
 }
+
+/* The github theme's #d73a49 is below 4.5:1 on the light background. */
+html:not(.dark) .hljs-keyword {
+  color: #c92938;
+}
