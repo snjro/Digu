@@ -34,6 +34,18 @@
     colorClasses[colorSettings.dialogHeader].shadow,
     colorClasses[colorSettings.dialogHeader].border,
   );
+
+  // Close only when both the press and the release are on the backdrop,
+  // so a text selection dragged out of the dialog keeps it open.
+  let isPressedOnBackdrop: boolean = false;
+  function onMouseDown(event: MouseEvent): void {
+    isPressedOnBackdrop = event.target === dialogElement;
+  }
+  function onClick(event: MouseEvent): void {
+    if (isPressedOnBackdrop && event.target === dialogElement) {
+      closeDialog(dialogElement);
+    }
+  }
 </script>
 
 <div class={classNames("flex")}>
@@ -54,6 +66,8 @@
     )}
     {onclose}
     oncancel={() => closeDialog(dialogElement)}
+    onmousedown={onMouseDown}
+    onclick={onClick}
   >
     <div class={classNames("flex-initial", "min-h-0", "flex", "flex-col")}>
       <BaseDialogHeader {dialogElement} {headerIconName} {headerText} />

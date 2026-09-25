@@ -5,10 +5,12 @@ import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import BaseDialog from "./BaseDialog.svelte";
+import { closeDialog, openDialog } from "./BaseDialogHandler";
 import { htmlSnippet, slotProps } from "../../../testUtils/snippets";
 
 afterEach(() => {
   storeUserSettings.set({ ...initialDataUserSettings });
+  vi.restoreAllMocks();
 });
 
 type Props = {
@@ -63,6 +65,33 @@ describe("BaseDialog.svelte", () => {
     await fireEvent(dialog, new Event("cancel"));
     expect(dialog.open).toBe(false);
     expect(onclose).toHaveBeenCalledOnce();
+  });
+
+  test("closes when the backdrop is pressed and released", async () => {
+    const onclose = vi.fn();
+    const { dialog } = renderDialog({ headerText: "Settings", onclose });
+    openDialog(dialog);
+    await fireEvent.mouseDown(dialog);
+    await fireEvent.click(dialog);
+    expect(dialog.open).toBe(false);
+    expect(onclose).toHaveBeenCalledOnce();
+  });
+
+  test("stays open when a press inside is released on the backdrop", async () => {
+    const { dialog } = renderDialog({ headerText: "Settings" });
+    openDialog(dialog);
+    await fireEvent.mouseDown(screen.getByTestId("body"));
+    await fireEvent.click(dialog);
+    expect(dialog.open).toBe(true);
+  });
+
+  test("adds no listener each time it opens", () => {
+    const { dialog } = renderDialog({ headerText: "Settings" });
+    const add = vi.spyOn(dialog, "addEventListener");
+    openDialog(dialog);
+    closeDialog(dialog);
+    openDialog(dialog);
+    expect(add).not.toHaveBeenCalled();
   });
 
   test("keeps the same color classes in both themes", async () => {
