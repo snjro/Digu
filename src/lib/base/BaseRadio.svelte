@@ -258,6 +258,7 @@
           name={groupName}
           bind:group={selectedValue}
           {value}
+          aria-label={labelText}
           {...rest}
           class={classNames(
             "w-0",

@@ -37,6 +37,15 @@ describe("BaseCheckbox.svelte", () => {
     expect(input.getAttribute("style")).toContain("checkboxIndeterminate.svg");
   });
 
+  test("has the name of ariaLabel, and no name without it", () => {
+    render(BaseCheckbox, { checked: true, ariaLabel: "Sync target: x" });
+    expect(
+      screen.getByRole("checkbox", { name: "Sync target: x" }),
+    ).toBeTruthy();
+    const { container } = render(BaseCheckbox, { checked: true });
+    expect(getCheckbox(container).hasAttribute("aria-label")).toBe(false);
+  });
+
   test("flips on a click and calls onclick with the event", async () => {
     const onclick = vi.fn();
     const { container } = render(BaseCheckbox, { checked: false, onclick });

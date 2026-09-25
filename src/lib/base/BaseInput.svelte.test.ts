@@ -48,6 +48,13 @@ describe("BaseInput.svelte", () => {
     expect(input.disabled).toBe(true);
   });
 
+  test("has the name of ariaLabel, and no name without it", () => {
+    render(BaseInput, { ...baseProps, ariaLabel: "Bulk Unit" });
+    expect(screen.getByRole("textbox", { name: "Bulk Unit" })).toBeTruthy();
+    const { container } = render(BaseInput, { ...baseProps });
+    expect(getInput(container).hasAttribute("aria-label")).toBe(false);
+  });
+
   test("shows an empty value when value is undefined", () => {
     const { container } = render(BaseInput, { ...baseProps });
     expect(getInput(container).value).toBe("");

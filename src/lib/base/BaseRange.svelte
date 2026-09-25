@@ -43,6 +43,7 @@
     colorCategoryFront?: ColorCategory | undefined;
     colorCategoryBg?: ColorCategory | undefined;
     onchange?: ((event: Event) => void) | undefined;
+    ariaLabel?: string;
   }
 
   let {
@@ -57,6 +58,7 @@
     colorCategoryFront = undefined,
     colorCategoryBg = undefined,
     onchange = undefined,
+    ariaLabel = undefined,
   }: Props = $props();
 
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
@@ -100,4 +102,5 @@
   {step}
   {disabled}
   {onchange}
+  aria-label={ariaLabel}
 />

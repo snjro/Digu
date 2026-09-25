@@ -83,6 +83,29 @@ describe("BaseRadio.svelte (button)", () => {
     expect(screen.getByTestId("bound").textContent).toBe("no");
   });
 
+  test.each(["button", "tab"] as const)(
+    "names the hidden inputs of the %s form by labelText",
+    (radioButtonType) => {
+      render(BaseRadio, {
+        ...baseProps,
+        radioButtonType,
+        selectedValue: "yes",
+      });
+      expect(radio("radio-yes").getAttribute("aria-label")).toBe("Yes");
+      expect(radio("radio-no").getAttribute("aria-label")).toBe("No");
+    },
+  );
+
+  test("lets the caller override the name of the hidden inputs", () => {
+    render(BaseRadio, {
+      ...baseProps,
+      radioButtonType: "tab",
+      selectedValue: "yes",
+      "aria-label": "Other",
+    });
+    expect(radio("radio-yes").getAttribute("aria-label")).toBe("Other");
+  });
+
   test("disables the inputs and the buttons", () => {
     render(BaseRadio, {
       ...baseProps,
@@ -105,6 +128,7 @@ describe("BaseRadio.svelte (circle)", () => {
     });
     expect(screen.getByText("Yes")).toBeTruthy();
     expect(radio("radio-no").checked).toBe(true);
+    expect(radio("radio-no").hasAttribute("aria-label")).toBe(false);
 
     await rerender({ selectedValue: "yes" });
     expect(radio("radio-yes").checked).toBe(true);

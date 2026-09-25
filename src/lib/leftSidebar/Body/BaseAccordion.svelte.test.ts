@@ -29,7 +29,7 @@ const props = {
 } as const;
 
 function getArrowButton(): HTMLElement {
-  return screen.getByRole("button", { name: "" });
+  return screen.getByRole("button", { name: "Toggle Augur version1" });
 }
 // The children box is the element with the "hidden" class when closed.
 function childrenBox(): HTMLElement {

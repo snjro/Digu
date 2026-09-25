@@ -36,7 +36,7 @@ const props: ComponentProps<typeof BaseAccordionHeader> = {
 };
 
 function getArrowButton(): HTMLElement {
-  return screen.getByRole("button", { name: "" });
+  return screen.getByRole("button", { name: "Toggle Augur version1" });
 }
 function chevron(): "open" | "closed" {
   const arrow = getArrowButton();
@@ -92,12 +92,15 @@ describe("BaseAccordionHeader.svelte", () => {
   test("flips the accordion on click", async () => {
     render(BaseAccordionHeader, props);
     expect(chevron()).toBe("closed");
+    expect(getArrowButton().getAttribute("aria-expanded")).toBe("false");
 
     await fireEvent.click(getArrowButton());
     expect(chevron()).toBe("open");
+    expect(getArrowButton().getAttribute("aria-expanded")).toBe("true");
 
     await fireEvent.click(getArrowButton());
     expect(chevron()).toBe("closed");
+    expect(getArrowButton().getAttribute("aria-expanded")).toBe("false");
   });
 
   test.each(["Enter", " "])(

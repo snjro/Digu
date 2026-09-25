@@ -123,6 +123,7 @@
     noGrow
   />
   <BaseAccordionHeaderSuffixIcons
+    {label}
     {hoverType}
     height={leftSideBarItemHeight[size]}
     {isSelected}

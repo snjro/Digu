@@ -1,6 +1,15 @@
 import { describe, expect, test, vi } from "vitest";
 import { fireEvent, render } from "@testing-library/svelte";
 import RpcConfigChangerInput from "./RpcConfigChangerInput.svelte";
+import type { RpcConfigParam } from "./rpcConfigParams";
+
+const rpcConfigParam: RpcConfigParam = {
+  name: "bulkUnit",
+  label: "Bulk Unit",
+  minValue: 1,
+  maxValue: 10000,
+  step: 1,
+};
 
 function getInput(container: HTMLElement): HTMLInputElement {
   const input = container.querySelector('input[type="number"]');
@@ -11,6 +20,7 @@ function getInput(container: HTMLElement): HTMLInputElement {
 describe("RpcConfigChangerInput.svelte", () => {
   test("shows the value and follows the props", async () => {
     const { container, rerender } = render(RpcConfigChangerInput, {
+      rpcConfigParam,
       value: 100,
       disabled: false,
       helperTextState: undefined,
@@ -18,6 +28,7 @@ describe("RpcConfigChangerInput.svelte", () => {
     const input = getInput(container);
     expect(input.value).toBe("100");
     expect(input.disabled).toBe(false);
+    expect(input.getAttribute("aria-label")).toBe("Bulk Unit");
 
     await rerender({ value: 200, disabled: true });
     expect(input.value).toBe("200");
@@ -27,6 +38,7 @@ describe("RpcConfigChangerInput.svelte", () => {
   test("calls onchange with the typed number", async () => {
     const onchange = vi.fn();
     const { container } = render(RpcConfigChangerInput, {
+      rpcConfigParam,
       value: 100,
       disabled: false,
       helperTextState: undefined,
@@ -40,6 +52,7 @@ describe("RpcConfigChangerInput.svelte", () => {
   test("calls onchange on focus when the shown value differs from value", async () => {
     const onchange = vi.fn();
     const { container } = render(RpcConfigChangerInput, {
+      rpcConfigParam,
       value: 100,
       disabled: false,
       helperTextState: undefined,
@@ -57,6 +70,7 @@ describe("RpcConfigChangerInput.svelte", () => {
 
   test("shows value again when disabled with an error", async () => {
     const { container, rerender } = render(RpcConfigChangerInput, {
+      rpcConfigParam,
       value: 100,
       disabled: false,
       helperTextState: undefined,
@@ -71,6 +85,7 @@ describe("RpcConfigChangerInput.svelte", () => {
 
   test("shows the value when created disabled with an error", () => {
     const { container } = render(RpcConfigChangerInput, {
+      rpcConfigParam,
       value: 100,
       disabled: true,
       helperTextState: "error",

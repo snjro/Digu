@@ -22,6 +22,7 @@
   import { getFrontColorCategory } from "./fontStyle";
 
   interface Props {
+    label: string;
     height: `h-${string}`;
     bgColor: `bg-${string}` | undefined;
     isSelected: boolean;
@@ -35,6 +36,7 @@
   }
 
   let {
+    label,
     height,
     bgColor,
     isSelected,
@@ -66,6 +68,8 @@
 <div
   role="button"
   tabindex="0"
+  aria-label={`Toggle ${label}`}
+  aria-expanded={isOpenAccordion}
   class={classNames(
     "grow",
     "flex",

@@ -33,6 +33,7 @@
     forcedClass?: BaseSelectProps["forcedClass"];
     appendClass?: BaseSelectProps["appendClass"];
     onchange?: ((event: Event) => void) | undefined;
+    ariaLabel?: string;
   }
 
   let {
@@ -44,6 +45,7 @@
     forcedClass = undefined,
     appendClass = undefined,
     onchange = undefined,
+    ariaLabel = undefined,
   }: Props = $props();
 
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
@@ -98,7 +100,7 @@
     "",
   )}
 >
-  <select bind:value class={customClass} {onchange}>
+  <select bind:value class={customClass} {onchange} aria-label={ariaLabel}>
     {#each items as { value, name }}
       <option
         {value}
