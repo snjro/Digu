@@ -22,10 +22,3 @@
     <ChainOverview targetChain={data.targetChain}></ChainOverview>
   {/snippet}
 </PageWrapper>
-
-<!-- <BaseButton
-  label="test Btn"
-  onclick={testFunc}
-  border
-  colorCategoryFront="interactive"
-/> -->
