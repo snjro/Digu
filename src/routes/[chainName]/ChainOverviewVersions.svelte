@@ -82,7 +82,7 @@
           width: "w-full",
         },
         {
-          text: `Contracts`,
+          text: `Events`,
           align: "center",
           textSize: textSize,
           width: "w-full",
