@@ -136,6 +136,24 @@ describe("fetchEventLogsContract", () => {
     expect(getLogsCount()).toBe(tryCount + targetContract.events.names.length);
   });
 
+  test("should abort the chain when the errors exceed Try Count", async () => {
+    const { provider, getLogsCount } = providerFailingGetLogs(tryCount + 1);
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(
+      targetChain.name,
+    );
+    expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
+    expect(getLogsCount()).toBe(tryCount + 1);
+  });
+
   test("should halve the range after an error and return to Bulk Unit after a success", async () => {
     const { provider, getLogsRanges } = providerFailingGetLogs(1);
     // Register the fetched block number, and abort after the second
