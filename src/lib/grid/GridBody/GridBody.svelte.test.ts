@@ -3,15 +3,28 @@ import { render } from "@testing-library/svelte";
 import type { GridApi } from "ag-grid-community";
 import GridBody from "./GridBody.svelte";
 
-const gridApi = vi.hoisted(() => ({
-  setGridOption: vi.fn(),
-  hideOverlay: vi.fn(),
-  showNoRowsOverlay: vi.fn(),
-  refreshCells: vi.fn(),
-  sizeColumnsToFit: vi.fn(),
-  autoSizeAllColumns: vi.fn(),
-  destroy: vi.fn(),
-}));
+const gridApi = vi.hoisted(() => {
+  // ag-grid ignores hideOverlay and showNoRowsOverlay while loading is true.
+  const state = { loading: false, overlayCallsWhileLoading: 0 };
+  const onOverlayCall = () => {
+    if (state.loading) state.overlayCallsWhileLoading++;
+  };
+  return {
+    state,
+    setGridOption: vi.fn((key: string, value: unknown) => {
+      if (key === "loading") state.loading = value as boolean;
+    }),
+    getGridOption: vi.fn((key: string) =>
+      key === "loading" ? state.loading : undefined,
+    ),
+    hideOverlay: vi.fn(onOverlayCall),
+    showNoRowsOverlay: vi.fn(onOverlayCall),
+    refreshCells: vi.fn(),
+    sizeColumnsToFit: vi.fn(),
+    autoSizeAllColumns: vi.fn(),
+    destroy: vi.fn(),
+  };
+});
 
 vi.mock("ag-grid-community", async (importOriginal) => ({
   ...(await importOriginal<typeof import("ag-grid-community")>()),
@@ -19,23 +32,18 @@ vi.mock("ag-grid-community", async (importOriginal) => ({
 }));
 
 afterEach(() => {
+  const overlayCallsWhileLoading: number =
+    gridApi.state.overlayCallsWhileLoading;
   vi.clearAllMocks();
+  gridApi.state.loading = false;
+  gridApi.state.overlayCallsWhileLoading = 0;
+  expect(overlayCallsWhileLoading).toBe(0);
 });
 
-function loadingCalls(): { value: boolean; order: number }[] {
-  return gridApi.setGridOption.mock.calls.flatMap((call, index) =>
-    call[0] === "loading"
-      ? [
-          {
-            value: call[1] as boolean,
-            order: gridApi.setGridOption.mock.invocationCallOrder[index],
-          },
-        ]
-      : [],
-  );
-}
 function lastLoading(): boolean | undefined {
-  return loadingCalls().at(-1)?.value;
+  return gridApi.setGridOption.mock.calls
+    .filter((call) => call[0] === "loading")
+    .at(-1)?.[1] as boolean | undefined;
 }
 
 // The component replaces gridApi with the one createGrid returns. Passing
@@ -55,10 +63,7 @@ describe("GridBody.svelte", () => {
     renderGridBody([]);
     expect(lastLoading()).toBe(false);
     expect(gridApi.setGridOption).toHaveBeenCalledWith("rowData", []);
-    // While loading is true, ag-grid shows no other overlay.
-    expect(
-      gridApi.showNoRowsOverlay.mock.invocationCallOrder.at(-1),
-    ).toBeGreaterThan(loadingCalls().at(-1)!.order);
+    expect(gridApi.showNoRowsOverlay).toHaveBeenCalled();
   });
 
   test("rows: sets them and clears loading", () => {
@@ -75,5 +80,14 @@ describe("GridBody.svelte", () => {
     await rerender({ rows: [] });
     expect(lastLoading()).toBe(false);
     expect(gridApi.showNoRowsOverlay).toHaveBeenCalled();
+  });
+
+  test("rows undefined then rows: loading ends with the rows", async () => {
+    const rows = [{ name: "a" }];
+    const { rerender } = renderGridBody(undefined);
+    await rerender({ rows });
+    expect(gridApi.setGridOption).toHaveBeenCalledWith("rowData", rows);
+    expect(lastLoading()).toBe(false);
+    expect(gridApi.showNoRowsOverlay).not.toHaveBeenCalled();
   });
 });

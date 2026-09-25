@@ -144,17 +144,20 @@
       // keep the components that ag-grid mounts here out of this effect.
       untrack(() => {
         if (rowData == undefined) {
-          // The rows are still loading.
-          gridApi.hideOverlay();
+          // The rows are still loading. The loading overlay replaces any other.
           gridApi.setGridOption("loading", true);
         } else {
           if (rowData && rowData.length) {
-            gridApi.hideOverlay();
+            // While loading is true, the grid shows the loading overlay and
+            // does not hide it.
+            if (!gridApi.getGridOption("loading")) {
+              gridApi.hideOverlay();
+            }
             gridApi.setGridOption("loading", true);
           } else {
-            gridApi.hideOverlay();
-            // While loading is true, the grid shows no other overlay.
+            // While loading is true, the grid neither hides nor shows an overlay.
             gridApi.setGridOption("loading", false);
+            gridApi.hideOverlay();
             gridApi.showNoRowsOverlay();
           }
           gridApi.setGridOption("rowData", rowData);
