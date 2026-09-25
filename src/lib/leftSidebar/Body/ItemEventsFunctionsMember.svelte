@@ -1,14 +1,13 @@
 <script lang="ts" generics>
-  import { TAB_VALUES_EVENT, TAB_VALUES_FUNCTION } from "$lib/PageWrapper/tabs";
+  import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type {
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
   import type { AbiFragmentsType } from "$lib/contracts/abiFragmentsType";
-  import { convertToKebabCase } from "@utils/utilsCommon";
   import BaseItem from "./BaseItem.svelte";
-  import { getFunctionSelectorWithSplitter } from "./functionNameHandler";
+  import { getAbiFragmentHref } from "./functionNameHandler";
 
   interface Props {
     abiFragmentsType: AbiFragmentsType;
@@ -18,17 +17,9 @@
 
   let { abiFragmentsType, targetAbiFragment, targetAbiFragmentsHref }: Props =
     $props();
-  let urlHash: string = $derived(
-    convertToKebabCase(
-      abiFragmentsType === "events"
-        ? TAB_VALUES_EVENT[0]
-        : TAB_VALUES_FUNCTION[0],
-    ),
-  );
+  let urlHash: string = $derived(getFirstTabUrlHash(abiFragmentsType));
   let targetAbiFragmentHref: string = $derived(
-    `${targetAbiFragmentsHref}/${
-      targetAbiFragment.name
-    }${getFunctionSelectorWithSplitter(targetAbiFragment)}`,
+    getAbiFragmentHref(targetAbiFragmentsHref, targetAbiFragment),
   );
 </script>
 

@@ -4,6 +4,7 @@ import {
   TAB_VALUES_EVENT,
   TAB_VALUES_FUNCTION,
   convertTabValueForHref,
+  getFirstTabUrlHash,
 } from "./tabs";
 
 describe("TAB_VALUES", () => {
@@ -28,4 +29,13 @@ describe("convertTabValueForHref", () => {
   ] as const)("should convert %j to %j", (tabValue, href) => {
     expect(convertTabValueForHref(tabValue)).toBe(href);
   });
+});
+
+describe("getFirstTabUrlHash", () => {
+  test.each(["contracts", "events", "functions"] as const)(
+    "should return the hash of the first tab of %s",
+    (pageType) => {
+      expect(getFirstTabUrlHash(pageType)).toBe("overview");
+    },
+  );
 });

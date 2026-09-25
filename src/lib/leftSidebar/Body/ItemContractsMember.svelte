@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { TAB_VALUES_CONTRACT } from "$lib/PageWrapper/tabs";
+  import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import type { Contract } from "@constants/chains/types";
-  import { convertToKebabCase } from "@utils/utilsCommon";
+  import { getContractHref } from "$lib/common/linkHref";
   import BaseAccordion from "./BaseAccordion.svelte";
   import type { BaseAccordionHeaderSuffixIcon } from "./BaseAccordionHeaderSuffixIcons.svelte";
   import BaseItem from "./BaseItem.svelte";
@@ -25,9 +25,9 @@
     contractSuffixIcon: changeSize(size, -1),
   };
   let targetContractHref: string = $derived(
-    `${targetContractsHref}/${targetContract.name}`,
+    getContractHref(targetContractsHref, targetContract.name),
   );
-  const urlHash: string = convertToKebabCase(TAB_VALUES_CONTRACT[0]);
+  const urlHash: string = getFirstTabUrlHash("contracts");
   let hasEvents: boolean = $derived(
     targetContract.events.abiFragments.length > 0,
   );

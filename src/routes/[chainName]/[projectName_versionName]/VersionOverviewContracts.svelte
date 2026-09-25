@@ -20,6 +20,7 @@
   import CommonSyncStateText from "$lib/common/CommonSyncStateText.svelte";
   import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
   import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
+  import { getContractHref, getSubdirectoryHref } from "$lib/common/linkHref";
   import { trailingSlash } from "@routes/+layout";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsCostants";
@@ -37,9 +38,7 @@
   const textSize: BaseSize = sizeSettings.itemMemberTable;
   const warnningTextSize: BaseSize = sizeSettings.itemWarnningMessage;
   const hrefFrontPart: string = $derived(
-    trailingSlash === "always"
-      ? `${page.url.pathname}${DIR_NAME_CONTRACTS}`
-      : `${page.url.pathname}/${DIR_NAME_CONTRACTS}`,
+    getSubdirectoryHref(page.url.pathname, trailingSlash, DIR_NAME_CONTRACTS),
   );
   const noListMessage: string = `No contracts.`;
 </script>
@@ -81,7 +80,7 @@
             />
             <BaseTableBodyCell align="left" {textSize}>
               <BaseA
-                href={`${hrefFrontPart}/${targetContract.name}`}
+                href={getContractHref(hrefFrontPart, targetContract.name)}
                 text={targetContract.name}
                 prefixIcon={{
                   name: "scriptText",
