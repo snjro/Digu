@@ -3,14 +3,16 @@ import type { DbEventLogs } from "./dbEventLogs";
 import type { Table } from "dexie";
 // import type { Event as EthersEvent } from "ethers";
 import { getEventLogTableName } from "@utils/utilsDb";
-import { updateDbItemSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbItemSyncStatus";
 import { customLogger } from "@utils/logger";
 import type {
   ConvertedEventLog,
   GroupedEventLogs,
+  SyncStatusContract,
   SyncStatusesEvent,
   VersionIdentifier,
 } from "./dbTypes";
+import { DB_TABLE_NAMES } from "./constants";
+import { storeSyncStatus } from "@stores/storeSyncStatus";
 import * as itSelf from "./dbEventLogsDataHandlersEventLog";
 import { getUpdateTargetEventLogTables } from "./dbEventLogsGetUpdateTargetEventLogTables";
 import { getDbItemSyncStatus } from "./dbEventLogsDataHandlersSyncStatusGetters";
@@ -30,6 +32,9 @@ export async function addEventLogs_updateFetchedBlockNumber(
   const eventLogTableNames = eventLogTables.map((eventLogTable: Table) => {
     return eventLogTable.name;
   });
+  const newSyncStatusContract: Partial<SyncStatusContract> = {
+    fetchedBlockNumber: toBlockNumber,
+  };
   await dbEventLogs.transaction("rw", eventLogTableNames, async () => {
     if (Object.keys(groupedEventLogs).length > 0) {
       const promiseBulkAdds = [];
@@ -67,20 +72,18 @@ export async function addEventLogs_updateFetchedBlockNumber(
       if (bulkPutInfo.length)
         customLogger.success("BulkPut Event Logs.", bulkPutInfo);
 
-      await updateDbItemSyncStatus(
-        dbEventLogs,
-        targetContract.name,
-        "events",
-        syncStatusesEvent,
-      );
+      newSyncStatusContract.events = syncStatusesEvent;
     }
-    await updateDbItemSyncStatus(
-      dbEventLogs,
-      targetContract.name,
-      "fetchedBlockNumber",
-      toBlockNumber,
-    );
+    await dbEventLogs
+      .table(DB_TABLE_NAMES.EventLog.syncStatus)
+      .update(targetContract.name, newSyncStatusContract);
   });
+  // Update the store only after the commit: the next range starts from the
+  // fetchedBlockNumber in the store.
+  storeSyncStatus.updateState(
+    { ...dbEventLogs.versionIdentifier, contractName: targetContract.name },
+    newSyncStatusContract,
+  );
 }
 
 export async function getEventLogTableRecordCount(
