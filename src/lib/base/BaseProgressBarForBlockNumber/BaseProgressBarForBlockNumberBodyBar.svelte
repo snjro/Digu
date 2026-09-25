@@ -3,8 +3,6 @@
   import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import { getProgressRateForLabel } from "./progressRate";
 
@@ -28,8 +26,6 @@
     shadow = true,
   }: Props = $props();
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   let barWidth = $derived(isColoredBar ? progressRate : 100 - progressRate);
   let roundedStyle = $derived((): `rounded${string}` => {
     if (isColoredBar) {
@@ -51,8 +47,9 @@
     }
   });
   let shadowStyle = $derived((): `shadow-${string}` => {
-    if (!isColoredBar && shadow && themeColor !== "dark") {
-      return `shadow-inner ${colorClasses[colorCategoryFront].shadow}`;
+    if (!isColoredBar && shadow) {
+      // A shadow in the light theme only.
+      return `shadow-inner dark:shadow-none ${colorClasses[colorCategoryFront].shadow}`;
     } else {
       return "shadow-none";
     }

@@ -1,10 +1,9 @@
 import classNames from "classnames";
-import type { ThemeColor } from "@db/dbTypes";
-import {
-  colorDefinitions,
-  type ColorCategory,
-  type ColorDefinitionForParts,
+import type {
+  ColorCategory,
+  ColorDefinitionForParts,
 } from "../color/colorDefinitions";
+import { colorClasses } from "../color/colorVariables";
 
 export type ScrollbarStyle = {
   thin: string;
@@ -12,10 +11,8 @@ export type ScrollbarStyle = {
 };
 export const getScrollbarStyle = (
   colorCategory: ColorCategory,
-  themeColor: ThemeColor,
 ): ScrollbarStyle => {
-  const colorParts: ColorDefinitionForParts =
-    colorDefinitions[themeColor][colorCategory];
+  const colorParts: ColorDefinitionForParts = colorClasses[colorCategory];
 
   const scrollbarColors: string = classNames(
     colorParts.scrollbarThumb,

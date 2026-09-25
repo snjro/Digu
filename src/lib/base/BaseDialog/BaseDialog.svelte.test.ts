@@ -70,10 +70,12 @@ describe("BaseDialog.svelte", () => {
     const category = colorSettings.dialogHeader;
     expect(dialog.classList.contains("shadow-sm")).toBe(true);
     expect(dialog.classList.contains(colorClasses[category].bg)).toBe(true);
+    // The dark theme swaps the shadow for a border in CSS.
+    expect(dialog.classList.contains("dark:shadow-none")).toBe(true);
+    expect(dialog.classList.contains("dark:border")).toBe(true);
     storeUserSettings.updateState({ themeColor: "dark" });
     await Promise.resolve();
-    expect(dialog.classList.contains("shadow-sm")).toBe(false);
-    expect(dialog.classList.contains("border")).toBe(true);
+    expect(dialog.classList.contains("shadow-sm")).toBe(true);
     expect(dialog.classList.contains(colorClasses[category].bg)).toBe(true);
   });
 });

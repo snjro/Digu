@@ -51,7 +51,7 @@
   let scrollStyle: string = $derived(
     classNames(
       "overflow-scroll",
-      getScrollbarStyle(colorSettings.tabSelected, themeColor).thin,
+      getScrollbarStyle(colorSettings.tabSelected).thin,
     ),
   );
 

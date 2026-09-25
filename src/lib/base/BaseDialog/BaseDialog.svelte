@@ -2,8 +2,6 @@
   import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
   import type { BaseIconProps } from "../BaseIcon";
@@ -27,17 +25,14 @@
     dialogBody,
   }: Props = $props();
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
-  let shadowStyle: string = $derived(
-    classNames(
-      themeColor === "dark"
-        ? classNames("border", colorClasses[colorSettings.dialogHeader].border)
-        : classNames(
-            "shadow-sm",
-            colorClasses[colorSettings.dialogHeader].shadow,
-          ),
-    ),
+  // A shadow in the light theme, a border in the dark theme.
+  // The color classes do nothing without the shadow or the border width.
+  const shadowStyle: string = classNames(
+    "shadow-sm",
+    "dark:shadow-none",
+    "dark:border",
+    colorClasses[colorSettings.dialogHeader].shadow,
+    colorClasses[colorSettings.dialogHeader].border,
   );
 </script>
 

@@ -19,8 +19,6 @@
   import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { HelperTextState } from "./helperTextState";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
   import type { HTMLInputTypeAttribute } from "svelte/elements";
@@ -106,8 +104,6 @@
     "5xl": "pr-4",
   };
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   let customClass: string = $derived(
     forcedClass ??
       classNames(
@@ -145,10 +141,12 @@
       "",
     ),
   );
+  // A shadow in the light theme only.
   let shadowStyle: string = $derived(
     classNames(
-      themeColor === "light" &&
-        classNames("shadow-inner", colorClasses[colorCategory].shadow),
+      "shadow-inner",
+      "dark:shadow-none",
+      colorClasses[colorCategory].shadow,
     ),
   );
 </script>
