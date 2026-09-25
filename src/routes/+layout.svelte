@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { browser } from "$app/environment";
   import { onNavigate } from "$app/navigation";
   import { page } from "$app/state";
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
   import BaseSnackbar from "$lib/base/BaseSnackbar.svelte";
@@ -11,7 +11,6 @@
   import { saveSelectedChainName } from "$lib/leftSidebar/Header/selectChain";
   import LeftSidebar from "$lib/leftSidebar/LeftSidebar.svelte";
   import Nav from "$lib/nav/Nav.svelte";
-  import type { ThemeColor } from "@db/dbTypes";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { OnNavigate } from "@sveltejs/kit";
@@ -53,8 +52,6 @@
     }
   });
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   function onResize(): void {
     storeNoDbCurrentWidth.set(getScreenWidth());
   }
@@ -93,8 +90,8 @@
     // Keeps the hidden tooltips of the sidebar (absolute on a narrow screen)
     // from widening the page.
     "relative overflow-x-clip",
-    colorDefinitions[themeColor][colorSettings.main].bg,
-    colorDefinitions[themeColor][colorSettings.main].text,
+    colorClasses[colorSettings.main].bg,
+    colorClasses[colorSettings.main].text,
   )}
 >
   <LoadingSpinner />

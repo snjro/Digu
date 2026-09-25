@@ -2,6 +2,7 @@
   lang="ts"
   generics=" TabsDefinition extends  TabsDefinitionContract|TabsDefinitionEvent|TabsDefinitionFunction"
 >
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { goto } from "$app/navigation";
   import { navigating, page } from "$app/state";
   import PageWrapperTitle, {
@@ -13,7 +14,6 @@
     type TabsDefinitionEvent,
     type TabsDefinitionFunction,
   } from "$lib/PageWrapper/tabs";
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import {
     breakPointWidths,
@@ -24,7 +24,6 @@
   import BaseRadio, {
     type RadioLabelAndValues,
   } from "$lib/base/BaseRadio.svelte";
-  import type { ThemeColor } from "@db/dbTypes";
   import type { EventLogType } from "$lib/contracts/eventLogType";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -133,8 +132,6 @@
     }
   });
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   const onKeydown = (event: KeyboardEvent): void => {
     if (isFullScreen && event.key == "Escape") {
       isFullScreen = false;
@@ -154,7 +151,7 @@
           "inset-0",
           "pl-1.5",
           "pb-1.5",
-          colorDefinitions[themeColor][colorSettings.tabSelected].bg,
+          colorClasses[colorSettings.tabSelected].bg,
           zIndex.fullScreen,
         )
       : classNames("flex-auto min-h-0", "h-full w-full"),

@@ -1,16 +1,13 @@
 <script lang="ts">
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { afterNavigate, beforeNavigate } from "$app/navigation";
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { zIndex } from "$lib/appearanceConfig/zIndex";
   import BaseSpinner from "$lib/base/BaseSpinner.svelte";
-  import type { ThemeColor } from "@db/dbTypes";
   import { storeNodbShowLoader } from "@stores/storeNoDb";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
   let showLoader: boolean = $state(false);
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   beforeNavigate(() => {
     showLoader = true;
@@ -35,7 +32,7 @@
     <div
       class={classNames(
         "absolute inset-0",
-        colorDefinitions[themeColor][colorSettings.main].bg,
+        colorClasses[colorSettings.main].bg,
         "opacity-60",
       )}
     ></div>
