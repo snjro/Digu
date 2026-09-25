@@ -1,5 +1,13 @@
 import type { Chain, ChainName, Contract } from "@constants/chains/types";
-import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 import {
   extractDecodedEventLogs,
   extractEventContracts,
@@ -21,10 +29,40 @@ import {
   WebSocketProvider,
   ethers,
   type Contract as EthersContract,
+  type JsonRpcApiProviderOptions,
+  type Networkish,
   type Provider,
+  type WebSocketLike,
 } from "ethers";
 import { customLogger } from "./logger";
 import { jsonFileContracts } from "./testCommon";
+
+// The WebSocketProvider made in getNodeProvider uses a socket that never
+// opens, so that the tests do not connect to anywhere.
+vi.mock("ethers", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("ethers")>();
+  class FakeSocketWebSocketProvider extends actual.WebSocketProvider {
+    constructor(
+      _url: string,
+      network?: Networkish,
+      options?: JsonRpcApiProviderOptions,
+    ) {
+      super(
+        (): WebSocketLike => ({
+          onopen: null,
+          onmessage: null,
+          onerror: null,
+          readyState: 0,
+          send: () => {},
+          close: () => {},
+        }),
+        network,
+        options,
+      );
+    }
+  }
+  return { ...actual, WebSocketProvider: FakeSocketWebSocketProvider };
+});
 const targetChainName: ChainName = "matic";
 const targetChain: Chain = TARGET_CHAINS.find(
   (chain: Chain) => chain.name === targetChainName,
@@ -76,14 +114,14 @@ describe("getNodeProvider", async () => {
   beforeAll(() => {
     spyJsonRpcGetNetwork = vi
       .spyOn(JsonRpcProvider.prototype, "getNetwork")
-      .mockImplementationOnce(() => {
-        throw new Error(); // To increase coverage, make an error only once at the beginning
-      })
       .mockResolvedValue(new Network("", BigInt(targetChain.chainId)));
 
     spyWebSocketGetNetWork = vi
       .spyOn(WebSocketProvider.prototype, "getNetwork")
       .mockResolvedValue(new Network("", BigInt(targetChain.chainId)));
+  });
+  beforeEach(() => {
+    spyUpdateDbItemChainStatus.mockClear();
   });
   afterAll(() => {
     spyJsonRpcGetNetwork.mockRestore();
@@ -95,12 +133,14 @@ describe("getNodeProvider", async () => {
     lastNodeStatus: ChainStatus["nodeStatus"];
     targetChainId?: Chain["chainId"];
     providerClass?: typeof JsonRpcProvider | typeof WebSocketProvider;
+    getNetworkFails?: boolean;
   };
   const rpcDefinitions: RpcDefinition[] = [
     {
       rpc: "https://foo",
       state: "error throw",
       lastNodeStatus: "NETWORK_ERROR",
+      getNetworkFails: true,
     },
     {
       rpc: "https://bar",
@@ -109,7 +149,7 @@ describe("getNodeProvider", async () => {
       providerClass: JsonRpcProvider,
     },
     {
-      rpc: "wss://socketsbay.com/wss/v2/1/demo/",
+      rpc: "wss://127.0.0.1:9",
       state: "valid URL(wss)",
       lastNodeStatus: "SUCCESS",
       providerClass: WebSocketProvider,
@@ -134,7 +174,11 @@ describe("getNodeProvider", async () => {
       lastNodeStatus,
       targetChainId,
       providerClass,
+      getNetworkFails,
     }: RpcDefinition) => {
+      if (getNetworkFails) {
+        spyJsonRpcGetNetwork.mockRejectedValueOnce(new Error());
+      }
       // edit property of targetChain
       const editedTargetChain: Chain = targetChainId
         ? { ...targetChain, chainId: targetChainId }
@@ -159,6 +203,7 @@ describe("getNodeProvider", async () => {
       } else {
         expect(nodeProvider).toBeUndefined();
       }
+      await nodeProvider?.destroy();
     },
   );
 });
