@@ -13,6 +13,7 @@
   } from "@constants/chains/types";
   import { dbWorkerFuncGetConvertedEventLogs } from "@db/db.worker.func.getConvertedEventLogs";
   import type { ConvertedEventLog } from "@db/dbTypes";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { numberWithCommas } from "@utils/utilsCommon";
   import classNames from "classnames";
   import EventOverviewFetchedLogsEdge from "./EventOverviewFetchedLogsEdge.svelte";
@@ -35,6 +36,13 @@
     targetEventAbiFragment,
   }: Props = $props();
 
+  // The sync adds to it when it saves logs of this event.
+  let recordCount: number | undefined = $derived(
+    $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
+      .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name]
+      ?.events[targetEventAbiFragment.name]?.recordCount,
+  );
+
   let convertedEventLogs: ConvertedEventLog[] = $state.raw([]);
   $effect.pre(() => {
     // Logs of anonymous events are not fetched, so their table does not exist.
@@ -42,6 +50,8 @@
       convertedEventLogs = [];
       return;
     }
+    // Reload when new logs are saved.
+    void recordCount;
     return applyLatestLoad(
       dbWorkerFuncGetConvertedEventLogs({
         chainName: targetChain.name,
