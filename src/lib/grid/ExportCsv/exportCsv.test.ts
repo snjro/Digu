@@ -20,11 +20,15 @@ import {
   type CsvSelectedValues,
 } from "./exportCsv";
 
-function createGridApi(colIds: string[] | undefined) {
+function createGridApi(
+  colIds: string[] | undefined,
+  displayedColIds: string[] = colIds ?? [],
+) {
+  const toColumns = (ids: string[]) =>
+    ids.map((colId) => ({ getColId: () => colId }));
   const gridApi = {
-    getColumns: vi.fn(() =>
-      colIds?.map((colId) => ({ getColId: () => colId })),
-    ),
+    getColumns: vi.fn(() => (colIds ? toColumns(colIds) : null)),
+    getAllDisplayedColumns: vi.fn(() => toColumns(displayedColIds)),
     exportDataAsCsv: vi.fn(),
     getDataAsCsv: vi.fn(() => "csv text"),
   };
@@ -101,6 +105,13 @@ describe("exportCsvFile", () => {
       );
     },
   );
+  test("skipRowNumber without the row number column: keeps the other columns", () => {
+    const gridApi = createGridApi(COL_IDS, ["name", "value"]);
+    exportCsvFile(gridApi, true, ",", false, "filteredAndSorted", false);
+    expect(gridApi.getDataAsCsv).toHaveBeenCalledWith(
+      expect.objectContaining({ columnKeys: ["name", "value"] }),
+    );
+  });
   test("no columns: columnKeys is undefined", () => {
     for (const skipRowNumber of [true, false]) {
       const gridApi = createGridApi(undefined);
@@ -109,6 +120,24 @@ describe("exportCsvFile", () => {
         expect.objectContaining({ columnKeys: undefined }),
       );
     }
+  });
+  test("All: exports all the columns in the defined order", () => {
+    const gridApi = createGridApi(COL_IDS, [ColIdRowSequenceNumber, "value"]);
+    exportCsvFile(gridApi, false, ",", false, "all", false);
+    expect(gridApi.getDataAsCsv).toHaveBeenCalledWith(
+      expect.objectContaining({ columnKeys: COL_IDS }),
+    );
+  });
+  test("Filtered & Sorted: exports the shown columns in the shown order", () => {
+    const gridApi = createGridApi(COL_IDS, [
+      ColIdRowSequenceNumber,
+      "value",
+      "name",
+    ]);
+    exportCsvFile(gridApi, true, ",", false, "filteredAndSorted", false);
+    expect(gridApi.getDataAsCsv).toHaveBeenCalledWith(
+      expect.objectContaining({ columnKeys: ["value", "name"] }),
+    );
   });
 });
 
@@ -304,6 +333,20 @@ describe("with ag-grid", () => {
     gridApi.setGridOption("quickFilterText", "b");
     expect(getCsvText(gridApi, selectedValues("filteredAndSorted"))).toBe(
       '"1","b","1234","x,y"',
+    );
+    gridApi.destroy();
+  });
+  test("moved and hidden columns: only Filtered & Sorted follows the screen", () => {
+    const gridApi = createRealGrid();
+    gridApi.moveColumns(["tags"], 1);
+    gridApi.setColumnsVisible(["amount"], false);
+    expect(getCsvText(gridApi, selectedValues("filteredAndSorted"))).toBe(
+      ['"1","x,y","b"', '"2","","a"', `"3","z","'=c"`].join("\r\n"),
+    );
+    expect(getCsvText(gridApi, selectedValues("all"))).toBe(
+      ['"1","b","1234","x,y"', '"2","a","5",""', `"3","'=c","67890","z"`].join(
+        "\r\n",
+      ),
     );
     gridApi.destroy();
   });

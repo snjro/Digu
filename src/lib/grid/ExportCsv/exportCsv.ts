@@ -80,17 +80,23 @@ function getParamsForCsv(
   skipColumnHeaders: boolean,
   fileName: string | undefined = undefined,
 ): CsvExportParams {
-  const targetColIds: string[] | undefined = gridApi
-    ?.getColumns()
-    ?.map((column: Column) => {
-      return column.getColId();
-    });
+  // Filtered & Sorted follows the screen: the shown columns in the shown order.
+  const columns: Column[] | null | undefined =
+    filteredAndSorted === "filteredAndSorted"
+      ? gridApi?.getAllDisplayedColumns()
+      : gridApi?.getColumns();
+  const targetColIds: string[] | undefined = columns?.map((column: Column) => {
+    return column.getColId();
+  });
 
   if (skipRowNumber && targetColIds) {
     const indexOfRowNumber: number = targetColIds.indexOf(
       ColIdRowSequenceNumber,
     );
-    targetColIds!.splice(indexOfRowNumber, 1);
+    // The shown columns may not have it.
+    if (indexOfRowNumber !== -1) {
+      targetColIds.splice(indexOfRowNumber, 1);
+    }
   }
   const csvExportParams: CsvExportParams = {
     columnKeys: targetColIds,
