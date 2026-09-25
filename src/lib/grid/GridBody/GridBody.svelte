@@ -27,6 +27,7 @@
   import type { ColumnDef } from "../types";
   import { getColorDefinitionsForGrid } from "./getColorDefs";
   import { getColumnDefs, ColIdRowSequenceNumber } from "./getColumnDefs";
+  import { suppressKeyboardEventInCell } from "./suppressKeyboardEventInCell";
 
   interface Props {
     gridApi: GridApi<GridRow>;
@@ -57,6 +58,7 @@
       editable: false,
       suppressHeaderMenuButton: false,
       resizable: true,
+      suppressKeyboardEvent: suppressKeyboardEventInCell,
     },
     defaultColGroupDef: {
       openByDefault: true,
