@@ -93,7 +93,10 @@ function getParamsForCsv(
     const indexOfRowNumber: number = targetColIds.indexOf(
       ColIdRowSequenceNumber,
     );
-    targetColIds!.splice(indexOfRowNumber, 1);
+    // The shown columns may not have it.
+    if (indexOfRowNumber !== -1) {
+      targetColIds.splice(indexOfRowNumber, 1);
+    }
   }
   const csvExportParams: CsvExportParams = {
     columnKeys: targetColIds,

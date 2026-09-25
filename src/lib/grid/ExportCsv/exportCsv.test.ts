@@ -105,6 +105,13 @@ describe("exportCsvFile", () => {
       );
     },
   );
+  test("skipRowNumber without the row number column: keeps the other columns", () => {
+    const gridApi = createGridApi(COL_IDS, ["name", "value"]);
+    exportCsvFile(gridApi, true, ",", false, "filteredAndSorted", false);
+    expect(gridApi.getDataAsCsv).toHaveBeenCalledWith(
+      expect.objectContaining({ columnKeys: ["name", "value"] }),
+    );
+  });
   test("no columns: columnKeys is undefined", () => {
     for (const skipRowNumber of [true, false]) {
       const gridApi = createGridApi(undefined);
