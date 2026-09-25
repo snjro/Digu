@@ -1,6 +1,14 @@
 import type { BaseSnackbarProps } from "$lib/base/snackbarProps";
-import { showSnackBarAsCopied } from "$lib/common/CommonCopyButton.svelte";
 import { customLogger } from "@utils/logger";
+
+export const showSnackBarAsCopied: BaseSnackbarProps = {
+  visible: true,
+  iconProps: {
+    name: "checkBold",
+    colorCategory: "success",
+  },
+  text: "Copied",
+};
 
 export const showSnackBarAsCopyFailed: BaseSnackbarProps = {
   visible: true,
