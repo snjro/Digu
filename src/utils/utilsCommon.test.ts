@@ -9,7 +9,6 @@ import {
   numberWithCommas,
   removeDuplicateValuesFromArray,
   sleep,
-  sortArray,
   sortObjectArrayByProperty,
 } from "./utilsCommon";
 
@@ -58,24 +57,6 @@ describe("jsonStringifyFormatted", () => {
     expect(jsonString).toBe(
       '{\n  "a": 1,\n  "b": [\n    2,\n    3\n  ],\n  "c": {\n    "d": 4\n  }\n}',
     );
-  });
-});
-describe("sortArray", () => {
-  test("should sort an array in ascending order with the same values", () => {
-    const array1 = [3, 3, 2];
-    expect(sortArray(array1, "asc")).toEqual([2, 3, 3]);
-  });
-  test("should sort an array in ascending order", () => {
-    const array2 = [3, 1, 2];
-    expect(sortArray(array2, "asc")).toEqual([1, 2, 3]);
-  });
-  test("should sort an array in descending order with the same values", () => {
-    const array3 = [3, 3, 2];
-    expect(sortArray(array3, "desc")).toEqual([3, 3, 2]);
-  });
-  test("should sort an array in descending order", () => {
-    const array4 = [3, 1, 2];
-    expect(sortArray(array4, "desc")).toEqual([3, 2, 1]);
   });
 });
 describe("sortObjectArrayByProperty", () => {

@@ -95,14 +95,6 @@ export async function getDbRecordRpcSettings(
     return rpcSetting;
   });
 }
-export async function getDbItemRpcSettings<T extends keyof RpcSetting>(
-  chainName: ChainName,
-  key: T,
-): Promise<RpcSetting[T] | undefined> {
-  const rpcSetting: RpcSetting | undefined =
-    await itSelf.getDbRecordRpcSettings(chainName);
-  return rpcSetting ? rpcSetting[key] : undefined;
-}
 export async function updateDbItemRpcSettings<T extends keyof RpcSetting>(
   chainName: ChainName,
   key: T,

@@ -52,7 +52,6 @@ describe("initialDataUserSettings", () => {
     const expectedUserSetting: UserSetting = {
       userSettingsId: "userSetting01",
       themeColor: "light",
-      devMode: false,
       selectedChainName: "eth",
       isOpenSidebar: true,
     };

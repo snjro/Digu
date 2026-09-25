@@ -36,19 +36,6 @@ export function jsonStringifyFormatted(
   return JSON.stringify(value, null, numOfSpace);
 }
 
-type SortType = "asc" | "desc";
-export function sortArray<T>(arr: Array<T>, sortType: SortType): Array<T> {
-  return arr.sort((a, b) => {
-    if (a < b) {
-      return sortType === "asc" ? -1 : 1;
-    }
-    if (a > b) {
-      return sortType === "asc" ? 1 : -1;
-    }
-    return 0;
-  });
-}
-
 export function sortObjectArrayByProperty<T>(
   objectArray: T[],
   property: keyof T,
