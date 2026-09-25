@@ -27,6 +27,7 @@ import {
   getProgressRateForLabel,
 } from "$lib/base/BaseProgressBarForBlockNumber/progressRate";
 import { NO_DATA } from "@utils/utilsConstants";
+import { compareSyncStatusValues } from "./columnDefsSyncStatusBlockNumber";
 
 export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
   targetChain: Chain,
@@ -36,6 +37,7 @@ export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
   const columnDef: ColumnDef = {
     headerName: "Progress",
     sortable: true,
+    comparator: compareSyncStatusValues,
     editable: false,
     cellStyle: (cellClassParams: CellClassParams<T>): CellStyle | undefined => {
       if (cellClassParams.data && cellClassParams.data.contractHasEvent) {

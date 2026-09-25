@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { get } from "svelte/store";
-import type { ColDef, ValueGetterParams } from "ag-grid-community";
+import type {
+  ColDef,
+  IRowNode,
+  SortComparatorFn,
+  ValueGetterParams,
+} from "ag-grid-community";
 import type { ColumnDef } from "$lib/grid/types";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type {
@@ -105,5 +110,37 @@ describe("valueGetter of sync status columns", () => {
     expect(callValueGetter(columnDef)).toBe(
       syncTargetLabelText(contractSyncStatus()),
     );
+  });
+});
+
+describe("comparator of sync status columns", () => {
+  function sortWith(columnDef: ColumnDef, values: string[]): string[] {
+    const comparator = (columnDef as ColDef).comparator as SortComparatorFn;
+    const rowNode = {} as IRowNode;
+    return [...values].sort((valueA, valueB) =>
+      comparator(valueA, valueB, rowNode, rowNode, false),
+    );
+  }
+
+  for (const [name, columnDef] of columnDefs.filter(([name]) =>
+    name.startsWith("columnDefsSyncStatusBlockNumber"),
+  )) {
+    test(`${name}: should sort block numbers as numbers, with NO_DATA first`, () => {
+      expect(
+        sortWith(columnDef, ["10000835", "4634748", "-", "8952139", "-"]),
+      ).toEqual(["-", "-", "4634748", "8952139", "10000835"]);
+    });
+  }
+  test("columnDefsSyncstatusProgressBar: should sort rates as numbers, with NO_DATA first", () => {
+    const [, columnDef] = columnDefs.find(
+      ([name]) => name === "columnDefsSyncstatusProgressBar",
+    )!;
+    expect(sortWith(columnDef, ["100", "9.5", "-", "45.3", "0.0"])).toEqual([
+      "-",
+      "0.0",
+      "9.5",
+      "45.3",
+      "100",
+    ]);
   });
 });
