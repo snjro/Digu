@@ -2,7 +2,7 @@ import type { BaseAProps } from "$lib/base/BaseA.svelte";
 import type { Chain, ChainExplorer, ChainName } from "@constants/chains/types";
 import type { StateRpcSettings } from "@stores/storeTypes";
 import { numberWithCommas } from "@utils/utilsCommon";
-import { getTargetChain } from "@utils/utlisDb";
+import { getTargetChain } from "@utils/utilsDb";
 
 export type CommonChainExplorerLinkProps = {
   subdirectory: keyof ChainExplorer["subdirectory"];

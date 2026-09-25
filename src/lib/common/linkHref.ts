@@ -4,7 +4,7 @@ import type {
   ProjectName,
   VersionName,
 } from "@constants/chains/types";
-import { DIR_NAME_CONTRACTS } from "@utils/utilsCostants";
+import { DIR_NAME_CONTRACTS } from "@utils/utilsConstants";
 import { getChainRootUrl } from "./chainRootUrl";
 import { getProjectVersionNameForUrl } from "./projectVersionNameHelper";
 

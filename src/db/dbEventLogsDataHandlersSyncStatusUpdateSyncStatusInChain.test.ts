@@ -1,5 +1,5 @@
 import { TARGET_CHAINS } from "@constants/chains/_index";
-import * as UtilsDb from "@utils/utlisDb";
+import * as UtilsDb from "@utils/utilsDb";
 import "fake-indexeddb/auto";
 import {
   describe,

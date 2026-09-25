@@ -5,7 +5,7 @@ import {
 import type { ColumnDef } from "$lib/base/BaseGrid/types";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import type { AbiFragmentParam } from "@constants/chains/types";
-import { NO_DATA } from "@utils/utilsCostants";
+import { NO_DATA } from "@utils/utilsConstants";
 import BaseLabel from "$lib/base/BaseLabel.svelte";
 import { capitalizeFirstLetter } from "@utils/utilsCommon";
 import AbiParamComponentsDetailsButton from "$lib/contracts/abiParams/AbiParamComponentsDetailsButton.svelte";

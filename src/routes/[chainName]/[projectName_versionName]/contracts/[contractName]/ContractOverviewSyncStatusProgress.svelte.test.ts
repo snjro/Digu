@@ -35,7 +35,7 @@ vi.mock("@stores/storeRpcSettings", async () => {
   const { writable } = await import("svelte/store");
   return { storeRpcSettings: writable({ eth: { chainExplorerIndex: 0 } }) };
 });
-vi.mock("@utils/utlisDb", () => ({
+vi.mock("@utils/utilsDb", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
     chainExplorers: [{ url: "https://explorer.example" }],

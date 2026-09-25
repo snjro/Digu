@@ -12,7 +12,7 @@
   import type { SyncStatusContract } from "@db/dbTypes";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { NO_DATA } from "@utils/utilsCostants";
+  import { NO_DATA } from "@utils/utilsConstants";
   import {
     getBlockNumberByHeaderName,
     type HeaderName,

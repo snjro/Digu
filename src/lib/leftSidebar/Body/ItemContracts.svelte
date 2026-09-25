@@ -2,7 +2,7 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { Contract } from "@constants/chains/types";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
-  import { DIR_NAME_CONTRACTS } from "@utils/utilsCostants";
+  import { DIR_NAME_CONTRACTS } from "@utils/utilsConstants";
   import BaseAccordion from "./BaseAccordion.svelte";
   import ItemContractsMember from "./ItemContractsMember.svelte";
 

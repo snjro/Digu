@@ -28,7 +28,7 @@ vi.mock("@stores/storeRpcSettings", async () => {
   const { writable } = await import("svelte/store");
   return { storeRpcSettings: writable({}) };
 });
-vi.mock("@utils/utlisDb", () => ({ getTargetChain: vi.fn() }));
+vi.mock("@utils/utilsDb", () => ({ getTargetChain: vi.fn() }));
 
 const chain = { name: "chain1" } as Chain;
 const project = { name: "project1" } as Project;

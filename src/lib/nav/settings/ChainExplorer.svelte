@@ -6,7 +6,7 @@
   import CommonOpenLink from "$lib/common/CommonOpenLink.svelte";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { getTargetChain } from "@utils/utlisDb";
+  import { getTargetChain } from "@utils/utilsDb";
   import { updateChainExplorerIndex } from "./chainExplorerIndex";
   let targetChainName = $derived(
     $storeUserSettings.selectedChainName.toString(),

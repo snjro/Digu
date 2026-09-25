@@ -7,7 +7,7 @@ import type {
   HexString,
   Chain,
 } from "@constants/chains/types";
-import type { NO_DATA } from "@utils/utilsCostants";
+import type { NO_DATA } from "@utils/utilsConstants";
 import type { EventLog as OriginalEthersEventLog } from "ethers";
 import type { HTMLInputTypeAttribute } from "svelte/elements";
 

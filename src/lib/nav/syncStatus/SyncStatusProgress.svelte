@@ -11,8 +11,8 @@
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { NO_DATA } from "@utils/utilsCostants";
-  import { getTargetChain } from "@utils/utlisDb";
+  import { NO_DATA } from "@utils/utilsConstants";
+  import { getTargetChain } from "@utils/utilsDb";
   import classNames from "classnames";
 
   interface Props {

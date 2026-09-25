@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
 import { getInitialState } from "./storeSyncStatusGetInitialState";
-import { NO_DATA } from "@utils/utilsCostants";
+import { NO_DATA } from "@utils/utilsConstants";
 import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
 
 export const dummyChainName = "chain1";

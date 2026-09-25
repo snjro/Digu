@@ -1,7 +1,7 @@
 import type { Contract, EventAbiFragment } from "@constants/chains/types";
 import type { SyncStatusesEvent } from "@db/dbTypes";
 import type { SyncStatusContract } from "@db/dbTypes";
-import { NO_DATA } from "@utils/utilsCostants";
+import { NO_DATA } from "@utils/utilsConstants";
 
 export function getInitialDataOfSyncStatusContract(
   targetContract: Contract,

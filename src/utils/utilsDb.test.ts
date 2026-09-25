@@ -14,7 +14,7 @@ import {
   getTargetProject,
   getTargetVersion,
   TargetNotFoundError,
-} from "./utlisDb";
+} from "./utilsDb";
 import type {
   AbiFragmentIdentifier,
   ChainIdentifier,

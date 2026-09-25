@@ -1,7 +1,7 @@
 import type { Chain, ChainName } from "@constants/chains/types";
 import { DbEventLogs } from "./dbEventLogs";
 import type { SyncStatusContract, VersionIdentifier } from "./dbTypes";
-import { getTargetChain } from "@utils/utlisDb";
+import { getTargetChain } from "@utils/utilsDb";
 import { getDbRecordsSyncStatusContractByKeyValue } from "./dbEventLogsDataHandlersSyncStatusGetters";
 import { updateDbItemSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbItemSyncStatus";
 

@@ -19,7 +19,7 @@
   import classNames from "classnames";
   import LoadingSpinner from "./LoadingSpinner.svelte";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
-  import { PROJECT_NAME } from "@utils/utilsCostants";
+  import { PROJECT_NAME } from "@utils/utilsConstants";
   import { untrack, type Snippet } from "svelte";
 
   interface Props {

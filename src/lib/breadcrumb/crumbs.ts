@@ -11,7 +11,7 @@ import {
   DIR_NAME_CONTRACTS,
   DIR_NAME_EVENTS,
   DIR_NAME_FUNCTIONS,
-} from "@utils/utilsCostants";
+} from "@utils/utilsConstants";
 
 export type CrumbItem = {
   href: string;

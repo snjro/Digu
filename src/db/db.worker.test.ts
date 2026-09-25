@@ -1,4 +1,4 @@
-import { executeTargetFunction } from "./db.worker.executeTargetFuction";
+import { executeTargetFunction } from "./db.worker.executeTargetFunction";
 import {
   afterAll,
   beforeAll,
@@ -10,7 +10,7 @@ import {
 } from "vitest";
 import type { DbWorkerMessage, TargetFunctionName } from "./db.worker.types";
 
-vi.mock("./db.worker.executeTargetFuction");
+vi.mock("./db.worker.executeTargetFunction");
 vi.mock("@utils/logger", () => ({
   customLogger: {
     start: vi.fn(),

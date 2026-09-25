@@ -17,7 +17,7 @@
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { getTargetChain } from "@utils/utlisDb";
+  import { getTargetChain } from "@utils/utilsDb";
   import classNames from "classnames";
   import { isSyncToggleDisabled } from "./syncToggleDisabled";
 

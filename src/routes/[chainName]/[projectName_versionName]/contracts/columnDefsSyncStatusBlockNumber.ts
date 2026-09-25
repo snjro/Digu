@@ -23,7 +23,7 @@ import type { SyncStatusContract } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import { get } from "svelte/store";
-import { NO_DATA } from "@utils/utilsCostants";
+import { NO_DATA } from "@utils/utilsConstants";
 
 export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
   targetChain: Chain,

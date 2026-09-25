@@ -3,7 +3,7 @@ import type { EventAbiFragment } from "@constants/chains/types";
 import * as AID from "./dbEventLogsAddInitialData";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { SyncStatusContract, SyncStatusesEvent } from "./dbTypes";
-import { NO_DATA } from "@utils/utilsCostants";
+import { NO_DATA } from "@utils/utilsConstants";
 describe("getInitialDataOfSyncStatusContract", () => {
   test("should return correct initial data", () => {
     for (const targetChain of TARGET_CHAINS) {

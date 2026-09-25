@@ -4,7 +4,7 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseA from "$lib/base/BaseA.svelte";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
-  import { GITHUB_PAGES_HOST_NAME, PROJECT_NAME } from "@utils/utilsCostants";
+  import { GITHUB_PAGES_HOST_NAME, PROJECT_NAME } from "@utils/utilsConstants";
   import classNames from "classnames";
 </script>
 

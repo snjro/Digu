@@ -9,7 +9,7 @@
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { GITHUB_PAGES_HOST_NAME, PROJECT_NAME } from "@utils/utilsCostants";
+  import { GITHUB_PAGES_HOST_NAME, PROJECT_NAME } from "@utils/utilsConstants";
   import classNames from "classnames";
 
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);

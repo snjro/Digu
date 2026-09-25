@@ -15,7 +15,7 @@
   import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
   import { trailingSlash } from "@routes/+layout";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsCostants";
+  import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsConstants";
   import BaseProgressBarForBlockNumber from "$lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import type { SyncStatusProject } from "@db/dbTypes";

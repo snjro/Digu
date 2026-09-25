@@ -14,7 +14,7 @@
     Project,
     Version,
   } from "@constants/chains/types";
-  import { NO_DATA } from "@utils/utilsCostants";
+  import { NO_DATA } from "@utils/utilsConstants";
   import type { Snippet } from "svelte";
 
   interface Props {

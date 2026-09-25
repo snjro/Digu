@@ -1,7 +1,7 @@
 import type { LoadEvent } from "@sveltejs/kit";
 import type { ChainIdentifier } from "@db/dbTypes";
 import type { Chain } from "@constants/chains/types";
-import { getTargetChain } from "@utils/utlisDb";
+import { getTargetChain } from "@utils/utilsDb";
 import { throwNotFoundAs404 } from "@routes/targetNotFound";
 
 export type LoadChainData = {

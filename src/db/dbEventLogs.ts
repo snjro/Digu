@@ -1,6 +1,6 @@
 import type { Transaction } from "dexie";
 import type { Contract, Version } from "@constants/chains/types";
-import { getEventTableNames, getTargetVersion } from "@utils/utlisDb";
+import { getEventTableNames, getTargetVersion } from "@utils/utilsDb";
 import { dbBase } from "./dbBase";
 import type { SchemaDefinition, VersionIdentifier } from "@db/dbTypes";
 import {

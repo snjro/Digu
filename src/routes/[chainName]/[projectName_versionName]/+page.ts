@@ -5,7 +5,7 @@ import {
   getTargetChain,
   getTargetProject,
   getTargetVersion,
-} from "@utils/utlisDb";
+} from "@utils/utilsDb";
 import { getSplitProjectVersionName } from "$lib/common/projectVersionNameHelper";
 import { throwNotFoundAs404 } from "@routes/targetNotFound";
 

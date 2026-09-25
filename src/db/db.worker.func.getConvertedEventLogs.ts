@@ -1,4 +1,4 @@
-import { getEventLogTableName } from "@utils/utlisDb";
+import { getEventLogTableName } from "@utils/utilsDb";
 import type { AbiFragmentIdentifier, ConvertedEventLog } from "./dbTypes";
 import { DbEventLogs } from "./dbEventLogs";
 import { getEventLogTableRecords } from "./dbEventLogsDataHandlersEventLog";

@@ -23,7 +23,7 @@
   import { getContractHref, getSubdirectoryHref } from "$lib/common/linkHref";
   import { trailingSlash } from "@routes/+layout";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsCostants";
+  import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsConstants";
   import { hasSyncTargetEvents } from "@utils/utilsEthers";
 
   interface Props {

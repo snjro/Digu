@@ -7,7 +7,7 @@
     getProjectVersionNameForUrl,
   } from "$lib/common/projectVersionNameHelper";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { getTargetChain } from "@utils/utlisDb";
+  import { getTargetChain } from "@utils/utilsDb";
   import ItemProjectVersionsMember from "./ItemProjectVersionsMember.svelte";
 
   let chainName: ChainName = $derived(

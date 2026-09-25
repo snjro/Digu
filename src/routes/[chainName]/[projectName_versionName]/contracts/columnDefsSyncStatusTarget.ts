@@ -25,7 +25,7 @@ import {
   syncTargetLabelText,
   type SyncTargetLabelText,
 } from "$lib/common/syncTargetStatus";
-import { NO_DATA } from "@utils/utilsCostants";
+import { NO_DATA } from "@utils/utilsConstants";
 
 export const columnDefsSyncStatusTarget = <T extends ContractRow>(
   targetChain: Chain,

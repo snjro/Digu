@@ -6,7 +6,7 @@
   //   DIR_NAME_CONTRACTS,
   //   DIR_NAME_EVENTS,
   //   DIR_NAME_FUNCTIONS,
-  // } from "@utils/utilsCostants";
+  // } from "@utils/utilsConstants";
   import type { LoadChainData } from "./+page";
   import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
   import ChainOverview from "./ChainOverview.svelte";

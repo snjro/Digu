@@ -1,4 +1,4 @@
-import { executeTargetFunction } from "./db.worker.executeTargetFuction";
+import { executeTargetFunction } from "./db.worker.executeTargetFunction";
 import { dbWorkerFuncGetConvertedEventLogs } from "./db.worker.func.getConvertedEventLogs";
 import { dbWorkerFuncInitializeDBSettings } from "./db.worker.func.InitializeDBSettings";
 import { dbWorkerFuncInitializeDBSyncStatus } from "./db.worker.func.InitializeDBSyncStatus";
