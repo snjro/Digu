@@ -4,7 +4,7 @@ import { ColIdRowSequenceNumber } from "../GridBody/getColumnDefs";
 export type CsvColumnSeparator = "," | `\t` | "|";
 export type CsvFilteredSorted = "all" | "filteredAndSorted";
 
-// The radio props of the dialog have this shape.
+// The radio props of the dialog (ExportCsvRadioProps) are built from this.
 export type CsvSelectedValues = {
   skipRowNumber: { selectedValue: boolean };
   columnSeparator: { selectedValue: CsvColumnSeparator };
