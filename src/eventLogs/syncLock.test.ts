@@ -13,12 +13,15 @@ import {
 // Two browser tabs: each has its own copy of the modules (stores), and both
 // share IndexedDB (fake-indexeddb) and navigator.locks.
 
+// false: the RPC cannot be connected when a sync starts.
+const rpc = vi.hoisted(() => ({ isConnectable: true }));
+
 // One log per block for the first event of each contract.
 vi.mock("@utils/utilsEthers", async (importOriginal) => {
   const original = await importOriginal<typeof import("@utils/utilsEthers")>();
   return {
     ...original,
-    getNodeProvider: async () => ({}),
+    getNodeProvider: async () => (rpc.isConnectable ? {} : undefined),
     getEthersEventLogs: async (
       eventNames: string[],
       _contract: unknown,
@@ -184,6 +187,7 @@ describe("sync with two tabs (issue #49)", () => {
   let tabs: Tab[] = [];
   let lockManager: FakeLockManager;
   beforeEach(async () => {
+    rpc.isConnectable = true;
     lockManager = installFakeLockManager();
     const { Dexie } = await import("dexie");
     for (const name of await Dexie.getDatabaseNames()) await Dexie.delete(name);
@@ -412,6 +416,23 @@ describe("sync with two tabs (issue #49)", () => {
       expect.objectContaining({ chainName: chain.name }),
     );
     expect(b.storeStatus().syncStateText).toBe("syncing");
+  }, 30_000);
+
+  test("stops and releases the lock when the RPC cannot be connected", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    rpc.isConnectable = false;
+
+    expect(await a.fetchEventLogs()).toBe(true);
+    expect(await waitFor(async () => !(await isSyncLockHeld()))).toBe(true);
+    expect(a.storeStatus().syncStateText).toBe("stopped");
+    expect(a.isChainSyncing()).toBe(false);
+    expect((await dbStatus(a)).isSyncing).toBe(false);
+
+    rpc.isConnectable = true;
+    expect(await a.fetchEventLogs()).toBe(true);
+    expect(await waitFor(() => a.storeStatus().isSyncing)).toBe(true);
+    await stopAndWait(a);
   }, 30_000);
 
   test("does not wait for the lock that the same tab holds", async () => {
