@@ -2,7 +2,7 @@ import type { ColumnDef } from "$lib/base/BaseGrid/types";
 import { capitalizeFirstLetter } from "@utils/utilsCommon";
 import { columnDefAbiParamsNumOfParams } from "./columnDefAbiParamsNumOfParams";
 import { columnDefAbiParamsArgs } from "./columnDefAbiParamsArgs";
-import type { AbiFragmentParamTypeName, AbiRow } from "./type,";
+import type { AbiFragmentParamTypeName, AbiRow } from "./types";
 
 export const columnDefAbiParams = <T extends AbiRow>(
   abiParamsKey: keyof T,
