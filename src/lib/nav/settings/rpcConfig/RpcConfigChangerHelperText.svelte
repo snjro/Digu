@@ -6,7 +6,7 @@
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import classNames from "classnames";
   import type { RpcConfigParam } from "./rpcConfigParams";
-  import type { HelperTextState } from "./RpcConfigChanger.svelte";
+  import type { HelperTextState } from "$lib/base/helperTextState";
   import { getRpcConfigHelperTextProps } from "./rpcConfigHelperText";
 
   interface Props {

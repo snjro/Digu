@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import { getRpcConfigHelperTextProps } from "./rpcConfigHelperText";
-import type { HelperTextState } from "./RpcConfigChanger.svelte";
+import type { HelperTextState } from "$lib/base/helperTextState";
 
 describe("getRpcConfigHelperTextProps", () => {
   test("should show Updated. with the check icon on success", () => {

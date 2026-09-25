@@ -1,9 +1,5 @@
-<script lang="ts" module>
-  export type HelperTextState =
-    "error" | "success" | "warning" | "info" | "indeterminate" | undefined;
-</script>
-
 <script lang="ts">
+  import type { HelperTextState } from "$lib/base/helperTextState";
   import type { ChainName } from "@constants/chains/types";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";

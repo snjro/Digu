@@ -1,8 +1,8 @@
 import {
   cellRendererFactory,
   type AbstractCellRenderer,
-} from "$lib/base/BaseGrid/cellRenderFactory";
-import type { ColumnDef } from "$lib/base/BaseGrid/types";
+} from "$lib/grid/cellRenderFactory";
+import type { ColumnDef } from "$lib/grid/types";
 import type {
   CellClassParams,
   CellStyle,

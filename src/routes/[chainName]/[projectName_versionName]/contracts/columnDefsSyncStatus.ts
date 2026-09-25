@@ -1,4 +1,4 @@
-import type { ColumnDef } from "$lib/base/BaseGrid/types";
+import type { ColumnDef } from "$lib/grid/types";
 import type { Chain, Project, Version } from "@constants/chains/types";
 import { columnDefsSyncstatusProgressBar } from "./columnDefsSyncStatusProgressBar";
 import { columnDefsSyncStatusTarget } from "./columnDefsSyncStatusTarget";

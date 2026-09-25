@@ -2,8 +2,8 @@ import BaseA from "$lib/base/BaseA.svelte";
 import {
   cellRendererFactory,
   type AbstractCellRenderer,
-} from "$lib/base/BaseGrid/cellRenderFactory";
-import type { ColumnDef } from "$lib/base/BaseGrid/types";
+} from "$lib/grid/cellRenderFactory";
+import type { ColumnDef } from "$lib/grid/types";
 import BaseLabel from "$lib/base/BaseLabel.svelte";
 import CommonOpenLink from "$lib/common/CommonOpenLink.svelte";
 import { NO_DATA } from "@utils/utilsConstants";

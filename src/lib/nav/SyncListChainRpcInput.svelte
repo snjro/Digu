@@ -16,7 +16,7 @@
   import classNames from "classnames";
   import { untrack } from "svelte";
   import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
-  import type { HelperTextState } from "./settings/rpcConfig/RpcConfigChanger.svelte";
+  import type { HelperTextState } from "$lib/base/helperTextState";
   import {
     clearSucceededNodeStatus,
     toggleRpcInputType,

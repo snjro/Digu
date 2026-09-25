@@ -1,4 +1,4 @@
-import type { ColumnDef } from "$lib/base/BaseGrid/types";
+import type { ColumnDef } from "$lib/grid/types";
 import { capitalizeFirstLetter } from "@utils/utilsCommon";
 import { columnDefAbiParamsArgsChildren } from "./columnDefAbiParamsArgsChildren";
 import type { AbiFragmentParamTypeName, AbiRow } from "./types";

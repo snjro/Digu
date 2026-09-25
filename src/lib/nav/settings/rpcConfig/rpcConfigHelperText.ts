@@ -1,7 +1,7 @@
 import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import type { BaseLabelProps } from "$lib/base/BaseLabel.svelte";
 import type { RpcConfigParam } from "./rpcConfigParams";
-import type { HelperTextState } from "./RpcConfigChanger.svelte";
+import type { HelperTextState } from "$lib/base/helperTextState";
 
 export function getRpcConfigHelperTextProps(
   helperTextState: HelperTextState,

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { get } from "svelte/store";
 import type { ColDef, ValueGetterParams } from "ag-grid-community";
-import type { ColumnDef } from "$lib/base/BaseGrid/types";
+import type { ColumnDef } from "$lib/grid/types";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type {
   Chain,

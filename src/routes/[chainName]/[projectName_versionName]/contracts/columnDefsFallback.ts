@@ -1,4 +1,4 @@
-import type { ColumnDef } from "$lib/base/BaseGrid/types";
+import type { ColumnDef } from "$lib/grid/types";
 import { columnDefStateMutability } from "$lib/gridColumnDefs/columnDefStateMutability";
 // import classNames from "classnames";
 import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";

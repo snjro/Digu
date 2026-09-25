@@ -3,7 +3,7 @@
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseInput from "$lib/base/BaseInput.svelte";
   import classNames from "classnames";
-  import type { HelperTextState } from "./RpcConfigChanger.svelte";
+  import type { HelperTextState } from "$lib/base/helperTextState";
   import type { RpcConfigParam } from "./rpcConfigParams";
 
   interface Props {
