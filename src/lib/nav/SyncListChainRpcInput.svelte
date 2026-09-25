@@ -83,6 +83,7 @@
     disabled={$storeSyncStatus[targetChainName].isSyncing}
     helperTextState={helperTextState()}
     placeholder="https://localhost:8545"
+    ariaLabel="RPC URL"
     onfocus={focusRpc}
     onblur={blurRpc}
   >

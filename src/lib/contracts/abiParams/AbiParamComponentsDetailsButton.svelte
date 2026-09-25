@@ -41,7 +41,7 @@
   headerIconName={undefined}
 >
   {#snippet dialogBody()}
-    <PageWrapperContent hasMultipulTabs={false}>
+    <PageWrapperContent hasMultipulTabs={false} scrollAreaLabel="ABI JSON">
       {#snippet PageWrapperContentBody()}
         <BaseHighlight targetLanguageName="json" code={dialogText} />
       {/snippet}
