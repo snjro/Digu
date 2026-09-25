@@ -27,12 +27,12 @@ export const chain: Chain = {
     },
     {
       name: "Blockscout",
-      url: "https://blockscout.com/eth/mainnet",
+      url: "https://eth.blockscout.com",
       subdirectory: { address: "address", tx: "tx", block: "block" },
     },
     {
       name: "OKLink",
-      url: "https://oklink.com/en/eth",
+      url: "https://www.oklink.com/ethereum",
       subdirectory: { address: "address", tx: "tx", block: "block" },
     },
   ],

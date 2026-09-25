@@ -28,8 +28,7 @@ const config = {
       "@constants/*": "src/constants/*",
       "@utils/*": "src/utils/*",
       "@routes/*": "src/routes/*",
-      "@static/*": "src/static/*",
-      "@eventLogs": "src/eventLogs/*",
+      "@eventLogs/*": "src/eventLogs/*",
     },
     version: { name: pkgJson.version },
     prerender: {
