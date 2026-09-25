@@ -113,20 +113,24 @@ async function openTab(beforeWatch?: () => Promise<void>) {
   const { storeSyncStatus } = await import("@stores/storeSyncStatus");
   const { storeChainStatus } = await import("@stores/storeChainStatus");
   const { get } = await import("svelte/store");
-  storeChainStatus.updateState(chain.name, {
-    nodeStatus: "SUCCESS",
-    // Above every contract, so that no loop waits for a new block.
-    latestBlockNumber:
-      Math.max(
-        ...chain.projects.flatMap((targetProject) =>
-          targetProject.versions.flatMap((targetVersion) =>
-            targetVersion.contracts.map(
-              (targetContract) => targetContract.creation.blockNumber,
-            ),
+  const { updateDbItemChainStatus } =
+    await import("@db/dbChainStatusDataHandlers");
+  storeChainStatus.updateState(chain.name, { nodeStatus: "SUCCESS" });
+  // Above every contract, so that no loop waits for a new block. Also in the
+  // DB, because a tab reloads it when another tab stops syncing.
+  await updateDbItemChainStatus(
+    chain.name,
+    "latestBlockNumber",
+    Math.max(
+      ...chain.projects.flatMap((targetProject) =>
+        targetProject.versions.flatMap((targetVersion) =>
+          targetVersion.contracts.map(
+            (targetContract) => targetContract.creation.blockNumber,
           ),
         ),
-      ) + 1_000_000,
-  });
+      ),
+    ) + 1_000_000,
+  );
   const db = new DbEventLogs(versionIdentifier);
   return {
     contract,
@@ -139,6 +143,15 @@ async function openTab(beforeWatch?: () => Promise<void>) {
     isChainSyncing: (): boolean => get(storeSyncStatus)[chain.name].isSyncing,
     isLockedByOtherTab: (): boolean =>
       get(syncLock.storeSyncLockedByOtherTab)[chain.name],
+    latestBlockNumber: (): number =>
+      get(storeChainStatus)[chain.name].latestBlockNumber,
+    // What the syncing tab does with the block number from the RPC.
+    updateLatestBlockNumber: (latestBlockNumber: number) =>
+      updateDbItemChainStatus(
+        chain.name,
+        "latestBlockNumber",
+        latestBlockNumber,
+      ),
   };
 }
 type Tab = Awaited<ReturnType<typeof openTab>>;
@@ -234,6 +247,21 @@ describe("sync with two tabs (issue #49)", () => {
     const { rows, unique } = await countLogs(a);
     expect(rows).toBeGreaterThan(0);
     expect(rows).toBe(unique);
+  }, 30_000);
+
+  test("tab B reloads the latest block number after tab A stops", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    const b = await openTab();
+    tabs.push(b);
+    expect(await a.fetchEventLogs()).toBe(true);
+    await sleep(50);
+    expect(await b.fetchEventLogs()).toBe(false);
+    await a.updateLatestBlockNumber(b.latestBlockNumber() + 100);
+
+    await stopAndWait(a);
+    expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
+    expect(b.latestBlockNumber()).toBe(a.latestBlockNumber());
   }, 30_000);
 
   test("tab B resumes from the block that tab A fetched", async () => {
