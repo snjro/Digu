@@ -25,15 +25,32 @@ class DbChainStatus extends dbBase {
 
     return schemaDefinition;
   }
-  protected async addInitialData(tx: Transaction): Promise<void> {
-    const ArrayOfInitialData = [];
-    for (const targetChain of TARGET_CHAINS) {
-      ArrayOfInitialData.push(initialDataChainStatus(targetChain.name));
+  // Adds only the missing rows: "populate" does not run for the chains added
+  // after the DB was created.
+  async addInitialData(tx: Transaction): Promise<void> {
+    const table = tx.table(DB_TABLE_NAMES.ChainStatus);
+    const records: (ChainStatus | undefined)[] = await table.bulkGet(
+      TARGET_CHAINS.map((targetChain) => targetChain.name),
+    );
+    const ArrayOfInitialData: ChainStatus[] = TARGET_CHAINS.filter(
+      (_, index) => records[index] === undefined,
+    ).map((targetChain) => initialDataChainStatus(targetChain.name));
+    if (ArrayOfInitialData.length > 0) {
+      await table.bulkAdd(ArrayOfInitialData);
     }
-    await tx.table(DB_TABLE_NAMES.ChainStatus).bulkAdd(ArrayOfInitialData);
   }
 }
 export const dbChainStatus: DbChainStatus = new DbChainStatus();
+
+export async function addInitialDataOfDbChainStatus(): Promise<void> {
+  await dbChainStatus.transaction(
+    "rw",
+    DB_TABLE_NAMES.ChainStatus,
+    async (tx) => {
+      await dbChainStatus.addInitialData(tx);
+    },
+  );
+}
 export const initialDataChainStatus = (chainName: ChainName): ChainStatus => {
   return {
     chainName: chainName,
