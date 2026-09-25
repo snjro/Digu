@@ -23,6 +23,9 @@ import { sleep } from "@utils/utilsCommon";
 type FetchingTargetInfo = ContractIdentifier & {
   blocks: { from: number; to: number; latest: number };
 };
+// Longer than the 250 ms for which ethers returns the result of an identical
+// request, so that a retry sends the request again.
+const RETRY_WAIT_MS: number = 1000;
 export async function fetchEventLogsContract(
   dbEventLogs: DbEventLogs,
   targetContract: Contract,
@@ -157,6 +160,8 @@ export async function fetchEventLogsContract(
         },
       );
       await startAbortingInChain(chainName);
+    } else if (errorCount > 0) {
+      await sleep(RETRY_WAIT_MS);
     }
   }
 }
