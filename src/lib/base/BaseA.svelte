@@ -27,13 +27,9 @@
 </script>
 
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { Snippet } from "svelte";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import { NO_DATA } from "@utils/utilsConstants";
   import classNames from "classnames";
   import { twMerge } from "tailwind-merge";
@@ -103,7 +99,6 @@
   const displayText: string | undefined = $derived(text || href);
   let editedPrefixIcon = $derived(editIconProps(prefixIcon));
   let editedSuffixIcon = $derived(editIconProps(suffixIcon));
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
   let customClass: string = $derived(
     forcedClass ??
       twMerge(
@@ -117,7 +112,7 @@
         // "w-fit",
         hoverEffect && "hover:underline",
         baseTextSizes[textSize],
-        colorDefinitions[themeColor][colorCategory ?? "interactive"].text,
+        colorClasses[colorCategory ?? "interactive"].text,
         disabled && "disabled:opacity-75",
         disabled && "pointer-events: none",
         isFontMono && "font-mono",

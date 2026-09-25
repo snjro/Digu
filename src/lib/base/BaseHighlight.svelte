@@ -1,8 +1,5 @@
 <script lang="ts">
-  import {
-    colorDefinitions,
-    getColorFromTailwindColor,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorVar } from "$lib/appearanceConfig/color/colorVariables";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { ThemeColor } from "@db/dbTypes";
@@ -30,11 +27,7 @@
 
   const languages = { json: json };
 
-  let colorBg: `bg-${string}` = $derived(
-    colorDefinitions[themeColor][colorSettings.itemGroupContent].bg,
-  );
-
-  let colorBgValue: string = $derived(getColorFromTailwindColor(colorBg));
+  const colorBgValue: string = colorVar(colorSettings.itemGroupContent, "bg");
 </script>
 
 <svelte:head>

@@ -12,12 +12,8 @@
 </script>
 
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import classNames from "classnames";
   import BaseLabel from "../BaseLabel.svelte";
   import type { BaseSize } from "../baseSizes";
@@ -47,8 +43,6 @@
     children,
   }: Props = $props();
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   let celldAlign:
     "justify-start" | "justify-center" | "justify-end" | "justify-stretch" =
     $derived.by(() => {
@@ -70,15 +64,11 @@
     "px-1",
     "font-mono",
     width,
-    colorCategoryBg
-      ? colorDefinitions[themeColor][colorCategoryBg].bg
-      : "bg-inherit",
-    colorCategoryFront
-      ? colorDefinitions[themeColor][colorCategoryFront].text
-      : "text-inherit",
+    colorCategoryBg ? colorClasses[colorCategoryBg].bg : "bg-inherit",
+    colorCategoryFront ? colorClasses[colorCategoryFront].text : "text-inherit",
     showBorderRight && "border-r",
     colorCategoryBorder
-      ? colorDefinitions[themeColor][colorCategoryBorder].border
+      ? colorClasses[colorCategoryBorder].border
       : "border-inherit",
     "",
   )}

@@ -1,10 +1,5 @@
 <script lang="ts" module>
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import classNames from "classnames";
   import { baseTextSizes, type BaseSize } from "./baseSizes";
 
@@ -22,6 +17,7 @@
 </script>
 
 <script lang="ts">
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { baseShadowSizes } from "./baseSizes";
 
   interface Props {
@@ -48,8 +44,6 @@
     ariaLabel = undefined,
   }: Props = $props();
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   let customClass: string = $derived(
     forcedClass ??
       classNames(
@@ -59,15 +53,13 @@
         // "pr-2",
         // "py-0.5",
         "p-1",
-        colorCategoryBg
-          ? colorDefinitions[themeColor][colorCategoryBg].bg
-          : "bg-inherit",
+        colorCategoryBg ? colorClasses[colorCategoryBg].bg : "bg-inherit",
         colorCategoryFront
-          ? colorDefinitions[themeColor][colorCategoryFront].text
+          ? colorClasses[colorCategoryFront].text
           : "text-inherit",
         "dark:border-2",
         colorCategoryFront
-          ? colorDefinitions[themeColor][colorCategoryFront].border
+          ? colorClasses[colorCategoryFront].border
           : "border-inherit",
 
         "transition",
@@ -86,14 +78,12 @@
     "flex-row",
     "justify-items-center",
     "rounded-sm",
-    colorCategoryBg
-      ? colorDefinitions[themeColor][colorCategoryBg].bg
-      : "bg-inherit",
+    colorCategoryBg ? colorClasses[colorCategoryBg].bg : "bg-inherit",
     // "shadow-md dark:shadow-none",
     baseShadowSizes[size],
     "dark:shadow-none",
     colorCategoryFront
-      ? colorDefinitions[themeColor][colorCategoryFront].shadow
+      ? colorClasses[colorCategoryFront].shadow
       : "shadow-inherit",
 
     "h-fit w-fit",
@@ -105,11 +95,9 @@
       <option
         {value}
         class={classNames(
-          colorCategoryBg
-            ? colorDefinitions[themeColor][colorCategoryBg].bg
-            : "bg-inherit",
+          colorCategoryBg ? colorClasses[colorCategoryBg].bg : "bg-inherit",
           colorCategoryFront
-            ? colorDefinitions[themeColor][colorCategoryFront].text
+            ? colorClasses[colorCategoryFront].text
             : "text-inherit",
         )}
       >

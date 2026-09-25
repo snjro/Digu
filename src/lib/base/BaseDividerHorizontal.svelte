@@ -1,10 +1,6 @@
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import classNames from "classnames";
 
   interface Props {
@@ -13,7 +9,6 @@
   }
 
   let { colorCategory, hidden = false }: Props = $props();
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 </script>
 
 <div
@@ -22,6 +17,6 @@
     "h-[1px]",
     "w-full",
     "border-t",
-    colorDefinitions[themeColor][colorCategory].border,
+    colorClasses[colorCategory].border,
   )}
 ></div>

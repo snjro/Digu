@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import BaseButtonIcon from "./BaseButtonIcon.svelte";
@@ -78,7 +78,7 @@ describe("BaseButtonIcon.svelte", () => {
       onmouseenter,
       onmouseleave,
     });
-    const colors = colorDefinitions.light.secondary;
+    const colors = colorClasses.secondary;
     const svg = icon(container, "close");
     expect(svg.classList.contains(colors.fill)).toBe(true);
 
@@ -92,21 +92,16 @@ describe("BaseButtonIcon.svelte", () => {
     expect(onmouseleave).toHaveBeenCalledOnce();
   });
 
-  test("follows the theme in storeUserSettings", async () => {
+  test("keeps the same color classes in both themes", async () => {
     const { container } = render(BaseButtonIcon, {
       iconName: "close",
       size: "md",
       colorCategoryFront: "secondary",
     });
-    expect(colorDefinitions.dark.secondary.fill).not.toBe(
-      colorDefinitions.light.secondary.fill,
-    );
     storeUserSettings.updateState({ themeColor: "dark" });
     await Promise.resolve();
     expect(
-      icon(container, "close").classList.contains(
-        colorDefinitions.dark.secondary.fill,
-      ),
+      icon(container, "close").classList.contains(colorClasses.secondary.fill),
     ).toBe(true);
   });
 

@@ -4,6 +4,7 @@ import { fireEvent, render, screen } from "@testing-library/svelte";
 import { goto } from "$app/navigation";
 import BaseItem from "./BaseItem.svelte";
 import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
@@ -46,8 +47,9 @@ function getParts(container: HTMLElement): Parts {
 }
 const emphasis = (theme: "light" | "dark"): string =>
   colorDefinitions[theme][colorSettings.leftSidebarBodyBg].bgEmphasis;
-const interactiveText = colorDefinitions.light.interactive.text;
-const interactiveBorder = colorDefinitions.light.interactive.border;
+// The link and the underline come from the base parts, which use colorClasses.
+const interactiveText = colorClasses.interactive.text;
+const interactiveBorder = colorClasses.interactive.border;
 
 function expectSelected(container: HTMLElement, selected: boolean): void {
   const { indicator, box, link, label } = getParts(container);

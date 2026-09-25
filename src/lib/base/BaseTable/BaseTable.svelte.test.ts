@@ -3,7 +3,7 @@ import { tick } from "svelte";
 import { render, screen } from "@testing-library/svelte";
 import BaseTable from "./BaseTable.svelte";
 import type { BaseTableHeaderCellProps } from "./BaseTableHeaderCell.svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
@@ -126,7 +126,7 @@ describe("BaseTable.svelte", () => {
     expect(classList()).toContain("border-b");
   });
 
-  test("follows the theme in storeUserSettings", async () => {
+  test("keeps the same color classes in both themes", async () => {
     const { container } = render(BaseTable, {
       tableHeaderCellProps: headerCells,
       textSize: "md",
@@ -134,13 +134,13 @@ describe("BaseTable.svelte", () => {
     });
     const category = colorSettings.itemMemberTableBorder;
     expect(getTable(container).classList).toContain(
-      colorDefinitions.light[category].border,
+      colorClasses[category].border,
     );
 
     storeUserSettings.updateState({ themeColor: "dark" });
     await tick();
     expect(getTable(container).classList).toContain(
-      colorDefinitions.dark[category].border,
+      colorClasses[category].border,
     );
   });
 });

@@ -1,8 +1,6 @@
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import {
     getScrollbarStyle,
@@ -63,14 +61,11 @@
       borderX && "border-x",
       borderTop && "border-t",
       borderBottom && "border-b",
-      colorDefinitions[themeColor][colorCategoryBorder].border,
+      colorClasses[colorCategoryBorder].border,
     )}
   >
     <thead
-      class={classNames(
-        "border-b",
-        colorDefinitions[themeColor][colorCategoryBorder].border,
-      )}
+      class={classNames("border-b", colorClasses[colorCategoryBorder].border)}
     >
       <BaseTableRow hoverEffect={false}>
         {#if showSequenceNumbers}

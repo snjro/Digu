@@ -24,13 +24,9 @@
 </script>
 
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import CommonCopyButton from "$lib/common/CommonCopyButton.svelte";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import { NO_DATA } from "@utils/utilsConstants";
   import classNames from "classnames";
   import { twMerge } from "tailwind-merge";
@@ -79,8 +75,6 @@
     children,
   }: Props = $props();
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   // Returns a new object instead of changing the one in the props.
   const withDefaults = (
     iconProps: BaseIconProps | undefined,
@@ -99,11 +93,9 @@
         baseTextSizes[textSize],
         "w-fit",
         colorCategoryFront
-          ? colorDefinitions[themeColor][colorCategoryFront].text
+          ? colorClasses[colorCategoryFront].text
           : "text-inherit",
-        colorCategoryBg
-          ? colorDefinitions[themeColor][colorCategoryBg].bg
-          : "bg-transparent",
+        colorCategoryBg ? colorClasses[colorCategoryBg].bg : "bg-transparent",
         disabled && "disabled:opacity-75",
         truncate && "truncate",
         cursorPointer ? "cursor-pointer" : "cursor-text",

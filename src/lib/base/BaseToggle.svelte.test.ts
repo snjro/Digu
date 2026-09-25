@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import BaseToggle from "./BaseToggle.svelte";
@@ -37,15 +37,11 @@ describe("BaseToggle.svelte", () => {
     });
     const { thumb } = getParts(container);
     expect(thumb.classList.contains("-translate-x-4")).toBe(true);
-    expect(thumb.classList.contains(colorDefinitions.light.error.bg)).toBe(
-      true,
-    );
+    expect(thumb.classList.contains(colorClasses.error.bg)).toBe(true);
 
     await rerender({ toggleValue: true });
     expect(thumb.classList.contains("translate-x-4")).toBe(true);
-    expect(thumb.classList.contains(colorDefinitions.light.success.bg)).toBe(
-      true,
-    );
+    expect(thumb.classList.contains(colorClasses.success.bg)).toBe(true);
   });
 
   test("flips on a click and calls ontogglechanged once", async () => {
@@ -88,20 +84,16 @@ describe("BaseToggle.svelte", () => {
     expect(thumb.classList.contains("contrast-50")).toBe(true);
   });
 
-  test("follows the theme in storeUserSettings", async () => {
+  test("keeps the same color classes in both themes", async () => {
     const { container } = render(BaseToggle, {
       ...baseProps,
       toggleValue: false,
     });
     const { track } = getParts(container);
-    expect(track.classList.contains(colorDefinitions.light.primary.bg)).toBe(
-      true,
-    );
+    expect(track.classList.contains(colorClasses.primary.bg)).toBe(true);
 
     storeUserSettings.updateState({ themeColor: "dark" });
     await tick();
-    expect(track.classList.contains(colorDefinitions.dark.primary.bg)).toBe(
-      true,
-    );
+    expect(track.classList.contains(colorClasses.primary.bg)).toBe(true);
   });
 });

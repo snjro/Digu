@@ -63,15 +63,11 @@
 </script>
 
 <script lang="ts">
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { twMerge } from "tailwind-merge";
 
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { Snippet } from "svelte";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import { setPropsByOpenNewTab } from "./BaseA.svelte";
   import BaseButtonContent from "./BaseButtonContent.svelte";
@@ -158,19 +154,17 @@
   const accessibleName: string | undefined = $derived(
     label ? undefined : (ariaLabel ?? tooltipText),
   );
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
   const textColor = (): string => {
     let textColor: string;
     if (hoverEffect && isHover) {
       if (colorCategoryFront) {
-        textColor =
-          colorDefinitions[themeColor][colorCategoryFront].textEmphasis;
+        textColor = colorClasses[colorCategoryFront].textEmphasis;
       } else {
         textColor = "text-inherit";
       }
     } else {
       if (colorCategoryFront) {
-        textColor = colorDefinitions[themeColor][colorCategoryFront].text;
+        textColor = colorClasses[colorCategoryFront].text;
       } else {
         textColor = "text-inherit";
       }
@@ -181,13 +175,13 @@
     let bgColor: string;
     if (hoverEffect && isHover) {
       if (colorCategoryBg) {
-        bgColor = colorDefinitions[themeColor][colorCategoryBg].bgEmphasis;
+        bgColor = colorClasses[colorCategoryBg].bgEmphasis;
       } else {
         bgColor = "bg-inherit";
       }
     } else {
       if (colorCategoryBg) {
-        bgColor = colorDefinitions[themeColor][colorCategoryBg].bg;
+        bgColor = colorClasses[colorCategoryBg].bg;
       } else {
         bgColor = "bg-inherit";
       }
@@ -198,7 +192,7 @@
     let borderColor: string = "";
     if (border) {
       if (colorCategoryFront) {
-        borderColor = colorDefinitions[themeColor][colorCategoryFront].border;
+        borderColor = colorClasses[colorCategoryFront].border;
       } else {
         borderColor = "border-inherit";
       }
@@ -210,7 +204,7 @@
   const shadowColor = (): string => {
     if (shadowEffect) {
       return colorCategoryBg
-        ? colorDefinitions[themeColor][colorCategoryBg].shadow
+        ? colorClasses[colorCategoryBg].shadow
         : "shadow-inherit";
     }
     return "shadow-inherit";

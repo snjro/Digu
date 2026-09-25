@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import BaseRange from "./BaseRange.svelte";
@@ -55,16 +55,16 @@ describe("BaseRange.svelte", () => {
     expect(screen.getByTestId("bound").textContent).toBe("60");
   });
 
-  test("follows the theme in storeUserSettings", async () => {
+  test("keeps the same color classes in both themes", async () => {
     render(BaseRange, { ...baseProps, colorCategoryFront: "interactive" });
     const range = screen.getByRole("slider");
-    expect(
-      range.classList.contains(colorDefinitions.light.interactive.accent),
-    ).toBe(true);
+    expect(range.classList.contains(colorClasses.interactive.accent)).toBe(
+      true,
+    );
     storeUserSettings.updateState({ themeColor: "dark" });
     await tick();
-    expect(
-      range.classList.contains(colorDefinitions.dark.interactive.accent),
-    ).toBe(true);
+    expect(range.classList.contains(colorClasses.interactive.accent)).toBe(
+      true,
+    );
   });
 });

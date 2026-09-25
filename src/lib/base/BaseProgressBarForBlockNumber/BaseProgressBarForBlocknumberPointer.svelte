@@ -1,10 +1,6 @@
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import classNames from "classnames";
   import type { BaseSize } from "../baseSizes";
   interface Props {
@@ -22,8 +18,6 @@
     progressRate = 100,
     isDynamicPointer = false,
   }: Props = $props();
-
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   const pointerHeights: { [key in BaseSize]: string } = {
     xs: "h-1",
@@ -45,7 +39,7 @@
     "bg-transparent",
     pointerHeights[size],
     colorCategoryFront
-      ? colorDefinitions[themeColor][colorCategoryBg].border
+      ? colorClasses[colorCategoryBg].border
       : "border-inherit",
     "",
   )}

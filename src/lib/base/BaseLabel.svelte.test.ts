@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { NO_DATA } from "@utils/utilsConstants";
@@ -41,22 +41,26 @@ describe("BaseLabel.svelte", () => {
     expect(label(container).classList.contains(baseTextSizes.xl)).toBe(true);
   });
 
-  test("uses the colors and follows the theme", async () => {
+  test("uses the colors in both themes", async () => {
     const { container } = render(BaseLabel, {
       text: "Name",
       colorCategoryFront: "secondary",
       colorCategoryBg: "primary",
     });
-    const light = colorDefinitions.light;
-    expect(label(container).classList.contains(light.secondary.text)).toBe(
+    expect(
+      label(container).classList.contains(colorClasses.secondary.text),
+    ).toBe(true);
+    expect(label(container).classList.contains(colorClasses.primary.bg)).toBe(
       true,
     );
-    expect(label(container).classList.contains(light.primary.bg)).toBe(true);
     storeUserSettings.updateState({ themeColor: "dark" });
     await Promise.resolve();
-    const dark = colorDefinitions.dark;
-    expect(label(container).classList.contains(dark.secondary.text)).toBe(true);
-    expect(label(container).classList.contains(dark.primary.bg)).toBe(true);
+    expect(
+      label(container).classList.contains(colorClasses.secondary.text),
+    ).toBe(true);
+    expect(label(container).classList.contains(colorClasses.primary.bg)).toBe(
+      true,
+    );
   });
 
   test("renders the default slot after the text", () => {

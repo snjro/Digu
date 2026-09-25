@@ -1,12 +1,8 @@
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import BaseButtonIcon from "../BaseButtonIcon.svelte";
   import type { BaseIconProps } from "../BaseIcon";
@@ -25,8 +21,6 @@
     headerIconName = undefined,
     headerText,
   }: Props = $props();
-
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   const headerSize: BaseSize = sizeSettings.dialogHeader;
   const headerColor: ColorCategory = colorSettings.dialogHeader;
@@ -48,10 +42,10 @@
     headerText ? "justify-between" : "justify-end",
     "w-full",
     "p-1.5",
-    colorDefinitions[themeColor][headerColor].bg,
+    colorClasses[headerColor].bg,
     "relative",
     "border-b",
-    colorDefinitions[themeColor][headerColor].border,
+    colorClasses[headerColor].border,
     "",
   )}
 >

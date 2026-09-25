@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
@@ -44,17 +44,13 @@ describe("BaseTooltip.svelte", () => {
     expect(tip().classList.contains("top-full")).toBe(true);
   });
 
-  test("follows the theme in storeUserSettings", async () => {
+  test("keeps the same color classes in both themes", async () => {
     render(BaseTooltip, { text: "Tip", ...children() });
     const category = colorSettings.tooltip;
     const tip = screen.getByText("Tip");
-    expect(tip.classList.contains(colorDefinitions.light[category].bg)).toBe(
-      true,
-    );
+    expect(tip.classList.contains(colorClasses[category].bg)).toBe(true);
     storeUserSettings.updateState({ themeColor: "dark" });
     await Promise.resolve();
-    expect(tip.classList.contains(colorDefinitions.dark[category].bg)).toBe(
-      true,
-    );
+    expect(tip.classList.contains(colorClasses[category].bg)).toBe(true);
   });
 });

@@ -1,8 +1,6 @@
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
   import type { ThemeColor } from "@db/dbTypes";
@@ -54,7 +52,7 @@
   });
   let shadowStyle = $derived((): `shadow-${string}` => {
     if (!isColoredBar && shadow && themeColor !== "dark") {
-      return `shadow-inner ${colorDefinitions[themeColor][colorCategoryFront].shadow}`;
+      return `shadow-inner ${colorClasses[colorCategoryFront].shadow}`;
     } else {
       return "shadow-none";
     }

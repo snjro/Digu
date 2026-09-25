@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import BaseInput from "./BaseInput.svelte";
@@ -98,30 +98,27 @@ describe("BaseInput.svelte", () => {
     });
     const input = getInput(container);
     const frame = input.parentElement as HTMLElement;
-    const light = colorDefinitions.light;
-    expect(frame.classList.contains(light.secondary.border)).toBe(true);
+    expect(frame.classList.contains(colorClasses.secondary.border)).toBe(true);
 
     await fireEvent.focus(input);
     expect(input.hasAttribute("placeholder")).toBe(false);
-    expect(frame.classList.contains(light.interactive.border)).toBe(true);
+    expect(frame.classList.contains(colorClasses.interactive.border)).toBe(
+      true,
+    );
 
     await fireEvent.blur(input);
     expect(input.placeholder).toBe("Type here");
-    expect(frame.classList.contains(light.secondary.border)).toBe(true);
+    expect(frame.classList.contains(colorClasses.secondary.border)).toBe(true);
   });
 
-  test("follows the theme in storeUserSettings", async () => {
+  test("keeps the same color classes in both themes", async () => {
     const { container } = render(BaseInput, { ...baseProps });
     const input = getInput(container);
-    expect(input.classList.contains(colorDefinitions.light.primary.text)).toBe(
-      true,
-    );
+    expect(input.classList.contains(colorClasses.primary.text)).toBe(true);
 
     storeUserSettings.updateState({ themeColor: "dark" });
     await tick();
-    expect(input.classList.contains(colorDefinitions.dark.primary.text)).toBe(
-      true,
-    );
+    expect(input.classList.contains(colorClasses.primary.text)).toBe(true);
   });
 
   test("renders the prefixIcon and suffixIcon slots", () => {

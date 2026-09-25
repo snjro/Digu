@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import BaseSelect from "./BaseSelect.svelte";
@@ -68,7 +68,7 @@ describe("BaseSelect.svelte", () => {
     expect(screen.getByTestId("bound").textContent).toBe("eth");
   });
 
-  test("follows the theme in storeUserSettings", async () => {
+  test("keeps the same color classes in both themes", async () => {
     render(BaseSelect, {
       items,
       value: "eth",
@@ -76,13 +76,9 @@ describe("BaseSelect.svelte", () => {
       colorCategoryBg: "primary",
     });
     const select = screen.getByRole("combobox");
-    expect(select.classList.contains(colorDefinitions.light.primary.bg)).toBe(
-      true,
-    );
+    expect(select.classList.contains(colorClasses.primary.bg)).toBe(true);
     storeUserSettings.updateState({ themeColor: "dark" });
     await tick();
-    expect(select.classList.contains(colorDefinitions.dark.primary.bg)).toBe(
-      true,
-    );
+    expect(select.classList.contains(colorClasses.primary.bg)).toBe(true);
   });
 });

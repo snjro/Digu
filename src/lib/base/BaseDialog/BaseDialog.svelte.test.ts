@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
@@ -65,19 +65,15 @@ describe("BaseDialog.svelte", () => {
     expect(onclose).toHaveBeenCalledOnce();
   });
 
-  test("follows the theme in storeUserSettings", async () => {
+  test("keeps the same color classes in both themes", async () => {
     const { dialog } = renderDialog({ headerText: "Settings" });
     const category = colorSettings.dialogHeader;
     expect(dialog.classList.contains("shadow-sm")).toBe(true);
-    expect(dialog.classList.contains(colorDefinitions.light[category].bg)).toBe(
-      true,
-    );
+    expect(dialog.classList.contains(colorClasses[category].bg)).toBe(true);
     storeUserSettings.updateState({ themeColor: "dark" });
     await Promise.resolve();
     expect(dialog.classList.contains("shadow-sm")).toBe(false);
     expect(dialog.classList.contains("border")).toBe(true);
-    expect(dialog.classList.contains(colorDefinitions.dark[category].bg)).toBe(
-      true,
-    );
+    expect(dialog.classList.contains(colorClasses[category].bg)).toBe(true);
   });
 });

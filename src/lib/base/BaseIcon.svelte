@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import classNames from "classnames";
   import { iconNames, type BaseIconProps } from "./BaseIcon";
   import type { BaseSize } from "./baseSizes";
@@ -62,8 +60,6 @@
     "5xl": 42,
   };
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   let customClass: string = $derived(
     forcedClass ??
       classNames(
@@ -79,8 +75,8 @@
         colorCategory &&
           classNames(
             hoverEffect && isHover
-              ? colorDefinitions[themeColor][colorCategory].fillEmphasis
-              : colorDefinitions[themeColor][colorCategory].fill,
+              ? colorClasses[colorCategory].fillEmphasis
+              : colorClasses[colorCategory].fill,
           ),
         "",
       ),

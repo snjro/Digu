@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import BaseButtonContent from "./BaseButtonContent.svelte";
 import { baseTextSizes } from "./baseSizes";
 import { htmlSnippet, slotProps } from "../../testUtils/snippets";
@@ -34,7 +34,7 @@ describe("BaseButtonContent.svelte", () => {
     expect(underline().classList.contains("border-transparent")).toBe(true);
     await rerender({ underlineLabel: true });
     expect(
-      underline().classList.contains(colorDefinitions.light.interactive.border),
+      underline().classList.contains(colorClasses.interactive.border),
     ).toBe(true);
     expect(underline().classList.contains("border-transparent")).toBe(false);
   });

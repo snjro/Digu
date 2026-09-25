@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import BaseA from "./BaseA.svelte";
@@ -35,17 +35,13 @@ describe("BaseA.svelte", () => {
     expect(link.textContent?.trim()).toBe("B");
   });
 
-  test("uses the color category and follows the theme", async () => {
+  test("uses the color category in both themes", async () => {
     render(BaseA, { href: "/a", text: "A", colorCategory: "secondary" });
     const link = screen.getByRole("link");
-    expect(link.classList.contains(colorDefinitions.light.secondary.text)).toBe(
-      true,
-    );
+    expect(link.classList.contains(colorClasses.secondary.text)).toBe(true);
     storeUserSettings.updateState({ themeColor: "dark" });
     await Promise.resolve();
-    expect(link.classList.contains(colorDefinitions.dark.secondary.text)).toBe(
-      true,
-    );
+    expect(link.classList.contains(colorClasses.secondary.text)).toBe(true);
   });
 
   test("renders the slot anchorContent in place of the text", () => {
