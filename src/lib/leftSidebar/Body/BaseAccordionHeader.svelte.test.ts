@@ -113,6 +113,14 @@ describe("BaseAccordionHeader.svelte", () => {
     },
   );
 
+  test("stops the Space key from scrolling the sidebar", async () => {
+    render(BaseAccordionHeader, props);
+    const notCanceled: boolean = await fireEvent.keyDown(getArrowButton(), {
+      key: " ",
+    });
+    expect(notCanceled).toBe(false);
+  });
+
   test("ignores other keys", async () => {
     render(BaseAccordionHeader, props);
     await fireEvent.keyDown(getArrowButton(), { key: "a" });
