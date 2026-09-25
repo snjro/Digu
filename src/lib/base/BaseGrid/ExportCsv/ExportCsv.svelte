@@ -14,12 +14,11 @@
     radioLabelAndValues: RadioLabelAndValues<RadioValue>;
   };
 
+  // Built from CsvSelectedValues, so that the keys and value types stay the same.
   export type ExportCsvRadioProps = {
-    skipRowNumber: ExportCsvRadioProp<boolean>;
-    columnSeparator: ExportCsvRadioProp<CsvColumnSeparator>;
-    suppressDoubleQuotes: ExportCsvRadioProp<boolean>;
-    skipColumnHeaders: ExportCsvRadioProp<boolean>;
-    filteredSorted: ExportCsvRadioProp<CsvFilteredSorted>;
+    [Key in keyof CsvSelectedValues]: ExportCsvRadioProp<
+      CsvSelectedValues[Key]["selectedValue"]
+    >;
   };
 </script>
 
@@ -47,8 +46,7 @@
   import {
     downloadCsvFile,
     getCsvText,
-    type CsvColumnSeparator,
-    type CsvFilteredSorted,
+    type CsvSelectedValues,
   } from "./exportCsv";
 
   interface Props {
