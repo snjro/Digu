@@ -18,15 +18,22 @@ self.addEventListener(
     const log: string = `DbWorker: ${targetFunctionName}`;
     customLogger.start(log);
 
-    const resultValue: DbWorkerResultValue<TargetFunctionName> =
-      await executeTargetFunction(
-        event.data.targetFunctionName,
-        event.data.params,
-      );
-
-    postMessage({
-      log: log,
-      value: resultValue,
-    });
+    try {
+      const resultValue: DbWorkerResultValue<TargetFunctionName> =
+        await executeTargetFunction(
+          event.data.targetFunctionName,
+          event.data.params,
+        );
+      postMessage({
+        log: log,
+        value: resultValue,
+      });
+    } catch (error) {
+      // An error thrown here does not reach the page, so send it back.
+      postMessage({
+        log: log,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   },
 );

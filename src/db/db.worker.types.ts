@@ -13,7 +13,6 @@ export type DbWorkerMessage<T extends TargetFunctionName> = {
 export type DbWorkerResultValue<T extends TargetFunctionName> =
   T extends "getConvertedEventLogs" ? ConvertedEventLog[] : undefined;
 
-export type DbWorkerResult<T extends TargetFunctionName> = {
-  log: string;
-  value: DbWorkerResultValue<T>;
-};
+export type DbWorkerResult<T extends TargetFunctionName> =
+  | { log: string; value: DbWorkerResultValue<T> }
+  | { log: string; error: string };
