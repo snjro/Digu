@@ -38,6 +38,9 @@ export type NodeProvider = JsonRpcProvider | WebSocketProvider;
 // ends last does not overwrite the node status of a later one.
 const latestNodeProviderCalls: Record<ChainName, number> = {};
 
+// A WebSocket that never opens makes getNetwork wait forever.
+const GET_NETWORK_TIMEOUT_MS: number = 10000;
+
 export async function getNodeProvider(
   targetChain: Chain,
   rpc: string,
@@ -70,10 +73,19 @@ export async function getNodeProvider(
         jsonRpcApiProviderOptions,
       );
     } else {
-      nodeProvider = new WebSocketProvider(rpc, targetNetwork);
+      nodeProvider = new WebSocketProvider(rpc);
     }
+    let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
     try {
-      const providedNetwork: Network = await nodeProvider.getNetwork();
+      const providedNetwork: Network = await Promise.race([
+        nodeProvider.getNetwork(),
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(
+            () => reject(new Error("getNetwork timed out.")),
+            GET_NETWORK_TIMEOUT_MS,
+          );
+        }),
+      ]);
       if (providedNetwork.chainId === targetNetwork.chainId) {
         nodeStatus = "SUCCESS";
         customLogger.success("nodeProvider.getNetwork().", {
@@ -94,6 +106,8 @@ export async function getNodeProvider(
     } catch (error) {
       customLogger.error("nodeProvider.getNetwork().", error);
       nodeStatus = "NETWORK_ERROR";
+    } finally {
+      clearTimeout(timeoutId);
     }
   } else {
     customLogger.error(
