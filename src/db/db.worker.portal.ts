@@ -10,18 +10,34 @@ import type {
 export async function startDbWorker<T extends TargetFunctionName>(
   dbWorkerMessage: DbWorkerMessage<T>,
 ): Promise<DbWorkerResultValue<T>> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const dbWorker: Worker = new DbWorker();
+
+    function fail(message: string): void {
+      dbWorker.terminate();
+      reject(new Error(message));
+    }
 
     // Listen for a message from webworker announcing the end of processing
     dbWorker.addEventListener(
       "message",
       (message: MessageEvent<DbWorkerResult<T>>) => {
+        if ("error" in message.data) {
+          return fail(`${message.data.log}: ${message.data.error}`);
+        }
         dbWorker.terminate();
         customLogger.finished(message.data.log);
         return resolve(message.data.value);
       },
     );
+    dbWorker.addEventListener("error", (event: ErrorEvent) => {
+      fail(`DbWorker: ${dbWorkerMessage.targetFunctionName}: ${event.message}`);
+    });
+    dbWorker.addEventListener("messageerror", () => {
+      fail(
+        `DbWorker: ${dbWorkerMessage.targetFunctionName}: could not read the message`,
+      );
+    });
 
     dbWorker.postMessage(dbWorkerMessage);
   });
