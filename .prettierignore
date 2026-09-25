@@ -3,6 +3,7 @@ node_modules
 /_build
 /.svelte-kit
 /package
+/.claude
 .env
 .env.*
 !.env.example

@@ -14,6 +14,7 @@ export default defineConfig(
       "_build/",
       "package/",
       "coverage/",
+      ".claude/",
       "**/*.test.ts",
     ],
   },
