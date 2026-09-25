@@ -76,7 +76,7 @@
       />
     {/if}
   </li>
-  <li class={liClass}>
+  <li class={liClass} aria-hidden="true">
     <BreadcrumnItemSeparater />
   </li>
 {/if}
