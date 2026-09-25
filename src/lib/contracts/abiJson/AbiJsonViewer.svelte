@@ -15,7 +15,7 @@
   import type { AbiFormatType } from "@utils/utilsEthers";
   import {
     getAbiExportTooltipText,
-    getAbiFileExtention,
+    getAbiFileExtension,
     getAbiText,
     type TargetAbi,
   } from "./abiText";
@@ -45,7 +45,7 @@
     iconName: BaseIconProps["name"];
     tooltipText: string;
   }[] = [
-    { abiFormat: "json", iconName: "codeJson", tooltipText: "Json" },
+    { abiFormat: "json", iconName: "codeJson", tooltipText: "JSON" },
     {
       abiFormat: "full",
       iconName: "textLong",
@@ -104,9 +104,9 @@
               getExportFileName(
                 fragment ? "ABIfragment" : "ABI",
                 page.params,
-                getAbiFileExtention(abiFormat),
+                getAbiFileExtension(abiFormat),
               ),
-              getAbiFileExtention(abiFormat),
+              getAbiFileExtension(abiFormat),
             ),
         },
         {
