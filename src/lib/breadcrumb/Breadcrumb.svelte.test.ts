@@ -30,4 +30,11 @@ describe("Breadcrumb.svelte", () => {
     expect(container.textContent).toContain("proj v1");
     expect(container.textContent).not.toContain("matic");
   });
+
+  test("puts only <li> in the list", () => {
+    const { container } = render(Breadcrumb);
+    const children = [...container.querySelector("ol")!.children];
+    // home, separator, last label
+    expect(children.map((child) => child.tagName)).toEqual(["LI", "LI", "LI"]);
+  });
 });
