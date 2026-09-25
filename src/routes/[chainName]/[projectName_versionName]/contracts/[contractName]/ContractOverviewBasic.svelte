@@ -16,7 +16,7 @@
   } from "@constants/chains/types";
   import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsCostants";
   import type { Snippet } from "svelte";
-  import { getProjectVersionNameForUrl } from "../../projectVersionNameHelper";
+  import { getProjectVersionNameForUrl } from "$lib/common/projectVersionNameHelper";
 
   interface Props {
     targetChain: Chain;

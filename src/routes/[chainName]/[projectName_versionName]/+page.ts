@@ -6,7 +6,7 @@ import {
   getTargetProject,
   getTargetVersion,
 } from "@utils/utlisDb";
-import { getSplitProjectVersionName } from "./projectVersionNameHelper";
+import { getSplitProjectVersionName } from "$lib/common/projectVersionNameHelper";
 import { throwNotFoundAs404 } from "@routes/targetNotFound";
 
 export type LoadVersionData = {

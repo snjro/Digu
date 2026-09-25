@@ -5,7 +5,7 @@ import type { JsonFileContract } from "@constants/chains/jsonFileTypes";
 import type { Contract } from "@constants/chains/types";
 import { gridRows } from "@routes/[chainName]/[projectName_versionName]/contracts/gridRows";
 import { columnDefsNumOfLogs } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/columnDefsNumOfLogs";
-import type { EventRow } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/gridRows";
+import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { ContractIdentifier } from "@db/dbTypes";
 import type { ColDef, ValueGetterParams } from "ag-grid-community";

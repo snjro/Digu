@@ -19,7 +19,7 @@ import { columnDefsSyncStatusBlockNumber } from "./columnDefsSyncStatusBlockNumb
 import { columnDefsSyncstatusCurrentState } from "./columnDefsSyncStatusCurrentState";
 import { columnDefsSyncstatusProgressBar } from "./columnDefsSyncStatusProgressBar";
 import { columnDefsSyncStatusTarget } from "./columnDefsSyncStatusTarget";
-import type { ContractRow } from "./gridRows";
+import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
 
 const targetChain: Chain = TARGET_CHAINS[0];
 const targetProject: Project = targetChain.projects[0];

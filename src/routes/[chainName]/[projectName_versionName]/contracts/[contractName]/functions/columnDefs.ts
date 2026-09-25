@@ -1,5 +1,5 @@
 import type { ColumnDef } from "$lib/base/BaseGrid/types";
-import type { FunctionRow } from "./gridRows";
+import type { FunctionRow } from "$lib/gridColumnDefs/rowTypes";
 import { columnDefsBasic } from "./columnDefsBasic";
 import { columnDefsInputs } from "./columnDefsInputs";
 import { columnDefsOutputs } from "./columnDefsOutputs";

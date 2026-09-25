@@ -6,7 +6,8 @@
   import { trailingSlash } from "@routes/+layout";
   import type { LoadEventsData } from "./+page";
   import { columnDefs } from "./columnDefs";
-  import { gridRows, type EventRow } from "./gridRows";
+  import { gridRows } from "./gridRows";
+  import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
   import { getMaxParamsLength } from "../../maxParamsLength";
 
   interface Props {

@@ -1,33 +1,9 @@
-import type { FunctionAbiFragment } from "@constants/chains/types";
 import type { Contract } from "@constants/chains/types";
 import { NO_DATA } from "@utils/utilsCostants";
 import { hasSyncTargetEvents } from "@utils/utilsEthers";
 import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
+import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
 
-export type ContractRow = {
-  contract: Contract;
-  contractName: Contract["name"];
-  contractAddress: Contract["address"];
-  contractSourceCodeUrl: Contract["sourceCodeUrl"];
-
-  contractCreationBlockNumber: Contract["creation"]["blockNumber"];
-  contractCreationDatetime: string;
-  contractCreationTx: Contract["creation"]["tx"];
-  contractCreationCreator: Contract["creation"]["creator"];
-
-  contractEventsTotalNumber: number;
-
-  contractFunctionsTotalNumber: number;
-
-  contractFallbackStateMutability:
-    FunctionAbiFragment["stateMutability"] | typeof NO_DATA;
-
-  contractConstructorStateMutability:
-    FunctionAbiFragment["stateMutability"] | typeof NO_DATA;
-  contractConstructorInputs: FunctionAbiFragment["inputs"];
-
-  contractHasEvent: boolean;
-};
 export function gridRows(contracts: Contract[]): ContractRow[] {
   const contractRows: ContractRow[] = [];
   for (const targetContract of contracts) {

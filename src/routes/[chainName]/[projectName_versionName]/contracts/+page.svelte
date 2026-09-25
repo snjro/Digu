@@ -4,9 +4,10 @@
   import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
   import { trailingSlash } from "@routes/+layout";
   import type { LoadVersionData } from "../+page";
-  import { getProjectVersionNameForLabelFromUrl } from "../projectVersionNameHelper";
+  import { getProjectVersionNameForLabelFromUrl } from "$lib/common/projectVersionNameHelper";
   import { columnDefs } from "./columnDefs";
-  import { gridRows, type ContractRow } from "./gridRows";
+  import { gridRows } from "./gridRows";
+  import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
   import { getMaxParamsLength } from "./maxParamsLength";
 
   interface Props {

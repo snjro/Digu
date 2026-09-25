@@ -7,7 +7,7 @@ import type { ColumnDef } from "$lib/base/BaseGrid/types";
 import BaseLabel from "$lib/base/BaseLabel.svelte";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import classNames from "classnames";
-import type { EventRow } from "./gridRows";
+import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
 import { convertToKebabCase } from "@utils/utilsCommon";
