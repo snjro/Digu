@@ -127,15 +127,22 @@
     }
   });
 
-  //set row data
+  // Set the columns only when they change, so new rows keep the column state.
   $effect.pre(() => {
     if (gridOptions && gridApi) {
       const columnDefs: ColumnDef[] = paramColumnDefs;
+      untrack(() => {
+        gridApi.setGridOption("columnDefs", getColumnDefs(columnDefs));
+      });
+    }
+  });
+  //set row data
+  $effect.pre(() => {
+    if (gridOptions && gridApi) {
       const rowData: GridRow[] | undefined = rows;
       // Like the legacy `$:`, rerun only when the values read above change, and
       // keep the components that ag-grid mounts here out of this effect.
       untrack(() => {
-        gridApi.setGridOption("columnDefs", getColumnDefs(columnDefs));
         if (rowData == undefined) {
           gridApi.hideOverlay();
           gridApi.showNoRowsOverlay();

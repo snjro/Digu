@@ -15,6 +15,7 @@
   import { gridRows } from "./gridRows";
   import { applyLatestLoad } from "./latestLoad";
   import { getEachArgsMaxLengths } from "../../../maxParamsLength";
+  import { storeSyncStatus } from "@stores/storeSyncStatus";
 
   interface Props {
     targetEventIdentifier: AbiFragmentIdentifier;
@@ -30,6 +31,15 @@
     isFullScreen = $bindable(),
   }: Props = $props();
 
+  // The sync adds to it when it saves logs of this event.
+  let recordCount: number | undefined = $derived(
+    $storeSyncStatus[targetEventIdentifier.chainName].subSyncStatuses[
+      targetEventIdentifier.projectName
+    ].subSyncStatuses[targetEventIdentifier.versionName].subSyncStatuses[
+      targetEventIdentifier.contractName
+    ]?.events[targetEventIdentifier.abiFragmentName]?.recordCount,
+  );
+
   let rows: ConvertedEventLog[] | undefined = $state.raw(undefined);
   // Logs of anonymous events are not fetched, so their table does not exist.
   $effect.pre(() => {
@@ -37,6 +47,8 @@
       rows = [];
       return;
     }
+    // Reload when new logs are saved.
+    void recordCount;
     return applyLatestLoad(
       gridRows(targetEventIdentifier),
       (convertedEventLogs: ConvertedEventLog[]) => {
@@ -44,13 +56,23 @@
       },
     );
   });
+  // Keep the same array while the lengths do not change, so new rows do not
+  // rebuild the columns.
+  let previousArgsMaxLengths: number[] = [];
+  let eachArgsMaxLengths: number[] = $derived.by(() => {
+    const lengths: number[] = getEachArgsMaxLengths(
+      rows,
+      targetEventAbiFragment.inputs.length,
+    );
+    if (lengths.join(",") !== previousArgsMaxLengths.join(",")) {
+      previousArgsMaxLengths = lengths;
+    }
+    return previousArgsMaxLengths;
+  });
   let eventLogColumnDefs: ColumnDef[] = $derived(
     eventLogType === "hex"
       ? getHexEventLogColumnDefs(targetEventAbiFragment)
-      : columnDefs(
-          targetEventAbiFragment,
-          getEachArgsMaxLengths(rows, targetEventAbiFragment.inputs.length),
-        ),
+      : columnDefs(targetEventAbiFragment, eachArgsMaxLengths),
   );
 </script>
 
