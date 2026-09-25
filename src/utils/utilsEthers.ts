@@ -59,25 +59,26 @@ export async function getNodeProvider(
     nodeStatus = "INVALID_URL";
   } else if ([...httpProtocols, ...webSoketProtocols].includes(url.protocol)) {
     const targetNetwork: Network = Network.from(targetChain.chainId);
-    if (httpProtocols.includes(url.protocol)) {
-      // add the options to avoid the error `Too many eth_getLogs methods in the batch`
-      // ref: https://github.com/ethers-io/ethers.js/discussions/4130#discussioncomment-6126545
-      const jsonRpcApiProviderOptions: JsonRpcApiProviderOptions = {
-        batchMaxSize: 1,
-        // `true` keeps the chain ID once it is known, instead of asking it for
-        // each request. Do not pass targetNetwork: then it is never asked.
-        staticNetwork: true,
-      };
-      nodeProvider = new JsonRpcProvider(
-        rpc,
-        undefined,
-        jsonRpcApiProviderOptions,
-      );
-    } else {
-      nodeProvider = new WebSocketProvider(rpc);
-    }
     let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
     try {
+      if (httpProtocols.includes(url.protocol)) {
+        // add the options to avoid the error `Too many eth_getLogs methods in the batch`
+        // ref: https://github.com/ethers-io/ethers.js/discussions/4130#discussioncomment-6126545
+        const jsonRpcApiProviderOptions: JsonRpcApiProviderOptions = {
+          batchMaxSize: 1,
+          // `true` keeps the chain ID once it is known, instead of asking it for
+          // each request. Do not pass targetNetwork: then it is never asked.
+          staticNetwork: true,
+        };
+        nodeProvider = new JsonRpcProvider(
+          rpc,
+          undefined,
+          jsonRpcApiProviderOptions,
+        );
+      } else {
+        // It opens the socket at once, and that can throw.
+        nodeProvider = new WebSocketProvider(rpc);
+      }
       const providedNetwork: Network = await Promise.race([
         nodeProvider.getNetwork(),
         new Promise<never>((_, reject) => {

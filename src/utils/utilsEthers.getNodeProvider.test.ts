@@ -26,6 +26,7 @@ import {
 const fakeNode = vi.hoisted(() => ({
   chainId: 0,
   socketOpens: true,
+  socketThrows: false,
   methods: [] as string[],
 }));
 function answer(payload: JsonRpcPayload): JsonRpcResult {
@@ -50,6 +51,9 @@ vi.mock("ethers", async (importOriginal) => {
     ) {
       super(
         () => {
+          if (fakeNode.socketThrows) {
+            throw new Error("The socket cannot be made.");
+          }
           const socket: WebSocketLike = {
             onopen: null,
             onmessage: null,
@@ -98,6 +102,7 @@ beforeAll(() => {
 });
 afterEach(() => {
   vi.useRealTimers();
+  fakeNode.socketThrows = false;
 });
 afterAll(() => {
   vi.restoreAllMocks();
@@ -156,6 +161,14 @@ describe("getNodeProvider checks the chain of the node", () => {
     expect(settled).toBe(false);
     await vi.advanceTimersByTimeAsync(1);
     expect(await call).toBeUndefined();
+    expectLastNodeStatus("NETWORK_ERROR");
+  });
+
+  test("should be NETWORK_ERROR when the socket cannot be made", async () => {
+    fakeNode.socketThrows = true;
+    expect(
+      await getNodeProvider(targetChain, "ws://127.0.0.1:9"),
+    ).toBeUndefined();
     expectLastNodeStatus("NETWORK_ERROR");
   });
 });
