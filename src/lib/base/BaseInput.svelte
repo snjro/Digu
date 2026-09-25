@@ -20,7 +20,7 @@
     colorDefinitions,
     type ColorCategory,
   } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { HelperTextState } from "$lib/nav/settings/rpcConfig/RpcConfigChanger.svelte";
+  import type { HelperTextState } from "./helperTextState";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";

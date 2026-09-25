@@ -1,4 +1,4 @@
-import type { ColumnDef } from "$lib/base/BaseGrid/types";
+import type { ColumnDef } from "$lib/grid/types";
 import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
 import { columnDefAbiParams } from "$lib/gridColumnDefs/columnDefAbiParams";
 

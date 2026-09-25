@@ -1,8 +1,8 @@
 import {
   AbstractCellRenderer,
   cellRendererFactory,
-} from "$lib/base/BaseGrid/cellRenderFactory";
-import type { ColumnDef } from "$lib/base/BaseGrid/types";
+} from "$lib/grid/cellRenderFactory";
+import type { ColumnDef } from "$lib/grid/types";
 import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
 import type { CommonChainExplorerLinkProps } from "$lib/common/chainExplorerLink";
 import type { ChainExplorer } from "@constants/chains/types";

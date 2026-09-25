@@ -1,8 +1,8 @@
 import {
   AbstractCellRenderer,
   cellRendererFactory,
-} from "$lib/base/BaseGrid/cellRenderFactory";
-import type { ColumnDef } from "$lib/base/BaseGrid/types";
+} from "$lib/grid/cellRenderFactory";
+import type { ColumnDef } from "$lib/grid/types";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import type { ContractIdentifier } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";

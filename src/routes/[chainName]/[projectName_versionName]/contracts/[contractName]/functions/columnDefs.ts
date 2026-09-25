@@ -1,4 +1,4 @@
-import type { ColumnDef } from "$lib/base/BaseGrid/types";
+import type { ColumnDef } from "$lib/grid/types";
 import type { FunctionRow } from "$lib/gridColumnDefs/rowTypes";
 import { columnDefsBasic } from "./columnDefsBasic";
 import { columnDefsInputs } from "./columnDefsInputs";

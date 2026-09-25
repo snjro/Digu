@@ -5,8 +5,8 @@
 
 <script lang="ts">
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseGrid from "$lib/base/BaseGrid/BaseGrid.svelte";
-  import type { ColumnDef } from "$lib/base/BaseGrid/types";
+  import BaseGrid from "$lib/grid/BaseGrid.svelte";
+  import type { ColumnDef } from "$lib/grid/types";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { EventAbiFragment } from "@constants/chains/types";
   import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
