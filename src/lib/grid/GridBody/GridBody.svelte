@@ -23,7 +23,6 @@
   import { onDestroy, onMount, untrack } from "svelte";
   import "./gridBodyStyle.css";
   import { baseTextSizesPixel, type BaseSize } from "$lib/base/baseSizes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { ColumnDef } from "../types";
   import { getColorDefinitionsForGrid } from "./getColorDefs";
@@ -39,13 +38,9 @@
 
   const gridTextSize: BaseSize = sizeSettings.grid;
 
-  let isThemeLight = $derived($storeUserSettings.themeColor === "light");
-  let colorDefs = $derived(
-    getColorDefinitionsForGrid(
-      $storeUserSettings.themeColor,
-      colorSettings.gridHeader,
-      colorSettings.gridRow,
-    ),
+  const colorDefs = getColorDefinitionsForGrid(
+    colorSettings.gridHeader,
+    colorSettings.gridRow,
   );
   function refreshRowSeqenceNumber(gridApi: GridApi<GridRow>) {
     gridApi.refreshCells({ columns: [ColIdRowSequenceNumber] });
@@ -184,7 +179,6 @@
     `--color-row-text:${colorDefs.row.text};`,
     `--color-row-hover:${colorDefs.row.hover};`,
     `--color-row-border:${colorDefs.row.border};`,
-    `--ag-browser-color-scheme:${isThemeLight ? "light" : "dark"};`,
   )}
 ></div>
 

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./lib/appearanceConfig/color/themeColors.css";
 
 /* tailwind-scrollbar  https://github.com/adoxography/tailwind-scrollbar */
 @plugin "tailwind-scrollbar" {

@@ -14,10 +14,14 @@
   --ag-odd-row-background-color: var(--color-row-bg);
   --ag-row-border: solid 1px var(--color-row-border);
   --ag-row-hover-color: var(--color-row-hover);
+  --ag-browser-color-scheme: light;
 
   font-size: var(--font-size);
   /* border: var(--color-frame-border); */
   /* background-color: var(--color-header-bg); */
+}
+.dark #baseGridContainer {
+  --ag-browser-color-scheme: dark;
 }
 .ag-cell-label-container {
   padding: 1px 0px;
