@@ -36,6 +36,19 @@ describe("BaseSelect.svelte", () => {
     expect(screen.getAllByRole("option")).toHaveLength(3);
   });
 
+  test("has the name of ariaLabel, and no name without it", () => {
+    const { unmount } = render(BaseSelect, {
+      items,
+      value: "eth",
+      size: "md",
+      ariaLabel: "Chain",
+    });
+    expect(screen.getByRole("combobox", { name: "Chain" })).toBeTruthy();
+    unmount();
+    render(BaseSelect, { items, value: "eth", size: "md" });
+    expect(screen.getByRole("combobox").hasAttribute("aria-label")).toBe(false);
+  });
+
   test("calls onchange with the event", async () => {
     const onchange = vi.fn();
     render(BaseSelect, { items, value: "eth", size: "md", onchange });

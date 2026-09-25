@@ -66,6 +66,7 @@
     )}
   >
     <RpcConfigChangerInput
+      {rpcConfigParam}
       {helperTextState}
       bind:value={storedValue}
       disabled={isSyncingChain}

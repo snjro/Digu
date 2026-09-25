@@ -49,6 +49,7 @@
     prefixIcon?: Snippet;
     suffixIcon?: Snippet;
     inputHelper?: Snippet;
+    ariaLabel?: string;
   }
 
   let {
@@ -70,6 +71,7 @@
     prefixIcon,
     suffixIcon,
     inputHelper,
+    ariaLabel = undefined,
   }: Props = $props();
 
   const inputPaddingSizes: { [key in BaseSize]: string } = {
@@ -198,6 +200,7 @@
       spellcheck={false}
       {disabled}
       placeholder={isFocus ? undefined : placeholder}
+      aria-label={ariaLabel}
       onblur={(event) => {
         setFocused(false);
         onblur?.(event);

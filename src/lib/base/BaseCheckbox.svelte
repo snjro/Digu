@@ -18,6 +18,7 @@
     indeterminate?: boolean;
     disabled?: boolean;
     onclick?: ((event: MouseEvent) => void) | undefined;
+    ariaLabel?: string;
   }
 
   let {
@@ -28,6 +29,7 @@
     indeterminate = $bindable(false),
     disabled = false,
     onclick = undefined,
+    ariaLabel = undefined,
   }: Props = $props();
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
@@ -71,6 +73,7 @@
   bind:indeterminate
   {value}
   {disabled}
+  aria-label={ariaLabel}
   class={classNames(
     radioSizes[size],
     "rounded-sm",

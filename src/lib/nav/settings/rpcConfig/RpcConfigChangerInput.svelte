@@ -4,8 +4,10 @@
   import BaseInput from "$lib/base/BaseInput.svelte";
   import classNames from "classnames";
   import type { HelperTextState } from "./RpcConfigChanger.svelte";
+  import type { RpcConfigParam } from "./rpcConfigParams";
 
   interface Props {
+    rpcConfigParam: RpcConfigParam;
     disabled: boolean;
     value: number;
     onchange?: ((newValue: number) => void) | undefined;
@@ -13,6 +15,7 @@
   }
 
   let {
+    rpcConfigParam,
     disabled,
     value = $bindable(),
     onchange = undefined,
@@ -56,5 +59,6 @@
     onchange={change}
     onfocus={focus}
     onblur={blur}
+    ariaLabel={rpcConfigParam.label}
   />
 </div>

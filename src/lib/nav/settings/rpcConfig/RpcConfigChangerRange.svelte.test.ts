@@ -18,7 +18,9 @@ describe("RpcConfigChangerRange.svelte", () => {
       disabled: false,
       value: 100,
     });
-    const range = screen.getByRole("slider") as HTMLInputElement;
+    const range = screen.getByRole("slider", {
+      name: "Bulk Unit slider",
+    }) as HTMLInputElement;
     expect(range.min).toBe("1");
     expect(range.max).toBe("10000");
     expect(range.step).toBe("1");

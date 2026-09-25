@@ -42,6 +42,7 @@
       colorCategoryFront={colorSettings.navSettings}
       colorCategoryBg={colorSettings.navSettings}
       onchange={change}
+      ariaLabel="Chain Explorer"
     />
     <CommonOpenLink
       href={targetChainExplorerUrl}

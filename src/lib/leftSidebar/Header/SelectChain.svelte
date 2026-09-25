@@ -40,4 +40,5 @@
   colorCategoryFront={colorSettings.leftSidebarHeader}
   colorCategoryBg={colorSettings.leftSidebarHeader}
   onchange={change}
+  ariaLabel="Chain"
 />

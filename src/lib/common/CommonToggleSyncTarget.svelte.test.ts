@@ -153,6 +153,21 @@ describe("CommonToggleSyncTarget.svelte", () => {
     expect(screen.getByText("No")).toBeTruthy();
   });
 
+  test.each([
+    [{ targetChain: chain }, "chain1"],
+    [{ targetChain: chain, targetProject: project }, "project1"],
+    [
+      { targetChain: chain, targetProject: project, targetVersion: version },
+      "project1 version1",
+    ],
+    [contractProps, "contract1"],
+  ])("names the box by the most specific target (%#)", (props, name) => {
+    render(CommonToggleSyncTarget, { size: "md", ...props });
+    expect(getCheckbox().getAttribute("aria-label")).toBe(
+      `Sync target: ${name}`,
+    );
+  });
+
   test("toggles the sync target of the names on click", async () => {
     render(CommonToggleSyncTarget, contractProps);
     await fireEvent.click(getCheckbox());

@@ -30,6 +30,14 @@ describe("BaseRange.svelte", () => {
     expect(range.classList.contains("cursor-not-allowed")).toBe(true);
   });
 
+  test("has the name of ariaLabel, and no name without it", () => {
+    const { unmount } = render(BaseRange, { ...baseProps, ariaLabel: "Bulk" });
+    expect(screen.getByRole("slider", { name: "Bulk" })).toBeTruthy();
+    unmount();
+    render(BaseRange, { ...baseProps });
+    expect(screen.getByRole("slider").hasAttribute("aria-label")).toBe(false);
+  });
+
   test("calls onchange with the event", async () => {
     const onchange = vi.fn();
     render(BaseRange, { ...baseProps, onchange });

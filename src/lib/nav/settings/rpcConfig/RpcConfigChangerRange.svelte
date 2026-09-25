@@ -41,4 +41,5 @@
   colorCategoryBg={colorSettings.navSettings}
   {value}
   onchange={change}
+  ariaLabel={`${rpcConfigParam.label} slider`}
 />

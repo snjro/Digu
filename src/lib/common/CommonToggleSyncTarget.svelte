@@ -11,6 +11,7 @@
   import type { SyncStatus } from "@db/dbTypes";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import classNames from "classnames";
+  import { getProjectVersionNameForLabel } from "./projectVersionNameHelper";
   import {
     getTargetSyncStatus,
     isSyncTargetIndeterminate,
@@ -44,6 +45,17 @@
     ),
   );
 
+  let targetName: string = $derived.by(() => {
+    if (targetContract) return targetContract.name;
+    if (targetVersion) {
+      return targetProject
+        ? getProjectVersionNameForLabel(targetProject.name, targetVersion.name)
+        : targetVersion.name;
+    }
+    if (targetProject) return targetProject.name;
+    return targetChain.name;
+  });
+
   const checkChanged = async () => {
     await toggleIsSyncTarget(
       targetChain.name,
@@ -63,6 +75,7 @@
     {size}
     disabled={getTargetSyncStatus($storeSyncStatus, targetChain).isSyncing}
     onclick={checkChanged}
+    ariaLabel={`Sync target: ${targetName}`}
   />
   <BaseLabel
     textSize={changeSize(size, 1)}
