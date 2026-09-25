@@ -3,6 +3,7 @@ import { error } from "@sveltejs/kit";
 import { initialize } from "../initialization/initialize";
 import "../app.css";
 import { storeNodbShowLoader } from "@stores/storeNoDb";
+import { customLogger } from "@utils/logger";
 
 // If Vite hangs indefinitely in dev mode,
 // then Disable SSR (server side rendering).
@@ -23,6 +24,8 @@ export async function load(): Promise<void> {
     try {
       await initialize();
     } catch (cause) {
+      // SvelteKit does not log an HttpError, so log the original error here.
+      customLogger.error("initialize()", cause);
       // The static error page shows this message when the app cannot start.
       error(
         500,

@@ -4,6 +4,7 @@ import { isHttpError } from "@sveltejs/kit";
 import { load } from "./+layout";
 import { initialize } from "../initialization/initialize";
 import { storeNodbShowLoader } from "@stores/storeNoDb";
+import { customLogger } from "@utils/logger";
 
 // storeNoDb reads "browser" when it is imported, before the tests run.
 const mockEnvironment = vi.hoisted(() => ({ browser: false }));
@@ -41,11 +42,16 @@ describe("load", () => {
 
   test("throws a 500 error with the cause when initializing fails", async () => {
     mockEnvironment.browser = true;
-    vi.mocked(initialize).mockRejectedValue(
-      new Error("DbWorker: initializeDbSettings: test failure"),
-    );
+    const cause = new Error("DbWorker: initializeDbSettings: test failure");
+    vi.mocked(initialize).mockRejectedValue(cause);
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
 
     const thrown: unknown = await load().catch((error: unknown) => error);
+
+    expect(spyError).toHaveBeenCalledExactlyOnceWith("initialize()", cause);
+    spyError.mockRestore();
 
     expect(isHttpError(thrown, 500)).toBe(true);
     expect(thrown).toMatchObject({
