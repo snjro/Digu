@@ -78,4 +78,22 @@ describe("BaseGridFunctionBar.svelte", () => {
     expect(gridApi.setFilterModel).toHaveBeenCalledWith(null);
     expect(lastLoading(gridApi)).toBe(false);
   });
+
+  test("Reload while rows are loading keeps the loading overlay", async () => {
+    vi.useFakeTimers();
+    const gridApi = renderBar(undefined);
+    await fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+    vi.advanceTimersByTime(500);
+    expect(lastLoading(gridApi)).toBe(true);
+    expect(gridApi.showNoRowsOverlay).not.toHaveBeenCalled();
+  });
+
+  test("Reload with no rows shows No data", async () => {
+    vi.useFakeTimers();
+    const gridApi = renderBar([]);
+    await fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+    vi.advanceTimersByTime(500);
+    expect(lastLoading(gridApi)).toBe(false);
+    expect(gridApi.showNoRowsOverlay).toHaveBeenCalled();
+  });
 });

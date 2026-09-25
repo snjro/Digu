@@ -145,7 +145,8 @@
         gridApi.refreshCells({ force: true });
         setAutoColumnWidth(gridApi);
       } else {
-        gridApi.showNoRowsOverlay();
+        // The rows are still loading. GridBody clears loading when they come.
+        gridApi.setGridOption("loading", true);
       }
     }, 500);
   }
