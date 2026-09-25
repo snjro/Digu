@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { customLogger } from "@utils/logger";
 import { applyLatestLoad, createThrottledLoad } from "./latestLoad";
+
+vi.mock("@utils/logger", () => ({
+  customLogger: {
+    error: vi.fn(),
+  },
+}));
 
 function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
   let resolve: (value: T) => void = () => {};
@@ -46,6 +53,7 @@ describe("applyLatestLoad", () => {
 describe("createThrottledLoad", () => {
   const interval: number = 3000;
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.useFakeTimers();
   });
   afterEach(() => {
@@ -128,6 +136,58 @@ describe("createThrottledLoad", () => {
     running.resolve("a");
     await vi.advanceTimersByTimeAsync(0);
     expect(apply).not.toHaveBeenCalled();
+  });
+
+  test("should load on a later request after the load failed", async () => {
+    const load = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("test error"))
+      .mockResolvedValue("a");
+    const apply = vi.fn();
+    const throttledLoad = createThrottledLoad(load, apply, interval);
+    throttledLoad.request();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(apply).not.toHaveBeenCalled();
+    expect(customLogger.error).toHaveBeenCalledTimes(1);
+
+    throttledLoad.request();
+    await vi.advanceTimersByTimeAsync(interval);
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(apply).toHaveBeenCalledWith("a");
+  });
+
+  test("should load for the waiting request after apply threw", async () => {
+    const first = deferred<string>();
+    const load = vi
+      .fn()
+      .mockReturnValueOnce(first.promise)
+      .mockResolvedValue("b");
+    const apply = vi.fn().mockImplementationOnce(() => {
+      throw new Error("test error");
+    });
+    const throttledLoad = createThrottledLoad(load, apply, interval);
+    throttledLoad.request();
+    throttledLoad.request();
+    first.resolve("a");
+    await vi.advanceTimersByTimeAsync(interval);
+    expect(customLogger.error).toHaveBeenCalledTimes(1);
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(apply).toHaveBeenLastCalledWith("b");
+  });
+
+  test("should not log an error of a stopped load", async () => {
+    const throttledLoad = createThrottledLoad(
+      (signal: AbortSignal) =>
+        new Promise<string>((_, reject) => {
+          signal.addEventListener("abort", () => reject(signal.reason));
+        }),
+      vi.fn(),
+      interval,
+    );
+    throttledLoad.request();
+    throttledLoad.dispose();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(customLogger.error).not.toHaveBeenCalled();
   });
 
   test("should not load after dispose", async () => {
