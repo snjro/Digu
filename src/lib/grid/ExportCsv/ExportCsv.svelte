@@ -10,7 +10,6 @@
     title: string;
     subTitle: string;
     groupName: string;
-    selectedValue: RadioValue;
     radioLabelAndValues: RadioLabelAndValues<RadioValue>;
   };
 
@@ -71,12 +70,20 @@
     return `${id}${gridId ?? ""}`;
   };
 
+  // Kept apart from the derived props, which lose any change when rebuilt.
+  let selectedValues: CsvSelectedValues = $state({
+    skipRowNumber: { selectedValue: false },
+    columnSeparator: { selectedValue: "," },
+    suppressDoubleQuotes: { selectedValue: false },
+    skipColumnHeaders: { selectedValue: false },
+    filteredSorted: { selectedValue: "all" },
+  });
+
   let exportCsvRadioProps: ExportCsvRadioProps = $derived({
     skipRowNumber: {
       title: "Row number",
       subTitle: "Include the row number which is the first column?",
       groupName: "includeRowNumber",
-      selectedValue: false,
       radioLabelAndValues: [
         {
           labelText: "Yes",
@@ -94,7 +101,6 @@
       title: "Column separator",
       subTitle: "Which character is used as a column separator?",
       groupName: "columnSeparator",
-      selectedValue: ",",
       radioLabelAndValues: [
         {
           labelText: `Comma`,
@@ -117,7 +123,6 @@
       title: "Double quotes",
       subTitle: "Wrap values in double quotes?",
       groupName: "WrapDoubleQuotes",
-      selectedValue: false,
       radioLabelAndValues: [
         {
           labelText: "Yes",
@@ -135,7 +140,6 @@
       title: "Column headers",
       subTitle: "Include column headers?",
       groupName: "ExportColumnHeaders",
-      selectedValue: false,
       radioLabelAndValues: [
         {
           labelText: "Yes",
@@ -154,7 +158,6 @@
       subTitle:
         "Export all rows and columns, or only the shown ones in the shown order?",
       groupName: "FilteredAndSorted",
-      selectedValue: "all",
       radioLabelAndValues: [
         {
           labelText: "All",
@@ -177,12 +180,12 @@
   function downloadCsv(): void {
     downloadCsvFile(
       gridApi,
-      exportCsvRadioProps,
+      selectedValues,
       getExportFileName(exportFilePrefix, page.params, "csv"),
     );
   }
   async function copyToClipboard(): Promise<void> {
-    const csvData: string = getCsvText(gridApi, exportCsvRadioProps);
+    const csvData: string = getCsvText(gridApi, selectedValues);
     $storeNoDbSnackBar = await copyTextToClipboard(csvData);
   }
 
@@ -226,13 +229,7 @@
                 size={sizeSettings.dialogBodyContent}
                 labelAndValues={exportCsvRadioProps[key].radioLabelAndValues}
                 groupName={exportCsvRadioProps[key].groupName}
-                selectedValue={exportCsvRadioProps[key].selectedValue}
-                onchanged={(value) => {
-                  // update selectedValue.
-                  // I tried to updete it by using `bing:selectedValue={exportCsv...}`,
-                  // but that did not work. I looked into it, but couldn't figure out why.
-                  exportCsvRadioProps[key].selectedValue = value;
-                }}
+                bind:selectedValue={selectedValues[key].selectedValue}
               />
             </CommonItemMember>
           {/each}
