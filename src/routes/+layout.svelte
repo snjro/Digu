@@ -90,6 +90,9 @@
     "flex",
     "flex-row",
     "h-screen w-screen",
+    // Keeps the hidden tooltips of the sidebar (absolute on a narrow screen)
+    // from widening the page.
+    "relative overflow-x-clip",
     colorDefinitions[themeColor][colorSettings.main].bg,
     colorDefinitions[themeColor][colorSettings.main].text,
   )}
