@@ -72,4 +72,14 @@ describe("BaseA.svelte", () => {
     render(BaseA, { href: "/a", ariaLabel: "Home" });
     expect(screen.getByRole("link").getAttribute("aria-label")).toBe("Home");
   });
+
+  test("dims the link and turns off the pointer when disabled", async () => {
+    const { rerender } = render(BaseA, { href: "/a", text: "A" });
+    const link = screen.getByRole("link");
+    expect(link.classList).not.toContain("opacity-75");
+    expect(link.classList).not.toContain("pointer-events-none");
+    await rerender({ disabled: true });
+    expect(link.classList).toContain("opacity-75");
+    expect(link.classList).toContain("pointer-events-none");
+  });
 });

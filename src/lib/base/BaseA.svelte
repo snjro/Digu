@@ -113,8 +113,9 @@
         hoverEffect && "hover:underline",
         baseTextSizes[textSize],
         colorClasses[colorCategory ?? "interactive"].text,
-        disabled && "disabled:opacity-75",
-        disabled && "pointer-events: none",
+        // A link has no :disabled, so the classes are set directly.
+        disabled && "opacity-75",
+        disabled && "pointer-events-none",
         isFontMono && "font-mono",
         appendClass,
       ),
