@@ -1,11 +1,7 @@
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
 
   interface Props {
@@ -24,8 +20,6 @@
     isTopLevelItem,
   }: Props = $props();
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   let colorCategory: ColorCategory = $derived(
     isSelected ? "interactive" : colorSettings.dialogHeader,
   );
@@ -33,8 +27,8 @@
 
   let bgColor = $derived(
     isHover
-      ? colorDefinitions[themeColor][colorCategory].bgEmphasis
-      : colorDefinitions[themeColor][colorCategory].bg,
+      ? colorClasses[colorCategory].bgEmphasis
+      : colorClasses[colorCategory].bg,
   );
 
   let height: `h-${string}` | "self-stretch" = $derived.by(() => {

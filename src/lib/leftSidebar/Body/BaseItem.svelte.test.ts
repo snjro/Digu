@@ -3,7 +3,6 @@ import { tick, type ComponentProps } from "svelte";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { goto } from "$app/navigation";
 import BaseItem from "./BaseItem.svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
 import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import { initialDataUserSettings } from "@db/dbTypes";
@@ -45,9 +44,9 @@ function getParts(container: HTMLElement): Parts {
   const label = screen.getByText(props.label);
   return { indicator, box, link, label };
 }
-const emphasis = (theme: "light" | "dark"): string =>
-  colorDefinitions[theme][colorSettings.leftSidebarBodyBg].bgEmphasis;
-// The link and the underline come from the base parts, which use colorClasses.
+// themeColors.css gives these classes the colors of each theme.
+const emphasis: string =
+  colorClasses[colorSettings.leftSidebarBodyBg].bgEmphasis;
 const interactiveText = colorClasses.interactive.text;
 const interactiveBorder = colorClasses.interactive.border;
 
@@ -55,7 +54,7 @@ function expectSelected(container: HTMLElement, selected: boolean): void {
   const { indicator, box, link, label } = getParts(container);
   expect(label.classList.contains("font-bold")).toBe(selected);
   expect(link.classList.contains(interactiveText)).toBe(selected);
-  expect(box.classList.contains(emphasis("light"))).toBe(selected);
+  expect(box.classList.contains(emphasis)).toBe(selected);
   expect(indicator.classList.contains("h-4/6")).toBe(selected);
 }
 // The underline is the border of the box around the label.
@@ -137,15 +136,15 @@ describe("BaseItem.svelte", () => {
   test("emphasizes and underlines the item on hover", async () => {
     const { container } = render(BaseItem, props);
     const { box, link } = getParts(container);
-    expect(box.classList).not.toContain(emphasis("light"));
+    expect(box.classList).not.toContain(emphasis);
     expect(isUnderlined(container)).toBe(false);
 
     await fireEvent.mouseEnter(link);
-    expect(box.classList).toContain(emphasis("light"));
+    expect(box.classList).toContain(emphasis);
     expect(isUnderlined(container)).toBe(true);
 
     await fireEvent.mouseLeave(link);
-    expect(box.classList).not.toContain(emphasis("light"));
+    expect(box.classList).not.toContain(emphasis);
     expect(isUnderlined(container)).toBe(false);
   });
 
@@ -166,25 +165,25 @@ describe("BaseItem.svelte", () => {
 
     // The mouse does not change it.
     await fireEvent.mouseEnter(link);
-    expect(box.classList).not.toContain(emphasis("light"));
+    expect(box.classList).not.toContain(emphasis);
 
     await rerender({
       ...props,
       isHoverControledByParent: true,
       hoverType: "onItem",
     });
-    expect(box.classList).toContain(emphasis("light"));
+    expect(box.classList).toContain(emphasis);
     expect(isUnderlined(container)).toBe(true);
   });
 
-  test("follows the theme in storeUserSettings", async () => {
+  test("keeps the same color classes in both themes", async () => {
     setPathname(`${HREF}/`);
     const { container } = render(BaseItem, props);
-    expect(getParts(container).box.classList).toContain(emphasis("light"));
+    expect(getParts(container).box.classList).toContain(emphasis);
 
     storeUserSettings.update((s) => ({ ...s, themeColor: "dark" }));
     await tick();
-    expect(getParts(container).box.classList).toContain(emphasis("dark"));
+    expect(getParts(container).box.classList).toContain(emphasis);
   });
 
   test.each([

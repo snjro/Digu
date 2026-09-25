@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick, type ComponentProps } from "svelte";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import BaseAccordionHeader from "./BaseAccordionHeader.svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
@@ -44,8 +44,9 @@ function chevron(): "open" | "closed" {
   if (arrow.querySelector("svg#chevronRight")) return "closed";
   throw new Error("no chevron");
 }
-const emphasis = (theme: "light" | "dark"): string =>
-  colorDefinitions[theme][colorSettings.leftSidebarBodyBg].bgEmphasis;
+// themeColors.css gives this class the colors of each theme.
+const emphasis: string =
+  colorClasses[colorSettings.leftSidebarBodyBg].bgEmphasis;
 
 describe("BaseAccordionHeader.svelte", () => {
   beforeEach(() => {
@@ -77,16 +78,16 @@ describe("BaseAccordionHeader.svelte", () => {
     setPathname(`${HREF}/`);
     render(BaseAccordionHeader, { ...props, isOpenAccordion: true });
     expect(chevron()).toBe("closed");
-    expect(getArrowButton().classList).toContain(emphasis("light"));
+    expect(getArrowButton().classList).toContain(emphasis);
   });
 
   test("updates the emphasis when the page changes", async () => {
     render(BaseAccordionHeader, props);
-    expect(getArrowButton().classList).not.toContain(emphasis("light"));
+    expect(getArrowButton().classList).not.toContain(emphasis);
 
     setPathname(`${HREF}/`);
     await tick();
-    expect(getArrowButton().classList).toContain(emphasis("light"));
+    expect(getArrowButton().classList).toContain(emphasis);
   });
 
   test("flips the accordion on click", async () => {
@@ -122,25 +123,25 @@ describe("BaseAccordionHeader.svelte", () => {
     render(BaseAccordionHeader, props);
     const arrow = getArrowButton();
     const chevronSvg = () => arrow.querySelector("svg#chevronRight");
-    expect(arrow.classList).not.toContain(emphasis("light"));
+    expect(arrow.classList).not.toContain(emphasis);
     expect(chevronSvg()?.classList).not.toContain("border-b");
 
     await fireEvent.mouseEnter(arrow);
-    expect(arrow.classList).toContain(emphasis("light"));
+    expect(arrow.classList).toContain(emphasis);
     expect(chevronSvg()?.classList).toContain("border-b");
 
     await fireEvent.mouseLeave(arrow);
-    expect(arrow.classList).not.toContain(emphasis("light"));
+    expect(arrow.classList).not.toContain(emphasis);
     expect(chevronSvg()?.classList).not.toContain("border-b");
   });
 
-  test("follows the theme while hovered", async () => {
+  test("keeps the same color class in both themes while hovered", async () => {
     render(BaseAccordionHeader, props);
     await fireEvent.mouseEnter(getArrowButton());
 
     storeUserSettings.updateState({ themeColor: "dark" });
     await tick();
-    expect(getArrowButton().classList).toContain(emphasis("dark"));
+    expect(getArrowButton().classList).toContain(emphasis);
   });
 
   test("opens and closes all by storeNoDbOpenLeftSidebarAccordion", async () => {

@@ -6,16 +6,12 @@
 </script>
 
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import BaseIcon from "$lib/base/BaseIcon.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { HoverType } from "./BaseAccordionHeader.svelte";
   import { leftSidebarItemRoundedStyle } from "./BaseItem.svelte";
@@ -49,18 +45,13 @@
     onkeydown = undefined,
   }: Props = $props();
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   let frontColorCategory: ColorCategory = $derived(
     getFrontColorCategory(isSelected),
   );
 
   let shevronUnderlineStyle: string = $derived(
     hoverType === "onSpace"
-      ? classNames(
-          "border-b",
-          colorDefinitions[themeColor]["interactive"].border,
-        )
+      ? classNames("border-b", colorClasses["interactive"].border)
       : "",
   );
 </script>

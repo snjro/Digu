@@ -1,29 +1,25 @@
 <script lang="ts">
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { leftSidebarHeaderHeight } from "$lib/leftSidebar/Header/Header.svelte";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import NavButtonLeftSidebar from "./NavButtonLeftSidebar.svelte";
   import NavButtons from "./NavButtons.svelte";
   import SyncListChainRpcInput from "./SyncListChainRpcInput.svelte";
   import SyncStatus from "./syncStatus/SyncStatus.svelte";
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   let navClass: string = $derived(
     classNames(
       "px-3",
       "flex-none",
       leftSidebarHeaderHeight,
-      colorDefinitions[themeColor][colorSettings.navBg].bg,
+      colorClasses[colorSettings.navBg].bg,
       "flex",
       "flex-row",
       "items-center",
       "space-x-3",
       "border-b",
-      colorDefinitions[themeColor][colorSettings.navBg].border,
+      colorClasses[colorSettings.navBg].border,
       "",
     ),
   );

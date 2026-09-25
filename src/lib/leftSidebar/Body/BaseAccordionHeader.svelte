@@ -3,8 +3,8 @@
 </script>
 
 <script lang="ts">
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { page } from "$app/state";
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import {
@@ -12,9 +12,7 @@
     leftSideBarItemHeight,
     type BaseSize,
   } from "$lib/base/baseSizes";
-  import type { ThemeColor } from "@db/dbTypes";
   import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import { onMount } from "svelte";
   import { isHrefParentOfPathname, isSelectedDirectory } from "../functions";
@@ -70,7 +68,6 @@
     openCurrentDirectory();
   });
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
   $effect.pre(() => {
     switch ($storeNoDbOpenLeftSidebarAccordion) {
       case "openAll":
@@ -95,7 +92,7 @@
 
   let bgColor = $derived(
     isSelected || hoverType !== undefined
-      ? colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis
+      ? colorClasses[colorSettings.leftSidebarBodyBg].bgEmphasis
       : undefined,
   );
 </script>

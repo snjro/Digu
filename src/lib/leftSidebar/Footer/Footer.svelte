@@ -1,13 +1,9 @@
 <script lang="ts">
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import FooterButtons from "./FooterButtons.svelte";
   import FooterVersion from "./FooterVersion.svelte";
-
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 </script>
 
 <div
@@ -18,9 +14,9 @@
     "sticky",
     "bottom-0",
     "w-full",
-    colorDefinitions[themeColor][colorSettings.leftSidebarFooter].bg,
+    colorClasses[colorSettings.leftSidebarFooter].bg,
     "border-t",
-    colorDefinitions[themeColor][colorSettings.leftSidebarFooter].border,
+    colorClasses[colorSettings.leftSidebarFooter].border,
     "",
   )}
 >
