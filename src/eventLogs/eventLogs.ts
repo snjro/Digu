@@ -77,10 +77,21 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
         }
       }
     }
+  } catch (error) {
+    // Stop the contracts that already started, so that the wait below ends.
+    await startAbortingInChain(targetChain.name).catch(
+      (abortError: unknown) => {
+        customLogger.error("Start aborting.", {
+          chainName: targetChain.name,
+          errorObject: abortError,
+        });
+      },
+    );
+    throw error;
+  } finally {
     // Wait for every contract, so that none of them syncs after the lock is
     // released.
     await Promise.allSettled(promiseFetchAndInsertEthersEvents);
-  } finally {
     stopUpdateLatestBlockNumber?.();
     try {
       // Also stops a contract whose loop ended with an error.

@@ -532,6 +532,32 @@ describe("sync with two tabs (issue #49)", () => {
     expect(isCleanedUp()).toBe(true);
   }, 30_000);
 
+  test("waits for the started contracts when the sync fails while starting them", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    // Same module instance as tab A (openTab() resets modules only at start).
+    const eventLogsContract = await import("./eventLogsContract");
+    const original = eventLogsContract.fetchEventLogsContract;
+    let calls: number = 0;
+    let running: number = 0;
+    vi.spyOn(eventLogsContract, "fetchEventLogsContract").mockImplementation(
+      (...args: Parameters<typeof original>) => {
+        calls++;
+        // Throws in the loop that starts the contracts, after the first one.
+        if (calls === 2) throw new Error("Setup error");
+        running++;
+        return original(...args).finally(() => running--);
+      },
+    );
+
+    expect(await a.fetchEventLogs()).toBe(true);
+    expect(await waitFor(async () => !(await isSyncLockHeld()))).toBe(true);
+    // The first contract has stopped before the lock is released.
+    expect(running).toBe(0);
+    expect(a.isChainSyncing()).toBe(false);
+    expect(isCleanedUp()).toBe(true);
+  }, 30_000);
+
   test("does not wait for the lock that the same tab holds", async () => {
     const a = await openTab();
     tabs.push(a);
