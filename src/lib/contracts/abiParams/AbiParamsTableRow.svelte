@@ -22,7 +22,7 @@
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
-  import { NO_DATA } from "@utils/utilsCostants";
+  import { NO_DATA } from "@utils/utilsConstants";
   import AbiParamComponentsDetailsButton from "./AbiParamComponentsDetailsButton.svelte";
 
   interface Props {

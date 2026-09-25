@@ -34,7 +34,7 @@
   import type { ThemeColor } from "@db/dbTypes";
   import type { Snippet } from "svelte";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { NO_DATA } from "@utils/utilsCostants";
+  import { NO_DATA } from "@utils/utilsConstants";
   import classNames from "classnames";
   import { twMerge } from "tailwind-merge";
   import type { BaseIconProps } from "./BaseIcon";

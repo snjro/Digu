@@ -3,7 +3,7 @@ import type {
   EventAbiFragment,
   FunctionAbiFragment,
 } from "@constants/chains/types";
-import type { NO_DATA } from "@utils/utilsCostants";
+import type { NO_DATA } from "@utils/utilsConstants";
 
 export type ContractRow = {
   contract: Contract;

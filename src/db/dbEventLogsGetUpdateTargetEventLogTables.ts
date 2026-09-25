@@ -1,7 +1,7 @@
 import type { ContractName } from "@constants/chains/types";
 import type { DbEventLogs } from "./dbEventLogs";
 import type { Table } from "dexie";
-import { getEventLogTableName } from "@utils/utlisDb";
+import { getEventLogTableName } from "@utils/utilsDb";
 import { DB_TABLE_NAMES } from "./constants";
 
 import type { GroupedEventLogs } from "./dbTypes";

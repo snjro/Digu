@@ -4,7 +4,7 @@ import { DB_NAME, DB_TABLE_NAMES, DB_VERSIONS } from "@db/constants";
 import { describe, expect, test } from "vitest";
 import type { VersionIdentifier } from "./dbTypes";
 import { TARGET_CHAINS } from "@constants/chains/_index";
-import { getEventTableNames } from "@utils/utlisDb";
+import { getEventTableNames } from "@utils/utilsDb";
 import { extractEventContracts } from "@utils/utilsEthers";
 import { getInitialDataOfSyncStatusContract } from "./dbEventLogsAddInitialData";
 

@@ -26,7 +26,7 @@ import {
   getTargetProject,
   getTargetVersion,
   getTargetFunctionAbiFragment,
-} from "@utils/utlisDb";
+} from "@utils/utilsDb";
 import { throwNotFoundAs404 } from "@routes/targetNotFound";
 
 export type LoadFunction = {

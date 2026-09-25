@@ -6,7 +6,7 @@ import type {
   Project,
   Version,
 } from "@constants/chains/types";
-import { getTargetContract } from "@utils/utlisDb";
+import { getTargetContract } from "@utils/utilsDb";
 import { _LoadVersionData, type LoadVersionData } from "../../+page";
 import { throwNotFoundAs404 } from "@routes/targetNotFound";
 

@@ -7,7 +7,7 @@ import { columnDefsFallback } from "./columnDefsFallback";
 import { columnDefsEventsFunctions } from "./columnDefsEventsFunctions";
 import type { Chain, Project, Version } from "@constants/chains/types";
 import { columnDefsSyncStatus } from "./columnDefsSyncStatus";
-import { DIR_NAME_EVENTS, DIR_NAME_FUNCTIONS } from "@utils/utilsCostants";
+import { DIR_NAME_EVENTS, DIR_NAME_FUNCTIONS } from "@utils/utilsConstants";
 
 export const columnDefs = <T extends ContractRow>(
   targetChain: Chain,

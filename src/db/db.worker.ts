@@ -1,5 +1,5 @@
 import { customLogger } from "@utils/logger";
-import { executeTargetFunction } from "./db.worker.executeTargetFuction";
+import { executeTargetFunction } from "./db.worker.executeTargetFunction";
 import type {
   DbWorkerMessage,
   DbWorkerResultValue,

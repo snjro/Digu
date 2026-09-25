@@ -21,7 +21,7 @@ import {
   getEventLogTableRecordCount,
   getEventLogTableRecords,
 } from "./dbEventLogsDataHandlersEventLog";
-import * as UtilDb from "@utils/utlisDb";
+import * as UtilDb from "@utils/utilsDb";
 import * as TargetModule from "./dbEventLogsDataHandlersEventLog";
 import * as DataHandlerSyncStatusGetters from "./dbEventLogsDataHandlersSyncStatusGetters";
 import * as DataHandlerSyncStatusUpdaters from "./dbEventLogsDataHandlersSyncStatusUpdateDbItemSyncStatus";

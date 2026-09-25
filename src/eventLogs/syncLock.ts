@@ -7,7 +7,7 @@ import type { SyncStatusContract, VersionIdentifier } from "@db/dbTypes";
 import { getSyncLockName } from "@db/constants";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { extractEventContracts } from "@utils/utilsEthers";
-import { getTargetChain } from "@utils/utlisDb";
+import { getTargetChain } from "@utils/utilsDb";
 import { customLogger } from "@utils/logger";
 import { get, writable, type Writable } from "svelte/store";
 

@@ -31,7 +31,7 @@
   import CommonCopyButton from "$lib/common/CommonCopyButton.svelte";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { NO_DATA } from "@utils/utilsCostants";
+  import { NO_DATA } from "@utils/utilsConstants";
   import classNames from "classnames";
   import { twMerge } from "tailwind-merge";
   import type { Snippet } from "svelte";

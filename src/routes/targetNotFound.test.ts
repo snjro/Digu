@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { isHttpError } from "@sveltejs/kit";
-import { TargetNotFoundError } from "@utils/utlisDb";
+import { TargetNotFoundError } from "@utils/utilsDb";
 import { throwNotFoundAs404 } from "./targetNotFound";
 
 function catchError(call: () => unknown): unknown {

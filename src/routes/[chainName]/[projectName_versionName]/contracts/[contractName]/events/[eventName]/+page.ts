@@ -7,7 +7,7 @@ import type {
 } from "@constants/chains/types";
 import type { AbiFragmentIdentifier } from "@db/dbTypes";
 import type { LoadEvent } from "@sveltejs/kit";
-import { getTargetEventAbiFragment } from "@utils/utlisDb";
+import { getTargetEventAbiFragment } from "@utils/utilsDb";
 import { _LoadContractData, type LoadContractData } from "../../+page";
 import { throwNotFoundAs404 } from "@routes/targetNotFound";
 

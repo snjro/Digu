@@ -16,7 +16,7 @@ import GridCellSyncStatusSyncStateText from "./GridCellSyncStatusSyncStateText.s
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import type { SyncStateText, SyncStatusContract } from "@db/dbTypes";
 import { get } from "svelte/store";
-import { NO_DATA } from "@utils/utilsCostants";
+import { NO_DATA } from "@utils/utilsConstants";
 
 export const columnDefsSyncstatusCurrentState = <T extends ContractRow>(
   targetChain: Chain,

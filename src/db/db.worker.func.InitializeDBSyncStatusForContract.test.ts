@@ -12,7 +12,7 @@ import type {
   Version,
 } from "@constants/chains/types";
 
-import * as UtlisDb from "@utils/utlisDb";
+import * as UtlisDb from "@utils/utilsDb";
 
 vi.mock("./dbEventLogs");
 vi.mock("./dbEventLogsDataHandlersEventLog");

@@ -14,7 +14,7 @@ import type {
 } from "ag-grid-community";
 import { cellAlign, type CellAlignPosition } from "./cellStyles";
 import BaseLabel from "$lib/base/BaseLabel.svelte";
-import { NO_DATA } from "@utils/utilsCostants";
+import { NO_DATA } from "@utils/utilsConstants";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
 

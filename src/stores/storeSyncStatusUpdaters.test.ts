@@ -4,7 +4,7 @@ import type {
   SyncStatusContract,
   SyncStatusesChain,
 } from "@db/dbTypes";
-import { NO_DATA } from "@utils/utilsCostants";
+import { NO_DATA } from "@utils/utilsConstants";
 import {
   updateStoreSyncStatusSummarized,
   updateStoreSyncStatusSyncStateText,

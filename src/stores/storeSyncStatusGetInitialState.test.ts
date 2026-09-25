@@ -3,7 +3,7 @@ import {
   getInitialState,
   syncStateText,
 } from "./storeSyncStatusGetInitialState";
-import { NO_DATA } from "@utils/utilsCostants";
+import { NO_DATA } from "@utils/utilsConstants";
 import type { SyncStateText } from "@db/dbTypes";
 import type { Chain } from "@constants/chains/types";
 

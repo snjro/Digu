@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import { initialDataRpcSetting } from "@db/dbTypes";
 import type { StateRpcSettings } from "@stores/storeTypes";
-import { TargetNotFoundError } from "@utils/utlisDb";
+import { TargetNotFoundError } from "@utils/utilsDb";
 import {
   getChainExplorerHref,
   getChainExplorerLinkText,

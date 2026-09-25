@@ -2,7 +2,7 @@
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import type { Chain, ChainName } from "@constants/chains/types";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { getTargetChain } from "@utils/utlisDb";
+  import { getTargetChain } from "@utils/utilsDb";
   import RpcConfigChanger from "./RpcConfigChanger.svelte";
   import { getRpcConfigParams } from "./rpcConfigParams";
 

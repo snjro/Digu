@@ -26,7 +26,7 @@ import {
   getProgressRate,
   getProgressRateForLabel,
 } from "$lib/base/BaseProgressBarForBlockNumber/progressRate";
-import { NO_DATA } from "@utils/utilsCostants";
+import { NO_DATA } from "@utils/utilsConstants";
 
 export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
   targetChain: Chain,

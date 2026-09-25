@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit";
-import { TargetNotFoundError } from "@utils/utlisDb";
+import { TargetNotFoundError } from "@utils/utilsDb";
 
 // Show the 404 page when a name in the URL is not in TARGET_CHAINS.
 export function throwNotFoundAs404<T>(getData: () => T): T {

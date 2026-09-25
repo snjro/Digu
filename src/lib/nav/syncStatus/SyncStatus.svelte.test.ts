@@ -34,7 +34,7 @@ vi.mock("@eventLogs/eventLogs", () => ({ fetchEventLogs: vi.fn() }));
 vi.mock("@db/dbEventLogsDataHandlersSyncStatus", () => ({
   startAbortingInChain: vi.fn(),
 }));
-vi.mock("@utils/utlisDb", () => ({
+vi.mock("@utils/utilsDb", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
   }),

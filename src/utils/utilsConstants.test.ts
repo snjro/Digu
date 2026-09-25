@@ -4,11 +4,11 @@ import {
   GITHUB_PAGES_HOST_NAME,
   GITHUB_REPOSITORY_URL,
   PROJECT_NAME,
-} from "./utilsCostants";
-import { NO_DATA } from "./utilsCostants";
-import { DIR_NAME_CONTRACTS } from "./utilsCostants";
-import { DIR_NAME_EVENTS } from "./utilsCostants";
-import { DIR_NAME_FUNCTIONS } from "./utilsCostants";
+} from "./utilsConstants";
+import { NO_DATA } from "./utilsConstants";
+import { DIR_NAME_CONTRACTS } from "./utilsConstants";
+import { DIR_NAME_EVENTS } from "./utilsConstants";
+import { DIR_NAME_FUNCTIONS } from "./utilsConstants";
 type Constant = { constName: string; constValue: string };
 const constants: Constant[] = [
   {

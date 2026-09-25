@@ -7,7 +7,7 @@ import {
   vi,
   type MockInstance,
 } from "vitest";
-import * as UtilsDb from "@utils/utlisDb";
+import * as UtilsDb from "@utils/utilsDb";
 import { DbEventLogs } from "./dbEventLogs";
 import type { GroupedEventLogs, VersionIdentifier } from "./dbTypes";
 import { TARGET_CHAINS } from "@constants/chains/_index";

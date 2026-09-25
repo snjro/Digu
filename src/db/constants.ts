@@ -1,6 +1,6 @@
 import { capitalizeFirstLetter } from "@utils/utilsCommon";
 import type { ChainName } from "@constants/chains/types";
-import { PROJECT_NAME } from "@utils/utilsCostants";
+import { PROJECT_NAME } from "@utils/utilsConstants";
 
 export const DB_NAME = {
   firstName: capitalizeFirstLetter(PROJECT_NAME),

@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/svelte";
 import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
-import { NO_DATA } from "@utils/utilsCostants";
+import { NO_DATA } from "@utils/utilsConstants";
 import BaseLabel from "./BaseLabel.svelte";
 import { baseTextSizes } from "./baseSizes";
 import { htmlSnippet, slotProps } from "../../testUtils/snippets";
