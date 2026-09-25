@@ -3,6 +3,7 @@ import type {
   EventAbiFragment,
   FunctionAbiFragment,
 } from "@constants/chains/types";
+import type { JsonFragment } from "ethers";
 import { jsonStringifyFormatted } from "@utils/utilsCommon";
 import type { AbiFormatType } from "@utils/utilsEthers";
 
@@ -20,10 +21,10 @@ export function formatTargetAbi(
   abiFormat: AbiFormatType,
 ) {
   switch (abiFormat) {
-    case "json":
+    case "json": // The standard ABI JSON, without the fields that only ethers has
       return isTargetContractInterface(targetAbi)
-        ? targetAbi.fragments
-        : targetAbi;
+        ? (JSON.parse(targetAbi.formatJson()) as JsonFragment[])
+        : (JSON.parse(targetAbi.format("json")) as JsonFragment);
     case "full": // Human readable full
       return isTargetContractInterface(targetAbi)
         ? targetAbi.format(false)
