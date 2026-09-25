@@ -8,7 +8,7 @@ import { capitalizeFirstLetter } from "@utils/utilsCommon";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import { cellAlign } from "./cellStyles";
 import { getAbiParamsFromAbiRow } from "./getAbiParamsFromAbiRow";
-import type { AbiFragmentParamTypeName, AbiRow } from "./type,";
+import type { AbiFragmentParamTypeName, AbiRow } from "./types";
 
 export const columnDefAbiParamsNumOfParams = <T extends AbiRow>(
   abiParamsKey: keyof T,

@@ -12,7 +12,7 @@ import AbiParamComponentsDetailsButton from "$lib/contracts/abiParams/AbiParamCo
 import { cellAlign } from "./cellStyles";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import { getAbiParamsFromAbiRow } from "./getAbiParamsFromAbiRow";
-import type { AbiRow } from "./type,";
+import type { AbiRow } from "./types";
 
 type ArgKey = "name" | "type" | "indexed";
 function getAbiParamsArgStringValueFromAbiRow<T extends AbiRow>(
