@@ -6,6 +6,7 @@
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
+  import classNames from "classnames";
   import type { CrumbItem } from "./crumbs";
   import BreadcrumnItemSeparater from "./BreadcrumnItemSeparater.svelte";
   interface Props {
@@ -35,37 +36,47 @@
       return undefined;
     }
   };
+  // min-w-0 lets the last label shrink and truncate, as it did without the <li>.
+  const liClass: string = classNames("flex", "items-center", "min-w-0", "");
 </script>
 
+<!-- The item and its separator are separate <li>, so that the <ol> still
+  wraps between them. -->
 {#if currentIndex === lastIndex}
   {#if targetCrumbItem.text}
-    <BaseLabel
-      text={targetCrumbItem.text}
-      textSize={targetSize()}
-      truncate
-      prefixIcon={prefixIcon(targetCrumbItem.prefixIconName, true)}
-    />
+    <li class={liClass}>
+      <BaseLabel
+        text={targetCrumbItem.text}
+        textSize={targetSize()}
+        truncate
+        prefixIcon={prefixIcon(targetCrumbItem.prefixIconName, true)}
+      />
+    </li>
   {/if}
 {:else}
-  {#if currentIndex === 0 && targetCrumbItem.prefixIconName}
-    <BaseButtonIcon
-      size={targetSize()}
-      iconName={targetCrumbItem.prefixIconName}
-      ariaLabel="Home"
-      colorCategoryFront={"interactive"}
-      href={targetCrumbItem.href}
-      shadowEffect={false}
-      hoverEffect={false}
-    />
-  {:else}
-    <BaseA
-      text={targetCrumbItem.text}
-      textSize={targetSize()}
-      prefixIcon={prefixIcon(targetCrumbItem.prefixIconName, false)}
-      href={targetCrumbItem.href}
-      openNewTab={false}
-      hoverEffect={true}
-    />
-  {/if}
-  <BreadcrumnItemSeparater />
+  <li class={liClass}>
+    {#if currentIndex === 0 && targetCrumbItem.prefixIconName}
+      <BaseButtonIcon
+        size={targetSize()}
+        iconName={targetCrumbItem.prefixIconName}
+        ariaLabel="Home"
+        colorCategoryFront={"interactive"}
+        href={targetCrumbItem.href}
+        shadowEffect={false}
+        hoverEffect={false}
+      />
+    {:else}
+      <BaseA
+        text={targetCrumbItem.text}
+        textSize={targetSize()}
+        prefixIcon={prefixIcon(targetCrumbItem.prefixIconName, false)}
+        href={targetCrumbItem.href}
+        openNewTab={false}
+        hoverEffect={true}
+      />
+    {/if}
+  </li>
+  <li class={liClass}>
+    <BreadcrumnItemSeparater />
+  </li>
 {/if}
