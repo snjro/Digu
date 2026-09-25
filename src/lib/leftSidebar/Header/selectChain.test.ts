@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { updateDbItemUserSettings } from "@db/dbSettings";
-import { getChainRootUrl, saveSelectedChainName } from "./selectChain";
+import { saveSelectedChainName } from "./selectChain";
 
 vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
 
@@ -16,15 +16,5 @@ describe("saveSelectedChainName", () => {
       "selectedChainName",
       "matic",
     );
-  });
-});
-
-describe("getChainRootUrl", () => {
-  test.each([
-    ["", "eth", "/eth"],
-    ["/Digu", "eth", "/Digu/eth"],
-    ["/Digu", "matic", "/Digu/matic"],
-  ])("base %j and chain %j give %j", (basePath, chainName, expected) => {
-    expect(getChainRootUrl(basePath, chainName)).toBe(expected);
   });
 });

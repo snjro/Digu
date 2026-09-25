@@ -5,6 +5,7 @@
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import type { BaseSize } from "$lib/base/baseSizes";
   import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
+  import { getChainRootUrl } from "$lib/common/chainRootUrl";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import CommonOpenLink from "$lib/common/CommonOpenLink.svelte";
   import type {
@@ -38,7 +39,7 @@
   const textSize: BaseSize = sizeSettings.itemMember;
 
   let hrefToContractName: string = $derived(
-    `${base}/${targetChain.name}` +
+    getChainRootUrl(base, targetChain.name) +
       `/${getProjectVersionNameForUrl(
         targetProject.name,
         targetVersion.name,

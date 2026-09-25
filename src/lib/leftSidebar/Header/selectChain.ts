@@ -6,9 +6,3 @@ export async function saveSelectedChainName(
 ): Promise<void> {
   await updateDbItemUserSettings("selectedChainName", chainName);
 }
-export function getChainRootUrl(
-  basePath: string,
-  chainName: ChainName,
-): string {
-  return `${basePath}/${chainName}`;
-}
