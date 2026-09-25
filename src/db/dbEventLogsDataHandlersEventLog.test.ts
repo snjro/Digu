@@ -11,10 +11,15 @@ import {
   afterAll,
 } from "vitest";
 import type {
+  ContractIdentifier,
   ConvertedEventLog,
   GroupedEventLogs,
+  SyncStatusContract,
   VersionIdentifier,
 } from "./dbTypes";
+import { DB_TABLE_NAMES } from "./constants";
+import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { get } from "svelte/store";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import {
   addEventLogs_updateFetchedBlockNumber,
@@ -24,7 +29,6 @@ import {
 import * as UtilDb from "@utils/utilsDb";
 import * as TargetModule from "./dbEventLogsDataHandlersEventLog";
 import * as DataHandlerSyncStatusGetters from "./dbEventLogsDataHandlersSyncStatusGetters";
-import * as DataHandlerSyncStatusUpdaters from "./dbEventLogsDataHandlersSyncStatusUpdateDbItemSyncStatus";
 import * as GetUpdateTargetEventLogTables from "./dbEventLogsGetUpdateTargetEventLogTables";
 import type { Contract } from "@constants/chains/types";
 import Dexie from "dexie";
@@ -50,7 +54,7 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
           let spyGetUpdateTargetEventLogTables: MockInstance;
           let spyGetDbItemSyncStatus: MockInstance;
           let spyGetEventLogTableName: MockInstance;
-          let spyUpdateDbItemSyncStatus: MockInstance;
+          let spyUpdateState: MockInstance;
 
           afterAll(async () => {
             await Dexie.delete(dbEventLogs.name);
@@ -79,9 +83,7 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
                 UtilDb,
                 "getEventLogTableName",
               );
-              spyUpdateDbItemSyncStatus = vi
-                .spyOn(DataHandlerSyncStatusUpdaters, "updateDbItemSyncStatus")
-                .mockResolvedValue(undefined);
+              spyUpdateState = vi.spyOn(storeSyncStatus, "updateState");
             });
             // resotre
             afterEach(() => {
@@ -94,8 +96,8 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
               if (spyGetEventLogTableName) {
                 spyGetEventLogTableName.mockRestore();
               }
-              if (spyUpdateDbItemSyncStatus) {
-                spyUpdateDbItemSyncStatus.mockRestore();
+              if (spyUpdateState) {
+                spyUpdateState.mockRestore();
               }
             });
             test(`when "groupedEventlogs" is empty, only "fetchedBlockNumber" should be updated `, async () => {
@@ -117,19 +119,14 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
               // // check the functions are NOT called
               expect(spyGetDbItemSyncStatus).not.toBeCalled();
               expect(spyGetEventLogTableName).not.toBeCalled();
-              expect(spyUpdateDbItemSyncStatus).not.toBeCalledWith(
-                dbEventLogs,
-                targetContract.name,
-                "events",
-                expect.anything(),
-              );
-              // check the function IS called
-              expect(spyUpdateDbItemSyncStatus).toBeCalledTimes(1);
-              expect(spyUpdateDbItemSyncStatus).toBeCalledWith(
-                dbEventLogs,
-                targetContract.name,
-                "fetchedBlockNumber",
-                toBlockNumber,
+              // check the DB and the store are updated once, after the commit
+              expect(
+                await getDbRecordSyncStatus(dbEventLogs, targetContract),
+              ).toMatchObject({ fetchedBlockNumber: toBlockNumber });
+              expect(spyUpdateState).toBeCalledTimes(1);
+              expect(spyUpdateState).toBeCalledWith(
+                { ...versionIdentifier, contractName: targetContract.name },
+                { fetchedBlockNumber: toBlockNumber },
               );
             });
             test(`when "groupedEventlogs" is NOT empty, "fetchedBlockNumber" should are updated `, async () => {
@@ -185,23 +182,23 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
                 );
               }
               // recordCount of each event should be increased by one
-              expect(spyUpdateDbItemSyncStatus).toBeCalledTimes(2);
-              expect(spyUpdateDbItemSyncStatus).toBeCalledWith(
-                dbEventLogs,
-                targetContract.name,
-                "events",
-                Object.fromEntries(
+              const expectedSyncStatusContract: Partial<SyncStatusContract> = {
+                fetchedBlockNumber: toBlockNumber,
+                events: Object.fromEntries(
                   targetContract.events.names.map((eventName) => [
                     eventName,
                     { recordCount: 1 },
                   ]),
                 ),
-              );
-              expect(spyUpdateDbItemSyncStatus).toBeCalledWith(
-                dbEventLogs,
-                targetContract.name,
-                "fetchedBlockNumber",
-                toBlockNumber,
+              };
+              // check the DB and the store are updated once, after the commit
+              expect(
+                await getDbRecordSyncStatus(dbEventLogs, targetContract),
+              ).toMatchObject(expectedSyncStatusContract);
+              expect(spyUpdateState).toBeCalledTimes(1);
+              expect(spyUpdateState).toBeCalledWith(
+                { ...versionIdentifier, contractName: targetContract.name },
+                expectedSyncStatusContract,
               );
             });
           });
@@ -210,6 +207,104 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
     }
   }
 });
+
+describe("addEventLogs_updateFetchedBlockNumber when the transaction fails", () => {
+  for (const targetChain of TARGET_CHAINS) {
+    for (const targetProject of targetChain.projects) {
+      for (const targetVersion of targetProject.versions) {
+        const versionIdentifier: VersionIdentifier = {
+          chainName: targetChain.name,
+          projectName: targetProject.name,
+          versionName: targetVersion.name,
+        };
+        const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
+
+        afterAll(async () => {
+          await Dexie.delete(dbEventLogs.name);
+        });
+
+        for (const targetContract of extractEventContracts(
+          targetVersion.contracts,
+        )) {
+          test(`should not update the DB nor the store: ${Object.values(versionIdentifier).join("/")}/${targetContract.name}`, async () => {
+            const contractIdentifier: ContractIdentifier = {
+              ...versionIdentifier,
+              contractName: targetContract.name,
+            };
+            const groupedEventLogs: GroupedEventLogs = {};
+            for (const eventName of targetContract.events.names) {
+              groupedEventLogs[eventName] = [
+                { ...dummyConvertedEventLog1, eventName: eventName },
+              ];
+            }
+            const recordBefore: SyncStatusContract =
+              await getDbRecordSyncStatus(dbEventLogs, targetContract);
+            const storeBefore: SyncStatusContract = structuredClone(
+              getStoreSyncStatusContract(contractIdentifier),
+            );
+
+            // fail the outer transaction after all the writes in it,
+            // as when the commit fails
+            const originalTransaction = dbEventLogs.transaction.bind(
+              dbEventLogs,
+            ) as (
+              mode: "rw",
+              tableNames: string[],
+              scope: () => Promise<void>,
+            ) => Promise<void>;
+            const spyTransaction = vi
+              .spyOn(dbEventLogs, "transaction")
+              .mockImplementationOnce(((
+                mode: "rw",
+                tableNames: string[],
+                scope: () => Promise<void>,
+              ) =>
+                originalTransaction(mode, tableNames, async () => {
+                  await scope();
+                  throw new Error("Commit failed.");
+                })) as never);
+
+            // call target
+            await expect(
+              addEventLogs_updateFetchedBlockNumber(
+                dbEventLogs,
+                targetContract,
+                groupedEventLogs,
+                targetContract.creation.blockNumber + 1,
+              ),
+            ).rejects.toThrow("Commit failed.");
+
+            // the DB is rolled back, and the store should stay the same
+            expect(
+              await getDbRecordSyncStatus(dbEventLogs, targetContract),
+            ).toEqual(recordBefore);
+            expect(getStoreSyncStatusContract(contractIdentifier)).toEqual(
+              storeBefore,
+            );
+            spyTransaction.mockRestore();
+          });
+        }
+      }
+    }
+  }
+});
+async function getDbRecordSyncStatus(
+  dbEventLogs: DbEventLogs,
+  targetContract: Contract,
+): Promise<SyncStatusContract> {
+  return await dbEventLogs
+    .table(DB_TABLE_NAMES.EventLog.syncStatus)
+    .get(targetContract.name);
+}
+function getStoreSyncStatusContract(
+  contractIdentifier: ContractIdentifier,
+): SyncStatusContract {
+  return get(storeSyncStatus)[contractIdentifier.chainName].subSyncStatuses[
+    contractIdentifier.projectName
+  ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
+    contractIdentifier.contractName
+  ];
+}
 
 describe("getEventLogTableRecordCount", () => {
   test("should return num of table record", async () => {
