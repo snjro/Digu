@@ -117,6 +117,7 @@
     ]);
   function resetAllFilters(): void {
     gridApi.resetQuickFilter();
+    gridApi.setFilterModel(null);
     quickSearchText = "";
   }
   function reload(): void {
