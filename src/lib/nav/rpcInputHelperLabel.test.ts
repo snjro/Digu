@@ -18,6 +18,7 @@ describe("getRpcInputHelperLabelProps", () => {
           size,
         },
         text: "Connected.",
+        textSize: size,
         colorCategoryFront: colorSettings.navText,
         appendClass: "whitespace-pre-wrap",
       });
@@ -36,6 +37,7 @@ describe("getRpcInputHelperLabelProps", () => {
             size,
           },
           text: "Connecting...",
+          textSize: size,
           colorCategoryFront: colorSettings.navText,
           appendClass: "whitespace-pre-wrap",
         },

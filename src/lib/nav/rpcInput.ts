@@ -19,6 +19,13 @@ export async function updateRpc(
   await nodeProvider?.destroy();
 }
 
+// Enter that ends an IME composition only fixes the text.
+export function blurOnEnter(event: KeyboardEvent): void {
+  if (event.key === "Enter" && !event.isComposing) {
+    (event.currentTarget as HTMLElement).blur();
+  }
+}
+
 export async function clearSucceededNodeStatus(
   chainName: ChainName,
   nodeStatus: NodeStatus,

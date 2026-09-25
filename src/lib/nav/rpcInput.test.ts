@@ -5,6 +5,7 @@ import { updateDbItemRpcSettings } from "@db/dbSettings";
 import type { NodeStatus } from "@db/dbTypes";
 import { getNodeProvider, type NodeProvider } from "@utils/utilsEthers";
 import {
+  blurOnEnter,
   clearSucceededNodeStatus,
   getToggledRpcInputType,
   toggleRpcInputType,
@@ -110,5 +111,38 @@ describe("toggleRpcInputType", () => {
       "inputType",
       toggled,
     );
+  });
+});
+
+describe("blurOnEnter", () => {
+  function keydown(
+    key: string,
+    isComposing: boolean,
+  ): { event: KeyboardEvent; blur: ReturnType<typeof vi.fn> } {
+    const blur = vi.fn();
+    const event = {
+      key,
+      isComposing,
+      currentTarget: { blur },
+    } as unknown as KeyboardEvent;
+    return { event, blur };
+  }
+
+  test("should blur the input when Enter is pressed", () => {
+    const { event, blur } = keydown("Enter", false);
+    blurOnEnter(event);
+    expect(blur).toHaveBeenCalledTimes(1);
+  });
+
+  test("should not blur the input when Enter ends the IME composition", () => {
+    const { event, blur } = keydown("Enter", true);
+    blurOnEnter(event);
+    expect(blur).not.toHaveBeenCalled();
+  });
+
+  test("should not blur the input when another key is pressed", () => {
+    const { event, blur } = keydown("a", false);
+    blurOnEnter(event);
+    expect(blur).not.toHaveBeenCalled();
   });
 });

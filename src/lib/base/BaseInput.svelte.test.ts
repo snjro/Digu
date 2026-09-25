@@ -66,15 +66,17 @@ describe("BaseInput.svelte", () => {
     expect(screen.getByTestId("bound").textContent).toBe("abc");
   });
 
-  test("calls onchange, onfocus and onblur with the events", async () => {
+  test("calls onchange, onfocus, onblur and onkeydown with the events", async () => {
     const onchange = vi.fn();
     const onfocus = vi.fn();
     const onblur = vi.fn();
+    const onkeydown = vi.fn();
     const { container } = render(BaseInput, {
       ...baseProps,
       onchange,
       onfocus,
       onblur,
+      onkeydown,
     });
     const input = getInput(container);
 
@@ -89,6 +91,11 @@ describe("BaseInput.svelte", () => {
     await fireEvent.blur(input);
     expect(onblur).toHaveBeenCalledTimes(1);
     expect(onblur.mock.calls[0][0]).toBeInstanceOf(FocusEvent);
+
+    await fireEvent.keyDown(input, { key: "Enter" });
+    expect(onkeydown).toHaveBeenCalledTimes(1);
+    expect(onkeydown.mock.calls[0][0]).toBeInstanceOf(KeyboardEvent);
+    expect(onkeydown.mock.calls[0][0].key).toBe("Enter");
   });
 
   test("hides the placeholder and uses the interactive border while focused", async () => {

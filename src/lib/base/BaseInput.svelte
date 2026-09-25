@@ -42,6 +42,7 @@
     onchange?: ((event: Event) => void) | undefined;
     onfocus?: ((event: FocusEvent) => void) | undefined;
     onblur?: ((event: FocusEvent) => void) | undefined;
+    onkeydown?: ((event: KeyboardEvent) => void) | undefined;
     prefixIcon?: Snippet;
     suffixIcon?: Snippet;
     inputHelper?: Snippet;
@@ -64,6 +65,7 @@
     onchange = undefined,
     onfocus = undefined,
     onblur = undefined,
+    onkeydown = undefined,
     prefixIcon,
     suffixIcon,
     inputHelper,
@@ -204,6 +206,7 @@
         onfocus?.(event);
       }}
       oninput={handleInput}
+      {onkeydown}
       class={customClass}
     />
     {#if suffixIcon}

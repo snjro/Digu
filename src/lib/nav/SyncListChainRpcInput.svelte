@@ -18,6 +18,7 @@
   import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
   import type { HelperTextState } from "$lib/base/helperTextState";
   import {
+    blurOnEnter,
     clearSucceededNodeStatus,
     toggleRpcInputType,
     updateRpc,
@@ -82,10 +83,11 @@
     {truncate}
     disabled={$storeSyncStatus[targetChainName].isSyncing}
     helperTextState={helperTextState()}
-    placeholder="https://localhost:8545"
+    placeholder="http://localhost:8545"
     ariaLabel="RPC URL"
     onfocus={focusRpc}
     onblur={blurRpc}
+    onkeydown={blurOnEnter}
   >
     {#snippet prefixIcon()}
       <BaseIcon
