@@ -118,11 +118,13 @@ describe("blurOnEnter", () => {
   function keydown(
     key: string,
     isComposing: boolean,
+    keyCode: number = 13,
   ): { event: KeyboardEvent; blur: ReturnType<typeof vi.fn> } {
     const blur = vi.fn();
     const event = {
       key,
       isComposing,
+      keyCode,
       currentTarget: { blur },
     } as unknown as KeyboardEvent;
     return { event, blur };
@@ -136,6 +138,13 @@ describe("blurOnEnter", () => {
 
   test("should not blur the input when Enter ends the IME composition", () => {
     const { event, blur } = keydown("Enter", true);
+    blurOnEnter(event);
+    expect(blur).not.toHaveBeenCalled();
+  });
+
+  test("should not blur the input when Enter ends the IME composition in Safari", () => {
+    // Safari sends isComposing false and keyCode 229 for this Enter.
+    const { event, blur } = keydown("Enter", false, 229);
     blurOnEnter(event);
     expect(blur).not.toHaveBeenCalled();
   });
