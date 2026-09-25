@@ -89,4 +89,35 @@ describe("startDbWorker", () => {
     );
     expect(FakeWorker.last.terminate).toHaveBeenCalledTimes(1);
   });
+
+  test("should terminate the worker when the signal aborts", async () => {
+    const controller = new AbortController();
+    const result = startDbWorker(dbWorkerMessage, controller.signal);
+    controller.abort();
+
+    expect(FakeWorker.last.terminate).toHaveBeenCalledTimes(1);
+    await expect(result).rejects.toMatchObject({ name: "AbortError" });
+  });
+
+  test("should not start a worker when the signal has aborted", async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      startDbWorker(dbWorkerMessage, controller.signal),
+    ).rejects.toMatchObject({ name: "AbortError" });
+    expect(DbWorker).not.toHaveBeenCalled();
+  });
+
+  test("should not terminate again when the signal aborts after the result", async () => {
+    const controller = new AbortController();
+    const result = startDbWorker(dbWorkerMessage, controller.signal);
+    FakeWorker.last.emit("message", {
+      data: { value: "test value", log: "test log" },
+    });
+    await expect(result).resolves.toBe("test value");
+    controller.abort();
+
+    expect(FakeWorker.last.terminate).toHaveBeenCalledTimes(1);
+  });
 });

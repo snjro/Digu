@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick } from "svelte";
 import type { Writable } from "svelte/store";
 import { render, screen, waitFor } from "@testing-library/svelte";
@@ -11,7 +11,7 @@ import type {
 } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { gridRows } from "./gridRows";
-import EventLogs from "./EventLogs.svelte";
+import EventLogs, { EVENT_LOGS_RELOAD_INTERVAL } from "./EventLogs.svelte";
 
 // The real store and DB load the chain data, which loads ethers. ethers does
 // not load in the client project, so they are replaced.
@@ -122,6 +122,12 @@ function log(blockNumber: number, length: number): ConvertedEventLog {
 
 const load = vi.mocked(gridRows);
 
+// Like the sync, save logs of the event. The rows reload within the interval.
+async function saveLogs(transfer: number): Promise<void> {
+  setRecordCount(transfer);
+  await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
+}
+
 function renderGrid(eventLogType: "text" | "hex") {
   return render(EventLogs, {
     targetEventIdentifier,
@@ -141,6 +147,11 @@ describe("EventLogs.svelte", () => {
   beforeEach(() => {
     store.set(initialState());
     load.mockReset();
+    // waitFor checks with setInterval, so keep it real.
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   test("reloads the rows when the record count of the event changes", async () => {
@@ -148,12 +159,15 @@ describe("EventLogs.svelte", () => {
     renderGrid("text");
     await waitFor(() => expect(shown().rows).toBe(0));
     expect(load).toHaveBeenCalledTimes(1);
-    expect(load).toHaveBeenCalledWith(targetEventIdentifier);
+    expect(load).toHaveBeenCalledWith(
+      targetEventIdentifier,
+      expect.any(AbortSignal),
+    );
     const columnsOfNoRows: number = shown().columns;
 
     // The first log adds a column for the array argument.
     load.mockResolvedValueOnce([log(10, 1)]);
-    setRecordCount(1);
+    await saveLogs(1);
     await waitFor(() => expect(shown().rows).toBe(1));
     expect(load).toHaveBeenCalledTimes(2);
     const columnsOfOneItem: number = shown().columns;
@@ -161,13 +175,13 @@ describe("EventLogs.svelte", () => {
 
     // Same array lengths: the grid keeps the same column definitions.
     load.mockResolvedValueOnce([log(10, 1), log(20, 1)]);
-    setRecordCount(2);
+    await saveLogs(2);
     await waitFor(() => expect(shown().rows).toBe(2));
     expect(shown().columns).toBe(columnsOfOneItem);
 
     // A longer array: new column definitions.
     load.mockResolvedValueOnce([log(10, 1), log(20, 1), log(30, 2)]);
-    setRecordCount(3);
+    await saveLogs(3);
     await waitFor(() => expect(shown().rows).toBe(3));
     expect(shown().columns).not.toBe(columnsOfOneItem);
     expect(load).toHaveBeenCalledTimes(4);
@@ -180,7 +194,7 @@ describe("EventLogs.svelte", () => {
     const columns: number = shown().columns;
 
     load.mockResolvedValueOnce([log(10, 1), log(20, 2)]);
-    setRecordCount(2);
+    await saveLogs(2);
     await waitFor(() => expect(shown().rows).toBe(2));
     expect(shown().columns).toBe(columns);
     expect(load).toHaveBeenCalledTimes(2);
@@ -193,8 +207,56 @@ describe("EventLogs.svelte", () => {
 
     setContract({ fetchedBlockNumber: 200, isSyncing: true });
     setRecordCount(0, 5);
-    await tick();
+    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
     await tick();
     expect(load).toHaveBeenCalledTimes(1);
+  });
+
+  test("reloads once or twice for saves in a short time, and after the last save", async () => {
+    load.mockResolvedValueOnce([]);
+    renderGrid("text");
+    await waitFor(() => expect(shown().rows).toBe(0));
+
+    // A load reads the logs saved by then.
+    let savedLogs: ConvertedEventLog[] = [];
+    load.mockImplementation(async () => savedLogs);
+    for (let count = 1; count <= 5; count++) {
+      savedLogs = Array.from({ length: count }, (_, index) => log(index, 1));
+      setRecordCount(count);
+      await vi.advanceTimersByTimeAsync(200);
+    }
+    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL * 3);
+    const reloads: number = load.mock.calls.length - 1;
+    expect(reloads).toBeGreaterThanOrEqual(1);
+    expect(reloads).toBeLessThanOrEqual(2);
+    await waitFor(() => expect(shown().rows).toBe(5));
+  });
+
+  test("stops the running load when the grid closes", async () => {
+    load.mockReturnValueOnce(new Promise(() => {}));
+    const { unmount } = renderGrid("text");
+    expect(load).toHaveBeenCalledTimes(1);
+    const signal: AbortSignal = load.mock.calls[0][1]!;
+    expect(signal.aborted).toBe(false);
+
+    unmount();
+    expect(signal.aborted).toBe(true);
+  });
+
+  test("loads another event at once and stops the load of the previous one", async () => {
+    load.mockReturnValueOnce(new Promise(() => {}));
+    const { rerender } = renderGrid("text");
+    const signal: AbortSignal = load.mock.calls[0][1]!;
+
+    load.mockResolvedValueOnce([log(10, 1)]);
+    const approval: AbiFragmentIdentifier = {
+      ...targetEventIdentifier,
+      abiFragmentName: "Approval",
+    } as AbiFragmentIdentifier;
+    await rerender({ targetEventIdentifier: approval });
+    expect(signal.aborted).toBe(true);
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(load).toHaveBeenLastCalledWith(approval, expect.any(AbortSignal));
+    await waitFor(() => expect(shown().rows).toBe(1));
   });
 });

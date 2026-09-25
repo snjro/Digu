@@ -1,6 +1,8 @@
 <script lang="ts" module>
   export const MESSAGE_ANONYMOUS_EVENT_LOGS: string =
     "Logs of anonymous events are not fetched.";
+  // While the sync saves logs, reload the rows at most once in this time.
+  export const EVENT_LOGS_RELOAD_INTERVAL: number = 3000;
 </script>
 
 <script lang="ts">
@@ -13,7 +15,7 @@
   import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
   import type { EventLogType } from "$lib/contracts/eventLogType";
   import { gridRows } from "./gridRows";
-  import { applyLatestLoad } from "./latestLoad";
+  import { createThrottledLoad } from "./latestLoad";
   import { getEachArgsMaxLengths } from "../../../maxParamsLength";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
 
@@ -47,14 +49,20 @@
       rows = [];
       return;
     }
-    // Reload when new logs are saved.
-    void recordCount;
-    return applyLatestLoad(
-      gridRows(targetEventIdentifier),
+    const eventIdentifier: AbiFragmentIdentifier = targetEventIdentifier;
+    const throttledLoad = createThrottledLoad(
+      (signal: AbortSignal) => gridRows(eventIdentifier, signal),
       (convertedEventLogs: ConvertedEventLog[]) => {
         rows = convertedEventLogs;
       },
+      EVENT_LOGS_RELOAD_INTERVAL,
     );
+    // Reload when new logs are saved.
+    $effect.pre(() => {
+      void recordCount;
+      throttledLoad.request();
+    });
+    return throttledLoad.dispose;
   });
   // Keep the same array while the lengths do not change, so new rows do not
   // rebuild the columns.
