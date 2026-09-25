@@ -17,13 +17,12 @@
   const displayTimeInMilliseconds: number = 1000;
 
   $effect.pre(() => {
-    (async () => {
-      if ($storeNoDbSnackBar.visible) {
-        await setTimeout(() => {
-          $storeNoDbSnackBar = { ...storeNoDbSnackBarInitialValue };
-        }, $storeNoDbSnackBar.displayTimeInMilliseconds ?? displayTimeInMilliseconds);
-      }
-    })();
+    if (!$storeNoDbSnackBar.visible) return;
+    const timer = setTimeout(() => {
+      $storeNoDbSnackBar = { ...storeNoDbSnackBarInitialValue };
+    }, $storeNoDbSnackBar.displayTimeInMilliseconds ?? displayTimeInMilliseconds);
+    // A new snackbar starts its own time, so the earlier timer must not hide it.
+    return () => clearTimeout(timer);
   });
 
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
