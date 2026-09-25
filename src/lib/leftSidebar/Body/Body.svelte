@@ -14,7 +14,7 @@
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   let scrollbarStyle: ScrollbarStyle = $derived(
-    getScrollbarStyle(colorSettings.leftSidebarBodyBg, themeColor),
+    getScrollbarStyle(colorSettings.leftSidebarBodyBg),
   );
 </script>
 

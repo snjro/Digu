@@ -2,12 +2,10 @@
   import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { zIndex } from "$lib/appearanceConfig/zIndex";
-  import type { ThemeColor } from "@db/dbTypes";
   import {
     storeNoDbSnackBar,
     storeNoDbSnackBarInitialValue,
   } from "@stores/storeNoDb";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import { expoInOut } from "svelte/easing";
   import { fly } from "svelte/transition";
@@ -25,14 +23,14 @@
     return () => clearTimeout(timer);
   });
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
-  let frameLineStyle: string = $derived(
-    classNames(
-      themeColor === "light"
-        ? classNames("shadow-md", colorClasses[colorSettings.snackBarBg].shadow)
-        : classNames("border", colorClasses[colorSettings.snackBarBg].border),
-    ),
+  // A shadow in the light theme, a border in the dark theme.
+  // The color classes do nothing without the shadow or the border width.
+  const frameLineStyle: string = classNames(
+    "shadow-md",
+    "dark:shadow-none",
+    "dark:border",
+    colorClasses[colorSettings.snackBarBg].shadow,
+    colorClasses[colorSettings.snackBarBg].border,
   );
 
   const positionStyle: string = classNames(

@@ -6,8 +6,6 @@
     getScrollbarStyle,
     type ScrollbarStyle,
   } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import type { BaseSize } from "../baseSizes";
   import type { BaseTableHeaderCellProps } from "./BaseTableHeaderCell.svelte";
@@ -40,13 +38,12 @@
     tableBody,
     scrollAreaLabel = "Table",
   }: Props = $props();
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   const colorCategoryBorder: ColorCategory =
     colorSettings.itemMemberTableBorder;
 
   let scrollbarStyle: ScrollbarStyle = $derived(
-    getScrollbarStyle(colorSettings.itemMemberTableBg, themeColor),
+    getScrollbarStyle(colorSettings.itemMemberTableBg),
   );
 </script>
 
