@@ -229,9 +229,10 @@ describe("BaseItem.svelte", () => {
     { ctrlKey: true },
     { metaKey: true },
     { shiftKey: true },
+    { altKey: true },
     { button: 1 },
   ])(
-    "keeps the sidebar open on a click to open a new tab. %j",
+    "keeps the sidebar open on a click that does not move this tab. %j",
     async (init) => {
       storeNoDbCurrentWidth.set(breakPointWidths.sm);
       storeUserSettings.update((s) => ({ ...s, isOpenSidebar: true }));

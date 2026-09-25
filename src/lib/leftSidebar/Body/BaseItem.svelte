@@ -65,9 +65,16 @@
 
   let thisElement: HTMLDivElement | undefined = $state();
 
-  // The link moves the page. A click to open a new tab keeps the sidebar.
+  // The link moves the page. A click that the browser handles, such as one to
+  // open a new tab, keeps the sidebar.
   async function onClick(event: MouseEvent) {
-    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0)
+    if (
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.button !== 0
+    )
       return;
     await toggleLeftSideBarWithCondition();
   }
