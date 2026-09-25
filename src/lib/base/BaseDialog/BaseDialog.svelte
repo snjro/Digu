@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { ThemeColor } from "@db/dbTypes";
@@ -32,13 +32,10 @@
   let shadowStyle: string = $derived(
     classNames(
       themeColor === "dark"
-        ? classNames(
-            "border",
-            colorDefinitions[themeColor][colorSettings.dialogHeader].border,
-          )
+        ? classNames("border", colorClasses[colorSettings.dialogHeader].border)
         : classNames(
             "shadow-sm",
-            colorDefinitions[themeColor][colorSettings.dialogHeader].shadow,
+            colorClasses[colorSettings.dialogHeader].shadow,
           ),
     ),
   );
@@ -57,7 +54,7 @@
       // "h-full",
       "max-h-[90%]",
       "backdrop:backdrop-brightness-50",
-      colorDefinitions[themeColor][colorSettings.dialogHeader].bg,
+      colorClasses[colorSettings.dialogHeader].bg,
       "flex-col",
     )}
     {onclose}

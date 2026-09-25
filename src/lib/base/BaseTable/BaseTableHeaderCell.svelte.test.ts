@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import { tick } from "svelte";
 import { render, screen } from "@testing-library/svelte";
 import BaseTableHeaderCell from "./BaseTableHeaderCell.svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { htmlSnippet, slotProps } from "../../../testUtils/snippets";
@@ -89,7 +89,7 @@ describe("BaseTableHeaderCell.svelte", () => {
     expect(classList).toContain("border-inherit");
   });
 
-  test("uses the colors of the categories and follows the theme", async () => {
+  test("uses the colors of the categories in both themes", async () => {
     const { container } = render(BaseTableHeaderCell, {
       textSize: "md",
       align: "left",
@@ -97,17 +97,19 @@ describe("BaseTableHeaderCell.svelte", () => {
       colorCategoryFront: "secondary",
       colorCategoryBorder: "interactive",
     });
-    const light = colorDefinitions.light;
-    expect(getCell(container).classList).toContain(light.primary.bg);
-    expect(getCell(container).classList).toContain(light.secondary.text);
-    expect(getCell(container).classList).toContain(light.interactive.border);
+    expect(getCell(container).classList).toContain(colorClasses.primary.bg);
+    expect(getCell(container).classList).toContain(colorClasses.secondary.text);
+    expect(getCell(container).classList).toContain(
+      colorClasses.interactive.border,
+    );
 
     storeUserSettings.updateState({ themeColor: "dark" });
     await tick();
-    const dark = colorDefinitions.dark;
-    expect(getCell(container).classList).toContain(dark.primary.bg);
-    expect(getCell(container).classList).toContain(dark.secondary.text);
-    expect(getCell(container).classList).toContain(dark.interactive.border);
+    expect(getCell(container).classList).toContain(colorClasses.primary.bg);
+    expect(getCell(container).classList).toContain(colorClasses.secondary.text);
+    expect(getCell(container).classList).toContain(
+      colorClasses.interactive.border,
+    );
   });
 
   test("renders the default slot", () => {

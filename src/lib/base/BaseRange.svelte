@@ -23,12 +23,8 @@
 </script>
 
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import classNames from "classnames";
   import type { BaseSize } from "./baseSizes";
   interface Props {
@@ -61,8 +57,6 @@
     ariaLabel = undefined,
   }: Props = $props();
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   let customClass: string = $derived(
     forcedClass ??
       classNames(
@@ -70,22 +64,20 @@
         "rounded-lg",
         "appearance-none",
         disabled ? "cursor-not-allowed" : "cursor-pointer",
-        colorCategoryBg
-          ? colorDefinitions[themeColor][colorCategoryBg].bg
-          : "bg-inherit",
+        colorCategoryBg ? colorClasses[colorCategoryBg].bg : "bg-inherit",
         "shadow-sm dark:shadow-none",
         colorCategoryBg
-          ? colorDefinitions[themeColor][colorCategoryBg].shadow
+          ? colorClasses[colorCategoryBg].shadow
           : "shadow-inherit",
         colorCategoryFront
-          ? colorDefinitions[themeColor][colorCategoryFront].text
+          ? colorClasses[colorCategoryFront].text
           : "text-inherit",
         colorCategoryFront
-          ? colorDefinitions[themeColor][colorCategoryFront].accent
+          ? colorClasses[colorCategoryFront].accent
           : "accent-inherit",
         "dark:border",
         colorCategoryBg
-          ? colorDefinitions[themeColor][colorCategoryBg].border
+          ? colorClasses[colorCategoryBg].border
           : "border-inherit",
         sizes[size],
         appendClass,

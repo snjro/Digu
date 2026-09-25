@@ -16,10 +16,8 @@
 </script>
 
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import type { HelperTextState } from "./helperTextState";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -118,9 +116,9 @@
         "disabled:cursor-not-allowed",
         "disabled:opacity-50",
         "bg-transparent",
-        colorDefinitions[themeColor][colorCategory].text,
+        colorClasses[colorCategory].text,
         "placeholder:italic",
-        colorDefinitions[themeColor][colorCategory].textPlaceholder,
+        colorClasses[colorCategory].textPlaceholder,
         baseTextSizes[size],
         inputPaddingSizes[size],
         "noborder",
@@ -142,18 +140,15 @@
     classNames(
       "border-2",
       isFocus
-        ? colorDefinitions[themeColor]["interactive"].border
-        : colorDefinitions[themeColor][colorCategoryBorder].border,
+        ? colorClasses["interactive"].border
+        : colorClasses[colorCategoryBorder].border,
       "",
     ),
   );
   let shadowStyle: string = $derived(
     classNames(
       themeColor === "light" &&
-        classNames(
-          "shadow-inner",
-          colorDefinitions[themeColor][colorCategory].shadow,
-        ),
+        classNames("shadow-inner", colorClasses[colorCategory].shadow),
     ),
   );
 </script>
@@ -179,7 +174,7 @@
       "rounded-md",
       shadowStyle,
       borderStyle,
-      colorDefinitions[themeColor][colorCategory].bg,
+      colorClasses[colorCategory].bg,
     )}
   >
     {#if prefixIcon}

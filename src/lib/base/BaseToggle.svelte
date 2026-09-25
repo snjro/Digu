@@ -1,10 +1,6 @@
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import classNames from "classnames";
   import type { BaseButtonProps } from "./BaseButton.svelte";
   import type { BaseIconProps } from "./BaseIcon";
@@ -90,7 +86,6 @@
     "4xl": toggleValue ? "translate-x-10" : "-translate-x-10",
     "5xl": toggleValue ? "translate-x-12" : "-translate-x-12",
   });
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   let colorCategoryThumb: ColorCategory = $derived(
     toggleValue ? colorCategoryThumbToggleOn : colorCategoryThumbToggleOff,
@@ -104,9 +99,9 @@
     classNames(
       trackSizes[size],
       "rounded-full",
-      colorDefinitions[themeColor][colorCategoryTrack].bg,
-      colorDefinitions[themeColor][colorCategoryTrack].border,
-      colorDefinitions[themeColor][colorCategoryTrack].shadow,
+      colorClasses[colorCategoryTrack].bg,
+      colorClasses[colorCategoryTrack].border,
+      colorClasses[colorCategoryTrack].shadow,
       "flex",
       "items-center",
       "justify-center",
@@ -132,9 +127,9 @@
       "duration-200",
       "transform",
       translateX[size],
-      colorDefinitions[themeColor][colorCategoryThumb].bg,
+      colorClasses[colorCategoryThumb].bg,
       "dark:border",
-      colorDefinitions[themeColor][colorCategoryThumb].border,
+      colorClasses[colorCategoryThumb].border,
       disabled && "contrast-50",
       cursorStyle,
     ),

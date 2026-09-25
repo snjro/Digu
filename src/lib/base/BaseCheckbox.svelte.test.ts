@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import BaseCheckbox from "./BaseCheckbox.svelte";
@@ -19,16 +19,15 @@ afterEach(() => {
 
 describe("BaseCheckbox.svelte", () => {
   test("shows checked, unchecked and indeterminate, and follows the props", async () => {
-    const light = colorDefinitions.light;
     const { container, rerender } = render(BaseCheckbox, { checked: true });
     const input = getCheckbox(container);
     expect(input.checked).toBe(true);
-    expect(input.classList.contains(light.success.bg)).toBe(true);
+    expect(input.classList.contains(colorClasses.success.bg)).toBe(true);
     expect(input.getAttribute("style")).toContain("checkboxChecked.svg");
 
     await rerender({ checked: false });
     expect(input.checked).toBe(false);
-    expect(input.classList.contains(light.error.bg)).toBe(true);
+    expect(input.classList.contains(colorClasses.error.bg)).toBe(true);
     expect(input.getAttribute("style")).toContain("checkboxCross.svg");
 
     await rerender({ indeterminate: true });
@@ -55,9 +54,7 @@ describe("BaseCheckbox.svelte", () => {
     expect(onclick).toHaveBeenCalledTimes(1);
     expect(onclick.mock.calls[0][0]).toBeInstanceOf(MouseEvent);
     expect(input.checked).toBe(true);
-    expect(input.classList.contains(colorDefinitions.light.success.bg)).toBe(
-      true,
-    );
+    expect(input.classList.contains(colorClasses.success.bg)).toBe(true);
   });
 
   test("sends checked back to the parent (bind:checked)", async () => {
@@ -89,13 +86,11 @@ describe("BaseCheckbox.svelte", () => {
     expect(input.disabled).toBe(true);
   });
 
-  test("follows the theme in storeUserSettings", async () => {
+  test("keeps the same color classes in both themes", async () => {
     const { container } = render(BaseCheckbox, { checked: true });
     const input = getCheckbox(container);
     storeUserSettings.updateState({ themeColor: "dark" });
     await tick();
-    expect(input.classList.contains(colorDefinitions.dark.success.bg)).toBe(
-      true,
-    );
+    expect(input.classList.contains(colorClasses.success.bg)).toBe(true);
   });
 });

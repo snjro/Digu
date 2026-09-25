@@ -19,7 +19,7 @@
 </script>
 
 <script lang="ts" generics="RadioValue">
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -236,8 +236,7 @@
       // colorDefinitions[themeColor][colorSettings.tabSelected].shadow,
       roundedSize(radioButtonType === "tab" ? "tl" : "l"),
       roundedSize(radioButtonType === "tab" ? "tr" : "r"),
-      radioButtonType === "tab" &&
-        colorDefinitions[themeColor][colorSettings.tabSelected].bg,
+      radioButtonType === "tab" && colorClasses[colorSettings.tabSelected].bg,
       // "space-x-px",
       "static",
     )}

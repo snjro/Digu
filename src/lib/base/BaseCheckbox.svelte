@@ -1,10 +1,6 @@
 <script lang="ts">
-  import {
-    colorDefinitions,
-    type ColorDefinitionForParts,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { type ColorDefinitionForParts } from "$lib/appearanceConfig/color/colorDefinitions";
   import classNames from "classnames";
   import { radioSizes } from "./BaseRadio.svelte";
   import type { BaseSize } from "./baseSizes";
@@ -31,7 +27,6 @@
     onclick = undefined,
     ariaLabel = undefined,
   }: Props = $props();
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   // New arrays, so that a parent in legacy mode also sees the change.
   $effect.pre(() => {
@@ -54,12 +49,12 @@
       };
     } else if (checked) {
       return {
-        backgroundColor: colorDefinitions[themeColor]["success"].bg,
+        backgroundColor: colorClasses["success"].bg,
         checkboxImageFile: `${base}/checkboxChecked.svg`,
       };
     } else {
       return {
-        backgroundColor: colorDefinitions[themeColor]["error"].bg,
+        backgroundColor: colorClasses["error"].bg,
         checkboxImageFile: `${base}/checkboxCross.svg`,
       };
     }

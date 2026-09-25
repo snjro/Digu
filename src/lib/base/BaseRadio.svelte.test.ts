@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import BaseRadio, { type RadioLabelAndValues } from "./BaseRadio.svelte";
@@ -40,7 +40,7 @@ describe("BaseRadio.svelte (button)", () => {
       radioButtonType: "button",
       selectedValue: "yes",
     });
-    const underline = colorDefinitions.light.interactive.border;
+    const underline = colorClasses.interactive.border;
     expect(radio("radio-yes").checked).toBe(true);
     expect(radio("radio-no").checked).toBe(false);
     expect(

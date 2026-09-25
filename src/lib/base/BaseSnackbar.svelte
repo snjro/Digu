@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { zIndex } from "$lib/appearanceConfig/zIndex";
   import type { ThemeColor } from "@db/dbTypes";
@@ -30,14 +30,8 @@
   let frameLineStyle: string = $derived(
     classNames(
       themeColor === "light"
-        ? classNames(
-            "shadow-md",
-            colorDefinitions[themeColor][colorSettings.snackBarBg].shadow,
-          )
-        : classNames(
-            "border",
-            colorDefinitions[themeColor][colorSettings.snackBarBg].border,
-          ),
+        ? classNames("shadow-md", colorClasses[colorSettings.snackBarBg].shadow)
+        : classNames("border", colorClasses[colorSettings.snackBarBg].border),
     ),
   );
 
@@ -65,7 +59,7 @@
       "p-4",
       "rounded-sm",
       frameLineStyle,
-      colorDefinitions[themeColor][colorSettings.snackBarBg].bg,
+      colorClasses[colorSettings.snackBarBg].bg,
     )}
   >
     <BaseLabel

@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import type { Snippet } from "svelte";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import { baseTextSizes, type BaseSize } from "./baseSizes";
 
@@ -33,7 +31,6 @@
     prefixIcon,
     suffixIcon,
   }: Props = $props();
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 </script>
 
 {#if prefixIcon}
@@ -45,7 +42,7 @@
       "border-b-2",
       "overflow-x-hidden",
       underlineLabel
-        ? colorDefinitions[themeColor]["interactive"].border
+        ? colorClasses["interactive"].border
         : "border-transparent",
     )}
   >

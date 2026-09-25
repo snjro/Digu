@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import BaseButton from "./BaseButton.svelte";
@@ -39,7 +39,7 @@ describe("BaseButton.svelte", () => {
       onmouseleave,
     });
     const button = screen.getByRole("button");
-    const colors = colorDefinitions.light.primary;
+    const colors = colorClasses.primary;
     expect(button.classList.contains(colors.bg)).toBe(true);
 
     await fireEvent.mouseEnter(button);
@@ -62,23 +62,16 @@ describe("BaseButton.svelte", () => {
     });
     const button = screen.getByRole("button");
     await fireEvent.mouseEnter(button);
-    expect(button.classList.contains(colorDefinitions.light.primary.bg)).toBe(
-      true,
-    );
+    expect(button.classList.contains(colorClasses.primary.bg)).toBe(true);
     expect(onmouseenter).toHaveBeenCalledOnce();
   });
 
-  test("follows the theme in storeUserSettings", async () => {
+  test("keeps the same color classes in both themes", async () => {
     render(BaseButton, { label: "Save", colorCategoryBg: "primary" });
     const button = screen.getByRole("button");
-    expect(colorDefinitions.dark.primary.bg).not.toBe(
-      colorDefinitions.light.primary.bg,
-    );
     storeUserSettings.updateState({ themeColor: "dark" });
     await Promise.resolve();
-    expect(button.classList.contains(colorDefinitions.dark.primary.bg)).toBe(
-      true,
-    );
+    expect(button.classList.contains(colorClasses.primary.bg)).toBe(true);
   });
 
   test("renders the named slots prefixIcon and suffixIcon", () => {

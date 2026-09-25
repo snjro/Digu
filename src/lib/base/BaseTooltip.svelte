@@ -7,9 +7,7 @@
 </script>
 
 <script lang="ts">
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
@@ -30,14 +28,13 @@
     yPosition = "top",
     children,
   }: Props = $props();
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   let textClass = $derived(
     classNames(
       "whitespace-nowrap",
       "rounded-md",
-      colorDefinitions[themeColor][colorSettings.tooltip].bg,
-      colorDefinitions[themeColor][colorSettings.tooltip].text,
+      colorClasses[colorSettings.tooltip].bg,
+      colorClasses[colorSettings.tooltip].text,
       "px-1",
       "py-0.5",
       "absolute",
@@ -50,9 +47,9 @@
       "transition",
       "pointer-events-none",
       "shadow-md dark:shadow-none",
-      colorDefinitions[themeColor][colorSettings.tooltip].shadow,
+      colorClasses[colorSettings.tooltip].shadow,
       "dark:border",
-      colorDefinitions[themeColor][colorSettings.tooltip].border,
+      colorClasses[colorSettings.tooltip].border,
       "",
     ),
   );

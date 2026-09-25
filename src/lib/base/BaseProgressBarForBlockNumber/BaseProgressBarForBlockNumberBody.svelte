@@ -1,5 +1,9 @@
 <script lang="ts">
   import {
+    colorClasses,
+    colorVar,
+  } from "$lib/appearanceConfig/color/colorVariables";
+  import {
     colorDefinitions,
     getColorFromTailwindColor,
     type ColorCategory,
@@ -49,14 +53,16 @@
 
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
-  let color = $derived(
+  // The dots are an SVG image, which cannot read the CSS variables of the page.
+  let colorValue = $derived(
     getColorFromTailwindColor(
       colorDefinitions[themeColor][colorCategoryProgress].bg,
     ),
   );
+  let color = $derived(colorVar(colorCategoryProgress, "bg"));
 
   let backgroundImage = $derived((): string => {
-    const url = `'data:image/svg+xml;charset=UTF-8, <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 24 24"><path fill="${encodeURIComponent(color)}" d="M12,10A2,2 0 0,0 10,12C10,13.11 10.9,14 12,14C13.11,14 14,13.11 14,12A2,2 0 0,0 12,10Z" /></svg>'`;
+    const url = `'data:image/svg+xml;charset=UTF-8, <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 24 24"><path fill="${encodeURIComponent(colorValue)}" d="M12,10A2,2 0 0,0 10,12C10,13.11 10.9,14 12,14C13.11,14 14,13.11 14,12A2,2 0 0,0 12,10Z" /></svg>'`;
     return `background-image: url(${url});`;
   });
   let progressColor = $derived((): string => {
@@ -77,9 +83,7 @@
     // colorCategoryFront
     //   ? colorDefinitions[themeColor][colorCategoryBg].border
     //   : "border-inherit",
-    colorCategoryBg
-      ? colorDefinitions[themeColor][colorCategoryBg].bg
-      : "bg-inherit",
+    colorCategoryBg ? colorClasses[colorCategoryBg].bg : "bg-inherit",
     barHeights[size],
     "",
   )}
