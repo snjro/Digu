@@ -8,7 +8,7 @@
   import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseHighlight from "$lib/base/BaseHighlight.svelte";
-  import { showSnackBarAsCopied } from "$lib/common/CommonCopyButton.svelte";
+  import { copyTextToClipboard } from "$lib/common/clipboard";
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
@@ -71,9 +71,8 @@
           tooltipText: "Copy to clipboard",
           tooltipXPosition: "left",
           tooltipYPosition: "top",
-          onClickEventFunction: () => {
-            navigator.clipboard.writeText(abiText);
-            $storeNoDbSnackBar = showSnackBarAsCopied;
+          onClickEventFunction: async () => {
+            $storeNoDbSnackBar = await copyTextToClipboard(abiText);
           },
         },
         {
