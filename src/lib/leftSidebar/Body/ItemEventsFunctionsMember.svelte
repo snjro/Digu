@@ -5,7 +5,7 @@
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
-  import type { AbiFragmentsType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/abiFragmentsType";
+  import type { AbiFragmentsType } from "$lib/contracts/abiFragmentsType";
   import { convertToKebabCase } from "@utils/utilsCommon";
   import BaseItem from "./BaseItem.svelte";
   import { getFunctionSelectorWithSplitter } from "./functionNameHandler";

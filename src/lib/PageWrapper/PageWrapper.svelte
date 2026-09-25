@@ -25,7 +25,7 @@
     type RadioLabelAndValues,
   } from "$lib/base/BaseRadio.svelte";
   import type { ThemeColor } from "@db/dbTypes";
-  import type { EventLogType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/eventLogType";
+  import type { EventLogType } from "$lib/contracts/eventLogType";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";

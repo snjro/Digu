@@ -20,7 +20,7 @@
     FunctionAbiFragment,
   } from "@constants/chains/types";
   import { trailingSlash } from "@routes/+layout";
-  import type { AbiFragmentsType } from "./abiFragmentsType";
+  import type { AbiFragmentsType } from "$lib/contracts/abiFragmentsType";
   import {
     capitalizeFirstLetter,
     convertToKebabCase,
