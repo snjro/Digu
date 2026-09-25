@@ -16,21 +16,21 @@ export type CommonChainExplorerLinkProps = {
   justifyEnd: boolean;
 };
 
-export function getChainExplorerUrl(
+export function getChainExplorer(
   chainName: ChainName,
   rpcSettings: StateRpcSettings,
-): string {
+): ChainExplorer {
   const targetChain: Chain = getTargetChain({ chainName: chainName });
   return targetChain.chainExplorers[
     rpcSettings[targetChain.name].chainExplorerIndex
-  ].url;
+  ];
 }
 export function getChainExplorerHref(
-  chainExplorerUrl: string,
+  chainExplorer: ChainExplorer,
   subdirectory: CommonChainExplorerLinkProps["subdirectory"],
   value: CommonChainExplorerLinkProps["value"],
 ): string {
-  return `${chainExplorerUrl}/${subdirectory}/${value}`;
+  return `${chainExplorer.url}/${chainExplorer.subdirectory[subdirectory]}/${value}`;
 }
 export function getChainExplorerLinkText(
   subdirectory: CommonChainExplorerLinkProps["subdirectory"],

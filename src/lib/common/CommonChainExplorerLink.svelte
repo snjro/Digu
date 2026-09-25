@@ -11,9 +11,9 @@
   import CommonCopyButton from "./CommonCopyButton.svelte";
   import { getPageChainName } from "./pageChainName";
   import {
+    getChainExplorer,
     getChainExplorerHref,
     getChainExplorerLinkText,
-    getChainExplorerUrl,
     type CommonChainExplorerLinkProps,
   } from "./chainExplorerLink";
 
@@ -55,8 +55,8 @@
   };
 
   let appendClass = $derived(classNames(appendClassProp, "tabular-nums"));
-  let chainExplorerUrl = $derived(
-    getChainExplorerUrl(
+  let chainExplorer = $derived(
+    getChainExplorer(
       getPageChainName(
         page.params.chainName,
         $storeUserSettings.selectedChainName.toString(),
@@ -65,7 +65,7 @@
     ),
   );
   const href = () => {
-    return getChainExplorerHref(chainExplorerUrl, subdirectory, value);
+    return getChainExplorerHref(chainExplorer, subdirectory, value);
   };
   const linkText = () => {
     return getChainExplorerLinkText(subdirectory, value);
