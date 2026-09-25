@@ -14,7 +14,7 @@ If you have a [RPC endpoint](https://ethereum.org/en/developers/docs/apis/json-r
 - **Semi-Serverless:**  
   Digu is a standalone application, basically it runs without a server. Only when using RPC to get event logs, it connects remote environment. And these event logs are all stored on your local database.
 - **Zero personal data collection:**  
-  Digu does _NOT_ collect any personal information. All data that requires preservation such as preferance, settings, RPC endpoint URL you set are stored locally.
+  Digu does _NOT_ collect any personal information. All data that requires preservation such as preference, settings, RPC endpoint URL you set are stored locally.
 
 ## [How it works](#how-it-works)
 
