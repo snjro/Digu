@@ -20,6 +20,7 @@ import * as UpdateSyncStatusInChain from "./dbEventLogsDataHandlersSyncStatusUpd
 import * as DbItemSyncStatus from "./dbEventLogsDataHandlersSyncStatusUpdateDbItemSyncStatus";
 import type { VersionIdentifier } from "./dbTypes";
 import { DbEventLogs } from "./dbEventLogs";
+import { extractEventContracts } from "@utils/utilsEthers";
 
 describe("startSyncingInChain", () => {
   // set spy
@@ -129,23 +130,23 @@ describe("stopSyncingInContract", () => {
           versionName: targetVersion.name,
         };
         const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
-        for (const targetContract of targetVersion.contracts) {
+        for (const targetContract of extractEventContracts(
+          targetVersion.contracts,
+        )) {
           const contractName: Contract["name"] = targetContract.name;
 
-          test(`should be called with chainName:"${chainName}"`, async () => {
+          test(`should be called with "${chainName}/${targetProject.name}/${targetVersion.name}/${contractName}"`, async () => {
             // call target
             await stopSyncingInContract(dbEventLogs, contractName);
             // expect
             expect(spyUpdateDbItemSyncStatus).toBeCalledTimes(2);
-            expect(spyUpdateDbItemSyncStatus).toHaveBeenNthCalledWith(
-              1,
+            expect(spyUpdateDbItemSyncStatus).toBeCalledWith(
               dbEventLogs,
               contractName,
               "isSyncing",
               false,
             );
-            expect(spyUpdateDbItemSyncStatus).toHaveBeenNthCalledWith(
-              2,
+            expect(spyUpdateDbItemSyncStatus).toBeCalledWith(
               dbEventLogs,
               contractName,
               "isAbort",
