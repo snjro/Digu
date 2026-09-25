@@ -2,6 +2,7 @@ import { EventFragment, FunctionFragment, Interface } from "ethers";
 import { describe, expect, test } from "vitest";
 import {
   formatTargetAbi,
+  getAbiFileExtention,
   getAbiText,
   isTargetContractInterface,
 } from "./abiText";
@@ -113,5 +114,14 @@ describe("getAbiText", () => {
       { type: "event", name: "Transfer" },
       { type: "function", name: "balanceOf" },
     ]);
+  });
+});
+
+describe("getAbiFileExtention", () => {
+  test("returns json for the JSON format", () => {
+    expect(getAbiFileExtention(0)).toBe("json");
+  });
+  test.each([1, 2])("returns txt for the human readable format %i", (index) => {
+    expect(getAbiFileExtention(index)).toBe("txt");
   });
 });

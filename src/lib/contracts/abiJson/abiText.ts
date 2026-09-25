@@ -31,6 +31,11 @@ export function formatTargetAbi(targetAbi: TargetAbi, abiFormatIndex: number) {
   }
 }
 
+// Only the JSON format is JSON. The human readable formats are plain text.
+export function getAbiFileExtention(abiFormatIndex: number): "json" | "txt" {
+  return abiFormatIndex === 0 ? "json" : "txt";
+}
+
 export function getAbiText(
   targetAbi: TargetAbi,
   abiFormatIndex: number,

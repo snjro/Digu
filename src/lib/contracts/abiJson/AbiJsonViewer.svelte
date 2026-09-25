@@ -12,7 +12,7 @@
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { getAbiText, type TargetAbi } from "./abiText";
+  import { getAbiFileExtention, getAbiText, type TargetAbi } from "./abiText";
 
   interface Props {
     targetAbi: TargetAbi;
@@ -86,9 +86,9 @@
               getExportFileName(
                 fragment ? "ABIfragment" : "ABI",
                 page.params,
-                abiFormatButtonIndex === 0 ? "json" : "txt",
+                getAbiFileExtention(abiFormatButtonIndex),
               ),
-              "json",
+              getAbiFileExtention(abiFormatButtonIndex),
             ),
         },
         {
