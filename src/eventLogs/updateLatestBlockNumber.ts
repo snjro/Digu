@@ -12,10 +12,11 @@ import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
 
 const functionName: string = "updateLatestBlocknumber";
 
+// Resolves a function that stops the updates.
 export async function startUpdateLatestBlockNumber(
   targetChainName: ChainName,
   nodeProvider: NodeProvider,
-): Promise<void> {
+): Promise<() => void> {
   customLogger.start(`${functionName}()`, {
     chainName: targetChainName,
     nodeProvider: nodeProvider,
@@ -24,6 +25,7 @@ export async function startUpdateLatestBlockNumber(
   const rpcSetting: RpcSetting = get(storeRpcSettings)[targetChainName];
   const maxErrorCount: number = rpcSetting.tryCount;
   let errorCount: number = 0;
+  let isStopped: boolean = false;
 
   const tryGetAndUpdateLatestBlockNumber = async () => {
     try {
@@ -52,6 +54,8 @@ export async function startUpdateLatestBlockNumber(
     }
 
     await tryGetAndUpdateLatestBlockNumber();
+    // A request in flight fails when the provider is destroyed after stopping.
+    if (isStopped) return;
     if (errorCount > maxErrorCount) {
       customLogger.error({
         errorOn: functionName,
@@ -59,10 +63,22 @@ export async function startUpdateLatestBlockNumber(
         errorMessage: "errorCount exceeded the limit. Start aborting.",
       });
 
-      await startAbortingInChain(targetChainName);
+      try {
+        await startAbortingInChain(targetChainName);
+      } catch (error) {
+        customLogger.error({
+          errorOn: functionName,
+          errorMessage: "Failed to start aborting.",
+          error: error,
+        });
+      }
       stopUpdateLatestBlockNumber(intervalId);
     }
   }, rpcSetting.blockIntervalMs);
+  return () => {
+    isStopped = true;
+    stopUpdateLatestBlockNumber(intervalId);
+  };
 }
 function stopUpdateLatestBlockNumber(intervalId: number | undefined) {
   const log: string = `Stop ${functionName}(). intervalId=${intervalId}`;

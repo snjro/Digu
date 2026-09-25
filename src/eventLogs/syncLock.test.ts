@@ -1,5 +1,13 @@
 import "fake-indexeddb/auto";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+  type Mock,
+} from "vitest";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Chain, Contract } from "@constants/chains/types";
 import type { EthersEventLog, SyncStatusContract } from "@db/dbTypes";
@@ -13,12 +21,26 @@ import {
 // Two browser tabs: each has its own copy of the modules (stores), and both
 // share IndexedDB (fake-indexeddb) and navigator.locks.
 
+// isConnectable false: the RPC cannot be connected when a sync starts.
+// providers: the providers that the syncs got.
+const rpc = vi.hoisted(() => ({
+  isConnectable: true,
+  providers: [] as { destroy: Mock }[],
+}));
+// The number of the timers for the latest block number that are running.
+const latestBlockTimers = vi.hoisted(() => ({ running: 0 }));
+
 // One log per block for the first event of each contract.
 vi.mock("@utils/utilsEthers", async (importOriginal) => {
   const original = await importOriginal<typeof import("@utils/utilsEthers")>();
   return {
     ...original,
-    getNodeProvider: async () => ({}),
+    getNodeProvider: async () => {
+      if (!rpc.isConnectable) return undefined;
+      const provider = { destroy: vi.fn() };
+      rpc.providers.push(provider);
+      return provider;
+    },
     getEthersEventLogs: async (
       eventNames: string[],
       _contract: unknown,
@@ -64,7 +86,10 @@ vi.mock("./eventLogsContractBlockTimes", () => ({
     })),
 }));
 vi.mock("./updateLatestBlockNumber", () => ({
-  startUpdateLatestBlockNumber: async () => {},
+  startUpdateLatestBlockNumber: async () => {
+    latestBlockTimers.running++;
+    return () => latestBlockTimers.running--;
+  },
 }));
 
 const chain: Chain = TARGET_CHAINS[0];
@@ -184,6 +209,9 @@ describe("sync with two tabs (issue #49)", () => {
   let tabs: Tab[] = [];
   let lockManager: FakeLockManager;
   beforeEach(async () => {
+    rpc.isConnectable = true;
+    rpc.providers = [];
+    latestBlockTimers.running = 0;
     lockManager = installFakeLockManager();
     const { Dexie } = await import("dexie");
     for (const name of await Dexie.getDatabaseNames()) await Dexie.delete(name);
@@ -195,7 +223,18 @@ describe("sync with two tabs (issue #49)", () => {
     tabs = [];
     // A sync left running would write into the next test's DB.
     expect(await isSyncLockHeld()).toBe(false);
+    // Without navigator.locks, the sync may still be cleaning up.
+    expect(await waitFor(() => isCleanedUp())).toBe(true);
   });
+  // Every sync stopped its timer and destroyed its provider.
+  function isCleanedUp(): boolean {
+    return (
+      latestBlockTimers.running === 0 &&
+      rpc.providers.every(
+        (provider) => provider.destroy.mock.calls.length === 1,
+      )
+    );
+  }
 
   test("opening tab B keeps tab A's sync status, and A can still stop", async () => {
     const a = await openTab();
@@ -412,6 +451,111 @@ describe("sync with two tabs (issue #49)", () => {
       expect.objectContaining({ chainName: chain.name }),
     );
     expect(b.storeStatus().syncStateText).toBe("syncing");
+  }, 30_000);
+
+  test("stops and releases the lock when the RPC cannot be connected", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    rpc.isConnectable = false;
+
+    expect(await a.fetchEventLogs()).toBe(true);
+    expect(await waitFor(async () => !(await isSyncLockHeld()))).toBe(true);
+    expect(a.storeStatus().syncStateText).toBe("stopped");
+    expect(a.isChainSyncing()).toBe(false);
+    expect((await dbStatus(a)).isSyncing).toBe(false);
+
+    rpc.isConnectable = true;
+    expect(await a.fetchEventLogs()).toBe(true);
+    expect(await waitFor(() => a.storeStatus().isSyncing)).toBe(true);
+    await stopAndWait(a);
+  }, 30_000);
+
+  test("stops the timer and destroys the provider when the sync ends", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    expect(await a.fetchEventLogs()).toBe(true);
+    await sleep(50);
+    expect(latestBlockTimers.running).toBe(1);
+
+    await stopAndWait(a);
+    expect(latestBlockTimers.running).toBe(0);
+    expect(rpc.providers).toHaveLength(1);
+    expect(rpc.providers[0].destroy).toHaveBeenCalledOnce();
+  }, 30_000);
+
+  test("stops every contract and releases the lock when a contract fails", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    // Same module instance as tab A (openTab() resets modules only at start).
+    const eventLogsContract = await import("./eventLogsContract");
+    vi.spyOn(eventLogsContract, "fetchEventLogsContract").mockRejectedValueOnce(
+      new Error("DB error"),
+    );
+
+    expect(await a.fetchEventLogs()).toBe(true);
+    expect(await waitFor(async () => !(await isSyncLockHeld()))).toBe(true);
+    // No contract is still syncing when the lock is released.
+    expect(a.isChainSyncing()).toBe(false);
+    expect(isCleanedUp()).toBe(true);
+  }, 30_000);
+
+  test("stops every contract when stopping a contract fails", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    expect(await a.fetchEventLogs()).toBe(true);
+    await sleep(50);
+    // Same module instance as tab A (openTab() resets modules only at start).
+    const syncStatus = await import("@db/dbEventLogsDataHandlersSyncStatus");
+    vi.spyOn(syncStatus, "stopSyncingInContract").mockRejectedValueOnce(
+      new Error("DB error"),
+    );
+
+    await a.stop();
+    expect(await waitFor(async () => !(await isSyncLockHeld()))).toBe(true);
+    expect(a.isChainSyncing()).toBe(false);
+    expect(isCleanedUp()).toBe(true);
+  }, 30_000);
+
+  test("stops every contract when the sync fails before the contracts start", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    // Same module instance as tab A (openTab() resets modules only at start).
+    const updateLatestBlockNumber = await import("./updateLatestBlockNumber");
+    vi.spyOn(
+      updateLatestBlockNumber,
+      "startUpdateLatestBlockNumber",
+    ).mockRejectedValueOnce(new Error("DB error"));
+
+    expect(await a.fetchEventLogs()).toBe(true);
+    expect(await waitFor(async () => !(await isSyncLockHeld()))).toBe(true);
+    expect(a.isChainSyncing()).toBe(false);
+    expect(isCleanedUp()).toBe(true);
+  }, 30_000);
+
+  test("waits for the started contracts when the sync fails while starting them", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    // Same module instance as tab A (openTab() resets modules only at start).
+    const eventLogsContract = await import("./eventLogsContract");
+    const original = eventLogsContract.fetchEventLogsContract;
+    let calls: number = 0;
+    let running: number = 0;
+    vi.spyOn(eventLogsContract, "fetchEventLogsContract").mockImplementation(
+      (...args: Parameters<typeof original>) => {
+        calls++;
+        // Throws in the loop that starts the contracts, after the first one.
+        if (calls === 2) throw new Error("Setup error");
+        running++;
+        return original(...args).finally(() => running--);
+      },
+    );
+
+    expect(await a.fetchEventLogs()).toBe(true);
+    expect(await waitFor(async () => !(await isSyncLockHeld()))).toBe(true);
+    // The first contract has stopped before the lock is released.
+    expect(running).toBe(0);
+    expect(a.isChainSyncing()).toBe(false);
+    expect(isCleanedUp()).toBe(true);
   }, 30_000);
 
   test("does not wait for the lock that the same tab holds", async () => {

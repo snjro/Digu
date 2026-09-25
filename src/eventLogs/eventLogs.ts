@@ -3,7 +3,7 @@ import { DbEventLogs } from "@db/dbEventLogs";
 import type { NodeStatus, VersionIdentifier } from "@db/dbTypes";
 import { extractEventContracts, getNodeProvider } from "@utils/utilsEthers";
 import type { NodeProvider } from "@utils/utilsEthers";
-import type { Chain } from "@constants/chains/types";
+import type { Chain, ChainName, ContractName } from "@constants/chains/types";
 import {
   startAbortingInChain,
   startSyncingInChain,
@@ -32,45 +32,94 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
 
   const promiseFetchAndInsertEthersEvents: Promise<void>[] = [];
   const rpc: string = get(storeRpcSettings)[targetChain.name].rpc;
-  const nodeProvider: NodeProvider | undefined = await getNodeProvider(
-    targetChain,
-    rpc,
-  );
-  const nodeStatus: NodeStatus =
-    get(storeChainStatus)[targetChain.name].nodeStatus;
+  let nodeProvider: NodeProvider | undefined = undefined;
+  let stopUpdateLatestBlockNumber: (() => void) | undefined = undefined;
+  try {
+    nodeProvider = await getNodeProvider(targetChain, rpc);
+    const nodeStatus: NodeStatus =
+      get(storeChainStatus)[targetChain.name].nodeStatus;
 
-  if (nodeProvider === undefined || nodeStatus !== "SUCCESS") {
-    customLogger.fail("Get provider.", {
-      chainName: targetChain.name,
-      rpc: rpc,
-    });
-    await startAbortingInChain(targetChain.name);
-    await stopSyncingInChain(targetChain.name);
-    return;
-  }
-
-  await startUpdateLatestBlockNumber(targetChain.name, nodeProvider);
-
-  for (const targetProject of targetChain.projects) {
-    for (const targetVersion of targetProject.versions) {
-      const versionIdentifier: VersionIdentifier = {
+    if (nodeProvider === undefined || nodeStatus !== "SUCCESS") {
+      customLogger.fail("Get provider.", {
         chainName: targetChain.name,
-        projectName: targetProject.name,
-        versionName: targetVersion.name,
-      };
-      const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
-      for (const targetContract of extractEventContracts(
-        targetVersion.contracts,
-      )) {
-        // await setSyncing(dbEventLogs, targetContract.name);
-        promiseFetchAndInsertEthersEvents.push(
-          fetchEventLogsContract(dbEventLogs, targetContract, nodeProvider),
-        );
+        rpc: rpc,
+      });
+      await startAbortingInChain(targetChain.name);
+      return;
+    }
+
+    stopUpdateLatestBlockNumber = await startUpdateLatestBlockNumber(
+      targetChain.name,
+      nodeProvider,
+    );
+
+    for (const targetProject of targetChain.projects) {
+      for (const targetVersion of targetProject.versions) {
+        const versionIdentifier: VersionIdentifier = {
+          chainName: targetChain.name,
+          projectName: targetProject.name,
+          versionName: targetVersion.name,
+        };
+        const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
+        for (const targetContract of extractEventContracts(
+          targetVersion.contracts,
+        )) {
+          // await setSyncing(dbEventLogs, targetContract.name);
+          promiseFetchAndInsertEthersEvents.push(
+            fetchEventLogsContract(
+              dbEventLogs,
+              targetContract,
+              nodeProvider,
+            ).catch((error: unknown) =>
+              abortOnError(targetChain.name, targetContract.name, error),
+            ),
+          );
+        }
       }
     }
+  } catch (error) {
+    // Stop the contracts that already started, so that the wait below ends.
+    await startAbortingInChain(targetChain.name).catch(
+      (abortError: unknown) => {
+        customLogger.error("Start aborting.", {
+          chainName: targetChain.name,
+          errorObject: abortError,
+        });
+      },
+    );
+    throw error;
+  } finally {
+    // Wait for every contract, so that none of them syncs after the lock is
+    // released.
+    await Promise.allSettled(promiseFetchAndInsertEthersEvents);
+    stopUpdateLatestBlockNumber?.();
+    try {
+      // Also stops a contract whose loop ended with an error.
+      await stopSyncingInChain(targetChain.name);
+    } finally {
+      await nodeProvider?.destroy();
+    }
   }
-  await Promise.all(promiseFetchAndInsertEthersEvents);
   customLogger.finished(
     `Terminated fetch event logs. Chain: ${targetChain.name}`,
   );
+}
+// Stops the whole chain, as when the errors of a contract exceed Try Count.
+async function abortOnError(
+  chainName: ChainName,
+  contractName: ContractName,
+  error: unknown,
+): Promise<void> {
+  customLogger.error("Fetch event logs. Stop syncing the chain:", {
+    chainName: chainName,
+    contractName: contractName,
+    errorObject: error,
+  });
+  await startAbortingInChain(chainName).catch((abortError: unknown) => {
+    // allSettled would drop it silently.
+    customLogger.error("Start aborting.", {
+      chainName: chainName,
+      errorObject: abortError,
+    });
+  });
 }
