@@ -159,3 +159,25 @@ describe("getNodeProvider checks the chain of the node", () => {
     expectLastNodeStatus("NETWORK_ERROR");
   });
 });
+
+describe("getNodeProvider with an http RPC", () => {
+  test("should not send eth_chainId for each getLogs", async () => {
+    fakeNode.chainId = targetChain.chainId;
+    fakeNode.methods = [];
+    const nodeProvider = await getNodeProvider(
+      targetChain,
+      "http://127.0.0.1:9",
+    );
+    const countChainIdRequests = (): number =>
+      fakeNode.methods.filter((method) => method === "eth_chainId").length;
+    expect(countChainIdRequests()).toBe(1);
+
+    await nodeProvider!.getLogs({ fromBlock: 0, toBlock: 1 });
+    const countAfterFirstGetLogs: number = countChainIdRequests();
+    await nodeProvider!.getLogs({ fromBlock: 2, toBlock: 3 });
+    await nodeProvider!.getLogs({ fromBlock: 4, toBlock: 5 });
+    expect(countChainIdRequests()).toBe(countAfterFirstGetLogs);
+    expect(fakeNode.methods.filter((m) => m === "eth_getLogs")).toHaveLength(3);
+    await nodeProvider?.destroy();
+  });
+});
