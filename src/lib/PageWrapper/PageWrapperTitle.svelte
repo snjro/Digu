@@ -40,7 +40,7 @@
   );
 </script>
 
-<div
+<h1
   class={classNames(
     "flex",
     "w-full",
@@ -75,4 +75,4 @@
       fontMono
     />
   </div>
-</div>
+</h1>

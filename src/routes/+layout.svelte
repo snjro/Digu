@@ -97,7 +97,7 @@
     )}
   >
     <Nav />
-    <div
+    <main
       class={classNames(
         "min-h-0 flex-auto",
         "flex flex-col",
@@ -109,6 +109,6 @@
       <Breadcrumb />
       {@render children?.()}
       <BaseSnackbar />
-    </div>
+    </main>
   </div>
 </div>
