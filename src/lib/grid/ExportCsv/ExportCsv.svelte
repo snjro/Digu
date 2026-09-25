@@ -151,7 +151,8 @@
     },
     filteredSorted: {
       title: "Filtered & Sorted",
-      subTitle: "Export all data or filtered and sorted data?",
+      subTitle:
+        "Export all rows and columns, or only the shown ones in the shown order?",
       groupName: "FilteredAndSorted",
       selectedValue: "all",
       radioLabelAndValues: [
