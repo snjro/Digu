@@ -4,13 +4,11 @@
 </script>
 
 <script lang="ts">
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { browser } from "$app/environment";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
-  import {
-    colorDefinitions,
-    type ColorCategory,
-  } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseButton, {
@@ -23,9 +21,7 @@
     leftSideBarItemHeight,
     type BaseSize,
   } from "$lib/base/baseSizes";
-  import type { ThemeColor } from "@db/dbTypes";
   import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import {
     isSelectedDirectory,
@@ -97,11 +93,9 @@
     getFrontColorCategory(isSelected),
   );
 
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
-
   let bgColor = $derived(
     (isSelected || hoverType !== undefined) &&
-      colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bgEmphasis,
+      colorClasses[colorSettings.leftSidebarBodyBg].bgEmphasis,
   );
 
   let widthForButton: `w-${string}` = $derived(

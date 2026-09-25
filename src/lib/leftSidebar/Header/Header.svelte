@@ -3,16 +3,13 @@
 </script>
 
 <script lang="ts">
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import ButtonAccordionHandler from "./ButtonAccordionHandler.svelte";
   import ButtonClose from "./ButtonClose.svelte";
   import Logo from "./Logo.svelte";
   import SelectChain from "./SelectChain.svelte";
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 </script>
 
 <div
@@ -28,8 +25,8 @@
     "py-2",
     "px-3",
     "border-b",
-    colorDefinitions[themeColor][colorSettings.leftSidebarHeader].border,
-    colorDefinitions[themeColor][colorSettings.leftSidebarHeader].bg,
+    colorClasses[colorSettings.leftSidebarHeader].border,
+    colorClasses[colorSettings.leftSidebarHeader].bg,
     "",
   )}
 >

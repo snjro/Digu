@@ -1,17 +1,13 @@
 <script lang="ts">
-  import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import {
     getScrollbarStyle,
     type ScrollbarStyle,
   } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import ItemHome from "./ItemHome.svelte";
   import ItemProjectVersions from "./ItemProjectVersions.svelte";
-
-  let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
   let scrollbarStyle: ScrollbarStyle = $derived(
     getScrollbarStyle(colorSettings.leftSidebarBodyBg),
@@ -24,7 +20,7 @@
     "min-h-0",
     "flex-auto",
     "w-full",
-    colorDefinitions[themeColor][colorSettings.leftSidebarBodyBg].bg,
+    colorClasses[colorSettings.leftSidebarBodyBg].bg,
     "overflow-y-scroll",
     scrollbarStyle.thin,
     "",

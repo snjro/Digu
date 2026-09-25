@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import { tick, type ComponentProps } from "svelte";
 import { render } from "@testing-library/svelte";
 import BaseItemIndicator from "./BaseItemIndicator.svelte";
-import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
 import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
@@ -27,14 +27,9 @@ function getParts(container: HTMLElement): Parts {
   const [left, center, right] = [...root.children] as HTMLElement[];
   return { root, left, center, right };
 }
-const bg = (
-  theme: "light" | "dark",
-  isSelected: boolean,
-  key: "bg" | "bgEmphasis",
-): string =>
-  colorDefinitions[theme][
-    isSelected ? "interactive" : colorSettings.dialogHeader
-  ][key];
+// themeColors.css gives these classes the colors of each theme.
+const bg = (isSelected: boolean, key: "bg" | "bgEmphasis"): string =>
+  colorClasses[isSelected ? "interactive" : colorSettings.dialogHeader][key];
 
 type Shape = {
   name: string;
@@ -114,25 +109,21 @@ describe("BaseItemIndicator.svelte", () => {
       const { container, rerender } = render(BaseItemIndicator, props);
       await rerender({ ...props, isSelected, isHover });
       expect(getParts(container).center.classList).toContain(
-        bg("light", isSelected, key),
+        bg(isSelected, key),
       );
     },
   );
 
-  test("follows the theme in storeUserSettings", async () => {
+  test("keeps the same color classes in both themes", async () => {
     const { container } = render(BaseItemIndicator, {
       ...props,
       isSelected: true,
     });
-    expect(getParts(container).center.classList).toContain(
-      bg("light", true, "bg"),
-    );
+    expect(getParts(container).center.classList).toContain(bg(true, "bg"));
 
     storeUserSettings.update((s) => ({ ...s, themeColor: "dark" }));
     await tick();
-    expect(getParts(container).center.classList).toContain(
-      bg("dark", true, "bg"),
-    );
+    expect(getParts(container).center.classList).toContain(bg(true, "bg"));
   });
 
   test("pads the left side less for a top level item", async () => {
