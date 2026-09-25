@@ -28,6 +28,7 @@
     iconName: BaseIconProps["name"];
     isPrefixIcon?: boolean;
     tooltipText?: BaseButtonProps["tooltipText"];
+    ariaLabel?: BaseButtonProps["ariaLabel"];
     tooltipXPosition?: BaseButtonProps["tooltipXPosition"];
     tooltipYPosition?: BaseButtonProps["tooltipYPosition"];
     size: NonNullable<BaseIconProps["size"]>;
@@ -58,6 +59,7 @@
     iconName,
     isPrefixIcon = true,
     tooltipText = undefined,
+    ariaLabel = undefined,
     tooltipXPosition = "right",
     tooltipYPosition = "top",
     size,
@@ -94,6 +96,7 @@
   {label}
   {openNewTab}
   {tooltipText}
+  {ariaLabel}
   {tooltipXPosition}
   {tooltipYPosition}
   {hoverEffect}

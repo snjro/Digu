@@ -38,6 +38,7 @@
 
 <BaseButtonIcon
   tooltipText={tooltipText()}
+  ariaLabel="Copy"
   iconName="contentCopy"
   {size}
   shadowEffect

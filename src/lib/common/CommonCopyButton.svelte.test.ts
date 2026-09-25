@@ -32,4 +32,9 @@ describe("CommonCopyButton.svelte", () => {
       expect(get(storeNoDbSnackBar)).toBe(copyFailed);
     });
   });
+
+  test("names the button Copy", () => {
+    render(CommonCopyButton, { copyTarget: "0xabc", size: "md" });
+    expect(screen.getByRole("button", { name: "Copy" })).toBeTruthy();
+  });
 });

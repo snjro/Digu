@@ -125,4 +125,27 @@ describe("BaseButton.svelte", () => {
     await rerender({ tooltipText: "Other" });
     expect(screen.getByText("Other")).toBeTruthy();
   });
+
+  test("names an icon button by ariaLabel, then by tooltipText", async () => {
+    const { rerender } = render(BaseButton, {
+      ariaLabel: "Close",
+      tooltipText: "Close the dialog",
+    });
+    expect(screen.getByRole("button").getAttribute("aria-label")).toBe("Close");
+    await rerender({ ariaLabel: undefined });
+    expect(screen.getByRole("button").getAttribute("aria-label")).toBe(
+      "Close the dialog",
+    );
+  });
+
+  test("does not set aria-label when the button has a label", () => {
+    render(BaseButton, { label: "Save", ariaLabel: "Save the file" });
+    expect(screen.getByRole("button").hasAttribute("aria-label")).toBe(false);
+  });
+
+  test("gives the same name to the link when href is set", () => {
+    render(BaseButton, { href: "https://example.com/", ariaLabel: "Home" });
+    expect(screen.getByRole("link").getAttribute("aria-label")).toBe("Home");
+    expect(screen.getByRole("button").getAttribute("aria-label")).toBe("Home");
+  });
 });

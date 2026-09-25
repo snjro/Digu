@@ -12,6 +12,7 @@
     justify: keyof typeof justifyPositions;
     disabled?: boolean;
     tooltipText?: BaseTooltipProps["text"];
+    ariaLabel?: string;
     tooltipXPosition?: BaseTooltipProps["xPosition"];
     tooltipYPosition?: BaseTooltipProps["yPosition"];
     colorCategoryFront?: ColorCategory;
@@ -95,6 +96,7 @@
     popupEffect?: NonNullable<BaseButtonProps["popupEffect"]>;
     justify?: NonNullable<BaseButtonProps["justify"]>;
     tooltipText?: BaseButtonProps["tooltipText"];
+    ariaLabel?: BaseButtonProps["ariaLabel"];
     tooltipXPosition?: BaseButtonProps["tooltipXPosition"];
     tooltipYPosition?: BaseButtonProps["tooltipYPosition"];
     colorCategoryFront?: BaseButtonProps["colorCategoryFront"];
@@ -127,6 +129,7 @@
     popupEffect = true,
     justify = "center",
     tooltipText = undefined,
+    ariaLabel = undefined,
     tooltipXPosition = "right",
     tooltipYPosition = "top",
     colorCategoryFront = undefined,
@@ -151,6 +154,10 @@
     if (!isHoverControledByParent) isHover = false;
     onmouseleave?.(event);
   }
+  // A button with a visible label keeps its text as its name.
+  const accessibleName: string | undefined = $derived(
+    label ? undefined : (ariaLabel ?? tooltipText),
+  );
   let themeColor: ThemeColor = $derived($storeUserSettings.themeColor);
   const textColor = (): string => {
     let textColor: string;
@@ -258,6 +265,7 @@
   <button
     class={customClass}
     {disabled}
+    aria-label={accessibleName}
     {onclick}
     onmouseenter={onMouseEnter}
     onmouseleave={onMouseLeave}
@@ -266,6 +274,7 @@
       <BaseA
         {openNewTab}
         {href}
+        ariaLabel={accessibleName}
         forcedClass={classNames(
           "inline-flex",
           "items-center",
