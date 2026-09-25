@@ -1,11 +1,9 @@
-import { beforeAll, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import {
   getScreenWidth,
   getVerticalViewabilityInScroll,
   type VerticalViewability,
 } from "./utilsDom";
-import type { Browser, Page } from "puppeteer";
-import puppeteer from "puppeteer";
 
 vi.mock("$app/environment", () => {
   return {
@@ -33,8 +31,6 @@ let parentElement: HTMLDivElement;
 let childElement: HTMLDivElement;
 
 describe('"getVerticalViewabilityInScroll"', () => {
-  let browser: Browser;
-  let page: Page;
   const familiesStyle: FamilyStyle[] = [
     //Same size for parent and child
     {
@@ -106,16 +102,6 @@ describe('"getVerticalViewabilityInScroll"', () => {
     },
   ];
 
-  beforeAll(async (): Promise<void> => {
-    browser = await puppeteer.launch({ headless: true });
-    page = await browser.newPage();
-    await page.exposeFunction(
-      "exposedGetVerticalViewabilityInScroll",
-      (parentElement: HTMLElement, childElement: HTMLElement) => {
-        getVerticalViewabilityInScroll(parentElement, childElement);
-      },
-    );
-  });
   test.each<FamilyStyle>(familiesStyle)(
     `should return $expected when $condition`,
     async ({ parent, child, expected }: FamilyStyle) => {

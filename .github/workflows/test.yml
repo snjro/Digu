@@ -28,10 +28,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      # ubuntu-24.04 restricts unprivileged user namespaces, which Chrome's sandbox needs
-      - name: Allow Chrome Sandbox
-        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-
       - name: Run vitest Tests
         run: npm run vitest:coverage
 
@@ -70,3 +66,18 @@ jobs:
       - name: Run svelte-check
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: npm run check
+
+      - name: Run build
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run build
+
+      # dependabot updates package-lock.json but not compose.yaml
+      - name: Check the puppeteer image tag
+        if: ${{ !cancelled() }}
+        run: |
+          lock_version=$(jq -r '.packages["node_modules/puppeteer"].version' package-lock.json)
+          image_tag=$(sed -n 's|^ *image: ghcr.io/puppeteer/puppeteer:||p' compose.yaml)
+          if [ "$lock_version" != "$image_tag" ]; then
+            echo "::error file=compose.yaml::The puppeteer image tag ($image_tag) differs from puppeteer in package-lock.json ($lock_version)"
+            exit 1
+          fi

@@ -13,7 +13,7 @@ services:
       - "127.0.0.1:5173:5173"
     command: npm run dev -- --host 0.0.0.0
 
-  # Runs the tests with Chrome, which src/utils/utilsDom.test.ts needs.
+  # Has Chrome for scripts/visual-compare and scripts/a11y-scan.
   # Keep the image tag the same as the puppeteer version in package-lock.json.
   test:
     image: ghcr.io/puppeteer/puppeteer:25.11.0
@@ -23,7 +23,7 @@ services:
     environment:
       HOME: /tmp
       PUPPETEER_CACHE_DIR: /home/pptruser/.cache/puppeteer
-    # Chrome's sandbox needs it; the tests launch Chrome without --no-sandbox.
+    # Chrome's sandbox needs it; scripts/visual-compare launches Chrome without --no-sandbox.
     cap_add:
       - SYS_ADMIN
     volumes:
