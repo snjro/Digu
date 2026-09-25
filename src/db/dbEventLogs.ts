@@ -47,15 +47,38 @@ export class DbEventLogs extends dbBase {
 
     return schemaDefinition;
   }
-  protected async addInitialData(
+  // Adds only the missing rows: "populate" does not run for the contracts
+  // added after the DB was created.
+  async addInitialData(
     tx: Transaction,
     targetContracts: Contract[],
   ): Promise<void> {
-    const arrayOfInitialData: SyncStatusContract[] = targetContracts.map(
-      (targetContract) => getInitialDataOfSyncStatusContract(targetContract),
+    const table = tx.table(DB_TABLE_NAMES.EventLog.syncStatus);
+    const records: (SyncStatusContract | undefined)[] = await table.bulkGet(
+      targetContracts.map((targetContract) => targetContract.name),
     );
-    await tx
-      .table(DB_TABLE_NAMES.EventLog.syncStatus)
-      .bulkAdd(arrayOfInitialData);
+    const arrayOfInitialData: SyncStatusContract[] = targetContracts
+      .filter((_, index) => records[index] === undefined)
+      .map((targetContract) =>
+        getInitialDataOfSyncStatusContract(targetContract),
+      );
+    if (arrayOfInitialData.length > 0) {
+      await table.bulkAdd(arrayOfInitialData);
+    }
   }
+}
+
+export async function addInitialDataOfDbEventLogs(
+  dbEventLogs: DbEventLogs,
+): Promise<void> {
+  const targetContracts: Contract[] = extractEventContracts(
+    getTargetVersion(dbEventLogs.versionIdentifier).contracts,
+  );
+  await dbEventLogs.transaction(
+    "rw",
+    DB_TABLE_NAMES.EventLog.syncStatus,
+    async (tx) => {
+      await dbEventLogs.addInitialData(tx, targetContracts);
+    },
+  );
 }

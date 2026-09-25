@@ -1,4 +1,5 @@
-import { DbEventLogs } from "@db/dbEventLogs";
+import { addInitialDataOfDbEventLogs, DbEventLogs } from "@db/dbEventLogs";
+import { addInitialDataOfDbChainStatus } from "@db/dbChainStatus";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import {
   initialDataUserSettings,
@@ -10,7 +11,11 @@ import {
   type UserSetting,
 } from "@db/dbTypes";
 import { getDbRecordSyncStatusContract } from "@db/dbEventLogsDataHandlersSyncStatusGetters";
-import type { ChainName, ContractName } from "@constants/chains/types";
+import type {
+  ChainName,
+  Contract,
+  ContractName,
+} from "@constants/chains/types";
 import { getDbRecordChainStatus } from "@db/dbChainStatusDataHandlers";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { storeChainStatus } from "@stores/storeChainStatus";
@@ -26,6 +31,8 @@ import { customLogger } from "@utils/logger";
 export async function initializeStore(): Promise<void> {
   const promiseUpdateStores: Promise<void>[] = [];
   await initializeStoreUserSettings();
+  // Add the rows of the chains and contracts added after the DBs were created.
+  await addInitialDataOfDbChainStatus();
   for (const targetChain of TARGET_CHAINS) {
     promiseUpdateStores.push(InitializeStoreChainStatus(targetChain.name));
 
@@ -41,17 +48,27 @@ export async function initializeStore(): Promise<void> {
 
         const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
 
-        for (const targetContract of extractEventContracts(
-          targetVersion.contracts,
-        )) {
-          promiseUpdateStores.push(
-            InitializeStoreSyncStatus(dbEventLogs, targetContract.name),
-          );
-        }
+        promiseUpdateStores.push(
+          InitializeStoreSyncStatusInVersion(
+            dbEventLogs,
+            extractEventContracts(targetVersion.contracts),
+          ),
+        );
       }
     }
   }
   await Promise.all(promiseUpdateStores);
+}
+async function InitializeStoreSyncStatusInVersion(
+  dbEventLogs: DbEventLogs,
+  targetContracts: Contract[],
+): Promise<void> {
+  await addInitialDataOfDbEventLogs(dbEventLogs);
+  await Promise.all(
+    targetContracts.map((targetContract) =>
+      InitializeStoreSyncStatus(dbEventLogs, targetContract.name),
+    ),
+  );
 }
 async function InitializeStoreChainStatus(chainName: ChainName): Promise<void> {
   const chainStatus: ChainStatus = await getDbRecordChainStatus(chainName);

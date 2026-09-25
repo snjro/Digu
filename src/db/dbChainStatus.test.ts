@@ -1,6 +1,11 @@
-import { DB_NAME, DB_VERSIONS } from "@db/constants";
+import "fake-indexeddb/auto";
+import { DB_NAME, DB_TABLE_NAMES, DB_VERSIONS } from "@db/constants";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { dbChainStatus, initialDataChainStatus } from "./dbChainStatus";
+import {
+  addInitialDataOfDbChainStatus,
+  dbChainStatus,
+  initialDataChainStatus,
+} from "./dbChainStatus";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 
 vi.mock("@constants/chains/_index", () => ({
@@ -44,5 +49,24 @@ describe("DbChainStatus", () => {
       latestBlockNumber: 0,
       nodeStatus: undefined,
     });
+  });
+});
+
+describe("addInitialDataOfDbChainStatus", () => {
+  test("should add the rows of the chains added after the database was created", async () => {
+    const table = dbChainStatus.table(DB_TABLE_NAMES.ChainStatus);
+    await dbChainStatus.open();
+    // make the database created with the constants before "chain2" was added
+    await table.delete("chain2");
+    await table.update("chain1", { latestBlockNumber: 100 });
+
+    // call target
+    await addInitialDataOfDbChainStatus();
+
+    // "chain2" gets the initial data, and "chain1" is kept
+    expect(await table.toArray()).toEqual([
+      { ...initialDataChainStatus("chain1"), latestBlockNumber: 100 },
+      initialDataChainStatus("chain2"),
+    ]);
   });
 });
