@@ -13,8 +13,7 @@ import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
 import { columnDefChainExplorerLinkByKeyName } from "$lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
-import { convertToKebabCase } from "@utils/utilsCommon";
-import { TAB_VALUES_CONTRACT } from "$lib/PageWrapper/tabs";
+import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
 
 const girdSize: BaseSize = sizeSettings.grid;
 const cellClass: string = classNames("");
@@ -50,7 +49,7 @@ export const columnDefsBasic = <T extends ContractRow>(
                   text: cellRendererParams.data?.contractName,
                   href: `${urlPathName}${
                     cellRendererParams.data.contractName
-                  }#${convertToKebabCase(TAB_VALUES_CONTRACT[0])}`,
+                  }#${getFirstTabUrlHash("contracts")}`,
                   textSize: girdSize,
                   openNewTab: false,
                   prefixIcon: {

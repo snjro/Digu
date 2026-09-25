@@ -11,8 +11,7 @@ import type { FunctionRow } from "$lib/gridColumnDefs/rowTypes";
 import { columnDefStateMutability } from "$lib/gridColumnDefs/columnDefStateMutability";
 import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
-import { convertToKebabCase } from "@utils/utilsCommon";
-import { TAB_VALUES_FUNCTION } from "$lib/PageWrapper/tabs";
+import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
 
 const cellClass: string = classNames("");
 const sortable = true;
@@ -47,7 +46,7 @@ export const columnDefsBasic = <T extends FunctionRow>(
                   text: cellRendererParams.data.functionName,
                   href: `${urlPathName}${cellRendererParams.data.functionName}${
                     cellRendererParams.data.functionSelectorWithSplitter
-                  }#${convertToKebabCase(TAB_VALUES_FUNCTION[0])}`,
+                  }#${getFirstTabUrlHash("functions")}`,
                   textSize: gridSize,
                   openNewTab: false,
                   prefixIcon: {
