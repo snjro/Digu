@@ -1,4 +1,4 @@
-import type { EventLogType } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/eventLogType";
+import type { EventLogType } from "$lib/contracts/eventLogType";
 import { convertTimestampSecToIso8601 } from "./utilsTime";
 
 export type ExportFilePrefix =

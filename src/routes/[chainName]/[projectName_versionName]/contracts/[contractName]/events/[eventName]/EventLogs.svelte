@@ -11,7 +11,7 @@
   import type { EventAbiFragment } from "@constants/chains/types";
   import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
   import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
-  import type { EventLogType } from "./eventLogType";
+  import type { EventLogType } from "$lib/contracts/eventLogType";
   import { gridRows } from "./gridRows";
   import { applyLatestLoad } from "./latestLoad";
   import { getEachArgsMaxLengths } from "../../../maxParamsLength";
