@@ -17,6 +17,11 @@ repo=$(git -C "$scripts_dir" rev-parse --show-toplevel)
 project=$(basename "$repo" | tr "[:upper:]" "[:lower:]")-a11y
 compose=(docker compose -f "$repo/compose.yaml" -p "$project")
 
+if [[ $out_dir == "$repo" || $out_dir == "$repo"/* ]]; then
+  echo "Refusing to use $out_dir as <out-dir>: it is in the repository" >&2
+  exit 2
+fi
+
 trap '"${compose[@]}" down >/dev/null 2>&1 || true' EXIT
 
 mkdir -p "$out_dir"

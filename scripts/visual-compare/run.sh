@@ -36,8 +36,10 @@ fi
 if [[ -e $out_dir && ! -d $out_dir ]]; then
   refuse "it is not a folder"
 fi
-if [[ -d $out_dir && -n $(ls -A "$out_dir") && ! -f $out_dir/report.md ]]; then
-  refuse "it is not empty and has no report.md of an earlier run"
+# run.sh puts this file in <out-dir>, so a run that stopped halfway can be run again.
+marker=.visual-compare
+if [[ -d $out_dir && -n $(ls -A "$out_dir") && ! -f $out_dir/report.md && ! -f $out_dir/$marker ]]; then
+  refuse "it is not empty and has no report.md or $marker of an earlier run"
 fi
 
 tmp=$(mktemp -d)
@@ -83,6 +85,7 @@ build "$head_dir" "$head_project"
 
 rm -rf "$out_dir"
 mkdir -p "$out_dir"
+touch "$out_dir/$marker"
 docker compose -f "$head_dir/compose.yaml" -p "$head_project" run --rm -T \
   -v "$scripts_dir:/scripts:ro" \
   -v "$base_dir/_build:/base:ro" \

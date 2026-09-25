@@ -11,11 +11,14 @@ It is run by hand for each pull request. It is not part of CI yet.
 scripts/a11y-scan/run.sh <out-dir>
 ```
 
-- `<out-dir>`: where to write the result. Keep it outside the repository.
-  Files of an earlier run in it are overwritten.
+- `<out-dir>`: where to write the result. Keep it outside the repository;
+  `run.sh` stops when it is in the repository. Files of an earlier run in it
+  are overwritten.
 
 It needs git, Docker (`compose.yaml` of this repository) and Python 3. It scans
-this working tree, with its uncommitted changes.
+this working tree, with its uncommitted changes. It reinstalls the
+`node_modules` of this working tree with `npm ci`, and overwrites its `_build`
+and `.svelte-kit`.
 
 ## What it does
 
@@ -27,6 +30,8 @@ this working tree, with its uncommitted changes.
    2. `axe-scan.mjs` serves `_build` inside the container (no port is opened),
       opens each page with the Chrome of puppeteer, and runs axe-core.
       Requests to other hosts are blocked, so the app does not call an RPC.
+      It opens the settings dialog with the button whose tooltip is
+      "Settings", and stops when the button or the dialog is not found.
 3. `summarize.py` counts the problems by rule and by page.
 
 ## Pages
