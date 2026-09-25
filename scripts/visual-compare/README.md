@@ -28,7 +28,7 @@ scripts/visual-compare/run.sh <merge>^1 ../visual-compare-out <merge>
 ```
 
 It needs git and Docker (`compose.yaml` of this repository). It takes about
-3 minutes.
+10 minutes.
 
 ## What it does
 
@@ -70,16 +70,33 @@ Light and dark theme of:
     opened from that menu
 - the version page after unchecking the sync target of a contract
 - the error page (404), after a link to an unknown chain
+- the ABI tab of the contract, the event and the function page, the
+  "Components of ..." dialog of a function with a tuple, and the ABI params
+  dialog of the events grid
+- the mouse over a grid row, a table row, a tab button, a sidebar link, and a
+  button with a tooltip. These are taken in a Chrome that answers
+  `(hover: hover)` like one with a mouse. Headless Chrome answers
+  `(hover: none)`, so the Tailwind `hover:` classes do not apply without it
+- 390 × 844: home, contracts, events and function, with the sidebar open (the
+  default) and closed
+- with event logs in IndexedDB, as if a sync had run: version, contracts,
+  contract, events, and event (its overview and the Event Logs text and hex
+  tabs). The logs are made with ethers from the ABI of Augur, with fixed
+  values, so every run shows the same rows. Nothing is fetched from an RPC
+
+That is 55 screens for each theme, 110 in all.
 
 Each action starts from a fresh browser profile, so what it saves in the
 browser (settings, the chain) does not change the next screen.
 
-To add a screen, edit `PAGES` or `STATES` in `shots.mjs`.
+To add a screen, edit `PAGES`, `STATES`, `MORE_STATES`, `PHONE_PAGES` or
+`DATA_PAGES` in `shots.mjs`.
 
 ## Limits
 
-- The build has no synced data, so the event logs and the sync progress are
-  not shown.
+- The only event logs are the fake ones of `DATA_PAGES`. Both builds are shot
+  with the `shots.mjs` of this working tree, and the ABI of Augur and Dexie
+  for them are read from this working tree too.
 - A screenshot shows the screen after it settles. Animations and transitions
   are turned off.
 - The same build gives the same screenshots from run to run, with the Chrome
