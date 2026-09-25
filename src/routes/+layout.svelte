@@ -1,11 +1,14 @@
 <script lang="ts">
   import { browser } from "$app/environment";
   import { onNavigate } from "$app/navigation";
+  import { page } from "$app/state";
   import { colorDefinitions } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
   import BaseSnackbar from "$lib/base/BaseSnackbar.svelte";
   import Breadcrumb from "$lib/breadcrumb/Breadcrumb.svelte";
+  import { getUrlChainNameToSave } from "$lib/common/urlChainName";
+  import { saveSelectedChainName } from "$lib/leftSidebar/Header/selectChain";
   import LeftSidebar from "$lib/leftSidebar/LeftSidebar.svelte";
   import Nav from "$lib/nav/Nav.svelte";
   import type { ThemeColor } from "@db/dbTypes";
@@ -17,7 +20,7 @@
   import LoadingSpinner from "./LoadingSpinner.svelte";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
   import { PROJECT_NAME } from "@utils/utilsCostants";
-  import type { Snippet } from "svelte";
+  import { untrack, type Snippet } from "svelte";
 
   interface Props {
     children?: Snippet;
@@ -32,6 +35,21 @@
       } else {
         window.document.documentElement.classList.remove("dark");
       }
+    }
+  });
+
+  // Save the chain in the URL so the sidebar and the nav follow it.
+  $effect(() => {
+    const paramsChainName: string | undefined = page.params.chainName;
+    // Rerun only when the URL changes. SelectChain saves before it navigates.
+    const chainNameToSave = untrack(() =>
+      getUrlChainNameToSave(
+        paramsChainName,
+        $storeUserSettings.selectedChainName,
+      ),
+    );
+    if (chainNameToSave !== undefined) {
+      void saveSelectedChainName(chainNameToSave);
     }
   });
 
