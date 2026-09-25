@@ -38,7 +38,7 @@
   import BaseRadio, {
     type RadioLabelAndValues,
   } from "$lib/base/BaseRadio.svelte";
-  import { showSnackBarAsCopied } from "$lib/common/CommonCopyButton.svelte";
+  import { copyTextToClipboard } from "$lib/common/clipboard";
   import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
@@ -182,10 +182,9 @@
       getExportFileName(exportFilePrefix, page.params, "csv"),
     );
   }
-  function copyToClipboard(): void {
+  async function copyToClipboard(): Promise<void> {
     const csvData: string = getCsvText(gridApi, exportCsvRadioProps);
-    navigator.clipboard.writeText(csvData);
-    $storeNoDbSnackBar = showSnackBarAsCopied;
+    $storeNoDbSnackBar = await copyTextToClipboard(csvData);
   }
 
   let footerDefinition: PageWrapperContentFooterDefinition = {
