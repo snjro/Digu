@@ -283,10 +283,11 @@ async function clickByTooltip(page, text) {
   if (!clicked) throw new Error(`No visible button with the tooltip "${text}"`);
 }
 
+// A BaseButton with href is a link.
 async function buttonByText(page, text) {
   const button = await page.evaluateHandle(
     (text) =>
-      [...document.querySelectorAll("button")].find(
+      [...document.querySelectorAll("button, a")].find(
         (e) => e.innerText.trim() === text && e.getClientRects().length > 0,
       ),
     text,

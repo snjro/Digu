@@ -73,7 +73,7 @@
   import type { Snippet } from "svelte";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
-  import BaseA from "./BaseA.svelte";
+  import { setPropsByOpenNewTab } from "./BaseA.svelte";
   import BaseButtonContent from "./BaseButtonContent.svelte";
   import type { BaseLabelProps } from "./BaseLabel.svelte";
   import BaseTooltip, { type BaseTooltipProps } from "./BaseTooltip.svelte";
@@ -240,7 +240,7 @@
         textColor(),
         borderColor(),
         type === "normal" && baseTextSizes[size],
-        !href && padding(),
+        padding(),
         rounded && "rounded-sm",
         // "relative",
         shadowEffect && "flex items-center",
@@ -262,39 +262,16 @@
   xPosition={tooltipXPosition}
   yPosition={tooltipYPosition}
 >
-  <button
-    class={customClass}
-    {disabled}
-    aria-label={accessibleName}
-    {onclick}
-    onmouseenter={onMouseEnter}
-    onmouseleave={onMouseLeave}
-  >
-    {#if href}
-      <BaseA
-        {openNewTab}
-        {href}
-        ariaLabel={accessibleName}
-        forcedClass={classNames(
-          "inline-flex",
-          "items-center",
-          "truncate",
-          "w-fit",
-          padding(),
-        )}
-      >
-        {#snippet anchorContent()}
-          <BaseButtonContent
-            {label}
-            {size}
-            {underlineLabel}
-            {designatedFontWeight}
-            {prefixIcon}
-            {suffixIcon}
-          />
-        {/snippet}
-      </BaseA>
-    {:else}
+  {#if href}
+    <a
+      {href}
+      class={customClass}
+      aria-label={accessibleName}
+      {...setPropsByOpenNewTab(openNewTab)}
+      {onclick}
+      onmouseenter={onMouseEnter}
+      onmouseleave={onMouseLeave}
+    >
       <BaseButtonContent
         {label}
         {size}
@@ -303,6 +280,24 @@
         {prefixIcon}
         {suffixIcon}
       />
-    {/if}
-  </button>
+    </a>
+  {:else}
+    <button
+      class={customClass}
+      {disabled}
+      aria-label={accessibleName}
+      {onclick}
+      onmouseenter={onMouseEnter}
+      onmouseleave={onMouseLeave}
+    >
+      <BaseButtonContent
+        {label}
+        {size}
+        {underlineLabel}
+        {designatedFontWeight}
+        {prefixIcon}
+        {suffixIcon}
+      />
+    </button>
+  {/if}
 </BaseTooltip>
