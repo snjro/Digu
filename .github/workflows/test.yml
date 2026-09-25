@@ -51,16 +51,6 @@ jobs:
           node-version: "24.x"
           cache: "npm"
 
-      # dependabot updates package-lock.json but not compose.yaml
-      - name: Check the puppeteer image tag
-        run: |
-          lock_version=$(jq -r '.packages["node_modules/puppeteer"].version' package-lock.json)
-          image_tag=$(sed -n 's|^ *image: ghcr.io/puppeteer/puppeteer:||p' compose.yaml)
-          if [ "$lock_version" != "$image_tag" ]; then
-            echo "::error file=compose.yaml::The puppeteer image tag ($image_tag) differs from puppeteer in package-lock.json ($lock_version)"
-            exit 1
-          fi
-
       - name: Install Dependencies
         id: install
         run: npm ci
@@ -80,3 +70,14 @@ jobs:
       - name: Run build
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: npm run build
+
+      # dependabot updates package-lock.json but not compose.yaml
+      - name: Check the puppeteer image tag
+        if: ${{ !cancelled() }}
+        run: |
+          lock_version=$(jq -r '.packages["node_modules/puppeteer"].version' package-lock.json)
+          image_tag=$(sed -n 's|^ *image: ghcr.io/puppeteer/puppeteer:||p' compose.yaml)
+          if [ "$lock_version" != "$image_tag" ]; then
+            echo "::error file=compose.yaml::The puppeteer image tag ($image_tag) differs from puppeteer in package-lock.json ($lock_version)"
+            exit 1
+          fi
