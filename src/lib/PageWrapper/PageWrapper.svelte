@@ -132,14 +132,20 @@
     }
   });
 
+  // Escape closes only the top one. An open dialog or menu takes it first.
+  // Listen in the capture phase, so they are still open whatever the listener order is.
   const onKeydown = (event: KeyboardEvent): void => {
-    if (isFullScreen && event.key == "Escape") {
+    if (
+      isFullScreen &&
+      event.key == "Escape" &&
+      !document.querySelector("dialog[open], [data-open-menu]")
+    ) {
       isFullScreen = false;
     }
   };
 </script>
 
-<svelte:document onkeydown={onKeydown} />
+<svelte:document onkeydowncapture={onKeydown} />
 
 <div
   class={classNames(

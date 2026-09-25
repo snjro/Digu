@@ -81,6 +81,7 @@
     onclick={toggleShowChildren}
   />
   <div
+    data-open-menu={showChildren || undefined}
     class={classNames(
       "absolute",
       top(),

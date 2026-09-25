@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { render } from "@testing-library/svelte";
+import { fireEvent, render, within } from "@testing-library/svelte";
 import { goto } from "$app/navigation";
+import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import PageWrapper from "./PageWrapper.svelte";
+import PageWrapperContentFunctionBarButtonsThreeDots from "./PageWrapperContentFunctionBarButtonsThreeDots.svelte";
 import { TAB_VALUES_CONTRACT, type TabsDefinitionContract } from "./tabs";
 
 const { navigating } = vi.hoisted(() => ({
@@ -40,5 +42,49 @@ describe("PageWrapper.svelte", () => {
     navigating.type = "link";
     renderWithTabs();
     expect(goto).not.toHaveBeenCalled();
+  });
+});
+
+describe("PageWrapper.svelte full screen", () => {
+  function renderFullScreen(): HTMLElement {
+    const { container } = render(PageWrapper, { isFullScreen: true });
+    return container.firstElementChild as HTMLElement;
+  }
+
+  afterEach(() => {
+    document.querySelectorAll("dialog").forEach((dialog) => dialog.remove());
+  });
+
+  test("leaves the full screen on Escape", async () => {
+    const wrapper: HTMLElement = renderFullScreen();
+    expect(wrapper.classList).toContain("w-screen");
+    await fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(wrapper.classList).not.toContain("w-screen");
+  });
+
+  test("stays in the full screen when Escape closes an open dialog", async () => {
+    const wrapper: HTMLElement = renderFullScreen();
+    const dialog: HTMLDialogElement = document.createElement("dialog");
+    document.body.append(dialog);
+    dialog.showModal();
+    await fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(wrapper.classList).toContain("w-screen");
+  });
+
+  test("stays in the full screen when Escape closes the menu", async () => {
+    // The menu listens first, so the full screen cannot rely on the order.
+    const { container: menu } = render(
+      PageWrapperContentFunctionBarButtonsThreeDots,
+      {
+        buttonsDefinition: [[]],
+        buttonSize: "md",
+        colorCategory: colorSettings.gridFunctionButton,
+      },
+    );
+    const wrapper: HTMLElement = renderFullScreen();
+    await fireEvent.click(within(menu).getByRole("button", { name: "More" }));
+    await fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(menu.querySelector(".absolute")?.classList).toContain("hidden");
+    expect(wrapper.classList).toContain("w-screen");
   });
 });
