@@ -26,7 +26,7 @@ To comply this policy, you need to use Digu with a server. I suggest the folowin
 
 ### [Using Digu with `GitHub Pages`](#using-digu-with-github-pages)
 
-This method uses [`GitHub Pages`](https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages). It hosts the files in the `/_build` folder in this repository. You can access it from [https://snjro.github.io/Digu/](https://snjro.github.io/Digu/).
+This method uses [`GitHub Pages`](https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages). It hosts the built files of the latest version of Digu. You can access it from [https://snjro.github.io/Digu/](https://snjro.github.io/Digu/).
 
 ### [Using Digu with `Visual Studio Code`](#using-digu-with-visual-studio-code)
 
@@ -35,7 +35,7 @@ This method uses `Visual Studio Code` (`VSCode`) and its extension [`Live Server
 The steps:
 
 1. **Download deploy directory**  
-   Download the directory `./_build` that is the deploy directory for the web application.
+   Download `Digu-<version>.zip` from the [Releases page](https://github.com/snjro/Digu/releases) and unzip it. The unzipped folder `Digu-<version>` is the deploy directory for the web application.
 
 2. **Install `VSCode`**  
    Download VSCode from [the official site](https://code.visualstudio.com/download) and install it.
@@ -43,7 +43,7 @@ The steps:
 
    1. Open `VSCode`.
    2. Click `File > Open Folder...` in the menu bar at the top on VSCode.
-   3. Select the folder that you downloaded in the 1st step.
+   3. Select the folder that you unzipped in the 1st step.
    4. The contents of the folder are displayed in the Explorer on the sidebar of VSCode.  
       <img src="vsCodeExplorer.png" width="60%">
 
@@ -66,17 +66,17 @@ This method uses `Node.js` and its extension [`Live Server`](https://marketplace
 The steps:
 
 1. **Download deploy directory**  
-   Download the directory `./_build` that is the deploy directory for the web application.
-   As an example, assume that the downloaded folder `_build` is place under the `D:\Digu`. Then, the directory path would be `D:\Digu\_build`
+   Download `Digu-<version>.zip` from the [Releases page](https://github.com/snjro/Digu/releases) and unzip it. The unzipped folder `Digu-<version>` is the deploy directory for the web application.
+   As an example, assume that the unzipped folder `Digu-<version>` is placed under the `D:\Digu`. Then, the directory path would be `D:\Digu\Digu-<version>`
 
 2. **Install `Node.js`**  
    Download Node.js from [the official site](https://nodejs.org/en) and install it.
 
 3. **Navigate to the downloaded folder**  
-   In your terminal, run this command to navigate to the directory `D:\Digu\_build`:
+   In your terminal, run this command to navigate to the directory `D:\Digu\Digu-<version>`:
 
    ```bash
-   cd D:\Digu\_build
+   cd D:\Digu\Digu-<version>
    ```
 
 4. **Run `http-server` by npx**  

@@ -47,3 +47,39 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # Attaches the built site as a zip to a draft release; the owner writes the notes and publishes it.
+  attach_zip_to_release:
+    # A manual run has no tag to release.
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.ref_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: build
+        run: npm ci && npm run build
+
+      - name: Zip the built site
+        run: |
+          mv _build "Digu-$TAG"
+          zip -r "Digu-$TAG.zip" "Digu-$TAG"
+
+      - name: Attach the zip to the release
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "Digu-$TAG.zip" --clobber
+          else
+            gh release create "$TAG" "Digu-$TAG.zip" --draft --verify-tag --title "$TAG"
+          fi
