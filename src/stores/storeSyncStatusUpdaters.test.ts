@@ -122,7 +122,7 @@ describe("updateStoreSyncStatusSyncStateText", () => {
 });
 
 describe("updateStoreSyncStatusSummarized", () => {
-  test("should NOT update state when newSyncStatusContract has neither `isSyncing` nor `isAbort`", () => {
+  test("should NOT update state when newSyncStatusContract is empty", () => {
     const state: SyncStatusesChain = structuredClone(dummySyncStatusesChain);
 
     updateStoreSyncStatusSummarized(state, contractIdentifier, {});
@@ -176,5 +176,70 @@ describe("updateStoreSyncStatusSummarized", () => {
     );
 
     expect(state).toEqual(expected);
+  });
+
+  describe("numbers of the parents", () => {
+    const dummyContractName2 = "contract2";
+    const newSyncStatusContract: Partial<SyncStatusContract> = {
+      isSyncTarget: true,
+      fetchedBlockNumber: 150,
+      creationBlockNumber: 100,
+      numOfSyncTargetContract: 1,
+    };
+    // contract1 gets newSyncStatusContract. contract2 is already synced to 300.
+    function stateWithTwoContracts(
+      isSyncTargetOfContract2: boolean,
+    ): SyncStatusesChain {
+      const state: SyncStatusesChain = stateWithContract(newSyncStatusContract);
+      const { version, contract } = levels(state);
+      version.subSyncStatuses[dummyContractName2] = {
+        ...contract,
+        name: dummyContractName2,
+        isSyncTarget: isSyncTargetOfContract2,
+        fetchedBlockNumber: 300,
+        creationBlockNumber: 200,
+        numOfSyncTargetContract: 1,
+      };
+      return state;
+    }
+
+    test("should sum the numbers of the sync target contracts", () => {
+      const state: SyncStatusesChain = stateWithTwoContracts(true);
+
+      updateStoreSyncStatusSummarized(
+        state,
+        contractIdentifier,
+        newSyncStatusContract,
+      );
+
+      const { chain, project, version } = levels(state);
+      for (const syncStatus of [chain, project, version]) {
+        expect(syncStatus).toMatchObject({
+          isSyncTarget: true,
+          fetchedBlockNumber: 450,
+          creationBlockNumber: 300,
+          numOfSyncTargetContract: 2,
+        });
+      }
+    });
+    test("should leave out the numbers of a contract that is not a sync target", () => {
+      const state: SyncStatusesChain = stateWithTwoContracts(false);
+
+      updateStoreSyncStatusSummarized(
+        state,
+        contractIdentifier,
+        newSyncStatusContract,
+      );
+
+      const { chain, project, version } = levels(state);
+      for (const syncStatus of [chain, project, version]) {
+        expect(syncStatus).toMatchObject({
+          isSyncTarget: true,
+          fetchedBlockNumber: 150,
+          creationBlockNumber: 100,
+          numOfSyncTargetContract: 1,
+        });
+      }
+    });
   });
 });
