@@ -154,7 +154,9 @@
                     targetVersion.name
                   ].fetchedBlockNumber}
                   endBlockNumber={$storeChainStatus[targetChain.name]
-                    .latestBlockNumber}
+                    .latestBlockNumber *
+                    targetProjectSyncStatus.subSyncStatuses[targetVersion.name]
+                      .numOfSyncTargetContract}
                   size={changeSize(textSize, -1)}
                   showBlockNumber={false}
                   shadowBar={false}
