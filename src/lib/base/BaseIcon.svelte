@@ -64,14 +64,6 @@
     forcedClass ??
       classNames(
         appendClass,
-        // hoverEffect && isHover
-        //   ? colorCategory
-        //     ? colorDefinitions[themeColor][colorCategory].fillEmphasis
-        //     : "fill-inherit"
-        //   : colorCategory
-        //   ? colorDefinitions[themeColor][colorCategory].fill
-        //   : "fill-inherit",
-        // "",
         colorCategory &&
           classNames(
             hoverEffect && isHover

@@ -232,8 +232,6 @@
       "flex-row",
       "h-fit",
       "w-fit",
-      // themeColor !== "dark" && radioButtonType === "tab" && "shadow-xs",
-      // colorDefinitions[themeColor][colorSettings.tabSelected].shadow,
       roundedSize(radioButtonType === "tab" ? "tl" : "l"),
       roundedSize(radioButtonType === "tab" ? "tr" : "r"),
       radioButtonType === "tab" && colorClasses[colorSettings.tabSelected].bg,

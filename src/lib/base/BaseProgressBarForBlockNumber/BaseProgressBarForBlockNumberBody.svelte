@@ -65,10 +65,6 @@
     "flex-row",
     "items-center",
     rounded ? roundedSizes[size] : "rounded-none",
-    // "border",
-    // colorCategoryFront
-    //   ? colorDefinitions[themeColor][colorCategoryBg].border
-    //   : "border-inherit",
     colorCategoryBg ? colorClasses[colorCategoryBg].bg : "bg-inherit",
     barHeights[size],
     "",
@@ -81,11 +77,6 @@
       "flex-row",
       barHeights[size],
       "w-full",
-      // "border ",
-      // colorCategoryBg
-      //   ? colorDefinitions[themeColor][colorCategoryBg].border
-      // : "border-inherit",
-
       rounded ? roundedSizes[size] : "rounded-none",
       "",
     )}
