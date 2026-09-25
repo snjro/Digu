@@ -117,11 +117,16 @@
     ]);
   function resetAllFilters(): void {
     gridApi.resetQuickFilter();
+    gridApi.setFilterModel(null);
     quickSearchText = "";
   }
   function reload(): void {
     // Clear a shown no-rows overlay before showing the loading overlay.
-    gridApi.hideOverlay();
+    // While loading is true, the grid shows the loading overlay and does not
+    // hide it.
+    if (!gridApi.getGridOption("loading")) {
+      gridApi.hideOverlay();
+    }
     gridApi.setGridOption("loading", true);
     setTimeout(() => {
       //reset filters
@@ -134,17 +139,17 @@
       gridApi.resetColumnGroupState();
       gridApi.resetColumnState();
       //reload data
-      // While loading is true, the grid shows no other overlay.
-      gridApi.setGridOption("loading", false);
+      // While the rows are still loading, keep loading. GridBody clears it
+      // when they come.
       if (rows) {
+        // While loading is true, the grid shows no other overlay.
+        gridApi.setGridOption("loading", false);
         gridApi.setGridOption("rowData", rows);
         if (rows.length === 0) {
           gridApi.showNoRowsOverlay();
         }
         gridApi.refreshCells({ force: true });
         setAutoColumnWidth(gridApi);
-      } else {
-        gridApi.showNoRowsOverlay();
       }
     }, 500);
   }
