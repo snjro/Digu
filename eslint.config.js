@@ -32,7 +32,6 @@ export default defineConfig(
       "svelte/no-reactive-functions": "off",
       // Rules newly reported after the upgrade. Still off: the code has not been fixed for them yet.
       "no-useless-assignment": "off",
-      "preserve-caught-error": "off",
       "@typescript-eslint/no-unused-expressions": "off",
       "svelte/no-navigation-without-resolve": "off",
       "svelte/no-useless-mustaches": "off",

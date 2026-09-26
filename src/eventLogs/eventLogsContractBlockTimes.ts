@@ -87,6 +87,8 @@ async function fetchBlockFromNodeProvider(
   } catch (error) {
     throw new Error(
       `Error! Exception in "nodeProvider.getBlock". Block number is ${blockNumber}.`,
+      // The raw ethers error may hold the RPC URL with an API key.
+      // eslint-disable-next-line preserve-caught-error
       { cause: getLoggableError(error) },
     );
   }
