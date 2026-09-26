@@ -132,14 +132,24 @@
     }
   });
 
+  // Escape closes only the top one. An open dialog or menu takes it first.
+  // Listen in the capture phase, so they are still open whatever the listener order is.
+  // A held key would close a dialog on the first keydown and the full screen
+  // on a repeat, and Escape in an IME cancels the composition.
   const onKeydown = (event: KeyboardEvent): void => {
-    if (isFullScreen && event.key == "Escape") {
+    if (
+      isFullScreen &&
+      event.key == "Escape" &&
+      !event.repeat &&
+      !event.isComposing &&
+      !document.querySelector("dialog[open], [data-open-menu]")
+    ) {
       isFullScreen = false;
     }
   };
 </script>
 
-<svelte:document onkeydown={onKeydown} />
+<svelte:document onkeydowncapture={onKeydown} />
 
 <div
   class={classNames(
