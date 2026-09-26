@@ -58,6 +58,9 @@ if [[ -d $out_dir && -n $(ls -A "$out_dir") && ! -f $out_dir/report.md ]]; then
 fi
 
 tmp=$(mktemp -d)
+# Makes the Docker Compose projects unique for each run, so that runs from the
+# same checkout do not share them. Project names have no uppercase letters or ".".
+run_id=$(basename "$tmp" | tr "[:upper:]" "[:lower:]" | tr -cd "a-z0-9")
 worktrees=()
 projects=()
 
@@ -87,8 +90,8 @@ build() {
 
 checkout base "$base_ref"
 base_dir=$tmp/base
-projects+=("$name-vc-base")
-build "$base_dir" "$name-vc-base"
+projects+=("$name-vc-$run_id-base")
+build "$base_dir" "$name-vc-$run_id-base"
 
 if [[ -n $head_ref ]]; then
   checkout head "$head_ref"
@@ -96,7 +99,7 @@ if [[ -n $head_ref ]]; then
 else
   head_dir=$repo
 fi
-head_project="$name-vc-head"
+head_project="$name-vc-$run_id-head"
 projects+=("$head_project")
 build "$head_dir" "$head_project"
 
