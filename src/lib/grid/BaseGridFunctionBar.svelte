@@ -15,7 +15,7 @@
   import { setAllColumnGroupState, setAutoColumnWidth } from "./gridColumns";
 
   interface Props {
-    gridApi: GridApi<GridRow>;
+    gridApi: GridApi<GridRow> | undefined;
     rows: GridRow[] | undefined;
     isFullScreen: boolean;
     exportFilePrefix: ExportFilePrefix;
@@ -37,14 +37,18 @@
         tooltipText: "Show all columns",
         tooltipXPosition: "left",
         tooltipYPosition: "top",
-        onClickEventFunction: () => setAllColumnGroupState(gridApi, true),
+        onClickEventFunction: () => {
+          if (gridApi) setAllColumnGroupState(gridApi, true);
+        },
       },
       {
         iconName: "arrowCollapseHorizontal",
         tooltipText: "Hide minor columns",
         tooltipXPosition: "left",
         tooltipYPosition: "top",
-        onClickEventFunction: () => setAllColumnGroupState(gridApi, false),
+        onClickEventFunction: () => {
+          if (gridApi) setAllColumnGroupState(gridApi, false);
+        },
       },
     ]);
 
@@ -55,14 +59,16 @@
         tooltipText: "Fit columns in frame",
         tooltipXPosition: "left",
         tooltipYPosition: "top",
-        onClickEventFunction: () => gridApi.sizeColumnsToFit(),
+        onClickEventFunction: () => gridApi?.sizeColumnsToFit(),
       },
       {
         iconName: "tableColumnWidth",
         tooltipText: "Auto fit columns",
         tooltipXPosition: "left",
         tooltipYPosition: "top",
-        onClickEventFunction: () => setAutoColumnWidth(gridApi),
+        onClickEventFunction: () => {
+          if (gridApi) setAutoColumnWidth(gridApi);
+        },
       },
     ]);
 
@@ -116,11 +122,12 @@
       buttonDefinitionFullScreen,
     ]);
   function resetAllFilters(): void {
-    gridApi.resetQuickFilter();
-    gridApi.setFilterModel(null);
+    gridApi?.resetQuickFilter();
+    gridApi?.setFilterModel(null);
     quickSearchText = "";
   }
   function reload(): void {
+    if (!gridApi) return;
     // Clear a shown no-rows overlay before showing the loading overlay.
     // While loading is true, the grid shows the loading overlay and does not
     // hide it.
@@ -129,6 +136,7 @@
     }
     gridApi.setGridOption("loading", true);
     setTimeout(() => {
+      if (!gridApi) return;
       //reset filters
       resetAllFilters();
       //reset sort

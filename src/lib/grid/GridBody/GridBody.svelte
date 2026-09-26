@@ -41,7 +41,7 @@
   import { suppressKeyboardEventInCell } from "./suppressKeyboardEventInCell";
 
   interface Props {
-    gridApi: GridApi<GridRow>;
+    gridApi: GridApi<GridRow> | undefined;
     paramColumnDefs?: ColumnDef[];
     rows: GridRow[] | undefined;
   }
@@ -151,39 +151,41 @@
   // Set the columns only when they change, so new rows keep the column state.
   $effect.pre(() => {
     if (gridOptions && gridApi) {
+      const api: GridApi<GridRow> = gridApi;
       const columnDefs: ColumnDef[] = paramColumnDefs;
       untrack(() => {
-        gridApi.setGridOption("columnDefs", getColumnDefs(columnDefs));
+        api.setGridOption("columnDefs", getColumnDefs(columnDefs));
       });
     }
   });
   //set row data
   $effect.pre(() => {
     if (gridOptions && gridApi) {
+      const api: GridApi<GridRow> = gridApi;
       const rowData: GridRow[] | undefined = rows;
       // Like the legacy `$:`, rerun only when the values read above change, and
       // keep the components that ag-grid mounts here out of this effect.
       untrack(() => {
         if (rowData == undefined) {
           // The rows are still loading. The loading overlay replaces any other.
-          gridApi.setGridOption("loading", true);
+          api.setGridOption("loading", true);
         } else {
           if (rowData && rowData.length) {
             // While loading is true, the grid shows the loading overlay and
             // does not hide it.
-            if (!gridApi.getGridOption("loading")) {
-              gridApi.hideOverlay();
+            if (!api.getGridOption("loading")) {
+              api.hideOverlay();
             }
-            gridApi.setGridOption("loading", true);
+            api.setGridOption("loading", true);
           } else {
             // While loading is true, the grid neither hides nor shows an overlay.
-            gridApi.setGridOption("loading", false);
-            gridApi.hideOverlay();
-            gridApi.showNoRowsOverlay();
+            api.setGridOption("loading", false);
+            api.hideOverlay();
+            api.showNoRowsOverlay();
           }
-          gridApi.setGridOption("rowData", rowData);
+          api.setGridOption("rowData", rowData);
           if (rowData && rowData.length) {
-            gridApi.setGridOption("loading", false);
+            api.setGridOption("loading", false);
           }
         }
       });
@@ -195,8 +197,9 @@
   let isActivated: boolean = false;
   $effect.pre(() => {
     if (isActivated === false && gridApi) {
+      const api: GridApi<GridRow> = gridApi;
       // Same as above: ag-grid may mount components while sizing the columns.
-      untrack(() => setAutoColumnWidth(gridApi));
+      untrack(() => setAutoColumnWidth(api));
       isActivated = true;
     }
   });

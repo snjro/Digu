@@ -10,13 +10,13 @@
   import { untrack } from "svelte";
 
   interface Props {
-    gridApi: GridApi;
+    gridApi: GridApi | undefined;
     quickSearchText: string;
   }
 
   let { gridApi, quickSearchText = $bindable() }: Props = $props();
   $effect.pre(() => {
-    const api: GridApi = gridApi;
+    const api: GridApi | undefined = gridApi;
     const text: string = quickSearchText;
     // Rerun only when these two change, not on what ag-grid reads while filtering.
     untrack(() => api?.setGridOption("quickFilterText", text));
