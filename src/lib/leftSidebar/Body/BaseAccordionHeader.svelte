@@ -56,6 +56,8 @@
   }
   function onKeyDown(event: KeyboardEvent): void {
     if (event.key === "Enter" || event.key === " ") {
+      // The toggle is a div, so Space would also scroll the sidebar.
+      if (event.key === " ") event.preventDefault();
       flipAccordion();
     }
   }

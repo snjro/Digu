@@ -22,14 +22,18 @@
   );
   async function change(event: Event) {
     $storeNodbShowLoader = true;
-    //update DB data and stored value
-    const changedChainName: ChainName = (event.target as HTMLInputElement)
-      .value;
-    await saveSelectedChainName(changedChainName);
-    //jump to home
-    const rootUrl = getChainRootUrl(base, changedChainName);
-    await goto(rootUrl);
-    $storeNodbShowLoader = false;
+    try {
+      //update DB data and stored value
+      const changedChainName: ChainName = (event.target as HTMLInputElement)
+        .value;
+      await saveSelectedChainName(changedChainName);
+      //jump to home
+      const rootUrl = getChainRootUrl(base, changedChainName);
+      await goto(rootUrl);
+    } finally {
+      // The loader covers the whole screen, so hide it even when saving fails.
+      $storeNodbShowLoader = false;
+    }
   }
 </script>
 
