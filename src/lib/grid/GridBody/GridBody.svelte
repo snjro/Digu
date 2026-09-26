@@ -16,7 +16,18 @@
     type FirstDataRenderedEvent,
     createGrid,
     ModuleRegistry,
-    AllCommunityModule,
+    CellStyleModule,
+    ClientSideRowModelModule,
+    ColumnApiModule,
+    ColumnAutoSizeModule,
+    CsvExportModule,
+    DateFilterModule,
+    NumberFilterModule,
+    PaginationModule,
+    QuickFilterModule,
+    RenderApiModule,
+    RowSelectionModule,
+    TextFilterModule,
     enableDevValidations,
     themeBalham,
   } from "ag-grid-community";
@@ -112,7 +123,22 @@
     if (import.meta.env.DEV) {
       enableDevValidations();
     }
-    ModuleRegistry.registerModules([AllCommunityModule]);
+    // Only the features the grids use. The date filter is for the ISO 8601
+    // strings, which ag-grid infers as dateTimeString.
+    ModuleRegistry.registerModules([
+      CellStyleModule,
+      ClientSideRowModelModule,
+      ColumnApiModule,
+      ColumnAutoSizeModule,
+      CsvExportModule,
+      DateFilterModule,
+      NumberFilterModule,
+      PaginationModule,
+      QuickFilterModule,
+      RenderApiModule,
+      RowSelectionModule,
+      TextFilterModule,
+    ]);
     gridApi = createGrid(elementGridDiv, gridOptions);
     gridOptions = {
       onGridReady: (): void => {
