@@ -38,7 +38,7 @@
     size: BaseSize;
     iconName?: BaseIconProps["name"] | undefined;
     openNewTab?: boolean;
-    isHoverControledByParent?: boolean;
+    isHoverControlledByParent?: boolean;
     hoverType?: HoverType;
     isTopLevelItem?: boolean;
     hasChildren?: boolean;
@@ -52,7 +52,7 @@
     size,
     iconName = undefined,
     openNewTab = false,
-    isHoverControledByParent = false,
+    isHoverControlledByParent = false,
     hoverType = $bindable(undefined),
     isTopLevelItem = false,
     hasChildren = true,
@@ -111,10 +111,10 @@
   );
 
   const onMouseEnter = () => {
-    if (!isHoverControledByParent) hoverType = "onItem";
+    if (!isHoverControlledByParent) hoverType = "onItem";
   };
   const onMouseLeave = () => {
-    if (!isHoverControledByParent) hoverType = undefined;
+    if (!isHoverControlledByParent) hoverType = undefined;
   };
   let underlineLabel: boolean = $derived(!isSelected && hoverType === "onItem");
 </script>
@@ -168,7 +168,7 @@
         popupEffect={false}
         hoverEffect
         noPadding
-        isHoverControledByParent
+        isHoverControlledByParent
         isHover={hoverType !== undefined}
         rounded={false}
         {underlineLabel}
@@ -190,7 +190,7 @@
         popupEffect={false}
         shadowEffect={false}
         noPadding
-        isHoverControledByParent
+        isHoverControlledByParent
         isHover={hoverType !== undefined}
         rounded={false}
         {underlineLabel}

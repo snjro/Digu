@@ -117,7 +117,7 @@
     {iconName}
     {size}
     bind:hoverType
-    isHoverControledByParent={false}
+    isHoverControlledByParent={false}
     {isTopLevelItem}
     noGrow
   />

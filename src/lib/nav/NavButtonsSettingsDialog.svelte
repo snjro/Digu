@@ -27,7 +27,7 @@
   onclose={closeDialog}
 >
   {#snippet dialogBody()}
-    <PageWrapperContent hasMultipulTabs={false} gridCols="grid-cols-1">
+    <PageWrapperContent hasMultipleTabs={false} gridCols="grid-cols-1">
       {#snippet PageWrapperContentBody()}
         <CommonItemGroup text="RPC configuration" gridTrack={gridTrackRpc}>
           <RpcConfig {initializeValue} />

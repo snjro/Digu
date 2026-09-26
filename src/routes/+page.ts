@@ -8,7 +8,7 @@ import { initialDataUserSettings } from "@db/dbTypes";
 
 export async function load() {
   if (browser) {
-    // Get value of "selectedChaninName" from DB instead of Store.
+    // Get value of "selectedChainName" from DB instead of Store.
     // Because the value in Store is still default value here.
     // Store values will be updated after "initialized()" in "./+layout.ts".
     const selectedChainName: ChainName | undefined =

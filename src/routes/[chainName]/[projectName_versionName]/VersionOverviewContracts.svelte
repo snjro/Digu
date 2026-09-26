@@ -36,7 +36,7 @@
   let { targetChain, targetProject, targetVersion }: Props = $props();
 
   const textSize: BaseSize = sizeSettings.itemMemberTable;
-  const warnningTextSize: BaseSize = sizeSettings.itemWarnningMessage;
+  const warningTextSize: BaseSize = sizeSettings.itemWarningMessage;
   const hrefFrontPart: string = $derived(
     getSubdirectoryHref(page.url.pathname, trailingSlash, DIR_NAME_CONTRACTS),
   );
@@ -128,7 +128,7 @@
       {/snippet}
     </BaseTable>
   {:else}
-    <BaseLabel text={noListMessage} textSize={warnningTextSize} italic />
+    <BaseLabel text={noListMessage} textSize={warningTextSize} italic />
   {/if}
 </CommonItemMember>
 {#if targetVersion.contracts.length > 0}

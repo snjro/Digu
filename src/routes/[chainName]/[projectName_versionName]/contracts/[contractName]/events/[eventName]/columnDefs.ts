@@ -185,7 +185,7 @@ const argsColumnDef = (
   targetEventAbiFragment: EventAbiFragment,
   eachArgsMaxLengths: number[],
 ): ColumnDef => {
-  // name     |number of occurances|type
+  // name     |number of occurrences|type
   // address  |407,                |address
   // address[]|2,                  |address[]
   // bool:    |15,                 |boolean(true/false)

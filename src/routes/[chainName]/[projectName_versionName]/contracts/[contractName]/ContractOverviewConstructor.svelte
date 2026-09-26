@@ -29,7 +29,7 @@
     <BaseLabel
       text={"The constructor has no inputs."}
       italic
-      textSize={sizeSettings.itemWarnningMessage}
+      textSize={sizeSettings.itemWarningMessage}
     />
   {/if}
 </CommonItemMember>

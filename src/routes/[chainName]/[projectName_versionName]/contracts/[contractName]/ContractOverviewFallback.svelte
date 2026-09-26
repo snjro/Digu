@@ -21,6 +21,6 @@
     italic={targetContract.fallback.abiFragment ? false : true}
     textSize={targetContract.fallback.abiFragment
       ? sizeSettings.itemMember
-      : sizeSettings.itemWarnningMessage}
+      : sizeSettings.itemWarningMessage}
   />
 </CommonItemMember>

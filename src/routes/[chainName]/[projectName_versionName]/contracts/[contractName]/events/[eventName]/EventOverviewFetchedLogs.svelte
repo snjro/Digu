@@ -89,7 +89,7 @@
   <BaseLabel
     text={MESSAGE_ANONYMOUS_EVENT_LOGS}
     italic
-    textSize={sizeSettings.itemWarnningMessage}
+    textSize={sizeSettings.itemWarningMessage}
   />
 {:else if convertedEventLogs.length > 0}
   <CommonItemMember text="Number of Fetched Logs">
@@ -115,6 +115,6 @@
   <BaseLabel
     text="No logs fetched yet."
     italic
-    textSize={sizeSettings.itemWarnningMessage}
+    textSize={sizeSettings.itemWarningMessage}
   />
 {/if}

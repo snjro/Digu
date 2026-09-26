@@ -39,7 +39,7 @@
     if ($storeNoDbCurrentWidth <= breakPointWidths.sm) return true;
     if (
       $storeNoDbCurrentWidth <=
-        functionBarDefinition.breakPointWidthForOpendSidebar &&
+        functionBarDefinition.breakPointWidthForOpenedSidebar &&
       $storeUserSettings.isOpenSidebar
     )
       return true;

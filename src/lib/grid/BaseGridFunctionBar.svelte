@@ -162,8 +162,8 @@
     buttonsDefinition: buttonsDefinition,
     showThreeDotsButton: true,
     buttonSize: sizeSettings.gridFunctionButton,
-    breakPointWidthForOpendSidebar:
-      breakPointWidthThresholds.grigFunctionButtonForOpenedSidebar,
+    breakPointWidthForOpenedSidebar:
+      breakPointWidthThresholds.gridFunctionButtonForOpenedSidebar,
     horizontalAlignment: "between",
   }}
   ><BaseGridFunctionBarQuickSearch bind:quickSearchText {gridApi} />

@@ -11,7 +11,7 @@
     paramColumnDefs: ColumnDef[];
     rows: GridRow[] | undefined;
     exportFilePrefix: ExportFilePrefix;
-    hasMultipulTabs: boolean;
+    hasMultipleTabs: boolean;
   }
 
   let {
@@ -19,13 +19,13 @@
     paramColumnDefs,
     rows,
     exportFilePrefix,
-    hasMultipulTabs,
+    hasMultipleTabs,
   }: Props = $props();
 
   let gridApi: GridApi<GridRow> = $state.raw() as GridApi<GridRow>;
 </script>
 
-<PageWrapperContent isAgGrid {hasMultipulTabs}>
+<PageWrapperContent isAgGrid {hasMultipleTabs}>
   {#snippet PageWrapperContentFunctionBar()}
     <BaseGridFunctionBar
       {gridApi}

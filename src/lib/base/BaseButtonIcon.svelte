@@ -36,7 +36,7 @@
     colorCategoryFront?: ColorCategory | undefined;
     colorCategoryBg?: ColorCategory | undefined;
     justify?: NonNullable<BaseButtonProps["justify"]>;
-    isHoverControledByParent?: boolean;
+    isHoverControlledByParent?: boolean;
     isHover?: boolean;
     border?: boolean;
     designatedFontWeight?: BaseButtonProps["designatedFontWeight"];
@@ -67,7 +67,7 @@
     colorCategoryFront = undefined,
     colorCategoryBg = undefined,
     justify = "center",
-    isHoverControledByParent = false,
+    isHoverControlledByParent = false,
     isHover = false,
     border = false,
     designatedFontWeight = undefined,
@@ -78,11 +78,11 @@
     onmouseleave = undefined,
   }: Props = $props();
   function onMouseEnter(event: MouseEvent) {
-    if (!isHoverControledByParent) isHover = true;
+    if (!isHoverControlledByParent) isHover = true;
     onmouseenter?.(event);
   }
   function onMouseLeave(event: MouseEvent) {
-    if (!isHoverControledByParent) isHover = false;
+    if (!isHoverControlledByParent) isHover = false;
     onmouseleave?.(event);
   }
   const type: NonNullable<BaseButtonProps["type"]> = $derived(
@@ -111,7 +111,7 @@
   {isHover}
   {border}
   {designatedFontWeight}
-  {isHoverControledByParent}
+  {isHoverControlledByParent}
   {underlineLabel}
   {rounded}
   appendClass={appendClassButton}
@@ -125,7 +125,7 @@
         name={iconName}
         {size}
         {isHover}
-        isHoverControledByParent={true}
+        isHoverControlledByParent={true}
         colorCategory={colorCategoryFront}
         cursor="cursor-pointer"
       />
@@ -137,7 +137,7 @@
         name={iconName}
         {size}
         {isHover}
-        isHoverControledByParent={true}
+        isHoverControlledByParent={true}
         colorCategory={colorCategoryFront}
         cursor="cursor-pointer"
       />

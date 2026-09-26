@@ -3,7 +3,7 @@
     buttonsDefinition: PageWrapperContentFunctionBarButtonsDefinition;
     showThreeDotsButton: boolean;
     buttonSize: BaseSize;
-    breakPointWidthForOpendSidebar: BreakPointWidthValue;
+    breakPointWidthForOpenedSidebar: BreakPointWidthValue;
     horizontalAlignment: "start" | "between" | "end";
   };
 </script>

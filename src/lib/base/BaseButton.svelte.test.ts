@@ -52,12 +52,12 @@ describe("BaseButton.svelte", () => {
     expect(onmouseleave).toHaveBeenCalledOnce();
   });
 
-  test("keeps the hover state of the parent when isHoverControledByParent", async () => {
+  test("keeps the hover state of the parent when isHoverControlledByParent", async () => {
     const onmouseenter = vi.fn();
     render(BaseButton, {
       label: "Save",
       colorCategoryBg: "primary",
-      isHoverControledByParent: true,
+      isHoverControlledByParent: true,
       onmouseenter,
     });
     const button = screen.getByRole("button");

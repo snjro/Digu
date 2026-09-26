@@ -94,12 +94,12 @@
         ],
   );
 
-  let hasMultipulTabs: boolean = $derived(
+  let hasMultipleTabs: boolean = $derived(
     tabsDefinition ? tabsDefinition.values.length > 1 : false,
   );
 
   $effect.pre(() => {
-    if (hasMultipulTabs && tabsDefinition) {
+    if (hasMultipleTabs && tabsDefinition) {
       const selectedTabValueFoundByUrl:
         TabsDefinition["values"][number] | undefined =
         tabsDefinition.values.find(
@@ -183,7 +183,7 @@
       //  ""
     )}
   >
-    {#if hasMultipulTabs && !isFullScreen && tabsDefinition}
+    {#if hasMultipleTabs && !isFullScreen && tabsDefinition}
       <BaseRadio
         radioButtonType="tab"
         border={true}

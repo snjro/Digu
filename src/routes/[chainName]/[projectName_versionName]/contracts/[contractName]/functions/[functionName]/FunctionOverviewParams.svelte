@@ -29,6 +29,6 @@
   <BaseLabel
     text={`The function has no ${paramIdentifier}.`}
     italic
-    textSize={sizeSettings.itemWarnningMessage}
+    textSize={sizeSettings.itemWarningMessage}
   />
 {/if}
