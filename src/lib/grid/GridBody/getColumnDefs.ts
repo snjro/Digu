@@ -19,6 +19,8 @@ function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
     headerName: "#",
     valueGetter: (params: ValueGetterParams): number =>
       (params.node?.rowIndex ?? 0) + 1,
+    // The position on the screen, which the earlier searches change.
+    getQuickFilterText: (): string => "",
     cellClass: classNames(
       "tabular-nums",
       "grid",
