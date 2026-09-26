@@ -5,7 +5,7 @@ import * as InitializeDBSyncStatus from "./db.worker.func.InitializeDBSyncStatus
 import { extractEventContracts } from "@utils/utilsEthers";
 import type { Chain, Contract } from "@constants/chains/types";
 import type { VersionIdentifier } from "./dbTypes";
-import { DbEventLogs } from "./dbEventLogs";
+import { DbEventLogs, getDbEventLogs } from "./dbEventLogs";
 import { getSyncLockName } from "./constants";
 import {
   installFakeLockManager,
@@ -13,6 +13,9 @@ import {
 } from "../testUtils/fakeLockManager";
 
 vi.mock("./dbEventLogs");
+vi.mocked(getDbEventLogs).mockImplementation(
+  (versionIdentifier) => new DbEventLogs(versionIdentifier),
+);
 vi.mock("./db.worker.func.InitializeDBSyncStatusForContract");
 const spyInitializeDBSyncStatusForContract = vi.spyOn(
   InitializeDBSyncStatusForContract,
@@ -45,15 +48,17 @@ function expectedArgs(targetChains: Chain[]): CalledArgs[] {
   return args;
 }
 
-// DbEventLogs is mocked, so find the version from its constructor call.
+// getDbEventLogs is mocked, so find the version from the call that returned
+// the instance.
 function calledArgs(): CalledArgs[] {
-  const mockedDbEventLogs = vi.mocked(DbEventLogs).mock;
+  const mockedGetDbEventLogs = vi.mocked(getDbEventLogs).mock;
+  const instances: DbEventLogs[] = mockedGetDbEventLogs.results.map(
+    (result) => result.value,
+  );
   return spyInitializeDBSyncStatusForContract.mock.calls.map(
     ([dbEventLogs, contract, recount]) => ({
       versionIdentifier:
-        mockedDbEventLogs.calls[
-          mockedDbEventLogs.instances.indexOf(dbEventLogs)
-        ][0],
+        mockedGetDbEventLogs.calls[instances.indexOf(dbEventLogs)][0],
       contract,
       recount,
     }),
@@ -65,7 +70,7 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
   beforeEach(() => {
     lockManager = installFakeLockManager();
     spyInitializeDBSyncStatusForContract.mockClear();
-    vi.mocked(DbEventLogs).mockClear();
+    vi.mocked(getDbEventLogs).mockClear();
   });
 
   test("should initialize DB sync status for all contracts", async () => {

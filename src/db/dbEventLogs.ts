@@ -68,6 +68,25 @@ export class DbEventLogs extends dbBase {
   }
 }
 
+// One instance per version, so that the page keeps one connection per version
+// open. Do not close() it: a closed instance does not reopen. In a Worker, the
+// map ends with the Worker, so nothing is reused there.
+const dbEventLogsByVersion: Map<string, DbEventLogs> = new Map();
+export function getDbEventLogs(
+  versionIdentifier: VersionIdentifier,
+): DbEventLogs {
+  const { chainName, projectName, versionName } = versionIdentifier;
+  const key: string = JSON.stringify([chainName, projectName, versionName]);
+  let dbEventLogs: DbEventLogs | undefined = dbEventLogsByVersion.get(key);
+  // Dexie does not open an instance again after it failed to open.
+  if (!dbEventLogs || dbEventLogs.hasFailed()) {
+    // Only the three names: the DB name is made from the values.
+    dbEventLogs = new DbEventLogs({ chainName, projectName, versionName });
+    dbEventLogsByVersion.set(key, dbEventLogs);
+  }
+  return dbEventLogs;
+}
+
 export async function addInitialDataOfDbEventLogs(
   dbEventLogs: DbEventLogs,
 ): Promise<void> {

@@ -1,7 +1,7 @@
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Chain, ChainName } from "@constants/chains/types";
 import { initializeDBSyncStatusInChain } from "@db/db.worker.func.InitializeDBSyncStatus";
-import { DbEventLogs } from "@db/dbEventLogs";
+import { getDbEventLogs, type DbEventLogs } from "@db/dbEventLogs";
 import { getDbRecordSyncStatusContract } from "@db/dbEventLogsDataHandlersSyncStatusGetters";
 import type { SyncStatusContract, VersionIdentifier } from "@db/dbTypes";
 import { getSyncLockName, SYNC_LOCK_TIMEOUT_MS } from "@db/constants";
@@ -182,7 +182,7 @@ async function resetSyncStatusInChain(chainName: ChainName): Promise<void> {
         projectName: targetProject.name,
         versionName: targetVersion.name,
       };
-      const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
+      const dbEventLogs: DbEventLogs = getDbEventLogs(versionIdentifier);
       for (const targetContract of extractEventContracts(
         targetVersion.contracts,
       )) {

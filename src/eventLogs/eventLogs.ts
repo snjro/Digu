@@ -1,5 +1,5 @@
 import { fetchEventLogsContract } from "./eventLogsContract";
-import { DbEventLogs } from "@db/dbEventLogs";
+import { getDbEventLogs, type DbEventLogs } from "@db/dbEventLogs";
 import type { NodeStatus, VersionIdentifier } from "@db/dbTypes";
 import { extractEventContracts, getNodeProvider } from "@utils/utilsEthers";
 import type { NodeProvider } from "@utils/utilsEthers";
@@ -62,7 +62,7 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
           projectName: targetProject.name,
           versionName: targetVersion.name,
         };
-        const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
+        const dbEventLogs: DbEventLogs = getDbEventLogs(versionIdentifier);
         for (const targetContract of extractEventContracts(
           targetVersion.contracts,
         )) {

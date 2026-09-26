@@ -1,12 +1,15 @@
 import { dbWorkerFuncGetConvertedEventLogs } from "./db.worker.func.getConvertedEventLogs"; // ファイル名を適切なものに変更してください
 import { getEventLogTableName } from "@utils/utilsDb";
-import { DbEventLogs } from "./dbEventLogs";
+import { DbEventLogs, getDbEventLogs } from "./dbEventLogs";
 import { getEventLogTableRecords } from "./dbEventLogsDataHandlersEventLog";
 import { describe, expect, test, vi } from "vitest";
 
 vi.mock("@utils/utilsDb");
 vi.mock("./dbEventLogs");
 vi.mock("./dbEventLogsDataHandlersEventLog");
+vi.mocked(getDbEventLogs).mockImplementation(
+  (versionIdentifier) => new DbEventLogs(versionIdentifier),
+);
 
 describe("dbWorkerFuncGetConvertedEventLogs", () => {
   test("should call the correct functions and return the expected result", async () => {
@@ -24,13 +27,13 @@ describe("dbWorkerFuncGetConvertedEventLogs", () => {
       mockEventIdentifier.contractName,
       mockEventIdentifier.abiFragmentName,
     );
-    expect(DbEventLogs).toHaveBeenCalledWith({
+    expect(getDbEventLogs).toHaveBeenCalledWith({
       chainName: mockEventIdentifier.chainName,
       projectName: mockEventIdentifier.projectName,
       versionName: mockEventIdentifier.versionName,
     });
     expect(getEventLogTableRecords).toHaveBeenCalledWith(
-      expect.any(DbEventLogs),
+      vi.mocked(getDbEventLogs).mock.results[0].value,
       getEventLogTableName(
         mockEventIdentifier.contractName,
         mockEventIdentifier.abiFragmentName,
