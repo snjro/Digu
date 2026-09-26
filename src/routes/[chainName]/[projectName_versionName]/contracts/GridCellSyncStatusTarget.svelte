@@ -25,7 +25,7 @@
 
   const gridSize: BaseSize = sizeSettings.grid;
 
-  let targetContractSyncStatus: SyncStatusContract = $derived(
+  let targetContractSyncStatus: SyncStatusContract | undefined = $derived(
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
       .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name],
   );

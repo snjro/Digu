@@ -51,7 +51,7 @@ describe("columnDefsNumOfLogs", () => {
         contractIdentifier.projectName
       ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
         contractIdentifier.contractName
-      ].events[eventName].recordCount;
+      ]!.events[eventName].recordCount;
     expect(valueGetter(valueGetterParams(eventName))).toBe(expected);
   });
   test("valueGetter should return undefined for an event without sync status", () => {

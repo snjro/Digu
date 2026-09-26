@@ -63,7 +63,7 @@ async function dbIsSyncTarget(target: Target): Promise<boolean> {
 function storeIsSyncTarget(target: Target): boolean {
   const { chainName, projectName, versionName } = target.versionIdentifier;
   return get(storeSyncStatus)[chainName].subSyncStatuses[projectName]
-    .subSyncStatuses[versionName].subSyncStatuses[target.contractName]
+    .subSyncStatuses[versionName].subSyncStatuses[target.contractName]!
     .isSyncTarget;
 }
 // Expects isSyncTarget of each contract in the DB and in the store.

@@ -57,7 +57,7 @@ export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
     columnGroupShow: "open",
     valueGetter: (valueGetterParams: ValueGetterParams<T>) => {
       const targetContract: Contract = valueGetterParams.data!.contract;
-      const targetContractSyncStatus: SyncStatusContract =
+      const targetContractSyncStatus: SyncStatusContract | undefined =
         get(storeSyncStatus)[targetChain.name].subSyncStatuses[
           targetProject.name
         ].subSyncStatuses[targetVersion.name].subSyncStatuses[

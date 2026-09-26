@@ -115,7 +115,8 @@
                   syncStateText={$storeSyncStatus[targetChain.name]
                     .subSyncStatuses[targetProject.name].subSyncStatuses[
                     targetVersion.name
-                  ].subSyncStatuses[targetContract.name].syncStateText}
+                  ].subSyncStatuses[targetContract.name]?.syncStateText ??
+                    NO_DATA}
                   size={changeSize(textSize, -1)}
                   colorCategoryFront={colorSettings.itemMemberText}
                 />

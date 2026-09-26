@@ -23,7 +23,7 @@ import type {
 } from "@db/dbTypes";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { sleep } from "@utils/utilsCommon";
+import { assertIsDefined, sleep } from "@utils/utilsCommon";
 type FetchingTargetInfo = ContractIdentifier & {
   blocks: { from: number; to: number; latest: number };
 };
@@ -185,11 +185,13 @@ export async function fetchEventLogsContract(
 export const syncStatusContract = (
   contractIdentifier: ContractIdentifier,
 ): SyncStatusContract => {
-  const syncStatusContract: SyncStatusContract =
+  const syncStatusContract: SyncStatusContract | undefined =
     get(storeSyncStatus)[contractIdentifier.chainName].subSyncStatuses[
       contractIdentifier.projectName
     ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
       contractIdentifier.contractName
     ];
+  // Only contracts with an event to sync are synced, and they have a status.
+  assertIsDefined(syncStatusContract);
   return syncStatusContract;
 };

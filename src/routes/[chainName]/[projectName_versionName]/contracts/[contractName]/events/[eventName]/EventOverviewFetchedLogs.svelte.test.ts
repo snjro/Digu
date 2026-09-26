@@ -85,7 +85,7 @@ function setContract(value: Partial<SyncStatusContract>): void {
     const newState = structuredClone(state);
     Object.assign(
       newState.chain1.subSyncStatuses.project1.subSyncStatuses.version1
-        .subSyncStatuses.contract1,
+        .subSyncStatuses.contract1!,
       value,
     );
     return newState;

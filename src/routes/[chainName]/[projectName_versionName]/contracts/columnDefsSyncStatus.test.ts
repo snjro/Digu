@@ -46,7 +46,7 @@ function callValueGetter(columnDef: ColumnDef): unknown {
 function contractSyncStatus(): SyncStatusContract {
   return get(storeSyncStatus)[targetChain.name].subSyncStatuses[
     targetProject.name
-  ].subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name];
+  ].subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name]!;
 }
 
 const columnDefs: [string, ColumnDef][] = [

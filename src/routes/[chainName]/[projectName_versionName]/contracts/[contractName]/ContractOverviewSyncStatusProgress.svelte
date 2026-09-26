@@ -15,6 +15,7 @@
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import { NO_DATA } from "@utils/utilsConstants";
 
   interface Props {
     targetChain: Chain;
@@ -27,7 +28,7 @@
     $props();
 
   const itemSize: BaseSize = sizeSettings.itemMember;
-  let targetContractSyncStatus: SyncStatusContract = $derived(
+  let targetContractSyncStatus: SyncStatusContract | undefined = $derived(
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
       .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name],
   );
@@ -49,7 +50,7 @@
   );
 
   let syncStateText: SyncStateText = $derived(
-    targetContractSyncStatus.syncStateText,
+    targetContractSyncStatus?.syncStateText ?? NO_DATA,
   );
 </script>
 

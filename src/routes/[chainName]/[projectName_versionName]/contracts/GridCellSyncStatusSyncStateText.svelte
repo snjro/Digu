@@ -23,7 +23,7 @@
   let { targetChain, targetProject, targetVersion, targetContract }: Props =
     $props();
 
-  let syncStatusContract: SyncStatusContract = $derived(
+  let syncStatusContract: SyncStatusContract | undefined = $derived(
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
       .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name],
   );

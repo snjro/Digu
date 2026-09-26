@@ -64,7 +64,7 @@ function setContractIsSyncTarget(target: Contract, value: boolean): void {
     const newState = structuredClone(state);
     newState[chain.name].subSyncStatuses[project.name].subSyncStatuses[
       version.name
-    ].subSyncStatuses[target.name].isSyncTarget = value;
+    ].subSyncStatuses[target.name]!.isSyncTarget = value;
     return newState;
   });
 }
@@ -107,6 +107,16 @@ describe("CommonToggleSyncTarget.svelte", () => {
     await tick();
     expect(screen.getByText("No")).toBeTruthy();
     expect(getCheckbox().checked).toBe(false);
+  });
+
+  test("shows - and no box for a contract with no sync status", () => {
+    // A contract with no event to sync has no sync status.
+    render(CommonToggleSyncTarget, {
+      ...contractProps,
+      targetContract: { name: "contract3" } as Contract,
+    });
+    expect(screen.getByText("-")).toBeTruthy();
+    expect(screen.queryByRole("checkbox")).toBeNull();
   });
 
   test("shows Partially and an indeterminate box when the children differ", async () => {

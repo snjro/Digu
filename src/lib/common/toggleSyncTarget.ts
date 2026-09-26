@@ -6,8 +6,9 @@ import type {
 } from "@constants/chains/types";
 import { DbEventLogs } from "@db/dbEventLogs";
 import { updateDbIsSyncTarget } from "@db/dbEventLogsDataHandlersSyncStatusUpdateDbIsSyncTarget";
-import type { SyncStatusesChain } from "@db/dbTypes";
+import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { assertIsDefined } from "@utils/utilsCommon";
 import { get } from "svelte/store";
 
 export async function toggleIsSyncTarget<
@@ -136,10 +137,14 @@ function getNewValueOfIsSyncTarget<
   if (newValue === undefined) {
     let currentValue: boolean;
     if (projectName && versionName && contractName) {
-      currentValue =
+      const syncStatusContract: SyncStatusContract | undefined =
         syncStatuses[chainName].subSyncStatuses[projectName].subSyncStatuses[
           versionName
-        ].subSyncStatuses[contractName].isSyncTarget;
+        ].subSyncStatuses[contractName];
+      // Only contracts with a status are toggled: the version loops over the
+      // statuses, and the components show the toggle only for them.
+      assertIsDefined(syncStatusContract);
+      currentValue = syncStatusContract.isSyncTarget;
     } else if (projectName && versionName && !contractName) {
       currentValue =
         syncStatuses[chainName].subSyncStatuses[projectName].subSyncStatuses[

@@ -149,7 +149,7 @@ describe("storeSyncStaus", () => {
       expectedParent.syncStateText = "stopping";
     }
     // contract1
-    Object.assign(expectedVersion.subSyncStatuses[targetContractName1], {
+    Object.assign(expectedVersion.subSyncStatuses[targetContractName1]!, {
       isSyncTarget: false,
       isSyncing: true,
       isAbort: true,
@@ -160,7 +160,7 @@ describe("storeSyncStaus", () => {
       events: { Approval: { recordCount: 1 }, Transfer: { recordCount: 0 } },
     });
     // contract2
-    Object.assign(expectedVersion.subSyncStatuses[targetContractName2], {
+    Object.assign(expectedVersion.subSyncStatuses[targetContractName2]!, {
       isSyncTarget: false,
       isSyncing: true,
       isAbort: false,
@@ -241,7 +241,7 @@ describe("storeSyncStaus", () => {
       targetProjectName
     ].subSyncStatuses[targetVersionName].subSyncStatuses[
       targetContractName
-    ].fetchedBlockNumber = 5;
+    ]!.fetchedBlockNumber = 5;
     const expectedSyncStatusesChain: SyncStatusesChain =
       structuredClone(syncStatusesChain);
 
@@ -263,7 +263,7 @@ describe("storeSyncStaus", () => {
       expectedChain,
       expectedProject,
       expectedVersion,
-      expectedVersion.subSyncStatuses[targetContractName],
+      expectedVersion.subSyncStatuses[targetContractName]!,
     ]) {
       expectedSyncStatus.isSyncing = true;
       expectedSyncStatus.syncStateText = "syncing";

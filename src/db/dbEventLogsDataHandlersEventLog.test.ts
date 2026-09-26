@@ -303,7 +303,7 @@ function getStoreSyncStatusContract(
     contractIdentifier.projectName
   ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
     contractIdentifier.contractName
-  ];
+  ]!;
 }
 
 describe("getEventLogTableRecordCount", () => {

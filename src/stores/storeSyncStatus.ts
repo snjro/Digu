@@ -21,8 +21,12 @@ function store() {
     newSyncStatusContract: Partial<SyncStatusContract>,
   ): void => {
     update((state: SyncStatusesChain) => {
+      const contract: SyncStatusContract | undefined = getContractInState(
+        state,
+        contractIdentifier,
+      );
       // Adding the contract would count it in the summarized statuses.
-      if (!isContractInState(state, contractIdentifier)) {
+      if (!contract) {
         customLogger.error(
           "Skip updating the sync status of a contract that is not in the store.",
           contractIdentifier,
@@ -32,6 +36,7 @@ function store() {
       const newState: SyncStatusesChain = copyPath(
         state,
         contractIdentifier,
+        contract,
         newSyncStatusContract,
       );
       // The updaters change only the objects on the path, which are copies.
@@ -52,16 +57,15 @@ function store() {
 }
 export const storeSyncStatus = store();
 
-function isContractInState(
+function getContractInState(
   state: SyncStatusesChain,
   contractIdentifier: ContractIdentifier,
-): boolean {
+): SyncStatusContract | undefined {
   const { chainName, projectName, versionName, contractName } =
     contractIdentifier;
-  return (
-    state[chainName]?.subSyncStatuses[projectName]?.subSyncStatuses[versionName]
-      ?.subSyncStatuses[contractName] !== undefined
-  );
+  return state[chainName]?.subSyncStatuses[projectName]?.subSyncStatuses[
+    versionName
+  ]?.subSyncStatuses[contractName];
 }
 
 // Copy the chain, project, version and contract on the path, and merge the
@@ -69,6 +73,7 @@ function isContractInState(
 function copyPath(
   state: SyncStatusesChain,
   contractIdentifier: ContractIdentifier,
+  contract: SyncStatusContract,
   newSyncStatusContract: Partial<SyncStatusContract>,
 ): SyncStatusesChain {
   const { chainName, projectName, versionName, contractName } =
@@ -76,7 +81,6 @@ function copyPath(
   const chain: SyncStatusChain = state[chainName];
   const project: SyncStatusProject = chain.subSyncStatuses[projectName];
   const version: SyncStatusVersion = project.subSyncStatuses[versionName];
-  const contract: SyncStatusContract = version.subSyncStatuses[contractName];
   return {
     ...state,
     [chainName]: {

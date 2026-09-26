@@ -99,7 +99,7 @@ function setContract(
     Object.assign(
       newState[chain.name].subSyncStatuses[project.name].subSyncStatuses[
         version.name
-      ].subSyncStatuses[target.name],
+      ].subSyncStatuses[target.name]!,
       value,
     );
     return newState;

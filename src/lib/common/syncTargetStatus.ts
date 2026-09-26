@@ -59,7 +59,7 @@ export const getTargetSyncStatus = <
   targetProject?: PR,
   targetVersion?: PR extends Project ? VE : undefined,
   targetContract?: VE extends Version ? CO : undefined,
-): SyncStatus => {
+): SyncStatus | undefined => {
   if (targetProject && targetVersion && targetContract) {
     return syncStatuses[targetChain.name].subSyncStatuses[targetProject.name]
       .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name];

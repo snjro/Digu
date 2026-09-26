@@ -125,9 +125,10 @@ export type SyncStatusVersion = SyncStatusBase<
   SyncStatusesContract
 >;
 //=====contract=====
-export type SyncStatusesContract = {
+// A contract with no event to sync has no entry.
+export type SyncStatusesContract = Partial<{
   [key in ContractName]: SyncStatusContract;
-};
+}>;
 export type SyncStatusContract = SyncStatusBase<ContractName, null> & {
   events: SyncStatusesEvent;
 };

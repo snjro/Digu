@@ -4,7 +4,7 @@ export type HeaderName = "Start" | "Current" | "Goal";
 export function getBlockNumberByHeaderName(
   headerName: HeaderName,
   latestBlockNumber: number,
-  targetContractSyncStatus: SyncStatusContract,
+  targetContractSyncStatus: SyncStatusContract | undefined,
 ): number {
   if (!targetContractSyncStatus) {
     // When a contract has no event, "targetContractSyncStatus" is undefined.
