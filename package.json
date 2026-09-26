@@ -47,6 +47,9 @@
     "vitest": "^5.0.1"
   },
   "type": "module",
+  "engines": {
+    "node": "^22.13.0 || ^24.0.0 || >=26.0.0"
+  },
   "dependencies": {
     "ag-grid-community": "^36.2.0",
     "dexie": "^4.4.6",
