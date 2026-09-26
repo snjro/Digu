@@ -12,9 +12,9 @@ type LogLevel =
   | "debug";
 type LogDefinition = {
   logLevel: LogLevel;
-  method: (...messages: any[]) => void;
+  method: (...messages: unknown[]) => void;
 };
-const messages: any[] = ["test"];
+const messages: unknown[] = ["test"];
 const logDefinitions: LogDefinition[] = [
   { logLevel: "info", method: customLogger.info },
   { logLevel: "start", method: customLogger.start },
@@ -48,7 +48,7 @@ describe("customLogger", () => {
   test.each<LogDefinition>(logDefinitions)(
     `should log messages with the level "$logLevel"`,
     ({ logLevel, method }: LogDefinition) => {
-      let consoleSpy: MockInstance = getConsoleSpy(logLevel);
+      const consoleSpy: MockInstance = getConsoleSpy(logLevel);
       method(...messages);
       expect(consoleSpy).toHaveBeenCalled();
       expect(consoleSpy).toBeCalledTimes(1);

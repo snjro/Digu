@@ -7,6 +7,7 @@ import {
   expect,
   test,
   vi,
+  type MockInstance,
 } from "vitest";
 import { getNodeProvider } from "./utilsEthers";
 import { TARGET_CHAINS } from "@constants/chains/_index";
@@ -87,7 +88,7 @@ const targetChain: Chain = TARGET_CHAINS.find(
   (chain: Chain) => chain.name === targetChainName,
 )!;
 const otherChainId: number = 1;
-let spyUpdateDbItemChainStatus: any;
+let spyUpdateDbItemChainStatus: MockInstance;
 
 beforeAll(() => {
   spyUpdateDbItemChainStatus = vi

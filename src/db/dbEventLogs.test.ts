@@ -62,7 +62,7 @@ describe("DbEventLogs", () => {
           expect(dbEventLogs.versionIdentifier).toEqual(versionIdentifier);
         });
         test("should set up the database with the correct schema definition", () => {
-          let expectedDbSchema: any = {};
+          const expectedDbSchema: Record<string, unknown> = {};
           const eventTableNames: string[] = getEventTableNames(
             targetVersion.contracts,
           );

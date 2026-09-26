@@ -42,7 +42,7 @@ describe("getInitialDataOfSyncStatusesEvent", () => {
       for (const targetProject of targetChain.projects) {
         for (const targetVersion of targetProject.versions) {
           for (const targetContract of targetVersion.contracts) {
-            let expectedReturnValue: SyncStatusesEvent = {};
+            const expectedReturnValue: SyncStatusesEvent = {};
             const eventNames: EventAbiFragment["name"][] =
               targetContract.events.names;
             for (const eventName of eventNames) {

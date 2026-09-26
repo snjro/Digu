@@ -18,7 +18,7 @@ describe("DbSettings", () => {
   });
 
   test("should set up the database with the correct schema definition", () => {
-    let expectedDbSchema: any = {
+    const expectedDbSchema: Record<string, unknown> = {
       RpcSettings: {
         name: "RpcSettings",
         primKey: {

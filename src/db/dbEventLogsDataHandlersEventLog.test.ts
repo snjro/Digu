@@ -131,7 +131,7 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
             });
             test(`when "groupedEventlogs" is NOT empty, "fetchedBlockNumber" should are updated `, async () => {
               // make "groupedEventlogs"
-              let groupedEventLogs: GroupedEventLogs = {};
+              const groupedEventLogs: GroupedEventLogs = {};
               for (const targetEventName of targetContract.events.names) {
                 groupedEventLogs[targetEventName] = [
                   { ...dummyConvertedEventLog1, eventName: targetEventName },
