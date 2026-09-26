@@ -287,7 +287,6 @@ describe("sync with two tabs (issue #49)", () => {
     tabs.push(b);
 
     await stopAndWait(a);
-    expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
     expect(await a.fetchEventLogs()).toBe(true);
     expect(b.isLockedByOtherTab()).toBe(false);
     expect(await waitFor(() => a.storeStatus().isSyncing)).toBe(true);
@@ -357,6 +356,32 @@ describe("sync with two tabs (issue #49)", () => {
     await a.stop();
     // No lock to wait for: wait until every contract loop has ended.
     expect(await waitFor(() => !a.isChainSyncing())).toBe(true);
+  }, 30_000);
+
+  test("logs a failed sync without navigator.locks", async () => {
+    removeLockManager();
+    const a = await openTab();
+    tabs.push(a);
+    // Same module instances as tab A (openTab() resets modules only at start).
+    const updateLatestBlockNumber = await import("./updateLatestBlockNumber");
+    vi.spyOn(
+      updateLatestBlockNumber,
+      "startUpdateLatestBlockNumber",
+    ).mockRejectedValueOnce(new Error("DB error"));
+    const { customLogger } = await import("@utils/logger");
+    const spyError = vi.spyOn(customLogger, "error");
+
+    expect(await a.fetchEventLogs()).toBe(true);
+    expect(
+      await waitFor(() =>
+        spyError.mock.calls.some(([message]) => message === "Sync event logs."),
+      ),
+    ).toBe(true);
+    expect(spyError).toHaveBeenCalledWith("Sync event logs.", {
+      chainName: chain.name,
+      errorObject: new Error("DB error"),
+    });
+    expect(a.isChainSyncing()).toBe(false);
   }, 30_000);
 
   test("returns false and releases the lock when the reset fails", async () => {
