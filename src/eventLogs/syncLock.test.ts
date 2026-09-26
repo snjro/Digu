@@ -12,6 +12,7 @@ import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Chain, Contract } from "@constants/chains/types";
 import type { EthersEventLog, SyncStatusContract } from "@db/dbTypes";
 import { getSyncLockName } from "@db/constants";
+import type { DbWorkerMessage, TargetFunctionName } from "@db/db.worker.types";
 import {
   installFakeLockManager,
   removeLockManager,
@@ -29,6 +30,22 @@ const rpc = vi.hoisted(() => ({
 }));
 // The number of the timers for the latest block number that are running.
 const latestBlockTimers = vi.hoisted(() => ({ running: 0 }));
+
+vi.mock("$app/environment", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("$app/environment")>()),
+  browser: true,
+}));
+// Runs the Worker jobs in the page, with the modules of the tab being opened.
+vi.mock("@db/db.worker.portal", () => ({
+  startDbWorker: async (message: DbWorkerMessage<TargetFunctionName>) => {
+    const { executeTargetFunction } =
+      await import("@db/db.worker.executeTargetFunction");
+    return await executeTargetFunction(
+      message.targetFunctionName,
+      message.params,
+    );
+  },
+}));
 
 // One log per block for the first event of each contract.
 vi.mock("@utils/utilsEthers", async (importOriginal) => {
@@ -142,21 +159,24 @@ async function waitFor(
   return false;
 }
 
-// Opens a tab: what initialize() does, with the worker functions called
-// directly. `beforeWatch` runs just before the tab watches the locks.
+// Opens a tab with initialize(). `beforeWatch` runs just before the tab
+// watches the locks.
 async function openTab(beforeWatch?: () => Promise<void>) {
   vi.resetModules();
-  const { dbWorkerFuncInitializeDBSettings } =
-    await import("@db/db.worker.func.InitializeDBSettings");
-  const { dbWorkerFuncInitializeDBSyncStatus } =
-    await import("@db/db.worker.func.InitializeDBSyncStatus");
-  const { initializeStore } = await import("../initialization/initializeStore");
+  const { initialize } = await import("../initialization/initialize");
   const syncLock = await import("./syncLock");
-  await dbWorkerFuncInitializeDBSettings();
-  await dbWorkerFuncInitializeDBSyncStatus();
-  await initializeStore();
-  await beforeWatch?.();
-  await syncLock.watchSyncLocksOfOtherTabs();
+  // A spy, not vi.mock(): a mocked module stays the same across
+  // vi.resetModules(), so the tabs would share its stores.
+  if (beforeWatch) {
+    const { watchSyncLocksOfOtherTabs } = syncLock;
+    vi.spyOn(syncLock, "watchSyncLocksOfOtherTabs").mockImplementationOnce(
+      async () => {
+        await beforeWatch();
+        await watchSyncLocksOfOtherTabs();
+      },
+    );
+  }
+  await initialize();
 
   const { extractEventContracts } = await import("@utils/utilsEthers");
   const contract: Contract = extractEventContracts(version.contracts)[0];
