@@ -84,12 +84,13 @@ function getConvertedEventLogs(
   blockTimesForEventLogs: BlockTimeForEventLog[],
 ): ConvertedEventLog[] {
   const convertedEventLogs: ConvertedEventLog[] = [];
-  const blockTimes: Map<number, BlockTime> = new Map(
-    blockTimesForEventLogs.map((blockTimeForEventLog) => [
-      blockTimeForEventLog.fetchedBlockTime.blockNumber,
-      blockTimeForEventLog.fetchedBlockTime,
-    ]),
-  );
+  const blockTimes: Map<number, BlockTime> = new Map();
+  for (const { fetchedBlockTime } of blockTimesForEventLogs) {
+    // Keep the first one for a block number, as find() did.
+    if (!blockTimes.has(fetchedBlockTime.blockNumber)) {
+      blockTimes.set(fetchedBlockTime.blockNumber, fetchedBlockTime);
+    }
+  }
 
   for (const ethersEventLog of ethersEventLogs) {
     const targetBlockTime: BlockTime | undefined = blockTimes.get(

@@ -24,6 +24,8 @@ const tryCount: number = 2;
 const nodeProvider = {} as NodeProvider;
 
 describe("startUpdateLatestBlockNumber", () => {
+  // Set by a test that leaves the updates running.
+  let stopUpdates: (() => void) | undefined;
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -35,7 +37,10 @@ describe("startUpdateLatestBlockNumber", () => {
     });
   });
   afterEach(() => {
+    stopUpdates?.();
+    stopUpdates = undefined;
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   test("should stop requesting the latest block number when stopped", async () => {
@@ -116,7 +121,7 @@ describe("startUpdateLatestBlockNumber", () => {
     const { customLogger } = await import("@utils/logger");
     const spyStart = vi.spyOn(customLogger, "start");
 
-    await startUpdateLatestBlockNumber(chainName, nodeProvider);
+    stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
 
     expect(spyStart).toHaveBeenCalledWith(expect.any(String), {
       chainName: chainName,
@@ -133,7 +138,7 @@ describe("startUpdateLatestBlockNumber", () => {
     const { customLogger } = await import("@utils/logger");
     const spyWarn = vi.spyOn(customLogger, "warn");
 
-    await startUpdateLatestBlockNumber(chainName, nodeProvider);
+    stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
 
     expect(spyWarn).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -119,6 +119,7 @@ describe("fetchEventLogsContract", () => {
   });
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   test("should request eth_getLogs again after an error and continue", async () => {
@@ -155,7 +156,7 @@ describe("fetchEventLogsContract", () => {
     expect(getLogsCount()).toBe(tryCount + 1);
   });
 
-  test("should log only the code and the short message of an ethers error", async () => {
+  test("should log an ethers error without the request URL, with the error that the RPC returned", async () => {
     const { provider } = providerFailingGetLogs(1);
     const spyError = vi
       .spyOn(customLogger, "error")
@@ -175,10 +176,10 @@ describe("fetchEventLogsContract", () => {
         errorObject: {
           code: "UNKNOWN_ERROR",
           shortMessage: "could not coalesce error",
+          rpcError: { code: -32000, message: "temporary error" },
         },
       }),
     );
-    spyError.mockRestore();
   });
 
   test("should halve the range after an error and return to Bulk Unit after a success", async () => {

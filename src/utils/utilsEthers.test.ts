@@ -323,10 +323,56 @@ describe("getNodeProvider logs", () => {
     );
     spyError.mockRestore();
   });
+
+  test("should log only the name of an error that is not from ethers", async () => {
+    // Like the DOMException of a WebSocket that cannot be made.
+    const spyGetNetwork = vi
+      .spyOn(JsonRpcProvider.prototype, "getNetwork")
+      .mockRejectedValueOnce(
+        new DOMException(
+          "The URL 'wss://rpc.example/secret-key' is invalid.",
+          "SyntaxError",
+        ),
+      );
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+
+    await getNodeProvider(targetChain, "https://rpc.example/secret-key");
+
+    expect(spyError).toHaveBeenCalledExactlyOnceWith(
+      "nodeProvider.getNetwork().",
+      { name: "SyntaxError" },
+    );
+    spyGetNetwork.mockRestore();
+    spyError.mockRestore();
+  });
+
+  test("should log the timeout of getNetwork as it is", async () => {
+    vi.useFakeTimers();
+    const spyGetNetwork = vi
+      .spyOn(JsonRpcProvider.prototype, "getNetwork")
+      .mockReturnValueOnce(new Promise<Network>(() => {}));
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+
+    const promise = getNodeProvider(targetChain, "https://rpc.example");
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(spyError).toHaveBeenCalledExactlyOnceWith(
+      "nodeProvider.getNetwork().",
+      new Error("getNetwork timed out."),
+    );
+    vi.useRealTimers();
+    spyGetNetwork.mockRestore();
+    spyError.mockRestore();
+  });
 });
 
 describe("getLoggableError", () => {
-  test("should keep only the code and the short message of an ethers error", () => {
+  test("should keep the code and the message of the error that the RPC returned", () => {
     const error: Error = makeError(
       "could not coalesce error",
       "UNKNOWN_ERROR",
@@ -338,6 +384,26 @@ describe("getLoggableError", () => {
     expect(getLoggableError(error)).toStrictEqual({
       code: "UNKNOWN_ERROR",
       shortMessage: "could not coalesce error",
+      rpcError: { code: -32000, message: "temporary error" },
+    });
+  });
+
+  test("should keep only the code and the short message of an HTTP error", () => {
+    const error: Error = makeError(
+      "server response 401 Unauthorized",
+      "SERVER_ERROR",
+      {
+        request: new FetchRequest("https://rpc.example/secret-key"),
+        error: new Error("https://rpc.example/secret-key"),
+        info: {
+          requestUrl: "https://rpc.example/secret-key",
+          responseBody: "invalid key",
+        },
+      },
+    );
+    expect(getLoggableError(error)).toStrictEqual({
+      code: "SERVER_ERROR",
+      shortMessage: "server response 401 Unauthorized",
     });
   });
 

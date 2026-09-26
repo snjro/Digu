@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Block } from "ethers";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { addEventLogs_updateFetchedBlockNumber } from "@db/dbEventLogsDataHandlersEventLog";
@@ -75,6 +75,9 @@ describe("registerEventLogsAndBlockTimes", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     await dbBlockTimes.table(targetChain.name).clear();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   test("should save the block times from the RPC and register the logs with them", async () => {
