@@ -140,11 +140,6 @@
       TextFilterModule,
     ]);
     gridApi = createGrid(elementGridDiv, gridOptions);
-    gridOptions = {
-      onGridReady: (): void => {
-        setAutoColumnWidth(gridApi);
-      },
-    };
   });
 
   onDestroy(() => {
