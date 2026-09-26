@@ -33,7 +33,7 @@
   );
 </script>
 
-<CommonItemMember text={"Chain Explorer"}>
+<CommonItemMember text="Chain Explorer">
   <div class="pt-1.5">
     <BaseSelect
       {items}

@@ -22,7 +22,7 @@
   let rpcConfigParams = $derived(getRpcConfigParams(targetChain));
 </script>
 
-{#each rpcConfigParams as rpcConfigParam}
+{#each rpcConfigParams as rpcConfigParam (rpcConfigParam.name)}
   <CommonItemMember text={rpcConfigParam.label}>
     <RpcConfigChanger {targetChainName} {rpcConfigParam} {initializeValue} />
   </CommonItemMember>

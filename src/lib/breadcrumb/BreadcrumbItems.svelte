@@ -60,7 +60,7 @@
         size={targetSize()}
         iconName={targetCrumbItem.prefixIconName}
         ariaLabel="Home"
-        colorCategoryFront={"interactive"}
+        colorCategoryFront="interactive"
         href={targetCrumbItem.href}
         shadowEffect={false}
         hoverEffect={false}

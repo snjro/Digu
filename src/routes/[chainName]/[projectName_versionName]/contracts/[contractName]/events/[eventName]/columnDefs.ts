@@ -98,7 +98,9 @@ function getTopicsLength(targetEventAbiFragment: EventAbiFragment): number {
   const abiFragmentInputs: EventAbiFragment["inputs"] =
     targetEventAbiFragment.inputs;
   for (const abiFragmentParam of abiFragmentInputs) {
-    abiFragmentParam.indexed && topicsLength++;
+    if (abiFragmentParam.indexed) {
+      topicsLength++;
+    }
   }
   return topicsLength;
 }

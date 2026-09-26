@@ -42,7 +42,7 @@
         getMaxParamsLength(rows, (row: FunctionRow) => row.functionInputs),
         getMaxParamsLength(rows, (row: FunctionRow) => row.functionOutputs),
       )}
-      exportFilePrefix={"functions"}
+      exportFilePrefix="functions"
       hasMultipleTabs={false}
       bind:isFullScreen
     />

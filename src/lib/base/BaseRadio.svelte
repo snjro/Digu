@@ -2,6 +2,7 @@
   export type RadioLabelAndValues<RadioValue> = ReadonlyArray<{
     labelText: string;
     value: RadioValue;
+    // Unique in the list (the key of each).
     inputId: string;
     href?: string | undefined;
   }>;
@@ -162,7 +163,7 @@
 
 {#if radioButtonType === "circle"}
   <div class={classNames("flex", "flex-col", "space-y-1")}>
-    {#each labelAndValues as { labelText, value, inputId }}
+    {#each labelAndValues as { labelText, value, inputId } (inputId)}
       <div
         class={classNames(
           // childGridColSpan(),
@@ -239,7 +240,7 @@
       "static",
     )}
   >
-    {#each labelAndValues as { labelText, value, inputId, href }, i}
+    {#each labelAndValues as { labelText, value, inputId, href }, i (inputId)}
       <div
         class={classNames(
           radioButtonType === "button" &&

@@ -58,7 +58,7 @@
     startValue={targetContract.creation.blockNumber}
     currentValue={fetchedBlockNumber ?? targetContract.creation.blockNumber}
     goalValue={latestBlockNumber}
-    detailsPosition={"bottom"}
+    detailsPosition="bottom"
     circleSize={changeSize(itemSize, 1)}
     {detailsTextSize}
     syncStateTextLabelProps={{

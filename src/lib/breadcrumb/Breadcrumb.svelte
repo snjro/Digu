@@ -39,7 +39,7 @@
       "",
     )}
   >
-    {#each crumbItems() as crumbItem, i}
+    {#each crumbItems() as crumbItem, i (crumbItem.href)}
       <BreadcrumbItems
         targetCrumbItem={crumbItem}
         currentIndex={i}

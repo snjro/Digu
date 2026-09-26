@@ -94,7 +94,7 @@
       borderBottom={false}
     >
       {#snippet tableBody()}
-        {#each targetProject.versions as targetVersion, rowIndex}
+        {#each targetProject.versions as targetVersion, rowIndex (targetVersion.name)}
           <BaseTableRow>
             <SequenceBodyCell
               {rowIndex}

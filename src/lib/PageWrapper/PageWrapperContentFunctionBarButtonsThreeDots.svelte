@@ -97,6 +97,8 @@
       colorClasses[colorSettings.gridFunctionButton].bg,
     )}
   >
+    <!-- Fixed list, reused by position, so that a button whose icon and tooltip change on click is not remounted. -->
+    <!-- eslint-disable-next-line svelte/require-each-key -->
     {#each buttonsDefinition as buttonGroup, buttonDefinitionIndex}
       <div
         class={classNames(
@@ -107,6 +109,8 @@
           "w-56",
         )}
       >
+        <!-- Fixed list, reused by position, so that a button whose icon and tooltip change on click is not remounted. -->
+        <!-- eslint-disable-next-line svelte/require-each-key -->
         {#each buttonGroup as { iconName, tooltipText, onClickEventFunction }}
           <BaseButtonIcon
             size={sizeSettings.threeDotsList}

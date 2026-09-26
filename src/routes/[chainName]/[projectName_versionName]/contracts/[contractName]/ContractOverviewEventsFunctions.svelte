@@ -70,7 +70,7 @@
       borderBottom={false}
     >
       {#snippet tableBody()}
-        {#each abiFragments as abiFragment, indexSortedEventNames}
+        {#each abiFragments as abiFragment, indexSortedEventNames (abiFragment)}
           <BaseTableRow>
             <SequenceBodyCell
               rowIndex={indexSortedEventNames}

@@ -29,7 +29,7 @@
   )}
 >
   <div class={classNames("flex", "flex-row", "items-center", "space-x-3", "")}>
-    {#each footerDefinition.buttonsDefinition as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition }}
+    {#each footerDefinition.buttonsDefinition as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition } (iconName)}
       <BaseButtonIcon
         size={footerDefinition.buttonSize}
         label={tooltipText}
@@ -37,8 +37,8 @@
         {tooltipText}
         {tooltipXPosition}
         {tooltipYPosition}
-        colorCategoryBg={"interactive"}
-        colorCategoryFront={"white"}
+        colorCategoryBg="interactive"
+        colorCategoryFront="white"
         appendClassButton={buttonHeight[footerDefinition.buttonSize]}
         onclick={onClickEventFunction}
       />

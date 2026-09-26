@@ -50,7 +50,7 @@
 </script>
 
 <div class={classNames("flex", "flex-row", "space-x-2")}>
-  {#each buttons as { iconName, openState, tooltipText, tooltipXPosition, tooltipYPosition }}
+  {#each buttons as { iconName, openState, tooltipText, tooltipXPosition, tooltipYPosition } (openState)}
     <BaseButtonIcon
       size={sizeSettings.leftSidebarButton}
       {iconName}

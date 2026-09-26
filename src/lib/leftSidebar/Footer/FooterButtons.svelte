@@ -30,7 +30,7 @@
   ];
 </script>
 
-{#each buttons as { iconName, href, tooltipText, tooltipXPosition, tooltipYPosition }}
+{#each buttons as { iconName, href, tooltipText, tooltipXPosition, tooltipYPosition } (href)}
   <BaseButtonIcon
     size={sizeSettings.leftSidebarButton}
     {iconName}
