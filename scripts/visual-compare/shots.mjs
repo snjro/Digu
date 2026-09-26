@@ -342,6 +342,9 @@ const NO_MOTION_CSS = `*, *::before, *::after {
 }`;
 
 async function settle(page, { keepMouse = false } = {}) {
+  // Without SSR, the page is blank and has no spinner until the app has drawn
+  // its layout, which can take longer than the network under a heavy CPU load.
+  await page.waitForSelector("main");
   await page.waitForNetworkIdle({ idleTime: 500 });
   await page.waitForFunction(
     () => !document.querySelector('[data-testid="loadingSpinner-test"]'),
