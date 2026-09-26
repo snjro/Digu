@@ -103,10 +103,32 @@ build "$head_dir" "$head_project"
 rm -rf "$out_dir"
 mkdir -p "$out_dir"
 touch "$out_dir/$marker"
-docker compose -f "$head_dir/compose.yaml" -p "$head_project" run --rm -T \
-  -v "$scripts_dir:/scripts:ro" \
-  -v "$base_dir/_build:/base:ro" \
-  -v "$out_dir:/out" \
-  test sh -c "node /scripts/shots.mjs /base /out/base \
-    && node /scripts/shots.mjs _build /out/head \
-    && node /scripts/compare.mjs /out/base /out/head /out"
+# Runs <command...> in the test service of the head, with the scripts of this
+# working tree, the base build at /base and <out-dir> at /out.
+run_test() {
+  docker compose -f "$head_dir/compose.yaml" -p "$head_project" run --rm -T \
+    -v "$scripts_dir:/scripts:ro" \
+    -v "$base_dir/_build:/base:ro" \
+    -v "$out_dir:/out" \
+    test "$@"
+}
+
+# One run at a time on this machine takes the screenshots. With more Chromes at
+# once, some screenshots were blank or timed out.
+exec {lock}>"${XDG_RUNTIME_DIR:-/tmp}/digu-visual-compare.lock"
+if ! flock -n "$lock"; then
+  echo "Waiting for another visual-compare to finish its screenshots" >&2
+  flock "$lock"
+fi
+run_test node /scripts/shots.mjs /base /out/base &
+base_pid=$!
+run_test node /scripts/shots.mjs _build /out/head &
+head_pid=$!
+shots_status=0
+wait "$base_pid" || shots_status=$?
+wait "$head_pid" || shots_status=$?
+flock -u "$lock"
+if [[ $shots_status -ne 0 ]]; then
+  exit "$shots_status"
+fi
+run_test node /scripts/compare.mjs /out/base /out/head /out

@@ -35,7 +35,8 @@ scripts/visual-compare/run.sh <merge>^1 ../visual-compare-out <merge>
 ```
 
 It needs git and Docker (`compose.yaml` of this repository). It takes about
-10 minutes.
+2 minutes. When another run on the same machine is taking its screenshots,
+it waits for that run first.
 
 ## What it does
 
@@ -45,6 +46,11 @@ It needs git and Docker (`compose.yaml` of this repository). It takes about
 3. In the `test` service, `shots.mjs` serves each `_build` inside the container
    (no port is opened) and takes screenshots with the Chrome of puppeteer.
    Requests to other hosts are blocked, so the app does not call an RPC.
+   The base and the head are shot at the same time, each by 4 workers. A
+   worker has its own Chromes and takes one screen at a time. Only one run on
+   the machine takes screenshots at a time (a lock in `$XDG_RUNTIME_DIR`, or
+   `/tmp`); with more Chromes at once, some screenshots were blank or timed
+   out.
 4. `compare.mjs` compares the two sets of screenshots.
 5. Removes the temporary worktrees and their Docker networks.
 
