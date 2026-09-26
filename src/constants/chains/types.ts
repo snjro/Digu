@@ -22,7 +22,7 @@ export function isHexStrings(value: unknown): value is HexString[] {
   }
 }
 
-//ABI fragment (https://docs.ethers.org/v5/api/utils/abi/fragments)
+//ABI fragment (https://docs.ethers.org/v6/api/abi/abi-coder/#Fragment)
 export type AbiFragmentParam = ParamType;
 export type EventAbiFragment = EventFragment;
 export type FunctionAbiFragment = FunctionFragment;

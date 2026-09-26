@@ -195,12 +195,12 @@ const argsColumnDef = (
   // bytes4:  |4,                  |string
   // string:  |13,                 |string
   // string[] |1                   |string[]
-  // int256:  |17,                 |BigNumber({_hex:"0x02",isBigNumber:true})
-  // int256[] |1,                  |BigNumber({_hex:"0x02",isBigNumber:true})[]
-  // uint112: |2,                  |BigNumber({_hex:"0x02",isBigNumber:true})
-  // uint256: |301,                |BigNumber({_hex:"0x02",isBigNumber:true})
-  // uint256[]|21,                 |BigNumber({_hex:"0x02",isBigNumber:true})[]
-  // uint8    |20,                 |number
+  // int256:  |17,                 |bigint
+  // int256[] |1,                  |bigint[]
+  // uint112: |2,                  |bigint
+  // uint256: |301,                |bigint
+  // uint256[]|21,                 |bigint[]
+  // uint8    |20,                 |bigint
 
   const columnDef: ColumnDef = { headerName: "args", children: [] };
   const abiFragmentInputs: EventAbiFragment["inputs"] =
