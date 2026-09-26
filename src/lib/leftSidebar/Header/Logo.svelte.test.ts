@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/svelte";
 import Logo from "./Logo.svelte";
 
-// Served under /Digu/ on a host other than GitHub Pages.
+// The base path when the app is served under /Digu/.
 vi.mock("$app/paths", () => ({ base: "/Digu" }));
 
 describe("Logo.svelte", () => {

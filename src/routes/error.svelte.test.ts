@@ -1,21 +1,40 @@
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { flushSync } from "svelte";
 import { render, screen } from "@testing-library/svelte";
 import { page } from "$app/state";
 import ErrorPage from "./+error.svelte";
 
-// $state, so that a change of the page reaches the component, as in the app.
-vi.mock("$app/state", () => {
-  const page = $state({
-    status: 404,
-    error: { message: "chain not found: foo" },
-  });
-  return { page };
+// page of $app/state is not a store. A SvelteMap makes status and error
+// reactive, so that a change of the page reaches the component, as in the app.
+vi.mock("$app/state", async () => {
+  const { SvelteMap } = await import("svelte/reactivity");
+  const values = new SvelteMap<string, unknown>();
+  return {
+    page: {
+      get status() {
+        return values.get("status");
+      },
+      set status(status: unknown) {
+        values.set("status", status);
+      },
+      get error() {
+        return values.get("error");
+      },
+      set error(error: unknown) {
+        values.set("error", error);
+      },
+    },
+  };
 });
-// Served under /Digu/ on a host other than GitHub Pages.
+// The base path when the app is served under /Digu/.
 vi.mock("$app/paths", () => ({ base: "/Digu" }));
 
 describe("+error.svelte", () => {
+  beforeEach(() => {
+    page.status = 404;
+    page.error = { message: "chain not found: foo" };
+  });
+
   test("links HOME to the root of the app", () => {
     render(ErrorPage);
     expect(
