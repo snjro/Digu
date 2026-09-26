@@ -30,7 +30,8 @@ export default defineConfig(
       "@typescript-eslint/no-unused-vars": ["error", { caughtErrors: "none" }],
       // Crashes on ESLint 10: https://github.com/sveltejs/eslint-plugin-svelte/issues/1515
       "svelte/no-reactive-functions": "off",
-      // Rules newly reported after the upgrade. Still off: the code has not been fixed for them yet.
+      // BaseA and BaseButton take hrefs built at runtime, some of them external
+      // (chain explorers, GitHub), so resolve() cannot be used without reworking them.
       "svelte/no-navigation-without-resolve": "off",
     },
   },
