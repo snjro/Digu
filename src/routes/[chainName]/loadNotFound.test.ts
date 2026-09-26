@@ -11,9 +11,6 @@ import { load as loadFunction } from "./[projectName_versionName]/contracts/[con
 import { getTargetContract } from "@utils/utilsDb";
 
 type Params = LoadEvent["params"];
-const parent = (async () => ({
-  initializing: false,
-})) as unknown as LoadEvent["parent"];
 
 const validParams = {
   chainName: "eth",
@@ -114,7 +111,7 @@ const loads: {
   },
   {
     route: "[eventName]",
-    load: (params) => loadEvent({ params, parent }),
+    load: (params) => loadEvent({ params }),
     notFound: [
       {
         params: { ...validParams, eventName: "foo" },
@@ -138,7 +135,7 @@ const loads: {
   },
   {
     route: "[functionName]",
-    load: (params) => loadFunction({ params, parent }),
+    load: (params) => loadFunction({ params }),
     notFound: [
       {
         params: {

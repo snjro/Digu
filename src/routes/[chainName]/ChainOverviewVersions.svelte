@@ -22,6 +22,7 @@
   import {
     getVersionHref,
     hasVersionEvents,
+    hasVersionSyncTargetEvents,
     numberOfEventsInVersion,
   } from "./versions";
 
@@ -109,10 +110,12 @@
               />
             </BaseTableBodyCell>
             <BaseTableBodyCell
-              align={hasVersionEvents(targetVersion) ? "left" : "center"}
+              align={hasVersionSyncTargetEvents(targetVersion)
+                ? "left"
+                : "center"}
               {textSize}
             >
-              {#if hasVersionEvents(targetVersion)}
+              {#if hasVersionSyncTargetEvents(targetVersion)}
                 <CommonToggleSyncTarget
                   {targetChain}
                   {targetProject}
@@ -124,10 +127,12 @@
               {/if}
             </BaseTableBodyCell>
             <BaseTableBodyCell
-              align={hasVersionEvents(targetVersion) ? "left" : "center"}
+              align={hasVersionSyncTargetEvents(targetVersion)
+                ? "left"
+                : "center"}
               {textSize}
             >
-              {#if hasVersionEvents(targetVersion)}
+              {#if hasVersionSyncTargetEvents(targetVersion)}
                 <CommonSyncStateText
                   syncStateText={targetProjectSyncStatus.subSyncStatuses[
                     targetVersion.name
@@ -140,10 +145,12 @@
               {/if}
             </BaseTableBodyCell>
             <BaseTableBodyCell
-              align={hasVersionEvents(targetVersion) ? "left" : "center"}
+              align={hasVersionSyncTargetEvents(targetVersion)
+                ? "left"
+                : "center"}
               {textSize}
             >
-              {#if hasVersionEvents(targetVersion)}
+              {#if hasVersionSyncTargetEvents(targetVersion)}
                 <BaseProgressBarForBlockNumber
                   startBlockNumber={targetProjectSyncStatus.subSyncStatuses[
                     targetVersion.name

@@ -151,6 +151,15 @@ describe("GridCellSyncStatusBlockNumber.svelte", () => {
     expect(getLink().textContent).toContain("4,000");
   });
 
+  test("shows - for Goal before the chain is synced", () => {
+    // The latest block number stays 0 until the first sync of the chain.
+    setLatestBlockNumber(0);
+    renderCell("Goal");
+
+    expect(screen.queryByRole("link")).toBeNull();
+    expect(screen.getByText("-", { selector: "label" })).toBeTruthy();
+  });
+
   test("shows - when the contract has no sync status", async () => {
     renderCell("Current");
 

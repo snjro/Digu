@@ -12,9 +12,10 @@
     Version,
   } from "@constants/chains/types";
   import { dbWorkerFuncGetConvertedEventLogs } from "@db/db.worker.func.getConvertedEventLogs";
-  import type { ConvertedEventLog } from "@db/dbTypes";
+  import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { numberWithCommas } from "@utils/utilsCommon";
+  import { customLogger } from "@utils/logger";
   import classNames from "classnames";
   import EventOverviewFetchedLogsEdge from "./EventOverviewFetchedLogsEdge.svelte";
   import { MESSAGE_ANONYMOUS_EVENT_LOGS } from "./EventLogs.svelte";
@@ -52,14 +53,24 @@
     }
     // Reload when new logs are saved.
     void recordCount;
+    const eventIdentifier: AbiFragmentIdentifier = {
+      chainName: targetChain.name,
+      projectName: targetProject.name,
+      versionName: targetVersion.name,
+      contractName: targetContract.name,
+      abiFragmentName: targetEventAbiFragment.name,
+    };
     return applyLatestLoad(
-      dbWorkerFuncGetConvertedEventLogs({
-        chainName: targetChain.name,
-        projectName: targetProject.name,
-        versionName: targetVersion.name,
-        contractName: targetContract.name,
-        abiFragmentName: targetEventAbiFragment.name,
-      }),
+      dbWorkerFuncGetConvertedEventLogs(eventIdentifier).catch(
+        (error: unknown) => {
+          // Like the table (gridRows.ts): log it and show no logs.
+          customLogger.error("Get event logs.", {
+            eventIdentifier: eventIdentifier,
+            errorObject: error,
+          });
+          return [];
+        },
+      ),
       (logs: ConvertedEventLog[]) => {
         convertedEventLogs = logs;
       },

@@ -53,7 +53,8 @@
   );
 </script>
 
-{#if targetContractSyncStatus}
+<!-- Like the valueGetter of the column, 0 is no block. -->
+{#if targetContractSyncStatus && blockNumber !== 0}
   <CommonChainExplorerLink
     subdirectory="block"
     value={blockNumber.toString()}
