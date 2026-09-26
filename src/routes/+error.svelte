@@ -1,18 +1,18 @@
 <script lang="ts">
   import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { base } from "$app/paths";
   import { page } from "$app/state";
   import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import BaseButton from "$lib/base/BaseButton.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { GITHUB_PAGES_HOST_NAME, PROJECT_NAME } from "@utils/utilsConstants";
   import classNames from "classnames";
 
   const colorCategory: ColorCategory = colorSettings.errorPage;
-  const errorDetails: { title: string; value: string | undefined }[] = [
+  let errorDetails: { title: string; value: string | undefined }[] = $derived([
     { title: "Status", value: page.status.toString() },
     { title: "Message", value: page.error?.message },
-  ];
+  ]);
 </script>
 
 <div
@@ -62,9 +62,7 @@
     <BaseButton
       size="md"
       label="HOME"
-      href={page.url.hostname.includes(GITHUB_PAGES_HOST_NAME)
-        ? `/${PROJECT_NAME}`
-        : "/"}
+      href={`${base}/`}
       border
       shadowEffect
       hoverEffect

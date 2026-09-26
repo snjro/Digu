@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
   GITHUB_OWNER_NAME,
-  GITHUB_PAGES_HOST_NAME,
   GITHUB_REPOSITORY_URL,
   PROJECT_NAME,
 } from "./utilsConstants";
@@ -34,10 +33,6 @@ const constants: Constant[] = [
   {
     constName: GITHUB_OWNER_NAME,
     constValue: "snjro",
-  },
-  {
-    constName: GITHUB_PAGES_HOST_NAME,
-    constValue: `${GITHUB_OWNER_NAME}.github.io`,
   },
   {
     constName: GITHUB_REPOSITORY_URL,
