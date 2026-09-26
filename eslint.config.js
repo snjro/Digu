@@ -15,7 +15,6 @@ export default defineConfig(
       "package/",
       "coverage/",
       ".claude/",
-      "**/*.test.ts",
     ],
   },
   js.configs.recommended,

@@ -7,6 +7,7 @@ import {
   expect,
   test,
   vi,
+  type MockInstance,
 } from "vitest";
 import {
   extractDecodedEventLogs,
@@ -70,7 +71,7 @@ const targetChainName: ChainName = "matic";
 const targetChain: Chain = TARGET_CHAINS.find(
   (chain: Chain) => chain.name === targetChainName,
 )!;
-let spyUpdateDbItemChainStatus: any;
+let spyUpdateDbItemChainStatus: MockInstance;
 
 beforeAll(() => {
   spyUpdateDbItemChainStatus = vi
@@ -112,8 +113,8 @@ describe("extractEventContracts", () => {
 });
 
 describe("getNodeProvider", async () => {
-  let spyJsonRpcGetNetwork: any;
-  let spyWebSocketGetNetWork: any;
+  let spyJsonRpcGetNetwork: MockInstance;
+  let spyWebSocketGetNetWork: MockInstance;
   beforeAll(() => {
     spyJsonRpcGetNetwork = vi
       .spyOn(JsonRpcProvider.prototype, "getNetwork")
@@ -417,7 +418,7 @@ describe("getLoggableError", () => {
 
 describe("getAndUpdateLatestBlockNumber", () => {
   let nodeProvider: NodeProvider | undefined;
-  let spyGetBlockNumber: any;
+  let spyGetBlockNumber: MockInstance;
   const expectedLatestBlockNumber: number = 1;
   beforeAll(async () => {
     nodeProvider = new JsonRpcProvider();
@@ -444,7 +445,7 @@ describe("getEthersEventLogs", async () => {
   let nodeProvider: NodeProvider | undefined;
   let ethersContract: EthersContract;
 
-  let sypQueryFilter: any;
+  let sypQueryFilter: MockInstance;
 
   beforeAll(() => {
     targetContract = convertJsonFilesContractToContracts(jsonFileContracts)[0];

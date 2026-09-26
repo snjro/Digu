@@ -77,7 +77,7 @@ describe("getUpdateTargetEventLogTables", () => {
 function getDummyGroupedEventLogs(
   eventNames: EventAbiFragment["name"][],
 ): GroupedEventLogs {
-  let dummyGroupedEventLogs: GroupedEventLogs = {};
+  const dummyGroupedEventLogs: GroupedEventLogs = {};
   for (let i = 0; i < eventNames.length; i++) {
     const eventName: string = eventNames[i];
     dummyGroupedEventLogs[eventName] = [

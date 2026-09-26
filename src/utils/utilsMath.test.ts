@@ -27,7 +27,7 @@ describe('"round"', () => {
   });
 
   test("should return NaN when the input is not a number", () => {
-    const num: any = "abc";
+    const num = "abc" as unknown as number;
     const place: number = 2;
 
     expect(round(num, place)).toBeNaN();
