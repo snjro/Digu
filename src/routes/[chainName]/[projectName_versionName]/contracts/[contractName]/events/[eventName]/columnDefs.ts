@@ -38,7 +38,15 @@ export const columnDefs = <T extends ConvertedEventLog>(
           editable: editable,
           cellClass: cellClass,
           columnGroupShow: "open",
+          // Sorts by the Date: building the text on each comparison is slow.
           valueGetter: (valueGetterParams: ValueGetterParams) => {
+            return valueGetterParams.data.jsDate;
+          },
+          valueFormatter: (valueFormatterParams: ValueFormatterParams) => {
+            return convertJsDateToIso8601(valueFormatterParams.value);
+          },
+          // The column filter and the quick search match the shown text.
+          filterValueGetter: (valueGetterParams: ValueGetterParams) => {
             return convertJsDateToIso8601(valueGetterParams.data.jsDate);
           },
         },
