@@ -10,9 +10,9 @@ export type EventLogEdges = {
 };
 
 // Reads the number of logs and the two edge logs, not all the logs.
-// The sync saves the logs of each range in the order of the RPC (block, then
-// log index) and the ranges from old to new blocks, so the order of the
-// auto-incremented key is the order of the blocks.
+// The sync saves the logs of each range in block and log index order
+// (addEventLogs_updateFetchedBlockNumber) and the ranges from old to new
+// blocks, so the order of the auto-incremented key is the order of the blocks.
 export async function getEventLogEdges(
   eventIdentifier: AbiFragmentIdentifier,
 ): Promise<EventLogEdges> {

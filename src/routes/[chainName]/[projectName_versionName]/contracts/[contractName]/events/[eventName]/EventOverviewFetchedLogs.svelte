@@ -97,7 +97,7 @@
     italic
     textSize={sizeSettings.itemWarningMessage}
   />
-{:else if edges.count > 0 && edges.oldest && edges.latest}
+{:else if edges.oldest && edges.latest}
   <CommonItemMember text="Number of Fetched Logs">
     <BaseLabel
       text={numberWithCommas(edges.count)}
