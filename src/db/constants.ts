@@ -33,3 +33,7 @@ export const PK_AUTO_INCREMENTED = "++id";
 export function getSyncLockName(chainName: ChainName): string {
   return `${DB_NAME.firstName}_sync_${chainName}`;
 }
+
+// How long to wait for the sync lock. Other tabs hold it briefly to reset the
+// sync status, so do not give up at once.
+export const SYNC_LOCK_TIMEOUT_MS: number = 1000;

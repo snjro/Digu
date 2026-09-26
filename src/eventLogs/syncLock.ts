@@ -4,7 +4,7 @@ import { initializeDBSyncStatusInChain } from "@db/db.worker.func.InitializeDBSy
 import { DbEventLogs } from "@db/dbEventLogs";
 import { getDbRecordSyncStatusContract } from "@db/dbEventLogsDataHandlersSyncStatusGetters";
 import type { SyncStatusContract, VersionIdentifier } from "@db/dbTypes";
-import { getSyncLockName } from "@db/constants";
+import { getSyncLockName, SYNC_LOCK_TIMEOUT_MS } from "@db/constants";
 import { getDbRecordChainStatus } from "@db/dbChainStatusDataHandlers";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
@@ -24,10 +24,6 @@ export const storeSyncLockedByOtherTab: Writable<Record<ChainName, boolean>> =
 
 // Chains whose sync lock this tab holds.
 const chainsSyncedByThisTab: Set<ChainName> = new Set();
-
-// How long to wait for the lock. Other tabs hold it briefly to reset the sync
-// status, so do not give up at once.
-const SYNC_LOCK_TIMEOUT_MS: number = 1000;
 
 // Runs `start` and then `sync` while holding the lock. Resolves true once
 // `start` has finished, or false when the lock is held (by another tab for

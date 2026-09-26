@@ -91,6 +91,12 @@ vi.mock("./updateLatestBlockNumber", () => ({
     return () => latestBlockTimers.running--;
   },
 }));
+// Shorter than the app's 1 s, so that a tab gives up on a held lock sooner.
+// Long enough for the reset that another tab does after it stops syncing.
+vi.mock("@db/constants", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@db/constants")>()),
+  SYNC_LOCK_TIMEOUT_MS: 200,
+}));
 // Quiet: the syncs log tens of thousands of lines, which bury real errors.
 vi.mock("@utils/logger", () => ({
   customLogger: class {
@@ -129,9 +135,9 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function waitFor(
   condition: () => boolean | Promise<boolean>,
 ): Promise<boolean> {
-  for (let i = 0; i < 250; i++) {
+  for (let i = 0; i < 500; i++) {
     if (await condition()) return true;
-    await sleep(20);
+    await sleep(10);
   }
   return false;
 }
@@ -208,6 +214,14 @@ type Tab = Awaited<ReturnType<typeof openTab>>;
 async function dbStatus(tab: Tab): Promise<SyncStatusContract> {
   return await tab.db.table("SyncStatus").get(tab.contract.name);
 }
+// The number of logs of countLogs() that the tab's store says are saved.
+function savedLogs(tab: Tab): number {
+  return tab.storeStatus().events[tab.contract.events.names[0]].recordCount;
+}
+// Waits until the tab's sync has saved more logs than `count`.
+async function waitForSavedLogs(tab: Tab, count: number = 0): Promise<void> {
+  expect(await waitFor(() => savedLogs(tab) > count)).toBe(true);
+}
 async function countLogs(tab: Tab): Promise<{ rows: number; unique: number }> {
   const rows = await tab.db
     .table(`${tab.contract.name}_${tab.contract.events.names[0]}`)
@@ -265,7 +279,7 @@ describe("sync with two tabs (issue #49)", () => {
     tabs.push(a);
     // Before the fix, fetchEventLogs() resolved only when the sync ended.
     const startedA = a.fetchEventLogs();
-    await sleep(100);
+    await waitForSavedLogs(a);
 
     const b = await openTab();
     tabs.push(b);
@@ -282,7 +296,7 @@ describe("sync with two tabs (issue #49)", () => {
     const a = await openTab();
     tabs.push(a);
     expect(await a.fetchEventLogs()).toBe(true);
-    await sleep(50);
+    await waitForSavedLogs(a);
     const b = await openTab();
     tabs.push(b);
 
@@ -299,10 +313,11 @@ describe("sync with two tabs (issue #49)", () => {
     const b = await openTab();
     tabs.push(b);
     expect(await a.fetchEventLogs()).toBe(true);
-    await sleep(50);
+    await waitForSavedLogs(a);
 
     expect(await b.fetchEventLogs()).toBe(false);
     expect(b.isLockedByOtherTab()).toBe(true);
+    // Time for tab B to save logs too, if it synced.
     await sleep(200);
 
     await stopAndWait(a);
@@ -317,7 +332,7 @@ describe("sync with two tabs (issue #49)", () => {
     const b = await openTab();
     tabs.push(b);
     expect(await a.fetchEventLogs()).toBe(true);
-    await sleep(50);
+    await waitForSavedLogs(a);
     expect(await b.fetchEventLogs()).toBe(false);
     await a.updateLatestBlockNumber(b.latestBlockNumber() + 100);
 
@@ -330,15 +345,15 @@ describe("sync with two tabs (issue #49)", () => {
     const a = await openTab();
     tabs.push(a);
     expect(await a.fetchEventLogs()).toBe(true);
-    await sleep(100);
+    await waitForSavedLogs(a);
     const b = await openTab();
     tabs.push(b);
-    await sleep(100);
+    await waitForSavedLogs(a, savedLogs(a));
     await stopAndWait(a);
     expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
 
     expect(await b.fetchEventLogs()).toBe(true);
-    await sleep(200);
+    await waitForSavedLogs(b, savedLogs(a));
     await stopAndWait(b);
 
     const { rows, unique } = await countLogs(a);
@@ -400,7 +415,7 @@ describe("sync with two tabs (issue #49)", () => {
     expect(a.storeStatus().isSyncing).toBe(false);
 
     expect(await a.fetchEventLogs()).toBe(true);
-    await sleep(100);
+    await waitForSavedLogs(a);
     await stopAndWait(a);
   }, 30_000);
 
@@ -415,9 +430,10 @@ describe("sync with two tabs (issue #49)", () => {
   test("waits for another tab that holds the lock briefly", async () => {
     const a = await openTab();
     tabs.push(a);
-    // Like another tab's reset after it stops syncing.
+    // Like another tab's reset after it stops syncing. Released once tab A
+    // waits for it.
     const heldLock = lockManager.request(getSyncLockName(chain.name), () =>
-      sleep(200),
+      waitFor(async () => !!(await lockManager.query()).pending?.length),
     );
 
     expect(await a.fetchEventLogs()).toBe(true);
@@ -479,7 +495,7 @@ describe("sync with two tabs (issue #49)", () => {
     const a = await openTab();
     tabs.push(a);
     expect(await a.fetchEventLogs()).toBe(true);
-    await sleep(50);
+    await waitForSavedLogs(a);
     // Not in `tabs`: B's store stays stale, so afterEach must not stop it.
     const b = await openTab();
     expect(b.isLockedByOtherTab()).toBe(true);
@@ -523,7 +539,7 @@ describe("sync with two tabs (issue #49)", () => {
     const a = await openTab();
     tabs.push(a);
     expect(await a.fetchEventLogs()).toBe(true);
-    await sleep(50);
+    await waitForSavedLogs(a);
     expect(latestBlockTimers.running).toBe(1);
 
     await stopAndWait(a);
@@ -552,7 +568,7 @@ describe("sync with two tabs (issue #49)", () => {
     const a = await openTab();
     tabs.push(a);
     expect(await a.fetchEventLogs()).toBe(true);
-    await sleep(50);
+    await waitForSavedLogs(a);
     // Same module instance as tab A (openTab() resets modules only at start).
     const syncStatus = await import("@db/dbEventLogsDataHandlersSyncStatus");
     vi.spyOn(syncStatus, "stopSyncingInContract").mockRejectedValueOnce(
@@ -611,7 +627,7 @@ describe("sync with two tabs (issue #49)", () => {
     const a = await openTab();
     tabs.push(a);
     expect(await a.fetchEventLogs()).toBe(true);
-    await sleep(50);
+    await waitForSavedLogs(a);
 
     expect(await a.fetchEventLogs()).toBe(false);
     expect(a.isLockedByOtherTab()).toBe(false);
@@ -653,13 +669,14 @@ describe("sync with two tabs (issue #49)", () => {
       const a = await openTab();
       tabs.push(a);
       expect(await a.fetchEventLogs()).toBe(true);
-      await sleep(100);
+      await waitForSavedLogs(a);
       await stopAndWait(a);
+      const saved: number = savedLogs(a);
 
       const spy = spyCount();
       expect(await a.fetchEventLogs()).toBe(true);
       expect(spy).not.toHaveBeenCalled();
-      await sleep(100);
+      await waitForSavedLogs(a, saved);
       await stopAndWait(a);
       await expectCountMatchesRows(a);
     }, 30_000);
@@ -668,7 +685,7 @@ describe("sync with two tabs (issue #49)", () => {
       const a = await openTab();
       tabs.push(a);
       expect(await a.fetchEventLogs()).toBe(true);
-      await sleep(100);
+      await waitForSavedLogs(a);
       const b = await openTab();
       tabs.push(b);
       expect(b.isLockedByOtherTab()).toBe(true);
