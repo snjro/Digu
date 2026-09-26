@@ -91,6 +91,30 @@ vi.mock("./updateLatestBlockNumber", () => ({
     return () => latestBlockTimers.running--;
   },
 }));
+// Quiet: the syncs log tens of thousands of lines, which bury real errors.
+vi.mock("@utils/logger", () => ({
+  customLogger: class {
+    static info() {}
+    static start() {}
+    static finished() {}
+    static success() {}
+    static fail() {}
+    static error() {}
+    static fatal() {}
+    static warn() {}
+    static debug() {}
+  },
+}));
+// Dexie warns each time a test deletes the DBs that a tab still has open.
+const consoleWarn = console.warn;
+beforeEach(() => {
+  vi.spyOn(console, "warn").mockImplementation((...args: unknown[]) => {
+    if (String(args[0]).startsWith("Another connection wants to delete")) {
+      return;
+    }
+    consoleWarn(...args);
+  });
+});
 
 const chain: Chain = TARGET_CHAINS[0];
 const project = chain.projects[0];
