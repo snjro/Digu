@@ -16,6 +16,7 @@ import type {
 } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { dbWorkerFuncGetConvertedEventLogs } from "@db/db.worker.func.getConvertedEventLogs";
+import { customLogger } from "@utils/logger";
 import EventOverviewFetchedLogs from "./EventOverviewFetchedLogs.svelte";
 
 // The real store and DB load the chain data, which loads ethers. ethers does
@@ -26,6 +27,11 @@ vi.mock("@stores/storeSyncStatus", async () => {
 });
 vi.mock("@db/db.worker.func.getConvertedEventLogs", () => ({
   dbWorkerFuncGetConvertedEventLogs: vi.fn(),
+}));
+vi.mock("@utils/logger", () => ({
+  customLogger: {
+    error: vi.fn(),
+  },
 }));
 vi.mock("./EventLogs.svelte", () => ({
   MESSAGE_ANONYMOUS_EVENT_LOGS: "Logs of anonymous events are not fetched.",
@@ -111,6 +117,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
   beforeEach(() => {
     store.set(initialState());
     load.mockReset();
+    vi.mocked(customLogger.error).mockClear();
   });
 
   test("reloads the logs when the record count of the event changes", async () => {
@@ -132,6 +139,31 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     expect(
       screen.getAllByTestId("stub").map((stub) => stub.textContent),
     ).toEqual(["20", "0xtx20", "10", "0xtx10"]);
+  });
+
+  test("logs a failed load and shows no logs, like the table", async () => {
+    load.mockResolvedValueOnce([log(10)]);
+    renderSection();
+    await waitFor(() => expect(screen.getByText("1")).toBeTruthy());
+
+    const error = new Error("test error");
+    load.mockRejectedValueOnce(error);
+    setContract({
+      events: { Transfer: { recordCount: 2 }, Approval: { recordCount: 0 } },
+    });
+    await waitFor(() =>
+      expect(screen.getByText("No logs fetched yet.")).toBeTruthy(),
+    );
+    expect(customLogger.error).toHaveBeenCalledWith("Get event logs.", {
+      eventIdentifier: {
+        chainName: "chain1",
+        projectName: "project1",
+        versionName: "version1",
+        contractName: "contract1",
+        abiFragmentName: "Transfer",
+      },
+      errorObject: error,
+    });
   });
 
   test("does not reload when only other values change", async () => {
