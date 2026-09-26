@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test } from "vitest";
 import { EventFragment } from "ethers";
 import {
   AllCommunityModule,
@@ -72,9 +72,9 @@ describe("columnDefs", () => {
     const valueFormatter = (datetime as ColDef).valueFormatter as (
       params: ValueFormatterParams,
     ) => unknown;
-    expect(valueFormatter({ value: row.jsDate } as ValueFormatterParams)).toBe(
-      "2020-01-02T03:04:05Z",
-    );
+    expect(
+      valueFormatter({ data: row, value: row.jsDate } as ValueFormatterParams),
+    ).toBe("2020-01-02T03:04:05Z");
   });
 
   test("should name each argument by its index and its name", () => {
@@ -161,15 +161,23 @@ describe("the datetime column in ag-grid", () => {
         jsDate: new Date(time),
       }) as unknown as ConvertedEventLog,
   );
+  let element: HTMLElement | undefined;
+  let gridApi: GridApi<ConvertedEventLog> | undefined;
+  afterEach(() => {
+    gridApi?.destroy();
+    element?.remove();
+    gridApi = undefined;
+    element = undefined;
+  });
   function createRealGrid(): GridApi<ConvertedEventLog> {
     ModuleRegistry.registerModules([AllCommunityModule]);
-    const element = document.createElement("div");
+    element = document.createElement("div");
     document.body.append(element);
     const datetime: ColumnDef = children(
       columnDefs(fragment, [2, 1, 1, 1])[0],
     )[1];
     // The same filter and group options as GridBody.
-    return createGrid<ConvertedEventLog>(element, {
+    gridApi = createGrid<ConvertedEventLog>(element, {
       columnDefs: getColumnDefs([
         { field: "transactionHash" },
         { headerName: "time", children: [datetime] },
@@ -179,6 +187,7 @@ describe("the datetime column in ag-grid", () => {
       suppressFieldDotNotation: true,
       rowData: rows,
     });
+    return gridApi;
   }
   function shownRows(gridApi: GridApi<ConvertedEventLog>): string[] {
     const hashes: string[] = [];
@@ -188,7 +197,7 @@ describe("the datetime column in ag-grid", () => {
     return hashes;
   }
 
-  test("exports and copies the datetime in ISO 8601", () => {
+  test("exports the datetime to CSV in ISO 8601", () => {
     const gridApi = createRealGrid();
     expect(
       getCsvText(gridApi, {
@@ -209,7 +218,6 @@ describe("the datetime column in ag-grid", () => {
         '"0xe1","2021-06-01T00:00:00Z"',
       ].join("\r\n"),
     );
-    gridApi.destroy();
   });
 
   test.each([
@@ -222,7 +230,6 @@ describe("the datetime column in ag-grid", () => {
     const gridApi = createRealGrid();
     gridApi.setGridOption("quickFilterText", text);
     expect(shownRows(gridApi)).toEqual(expected);
-    gridApi.destroy();
   });
 
   test.each([
@@ -243,7 +250,6 @@ describe("the datetime column in ag-grid", () => {
       });
       gridApi.onFilterChanged();
       expect(shownRows(gridApi)).toEqual(expected);
-      gridApi.destroy();
     },
   );
 
@@ -254,6 +260,5 @@ describe("the datetime column in ag-grid", () => {
     const gridApi = createRealGrid();
     gridApi.applyColumnState({ state: [{ colId: "jsDate", sort }] });
     expect(shownRows(gridApi)).toEqual(expected);
-    gridApi.destroy();
   });
 });

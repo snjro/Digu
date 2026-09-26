@@ -22,6 +22,11 @@ import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 const cellClass: string = classNames("");
 const sortable = true;
 const editable = false;
+function getDatetimeText(
+  params: ValueFormatterParams | ValueGetterParams,
+): string {
+  return convertJsDateToIso8601(params.data.jsDate);
+}
 export const columnDefs = <T extends ConvertedEventLog>(
   targetEventAbiFragment: EventAbiFragment,
   eachArgsMaxLengths: number[],
@@ -39,16 +44,14 @@ export const columnDefs = <T extends ConvertedEventLog>(
           cellClass: cellClass,
           columnGroupShow: "open",
           // Sorts by the Date: building the text on each comparison is slow.
+          // Keep this valueGetter: without it, ag-grid infers the type from
+          // the Date and gives the column another filter.
           valueGetter: (valueGetterParams: ValueGetterParams) => {
             return valueGetterParams.data.jsDate;
           },
-          valueFormatter: (valueFormatterParams: ValueFormatterParams) => {
-            return convertJsDateToIso8601(valueFormatterParams.value);
-          },
+          valueFormatter: getDatetimeText,
           // The column filter and the quick search match the shown text.
-          filterValueGetter: (valueGetterParams: ValueGetterParams) => {
-            return convertJsDateToIso8601(valueGetterParams.data.jsDate);
-          },
+          filterValueGetter: getDatetimeText,
         },
       ],
     },
