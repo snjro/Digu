@@ -14,8 +14,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    reviewers:
-      - "snjro"
     assignees:
       - "snjro"
     versioning-strategy: increase-if-necessary
