@@ -43,7 +43,14 @@ export async function requestSyncLock(
     chainsSyncedByThisTab.add(chainName);
     const started: boolean = await tryToStart(chainName, start);
     const syncing: Promise<void> = started ? sync() : Promise.resolve();
-    void syncing.finally(() => chainsSyncedByThisTab.delete(chainName));
+    void syncing
+      .catch((error: unknown) => {
+        customLogger.error("Sync event logs.", {
+          chainName: chainName,
+          errorObject: error,
+        });
+      })
+      .finally(() => chainsSyncedByThisTab.delete(chainName));
     return started;
   }
   const signal: AbortSignal = AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS);
