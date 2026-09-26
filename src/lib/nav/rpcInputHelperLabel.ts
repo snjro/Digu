@@ -38,7 +38,7 @@ export function getRpcInputHelperLabelProps(
       break;
     }
     default: {
-      let errorMessage: string | undefined = undefined;
+      let errorMessage: string | undefined;
       switch (nodeStatus) {
         case "INVALID_PROTOCOL": {
           errorMessage = `Error. Protocol is invalid.`;

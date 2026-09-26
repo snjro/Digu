@@ -1,6 +1,6 @@
 export function convertTimestampSecToIso8601(timestampSec?: number): string {
-  let timestampMilliSec: number | undefined = undefined;
-  let date: Date | undefined = undefined;
+  let timestampMilliSec: number | undefined;
+  let date: Date | undefined;
   if (timestampSec) {
     timestampMilliSec = timestampSec * 1000;
     date = new Date(timestampMilliSec);

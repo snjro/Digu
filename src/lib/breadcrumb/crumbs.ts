@@ -27,7 +27,7 @@ function getPathNameWithUrlHash(
   previousPathName: string,
   currentPathName: string,
 ): string {
-  let urlHash: string = "";
+  let urlHash: string;
   // if (indexPathNames === pathNames.length - 1) {
   switch (previousPathName) {
     case DIR_NAME_CONTRACTS:

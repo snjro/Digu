@@ -134,7 +134,7 @@ function getNewValueOfIsSyncTarget<
   contractName?: VE extends VersionName ? CO : undefined,
 ): boolean {
   if (newValue === undefined) {
-    let currentValue: boolean = true;
+    let currentValue: boolean;
     if (projectName && versionName && contractName) {
       currentValue =
         syncStatuses[chainName].subSyncStatuses[projectName].subSyncStatuses[

@@ -31,7 +31,6 @@ export default defineConfig(
       // Crashes on ESLint 10: https://github.com/sveltejs/eslint-plugin-svelte/issues/1515
       "svelte/no-reactive-functions": "off",
       // Rules newly reported after the upgrade. Still off: the code has not been fixed for them yet.
-      "no-useless-assignment": "off",
       "@typescript-eslint/no-unused-expressions": "off",
       "svelte/no-navigation-without-resolve": "off",
       "svelte/no-useless-mustaches": "off",
