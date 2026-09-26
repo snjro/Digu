@@ -8,6 +8,7 @@ import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
 import type { EthersEventLog, NodeStatus } from "@db/dbTypes";
 import { customLogger } from "./logger";
 import { getUrlObject } from "./utilsCommon";
+import { getTargetChain } from "./utilsDb";
 import {
   JsonRpcProvider,
   Network,
@@ -172,7 +173,13 @@ export async function getAndUpdateLatestBlockNumber(
   nodeProvider: NodeProvider,
   chainName: ChainName,
 ): Promise<number> {
-  const latestBlockNumber: number = await nodeProvider.getBlockNumber();
+  // Blocks within the confirmation depth can still be replaced by a chain
+  // reorganization, so the sync does not go past them.
+  const latestBlockNumber: number = Math.max(
+    0,
+    (await nodeProvider.getBlockNumber()) -
+      getTargetChain({ chainName }).confirmationBlocks,
+  );
   await updateDbItemChainStatus(
     chainName,
     "latestBlockNumber",

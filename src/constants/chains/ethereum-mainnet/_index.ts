@@ -38,6 +38,7 @@ export const chain: Chain = {
   ],
   blockIntervalMs: 20000,
   tryCount: 10,
+  confirmationBlocks: 96,
   projects: [augur],
 };
 

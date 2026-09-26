@@ -419,15 +419,17 @@ describe("getLoggableError", () => {
 describe("getAndUpdateLatestBlockNumber", () => {
   let nodeProvider: NodeProvider | undefined;
   let spyGetBlockNumber: MockInstance;
-  const expectedLatestBlockNumber: number = 1;
+  const rpcLatestBlockNumber: number = 1000;
   beforeAll(async () => {
     nodeProvider = new JsonRpcProvider();
     spyGetBlockNumber = vi
       .spyOn(nodeProvider, "getBlockNumber")
-      .mockResolvedValue(expectedLatestBlockNumber);
+      .mockResolvedValue(rpcLatestBlockNumber);
   });
   afterAll(() => spyGetBlockNumber.mockRestore());
   test("should get latestBlockNumber", async () => {
+    const expectedLatestBlockNumber: number =
+      rpcLatestBlockNumber - targetChain.confirmationBlocks;
     const actualLatestBlockNumber: number = await getAndUpdateLatestBlockNumber(
       nodeProvider!,
       targetChainName,
@@ -438,6 +440,17 @@ describe("getAndUpdateLatestBlockNumber", () => {
     >(targetChainName, "latestBlockNumber", expectedLatestBlockNumber);
 
     expect(actualLatestBlockNumber).toBe(expectedLatestBlockNumber);
+  });
+  test("should not go below 0 when the chain is shorter than the confirmation depth", async () => {
+    spyGetBlockNumber.mockResolvedValueOnce(targetChain.confirmationBlocks - 1);
+    const actualLatestBlockNumber: number = await getAndUpdateLatestBlockNumber(
+      nodeProvider!,
+      targetChainName,
+    );
+    expect(spyUpdateDbItemChainStatus).toHaveBeenLastCalledWith<
+      [ChainName, "latestBlockNumber", ChainStatus["latestBlockNumber"]]
+    >(targetChainName, "latestBlockNumber", 0);
+    expect(actualLatestBlockNumber).toBe(0);
   });
 });
 describe("getEthersEventLogs", async () => {

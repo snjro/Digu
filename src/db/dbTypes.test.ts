@@ -29,6 +29,7 @@ describe("initialDataRpcSetting", () => {
       rpc: ["http://test-rpc"],
       blockIntervalMs: 3000,
       tryCount: 3,
+      confirmationBlocks: 5,
     };
 
     const result = initialDataRpcSetting(dummyChain);
