@@ -1,4 +1,4 @@
-import type { ColDef, ColGroupDef } from "ag-grid-community";
+import type { ColDef, ColGroupDef, ValueGetterParams } from "ag-grid-community";
 import classNames from "classnames";
 import type { ColumnDef } from "../types";
 export function getColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
@@ -17,7 +17,8 @@ function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
   const columnDefRowNumber: ColumnDef = {
     colId: ColIdRowSequenceNumber,
     headerName: "#",
-    valueGetter: "node.rowIndex + 1",
+    valueGetter: (params: ValueGetterParams): number =>
+      (params.node?.rowIndex ?? 0) + 1,
     cellClass: classNames(
       "tabular-nums",
       "grid",
