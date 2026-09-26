@@ -15,10 +15,10 @@ scripts/visual-compare/run.sh <base-ref> <out-dir> [<head-ref>]
 - `<out-dir>`: where to write the result. It is deleted first. Keep it outside
   the repository.
   `run.sh` stops without deleting it when it is `/`, `$HOME`, in or around the
-  repository, or not empty without the `report.md` or the `.visual-compare`
-  file of an earlier run. `run.sh` puts `.visual-compare` in it before taking
-  the screenshots, so a run that stopped halfway can be run again with the
-  same `<out-dir>`.
+  repository, or not empty without the `report.md` of an earlier run.
+  `run.sh` puts a `.visual-compare` file in it before taking the screenshots.
+  A run that stopped halfway can be run again with the same `<out-dir>` when
+  it has only `.visual-compare`, `base/`, `head/` and `diff/`.
 - `<head-ref>`: the version to check. Without it, the head is this working
   tree, with its uncommitted changes. Then `run.sh` reinstalls the
   `node_modules` of this working tree with `npm ci`, and overwrites its

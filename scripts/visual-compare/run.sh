@@ -38,8 +38,23 @@ if [[ -e $out_dir && ! -d $out_dir ]]; then
 fi
 # run.sh puts this file in <out-dir>, so a run that stopped halfway can be run again.
 marker=.visual-compare
-if [[ -d $out_dir && -n $(ls -A "$out_dir") && ! -f $out_dir/report.md && ! -f $out_dir/$marker ]]; then
-  refuse "it is not empty and has no report.md or $marker of an earlier run"
+# True when <out-dir> has only the marker and what shots.mjs and compare.mjs write.
+has_only_run_files() {
+  local name
+  while IFS= read -r name; do
+    case $name in
+      "$marker" | report.md | base | head | diff) ;;
+      *) return 1 ;;
+    esac
+  done < <(ls -A "$out_dir")
+}
+if [[ -d $out_dir && -n $(ls -A "$out_dir") && ! -f $out_dir/report.md ]]; then
+  if [[ ! -f $out_dir/$marker ]]; then
+    refuse "it is not empty and has no report.md or $marker of an earlier run"
+  fi
+  if ! has_only_run_files; then
+    refuse "it has $marker but also files that run.sh does not make"
+  fi
 fi
 
 tmp=$(mktemp -d)
