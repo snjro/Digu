@@ -33,7 +33,7 @@ function getStoreSyncStatusContract(
   const { chainName, projectName, versionName, contractName } =
     contractIdentifier;
   return get(storeSyncStatus)[chainName].subSyncStatuses[projectName]
-    .subSyncStatuses[versionName].subSyncStatuses[contractName];
+    .subSyncStatuses[versionName].subSyncStatuses[contractName]!;
 }
 
 for (const targetChain of TARGET_CHAINS) {

@@ -46,11 +46,15 @@ const storeSyncStatusContract = (
   state: SyncStatusesChain,
   contractIdentifier: ContractIdentifier,
 ): SyncStatusContract => {
-  return state[contractIdentifier.chainName].subSyncStatuses[
-    contractIdentifier.projectName
-  ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
-    contractIdentifier.contractName
-  ];
+  const syncStatusContract: SyncStatusContract | undefined =
+    state[contractIdentifier.chainName].subSyncStatuses[
+      contractIdentifier.projectName
+    ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
+      contractIdentifier.contractName
+    ];
+  // Called only after updateState checks that the contract is in the store.
+  assertIsDefined(syncStatusContract);
+  return syncStatusContract;
 };
 export function updateStoreSyncStatusSyncStateText(
   state: SyncStatusesChain,

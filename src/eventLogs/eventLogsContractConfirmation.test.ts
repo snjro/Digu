@@ -48,7 +48,7 @@ const dbEventLogs = {
 
 function contractInState(state: SyncStatusesChain): SyncStatusContract {
   return state[targetChain.name].subSyncStatuses[targetProject.name]
-    .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name];
+    .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name]!;
 }
 
 describe("fetchEventLogsContract with the latest block number from the RPC", () => {

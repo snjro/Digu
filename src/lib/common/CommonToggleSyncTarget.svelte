@@ -10,6 +10,7 @@
   } from "@constants/chains/types";
   import type { SyncStatus } from "@db/dbTypes";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import { NO_DATA } from "@utils/utilsConstants";
   import classNames from "classnames";
   import { getProjectVersionNameForLabel } from "./projectVersionNameHelper";
   import {
@@ -35,7 +36,7 @@
     size,
   }: Props = $props();
 
-  let targetSyncStatus: SyncStatus = $derived(
+  let targetSyncStatus: SyncStatus | undefined = $derived(
     getTargetSyncStatus(
       $storeSyncStatus,
       targetChain,
@@ -66,19 +67,25 @@
   };
 </script>
 
-<div
-  class={classNames("flex", "flex-row", "w-fit", "space-x-2", "items-center")}
->
-  <BaseCheckbox
-    checked={targetSyncStatus.isSyncTarget}
-    indeterminate={isSyncTargetIndeterminate(targetSyncStatus.subSyncStatuses)}
-    {size}
-    disabled={getTargetSyncStatus($storeSyncStatus, targetChain).isSyncing}
-    onclick={checkChanged}
-    ariaLabel={`Sync target: ${targetName}`}
-  />
-  <BaseLabel
-    textSize={changeSize(size, 1)}
-    text={syncTargetLabelText(targetSyncStatus)}
-  />
-</div>
+{#if targetSyncStatus}
+  <div
+    class={classNames("flex", "flex-row", "w-fit", "space-x-2", "items-center")}
+  >
+    <BaseCheckbox
+      checked={targetSyncStatus.isSyncTarget}
+      indeterminate={isSyncTargetIndeterminate(
+        targetSyncStatus.subSyncStatuses,
+      )}
+      {size}
+      disabled={getTargetSyncStatus($storeSyncStatus, targetChain)?.isSyncing}
+      onclick={checkChanged}
+      ariaLabel={`Sync target: ${targetName}`}
+    />
+    <BaseLabel
+      textSize={changeSize(size, 1)}
+      text={syncTargetLabelText(targetSyncStatus)}
+    />
+  </div>
+{:else}
+  <BaseLabel textSize={changeSize(size, 1)} text={NO_DATA} />
+{/if}

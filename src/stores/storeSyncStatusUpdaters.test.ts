@@ -61,7 +61,7 @@ function levels(state: SyncStatusesChain) {
   const chain = state[dummyChainName];
   const project = chain.subSyncStatuses[dummyProjectName];
   const version = project.subSyncStatuses[dummyVersionName];
-  const contract = version.subSyncStatuses[dummyContractName];
+  const contract = version.subSyncStatuses[dummyContractName]!;
   return { chain, project, version, contract };
 }
 

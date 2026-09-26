@@ -33,7 +33,7 @@ const dbEventLogs = {
 
 function contractInState(state: SyncStatusesChain): SyncStatusContract {
   return state[targetChain.name].subSyncStatuses[targetProject.name]
-    .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name];
+    .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name]!;
 }
 function abort(): void {
   storeSyncStatus.update((state: SyncStatusesChain) => {

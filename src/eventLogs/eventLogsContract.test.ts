@@ -48,7 +48,7 @@ function contractInState(state: SyncStatusesChain): SyncStatusContract {
     contractIdentifier.projectName
   ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
     contractIdentifier.contractName
-  ];
+  ]!;
 }
 
 describe("fetchEventLogsContract", () => {

@@ -78,7 +78,7 @@ function setContract(value: Partial<SyncStatusContract> | undefined): void {
     if (value === undefined) {
       delete contracts[contract.name];
     } else {
-      Object.assign(contracts[contract.name], value);
+      Object.assign(contracts[contract.name]!, value);
     }
     return newState;
   });

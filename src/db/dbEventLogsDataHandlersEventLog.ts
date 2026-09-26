@@ -3,11 +3,13 @@ import type { DbEventLogs } from "./dbEventLogs";
 import type { Table } from "dexie";
 // import type { Event as EthersEvent } from "ethers";
 import { getEventLogTableName } from "@utils/utilsDb";
+import { assertIsDefined } from "@utils/utilsCommon";
 import { customLogger } from "@utils/logger";
 import type {
   ConvertedEventLog,
   GroupedEventLogs,
   SyncStatusContract,
+  SyncStatusEvent,
   SyncStatusesEvent,
   VersionIdentifier,
 } from "./dbTypes";
@@ -59,7 +61,11 @@ export async function addEventLogs_updateFetchedBlockNumber(
         promiseBulkAdds.push(
           dbEventLogs.table(tableName).bulkPut(groupedEventLogs[eventName]),
         );
-        syncStatusesEvent[eventName].recordCount += numOfRecords;
+        const syncStatusEvent: SyncStatusEvent | undefined =
+          syncStatusesEvent[eventName];
+        // The logs are fetched only for the events to sync, which have a status.
+        assertIsDefined(syncStatusEvent);
+        syncStatusEvent.recordCount += numOfRecords;
         bulkPutInfo.push({
           ...dbEventLogs.versionIdentifier,
           contractName: targetContract.name,
