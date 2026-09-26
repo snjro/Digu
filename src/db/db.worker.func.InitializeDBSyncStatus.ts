@@ -1,4 +1,4 @@
-import { DbEventLogs } from "./dbEventLogs";
+import { getDbEventLogs, type DbEventLogs } from "./dbEventLogs";
 import type { VersionIdentifier } from "./dbTypes";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Chain } from "@constants/chains/types";
@@ -41,7 +41,7 @@ export async function initializeDBSyncStatusInChain(
         projectName: targetProject.name,
         versionName: targetVersion.name,
       };
-      const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
+      const dbEventLogs: DbEventLogs = getDbEventLogs(versionIdentifier);
       for (const targetContract of extractEventContracts(
         targetVersion.contracts,
       )) {

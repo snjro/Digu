@@ -1,4 +1,8 @@
-import { addInitialDataOfDbEventLogs, DbEventLogs } from "@db/dbEventLogs";
+import {
+  addInitialDataOfDbEventLogs,
+  getDbEventLogs,
+  type DbEventLogs,
+} from "@db/dbEventLogs";
 import { addInitialDataOfDbChainStatus } from "@db/dbChainStatus";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import {
@@ -46,7 +50,7 @@ export async function initializeStore(): Promise<void> {
           versionName: targetVersion.name,
         };
 
-        const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
+        const dbEventLogs: DbEventLogs = getDbEventLogs(versionIdentifier);
 
         promiseUpdateStores.push(
           InitializeStoreSyncStatusInVersion(

@@ -68,6 +68,23 @@ export class DbEventLogs extends dbBase {
   }
 }
 
+// One instance per version, so that the page keeps one connection per version
+// open. Do not close() it: a closed instance does not reopen.
+const dbEventLogsByVersion: Map<string, DbEventLogs> = new Map();
+export function getDbEventLogs(
+  versionIdentifier: VersionIdentifier,
+): DbEventLogs {
+  const { chainName, projectName, versionName } = versionIdentifier;
+  const key: string = JSON.stringify([chainName, projectName, versionName]);
+  let dbEventLogs: DbEventLogs | undefined = dbEventLogsByVersion.get(key);
+  if (!dbEventLogs) {
+    // Only the three names: the DB name is made from the values.
+    dbEventLogs = new DbEventLogs({ chainName, projectName, versionName });
+    dbEventLogsByVersion.set(key, dbEventLogs);
+  }
+  return dbEventLogs;
+}
+
 export async function addInitialDataOfDbEventLogs(
   dbEventLogs: DbEventLogs,
 ): Promise<void> {

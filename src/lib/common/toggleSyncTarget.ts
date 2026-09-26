@@ -4,7 +4,7 @@ import type {
   ProjectName,
   VersionName,
 } from "@constants/chains/types";
-import { DbEventLogs } from "@db/dbEventLogs";
+import { getDbEventLogs } from "@db/dbEventLogs";
 import { updateDbIsSyncTarget } from "@db/dbEventLogsDataHandlersSyncStatusUpdateDbIsSyncTarget";
 import type { SyncStatusesChain } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
@@ -105,7 +105,7 @@ async function toggleIsSyncTargetContract(
   contractName: ContractName,
   newValue?: boolean,
 ) {
-  const dbEventLogs = new DbEventLogs({
+  const dbEventLogs = getDbEventLogs({
     chainName: chainName,
     projectName: projectName,
     versionName: versionName,

@@ -1,6 +1,6 @@
 import { getEventLogTableName } from "@utils/utilsDb";
 import type { AbiFragmentIdentifier, ConvertedEventLog } from "./dbTypes";
-import { DbEventLogs } from "./dbEventLogs";
+import { getDbEventLogs, type DbEventLogs } from "./dbEventLogs";
 import { getEventLogTableRecords } from "./dbEventLogsDataHandlersEventLog";
 
 export async function dbWorkerFuncGetConvertedEventLogs(
@@ -11,7 +11,7 @@ export async function dbWorkerFuncGetConvertedEventLogs(
     eventIdentifier.abiFragmentName,
   );
 
-  const dbEventLogs: DbEventLogs = new DbEventLogs({
+  const dbEventLogs: DbEventLogs = getDbEventLogs({
     chainName: eventIdentifier.chainName,
     projectName: eventIdentifier.projectName,
     versionName: eventIdentifier.versionName,

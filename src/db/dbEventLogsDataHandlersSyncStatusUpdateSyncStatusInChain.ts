@@ -1,6 +1,6 @@
 import type { Chain, ChainName } from "@constants/chains/types";
 import { DB_TABLE_NAMES } from "./constants";
-import { DbEventLogs } from "./dbEventLogs";
+import { getDbEventLogs, type DbEventLogs } from "./dbEventLogs";
 import type { SyncStatusContract, VersionIdentifier } from "./dbTypes";
 import { getTargetChain } from "@utils/utilsDb";
 import { getDbRecordsSyncStatusContractByKeyValue } from "./dbEventLogsDataHandlersSyncStatusGetters";
@@ -27,7 +27,7 @@ export async function updateSyncStatusInChain<
         projectName: project.name,
         versionName: version.name,
       };
-      const dbEventLogs = new DbEventLogs(versionIdentifier);
+      const dbEventLogs = getDbEventLogs(versionIdentifier);
       promiseUpdate.push(
         updateSyncStatusInVersion(
           dbEventLogs,

@@ -5,7 +5,7 @@ import * as InitializeDBSyncStatus from "./db.worker.func.InitializeDBSyncStatus
 import { extractEventContracts } from "@utils/utilsEthers";
 import type { Chain, Contract } from "@constants/chains/types";
 import type { VersionIdentifier } from "./dbTypes";
-import { DbEventLogs } from "./dbEventLogs";
+import { DbEventLogs, getDbEventLogs } from "./dbEventLogs";
 import { getSyncLockName } from "./constants";
 import {
   installFakeLockManager,
@@ -13,6 +13,9 @@ import {
 } from "../testUtils/fakeLockManager";
 
 vi.mock("./dbEventLogs");
+vi.mocked(getDbEventLogs).mockImplementation(
+  (versionIdentifier) => new DbEventLogs(versionIdentifier),
+);
 vi.mock("./db.worker.func.InitializeDBSyncStatusForContract");
 const spyInitializeDBSyncStatusForContract = vi.spyOn(
   InitializeDBSyncStatusForContract,
