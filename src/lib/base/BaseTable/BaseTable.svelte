@@ -72,6 +72,8 @@
             {numOfTableRows}
           />
         {/if}
+        <!-- Fixed list of header cells, reused by position. -->
+        <!-- eslint-disable-next-line svelte/require-each-key -->
         {#each tableHeaderCellProps as tableHeaderCellProp}
           <BaseTableHeaderCell {...tableHeaderCellProp} />
         {/each}

@@ -67,10 +67,14 @@
       colorCategory={colorSettings.gridFunctionButton}
     />
   {:else}
+    <!-- Fixed list, reused by position, so that a button whose icon and tooltip change on click is not remounted. -->
+    <!-- eslint-disable-next-line svelte/require-each-key -->
     {#each functionBarDefinition.buttonsDefinition as buttonGroup, buttonDefinitionIndex}
       <div
         class={classNames("flex", "flex-row", "items-center", "space-x-3", "")}
       >
+        <!-- Fixed list, reused by position, so that a button whose icon and tooltip change on click is not remounted. -->
+        <!-- eslint-disable-next-line svelte/require-each-key -->
         {#each buttonGroup as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition }}
           <BaseButtonIcon
             size={buttonSize}

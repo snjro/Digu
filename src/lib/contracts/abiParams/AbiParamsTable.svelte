@@ -67,7 +67,7 @@
   scrollAreaLabel={dialogHeaderText}
 >
   {#snippet tableBody()}
-    {#each paramTypes as paramType, rowIndex}
+    {#each paramTypes as paramType, rowIndex (paramType)}
       <AbiParamsTableRow
         {paramType}
         {dialogHeaderText}

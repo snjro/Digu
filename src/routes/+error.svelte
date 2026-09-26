@@ -46,7 +46,7 @@
       "",
     )}
   >
-    {#each errorDetails as errorDetail}
+    {#each errorDetails as errorDetail (errorDetail.title)}
       <div class={classNames("flex", "flex-row", "space-x-3")}>
         <BaseLabel textSize="sm" text={errorDetail.title} appendClass="w-16" />
         <BaseLabel

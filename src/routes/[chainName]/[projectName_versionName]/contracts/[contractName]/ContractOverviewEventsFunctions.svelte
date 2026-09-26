@@ -70,7 +70,7 @@
       borderBottom={false}
     >
       {#snippet tableBody()}
-        {#each abiFragments as abiFragment, indexSortedEventNames}
+        {#each abiFragments as abiFragment, indexSortedEventNames (abiFragment.format("sighash"))}
           <BaseTableRow>
             <SequenceBodyCell
               rowIndex={indexSortedEventNames}

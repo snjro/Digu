@@ -81,7 +81,7 @@
 >
   {#if suffixIcons.length > 0}
     <div class={classNames("grow", "justify-end", "flex", "flex-row")}>
-      {#each suffixIcons as suffixIcon}
+      {#each suffixIcons as suffixIcon (suffixIcon.name)}
         <BaseIcon
           isHover={hoverType !== undefined}
           name={suffixIcon.name}

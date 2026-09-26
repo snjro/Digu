@@ -216,7 +216,7 @@
     <PageWrapperContent hasMultipleTabs={false} gridCols="grid-cols-1">
       {#snippet PageWrapperContentBody()}
         <CommonItemGroup text="CSV File Format" gridTrack="col-span-full">
-          {#each radioPropsKeys as key}
+          {#each radioPropsKeys as key (key)}
             <CommonItemMember text={exportCsvRadioProps[key].title}>
               <BaseLabel
                 textSize={sizeSettings.dialogBodyContent}

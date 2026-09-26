@@ -91,7 +91,7 @@
   )}
 >
   <select bind:value class={customClass} {onchange} aria-label={ariaLabel}>
-    {#each items as { value, name }}
+    {#each items as { value, name } (value)}
       <option
         {value}
         class={classNames(

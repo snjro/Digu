@@ -71,7 +71,7 @@
       borderBottom={false}
     >
       {#snippet tableBody()}
-        {#each targetVersion.contracts as targetContract, indexSortedEventNames}
+        {#each targetVersion.contracts as targetContract, indexSortedEventNames (targetContract.name)}
           <BaseTableRow>
             <SequenceBodyCell
               rowIndex={indexSortedEventNames}

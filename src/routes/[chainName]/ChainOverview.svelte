@@ -16,7 +16,7 @@
 
 <PageWrapperContent gridCols="grid-cols-6" hasMultipleTabs={false}>
   {#snippet PageWrapperContentBody()}
-    {#each targetChain.projects as targetProject}
+    {#each targetChain.projects as targetProject (targetProject.name)}
       <CommonItemGroup
         text={`${targetProject.name}`}
         gridTrack={gridTrackContracts}
