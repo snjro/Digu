@@ -48,15 +48,17 @@ function expectedArgs(targetChains: Chain[]): CalledArgs[] {
   return args;
 }
 
-// DbEventLogs is mocked, so find the version from its constructor call.
+// getDbEventLogs is mocked, so find the version from the call that returned
+// the instance.
 function calledArgs(): CalledArgs[] {
-  const mockedDbEventLogs = vi.mocked(DbEventLogs).mock;
+  const mockedGetDbEventLogs = vi.mocked(getDbEventLogs).mock;
+  const instances: DbEventLogs[] = mockedGetDbEventLogs.results.map(
+    (result) => result.value,
+  );
   return spyInitializeDBSyncStatusForContract.mock.calls.map(
     ([dbEventLogs, contract, recount]) => ({
       versionIdentifier:
-        mockedDbEventLogs.calls[
-          mockedDbEventLogs.instances.indexOf(dbEventLogs)
-        ][0],
+        mockedGetDbEventLogs.calls[instances.indexOf(dbEventLogs)][0],
       contract,
       recount,
     }),
@@ -68,7 +70,7 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
   beforeEach(() => {
     lockManager = installFakeLockManager();
     spyInitializeDBSyncStatusForContract.mockClear();
-    vi.mocked(DbEventLogs).mockClear();
+    vi.mocked(getDbEventLogs).mockClear();
   });
 
   test("should initialize DB sync status for all contracts", async () => {

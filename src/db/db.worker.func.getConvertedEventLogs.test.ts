@@ -27,13 +27,13 @@ describe("dbWorkerFuncGetConvertedEventLogs", () => {
       mockEventIdentifier.contractName,
       mockEventIdentifier.abiFragmentName,
     );
-    expect(DbEventLogs).toHaveBeenCalledWith({
+    expect(getDbEventLogs).toHaveBeenCalledWith({
       chainName: mockEventIdentifier.chainName,
       projectName: mockEventIdentifier.projectName,
       versionName: mockEventIdentifier.versionName,
     });
     expect(getEventLogTableRecords).toHaveBeenCalledWith(
-      expect.any(DbEventLogs),
+      vi.mocked(getDbEventLogs).mock.results[0].value,
       getEventLogTableName(
         mockEventIdentifier.contractName,
         mockEventIdentifier.abiFragmentName,

@@ -10,7 +10,7 @@ import {
   DB_VERSIONS,
   PK_AUTO_INCREMENTED,
 } from "@db/constants";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import type {
   SchemaDefinition,
   SyncStatusContract,
@@ -224,5 +224,36 @@ describe("getDbEventLogs", () => {
       initialSyncStatuses,
     );
     expect(getDbEventLogs(versionIdentifier)).toBe(dbEventLogs);
+  });
+  test("makes a new instance after the DB failed to open", async () => {
+    // Not opened by the tests above.
+    const targetVersion = TARGET_CHAINS[1].projects[0].versions[0];
+    const otherVersionIdentifier: VersionIdentifier = {
+      chainName: TARGET_CHAINS[1].name,
+      projectName: TARGET_CHAINS[1].projects[0].name,
+      versionName: targetVersion.name,
+    };
+    const tableName = DB_TABLE_NAMES.EventLog.syncStatus;
+    const failedDbEventLogs: DbEventLogs = getDbEventLogs(
+      otherVersionIdentifier,
+    );
+    vi.spyOn(indexedDB, "open").mockImplementationOnce(() => {
+      throw new Error("open failed");
+    });
+    await expect(
+      failedDbEventLogs.table(tableName).toArray(),
+    ).rejects.toThrow();
+    vi.restoreAllMocks();
+    // Dexie does not open this instance again.
+    await expect(
+      failedDbEventLogs.table(tableName).toArray(),
+    ).rejects.toThrow();
+
+    const dbEventLogs: DbEventLogs = getDbEventLogs(otherVersionIdentifier);
+    expect(dbEventLogs).not.toBe(failedDbEventLogs);
+    expect(await dbEventLogs.table(tableName).toArray()).toHaveLength(
+      extractEventContracts(targetVersion.contracts).length,
+    );
+    expect(getDbEventLogs(otherVersionIdentifier)).toBe(dbEventLogs);
   });
 });
