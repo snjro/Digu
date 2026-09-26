@@ -16,6 +16,14 @@ export function isTargetContractInterface(
   return Object.prototype.hasOwnProperty.call(targetAbi, "fragments");
 }
 
+// ethers writes the string "undefined" for a constructor that is not payable.
+function fixConstructorStateMutability(fragment: JsonFragment): JsonFragment {
+  return fragment.type === "constructor" &&
+    fragment.stateMutability === "undefined"
+    ? { ...fragment, stateMutability: "nonpayable" }
+    : fragment;
+}
+
 export function formatTargetAbi(
   targetAbi: TargetAbi,
   abiFormat: AbiFormatType,
@@ -23,7 +31,9 @@ export function formatTargetAbi(
   switch (abiFormat) {
     case "json": // The standard ABI JSON, without the fields that only ethers has
       return isTargetContractInterface(targetAbi)
-        ? (JSON.parse(targetAbi.formatJson()) as JsonFragment[])
+        ? (JSON.parse(targetAbi.formatJson()) as JsonFragment[]).map(
+            fixConstructorStateMutability,
+          )
         : (JSON.parse(targetAbi.format("json")) as JsonFragment);
     case "full": // Human readable full
       return isTargetContractInterface(targetAbi)

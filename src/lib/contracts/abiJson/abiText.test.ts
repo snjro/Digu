@@ -62,6 +62,28 @@ describe("formatTargetAbi", () => {
         BALANCE_OF_JSON,
       ]);
     });
+    test("json: gives a non-payable constructor the stateMutability nonpayable", () => {
+      const withConstructor = new Interface(["constructor(address owner)"]);
+      const withPayableConstructor = new Interface([
+        "constructor(address owner) payable",
+      ]);
+      expect(formatTargetAbi(withConstructor, "json")).toStrictEqual([
+        {
+          type: "constructor",
+          stateMutability: "nonpayable",
+          payable: false,
+          inputs: [{ type: "address", name: "owner" }],
+        },
+      ]);
+      expect(formatTargetAbi(withPayableConstructor, "json")).toStrictEqual([
+        {
+          type: "constructor",
+          stateMutability: "payable",
+          payable: true,
+          inputs: [{ type: "address", name: "owner" }],
+        },
+      ]);
+    });
     test("full: returns the full human readable ABI", () => {
       expect(formatTargetAbi(contractInterface, "full")).toEqual([
         "event Transfer(address indexed from, address to, uint256 value)",
