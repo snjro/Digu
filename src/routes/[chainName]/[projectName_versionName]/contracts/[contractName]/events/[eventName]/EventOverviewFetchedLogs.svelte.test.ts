@@ -15,7 +15,7 @@ import type {
   SyncStatusesChain,
 } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { dbWorkerFuncGetConvertedEventLogs } from "@db/db.worker.func.getConvertedEventLogs";
+import { getEventLogEdges } from "@db/dbEventLogsGetEventLogEdges";
 import { customLogger } from "@utils/logger";
 import EventOverviewFetchedLogs from "./EventOverviewFetchedLogs.svelte";
 
@@ -25,8 +25,8 @@ vi.mock("@stores/storeSyncStatus", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncStatus: writable({}) };
 });
-vi.mock("@db/db.worker.func.getConvertedEventLogs", () => ({
-  dbWorkerFuncGetConvertedEventLogs: vi.fn(),
+vi.mock("@db/dbEventLogsGetEventLogEdges", () => ({
+  getEventLogEdges: vi.fn(),
 }));
 vi.mock("@utils/logger", () => ({
   customLogger: {
@@ -101,7 +101,8 @@ function log(blockNumber: number): ConvertedEventLog {
   } as unknown as ConvertedEventLog;
 }
 
-const load = vi.mocked(dbWorkerFuncGetConvertedEventLogs);
+const load = vi.mocked(getEventLogEdges);
+const noLogs = { count: 0, oldest: undefined, latest: undefined };
 
 function renderSection() {
   return render(EventOverviewFetchedLogs, {
@@ -121,14 +122,14 @@ describe("EventOverviewFetchedLogs.svelte", () => {
   });
 
   test("reloads the logs when the record count of the event changes", async () => {
-    load.mockResolvedValueOnce([]);
+    load.mockResolvedValueOnce(noLogs);
     renderSection();
     await waitFor(() =>
       expect(screen.getByText("No logs fetched yet.")).toBeTruthy(),
     );
     expect(load).toHaveBeenCalledTimes(1);
 
-    load.mockResolvedValueOnce([log(10), log(20)]);
+    load.mockResolvedValueOnce({ count: 2, oldest: log(10), latest: log(20) });
     setContract({
       events: { Transfer: { recordCount: 2 }, Approval: { recordCount: 0 } },
     });
@@ -141,8 +142,22 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     ).toEqual(["20", "0xtx20", "10", "0xtx10"]);
   });
 
+  test("shows the count of the DB with the two edge logs", async () => {
+    load.mockResolvedValueOnce({
+      count: 100000,
+      oldest: log(10),
+      latest: log(20),
+    });
+    renderSection();
+    await waitFor(() => expect(screen.getByText("100,000")).toBeTruthy());
+    expect(
+      screen.getAllByTestId("stub").map((stub) => stub.textContent),
+    ).toEqual(["20", "0xtx20", "10", "0xtx10"]);
+    expect(screen.getAllByText("2020-01-01T00:00:00Z")).toHaveLength(2);
+  });
+
   test("logs a failed load and shows no logs, like the table", async () => {
-    load.mockResolvedValueOnce([log(10)]);
+    load.mockResolvedValueOnce({ count: 1, oldest: log(10), latest: log(10) });
     renderSection();
     await waitFor(() => expect(screen.getByText("1")).toBeTruthy());
 
@@ -167,7 +182,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
   });
 
   test("does not reload when only other values change", async () => {
-    load.mockResolvedValue([]);
+    load.mockResolvedValue(noLogs);
     renderSection();
     await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
 

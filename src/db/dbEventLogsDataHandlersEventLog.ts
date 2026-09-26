@@ -58,8 +58,15 @@ export async function addEventLogs_updateFetchedBlockNumber(
           eventName,
         );
         const numOfRecords: number = groupedEventLogs[eventName].length;
+        // The ranges only move forward, so saving each range in block order
+        // keeps the auto-incremented key in block order. The Overview reads
+        // the oldest and the latest log by this key (getEventLogEdges).
         promiseBulkAdds.push(
-          dbEventLogs.table(tableName).bulkPut(groupedEventLogs[eventName]),
+          dbEventLogs
+            .table(tableName)
+            .bulkPut(
+              itSelf.sortEventLogs([...groupedEventLogs[eventName]], "asc"),
+            ),
         );
         const syncStatusEvent: SyncStatusEvent | undefined =
           syncStatusesEvent[eventName];

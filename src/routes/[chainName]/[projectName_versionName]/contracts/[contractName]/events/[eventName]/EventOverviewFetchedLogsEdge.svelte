@@ -8,22 +8,13 @@
   import classNames from "classnames";
 
   interface Props {
-    convertedEventLogs: ConvertedEventLog[];
-    edgeType: "latest" | "oldest";
+    edgeEventLog: ConvertedEventLog;
   }
 
-  let { convertedEventLogs, edgeType }: Props = $props();
+  let { edgeEventLog }: Props = $props();
 
   const textSizeTltle: BaseSize = sizeSettings.itemMember;
   const textSizeValue: BaseSize = changeSize(sizeSettings.itemMember, -1);
-
-  let edgeEventLog = $derived((): ConvertedEventLog => {
-    if (edgeType === "latest") {
-      return convertedEventLogs[convertedEventLogs.length - 1];
-    } else {
-      return convertedEventLogs[0];
-    }
-  });
 
   const itemStyle: string = classNames(
     "flex",
@@ -42,7 +33,7 @@
 
   <CommonChainExplorerLink
     subdirectory="block"
-    value={edgeEventLog().blockNumber.toString()}
+    value={edgeEventLog.blockNumber.toString()}
     isFontMono
     textSize={textSizeValue}
   />
@@ -52,9 +43,7 @@
     <BaseLabel text="Datetime" textSize={textSizeTltle} />
   </div>
   <BaseLabel
-    text={edgeEventLog
-      ? convertJsDateToIso8601(edgeEventLog().jsDate)
-      : undefined}
+    text={convertJsDateToIso8601(edgeEventLog.jsDate)}
     fontMono
     textSize={textSizeValue}
   />
@@ -65,7 +54,7 @@
   </div>
   <CommonChainExplorerLink
     subdirectory="tx"
-    value={edgeEventLog().transactionHash}
+    value={edgeEventLog.transactionHash}
     isFontMono
     textSize={textSizeValue}
   />
