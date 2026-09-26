@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi, type Mock } from "vitest";
 import { FetchRequest, makeError, type Block } from "ethers";
 import {
   fetchBlockTimesForEventLogs,
@@ -33,7 +33,7 @@ function blockTimeOf(blockNumber: number): BlockTime {
 // A provider that returns a block for any block number.
 function fakeProvider(): {
   nodeProvider: NodeProvider;
-  getBlock: ReturnType<typeof vi.fn>;
+  getBlock: Mock<(blockNumber: number) => Promise<Block | null>>;
 } {
   const getBlock = vi.fn(
     async (blockNumber: number): Promise<Block | null> =>
@@ -135,7 +135,10 @@ describe("fetchBlockTimesForEventLogs", () => {
       maxInFlight = Math.max(maxInFlight, inFlight);
       await new Promise((resolve) => setTimeout(resolve, 1));
       inFlight--;
-      return { number: blockNumber, timestamp: timestampOf(blockNumber) };
+      return {
+        number: blockNumber,
+        timestamp: timestampOf(blockNumber),
+      } as Block;
     });
     const blockNumbers: number[] = Array.from(
       { length: 3 * MAX_CONCURRENT_BLOCK_REQUESTS + 1 },
