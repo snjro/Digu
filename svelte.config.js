@@ -31,6 +31,31 @@ const config = {
       "@eventLogs/*": "src/eventLogs/*",
     },
     version: { name: pkgJson.version },
+    // Prerendered pages get it as a <meta> tag, which ignores frame-ancestors,
+    // report-uri and sandbox. Nonces cannot be used with prerendering.
+    csp: {
+      mode: "hash",
+      directives: {
+        "default-src": ["self"],
+        // SvelteKit adds the hash of its inline start script.
+        "script-src": ["self"],
+        // The ag-grid Theming API and svelte-highlight add <style> elements,
+        // and Svelte sets style attributes. src/error.html, the static page
+        // shown when IndexedDB cannot be used, has an inline <style> too.
+        // A hash here would turn off 'unsafe-inline'.
+        "style-src": ["self", "unsafe-inline"],
+        // The ag-grid icons are data: SVG images in its CSS.
+        "img-src": ["self", "data:"],
+        "font-src": ["self"],
+        // The RPC that the user enters can be any http(s) or ws(s) URL.
+        "connect-src": ["self", "http:", "https:", "ws:", "wss:"],
+        // The DB worker is a file of the build.
+        "worker-src": ["self"],
+        "object-src": ["none"],
+        "base-uri": ["self"],
+        "form-action": ["self"],
+      },
+    },
     prerender: {
       entries: [
         "/",

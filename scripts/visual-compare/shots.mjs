@@ -561,7 +561,9 @@ const DEXIE = fs.readFileSync("node_modules/dexie/dist/dexie.min.js", "utf8");
 // Writes SEED into the IndexedDB of the app, which the version page creates.
 async function seed(page, log) {
   await open(page, VERSION);
-  await page.addScriptTag({ content: DEXIE });
+  // Not addScriptTag: the Content Security Policy of the app blocks an inline
+  // script, but not an evaluate.
+  await page.evaluate(DEXIE);
   const counts = await page.evaluate(async (seed) => {
     const revive = (v) => {
       if (Array.isArray(v)) return v.map(revive);
@@ -640,6 +642,18 @@ async function newPage(browsers, log, { hover = false } = {}) {
     }
   });
   page.on("pageerror", (e) => log.push(`[pageerror] ${e.message}`));
+  // Content Security Policy violations. On window, because a blocked fetch or
+  // WebSocket has no element to fire at.
+  await page.exposeFunction("__logCspViolation", (text) =>
+    log.push(`[csp] ${text}`),
+  );
+  await page.evaluateOnNewDocument(() => {
+    window.addEventListener("securitypolicyviolation", (e) => {
+      window.__logCspViolation(
+        `${e.effectiveDirective} ${e.blockedURI} at ${e.sourceFile}:${e.lineNumber}`,
+      );
+    });
+  });
   page.on("response", (res) => {
     if (res.status() === 404) {
       const url = new URL(res.url());

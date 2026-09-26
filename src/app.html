@@ -7,6 +7,7 @@
       // SvelteKit makes the icon URL absolute when it starts, but the root
       // page redirects to a chain before that, so the relative URL would be
       // read from the chain page. Make it absolute before the redirect.
+      // Keep it above the head of SvelteKit: its CSP <meta> blocks it below.
       for (const link of document.querySelectorAll('link[rel="icon"]')) {
         link.href = link.href;
       }
