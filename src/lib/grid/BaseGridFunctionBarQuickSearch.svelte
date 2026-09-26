@@ -1,3 +1,9 @@
+<script lang="ts" module>
+  // Filtering 100,000 rows blocks the page for about 200 ms, so filter once the
+  // typing stops. Keys up to 200 ms apart are one typing.
+  export const quickSearchWaitMs: number = 300;
+</script>
+
 <script lang="ts">
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
@@ -15,11 +21,25 @@
   }
 
   let { gridApi, quickSearchText = $bindable() }: Props = $props();
+  let appliedGridApi: GridApi | undefined;
   $effect.pre(() => {
     const api: GridApi | undefined = gridApi;
     const text: string = quickSearchText;
     // Rerun only when these two change, not on what ag-grid reads while filtering.
-    untrack(() => api?.setGridOption("quickFilterText", text));
+    const apply = () =>
+      untrack(() => api?.setGridOption("quickFilterText", text));
+    // Clearing (also by Reset all filters) and a new grid do not wait.
+    if (text === "" || api !== appliedGridApi) {
+      appliedGridApi = api;
+      apply();
+      return;
+    }
+    // Rerunning the effect or removing the bar cancels the waiting one.
+    const timer: ReturnType<typeof setTimeout> = setTimeout(
+      apply,
+      quickSearchWaitMs,
+    );
+    return () => clearTimeout(timer);
   });
   const size: BaseSize = sizeSettings.gridFunctionQuickSearch;
 </script>
