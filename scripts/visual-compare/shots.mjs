@@ -320,14 +320,12 @@ const TYPES = {
 };
 
 // Serves the build like GitHub Pages.
-const log = [];
 const server = http.createServer((req, res) => {
   let file = path.join(buildDir, decodeURIComponent(req.url.split("?")[0]));
   if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
     file = path.join(file, "index.html");
   }
   if (!fs.existsSync(file)) {
-    log.push(`[404] ${req.url}`);
     res.writeHead(404).end();
     return;
   }
@@ -561,7 +559,7 @@ const SEED = {
 const DEXIE = fs.readFileSync("node_modules/dexie/dist/dexie.min.js", "utf8");
 
 // Writes SEED into the IndexedDB of the app, which the version page creates.
-async function seed(page) {
+async function seed(page, log) {
   await open(page, VERSION);
   await page.addScriptTag({ content: DEXIE });
   const counts = await page.evaluate(async (seed) => {
@@ -617,18 +615,23 @@ const LAUNCH_ARGS = [
   "--disable-threaded-scrolling",
   "--disable-checker-imaging",
 ];
-const browser = await puppeteer.launch({ args: LAUNCH_ARGS });
-// A browser that answers `(hover: hover)` and `(pointer: fine)`, like one
-// with a mouse, for MORE_STATES with `hover`.
-const hoverBrowser = await puppeteer.launch({
-  args: [
-    ...LAUNCH_ARGS,
-    "--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4",
-  ],
-});
+// A browser, and a browser that answers `(hover: hover)` and
+// `(pointer: fine)` like one with a mouse, for MORE_STATES with `hover`.
+async function launchBrowsers() {
+  return {
+    browser: await puppeteer.launch({ args: LAUNCH_ARGS }),
+    hoverBrowser: await puppeteer.launch({
+      args: [
+        ...LAUNCH_ARGS,
+        "--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4",
+      ],
+    }),
+  };
+}
 
-// A page in a fresh browser profile.
-async function newPage({ hover = false } = {}) {
+// A page in a fresh browser profile of `browsers`. Its messages go to `log`.
+async function newPage(browsers, log, { hover = false } = {}) {
+  const { browser, hoverBrowser } = browsers;
   const context = await (hover ? hoverBrowser : browser).createBrowserContext();
   const page = await context.newPage();
   page.on("console", (m) => {
@@ -637,6 +640,12 @@ async function newPage({ hover = false } = {}) {
     }
   });
   page.on("pageerror", (e) => log.push(`[pageerror] ${e.message}`));
+  page.on("response", (res) => {
+    if (res.status() === 404) {
+      const url = new URL(res.url());
+      log.push(`[404] ${url.pathname}${url.search}`);
+    }
+  });
   // No request leaves the container (for example, to an RPC).
   await page.setRequestInterception(true);
   page.on("request", (req) => {
@@ -655,30 +664,45 @@ async function shoot(page, name) {
   await page.screenshot({ path: path.join(outDir, `${name}.png`) });
 }
 
-try {
-  for (const theme of ["light", "dark"]) {
-    // The theme is kept in IndexedDB, so it stays across the pages.
-    const { page, close } = await newPage();
-    await open(page, "/");
-    await setTheme(page, theme);
-    for (const [name, url] of PAGES) {
-      log.push(`${theme}-${name} ${url}`);
-      await open(page, url);
-      await shoot(page, `${theme}-${name}`);
-    }
-    await close();
-    for (const [name, url, action, options] of [...STATES, ...MORE_STATES]) {
-      log.push(`${theme}-${name} ${url}`);
-      const { page, close } = await newPage(options);
-      await open(page, url);
+// The screens in units that run in parallel. A unit is the screens that share
+// a page (the theme, the sidebar or the seed stays in its IndexedDB), or one
+// screen after an action. `run` gets `newPage(options)` and its own `log`.
+const units = [];
+for (const theme of ["light", "dark"]) {
+  units.push({
+    screens: PAGES.length,
+    async run(newPage, log) {
+      // The theme is kept in IndexedDB, so it stays across the pages.
+      const { page, close } = await newPage();
+      await open(page, "/");
       await setTheme(page, theme);
-      await settle(page);
-      await action(page);
-      await settle(page, options);
-      await shoot(page, `${theme}-${name}`);
+      for (const [name, url] of PAGES) {
+        log.push(`${theme}-${name} ${url}`);
+        await open(page, url);
+        await shoot(page, `${theme}-${name}`);
+      }
       await close();
-    }
-    {
+    },
+  });
+  for (const [name, url, action, options] of [...STATES, ...MORE_STATES]) {
+    units.push({
+      screens: 1,
+      async run(newPage, log) {
+        log.push(`${theme}-${name} ${url}`);
+        const { page, close } = await newPage(options);
+        await open(page, url);
+        await setTheme(page, theme);
+        await settle(page);
+        await action(page);
+        await settle(page, options);
+        await shoot(page, `${theme}-${name}`);
+        await close();
+      },
+    });
+  }
+  units.push({
+    screens: PHONE_PAGES.length * 2,
+    async run(newPage, log) {
       const { page, close } = await newPage();
       await open(page, "/");
       await setTheme(page, theme);
@@ -695,10 +719,13 @@ try {
         }
       }
       await close();
-    }
-    {
+    },
+  });
+  units.push({
+    screens: DATA_PAGES.length,
+    async run(newPage, log) {
       const { page, close } = await newPage();
-      await seed(page);
+      await seed(page, log);
       await setTheme(page, theme);
       for (const [name, url, tab] of DATA_PAGES) {
         log.push(`${theme}-data-${name} ${url}`);
@@ -707,11 +734,44 @@ try {
         await shoot(page, `${theme}-data-${name}`);
       }
       await close();
-    }
-  }
+    },
+  });
+}
+
+// Each worker has its own browsers, with one page open at a time.
+// With many more Chromes at once, some screenshots were blank or timed out.
+const WORKERS = 4;
+const logs = units.map(() => []);
+// The larger units first, so that the workers end at about the same time.
+const queue = [...units.keys()].sort(
+  (a, b) => units[b].screens - units[a].screens,
+);
+const workers = [];
+try {
+  for (let i = 0; i < WORKERS; i++) workers.push(await launchBrowsers());
+  const results = await Promise.allSettled(
+    workers.map(async (browsers) => {
+      while (queue.length > 0) {
+        const i = queue.shift();
+        const log = logs[i];
+        try {
+          await units[i].run((options) => newPage(browsers, log, options), log);
+        } catch (e) {
+          // Stop the other workers after their current unit.
+          queue.length = 0;
+          throw e;
+        }
+      }
+    }),
+  );
+  const failed = results.find((r) => r.status === "rejected");
+  if (failed) throw failed.reason;
 } finally {
-  fs.writeFileSync(path.join(outDir, "log.txt"), log.join("\n") + "\n");
-  await browser.close();
-  await hoverBrowser.close();
+  // In the order of the screens, whichever worker took them.
+  fs.writeFileSync(path.join(outDir, "log.txt"), logs.flat().join("\n") + "\n");
+  for (const { browser, hoverBrowser } of workers) {
+    await browser.close();
+    await hoverBrowser.close();
+  }
   server.close();
 }
