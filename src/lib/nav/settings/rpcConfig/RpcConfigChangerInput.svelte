@@ -41,7 +41,7 @@
     const newValue: number = toNumber((event.target as HTMLInputElement).value);
     // BaseInput sets value to the typed string. Object.is treats NaN as NaN.
     if (!Object.is(newValue, toNumber(value))) {
-      change(event);
+      void change(event);
     }
   }
 </script>

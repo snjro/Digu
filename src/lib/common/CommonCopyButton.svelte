@@ -46,6 +46,6 @@
   colorCategoryFront={colorCategory}
   colorCategoryBg={colorCategory}
   onclick={() => {
-    copyToClipBoard();
+    void copyToClipBoard();
   }}
 />

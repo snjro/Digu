@@ -121,7 +121,7 @@
           // Add hash to URL.
           // Because a tab is selected but that is not reflected in URL.
           // Wait until the current navigation ends, because goto aborts it.
-          goto(
+          void goto(
             `${page.url.pathname}${convertTabValueForHref(
               tabsDefinition.selected,
             )}`,

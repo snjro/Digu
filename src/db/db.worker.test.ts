@@ -19,7 +19,7 @@ vi.mock("@utils/logger", () => ({
 
 type MessageListener = (
   event: MessageEvent<DbWorkerMessage<TargetFunctionName>>,
-) => Promise<void>;
+) => void;
 
 describe("db.worker", () => {
   let listener: MessageListener;
@@ -41,8 +41,8 @@ describe("db.worker", () => {
     vi.clearAllMocks();
   });
 
-  function send(): Promise<void> {
-    return listener({
+  function send(): void {
+    listener({
       data: { targetFunctionName: "initializeDbSettings", params: undefined },
     } as MessageEvent<DbWorkerMessage<TargetFunctionName>>);
   }
@@ -50,12 +50,14 @@ describe("db.worker", () => {
   test("should post the value", async () => {
     vi.mocked(executeTargetFunction).mockResolvedValueOnce(undefined);
 
-    await send();
+    send();
 
-    expect(postMessage).toHaveBeenCalledWith({
-      log: "DbWorker: initializeDbSettings",
-      value: undefined,
-    });
+    await vi.waitFor(() =>
+      expect(postMessage).toHaveBeenCalledWith({
+        log: "DbWorker: initializeDbSettings",
+        value: undefined,
+      }),
+    );
   });
 
   test("should post the error message when the function throws", async () => {
@@ -63,11 +65,13 @@ describe("db.worker", () => {
       new Error("test error"),
     );
 
-    await send();
+    send();
 
-    expect(postMessage).toHaveBeenCalledWith({
-      log: "DbWorker: initializeDbSettings",
-      error: "test error",
-    });
+    await vi.waitFor(() =>
+      expect(postMessage).toHaveBeenCalledWith({
+        log: "DbWorker: initializeDbSettings",
+        error: "test error",
+      }),
+    );
   });
 });
