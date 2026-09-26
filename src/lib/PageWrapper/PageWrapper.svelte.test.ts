@@ -1,32 +1,28 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { fireEvent, render, within } from "@testing-library/svelte";
+import { fireEvent, render, screen, within } from "@testing-library/svelte";
 import { goto } from "$app/navigation";
 import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import PageWrapper from "./PageWrapper.svelte";
 import PageWrapperContentFunctionBarButtonsThreeDots from "./PageWrapperContentFunctionBarButtonsThreeDots.svelte";
-import { TAB_VALUES_CONTRACT, type TabsDefinitionContract } from "./tabs";
+import PageWrapperTestHost from "./PageWrapper.testHost.svelte";
 
-const { navigating } = vi.hoisted(() => ({
+const CONTRACT_URL = "http://localhost/eth/v1/contracts/c/";
+
+const { navigating, page } = vi.hoisted(() => ({
   navigating: { type: null as string | null },
-}));
-vi.mock("$app/state", () => ({
   page: { url: new URL("http://localhost/eth/v1/contracts/c/") },
-  navigating,
 }));
+vi.mock("$app/state", () => ({ page, navigating }));
 vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
 
 function renderWithTabs(): void {
-  const tabsDefinition: TabsDefinitionContract = {
-    selected: "Overview",
-    values: TAB_VALUES_CONTRACT,
-    groupName: "tabGroupContract",
-  };
-  render(PageWrapper, { tabsDefinition });
+  render(PageWrapperTestHost);
 }
 
 describe("PageWrapper.svelte", () => {
   afterEach(() => {
     navigating.type = null;
+    page.url = new URL(CONTRACT_URL);
     vi.mocked(goto).mockClear();
   });
 
@@ -41,6 +37,13 @@ describe("PageWrapper.svelte", () => {
   test("does not add the tab hash while a navigation is in progress", () => {
     navigating.type = "link";
     renderWithTabs();
+    expect(goto).not.toHaveBeenCalled();
+  });
+
+  test("selects the tab of the URL hash", () => {
+    page.url = new URL(`${CONTRACT_URL}#abi`);
+    renderWithTabs();
+    expect(screen.getByTestId("selected").textContent).toBe("ABI");
     expect(goto).not.toHaveBeenCalled();
   });
 });
