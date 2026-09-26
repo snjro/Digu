@@ -11,8 +11,11 @@
     Project,
     Version,
   } from "@constants/chains/types";
-  import { dbWorkerFuncGetConvertedEventLogs } from "@db/db.worker.func.getConvertedEventLogs";
-  import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
+  import {
+    getEventLogEdges,
+    type EventLogEdges,
+  } from "@db/dbEventLogsGetEventLogEdges";
+  import type { AbiFragmentIdentifier } from "@db/dbTypes";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { numberWithCommas } from "@utils/utilsCommon";
   import { customLogger } from "@utils/logger";
@@ -44,11 +47,16 @@
       ?.events[targetEventAbiFragment.name]?.recordCount,
   );
 
-  let convertedEventLogs: ConvertedEventLog[] = $state.raw([]);
+  const noLogs: EventLogEdges = {
+    count: 0,
+    oldest: undefined,
+    latest: undefined,
+  };
+  let edges: EventLogEdges = $state.raw(noLogs);
   $effect.pre(() => {
     // Logs of anonymous events are not fetched, so their table does not exist.
     if (targetEventAbiFragment.anonymous) {
-      convertedEventLogs = [];
+      edges = noLogs;
       return;
     }
     // Reload when new logs are saved.
@@ -61,18 +69,16 @@
       abiFragmentName: targetEventAbiFragment.name,
     };
     return applyLatestLoad(
-      dbWorkerFuncGetConvertedEventLogs(eventIdentifier).catch(
-        (error: unknown) => {
-          // Like the table (gridRows.ts): log it and show no logs.
-          customLogger.error("Get event logs.", {
-            eventIdentifier: eventIdentifier,
-            errorObject: error,
-          });
-          return [];
-        },
-      ),
-      (logs: ConvertedEventLog[]) => {
-        convertedEventLogs = logs;
+      getEventLogEdges(eventIdentifier).catch((error: unknown) => {
+        // Like the table (gridRows.ts): log it and show no logs.
+        customLogger.error("Get event logs.", {
+          eventIdentifier: eventIdentifier,
+          errorObject: error,
+        });
+        return noLogs;
+      }),
+      (loadedEdges: EventLogEdges) => {
+        edges = loadedEdges;
       },
     );
   });
@@ -91,19 +97,19 @@
     italic
     textSize={sizeSettings.itemWarningMessage}
   />
-{:else if convertedEventLogs.length > 0}
+{:else if edges.count > 0 && edges.oldest && edges.latest}
   <CommonItemMember text="Number of Fetched Logs">
     <BaseLabel
-      text={numberWithCommas(convertedEventLogs.length)}
+      text={numberWithCommas(edges.count)}
       textSize={sizeSettings.itemMember}
     />
   </CommonItemMember>
   <div class={classNames(gridMain, "w-full", "h-fit")}>
     <CommonItemMember text="Latest Log">
-      <EventOverviewFetchedLogsEdge {convertedEventLogs} edgeType="latest" />
+      <EventOverviewFetchedLogsEdge edgeEventLog={edges.latest} />
     </CommonItemMember>
     <CommonItemMember text="Oldest Log">
-      <EventOverviewFetchedLogsEdge {convertedEventLogs} edgeType="oldest" />
+      <EventOverviewFetchedLogsEdge edgeEventLog={edges.oldest} />
     </CommonItemMember>
   </div>
   <CommonViewMoreDetailsButton
