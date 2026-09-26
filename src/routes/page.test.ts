@@ -1,16 +1,10 @@
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { load } from "./+page";
-import { isRedirect, redirect } from "@sveltejs/kit";
+import { isHttpError, isRedirect, redirect } from "@sveltejs/kit";
 import { base } from "$app/paths";
 import * as dbSettingsDataHandlersUser from "@db/dbSettings";
 
-type BrowserValue = { browserValue: boolean };
-const browserValues: BrowserValue[] = [
-  { browserValue: true },
-  { browserValue: false },
-];
-
-let mockBrowser: boolean; //Variable for dynamically changing the value of "browser" in a loop
+let mockBrowser: boolean; //Variable for changing the value of "browser" in each test
 
 // create mocks
 vi.mock("$app/environment", () => {
@@ -43,39 +37,51 @@ describe("load", () => {
     vi.restoreAllMocks();
   });
 
-  test.each(browserValues)(`should $browserValue`, async ({ browserValue }) => {
-    mockBrowser = browserValue;
+  test("redirects to the selected chain in the browser", async () => {
+    mockBrowser = true;
+    // "redirect" throws, so "load" rejects with the thrown value.
+    const thrown: unknown = await load().catch((error: unknown) => error);
 
-    if (browserValue) {
-      // "redirect" throws, so "load" rejects with the thrown value.
-      const thrown: unknown = await load().catch((error: unknown) => error);
+    expect(spyGetDbItemUserSettings).toHaveBeenCalledWith(
+      "userSetting01",
+      "selectedChainName",
+    );
+    expect(spyGetDbItemUserSettings).toHaveResolvedWith(
+      expectedSlelectedChainName,
+    );
+    expect(spyRedirect).toHaveBeenCalledOnce();
+    expect(spyRedirect).toHaveBeenCalledWith(
+      308,
+      `${base}/${expectedSlelectedChainName}`,
+    );
+    expect(spyRedirect.mock.results[0]).toEqual({
+      type: "throw",
+      value: thrown,
+    });
+    expect(isRedirect(thrown)).toBe(true);
+    expect(thrown).toMatchObject({
+      status: 308,
+      location: `${base}/${expectedSlelectedChainName}`,
+    });
+  });
 
-      expect(spyGetDbItemUserSettings).toHaveBeenCalledWith(
-        "userSetting01",
-        "selectedChainName",
-      );
-      expect(spyGetDbItemUserSettings).toHaveResolvedWith(
-        expectedSlelectedChainName,
-      );
-      expect(spyRedirect).toHaveBeenCalledOnce();
-      expect(spyRedirect).toHaveBeenCalledWith(
-        308,
-        `${base}/${expectedSlelectedChainName}`,
-      );
-      expect(spyRedirect.mock.results[0]).toEqual({
-        type: "throw",
-        value: thrown,
-      });
-      expect(isRedirect(thrown)).toBe(true);
-      expect(thrown).toMatchObject({
-        status: 308,
-        location: `${base}/${expectedSlelectedChainName}`,
-      });
-    } else {
-      await expect(load()).resolves.toBeUndefined();
+  test("throws 404 when no chain name is saved", async () => {
+    mockBrowser = true;
+    spyGetDbItemUserSettings.mockResolvedValueOnce(undefined);
+    const thrown: unknown = await load().catch((error: unknown) => error);
 
-      expect(spyGetDbItemUserSettings).not.toBeCalled();
-      expect(spyRedirect).not.toBeCalled();
-    }
+    expect(isHttpError(thrown, 404)).toBe(true);
+    expect(isHttpError(thrown) && thrown.body.message).toBe(
+      "could not get a chain name",
+    );
+    expect(spyRedirect).not.toBeCalled();
+  });
+
+  test("does nothing outside the browser", async () => {
+    mockBrowser = false;
+    await expect(load()).resolves.toBeUndefined();
+
+    expect(spyGetDbItemUserSettings).not.toBeCalled();
+    expect(spyRedirect).not.toBeCalled();
   });
 });
