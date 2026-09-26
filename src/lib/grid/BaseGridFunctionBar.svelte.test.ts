@@ -115,4 +115,25 @@ describe("BaseGridFunctionBar.svelte", () => {
     expect(gridApi.showNoRowsOverlay).toHaveBeenCalled();
     expect(gridApi.state.overlayCallsWhileLoading).toBe(0);
   });
+
+  test("the buttons do nothing before the grid is created", async () => {
+    vi.useFakeTimers();
+    render(BaseGridFunctionBar, {
+      gridApi: undefined,
+      rows: [],
+      isFullScreen: false,
+      exportFilePrefix: "contracts",
+    });
+    for (const name of [
+      "Show all columns",
+      "Hide minor columns",
+      "Fit columns in frame",
+      "Auto fit columns",
+      "Reset all filters",
+      "Reload",
+    ]) {
+      await fireEvent.click(screen.getByRole("button", { name }));
+    }
+    vi.advanceTimersByTime(500);
+  });
 });

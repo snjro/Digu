@@ -49,7 +49,7 @@
   } from "./exportCsv";
 
   interface Props {
-    gridApi: GridApi<GridRow>;
+    gridApi: GridApi<GridRow> | undefined;
     dialogElement?: HTMLDialogElement;
     exportFilePrefix: ExportFilePrefix;
   }
@@ -178,6 +178,7 @@
   );
 
   function downloadCsv(): void {
+    if (!gridApi) return;
     downloadCsvFile(
       gridApi,
       selectedValues,
@@ -185,6 +186,7 @@
     );
   }
   async function copyToClipboard(): Promise<void> {
+    if (!gridApi) return;
     const csvData: string = getCsvText(gridApi, selectedValues);
     $storeNoDbSnackBar = await copyTextToClipboard(csvData);
   }

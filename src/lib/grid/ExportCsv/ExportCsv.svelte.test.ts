@@ -36,4 +36,11 @@ describe("ExportCsv.svelte", () => {
       expect.objectContaining({ columnKeys: ["name"] }),
     );
   });
+
+  test("Export and Copy do nothing before the grid is created", async () => {
+    render(ExportCsv, { gridApi: undefined, exportFilePrefix: "contracts" });
+    for (const name of ["Export", "Copy"]) {
+      await fireEvent.click(screen.getByRole("button", { name, hidden: true }));
+    }
+  });
 });

@@ -22,7 +22,7 @@
     hasMultipleTabs,
   }: Props = $props();
 
-  let gridApi: GridApi<GridRow> = $state.raw() as GridApi<GridRow>;
+  let gridApi: GridApi<GridRow> | undefined = $state.raw();
 </script>
 
 <PageWrapperContent isAgGrid {hasMultipleTabs}>
