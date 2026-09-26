@@ -43,6 +43,30 @@ jobs:
         if: always() # Also generate the report if tests are failing
         uses: davelosert/vitest-coverage-report-action@c4bbc33a89b7ace0e63d35f1f7d4bcee31155a73 # v2.13.0
 
+  # Apart from run_lint_and_check, because linting with type information is slow.
+  run_typed_lint:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read # Required to checkout the code
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24.x"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      # Runs svelte-kit sync first, which makes the tsconfig that tsconfig.json extends.
+      - name: Run eslint with type information
+        run: npm run lint:types
+
   run_lint_and_check:
     runs-on: ubuntu-latest
 
