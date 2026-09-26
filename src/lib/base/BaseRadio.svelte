@@ -2,6 +2,7 @@
   export type RadioLabelAndValues<RadioValue> = ReadonlyArray<{
     labelText: string;
     value: RadioValue;
+    // Unique in the list (the key of each).
     inputId: string;
     href?: string | undefined;
   }>;
