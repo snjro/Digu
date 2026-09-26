@@ -28,13 +28,13 @@ export default defineConfig(
       globals: { ...globals.browser, ...globals.node },
     },
     rules: {
+      "@typescript-eslint/no-unused-vars": ["error", { caughtErrors: "none" }],
       // Crashes on ESLint 10: https://github.com/sveltejs/eslint-plugin-svelte/issues/1515
       "svelte/no-reactive-functions": "off",
       // Rules newly reported after the upgrade. Still off: the code has not been fixed for them yet.
       "no-useless-assignment": "off",
       "preserve-caught-error": "off",
       "@typescript-eslint/no-unused-expressions": "off",
-      "@typescript-eslint/no-unused-vars": ["error", { caughtErrors: "none" }],
       "svelte/no-navigation-without-resolve": "off",
       "svelte/no-useless-mustaches": "off",
       "svelte/require-each-key": "off",

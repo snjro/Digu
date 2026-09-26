@@ -27,6 +27,7 @@ const config: UserConfig = {
         "src/testUtils/**",
         "src/utils/testCommon.ts",
         "src/**/*.testStub.svelte",
+        "src/**/*.testHost.svelte",
       ],
       reporter: ["text", "html", "json-summary", "json"],
     },
