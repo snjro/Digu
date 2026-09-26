@@ -154,26 +154,35 @@ await page.waitForFunction(
   },
 );
 await new Promise((r) => setTimeout(r, 2000));
-// The settings button is the right-most button in the top bar.
-const opened = await page.evaluate(() => {
-  const buttons = [...document.querySelectorAll("button")].filter((b) => {
-    const r = b.getBoundingClientRect();
-    return r.top < 80 && r.width > 0;
-  });
-  buttons.sort(
-    (a, b) => b.getBoundingClientRect().right - a.getBoundingClientRect().right,
+// Clicks the visible button that has the tooltip "Settings", as
+// scripts/visual-compare/shots.mjs does.
+const opened = await page.evaluate((text) => {
+  const isVisible = (e) => e.getClientRects().length > 0;
+  const labels = [...document.querySelectorAll("*")].filter(
+    (e) => e.children.length === 0 && e.textContent.trim() === text,
   );
-  buttons[0]?.click();
-  return !!buttons[0];
-});
+  for (const label of labels) {
+    for (let e = label; e; e = e.parentElement) {
+      const button = e.querySelector("button");
+      if (button) {
+        if (!isVisible(button)) break;
+        button.click();
+        return true;
+      }
+    }
+  }
+  return false;
+}, "Settings");
+if (!opened) throw new Error('No visible button with the tooltip "Settings"');
 await new Promise((r) => setTimeout(r, 1000));
 const dialogOpen = await page.evaluate(
   () => !!document.querySelector("dialog[open]"),
 );
+if (!dialogOpen) throw new Error("The settings dialog did not open");
 results.settingsDialog = {
   opened,
   dialogOpen,
-  violations: dialogOpen ? await runAxe("dialog[open]") : [],
+  violations: await runAxe("dialog[open]"),
 };
 await page.screenshot({
   path: `${path.dirname(outJson)}/shot-settingsDialog.png`,

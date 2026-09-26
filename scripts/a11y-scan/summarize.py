@@ -28,6 +28,9 @@ totals = [str(sum(len(v["nodes"]) for v in build["results"][p]["violations"])) f
 print("| Total | | " + " | ".join(totals) + " |")
 if dev is None:
     sys.exit()
+for r in dev["results"].values():
+    for v in r["violations"]:
+        impact.setdefault(v["id"], v["impact"])
 
 print()
 print("## Rule by source line (dev server; each line once, with the number of elements on all pages)")

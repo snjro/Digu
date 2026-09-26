@@ -9,13 +9,20 @@ change does not change how the pages look (for example, the rewrite to runes).
 scripts/visual-compare/run.sh <base-ref> <out-dir> [<head-ref>]
 ```
 
-- `<base-ref>`: the version to compare with, such as `origin/develop`.
+- `<base-ref>`: the version to compare with, such as `origin/develop`. It must
+  have `compose.yaml`, which was added in c5fab75 (2026-09-23). The releases
+  up to v1.0.2 do not have it, so they cannot be the base.
 - `<out-dir>`: where to write the result. It is deleted first. Keep it outside
   the repository.
   `run.sh` stops without deleting it when it is `/`, `$HOME`, in or around the
   repository, or not empty without the `report.md` of an earlier run.
+  `run.sh` puts a `.visual-compare` file in it before taking the screenshots.
+  A run that stopped halfway can be run again with the same `<out-dir>` when
+  it has only `.visual-compare`, `base/`, `head/` and `diff/`.
 - `<head-ref>`: the version to check. Without it, the head is this working
-  tree, with its uncommitted changes.
+  tree, with its uncommitted changes. Then `run.sh` reinstalls the
+  `node_modules` of this working tree with `npm ci`, and overwrites its
+  `_build` and `.svelte-kit`.
 
 Examples:
 
@@ -101,3 +108,6 @@ To add a screen, edit `PAGES`, `STATES`, `MORE_STATES`, `PHONE_PAGES` or
   are turned off.
 - The same build gives the same screenshots from run to run, with the Chrome
   flags in `shots.mjs`. Without them, a few pixels of the icons can differ.
+- `shots.mjs` serves each build at the root (`/`), not at `/Digu/` as GitHub
+  Pages does. A problem that happens only under `/Digu/`, such as a link
+  without the base path, is not found.
