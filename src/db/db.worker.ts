@@ -10,7 +10,7 @@ import type {
 self.addEventListener(
   "message",
   (event: MessageEvent<DbWorkerMessage<TargetFunctionName>>): void => {
-    // executeMessage() sends its errors back to the page.
+    // executeMessage() catches every error and sends it back to the page.
     void executeMessage(event);
   },
 );
@@ -18,12 +18,13 @@ self.addEventListener(
 async function executeMessage(
   event: MessageEvent<DbWorkerMessage<TargetFunctionName>>,
 ): Promise<void> {
-  const targetFunctionName: TargetFunctionName = event.data.targetFunctionName;
-
-  const log: string = `DbWorker: ${targetFunctionName}`;
-  customLogger.start(log);
-
+  let log: string = "DbWorker";
   try {
+    const targetFunctionName: TargetFunctionName =
+      event.data.targetFunctionName;
+    log = `DbWorker: ${targetFunctionName}`;
+    customLogger.start(log);
+
     const resultValue: DbWorkerResultValue<TargetFunctionName> =
       await executeTargetFunction(
         event.data.targetFunctionName,

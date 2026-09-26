@@ -167,6 +167,11 @@ function waitForSyncLockRelease(chainName: ChainName): void {
         chainName: chainName,
         errorObject: error,
       });
+      // The finally of the callback does not run when the request fails.
+      storeSyncLockedByOtherTab.update((state) => ({
+        ...state,
+        [chainName]: false,
+      }));
     });
 }
 

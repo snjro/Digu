@@ -74,4 +74,20 @@ describe("db.worker", () => {
       }),
     );
   });
+
+  test("should post the error message when the logger throws", async () => {
+    const { customLogger } = await import("@utils/logger");
+    vi.mocked(customLogger.start).mockImplementationOnce(() => {
+      throw new Error("logger error");
+    });
+
+    send();
+
+    await vi.waitFor(() =>
+      expect(postMessage).toHaveBeenCalledWith({
+        log: "DbWorker: initializeDbSettings",
+        error: "logger error",
+      }),
+    );
+  });
 });

@@ -555,7 +555,7 @@ describe("sync with two tabs (issue #49)", () => {
     let spyError: MockInstance | undefined = undefined;
 
     // Not in `tabs`: B does not sync, so afterEach must not stop it.
-    await openTab(async () => {
+    const b = await openTab(async () => {
       // Tab B's module instance: openTab() resets the modules first.
       const { customLogger } = await import("@utils/logger");
       spyError = vi.spyOn(customLogger, "error");
@@ -571,6 +571,8 @@ describe("sync with two tabs (issue #49)", () => {
       chainName: chain.name,
       errorObject: new Error("lock error"),
     });
+    // Otherwise the tab would never wait for the lock again.
+    expect(b.isLockedByOtherTab()).toBe(false);
   }, 30_000);
 
   test("stops and releases the lock when the RPC cannot be connected", async () => {

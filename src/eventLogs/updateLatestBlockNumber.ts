@@ -47,7 +47,8 @@ export async function startUpdateLatestBlockNumber(
   // To avoid this, get the latest blocknumber here.
   await tryGetAndUpdateLatestBlockNumber();
 
-  // Its errors are caught and logged in it.
+  // The requests and the aborting catch and log their errors. The rest
+  // (reading the store, logging, clearing the interval) is not in a try.
   const updateInInterval = async (): Promise<void> => {
     if (!get(storeSyncStatus)[targetChainName].isSyncing) {
       stopUpdateLatestBlockNumber(intervalId);
