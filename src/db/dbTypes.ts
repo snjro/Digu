@@ -133,7 +133,10 @@ export type SyncStatusContract = SyncStatusBase<ContractName, null> & {
   events: SyncStatusesEvent;
 };
 //=====event=====
-export type SyncStatusesEvent = { [key in AbiFragmentName]: SyncStatusEvent };
+// An anonymous event has no entry.
+export type SyncStatusesEvent = Partial<{
+  [key in AbiFragmentName]: SyncStatusEvent;
+}>;
 export type SyncStatusEvent = { recordCount: number };
 //=====event log=====
 export type EthersEventLog = OriginalEthersEventLog;

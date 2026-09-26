@@ -237,7 +237,7 @@ async function dbStatus(tab: Tab): Promise<SyncStatusContract> {
 }
 // The number of logs of countLogs() that the tab's store says are saved.
 function savedLogs(tab: Tab): number {
-  return tab.storeStatus().events[tab.contract.events.names[0]].recordCount;
+  return tab.storeStatus().events[tab.contract.events.names[0]]!.recordCount;
 }
 // Waits until the tab's sync has saved more logs than `count`.
 async function waitForSavedLogs(tab: Tab, count: number = 0): Promise<void> {
@@ -669,7 +669,7 @@ describe("sync with two tabs (issue #49)", () => {
       const { rows } = await countLogs(tab);
       expect(rows).toBeGreaterThan(0);
       expect(
-        tab.storeStatus().events[tab.contract.events.names[0]].recordCount,
+        tab.storeStatus().events[tab.contract.events.names[0]]!.recordCount,
       ).toBe(rows);
     }
 
