@@ -14,8 +14,8 @@
     isHover?: NonNullable<BaseIconProps["isHover"]>;
     focusable?: NonNullable<BaseIconProps["focusable"]>;
     flipHorizontal?: NonNullable<BaseIconProps["flipHorizontal"]>;
-    isHoverControledByParent?: NonNullable<
-      BaseIconProps["isHoverControledByParent"]
+    isHoverControlledByParent?: NonNullable<
+      BaseIconProps["isHoverControlledByParent"]
     >;
     cursor?: "cursor-default" | "cursor-pointer";
   }
@@ -30,14 +30,14 @@
     isHover = $bindable(false),
     focusable = "false",
     flipHorizontal = false,
-    isHoverControledByParent = false,
+    isHoverControlledByParent = false,
     cursor = "cursor-default",
   }: Props = $props();
   function onMouseEnter() {
-    if (!isHoverControledByParent) isHover = true;
+    if (!isHoverControlledByParent) isHover = true;
   }
   function onMouseLeave() {
-    if (!isHoverControledByParent) isHover = false;
+    if (!isHoverControlledByParent) isHover = false;
   }
   const sizes: { [key in BaseSize]: number } = {
     // xs: 12,

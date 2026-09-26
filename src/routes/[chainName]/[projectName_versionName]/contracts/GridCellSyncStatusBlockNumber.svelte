@@ -33,7 +33,7 @@
     targetContract,
     headerName,
   }: Props = $props();
-  const girdSize: BaseSize = sizeSettings.grid;
+  const gridSize: BaseSize = sizeSettings.grid;
 
   let latestBlockNumber: number = $derived(
     $storeChainStatus[targetChain.name].latestBlockNumber,
@@ -58,8 +58,8 @@
   <CommonChainExplorerLink
     subdirectory="block"
     value={blockNumber.toString()}
-    textSize={girdSize}
+    textSize={gridSize}
   />
 {:else}
-  <BaseLabel text={NO_DATA} textSize={girdSize} />
+  <BaseLabel text={NO_DATA} textSize={gridSize} />
 {/if}

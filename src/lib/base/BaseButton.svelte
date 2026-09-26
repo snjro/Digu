@@ -98,7 +98,7 @@
     colorCategoryFront?: BaseButtonProps["colorCategoryFront"];
     colorCategoryBg?: BaseButtonProps["colorCategoryBg"];
     isHover?: boolean;
-    isHoverControledByParent?: boolean;
+    isHoverControlledByParent?: boolean;
     underlineLabel?: BaseButtonProps["underlineLabel"];
     designatedFontWeight?: BaseButtonProps["designatedFontWeight"];
     rounded?: BaseButtonProps["rounded"];
@@ -131,7 +131,7 @@
     colorCategoryFront = undefined,
     colorCategoryBg = undefined,
     isHover = false,
-    isHoverControledByParent = false,
+    isHoverControlledByParent = false,
     underlineLabel = false,
     designatedFontWeight = undefined,
     rounded = true,
@@ -143,11 +143,11 @@
   }: Props = $props();
 
   function onMouseEnter(event: MouseEvent) {
-    if (!isHoverControledByParent) isHover = true;
+    if (!isHoverControlledByParent) isHover = true;
     onmouseenter?.(event);
   }
   function onMouseLeave(event: MouseEvent) {
-    if (!isHoverControledByParent) isHover = false;
+    if (!isHoverControlledByParent) isHover = false;
     onmouseleave?.(event);
   }
   // A button with a visible label keeps its text as its name.

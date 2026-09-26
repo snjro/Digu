@@ -49,7 +49,7 @@
           (row: ContractRow) => row.contractConstructorInputs,
         ),
       )}
-      hasMultipulTabs={false}
+      hasMultipleTabs={false}
       exportFilePrefix="contracts"
       bind:isFullScreen
     />

@@ -49,7 +49,7 @@ export async function getNodeProvider(
     (latestNodeProviderCalls[targetChain.name] ?? 0) + 1;
   latestNodeProviderCalls[targetChain.name] = callNumber;
   const httpProtocols: string[] = ["http:", "https:"];
-  const webSoketProtocols: string[] = ["ws:", "wss:"];
+  const webSocketProtocols: string[] = ["ws:", "wss:"];
   const url: URL | undefined = getUrlObject(rpc);
 
   let nodeProvider: NodeProvider | undefined = undefined;
@@ -57,7 +57,7 @@ export async function getNodeProvider(
   await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
   if (url === undefined) {
     nodeStatus = "INVALID_URL";
-  } else if ([...httpProtocols, ...webSoketProtocols].includes(url.protocol)) {
+  } else if ([...httpProtocols, ...webSocketProtocols].includes(url.protocol)) {
     const targetNetwork: Network = Network.from(targetChain.chainId);
     let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
     const timeoutError: Error = new Error("getNetwork timed out.");

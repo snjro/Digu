@@ -54,7 +54,7 @@
     colorSettings.gridHeader,
     colorSettings.gridRow,
   );
-  function refreshRowSeqenceNumber(gridApi: GridApi<GridRow>) {
+  function refreshRowSequenceNumber(gridApi: GridApi<GridRow>) {
     gridApi.refreshCells({ columns: [ColIdRowSequenceNumber] });
   }
 
@@ -95,10 +95,10 @@
     overlayNoRowsTemplate: "No data",
     getRowClass: undefined,
     onSortChanged: (sortChangeEvent: SortChangedEvent): void => {
-      refreshRowSeqenceNumber(sortChangeEvent.api);
+      refreshRowSequenceNumber(sortChangeEvent.api);
     },
     onFilterChanged: (filterChangedEvent: FilterChangedEvent) => {
-      refreshRowSeqenceNumber(filterChangedEvent.api);
+      refreshRowSequenceNumber(filterChangedEvent.api);
     },
     onGridColumnsChanged: (
       gridColumnsChangedEvent: GridColumnsChangedEvent<GridRow>,

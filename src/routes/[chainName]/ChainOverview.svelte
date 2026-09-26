@@ -14,7 +14,7 @@
   const gridTrackContracts: string = classNames("col-span-full", "");
 </script>
 
-<PageWrapperContent gridCols="grid-cols-6" hasMultipulTabs={false}>
+<PageWrapperContent gridCols="grid-cols-6" hasMultipleTabs={false}>
   {#snippet PageWrapperContentBody()}
     {#each targetChain.projects as targetProject}
       <CommonItemGroup

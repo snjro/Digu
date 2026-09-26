@@ -15,7 +15,7 @@ import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
 import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
 
-const girdSize: BaseSize = sizeSettings.grid;
+const gridSize: BaseSize = sizeSettings.grid;
 const cellClass: string = classNames("");
 const sortable = true;
 const editable = false;
@@ -50,11 +50,11 @@ export const columnDefsBasic = <T extends ContractRow>(
                   href: `${urlPathName}${
                     cellRendererParams.data.contractName
                   }#${getFirstTabUrlHash("contracts")}`,
-                  textSize: girdSize,
+                  textSize: gridSize,
                   openNewTab: false,
                   prefixIcon: {
                     name: "scriptText",
-                    size: girdSize,
+                    size: gridSize,
                   },
                 },
               });
@@ -89,7 +89,7 @@ export const columnDefsBasic = <T extends ContractRow>(
                 props: {
                   text: cellRendererParams.data?.contractSourceCodeUrl,
                   href: cellRendererParams.data?.contractSourceCodeUrl,
-                  textSize: girdSize,
+                  textSize: gridSize,
                   openNewTab: true,
                 },
               });
@@ -98,7 +98,7 @@ export const columnDefsBasic = <T extends ContractRow>(
                 target: cell.eGui,
                 props: {
                   text: NO_DATA,
-                  textSize: girdSize,
+                  textSize: gridSize,
                 },
               });
             }

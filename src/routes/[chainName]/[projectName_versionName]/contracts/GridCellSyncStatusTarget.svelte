@@ -23,7 +23,7 @@
   let { targetChain, targetProject, targetVersion, targetContract }: Props =
     $props();
 
-  const girdSize: BaseSize = sizeSettings.grid;
+  const gridSize: BaseSize = sizeSettings.grid;
 
   let targetContractSyncStatus: SyncStatusContract = $derived(
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
@@ -37,8 +37,8 @@
     {targetProject}
     {targetVersion}
     {targetContract}
-    size={changeSize(girdSize, -1)}
+    size={changeSize(gridSize, -1)}
   />
 {:else}
-  <BaseLabel text={NO_DATA} textSize={girdSize} />
+  <BaseLabel text={NO_DATA} textSize={gridSize} />
 {/if}

@@ -28,7 +28,7 @@ type SizeSettings = Record<
   | "itemTitle"
   | "itemMember"
   | "itemMemberTable"
-  | "itemWarnningMessage"
+  | "itemWarningMessage"
   | "itemViewAllButton"
   | "tab"
   | "threeDotsList"
@@ -82,7 +82,7 @@ export const sizeSettings: SizeSettings = {
   itemTitle: changeSize(sizeContent, -1),
   itemMember: changeSize(sizeContent, -1),
   itemMemberTable: changeSize(sizeContent, -1),
-  itemWarnningMessage: changeSize(sizeContent, -1),
+  itemWarningMessage: changeSize(sizeContent, -1),
   itemViewAllButton: changeSize(sizeContent, -1),
   tab: changeSize(sizeContent, -1),
   threeDotsList: changeSize(sizeContent, -1),

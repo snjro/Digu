@@ -27,8 +27,8 @@ function _loadEventsData({
 }: {
   params: LoadEvent["params"];
 }): LoadEventsData {
-  const lodedContractData: LoadContractData = _LoadContractData({ params });
+  const loadedContractData: LoadContractData = _LoadContractData({ params });
   const targetEventAbiFragments: EventAbiFragment[] =
-    lodedContractData.targetContract.events.abiFragments;
-  return { ...lodedContractData, targetEventAbiFragments };
+    loadedContractData.targetContract.events.abiFragments;
+  return { ...loadedContractData, targetEventAbiFragments };
 }

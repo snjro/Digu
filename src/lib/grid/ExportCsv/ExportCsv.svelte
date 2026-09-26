@@ -213,7 +213,7 @@
 
 <BaseDialog bind:dialogElement headerText="Export CSV File">
   {#snippet dialogBody()}
-    <PageWrapperContent hasMultipulTabs={false} gridCols="grid-cols-1">
+    <PageWrapperContent hasMultipleTabs={false} gridCols="grid-cols-1">
       {#snippet PageWrapperContentBody()}
         <CommonItemGroup text="CSV File Format" gridTrack="col-span-full">
           {#each radioPropsKeys as key}

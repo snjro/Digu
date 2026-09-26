@@ -32,7 +32,7 @@
       tooltipYPosition: "top",
     },
     {
-      iconName: "bullesEyeArrow",
+      iconName: "bullseyeArrow",
       openState: "openCurrentOnly",
       tooltipText: "Expand selected directory",
       tooltipXPosition: "right",

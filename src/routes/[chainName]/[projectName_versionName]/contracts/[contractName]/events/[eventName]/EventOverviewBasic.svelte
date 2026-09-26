@@ -32,7 +32,7 @@
     <BaseLabel
       text={"The event has no inputs."}
       italic
-      textSize={sizeSettings.itemWarnningMessage}
+      textSize={sizeSettings.itemWarningMessage}
     />
   {/if}
 </CommonItemMember>

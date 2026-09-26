@@ -88,14 +88,14 @@
   <BaseLabel
     text={MESSAGE_ANONYMOUS_EVENT_LOGS}
     italic
-    textSize={sizeSettings.itemWarnningMessage}
+    textSize={sizeSettings.itemWarningMessage}
   />
 {:else}
   <BaseGrid
     paramColumnDefs={eventLogColumnDefs}
     {rows}
     exportFilePrefix={`eventLogs(${eventLogType})`}
-    hasMultipulTabs={true}
+    hasMultipleTabs={true}
     bind:isFullScreen
   />
 {/if}

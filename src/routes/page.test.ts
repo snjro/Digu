@@ -22,10 +22,10 @@ vi.mock("@sveltejs/kit", async (importOriginal) => {
 });
 
 describe("load", () => {
-  const expectedSlelectedChainName: string = "testChainName";
+  const expectedSelectedChainName: string = "testChainName";
   const spyGetDbItemUserSettings = vi
     .spyOn(dbSettingsDataHandlersUser, "getDbItemUserSettings")
-    .mockResolvedValue(expectedSlelectedChainName);
+    .mockResolvedValue(expectedSelectedChainName);
 
   const spyRedirect = vi.mocked(redirect);
   beforeEach(() => {
@@ -47,12 +47,12 @@ describe("load", () => {
       "selectedChainName",
     );
     expect(spyGetDbItemUserSettings).toHaveResolvedWith(
-      expectedSlelectedChainName,
+      expectedSelectedChainName,
     );
     expect(spyRedirect).toHaveBeenCalledOnce();
     expect(spyRedirect).toHaveBeenCalledWith(
       308,
-      `${base}/${expectedSlelectedChainName}`,
+      `${base}/${expectedSelectedChainName}`,
     );
     expect(spyRedirect.mock.results[0]).toEqual({
       type: "throw",
@@ -61,7 +61,7 @@ describe("load", () => {
     expect(isRedirect(thrown)).toBe(true);
     expect(thrown).toMatchObject({
       status: 308,
-      location: `${base}/${expectedSlelectedChainName}`,
+      location: `${base}/${expectedSelectedChainName}`,
     });
   });
 

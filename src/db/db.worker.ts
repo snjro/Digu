@@ -6,7 +6,7 @@ import type {
   TargetFunctionName,
 } from "./db.worker.types";
 
-// Listen for a message announcing the start of excuting a function for DB
+// Listen for a message announcing the start of executing a function for DB
 self.addEventListener(
   "message",
   async (

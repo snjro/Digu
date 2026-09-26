@@ -25,7 +25,7 @@
 
   let { targetChain, targetProject, targetVersion, targetContract }: Props =
     $props();
-  const girdSize: BaseSize = sizeSettings.grid;
+  const gridSize: BaseSize = sizeSettings.grid;
 
   let latestBlockNumber: number = $derived(
     $storeChainStatus[targetChain.name].latestBlockNumber,
@@ -51,7 +51,7 @@
       colorCategoryBg={colorSettings.gridContainer}
       {fetchedBlockNumber}
       endBlockNumber={latestBlockNumber}
-      size={changeSize(girdSize, -1)}
+      size={changeSize(gridSize, -1)}
       showBlockNumber={false}
       shadowBar={false}
       processing={targetContractSyncStatus.isSyncing}
@@ -59,5 +59,5 @@
     />
   </div>
 {:else}
-  <BaseLabel text={NO_DATA} textSize={girdSize} />
+  <BaseLabel text={NO_DATA} textSize={gridSize} />
 {/if}

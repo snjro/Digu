@@ -8,7 +8,7 @@
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
   import type { CrumbItem } from "./crumbs";
-  import BreadcrumnItemSeparater from "./BreadcrumnItemSeparater.svelte";
+  import BreadcrumbItemSeparator from "./BreadcrumbItemSeparator.svelte";
   interface Props {
     targetCrumbItem: CrumbItem;
     currentIndex: number;
@@ -77,6 +77,6 @@
     {/if}
   </li>
   <li class={liClass} aria-hidden="true">
-    <BreadcrumnItemSeparater />
+    <BreadcrumbItemSeparator />
   </li>
 {/if}

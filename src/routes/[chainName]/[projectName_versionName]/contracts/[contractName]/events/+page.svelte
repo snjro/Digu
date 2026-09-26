@@ -47,7 +47,7 @@
           contractName: titleText,
         },
       )}
-      hasMultipulTabs={false}
+      hasMultipleTabs={false}
       exportFilePrefix="events"
       bind:isFullScreen
     />

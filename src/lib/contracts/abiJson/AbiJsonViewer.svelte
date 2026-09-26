@@ -127,8 +127,8 @@
         buttonsDefinition: buttonsDefinition,
         showThreeDotsButton: false,
         buttonSize: sizeSettings.gridFunctionButton,
-        breakPointWidthForOpendSidebar:
-          breakPointWidthThresholds.grigFunctionButtonForOpenedSidebar,
+        breakPointWidthForOpenedSidebar:
+          breakPointWidthThresholds.gridFunctionButtonForOpenedSidebar,
         horizontalAlignment: "end",
       }}
     />

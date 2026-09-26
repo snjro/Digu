@@ -12,7 +12,7 @@ import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
 import type { BaseSize } from "$lib/base/baseSizes";
 import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
 
-const girdSize: BaseSize = sizeSettings.grid;
+const gridSize: BaseSize = sizeSettings.grid;
 
 const cellClass: string = classNames("");
 const sortable = true;
@@ -46,11 +46,11 @@ export const columnDefsBasic = <T extends EventRow>(
                   href: `${urlPathName}${
                     cellRendererParams.data.eventName
                   }#${getFirstTabUrlHash("events")}`,
-                  textSize: girdSize,
+                  textSize: gridSize,
                   openNewTab: false,
                   prefixIcon: {
                     name: "databaseOutline",
-                    size: girdSize,
+                    size: gridSize,
                   },
                 },
               });
@@ -90,7 +90,7 @@ export const columnDefsBasic = <T extends EventRow>(
                 target: cell.eGui,
                 props: {
                   text: cellRendererParams.data.eventTopicHash,
-                  textSize: girdSize,
+                  textSize: gridSize,
                   fontMono: true,
                   showCopyButton: true,
                 },

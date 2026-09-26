@@ -26,7 +26,7 @@
 
   interface Props {
     isAgGrid?: boolean;
-    hasMultipulTabs?: boolean;
+    hasMultipleTabs?: boolean;
     gridCols?: "grid-cols-1" | "grid-cols-2" | "grid-cols-6" | undefined;
     PageWrapperContentFunctionBar?: Snippet;
     PageWrapperContentBody?: Snippet;
@@ -36,7 +36,7 @@
 
   let {
     isAgGrid = false,
-    hasMultipulTabs = true,
+    hasMultipleTabs = true,
     gridCols = undefined,
     PageWrapperContentFunctionBar,
     PageWrapperContentBody,
@@ -72,7 +72,7 @@
     "pl-1.5",
     "rounded-tr-sm",
     "rounded-b-sm",
-    hasMultipulTabs ? "rounded-tl-none" : "rounded-tl-sm",
+    hasMultipleTabs ? "rounded-tl-none" : "rounded-tl-sm",
     colorClasses[colorSettings.tabSelected].bg,
     "",
   )}

@@ -9,7 +9,7 @@
     prefixIcon?: BaseIconProps;
     suffixIcon?: BaseIconProps;
     disabled?: boolean;
-    isHoverControledByParent?: boolean;
+    isHoverControlledByParent?: boolean;
     openNewTab?: boolean;
     hoverEffect?: boolean;
     truncate?: boolean;
@@ -49,8 +49,8 @@
     disabled?: NonNullable<BaseAProps["disabled"]>;
     openNewTab?: NonNullable<BaseAProps["openNewTab"]>;
     isFontMono?: boolean;
-    isHoverControledByParent?: NonNullable<
-      BaseAProps["isHoverControledByParent"]
+    isHoverControlledByParent?: NonNullable<
+      BaseAProps["isHoverControlledByParent"]
     >;
     hoverEffect?: NonNullable<BaseAProps["hoverEffect"]>;
     truncate?: NonNullable<BaseAProps["truncate"]>;
@@ -70,7 +70,7 @@
     disabled = false,
     openNewTab = true,
     isFontMono = false,
-    isHoverControledByParent = false,
+    isHoverControlledByParent = false,
     hoverEffect = true,
     truncate = true,
     ariaLabel = undefined,
@@ -78,10 +78,10 @@
   }: Props = $props();
   let isHover = $state(false);
   function onMouseEnter() {
-    if (!isHoverControledByParent) isHover = true;
+    if (!isHoverControlledByParent) isHover = true;
   }
   function onMouseLeave() {
-    if (!isHoverControledByParent) isHover = false;
+    if (!isHoverControlledByParent) isHover = false;
   }
   // Returns a new object, so that the props of the parent are not changed.
   const editIconProps = (

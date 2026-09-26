@@ -165,7 +165,7 @@ describe("BaseItem.svelte", () => {
   test("follows hoverType from the parent", async () => {
     const { container, rerender } = render(BaseItem, {
       ...props,
-      isHoverControledByParent: true,
+      isHoverControlledByParent: true,
     });
     const { box, link } = getParts(container);
 
@@ -175,7 +175,7 @@ describe("BaseItem.svelte", () => {
 
     await rerender({
       ...props,
-      isHoverControledByParent: true,
+      isHoverControlledByParent: true,
       hoverType: "onItem",
     });
     expect(box.classList).toContain(emphasis);

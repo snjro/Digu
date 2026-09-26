@@ -35,7 +35,7 @@
   let { targetChain, targetProject }: Props = $props();
 
   const textSize: BaseSize = sizeSettings.itemMemberTable;
-  const warnningTextSize: BaseSize = sizeSettings.itemWarnningMessage;
+  const warningTextSize: BaseSize = sizeSettings.itemWarningMessage;
   // const hrefFrontPart: string =
   //   trailingSlash === "always"
   //     ? `${page.url.pathname}`
@@ -197,6 +197,6 @@
       {/snippet}
     </BaseTable>
   {:else}
-    <BaseLabel text={noListMessage} textSize={warnningTextSize} italic />
+    <BaseLabel text={noListMessage} textSize={warningTextSize} italic />
   {/if}
 </CommonItemMember>

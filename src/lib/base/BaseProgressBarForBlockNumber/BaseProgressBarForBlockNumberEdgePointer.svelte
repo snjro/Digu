@@ -3,7 +3,7 @@
   import type { BaseSize } from "$lib/base/baseSizes";
   import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
   import BaseProgressBarForBlockNumberChainExplorerLink from "./BaseProgressBarForBlockNumberChainExplorerLink.svelte";
-  import BaseProgressBarForBlocknumberPointer from "./BaseProgressBarForBlocknumberPointer.svelte";
+  import BaseProgressBarForBlockNumberPointer from "./BaseProgressBarForBlockNumberPointer.svelte";
   interface Props {
     size: BaseSize;
     colorCategoryFront: ColorCategory;
@@ -21,7 +21,7 @@
   }: Props = $props();
 </script>
 
-<BaseProgressBarForBlocknumberPointer
+<BaseProgressBarForBlockNumberPointer
   {size}
   {colorCategoryFront}
   {colorCategoryBg}

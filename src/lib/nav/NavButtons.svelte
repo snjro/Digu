@@ -47,7 +47,7 @@
       buttonsDefinition: buttonsDefinition,
       showThreeDotsButton: true,
       buttonSize: sizeSettings.navButton,
-      breakPointWidthForOpendSidebar:
+      breakPointWidthForOpenedSidebar:
         breakPointWidthThresholds.navButtonForOpenedSidebar,
       horizontalAlignment: "end",
     }}

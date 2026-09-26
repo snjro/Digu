@@ -47,7 +47,7 @@
     headerIconName={undefined}
   >
     {#snippet dialogBody()}
-      <PageWrapperContent hasMultipulTabs={false}>
+      <PageWrapperContent hasMultipleTabs={false}>
         {#snippet PageWrapperContentBody()}
           <AbiParamsTable
             {paramTypes}

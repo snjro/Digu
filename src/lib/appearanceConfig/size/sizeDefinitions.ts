@@ -13,7 +13,7 @@ export type BreakPointWidthValue =
   (typeof breakPointWidths)[keyof typeof breakPointWidths];
 
 export const breakPointWidthThresholds: Record<string, BreakPointWidthValue> = {
-  grigFunctionButtonForOpenedSidebar: breakPointWidths.lg,
+  gridFunctionButtonForOpenedSidebar: breakPointWidths.lg,
   navButtonForOpenedSidebar: breakPointWidths.md,
   navSyncStatusForOpenedSidebar: breakPointWidths.md,
 };

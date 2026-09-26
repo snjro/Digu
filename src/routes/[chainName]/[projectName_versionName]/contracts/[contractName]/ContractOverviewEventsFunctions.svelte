@@ -96,7 +96,7 @@
   {:else}
     <BaseLabel
       text={`The contract has no ${abiFragmentsType}.`}
-      textSize={sizeSettings.itemWarnningMessage}
+      textSize={sizeSettings.itemWarningMessage}
       italic
     />
   {/if}

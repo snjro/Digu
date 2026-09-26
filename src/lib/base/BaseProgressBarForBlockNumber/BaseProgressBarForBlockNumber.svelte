@@ -17,8 +17,8 @@
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
   import BaseProgressBarForBlockNumberBody from "./BaseProgressBarForBlockNumberBody.svelte";
   import BaseProgressBarForBlockNumberChainExplorerLink from "./BaseProgressBarForBlockNumberChainExplorerLink.svelte";
-  import BaseProgressBarForBlocknumberPointer from "./BaseProgressBarForBlocknumberPointer.svelte";
-  import BaseProgressBarForBlocknumberEdgePointer from "./BaseProgressBarForBlocknumberEdgePointer.svelte";
+  import BaseProgressBarForBlockNumberPointer from "./BaseProgressBarForBlockNumberPointer.svelte";
+  import BaseProgressBarForBlockNumberEdgePointer from "./BaseProgressBarForBlockNumberEdgePointer.svelte";
   import { getProgressRate } from "./progressRate";
 
   interface Props {
@@ -89,7 +89,7 @@
           />
         </div>
       </div>
-      <BaseProgressBarForBlocknumberPointer
+      <BaseProgressBarForBlockNumberPointer
         {size}
         {colorCategoryFront}
         {colorCategoryBg}
@@ -108,7 +108,7 @@
       {shadowBar}
     />
     {#if showBlockNumber}
-      <BaseProgressBarForBlocknumberEdgePointer
+      <BaseProgressBarForBlockNumberEdgePointer
         size={blockNumberTextSize}
         {colorCategoryFront}
         {colorCategoryBg}

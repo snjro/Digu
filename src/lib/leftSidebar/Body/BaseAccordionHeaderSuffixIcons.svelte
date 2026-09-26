@@ -49,7 +49,7 @@
     getFrontColorCategory(isSelected),
   );
 
-  let shevronUnderlineStyle: string = $derived(
+  let chevronUnderlineStyle: string = $derived(
     hoverType === "onSpace"
       ? classNames("border-b", colorClasses["interactive"].border)
       : "",
@@ -95,9 +95,9 @@
   <BaseIcon
     name={isOpenAccordion ? "chevronDown" : "chevronRight"}
     size={sizeSettings.leftSidebarChevronIcon}
-    isHoverControledByParent
+    isHoverControlledByParent
     isHover={hoverType !== undefined}
     colorCategory={frontColorCategory}
-    appendClass={shevronUnderlineStyle}
+    appendClass={chevronUnderlineStyle}
   />
 </div>
