@@ -40,7 +40,8 @@ It needs git and Docker (`compose.yaml` of this repository). It takes about
 ## What it does
 
 1. Checks out `<base-ref>` (and `<head-ref>`) into temporary git worktrees.
-2. Runs `npm ci` and `npm run build` for each, in the `app` service.
+2. Runs `npm ci` and `npm run build` for each, in the `app` service. It does
+   not download the Chrome of puppeteer there.
 3. In the `test` service, `shots.mjs` serves each `_build` inside the container
    (no port is opened) and takes screenshots with the Chrome of puppeteer.
    Requests to other hosts are blocked, so the app does not call an RPC.

@@ -78,8 +78,10 @@ checkout() {
   worktrees+=("$tmp/$1")
 }
 
+# The screenshots use the Chrome of the test image. The app image has no unzip,
+# so the Chrome that puppeteer downloads there cannot be extracted anyway.
 build() {
-  docker compose -f "$1/compose.yaml" -p "$2" run --rm -T app \
+  docker compose -f "$1/compose.yaml" -p "$2" run --rm -T -e PUPPETEER_SKIP_DOWNLOAD=1 app \
     sh -c "npm ci --no-audit --no-fund && npm run build"
 }
 
