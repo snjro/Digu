@@ -1,12 +1,18 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test } from "vitest";
 import { EventFragment } from "ethers";
-import type {
-  ColDef,
-  ColGroupDef,
-  ValueFormatterParams,
-  ValueGetterParams,
+import {
+  AllCommunityModule,
+  createGrid,
+  ModuleRegistry,
+  type ColDef,
+  type ColGroupDef,
+  type GridApi,
+  type ValueFormatterParams,
+  type ValueGetterParams,
 } from "ag-grid-community";
 import type { ColumnDef } from "$lib/grid/types";
+import { getColumnDefs } from "$lib/grid/GridBody/getColumnDefs";
+import { getCsvText } from "$lib/grid/ExportCsv/exportCsv";
 import type { ConvertedEventLog } from "@db/dbTypes";
 import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
 
@@ -60,8 +66,15 @@ describe("columnDefs", () => {
     expect(headerNames(children(defs[3]))).toEqual(["log index", "removed"]);
   });
 
-  test("should show the datetime in ISO 8601", () => {
-    expect(getValue(children(defs[0])[1])).toBe("2020-01-02T03:04:05Z");
+  test("should sort the datetime by the date and show it in ISO 8601", () => {
+    const datetime: ColumnDef = children(defs[0])[1];
+    expect(getValue(datetime)).toBe(row.jsDate);
+    const valueFormatter = (datetime as ColDef).valueFormatter as (
+      params: ValueFormatterParams,
+    ) => unknown;
+    expect(
+      valueFormatter({ data: row, value: row.jsDate } as ValueFormatterParams),
+    ).toBe("2020-01-02T03:04:05Z");
   });
 
   test("should name each argument by its index and its name", () => {
@@ -130,5 +143,122 @@ describe("getHexEventLogColumnDefs", () => {
       inputs: [{ name: "amount", type: "uint256", indexed: false }],
     });
     expect(children(getHexEventLogColumnDefs(anonymous)[1])).toEqual([]);
+  });
+});
+
+describe("the datetime column in ag-grid", () => {
+  // Shuffled, with a and c in the same second.
+  const rows = [
+    ["0xa1", Date.UTC(2020, 0, 2, 3, 4, 5)],
+    ["0xb1", Date.UTC(2019, 11, 31, 23, 59, 59)],
+    ["0xc1", Date.UTC(2020, 0, 2, 3, 4, 5)],
+    ["0xd1", Date.UTC(2020, 0, 2, 13, 0, 0)],
+    ["0xe1", Date.UTC(2021, 5, 1, 0, 0, 0)],
+  ].map(
+    ([transactionHash, time]) =>
+      ({
+        transactionHash,
+        jsDate: new Date(time),
+      }) as unknown as ConvertedEventLog,
+  );
+  let element: HTMLElement | undefined;
+  let gridApi: GridApi<ConvertedEventLog> | undefined;
+  afterEach(() => {
+    gridApi?.destroy();
+    element?.remove();
+    gridApi = undefined;
+    element = undefined;
+  });
+  function createRealGrid(): GridApi<ConvertedEventLog> {
+    ModuleRegistry.registerModules([AllCommunityModule]);
+    element = document.createElement("div");
+    document.body.append(element);
+    const datetime: ColumnDef = children(
+      columnDefs(fragment, [2, 1, 1, 1])[0],
+    )[1];
+    // The same filter and group options as GridBody.
+    gridApi = createGrid<ConvertedEventLog>(element, {
+      columnDefs: getColumnDefs([
+        { field: "transactionHash" },
+        { headerName: "time", children: [datetime] },
+      ]),
+      defaultColDef: { sortable: true, filter: true },
+      defaultColGroupDef: { openByDefault: true, marryChildren: true },
+      suppressFieldDotNotation: true,
+      rowData: rows,
+    });
+    return gridApi;
+  }
+  function shownRows(gridApi: GridApi<ConvertedEventLog>): string[] {
+    const hashes: string[] = [];
+    gridApi.forEachNodeAfterFilterAndSort((node) => {
+      hashes.push(node.data!.transactionHash);
+    });
+    return hashes;
+  }
+
+  test("exports the datetime to CSV in ISO 8601", () => {
+    const gridApi = createRealGrid();
+    expect(
+      getCsvText(gridApi, {
+        skipRowNumber: { selectedValue: true },
+        columnSeparator: { selectedValue: "," },
+        suppressDoubleQuotes: { selectedValue: false },
+        skipColumnHeaders: { selectedValue: false },
+        filteredSorted: { selectedValue: "all" },
+      }),
+    ).toBe(
+      [
+        '"","time"',
+        '"Transaction Hash","datetime"',
+        '"0xa1","2020-01-02T03:04:05Z"',
+        '"0xb1","2019-12-31T23:59:59Z"',
+        '"0xc1","2020-01-02T03:04:05Z"',
+        '"0xd1","2020-01-02T13:00:00Z"',
+        '"0xe1","2021-06-01T00:00:00Z"',
+      ].join("\r\n"),
+    );
+  });
+
+  test.each([
+    ["2020-01-02T03", ["0xa1", "0xc1"]],
+    ["t13:00", ["0xd1"]],
+    ["59Z", ["0xb1"]],
+    // Words of Date.toString(), not of the ISO text.
+    ["GMT", []],
+  ])("finds the ISO 8601 text by the quick search: %j", (text, expected) => {
+    const gridApi = createRealGrid();
+    gridApi.setGridOption("quickFilterText", text);
+    expect(shownRows(gridApi)).toEqual(expected);
+  });
+
+  test.each([
+    ["contains", "T03:04", ["0xa1", "0xc1"]],
+    ["equals", "2021-06-01T00:00:00Z", ["0xe1"]],
+    ["startsWith", "2020", ["0xa1", "0xc1", "0xd1"]],
+    ["endsWith", ":59Z", ["0xb1"]],
+    ["notContains", "2020", ["0xb1", "0xe1"]],
+    ["contains", "GMT", []],
+  ])(
+    "filters the ISO 8601 text by the column filter: %s %j",
+    async (type, filter, expected) => {
+      const gridApi = createRealGrid();
+      await gridApi.setColumnFilterModel("jsDate", {
+        filterType: "text",
+        type,
+        filter,
+      });
+      gridApi.onFilterChanged();
+      expect(shownRows(gridApi)).toEqual(expected);
+    },
+  );
+
+  test.each([
+    ["asc", ["0xb1", "0xa1", "0xc1", "0xd1", "0xe1"]],
+    ["desc", ["0xe1", "0xd1", "0xa1", "0xc1", "0xb1"]],
+  ] as const)("sorts by the time: %s", (sort, expected) => {
+    const gridApi = createRealGrid();
+    gridApi.applyColumnState({ state: [{ colId: "jsDate", sort }] });
+    expect(shownRows(gridApi)).toEqual(expected);
   });
 });
