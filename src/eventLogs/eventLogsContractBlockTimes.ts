@@ -2,7 +2,7 @@ import type { ChainName } from "@constants/chains/types";
 import { getDbRecordsBlockTime } from "@db/dbBlockTimesDataHandlers";
 import type { BlockTime, EthersEventLog } from "@db/dbTypes";
 import { removeDuplicateValuesFromArray } from "@utils/utilsCommon";
-import type { NodeProvider } from "@utils/utilsEthers";
+import { getLoggableError, type NodeProvider } from "@utils/utilsEthers";
 import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
 import type { Block } from "ethers";
 
@@ -86,7 +86,8 @@ async function fetchBlockFromNodeProvider(
     }
   } catch (error) {
     throw new Error(
-      `Error! Exception in "nodeProvider.getBlock". Block number is ${blockNumber}. error: ${error}`,
+      `Error! Exception in "nodeProvider.getBlock". Block number is ${blockNumber}.`,
+      { cause: getLoggableError(error) },
     );
   }
 }

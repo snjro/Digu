@@ -10,6 +10,7 @@ import {
   stopSyncingInChain,
 } from "@db/dbEventLogsDataHandlersSyncStatus";
 import { customLogger } from "@utils/logger";
+import { getUrlObject } from "@utils/utilsCommon";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { get } from "svelte/store";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
@@ -42,7 +43,8 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
     if (nodeProvider === undefined || nodeStatus !== "SUCCESS") {
       customLogger.fail("Get provider.", {
         chainName: targetChain.name,
-        rpc: rpc,
+        // Only the host: the rest of the URL may hold an API key.
+        rpcHost: getUrlObject(rpc)?.host,
       });
       await startAbortingInChain(targetChain.name);
       return;

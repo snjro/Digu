@@ -60,6 +60,7 @@ export async function getNodeProvider(
   } else if ([...httpProtocols, ...webSoketProtocols].includes(url.protocol)) {
     const targetNetwork: Network = Network.from(targetChain.chainId);
     let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
+    const timeoutError: Error = new Error("getNetwork timed out.");
     try {
       if (httpProtocols.includes(url.protocol)) {
         // add the options to avoid the error `Too many eth_getLogs methods in the batch`
@@ -83,7 +84,7 @@ export async function getNodeProvider(
         nodeProvider.getNetwork(),
         new Promise<never>((_, reject) => {
           timeoutId = setTimeout(
-            () => reject(new Error("getNetwork timed out.")),
+            () => reject(timeoutError),
             GET_NETWORK_TIMEOUT_MS,
           );
         }),
@@ -106,15 +107,23 @@ export async function getNodeProvider(
         nodeStatus = "WRONG_CHAIN";
       }
     } catch (error) {
-      customLogger.error("nodeProvider.getNetwork().", error);
+      const loggableError: unknown = getLoggableError(error);
+      customLogger.error(
+        "nodeProvider.getNetwork().",
+        // Other errors, such as the DOMException of a WebSocket that cannot
+        // be made, may have the URL in the message.
+        loggableError instanceof Error && loggableError !== timeoutError
+          ? { name: loggableError.name }
+          : loggableError,
+      );
       nodeStatus = "NETWORK_ERROR";
     } finally {
       clearTimeout(timeoutId);
     }
   } else {
     customLogger.error(
-      `protocol should be [http / https / ws / wss]. RPC:`,
-      rpc,
+      `protocol should be [http / https / ws / wss]. RPC host:`,
+      url.host,
     );
     nodeStatus = "INVALID_PROTOCOL";
   }
@@ -126,6 +135,38 @@ export async function getNodeProvider(
     return undefined;
   }
   return nodeProvider;
+}
+// ethers puts the request URL, which may hold an API key, in the message and
+// the properties of its errors.
+export function getLoggableError(error: unknown): unknown {
+  if (!(error instanceof Error && "code" in error && "shortMessage" in error)) {
+    return error;
+  }
+  const loggableError = { code: error.code, shortMessage: error.shortMessage };
+  // The error in the JSON-RPC response, which tells why the RPC failed.
+  if (
+    error.code === "UNKNOWN_ERROR" &&
+    "error" in error &&
+    isJsonRpcError(error.error)
+  ) {
+    return {
+      ...loggableError,
+      rpcError: { code: error.error.code, message: error.error.message },
+    };
+  }
+  return loggableError;
+}
+function isJsonRpcError(
+  value: unknown,
+): value is { code: number; message: string } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "code" in value &&
+    typeof value.code === "number" &&
+    "message" in value &&
+    typeof value.message === "string"
+  );
 }
 export async function getAndUpdateLatestBlockNumber(
   nodeProvider: NodeProvider,
