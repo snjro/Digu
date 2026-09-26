@@ -17,6 +17,30 @@ const FUNCTION_SIGNATURE =
 const contractInterface = new Interface([EVENT_SIGNATURE, FUNCTION_SIGNATURE]);
 const eventFragment = EventFragment.from(EVENT_SIGNATURE);
 const functionFragment = FunctionFragment.from(FUNCTION_SIGNATURE);
+const tupleFragment = FunctionFragment.from(
+  "function setOrder((address maker, uint256[2] amounts)[] orders)",
+);
+
+const TRANSFER_JSON = {
+  type: "event",
+  anonymous: false,
+  name: "Transfer",
+  inputs: [
+    // A human readable ABI leaves "indexed" out when it is not indexed.
+    { type: "address", name: "from", indexed: true },
+    { type: "address", name: "to" },
+    { type: "uint256", name: "value" },
+  ],
+};
+const BALANCE_OF_JSON = {
+  type: "function",
+  name: "balanceOf",
+  constant: true,
+  stateMutability: "view",
+  payable: false,
+  inputs: [{ type: "address", name: "owner" }],
+  outputs: [{ type: "uint256", name: "" }],
+};
 
 describe("isTargetContractInterface", () => {
   test("returns true for a contract interface", () => {
@@ -32,10 +56,33 @@ describe("isTargetContractInterface", () => {
 
 describe("formatTargetAbi", () => {
   describe("contract interface", () => {
-    test("json: returns the fragments as they are", () => {
-      expect(formatTargetAbi(contractInterface, "json")).toBe(
-        contractInterface.fragments,
-      );
+    test("json: returns the standard ABI JSON", () => {
+      expect(formatTargetAbi(contractInterface, "json")).toStrictEqual([
+        TRANSFER_JSON,
+        BALANCE_OF_JSON,
+      ]);
+    });
+    test("json: gives a non-payable constructor the stateMutability nonpayable", () => {
+      const withConstructor = new Interface(["constructor(address owner)"]);
+      const withPayableConstructor = new Interface([
+        "constructor(address owner) payable",
+      ]);
+      expect(formatTargetAbi(withConstructor, "json")).toStrictEqual([
+        {
+          type: "constructor",
+          stateMutability: "nonpayable",
+          payable: false,
+          inputs: [{ type: "address", name: "owner" }],
+        },
+      ]);
+      expect(formatTargetAbi(withPayableConstructor, "json")).toStrictEqual([
+        {
+          type: "constructor",
+          stateMutability: "payable",
+          payable: true,
+          inputs: [{ type: "address", name: "owner" }],
+        },
+      ]);
     });
     test("full: returns the full human readable ABI", () => {
       expect(formatTargetAbi(contractInterface, "full")).toEqual([
@@ -52,8 +99,37 @@ describe("formatTargetAbi", () => {
   });
 
   describe("fragment", () => {
-    test("json: returns the fragment as it is", () => {
-      expect(formatTargetAbi(eventFragment, "json")).toBe(eventFragment);
+    test("json: returns the standard ABI JSON", () => {
+      expect(formatTargetAbi(eventFragment, "json")).toStrictEqual(
+        TRANSFER_JSON,
+      );
+      expect(formatTargetAbi(functionFragment, "json")).toStrictEqual(
+        BALANCE_OF_JSON,
+      );
+    });
+    test("json: has no fields that only ethers has", () => {
+      const abiText: string = getAbiText(tupleFragment, "json", false);
+      for (const key of ["baseType", "arrayLength", "arrayChildren", "gas"]) {
+        expect(abiText).not.toContain(`"${key}"`);
+      }
+      expect(abiText).not.toContain("null");
+      expect(JSON.parse(abiText)).toStrictEqual({
+        type: "function",
+        name: "setOrder",
+        constant: false,
+        payable: false,
+        inputs: [
+          {
+            type: "tuple[]",
+            name: "orders",
+            components: [
+              { type: "address", name: "maker" },
+              { type: "uint256[2]", name: "amounts" },
+            ],
+          },
+        ],
+        outputs: [],
+      });
     });
     test("full: returns the full human readable fragment", () => {
       expect(formatTargetAbi(eventFragment, "full")).toBe(

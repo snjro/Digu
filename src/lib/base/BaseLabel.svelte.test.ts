@@ -26,6 +26,13 @@ describe("BaseLabel.svelte", () => {
     expect(label(container).textContent).toBe("Other");
   });
 
+  test("dims the label when disabled", async () => {
+    const { container, rerender } = render(BaseLabel, { text: "Name" });
+    expect(label(container).classList).not.toContain("opacity-75");
+    await rerender({ disabled: true });
+    expect(label(container).classList).toContain("opacity-75");
+  });
+
   test("links to the input by inputId", () => {
     const { container } = render(BaseLabel, { text: "Name", inputId: "id1" });
     expect(label(container).getAttribute("for")).toBe("id1");

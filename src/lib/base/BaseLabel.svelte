@@ -96,7 +96,8 @@
           ? colorClasses[colorCategoryFront].text
           : "text-inherit",
         colorCategoryBg ? colorClasses[colorCategoryBg].bg : "bg-transparent",
-        disabled && "disabled:opacity-75",
+        // A label has no :disabled, so the class is set directly.
+        disabled && "opacity-75",
         truncate && "truncate",
         cursorPointer ? "cursor-pointer" : "cursor-text",
         fontMono && "font-mono",
