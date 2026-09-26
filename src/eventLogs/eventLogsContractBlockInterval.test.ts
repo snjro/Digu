@@ -112,6 +112,43 @@ describe("fetchEventLogsContract", () => {
     expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
   });
 
+  // Blocks fetched before the confirmation depth was kept can be past the
+  // latest block number in the store.
+  test("should wait without fetching until the latest block number passes the fetched block", async () => {
+    const latestBlockNumber: number = creationBlockNumber + 10;
+    const fetchedBlockNumber: number = latestBlockNumber + 20;
+    const newLatestBlockNumber: number = fetchedBlockNumber + 5;
+    storeSyncStatus.update((state: SyncStatusesChain) => {
+      contractInState(state).fetchedBlockNumber = fetchedBlockNumber;
+      return state;
+    });
+    // A new block passes the fetched block while waiting for the second time.
+    vi.mocked(sleep)
+      .mockResolvedValueOnce(undefined)
+      .mockImplementationOnce(async () => {
+        storeChainStatus.updateState(targetChain.name, {
+          latestBlockNumber: newLatestBlockNumber,
+        });
+      });
+
+    await fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      null as unknown as NodeProvider,
+    );
+
+    expect(vi.mocked(sleep).mock.calls).toEqual([
+      [blockIntervalMs],
+      [blockIntervalMs],
+      [blockIntervalMs],
+    ]);
+    expect(
+      vi
+        .mocked(getEthersEventLogs)
+        .mock.calls.map(([, , fromBlock, toBlock]) => [fromBlock, toBlock]),
+    ).toEqual([[fetchedBlockNumber + 1, newLatestBlockNumber]]);
+  });
+
   test("should not fetch after sleeping when it was aborted while sleeping", async () => {
     vi.mocked(sleep).mockImplementationOnce(async () => {
       storeSyncStatus.update((state: SyncStatusesChain) => {

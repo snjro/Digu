@@ -42,6 +42,7 @@ vitest.mock("@constants/chains/_index", (): { TARGET_CHAINS: Chain[] } => {
         ],
         blockIntervalMs: 20000,
         tryCount: 10,
+        confirmationBlocks: 64,
         projects: [
           {
             name: "project1",

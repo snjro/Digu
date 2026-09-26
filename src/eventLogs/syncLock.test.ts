@@ -200,7 +200,8 @@ async function openTab(beforeWatch?: () => Promise<void>) {
       get(syncLock.storeSyncLockedByOtherTab)[chain.name],
     latestBlockNumber: (): number =>
       get(storeChainStatus)[chain.name].latestBlockNumber,
-    // What the syncing tab does with the block number from the RPC.
+    // What the syncing tab writes: the block number from the RPC minus the
+    // confirmation depth.
     updateLatestBlockNumber: (latestBlockNumber: number) =>
       updateDbItemChainStatus(
         chain.name,
