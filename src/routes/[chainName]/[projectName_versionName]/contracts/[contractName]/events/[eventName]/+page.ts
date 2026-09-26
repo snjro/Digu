@@ -20,19 +20,12 @@ export type LoadEventLogs = {
   targetEventIdentifier: AbiFragmentIdentifier;
   // targetConvertedEventLogs: ConvertedEventLog[];
 };
-export async function load({
+export function load({
   params,
-  parent,
 }: {
   params: LoadEvent["params"];
-  parent: LoadEvent["parent"];
-}): Promise<LoadEventLogs | Record<string, never>> {
-  const { initializing } = await parent();
-  if (initializing) {
-    return {};
-  } else {
-    return _loadEventData({ params });
-  }
+}): LoadEventLogs {
+  return _loadEventData({ params });
 }
 function _loadEventData({
   params,
