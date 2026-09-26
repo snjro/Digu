@@ -62,6 +62,22 @@ describe("PageWrapper.svelte full screen", () => {
     expect(wrapper.classList).not.toContain("w-screen");
   });
 
+  test("stays in the full screen while Escape is held down", async () => {
+    // The first keydown may have closed a dialog; the repeats must not go further.
+    const wrapper: HTMLElement = renderFullScreen();
+    await fireEvent.keyDown(document.body, { key: "Escape", repeat: true });
+    expect(wrapper.classList).toContain("w-screen");
+  });
+
+  test("stays in the full screen when Escape cancels an IME composition", async () => {
+    const wrapper: HTMLElement = renderFullScreen();
+    await fireEvent.keyDown(document.body, {
+      key: "Escape",
+      isComposing: true,
+    });
+    expect(wrapper.classList).toContain("w-screen");
+  });
+
   test("stays in the full screen when Escape closes an open dialog", async () => {
     const wrapper: HTMLElement = renderFullScreen();
     const dialog: HTMLDialogElement = document.createElement("dialog");

@@ -30,6 +30,17 @@ function renderDialog(props: Props) {
   return { ...result, dialog };
 }
 
+// The click goes to the common parent of where the mouse was pressed and
+// released. Here one of them always holds the other.
+async function pressAndRelease(
+  pressed: HTMLElement,
+  released: HTMLElement,
+): Promise<void> {
+  await fireEvent.mouseDown(pressed);
+  await fireEvent.mouseUp(released);
+  await fireEvent.click(pressed.contains(released) ? pressed : released);
+}
+
 describe("BaseDialog.svelte", () => {
   test("shows the header text, the header icon and the slot dialogBody", () => {
     const { dialog, container } = renderDialog({
@@ -71,8 +82,7 @@ describe("BaseDialog.svelte", () => {
     const onclose = vi.fn();
     const { dialog } = renderDialog({ headerText: "Settings", onclose });
     openDialog(dialog);
-    await fireEvent.mouseDown(dialog);
-    await fireEvent.click(dialog);
+    await pressAndRelease(dialog, dialog);
     expect(dialog.open).toBe(false);
     expect(onclose).toHaveBeenCalledOnce();
   });
@@ -80,7 +90,23 @@ describe("BaseDialog.svelte", () => {
   test("stays open when a press inside is released on the backdrop", async () => {
     const { dialog } = renderDialog({ headerText: "Settings" });
     openDialog(dialog);
-    await fireEvent.mouseDown(screen.getByTestId("body"));
+    await pressAndRelease(screen.getByTestId("body"), dialog);
+    expect(dialog.open).toBe(true);
+  });
+
+  test("stays open when a press on the backdrop is released inside", async () => {
+    const { dialog } = renderDialog({ headerText: "Settings" });
+    openDialog(dialog);
+    await pressAndRelease(dialog, screen.getByTestId("body"));
+    expect(dialog.open).toBe(true);
+  });
+
+  test("forgets a press on the backdrop after the click", async () => {
+    const { dialog } = renderDialog({ headerText: "Settings" });
+    openDialog(dialog);
+    await pressAndRelease(dialog, dialog);
+    openDialog(dialog);
+    // A click with no press, as from a key.
     await fireEvent.click(dialog);
     expect(dialog.open).toBe(true);
   });
