@@ -5,7 +5,11 @@ import {
   startAbortingInChain,
 } from "@db/dbEventLogsDataHandlersSyncStatus";
 import type { ChainName, Contract } from "@constants/chains/types";
-import { getEthersEventLogs, type NodeProvider } from "@utils/utilsEthers";
+import {
+  getEthersEventLogs,
+  getLoggableError,
+  type NodeProvider,
+} from "@utils/utilsEthers";
 import { customLogger } from "@utils/logger";
 import { get } from "svelte/store";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
@@ -110,6 +114,10 @@ export async function fetchEventLogsContract(
       // If "toBlockNumber" reaches the latest,
       // sleep for fetching events to be called in the next loop
       await sleep(rpcSetting.blockIntervalMs);
+      // Stopped while sleeping: stop at the top of the loop without fetching.
+      if (syncStatusContract(contractIdentifier).isAbort) {
+        continue;
+      }
       if (toBlockNumber < fromBlockNumber) {
         // If "fetchedBlockNumber" and "latestBlockNumber" have the same value,
         // the above condition is satisfied.
@@ -157,7 +165,7 @@ export async function fetchEventLogsContract(
       customLogger.error("Fetch eventLogs. Error occurred:", {
         errorCount: `${errorCount}/${maxErrorCount}`,
         fetchingTarget: fetchingTargetInfo,
-        errorObject: error,
+        errorObject: getLoggableError(error),
       });
     }
     if (errorCount > maxErrorCount) {

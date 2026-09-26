@@ -106,15 +106,15 @@ export async function getNodeProvider(
         nodeStatus = "WRONG_CHAIN";
       }
     } catch (error) {
-      customLogger.error("nodeProvider.getNetwork().", error);
+      customLogger.error("nodeProvider.getNetwork().", getLoggableError(error));
       nodeStatus = "NETWORK_ERROR";
     } finally {
       clearTimeout(timeoutId);
     }
   } else {
     customLogger.error(
-      `protocol should be [http / https / ws / wss]. RPC:`,
-      rpc,
+      `protocol should be [http / https / ws / wss]. RPC host:`,
+      url.host,
     );
     nodeStatus = "INVALID_PROTOCOL";
   }
@@ -126,6 +126,14 @@ export async function getNodeProvider(
     return undefined;
   }
   return nodeProvider;
+}
+// ethers puts the request URL, which may hold an API key, in the message and
+// the properties of its errors.
+export function getLoggableError(error: unknown): unknown {
+  if (error instanceof Error && "code" in error && "shortMessage" in error) {
+    return { code: error.code, shortMessage: error.shortMessage };
+  }
+  return error;
 }
 export async function getAndUpdateLatestBlockNumber(
   nodeProvider: NodeProvider,

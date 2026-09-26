@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { FetchRequest, makeError } from "ethers";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import {
   getAndUpdateLatestBlockNumber,
@@ -108,6 +109,39 @@ describe("startUpdateLatestBlockNumber", () => {
     expect(startAbortingInChain).toHaveBeenCalledOnce();
     expect(spyError).toHaveBeenCalledWith(
       expect.objectContaining({ errorMessage: "Failed to start aborting." }),
+    );
+  });
+
+  test("should not log the provider, which has the RPC URL", async () => {
+    const { customLogger } = await import("@utils/logger");
+    const spyStart = vi.spyOn(customLogger, "start");
+
+    await startUpdateLatestBlockNumber(chainName, nodeProvider);
+
+    expect(spyStart).toHaveBeenCalledWith(expect.any(String), {
+      chainName: chainName,
+    });
+  });
+
+  test("should log only the code and the short message of an ethers error", async () => {
+    vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValueOnce(
+      makeError("server response 401 Unauthorized", "SERVER_ERROR", {
+        request: new FetchRequest("https://rpc.example/secret-key"),
+        info: { requestUrl: "https://rpc.example/secret-key" },
+      }),
+    );
+    const { customLogger } = await import("@utils/logger");
+    const spyWarn = vi.spyOn(customLogger, "warn");
+
+    await startUpdateLatestBlockNumber(chainName, nodeProvider);
+
+    expect(spyWarn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: {
+          code: "SERVER_ERROR",
+          shortMessage: "server response 401 Unauthorized",
+        },
+      }),
     );
   });
 });

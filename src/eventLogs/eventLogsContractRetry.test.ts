@@ -5,6 +5,7 @@ import { fetchEventLogsContract } from "./eventLogsContract";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
 import { extractEventContracts } from "@utils/utilsEthers";
+import { customLogger } from "@utils/logger";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
@@ -152,6 +153,32 @@ describe("fetchEventLogsContract", () => {
     );
     expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
     expect(getLogsCount()).toBe(tryCount + 1);
+  });
+
+  test("should log only the code and the short message of an ethers error", async () => {
+    const { provider } = providerFailingGetLogs(1);
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(spyError).toHaveBeenCalledExactlyOnceWith(
+      "Fetch eventLogs. Error occurred:",
+      expect.objectContaining({
+        errorObject: {
+          code: "UNKNOWN_ERROR",
+          shortMessage: "could not coalesce error",
+        },
+      }),
+    );
+    spyError.mockRestore();
   });
 
   test("should halve the range after an error and return to Bulk Unit after a success", async () => {

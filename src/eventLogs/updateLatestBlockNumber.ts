@@ -3,6 +3,7 @@ import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { customLogger } from "@utils/logger";
 import {
   getAndUpdateLatestBlockNumber,
+  getLoggableError,
   type NodeProvider,
 } from "@utils/utilsEthers";
 import { get } from "svelte/store";
@@ -19,7 +20,6 @@ export async function startUpdateLatestBlockNumber(
 ): Promise<() => void> {
   customLogger.start(`${functionName}()`, {
     chainName: targetChainName,
-    nodeProvider: nodeProvider,
   });
   // Read once: the RPC settings cannot be changed in this tab while syncing.
   const rpcSetting: RpcSetting = get(storeRpcSettings)[targetChainName];
@@ -36,7 +36,7 @@ export async function startUpdateLatestBlockNumber(
       customLogger.warn({
         errorOn: functionName,
         errorCount: `${errorCount}/${maxErrorCount}`,
-        error: error,
+        error: getLoggableError(error),
       });
     }
   };

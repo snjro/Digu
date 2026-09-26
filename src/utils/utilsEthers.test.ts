@@ -13,6 +13,7 @@ import {
   extractEventContracts,
   getAndUpdateLatestBlockNumber,
   getEthersEventLogs,
+  getLoggableError,
   getNodeProvider,
   type NodeProvider,
 } from "./utilsEthers";
@@ -22,12 +23,14 @@ import * as dbChainStatusDataHandlers from "@db/dbChainStatusDataHandlers";
 import type { ChainStatus, EthersEventLog } from "@db/dbTypes";
 import {
   EventLog,
+  FetchRequest,
   JsonRpcProvider,
   Log,
   Network,
   UndecodedEventLog,
   WebSocketProvider,
   ethers,
+  makeError,
   type Contract as EthersContract,
   type JsonRpcApiProviderOptions,
   type Networkish,
@@ -275,6 +278,75 @@ describe("getNodeProvider destroys and orders", () => {
     laterProvider?.destroy();
     spyGetNetwork.mockRestore();
   });
+});
+
+describe("getNodeProvider logs", () => {
+  test("should log only the code and the short message of an ethers error", async () => {
+    const spyGetNetwork = vi
+      .spyOn(JsonRpcProvider.prototype, "getNetwork")
+      .mockRejectedValueOnce(
+        makeError("server response 401 Unauthorized", "SERVER_ERROR", {
+          request: new FetchRequest("https://rpc.example/secret-key"),
+          info: { requestUrl: "https://rpc.example/secret-key" },
+        }),
+      );
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+
+    await getNodeProvider(targetChain, "https://rpc.example/secret-key");
+
+    expect(spyError).toHaveBeenCalledExactlyOnceWith(
+      "nodeProvider.getNetwork().",
+      {
+        code: "SERVER_ERROR",
+        shortMessage: "server response 401 Unauthorized",
+      },
+    );
+    spyGetNetwork.mockRestore();
+    spyError.mockRestore();
+  });
+
+  test("should log only the host of an RPC with a wrong protocol", async () => {
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+
+    await getNodeProvider(
+      targetChain,
+      "foo://user:secret@rpc.example:8545/secret-key?key=secret",
+    );
+
+    expect(spyError).toHaveBeenCalledExactlyOnceWith(
+      "protocol should be [http / https / ws / wss]. RPC host:",
+      "rpc.example:8545",
+    );
+    spyError.mockRestore();
+  });
+});
+
+describe("getLoggableError", () => {
+  test("should keep only the code and the short message of an ethers error", () => {
+    const error: Error = makeError(
+      "could not coalesce error",
+      "UNKNOWN_ERROR",
+      {
+        error: { code: -32000, message: "temporary error" },
+        payload: { method: "eth_getLogs", params: [], id: 1, jsonrpc: "2.0" },
+      },
+    );
+    expect(getLoggableError(error)).toStrictEqual({
+      code: "UNKNOWN_ERROR",
+      shortMessage: "could not coalesce error",
+    });
+  });
+
+  test.each([new Error("DB error"), "text", undefined])(
+    "should return %s as it is when it is not an ethers error",
+    (error: unknown) => {
+      expect(getLoggableError(error)).toBe(error);
+    },
+  );
 });
 
 describe("getAndUpdateLatestBlockNumber", () => {

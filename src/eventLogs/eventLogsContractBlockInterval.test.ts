@@ -111,4 +111,23 @@ describe("fetchEventLogsContract", () => {
     expect(getEthersEventLogs).not.toHaveBeenCalled();
     expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
   });
+
+  test("should not fetch after sleeping when it was aborted while sleeping", async () => {
+    vi.mocked(sleep).mockImplementationOnce(async () => {
+      storeSyncStatus.update((state: SyncStatusesChain) => {
+        contractInState(state).isAbort = true;
+        return state;
+      });
+    });
+
+    await fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      null as unknown as NodeProvider,
+    );
+
+    expect(vi.mocked(sleep).mock.calls).toEqual([[blockIntervalMs]]);
+    expect(getEthersEventLogs).not.toHaveBeenCalled();
+    expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
+  });
 });
