@@ -67,7 +67,7 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   # Attaches the built site as a zip to a draft release; the owner writes the notes and publishes it.
   attach_zip_to_release:
