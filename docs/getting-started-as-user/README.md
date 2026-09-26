@@ -16,13 +16,13 @@ There is one way to use Digu as a user:
 ## [**Web application** (Need a server)](#web-application-need-a-server)
 
 To use Digu without installing, **you need (to set up) a server**. Digu is a semi-serverless application, it should start with opening a html file on your local environment with a browser in theory. However, it won’t work due to the violation of [Same-Origin Policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy).
-To comply this policy, you need to use Digu with a server. I suggest the folowing methods, choose the one you prefer:
+To comply this policy, you need to use Digu with a server. I suggest the following methods, choose the one you prefer:
 
-| #   | Method                                                            | Dificulty |
-| --- | ----------------------------------------------------------------- | --------- |
-| 1   | [Using GitHub Pages](#using-digu-with-github-pages)               | easy      |
-| 2   | [Using `Visual Studio Code`](#using-digu-with-visual-studio-code) | technical |
-| 3   | [Using `Node.js`](#using-digu-with-nodejs)                        | technical |
+| #   | Method                                                            | Difficulty |
+| --- | ----------------------------------------------------------------- | ---------- |
+| 1   | [Using GitHub Pages](#using-digu-with-github-pages)               | easy       |
+| 2   | [Using `Visual Studio Code`](#using-digu-with-visual-studio-code) | technical  |
+| 3   | [Using `Node.js`](#using-digu-with-nodejs)                        | technical  |
 
 ### [Using Digu with `GitHub Pages`](#using-digu-with-github-pages)
 
@@ -61,7 +61,7 @@ Then, Your local server is started at port: `5500`.<br>Digu will show up in your
 
 ### [Using Digu with `Node.js`](#using-digu-with-nodejs)
 
-This method uses `Node.js` and its extension [`Live Server`](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) to set up a local server for using Digu.
+This method uses `Node.js` and runs `http-server` with `npx` to set up a local server for using Digu.
 
 The steps:
 
