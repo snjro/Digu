@@ -61,7 +61,8 @@ it waits for that run first.
 - `<out-dir>/diff/<screen>.png`: the head screenshot in pale gray, with the
   changed pixels in red.
 - `<out-dir>/base/`, `<out-dir>/head/`: the screenshots, and `log.txt` with the
-  console errors and warnings of each run.
+  console errors and warnings of each run, and its Content Security Policy
+  violations (`[csp]` lines).
 
 `run.sh` exits with 1 when a screen changed.
 

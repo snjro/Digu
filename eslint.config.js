@@ -33,6 +33,23 @@ export default defineConfig(
       // BaseA and BaseButton take hrefs built at runtime, some of them external
       // (chain explorers, GitHub), so resolve() cannot be used without reworking them.
       "svelte/no-navigation-without-resolve": "off",
+      // ag-grid runs a string expression with new Function, which the Content
+      // Security Policy (kit.csp in svelte.config.js) blocks: no 'unsafe-eval'.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            'Property:matches([key.name=/^(valueGetter|valueFormatter|valueSetter|valueParser|filterValueGetter)$/], [key.value=/^(valueGetter|valueFormatter|valueSetter|valueParser|filterValueGetter)$/]):matches([value.type="TemplateLiteral"], [value.raw=/^["\']/])',
+          message:
+            "Use a function. ag-grid runs a string expression with new Function, which the Content Security Policy blocks.",
+        },
+        {
+          selector:
+            'Property:matches([key.name="cellClassRules"], [key.value="cellClassRules"]) > ObjectExpression > Property:matches([value.type="TemplateLiteral"], [value.raw=/^["\']/])',
+          message:
+            "Use a function. ag-grid runs a string expression with new Function, which the Content Security Policy blocks.",
+        },
+      ],
     },
   },
   {
