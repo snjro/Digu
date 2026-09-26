@@ -3,6 +3,7 @@ import type { Version } from "@constants/chains/types";
 import {
   getVersionHref,
   hasVersionEvents,
+  hasVersionSyncTargetEvents,
   numberOfEventsInVersion,
 } from "./versions";
 
@@ -47,5 +48,40 @@ describe("hasVersionEvents", () => {
   });
   test("should return true when the version has one event", () => {
     expect(hasVersionEvents(version([0, 1]))).toBe(true);
+  });
+});
+
+describe("hasVersionSyncTargetEvents", () => {
+  // names has the events to sync: the ABI events without the anonymous ones.
+  const versionOfContracts = (
+    contracts: { numOfEvents: number; names: string[] }[],
+  ): Version =>
+    ({
+      contracts: contracts.map(({ numOfEvents, names }) => ({
+        events: { abiFragments: new Array(numOfEvents).fill({}), names },
+      })),
+    }) as unknown as Version;
+  test("should return false when the version has no contracts", () => {
+    expect(hasVersionSyncTargetEvents(versionOfContracts([]))).toBe(false);
+  });
+  test("should return false when the contracts have only anonymous events", () => {
+    expect(
+      hasVersionSyncTargetEvents(
+        versionOfContracts([
+          { numOfEvents: 0, names: [] },
+          { numOfEvents: 1, names: [] },
+        ]),
+      ),
+    ).toBe(false);
+  });
+  test("should return true when one contract has an event to sync", () => {
+    expect(
+      hasVersionSyncTargetEvents(
+        versionOfContracts([
+          { numOfEvents: 1, names: [] },
+          { numOfEvents: 1, names: ["Transfer"] },
+        ]),
+      ),
+    ).toBe(true);
   });
 });
