@@ -12,10 +12,6 @@ const config: UserConfig = {
     port: 5173,
     open: false,
     hmr: true,
-    fs: {
-      // Allow serving files from one level up to the project root
-      allow: [".."],
-    },
   },
   // No PostCSS plugins: with them, svelte-highlight 7.22 fails to build.
   plugins: [tailwindcss(), sveltekit()],
@@ -25,7 +21,14 @@ const config: UserConfig = {
     coverage: {
       provider: "v8",
       include: ["src/**/*.{js,ts,svelte}"],
-      exclude: ["src/app.d.ts"],
+      exclude: [
+        "src/app.d.ts",
+        // Helpers for the tests
+        "src/testUtils/**",
+        "src/utils/testCommon.ts",
+        "src/**/*.testStub.svelte",
+        "src/**/*.testHost.svelte",
+      ],
       reporter: ["text", "html", "json-summary", "json"],
     },
     projects: [
