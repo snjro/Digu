@@ -7,7 +7,7 @@
     "creator": "0x4925DC0BAF2Bcf7D20b19f5b2Fc2be44E3806931",
     "timestamp": 1595884516
   },
-  "sourceCodeUrl": "https://github.com/AugurProject/augur/tree/dev/packages/augur-core/src/contracts/reporting",
+  "sourceCodeUrl": "https://github.com/AugurProject/augur/blob/dev/packages/augur-core/src/contracts/reporting/AffiliateValidator.sol",
   "abi": [
     {
       "constant": false,
