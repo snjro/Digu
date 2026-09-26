@@ -7,6 +7,7 @@ import {
   test,
   vi,
   type Mock,
+  type MockInstance,
 } from "vitest";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Chain, Contract } from "@constants/chains/types";
@@ -537,6 +538,41 @@ describe("sync with two tabs (issue #49)", () => {
       expect.objectContaining({ chainName: chain.name }),
     );
     expect(b.storeStatus().syncStateText).toBe("syncing");
+  }, 30_000);
+  test("logs a failed request to wait for the lock release", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    expect(await a.fetchEventLogs()).toBe(true);
+    await waitForSavedLogs(a);
+    const request = lockManager.request.bind(lockManager);
+    // Only the request that waits for the release has no options.
+    vi.spyOn(lockManager, "request").mockImplementation(
+      (name, optionsOrCallback, maybeCallback) =>
+        typeof optionsOrCallback === "function"
+          ? Promise.reject(new Error("lock error"))
+          : request(name, optionsOrCallback, maybeCallback),
+    );
+    let spyError: MockInstance | undefined = undefined;
+
+    // Not in `tabs`: B does not sync, so afterEach must not stop it.
+    const b = await openTab(async () => {
+      // Tab B's module instance: openTab() resets the modules first.
+      const { customLogger } = await import("@utils/logger");
+      spyError = vi.spyOn(customLogger, "error");
+    });
+    expect(
+      await waitFor(() =>
+        spyError!.mock.calls.some(
+          ([message]) => message === "Wait for the sync lock release.",
+        ),
+      ),
+    ).toBe(true);
+    expect(spyError).toHaveBeenCalledWith("Wait for the sync lock release.", {
+      chainName: chain.name,
+      errorObject: new Error("lock error"),
+    });
+    // Otherwise the tab would never wait for the lock again.
+    expect(b.isLockedByOtherTab()).toBe(false);
   }, 30_000);
 
   test("stops and releases the lock when the RPC cannot be connected", async () => {

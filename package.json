@@ -13,6 +13,7 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --check --plugin prettier-plugin-svelte . && eslint . --fix",
+    "lint:types": "svelte-kit sync && eslint . --config eslint.typed.config.js",
     "format": "prettier --write --plugin prettier-plugin-svelte ."
   },
   "devDependencies": {

@@ -245,7 +245,7 @@ describe("getNodeProvider destroys and orders", () => {
     const nodeProvider = await getNodeProvider(targetChain, "https://bar");
     expect(nodeProvider).toBeInstanceOf(JsonRpcProvider);
     expect(spyDestroy).not.toHaveBeenCalled();
-    nodeProvider?.destroy();
+    await nodeProvider?.destroy();
     spyGetNetwork.mockRestore();
     spyDestroy.mockRestore();
   });
@@ -276,7 +276,7 @@ describe("getNodeProvider destroys and orders", () => {
       "nodeStatus",
       "WRONG_CHAIN",
     );
-    laterProvider?.destroy();
+    await laterProvider?.destroy();
     spyGetNetwork.mockRestore();
   });
 });

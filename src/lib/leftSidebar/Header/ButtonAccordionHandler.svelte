@@ -60,7 +60,7 @@
       colorCategoryBg={colorSettings.leftSidebarHeader}
       colorCategoryFront={colorSettings.leftSidebarHeader}
       onclick={() => {
-        onClick(openState);
+        void onClick(openState);
       }}
     />
   {/each}

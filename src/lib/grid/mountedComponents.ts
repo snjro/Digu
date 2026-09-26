@@ -13,7 +13,7 @@ export class MountedComponents {
 
   unmountAll(): void {
     for (const mountedComponent of this.components) {
-      unmount(mountedComponent);
+      void unmount(mountedComponent);
     }
     this.components = [];
   }

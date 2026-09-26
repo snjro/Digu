@@ -142,9 +142,8 @@ function waitForSyncLockRelease(chainName: ChainName): void {
     [chainName]: true,
   }));
   // Granted when the other tab releases the lock. Give it back right away.
-  navigator.locks.request(
-    getSyncLockName(chainName),
-    async (): Promise<void> => {
+  navigator.locks
+    .request(getSyncLockName(chainName), async (): Promise<void> => {
       try {
         await resetSyncStatusInChain(chainName);
         // Only the syncing tab updates the latest block number.
@@ -162,8 +161,18 @@ function waitForSyncLockRelease(chainName: ChainName): void {
           [chainName]: false,
         }));
       }
-    },
-  );
+    })
+    .catch((error: unknown) => {
+      customLogger.error("Wait for the sync lock release.", {
+        chainName: chainName,
+        errorObject: error,
+      });
+      // The finally of the callback does not run when the request fails.
+      storeSyncLockedByOtherTab.update((state) => ({
+        ...state,
+        [chainName]: false,
+      }));
+    });
 }
 
 // Call only while holding the sync lock of the chain.

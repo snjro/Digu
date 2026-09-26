@@ -7,7 +7,7 @@ export function applyLatestLoad<T>(
   apply: (value: T) => void,
 ): () => void {
   let isStale: boolean = false;
-  load.then((value: T) => {
+  void load.then((value: T) => {
     if (!isStale) apply(value);
   });
   return () => {
