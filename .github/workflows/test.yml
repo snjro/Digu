@@ -6,6 +6,11 @@ on:
       - main
       - develop
   workflow_dispatch: # By adding this event, you can run this workflow manually on GUI
+  workflow_call: # release.yml runs the tests before it deploys
+
+# No job launches Chrome: skip the download in puppeteer's postinstall.
+env:
+  PUPPETEER_SKIP_DOWNLOAD: "true"
 
 jobs:
   run_unit_test:
