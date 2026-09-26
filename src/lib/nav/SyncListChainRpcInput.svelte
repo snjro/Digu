@@ -12,6 +12,7 @@
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import { customLogger } from "@utils/logger";
   import { getTargetChain } from "@utils/utilsDb";
   import classNames from "classnames";
   import { untrack } from "svelte";
@@ -47,7 +48,14 @@
     if (targetChainName) {
       const targetChain: Chain = getTargetChain({ chainName: targetChainName });
       // Rerun only when the chain changes, not when rpc changes.
-      untrack(() => updateRpc(targetChain, rpc));
+      untrack(() => {
+        updateRpc(targetChain, rpc).catch((error: unknown) => {
+          customLogger.error("Update the RPC.", {
+            chainName: targetChain.name,
+            errorObject: error,
+          });
+        });
+      });
     }
   });
   async function focusRpc(): Promise<void> {
