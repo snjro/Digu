@@ -37,7 +37,7 @@
     appendClass={animatePulse}
   />
   <BaseLabel
-    text={"%"}
+    text="%"
     textSize={changeSize(textSize, -3)}
     appendClass={animatePulse}
     fontMono

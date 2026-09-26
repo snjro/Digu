@@ -32,7 +32,6 @@ export default defineConfig(
       "svelte/no-reactive-functions": "off",
       // Rules newly reported after the upgrade. Still off: the code has not been fixed for them yet.
       "svelte/no-navigation-without-resolve": "off",
-      "svelte/no-useless-mustaches": "off",
       "svelte/require-each-key": "off",
     },
   },

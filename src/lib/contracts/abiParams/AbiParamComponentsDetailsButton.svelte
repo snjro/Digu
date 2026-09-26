@@ -32,7 +32,7 @@
   shadowEffect={false}
   isPrefixIcon
   popupEffect={false}
-  colorCategoryFront={"interactive"}
+  colorCategoryFront="interactive"
   onclick={showDialog}
 />
 <BaseDialog

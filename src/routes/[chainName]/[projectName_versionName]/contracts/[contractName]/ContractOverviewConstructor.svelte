@@ -27,7 +27,7 @@
     />
   {:else}
     <BaseLabel
-      text={"The constructor has no inputs."}
+      text="The constructor has no inputs."
       italic
       textSize={sizeSettings.itemWarningMessage}
     />

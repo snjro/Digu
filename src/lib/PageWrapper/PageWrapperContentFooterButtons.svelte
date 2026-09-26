@@ -37,8 +37,8 @@
         {tooltipText}
         {tooltipXPosition}
         {tooltipYPosition}
-        colorCategoryBg={"interactive"}
-        colorCategoryFront={"white"}
+        colorCategoryBg="interactive"
+        colorCategoryFront="white"
         appendClassButton={buttonHeight[footerDefinition.buttonSize]}
         onclick={onClickEventFunction}
       />

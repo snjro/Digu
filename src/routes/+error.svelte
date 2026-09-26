@@ -67,8 +67,8 @@
       shadowEffect
       hoverEffect
       popupEffect
-      colorCategoryFront={"white"}
-      colorCategoryBg={"interactive"}
+      colorCategoryFront="white"
+      colorCategoryBg="interactive"
     />
   </div>
 </div>

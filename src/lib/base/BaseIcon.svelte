@@ -102,6 +102,6 @@
     class={customClass}
     {style}
   >
-    <path d={iconNames[name]} class={""} />
+    <path d={iconNames[name]} class="" />
   </svg>
 </div>

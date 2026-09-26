@@ -30,7 +30,7 @@
     />
   {:else}
     <BaseLabel
-      text={"The event has no inputs."}
+      text="The event has no inputs."
       italic
       textSize={sizeSettings.itemWarningMessage}
     />
