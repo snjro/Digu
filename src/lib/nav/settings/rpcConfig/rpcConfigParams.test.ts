@@ -15,7 +15,7 @@ describe("getRpcConfigParams", () => {
       },
       {
         name: "tryCount",
-        label: "Try Count",
+        label: "Retry Count",
         minValue: 1,
         maxValue: 10,
         step: 1,
