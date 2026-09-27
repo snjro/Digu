@@ -110,7 +110,8 @@ function getLogs(filter) {
   return FAKE_LOGS.filter(
     (l) =>
       (filter.address ?? "").toLowerCase() === AUGUR &&
-      l.topics[0] === t0 &&
+      // The app sends the events of a range as an OR list on topic 0.
+      (Array.isArray(t0) ? t0.includes(l.topics[0]) : l.topics[0] === t0) &&
       parseInt(l.blockNumber, 16) >= from &&
       parseInt(l.blockNumber, 16) <= to,
   );
@@ -178,7 +179,9 @@ function answerRpc(req) {
         step: stepName,
         from,
         to,
-        topic0: p.params[0].topics?.[0]?.slice(0, 10),
+        topic0: Array.isArray(p.params[0].topics?.[0])
+          ? p.params[0].topics[0].map((t) => t.slice(0, 10))
+          : p.params[0].topics?.[0]?.slice(0, 10),
         n: result.length,
       });
       if (from > to)
@@ -451,7 +454,7 @@ async function syncUntil(page, prefix, target) {
     await new Promise((r) => setTimeout(r, 1000));
   }
   log.push(
-    `[check] ${prefix} Augur_TimestampSet count=${n} after ${Date.now() - t0}ms`,
+    `[check] ${prefix} Augur_TimestampSet count=${n} after ${Date.now() - t0}ms${n >= target ? "" : ` NG: expected ${target}`}`,
   );
   // Let the remaining loop settle a little, then stop.
   await new Promise((r) => setTimeout(r, 4000));
