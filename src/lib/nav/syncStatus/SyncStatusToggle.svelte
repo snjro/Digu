@@ -62,8 +62,8 @@
           errorObject: error,
         });
         $storeNoDbSnackBar = showSnackBarAsSaveFailed;
-        // The sync goes on.
-        toggleOn = true;
+        // The sync goes on, unless it has stopped in the meantime.
+        toggleOn = syncStateText !== "stopped";
       }
     }
   };

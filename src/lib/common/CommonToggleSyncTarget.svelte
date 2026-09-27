@@ -49,6 +49,17 @@
     ),
   );
 
+  // Bound to the box, because a click changes it before the write. After a
+  // failed write the store does not change, so set the saved values again.
+  let checked: boolean = $state(false);
+  let indeterminate: boolean = $state(false);
+  function showSavedValues(): void {
+    if (!targetSyncStatus) return;
+    checked = targetSyncStatus.isSyncTarget;
+    indeterminate = isSyncTargetIndeterminate(targetSyncStatus.subSyncStatuses);
+  }
+  $effect.pre(showSavedValues);
+
   let targetName: string = $derived.by(() => {
     if (targetContract) return targetContract.name;
     if (targetVersion) {
@@ -71,6 +82,7 @@
     } catch (error) {
       customLogger.error("Toggle the sync target.", error);
       $storeNoDbSnackBar = showSnackBarAsSaveFailed;
+      showSavedValues();
     }
   };
 </script>
@@ -80,10 +92,8 @@
     class={classNames("flex", "flex-row", "w-fit", "space-x-2", "items-center")}
   >
     <BaseCheckbox
-      checked={targetSyncStatus.isSyncTarget}
-      indeterminate={isSyncTargetIndeterminate(
-        targetSyncStatus.subSyncStatuses,
-      )}
+      bind:checked
+      bind:indeterminate
       {size}
       disabled={getTargetSyncStatus($storeSyncStatus, targetChain)?.isSyncing}
       onclick={checkChanged}

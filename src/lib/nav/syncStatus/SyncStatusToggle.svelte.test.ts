@@ -197,6 +197,8 @@ describe("SyncStatusToggle.svelte", () => {
       .mockImplementation(() => {});
     render(SyncStatusToggle);
     await startSync();
+    setSyncStatus("eth", { syncStateText: "syncing" });
+    await tick();
 
     vi.mocked(startAbortingInChain).mockRejectedValueOnce(error);
     await fireEvent.click(getToggle());
@@ -210,6 +212,26 @@ describe("SyncStatusToggle.svelte", () => {
     });
     expect(screen.getByText("stop sync")).toBeTruthy();
     expect(getIcon().classList).toContain("animate-spin");
+  });
+
+  test("stays off when stopping fails after the sync has stopped", async () => {
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    render(SyncStatusToggle);
+    await startSync();
+    setSyncStatus("eth", { syncStateText: "syncing" });
+    await tick();
+
+    vi.mocked(startAbortingInChain).mockImplementationOnce(async () => {
+      setSyncStatus("eth", { syncStateText: "stopped" });
+      throw new Error("DB error");
+    });
+    await fireEvent.click(getToggle());
+    await vi.waitFor(() =>
+      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
+    );
+    await tick();
+    expect(screen.getByText("start sync")).toBeTruthy();
+    expect(getIcon().classList).not.toContain("animate-spin");
   });
 
   test("can still stop the sync when the node is not ready", async () => {

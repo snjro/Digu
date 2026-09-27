@@ -198,19 +198,46 @@ describe("CommonToggleSyncTarget.svelte", () => {
     );
   });
 
-  test("shows the save failed snackbar when toggling fails", async () => {
+  test("shows the save failed snackbar and the saved value when toggling fails", async () => {
     const error = new Error("DB error");
     const spyError = vi
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});
     vi.mocked(toggleIsSyncTarget).mockRejectedValueOnce(error);
     render(CommonToggleSyncTarget, contractProps);
+    const savedClassName = getCheckbox().className;
 
     await fireEvent.click(getCheckbox());
     await vi.waitFor(() =>
       expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
     );
+    await tick();
     expect(spyError).toHaveBeenCalledWith("Toggle the sync target.", error);
+    expect(getCheckbox().checked).toBe(true);
+    expect(getCheckbox().className).toBe(savedClassName);
+    expect(screen.getByText("Yes")).toBeTruthy();
+  });
+
+  test("keeps an indeterminate box when toggling fails", async () => {
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    vi.mocked(toggleIsSyncTarget).mockRejectedValueOnce(new Error("DB error"));
+    setContractIsSyncTarget(contract, false);
+    render(CommonToggleSyncTarget, {
+      targetChain: chain,
+      targetProject: project,
+      targetVersion: version,
+      size: "md",
+    });
+    expect(getCheckbox().indeterminate).toBe(true);
+
+    await fireEvent.click(getCheckbox());
+    await vi.waitFor(() =>
+      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
+    );
+    await tick();
+    expect(getCheckbox().indeterminate).toBe(true);
+    expect(getCheckbox().classList).toContain("bg-yellow-500");
+    expect(screen.getByText("Partially")).toBeTruthy();
   });
 
   test("passes undefined for the levels below a chain target", async () => {
