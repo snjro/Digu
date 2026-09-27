@@ -2,7 +2,7 @@
   import { base } from "$app/paths";
   import { page } from "$app/state";
   import { getPageChainName } from "$lib/common/pageChainName";
-  import { trailingSlash } from "@routes/+layout";
+  import { trailingSlash } from "$lib/common/trailingSlash";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import BreadcrumbItems from "./BreadcrumbItems.svelte";

@@ -12,7 +12,6 @@ vi.mock("$app/state", () => ({
   },
 }));
 vi.mock("$app/paths", () => ({ base: "" }));
-vi.mock("@routes/+layout", () => ({ trailingSlash: "always" }));
 
 describe("Breadcrumb.svelte", () => {
   afterEach(() => {

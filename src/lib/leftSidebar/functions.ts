@@ -1,7 +1,7 @@
 import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
 import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
 import { updateDbItemUserSettings } from "@db/dbSettings";
-import { trailingSlash } from "@routes/+layout";
+import { trailingSlash } from "$lib/common/trailingSlash";
 import { storeNoDbCurrentWidth, storeNoDbSnackBar } from "@stores/storeNoDb";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { customLogger } from "@utils/logger";
