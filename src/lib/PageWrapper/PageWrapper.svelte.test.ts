@@ -55,7 +55,9 @@ describe("PageWrapper.svelte full screen", () => {
   }
 
   afterEach(() => {
-    document.querySelectorAll("dialog").forEach((dialog) => dialog.remove());
+    document
+      .querySelectorAll("dialog, .ag-popup")
+      .forEach((element) => element.remove());
   });
 
   test("leaves the full screen on Escape", async () => {
@@ -87,6 +89,17 @@ describe("PageWrapper.svelte full screen", () => {
     document.body.append(dialog);
     dialog.showModal();
     await fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(wrapper.classList).toContain("w-screen");
+  });
+
+  test("stays in the full screen when Escape closes an ag-grid popup", async () => {
+    const wrapper: HTMLElement = renderFullScreen();
+    const popup: HTMLDivElement = document.createElement("div");
+    popup.className = "ag-popup";
+    const input: HTMLInputElement = document.createElement("input");
+    popup.append(input);
+    document.body.append(popup);
+    await fireEvent.keyDown(input, { key: "Escape" });
     expect(wrapper.classList).toContain("w-screen");
   });
 
