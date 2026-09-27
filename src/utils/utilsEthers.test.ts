@@ -279,6 +279,41 @@ describe("getNodeProvider destroys and orders", () => {
     await laterProvider?.destroy();
     spyGetNetwork.mockRestore();
   });
+
+  test("should return the provider of an earlier call that succeeds and ends last", async () => {
+    const earlier = deferredNetwork();
+    const later = deferredNetwork();
+    const spyGetNetwork = vi
+      .spyOn(JsonRpcProvider.prototype, "getNetwork")
+      .mockReturnValueOnce(earlier.promise)
+      .mockReturnValueOnce(later.promise);
+    const spyDestroy = vi.spyOn(JsonRpcProvider.prototype, "destroy");
+    spyUpdateDbItemChainStatus.mockClear();
+
+    const earlierCall = getNodeProvider(targetChain, "https://earlier");
+    const laterCall = getNodeProvider(targetChain, "https://later");
+    later.resolve(new Network("", BigInt(999)));
+    expect(await laterCall).toBeUndefined();
+    earlier.resolve(targetNetwork());
+    const earlierProvider = await earlierCall;
+
+    expect(earlierProvider).toBeInstanceOf(JsonRpcProvider);
+    // Only the provider of the later call is destroyed.
+    expect(spyDestroy).toHaveBeenCalledTimes(1);
+    expect(spyUpdateDbItemChainStatus).toHaveBeenLastCalledWith(
+      targetChainName,
+      "nodeStatus",
+      "WRONG_CHAIN",
+    );
+    expect(spyUpdateDbItemChainStatus).not.toHaveBeenCalledWith(
+      targetChainName,
+      "nodeStatus",
+      "SUCCESS",
+    );
+    await earlierProvider?.destroy();
+    spyGetNetwork.mockRestore();
+    spyDestroy.mockRestore();
+  });
 });
 
 describe("getNodeProvider logs", () => {

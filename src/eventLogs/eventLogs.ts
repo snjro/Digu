@@ -1,6 +1,6 @@
 import { fetchEventLogsContract } from "./eventLogsContract";
 import { getDbEventLogs, type DbEventLogs } from "@db/dbEventLogs";
-import type { NodeStatus, VersionIdentifier } from "@db/dbTypes";
+import type { VersionIdentifier } from "@db/dbTypes";
 import { extractEventContracts, getNodeProvider } from "@utils/utilsEthers";
 import type { NodeProvider } from "@utils/utilsEthers";
 import type { Chain, ChainName, ContractName } from "@constants/chains/types";
@@ -14,7 +14,6 @@ import { getUrlObject } from "@utils/utilsCommon";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { get } from "svelte/store";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
-import { storeChainStatus } from "@stores/storeChainStatus";
 import { requestSyncLock } from "./syncLock";
 
 // Resolves true once every sync target is marked as syncing, so that an abort
@@ -37,10 +36,7 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
   let stopUpdateLatestBlockNumber: (() => void) | undefined = undefined;
   try {
     nodeProvider = await getNodeProvider(targetChain, rpc);
-    const nodeStatus: NodeStatus =
-      get(storeChainStatus)[targetChain.name].nodeStatus;
-
-    if (nodeProvider === undefined || nodeStatus !== "SUCCESS") {
+    if (nodeProvider === undefined) {
       customLogger.fail("Get provider.", {
         chainName: targetChain.name,
         // Only the host: the rest of the URL may hold an API key.
