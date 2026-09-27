@@ -135,7 +135,9 @@ describe("fetchEventLogsContract", () => {
 
     expect(startAbortingInChain).not.toHaveBeenCalled();
     expect(registerEventLogsAndBlockTimes).toHaveBeenCalledOnce();
-    expect(getLogsCount()).toBe(tryCount + targetContract.events.names.length);
+    // One request for each range, not one for each event.
+    expect(targetContract.events.names.length).toBeGreaterThan(1);
+    expect(getLogsCount()).toBe(tryCount + 1);
   });
 
   test("should abort the chain when the errors exceed Try Count", async () => {
@@ -206,18 +208,14 @@ describe("fetchEventLogsContract", () => {
     await vi.runAllTimersAsync();
     await promise;
 
-    // The first request fails, and then one request for each event.
-    const eventCount: number = targetContract.events.names.length;
+    // The first request fails, and then one request for each range.
     expect(getLogsRanges()).toEqual([
       [creationBlockNumber, creationBlockNumber + bulkUnit - 1],
-      ...Array(eventCount).fill([
-        creationBlockNumber,
-        creationBlockNumber + bulkUnit / 2 - 1,
-      ]),
-      ...Array(eventCount).fill([
+      [creationBlockNumber, creationBlockNumber + bulkUnit / 2 - 1],
+      [
         creationBlockNumber + bulkUnit / 2,
         creationBlockNumber + bulkUnit / 2 + bulkUnit - 1,
-      ]),
+      ],
     ]);
     expect(startAbortingInChain).not.toHaveBeenCalled();
   });
@@ -234,12 +232,9 @@ describe("fetchEventLogsContract", () => {
     await vi.runAllTimersAsync();
     await promise;
 
-    // The first request fails, and then one request for each event.
+    // The first request fails, and then one request for the range.
     expect(getLogsRanges()).toEqual(
-      Array(1 + targetContract.events.names.length).fill([
-        creationBlockNumber,
-        creationBlockNumber + 1,
-      ]),
+      Array(2).fill([creationBlockNumber, creationBlockNumber + 1]),
     );
   });
 });

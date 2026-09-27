@@ -195,38 +195,33 @@ export async function getEthersEventLogs(
   fromBlock: number,
   toBlock: number,
 ): Promise<EthersEventLog[]> {
-  let ethersEventLogs: EthersEventLog[] = [];
-  for (const eventName of eventNames) {
-    const fetchedEthersEventLogs: EthersEventLog[] = await queryFilter(
-      ethersContract,
-      eventName,
-      fromBlock,
-      toBlock,
-    );
-    ethersEventLogs = ethersEventLogs.concat(fetchedEthersEventLogs);
+  // An empty OR list would match all the logs of the address.
+  if (eventNames.length === 0) {
+    return [];
   }
-  return ethersEventLogs;
+  return await queryFilter(ethersContract, eventNames, fromBlock, toBlock);
 }
 
+// One eth_getLogs for all the events: the nested array is an OR on topic 0,
+// and ethers decodes each log with the event of its topic 0.
 async function queryFilter(
   ethersContract: EthersContract,
-  eventName: string,
+  eventNames: string[],
   fromBlock: number,
   toBlock: number,
 ): Promise<EthersEventLog[]> {
   const logs: Array<EventLog | Log> = await ethersContract.queryFilter(
-    eventName,
+    [eventNames],
     fromBlock,
     toBlock,
   );
-  return extractDecodedEventLogs(logs, eventName);
+  return extractDecodedEventLogs(logs);
 }
 
 // Logs that could not be decoded (e.g. "UndecodedEventLog") are skipped
 // so that they are not registered under a wrong event name.
 export function extractDecodedEventLogs(
   logs: Array<EventLog | Log>,
-  eventName: string,
 ): EthersEventLog[] {
   const decodedEventLogs: EthersEventLog[] = [];
   for (const log of logs) {
@@ -234,7 +229,7 @@ export function extractDecodedEventLogs(
       decodedEventLogs.push(log);
     } else {
       customLogger.error("Skip an event log that could not be decoded.", {
-        eventName: eventName,
+        topic0: log.topics[0],
         blockNumber: log.blockNumber,
         transactionHash: log.transactionHash,
         logIndex: log.index,
