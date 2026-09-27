@@ -22,6 +22,7 @@ export const columnDefsBasic = <T extends FunctionRow>(
 ): ColumnDef => {
   const columnDef: ColumnDef = {
     headerName: "Basic",
+    openByDefault: false,
     children: [
       {
         headerName: "Function Name",
