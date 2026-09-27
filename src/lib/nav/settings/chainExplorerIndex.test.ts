@@ -25,7 +25,7 @@ describe("updateChainExplorerIndex", () => {
     ["1", 1],
     ["10", 10],
   ])("should save the selected value %j as %j", async (value, index) => {
-    await updateChainExplorerIndex("eth", value);
+    await expect(updateChainExplorerIndex("eth", value)).resolves.toBe(true);
     expect(updateDbItemRpcSettings).toHaveBeenCalledTimes(1);
     expect(updateDbItemRpcSettings).toHaveBeenCalledWith(
       "eth",
@@ -40,7 +40,7 @@ describe("updateChainExplorerIndex", () => {
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});
     vi.mocked(updateDbItemRpcSettings).mockRejectedValueOnce(error);
-    await updateChainExplorerIndex("eth", "1");
+    await expect(updateChainExplorerIndex("eth", "1")).resolves.toBe(false);
     expect(spyError).toHaveBeenCalledWith("Save the chain explorer.", error);
     expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed);
   });

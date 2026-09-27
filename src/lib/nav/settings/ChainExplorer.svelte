@@ -15,16 +15,20 @@
   let selectedChainExplorerIndex = $derived(
     $storeRpcSettings[targetChainName].chainExplorerIndex,
   );
+  // Bound to the select, because a change sets it before the save. After a
+  // failed save the store does not change, so set the saved value again.
+  let selectedValue: string = $derived(selectedChainExplorerIndex.toString());
   let targetChainExplorers = $derived(targetChain.chainExplorers);
   let targetChainExplorerUrl = $derived(
     targetChainExplorers[selectedChainExplorerIndex].url,
   );
 
   async function change(event: Event) {
-    await updateChainExplorerIndex(
+    const isSaved: boolean = await updateChainExplorerIndex(
       targetChainName,
       (event.target as HTMLInputElement).value,
     );
+    if (!isSaved) selectedValue = selectedChainExplorerIndex.toString();
   }
   let items = $derived(
     targetChainExplorers.map((chainExplorer, index) => {
@@ -37,7 +41,7 @@
   <div class="pt-1.5">
     <BaseSelect
       {items}
-      value={selectedChainExplorerIndex.toString()}
+      bind:value={selectedValue}
       size={sizeSettings.navSettings}
       colorCategoryFront={colorSettings.navSettings}
       colorCategoryBg={colorSettings.navSettings}

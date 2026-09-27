@@ -79,4 +79,30 @@ describe("SyncListChainRpcInput.svelte", () => {
       errorObject: error,
     });
   });
+
+  test.each([
+    ["rejects", () => Promise.reject(new Error("DB error"))],
+    [
+      "throws",
+      () => {
+        throw new Error("DB error");
+      },
+    ],
+  ])("shows the saved RPC again when saving the RPC %s", async (_, fail) => {
+    render(SyncListChainRpcInput);
+    const input = screen.getByLabelText("RPC URL") as HTMLInputElement;
+    vi.mocked(updateRpc).mockImplementationOnce(fail);
+
+    await fireEvent.input(input, { target: { value: "https://bar" } });
+    expect(input.value).toBe("https://bar");
+    await fireEvent.blur(input);
+    await vi.waitFor(() =>
+      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
+    );
+    expect(updateRpc).toHaveBeenLastCalledWith(
+      { name: "chain1" },
+      "https://bar",
+    );
+    expect(input.value).toBe("https://foo");
+  });
 });
