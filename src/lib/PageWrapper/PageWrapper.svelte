@@ -134,6 +134,8 @@
 
   // Escape closes only the top one. An open dialog or menu takes it first.
   // Listen in the capture phase, so they are still open whatever the listener order is.
+  // An ag-grid popup (e.g. a column filter) is neither, and ag-grid closes it
+  // only when the focus is inside it.
   // A held key would close a dialog on the first keydown and the full screen
   // on a repeat, and Escape in an IME cancels the composition.
   const onKeydown = (event: KeyboardEvent): void => {
@@ -142,7 +144,8 @@
       event.key == "Escape" &&
       !event.repeat &&
       !event.isComposing &&
-      !document.querySelector("dialog[open], [data-open-menu]")
+      !document.querySelector("dialog[open], [data-open-menu]") &&
+      !(event.target instanceof Element && event.target.closest(".ag-popup"))
     ) {
       isFullScreen = false;
     }
