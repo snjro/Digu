@@ -16,7 +16,6 @@ vi.mock("$app/state", async () => {
 });
 vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
 vi.mock("$app/environment", () => ({ browser: false }));
-vi.mock("@routes/+layout", () => ({ trailingSlash: "always" }));
 vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
 
 const setPathname = (pathname: string): void => {

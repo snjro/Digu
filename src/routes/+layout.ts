@@ -13,10 +13,7 @@ export const ssr = false;
 export const csr = true;
 export const prerender = true;
 
-// "always" writes each page as `xxx/index.html`, so static servers such as
-// GitHub Pages can open any URL directly. With "never", `xxx.html` sits next to
-// the `xxx/` folder of its child pages, and GitHub Pages redirects `/xxx` to `/xxx/`.
-export const trailingSlash: "never" | "always" | "ignore" = "always";
+export { trailingSlash } from "$lib/common/trailingSlash";
 
 export async function load(): Promise<void> {
   if (browser) {
