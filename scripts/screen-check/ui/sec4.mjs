@@ -73,6 +73,10 @@ async function gs() {
         .filter((e) => e.getClientRects().length)
         .map((e) => e.innerText.trim())
         .join("|"),
+      // The loading overlay is a spinner (BaseSpinner in GridBody.svelte), no text.
+      loading: !!document
+        .querySelector(".ag-root-wrapper svg[role=status]")
+        ?.getClientRects().length,
       rows: rows.slice(0, 4),
       nRows: rows.length,
     };
@@ -219,7 +223,8 @@ for (const g of ["contracts", "events", "functions"]) {
     const s0 = await gs();
     await page.click(`main button[aria-label="Reload"]`);
     let mid = await gs();
-    for (let i = 0; i < 10 && !/Loading/.test(mid.overlay); i++) {
+    // Reload shows the spinner for 500 ms (BaseGridFunctionBar.svelte).
+    for (let i = 0; i < 20 && !mid.loading; i++) {
       await L.sleep(40);
       mid = await gs();
     }
@@ -228,14 +233,13 @@ for (const g of ["contracts", "events", "functions"]) {
     const s1 = await gs();
     // the initial order: open fresh
     const ok =
-      /Loading/.test(mid.overlay ?? "") &&
-      (s0.rows.length < 2 || s1.rows[0][1] !== s0.rows[0][1]);
+      mid.loading && (s0.rows.length < 2 || s1.rows[0][1] !== s0.rows[0][1]);
     L.rec(
       `4-4-${g}`,
       ok ? "OK" : "NG",
       JSON.stringify({
         beforeReload: [s0.paging, s0.rows.map((r) => r[1])],
-        during: mid.overlay,
+        during: { loading: mid.loading, overlay: mid.overlay },
         after: [s1.paging, s1.rows.map((r) => r[1])],
       }),
       [sh],
@@ -267,9 +271,20 @@ for (const g of ["contracts", "events", "functions"]) {
     const w2 = await width();
     const sh2 = await L.shot(page, `4-3-${g}-autofit`);
     const sum = (a) => a.reduce((x, y) => x + y, 0);
+    // Column groups are open at first (GridBody.svelte) unless they set
+    // openByDefault: false, and "Hide minor columns" closes all of them. So
+    // the columns after it are the first columns, less those of the groups
+    // that were open, in the same order.
+    const isSubList = (sub, list) => {
+      let i = 0;
+      for (const h of list) if (h === sub[i]) i++;
+      return i === sub.length;
+    };
     const ok =
       h1.length > h0.length &&
-      h2.length === h0.length &&
+      h2.length > 0 &&
+      h2.length <= h0.length &&
+      isSubList(h2, h0) &&
       JSON.stringify(w1) !== JSON.stringify(w0) &&
       Math.abs(sum(w1) - vp) < 30 &&
       JSON.stringify(w2) !== JSON.stringify(w1);
@@ -281,6 +296,7 @@ for (const g of ["contracts", "events", "functions"]) {
         initial: h0,
         afterHide: h2,
         added: h1.filter((h) => !h0.includes(h)),
+        hiddenOpenAtFirst: h0.filter((h) => !h2.includes(h)),
         widthSum: {
           before: sum(w0),
           fit: sum(w1),

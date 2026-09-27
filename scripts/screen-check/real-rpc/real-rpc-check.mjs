@@ -6,12 +6,13 @@
 //   and wss. Every other host is blocked (DNS and request interception).
 // - With --fake, nothing leaves the container: the http requests to the same
 //   URLs are answered by the request interceptor like PublicNode answered in
-//   September 2026 (chainId, a latest block, -32602 for eth_getLogs). wss is not
+//   September 2026 on eth (chainId, a latest block, -32602 for eth_getLogs). wss is not
 //   answered (a WebSocket cannot be intercepted), so it ends in an error.
 // One run per chain and protocol, each in a new browser profile:
 //   1. "Connected." for the RPC. 2. The Goal (ChainStatus.latestBlockNumber)
 //   is a seen eth_blockNumber minus confirmationBlocks (#498).
-//   3. Sync one contract: eth_getLogs is refused with -32602, the sync stops
+//   3. Sync one contract: eth_getLogs is refused with an error (any code;
+//   PublicNode used -32602 on eth and -32701 on matic), the sync stops
 //   after Retry Count + 1 tries, the toggle is off, the RPC URL is not in the
 //   console (#483), and no contract is left isAbort/isSyncing (#515).
 //   4. Console errors and warnings, page errors, CSP violations (#504).
@@ -657,9 +658,13 @@ for (const [id, chain, rpc] of RUNS) {
     // 3. Refused eth_getLogs, Retry Count + 1 tries, toggle off, #483, #515.
     const syncCalls = traffic.calls.slice(n0);
     const getLogs = syncCalls.filter((c) => c.method === "eth_getLogs");
+    // Any error code: PublicNode refused with -32602 on eth and -32701 on matic.
     const refused = traffic.answers.filter(
-      (a) => a.method === "eth_getLogs" && a.error?.code === -32602,
+      (a) => a.method === "eth_getLogs" && a.error,
     );
+    const refusedCodes = {};
+    for (const a of refused)
+      refusedCodes[a.error.code] = (refusedCodes[a.error.code] ?? 0) + 1;
     const host = new URL(rpc).host;
     const urlInConsole = consoleLog
       .filter(
@@ -678,7 +683,8 @@ for (const [id, chain, rpc] of RUNS) {
       stopped,
       eth_getLogs: getLogs.length,
       expected: Number(RETRY) + 1,
-      refusedWith32602: refused.length,
+      refused: refused.length,
+      refusedCodes,
       firstGetLogs: getLogs[0]?.params,
       rpcUrlInConsole: urlInConsole,
       leftFlags: after.leftFlags,
