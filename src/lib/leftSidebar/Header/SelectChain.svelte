@@ -22,6 +22,11 @@
       };
     },
   );
+  // Bound to the select, because a change sets it before the save. After a
+  // failed save the store does not change, so set the saved chain again.
+  let selectedChainName: string = $derived(
+    $storeUserSettings.selectedChainName.toString(),
+  );
   async function change(event: Event) {
     $storeNodbShowLoader = true;
     try {
@@ -33,6 +38,7 @@
       } catch (error) {
         customLogger.error("Save the selected chain.", error);
         $storeNoDbSnackBar = showSnackBarAsSaveFailed;
+        selectedChainName = $storeUserSettings.selectedChainName.toString();
         return;
       }
       //jump to home
@@ -48,7 +54,7 @@
 <BaseSelect
   {items}
   size={sizeSettings.leftSidebarDropdown}
-  value={$storeUserSettings.selectedChainName.toString()}
+  bind:value={selectedChainName}
   colorCategoryFront={colorSettings.leftSidebarHeader}
   colorCategoryBg={colorSettings.leftSidebarHeader}
   onchange={change}

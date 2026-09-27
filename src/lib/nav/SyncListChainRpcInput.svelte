@@ -31,6 +31,7 @@
     $storeUserSettings.selectedChainName.toString(),
   );
   let rpc = $derived($storeRpcSettings[targetChainName].rpc);
+  let baseInputElement = $state() as ReturnType<typeof BaseInput>;
   let nodeStatus: NodeStatus = $derived(
     $storeChainStatus[targetChainName].nodeStatus,
   );
@@ -74,6 +75,8 @@
         errorObject: error,
       });
       $storeNoDbSnackBar = showSnackBarAsSaveFailed;
+      // The store did not change, so show the saved RPC again.
+      baseInputElement?.setValue(rpc);
     }
   }
   let inputType: RpcInputType = $derived(
@@ -93,6 +96,7 @@
 
 <div class={classNames("w-full", "max-w-2xl")}>
   <BaseInput
+    bind:this={baseInputElement}
     colorCategory={colorSettings.navInput}
     colorCategoryBorder={colorSettings.navInput}
     type={inputType}

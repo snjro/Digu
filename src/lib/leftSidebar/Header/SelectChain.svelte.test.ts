@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { render } from "@testing-library/svelte";
+import { render, screen } from "@testing-library/svelte";
 import { get } from "svelte/store";
 import { goto } from "$app/navigation";
 import {
@@ -9,6 +9,9 @@ import {
 } from "@stores/storeNoDb";
 import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
 import { customLogger } from "@utils/logger";
+import { initialDataUserSettings } from "@db/dbTypes";
+import { storeUserSettings } from "@stores/storeUserSettings";
+import { selectAsUser } from "../../../testUtils/selectAsUser";
 import SelectChain from "./SelectChain.svelte";
 import { saveSelectedChainName } from "./selectChain";
 
@@ -27,11 +30,17 @@ vi.mock("@constants/chains/_index", () => ({
   ],
 }));
 // Keeps the change handler, so that a test can wait for its promise.
-vi.mock("$lib/base/BaseSelect.svelte", () => ({
-  default: (_anchor: unknown, props: typeof selectProps) => {
-    selectProps.onchange = props.onchange;
-  },
-}));
+vi.mock("$lib/base/BaseSelect.svelte", async (importOriginal) => {
+  const { default: BaseSelect } = await importOriginal<{
+    default: (anchor: unknown, props: unknown) => unknown;
+  }>();
+  return {
+    default: (anchor: unknown, props: typeof selectProps) => {
+      selectProps.onchange = props.onchange;
+      return BaseSelect(anchor, props);
+    },
+  };
+});
 
 function selectChain(chainName: string): Promise<void> {
   render(SelectChain);
@@ -47,6 +56,7 @@ describe("SelectChain.svelte", () => {
     vi.restoreAllMocks();
     storeNodbShowLoader.set(false);
     storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
+    storeUserSettings.set({ ...initialDataUserSettings });
     selectProps.onchange = undefined;
   });
 
@@ -74,5 +84,25 @@ describe("SelectChain.svelte", () => {
     expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed);
     expect(goto).not.toHaveBeenCalled();
     expect(get(storeNodbShowLoader)).toBe(false);
+  });
+
+  test("shows the saved chain again when saving the picked one fails", async () => {
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    vi.mocked(saveSelectedChainName).mockRejectedValueOnce(
+      new Error("DB error"),
+    );
+    storeUserSettings.updateState({ selectedChainName: "matic" });
+    render(SelectChain);
+    const select = screen.getByRole("combobox", {
+      name: "Chain",
+    }) as HTMLSelectElement;
+    expect(select.value).toBe("matic");
+
+    await selectAsUser(select, "eth");
+    await vi.waitFor(() =>
+      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
+    );
+    expect(saveSelectedChainName).toHaveBeenCalledExactlyOnceWith("eth");
+    expect(select.value).toBe("matic");
   });
 });
