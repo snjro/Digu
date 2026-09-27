@@ -19,7 +19,6 @@ import {
   fetchBlockTimesForEventLogs,
   type BlockTimeForEventLog,
 } from "./eventLogsContractBlockTimes";
-import { customLogger } from "@utils/logger";
 
 export async function registerEventLogsAndBlockTimes(
   dbEventLogs: DbEventLogs,
@@ -57,12 +56,6 @@ export async function registerEventLogsAndBlockTimes(
       lastFetchedBlockNumber,
     );
   } catch (error) {
-    customLogger.error("Error occurred in registering event logs.", {
-      ...dbEventLogs.versionIdentifier,
-      contractName: targetContract.name,
-      eventLogCount: ethersEventLogs.length,
-      errorObject: error,
-    });
     throw new Error("Failed to register event logs.", { cause: error });
   }
 }

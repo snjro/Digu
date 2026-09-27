@@ -114,8 +114,6 @@ describe("registerEventLogsAndBlockTimes", () => {
   });
 
   test("should throw with the cause when the block time of a log is not found", async () => {
-    vi.spyOn(customLogger, "error").mockImplementation(() => {});
-
     await expect(
       registerEventLogsAndBlockTimes(
         dbEventLogs,
@@ -133,8 +131,6 @@ describe("registerEventLogsAndBlockTimes", () => {
   });
 
   test("should throw with the cause when a log has an invalid hex string", async () => {
-    vi.spyOn(customLogger, "error").mockImplementation(() => {});
-
     await expect(
       registerEventLogsAndBlockTimes(
         dbEventLogs,
@@ -152,7 +148,7 @@ describe("registerEventLogsAndBlockTimes", () => {
     expect(addEventLogs_updateFetchedBlockNumber).not.toHaveBeenCalled();
   });
 
-  test("should log the number of the logs instead of the logs", async () => {
+  test("should rethrow with the cause without logging the error", async () => {
     const spyError = vi
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});
@@ -165,11 +161,12 @@ describe("registerEventLogsAndBlockTimes", () => {
         [eventLogAt(30), eventLogAt(31)],
         40,
       ),
-    ).rejects.toThrow();
+    ).rejects.toMatchObject({
+      message: "Failed to register event logs.",
+      cause: expect.any(Error),
+    });
 
-    expect(spyError).toHaveBeenCalledOnce();
-    const [, logged] = spyError.mock.calls[0];
-    expect(logged).toMatchObject({ eventLogCount: 2 });
-    expect(logged).not.toHaveProperty("ethersEventLogs");
+    // The caller logs the error, so it is not logged here as well.
+    expect(spyError).not.toHaveBeenCalled();
   });
 });
