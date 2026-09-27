@@ -8,6 +8,7 @@ export const columnDefsConstructor = <T extends ContractRow>(
 ): ColumnDef => {
   const columnDef: ColumnDef = {
     headerName: "Constructor",
+    openByDefault: false,
     children: [
       columnDefStateMutability<T>("contractConstructorStateMutability"),
       columnDefAbiParams<T>(
