@@ -23,7 +23,6 @@
   let colorCategory: ColorCategory = $derived(
     isSelected ? "interactive" : colorSettings.dialogHeader,
   );
-  // $: colorCategory = getFrontColorCategory(isSelected);
 
   let bgColor = $derived(
     isHover

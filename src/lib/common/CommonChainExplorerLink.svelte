@@ -19,7 +19,6 @@
 
   interface Props {
     subdirectory: CommonChainExplorerLinkProps["subdirectory"];
-    // export let chainExplorerUrl: string;
     value: CommonChainExplorerLinkProps["value"];
     textSize?: CommonChainExplorerLinkProps["textSize"];
     forcedClass?: CommonChainExplorerLinkProps["forcedClass"];

@@ -28,7 +28,6 @@
   interface Props {
     paramType: AbiFragmentParam;
     dialogHeaderText: CommonAbiParamsTableProps["dialogHeaderText"];
-    // export let colorCategoryBg: ColorCategory;
     showInputIndexedField: boolean;
     rowIndex: number;
   }
