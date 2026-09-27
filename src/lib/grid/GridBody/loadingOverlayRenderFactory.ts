@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/no-explicit-any: 0 */
 import type {
   ILoadingOverlayComp,
   ILoadingOverlayParams,
@@ -7,8 +6,8 @@ import type { mount as svelteMount } from "svelte";
 import { MountedComponents } from "../mountedComponents";
 
 export abstract class AbstractOverlayRenderer implements ILoadingOverlayComp {
-  eGui: any;
-  protected context: any;
+  eGui: HTMLElement;
+  protected context: unknown;
   private mountedComponents = new MountedComponents();
 
   constructor(parentElement = "div") {
@@ -53,9 +52,7 @@ export function loadingOverlayRendererFactory(
   ) => void,
 ) {
   class Renderer extends AbstractOverlayRenderer {
-    createComponent(
-      overlayRendererParams: ILoadingOverlayParams<any, any>,
-    ): void {
+    createComponent(overlayRendererParams: ILoadingOverlayParams): void {
       svelteComponent(this, overlayRendererParams);
     }
   }

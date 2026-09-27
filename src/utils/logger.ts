@@ -1,31 +1,30 @@
-/* eslint @typescript-eslint/no-explicit-any: 0 */
 import { convertTimestampSecToIso8601 } from "./utilsTime";
 export class customLogger {
-  static info(...messages: any[]) {
+  static info(...messages: unknown[]) {
     logBase("info", messages);
   }
-  static start(...messages: any[]) {
+  static start(...messages: unknown[]) {
     logBase("start", messages);
   }
-  static finished(...messages: any[]) {
+  static finished(...messages: unknown[]) {
     logBase("finished", messages);
   }
-  static success(...messages: any[]) {
+  static success(...messages: unknown[]) {
     logBase("success", messages);
   }
-  static fail(...messages: any[]) {
+  static fail(...messages: unknown[]) {
     logBase("fail", messages);
   }
-  static error(...messages: any[]) {
+  static error(...messages: unknown[]) {
     logBase("error", messages);
   }
-  static fatal(...messages: any[]) {
+  static fatal(...messages: unknown[]) {
     logBase("fatal", messages);
   }
-  static warn(...messages: any[]) {
+  static warn(...messages: unknown[]) {
     logBase("warn", messages);
   }
-  static debug(...messages: any[]) {
+  static debug(...messages: unknown[]) {
     logBase("debug", messages);
   }
 }
@@ -64,7 +63,7 @@ const labelBgColor = (logLevel: LogLevel): CssColorKeyword => {
   }
 };
 
-const logBase = (logLevel: LogLevel, messages: any[]) => {
+const logBase = (logLevel: LogLevel, messages: unknown[]) => {
   const timestamp: string = convertTimestampSecToIso8601();
   const headerLabel: string = `%c${logLevel}%c %c${timestamp}`;
 
@@ -84,7 +83,7 @@ const logBase = (logLevel: LogLevel, messages: any[]) => {
     "color: gray",
   ]);
 
-  const consoleArgs: any = [
+  const consoleArgs: unknown[] = [
     headerLabel,
     cssForLabel(logLevel),
     "",
@@ -121,10 +120,10 @@ function convertStringArrayToCssText(arrCss: string[]): string {
  * it appends a newline character ('\n') to the end of the string.
  * All other elements are returned as is.
  *
- * @param {any[]} messages - The input array.
- * @returns {any[]} - The output array with newline characters appended to string elements.
+ * @param {unknown[]} messages - The input array.
+ * @returns {unknown[]} - The output array with newline characters appended to string elements.
  */
-function addNewline(messages: any[]): any[] {
+function addNewline(messages: unknown[]): unknown[] {
   return messages.map((messageElement, index) => {
     if (typeof messageElement === "string" && index !== messages.length - 1) {
       return messageElement + "\n";

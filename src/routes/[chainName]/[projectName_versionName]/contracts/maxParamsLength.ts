@@ -26,11 +26,9 @@ export function getEachArgsMaxLengths(
     ) {
       let maxLength: number = 0;
       for (const convertedEventLog of convertedEventLogs) {
-        if (
-          Array.isArray(convertedEventLog.args[indexOfInput]) &&
-          convertedEventLog.args[indexOfInput].length > maxLength
-        ) {
-          maxLength = convertedEventLog.args[indexOfInput].length;
+        const arg: unknown = convertedEventLog.args[indexOfInput];
+        if (Array.isArray(arg) && arg.length > maxLength) {
+          maxLength = arg.length;
         } else {
           maxLength = Math.max(maxLength, 1);
         }

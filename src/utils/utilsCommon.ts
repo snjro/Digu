@@ -27,12 +27,10 @@ export function numberWithCommas(n: number): string {
     (parts[1] ? "." + parts[1] : "")
   );
 }
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export function jsonStringifyFormatted(
-  value: any,
+  value: unknown,
   numOfSpace: number = 2,
 ): string {
-  /* eslint-enable @typescript-eslint/no-explicit-any */
   return JSON.stringify(value, null, numOfSpace);
 }
 
@@ -77,8 +75,7 @@ export function sleep(ms: number): Promise<void> {
     return setTimeout(resolve, ms);
   });
 }
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export function areValuesEqual(target1: any, target2: any): boolean {
+export function areValuesEqual(target1: unknown, target2: unknown): boolean {
   // For primitive types, simply compare
   if (target1 === target2) return true;
 
@@ -106,13 +103,15 @@ export function areValuesEqual(target1: any, target2: any): boolean {
 
   // For object types
   if (typeof target1 === "object" && typeof target2 === "object") {
+    const object1 = target1 as Record<string, unknown>;
+    const object2 = target2 as Record<string, unknown>;
     // If the number of keys is different, return false
-    if (Object.keys(target1).length !== Object.keys(target2).length)
+    if (Object.keys(object1).length !== Object.keys(object2).length)
       return false;
 
     // Recursively compare the value of each key
-    for (const key in target1) {
-      if (!areValuesEqual(target1[key], target2[key])) return false;
+    for (const key in object1) {
+      if (!areValuesEqual(object1[key], object2[key])) return false;
     }
 
     // If all keys' values are equal, return true
