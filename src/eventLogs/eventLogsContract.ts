@@ -53,8 +53,8 @@ export async function fetchEventLogsContract(
   const rpcSetting: RpcSetting = get(storeRpcSettings)[chainName];
   const maxErrorCount: number = rpcSetting.tryCount;
   let errorCount: number = 0;
-  // Doubled after each success, and halved after each error, in case the
-  // range exceeds a limit of the RPC. After an error, it is not doubled beyond
+  // Doubled after each success, and halved after two errors in a row, in case
+  // the range exceeds a limit of the RPC. After that, it is not doubled beyond
   // the halved width until SUCCESSES_TO_RAISE_LIMIT successes in a row, so
   // that the same error does not come each time.
   let bulkUnit: number = rpcSetting.bulkUnit;
@@ -178,9 +178,13 @@ export async function fetchEventLogsContract(
       }
     } catch (error) {
       errorCount++;
-      bulkUnit = Math.max(1, Math.floor(bulkUnit / 2));
-      maxBulkUnit = bulkUnit;
-      successCount = 0;
+      // One error may come from one node of the RPC, such as a node without
+      // old blocks, so the same range is tried once more before halving.
+      if (errorCount >= 2) {
+        bulkUnit = Math.max(1, Math.floor(bulkUnit / 2));
+        maxBulkUnit = bulkUnit;
+        successCount = 0;
+      }
 
       customLogger.error("Fetch eventLogs. Error occurred:", {
         errorCount: `${errorCount}/${maxErrorCount}`,
