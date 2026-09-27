@@ -42,6 +42,7 @@ const latestNodeProviderCalls: Record<ChainName, number> = {};
 // A WebSocket that never opens makes getNetwork wait forever.
 const GET_NETWORK_TIMEOUT_MS: number = 10000;
 
+// Returns the provider when this call succeeds, even if a newer call ran.
 export async function getNodeProvider(
   targetChain: Chain,
   rpc: string,

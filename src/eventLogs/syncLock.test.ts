@@ -592,6 +592,22 @@ describe("sync with two tabs (issue #49)", () => {
     await stopAndWait(a);
   }, 30_000);
 
+  test("syncs with its own provider while a newer node check is running", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    // Same module instances as tab A (openTab() resets modules only at start).
+    const { storeChainStatus } = await import("@stores/storeChainStatus");
+    // A newer check of the same RPC has not ended yet.
+    storeChainStatus.updateState(chain.name, { nodeStatus: "CONNECTING" });
+    const syncStatus = await import("@db/dbEventLogsDataHandlersSyncStatus");
+    const spyAbort = vi.spyOn(syncStatus, "startAbortingInChain");
+
+    expect(await a.fetchEventLogs()).toBe(true);
+    await waitForSavedLogs(a);
+    expect(spyAbort).not.toHaveBeenCalled();
+    await stopAndWait(a);
+  }, 30_000);
+
   test("stops the timer and destroys the provider when the sync ends", async () => {
     const a = await openTab();
     tabs.push(a);
