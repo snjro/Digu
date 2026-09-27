@@ -233,11 +233,9 @@
   {/if}
 </div>
 
-<style lang="scss">
-  .noborder {
-    &:focus {
-      outline: none !important;
-      border: none !important;
-    }
+<style>
+  .noborder:focus {
+    outline: none !important;
+    border: none !important;
   }
 </style>
