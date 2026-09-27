@@ -32,6 +32,8 @@ export async function startUpdateLatestBlockNumber(
       await getAndUpdateLatestBlockNumber(nodeProvider, targetChainName);
       errorCount = 0;
     } catch (error) {
+      // Destroying the provider after stopping cancels the request in flight.
+      if (isStopped) return;
       errorCount++;
       customLogger.warn({
         errorOn: functionName,
