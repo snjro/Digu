@@ -33,6 +33,7 @@ import {
   ethers,
   makeError,
   type Contract as EthersContract,
+  type Filter,
   type JsonRpcApiProviderOptions,
   type Networkish,
   type Provider,
@@ -587,12 +588,15 @@ describe("getEthersEventLogs", async () => {
       1,
     );
 
-    expect(spyGetLogs).toHaveBeenCalledExactlyOnceWith({
-      address,
-      topics: [[eventA.topicHash, eventB.topicHash]],
-      fromBlock: 0,
-      toBlock: 1,
-    });
+    expect(spyGetLogs).toHaveBeenCalledOnce();
+    const { topics, ...filter } = spyGetLogs.mock.calls[0][0] as Filter;
+    expect(filter).toEqual({ address, fromBlock: 0, toBlock: 1 });
+    // ethers sorts the OR list on topic 0, so the order is not compared.
+    expect(topics).toHaveLength(1);
+    expect(topics![0]).toHaveLength(2);
+    expect(topics![0]).toEqual(
+      expect.arrayContaining([eventA.topicHash, eventB.topicHash]),
+    );
     expect(
       actual.map((log) => [
         log.eventName,
@@ -606,6 +610,7 @@ describe("getEthersEventLogs", async () => {
       ["EventB", 11, 0, 8n],
     ]);
     spyGetLogs.mockRestore();
+    await provider.destroy();
   });
 });
 
