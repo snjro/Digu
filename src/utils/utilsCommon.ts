@@ -101,7 +101,8 @@ export function areValuesEqual(target1: unknown, target2: unknown): boolean {
   if (typeof target1 === "function" && typeof target2 === "function")
     return target1.toString() === target2.toString();
 
-  // For object types
+  // For object types (null is also "object", and is equal only to null)
+  if (target1 === null || target2 === null) return false;
   if (typeof target1 === "object" && typeof target2 === "object") {
     const object1 = target1 as Record<string, unknown>;
     const object2 = target2 as Record<string, unknown>;
