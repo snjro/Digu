@@ -8,7 +8,9 @@
   import { changeSize } from "$lib/base/baseSizes";
   import type { Chain } from "@constants/chains/types";
   import type { NodeStatus, RpcInputType } from "@db/dbTypes";
+  import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
   import { storeChainStatus } from "@stores/storeChainStatus";
+  import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { storeUserSettings } from "@stores/storeUserSettings";
@@ -64,7 +66,15 @@
   async function blurRpc(event: Event): Promise<void> {
     const newRpc: string = (event.target as HTMLInputElement).value;
     const targetChain: Chain = getTargetChain({ chainName: targetChainName });
-    await updateRpc(targetChain, newRpc);
+    try {
+      await updateRpc(targetChain, newRpc);
+    } catch (error) {
+      customLogger.error("Update the RPC.", {
+        chainName: targetChain.name,
+        errorObject: error,
+      });
+      $storeNoDbSnackBar = showSnackBarAsSaveFailed;
+    }
   }
   let inputType: RpcInputType = $derived(
     $storeRpcSettings[targetChainName].inputType,

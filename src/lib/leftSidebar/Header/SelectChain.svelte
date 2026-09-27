@@ -7,10 +7,12 @@
   } from "$lib/base/BaseSelect.svelte";
   import { TARGET_CHAINS } from "@constants/chains/_index";
   import type { Chain, ChainName } from "@constants/chains/types";
-  import { storeNodbShowLoader } from "@stores/storeNoDb";
+  import { storeNoDbSnackBar, storeNodbShowLoader } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { base } from "$app/paths";
   import { getChainRootUrl } from "$lib/common/chainRootUrl";
+  import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+  import { customLogger } from "@utils/logger";
   import { saveSelectedChainName } from "./selectChain";
   const items: BaseSelectProps["items"] = TARGET_CHAINS.map(
     (targetChain: Chain) => {
@@ -26,7 +28,13 @@
       //update DB data and stored value
       const changedChainName: ChainName = (event.target as HTMLInputElement)
         .value;
-      await saveSelectedChainName(changedChainName);
+      try {
+        await saveSelectedChainName(changedChainName);
+      } catch (error) {
+        customLogger.error("Save the selected chain.", error);
+        $storeNoDbSnackBar = showSnackBarAsSaveFailed;
+        return;
+      }
       //jump to home
       const rootUrl = getChainRootUrl(base, changedChainName);
       await goto(rootUrl);

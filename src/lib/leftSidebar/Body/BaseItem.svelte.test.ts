@@ -11,7 +11,13 @@ import { storeUserSettings } from "@stores/storeUserSettings";
 import { page } from "$app/state";
 import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
 import { updateDbItemUserSettings } from "@db/dbSettings";
-import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
+import {
+  storeNoDbCurrentWidth,
+  storeNoDbSnackBar,
+  storeNoDbSnackBarInitialValue,
+} from "@stores/storeNoDb";
+import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import { customLogger } from "@utils/logger";
 
 // page of $app/state is not a store. SvelteURL makes page.url reactive.
 vi.mock("$app/state", async () => {
@@ -75,6 +81,8 @@ describe("BaseItem.svelte", () => {
   afterEach(() => {
     storeUserSettings.set({ ...initialDataUserSettings });
     storeNoDbCurrentWidth.set(initialWidth);
+    storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
+    vi.restoreAllMocks();
     vi.clearAllMocks();
   });
 
@@ -223,6 +231,23 @@ describe("BaseItem.svelte", () => {
       "isOpenSidebar",
       false,
     );
+  });
+
+  test("shows the save failed snackbar when closing the sidebar fails", async () => {
+    const error = new Error("DB error");
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    vi.mocked(updateDbItemUserSettings).mockRejectedValueOnce(error);
+    storeNoDbCurrentWidth.set(breakPointWidths.sm);
+    storeUserSettings.update((s) => ({ ...s, isOpenSidebar: true }));
+    const { container } = render(BaseItem, props);
+
+    await fireEvent.click(getParts(container).link);
+    await vi.waitFor(() =>
+      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
+    );
+    expect(spyError).toHaveBeenCalledWith("Save the sidebar state.", error);
   });
 
   test.each([

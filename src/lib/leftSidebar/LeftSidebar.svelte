@@ -3,9 +3,11 @@
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
   import { zIndex } from "$lib/appearanceConfig/zIndex";
+  import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
   import { updateDbItemUserSettings } from "@db/dbSettings";
-  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
+  import { storeNoDbCurrentWidth, storeNoDbSnackBar } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import { customLogger } from "@utils/logger";
   import classNames from "classnames";
   import type { ActionReturn } from "svelte/action";
   import Body from "./Body/Body.svelte";
@@ -54,7 +56,12 @@
       $storeUserSettings.isOpenSidebar
     ) {
       $storeUserSettings.isOpenSidebar = false;
-      await updateDbItemUserSettings("isOpenSidebar", false);
+      try {
+        await updateDbItemUserSettings("isOpenSidebar", false);
+      } catch (error) {
+        customLogger.error("Save the sidebar state.", error);
+        $storeNoDbSnackBar = showSnackBarAsSaveFailed;
+      }
     }
   }}
 >

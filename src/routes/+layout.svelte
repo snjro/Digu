@@ -18,6 +18,7 @@
   import classNames from "classnames";
   import LoadingSpinner from "./LoadingSpinner.svelte";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
+  import { customLogger } from "@utils/logger";
   import { PROJECT_NAME } from "@utils/utilsConstants";
   import { untrack, type Snippet } from "svelte";
 
@@ -48,7 +49,9 @@
       ),
     );
     if (chainNameToSave !== undefined) {
-      void saveSelectedChainName(chainNameToSave);
+      saveSelectedChainName(chainNameToSave).catch((error: unknown) => {
+        customLogger.error("Save the chain in the URL.", error);
+      });
     }
   });
 

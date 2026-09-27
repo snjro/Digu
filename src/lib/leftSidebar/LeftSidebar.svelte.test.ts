@@ -5,7 +5,13 @@ import LeftSidebar from "./LeftSidebar.svelte";
 import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { updateDbItemUserSettings } from "@db/dbSettings";
-import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
+import {
+  storeNoDbCurrentWidth,
+  storeNoDbSnackBar,
+  storeNoDbSnackBarInitialValue,
+} from "@stores/storeNoDb";
+import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import { customLogger } from "@utils/logger";
 import { storeUserSettings } from "@stores/storeUserSettings";
 
 vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
@@ -23,6 +29,8 @@ function renderSidebar(width: number, isOpenSidebar: boolean): HTMLElement {
 describe("LeftSidebar.svelte", () => {
   afterEach(() => {
     storeUserSettings.set({ ...initialDataUserSettings });
+    storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
+    vi.restoreAllMocks();
     vi.clearAllMocks();
   });
 
@@ -36,6 +44,21 @@ describe("LeftSidebar.svelte", () => {
       "isOpenSidebar",
       false,
     );
+  });
+
+  test("shows the save failed snackbar when saving the close fails", async () => {
+    const error = new Error("DB error");
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    vi.mocked(updateDbItemUserSettings).mockRejectedValueOnce(error);
+    renderSidebar(breakPointWidths.sm, true);
+
+    await fireEvent.click(document.body);
+    await vi.waitFor(() =>
+      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
+    );
+    expect(spyError).toHaveBeenCalledWith("Save the sidebar state.", error);
   });
 
   test("stays open on a click inside", async () => {

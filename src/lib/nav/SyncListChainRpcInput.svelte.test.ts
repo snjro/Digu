@@ -1,5 +1,11 @@
-import { describe, expect, test, vi } from "vitest";
-import { render } from "@testing-library/svelte";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/svelte";
+import { get } from "svelte/store";
+import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import {
+  storeNoDbSnackBar,
+  storeNoDbSnackBarInitialValue,
+} from "@stores/storeNoDb";
 import SyncListChainRpcInput from "./SyncListChainRpcInput.svelte";
 import { updateRpc } from "./rpcInput";
 import { customLogger } from "@utils/logger";
@@ -39,6 +45,14 @@ vi.mock("./rpcInput", () => ({
 vi.mock("@utils/logger", () => ({ customLogger: { error: vi.fn() } }));
 
 describe("SyncListChainRpcInput.svelte", () => {
+  beforeEach(() => {
+    vi.mocked(updateRpc).mockResolvedValue(undefined);
+  });
+  afterEach(() => {
+    vi.clearAllMocks();
+    storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
+  });
+
   test("logs a failed update of the RPC when the chain is shown", async () => {
     const error = new Error("DB error");
     vi.mocked(updateRpc).mockRejectedValueOnce(error);
@@ -49,5 +63,20 @@ describe("SyncListChainRpcInput.svelte", () => {
         errorObject: error,
       }),
     );
+    expect(get(storeNoDbSnackBar).visible).toBe(false);
+  });
+
+  test("shows the save failed snackbar when saving the RPC fails", async () => {
+    render(SyncListChainRpcInput);
+    const error = new Error("DB error");
+    vi.mocked(updateRpc).mockRejectedValueOnce(error);
+    await fireEvent.blur(screen.getByLabelText("RPC URL"));
+    await vi.waitFor(() =>
+      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
+    );
+    expect(customLogger.error).toHaveBeenCalledWith("Update the RPC.", {
+      chainName: "chain1",
+      errorObject: error,
+    });
   });
 });

@@ -1,7 +1,10 @@
+import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
 import type { Chain, ChainName } from "@constants/chains/types";
 import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
 import { updateDbItemRpcSettings } from "@db/dbSettings";
 import type { NodeStatus, RpcInputType } from "@db/dbTypes";
+import { storeNoDbSnackBar } from "@stores/storeNoDb";
+import { customLogger } from "@utils/logger";
 import { getNodeProvider, type NodeProvider } from "@utils/utilsEthers";
 
 export async function updateRpc(
@@ -33,7 +36,12 @@ export async function clearSucceededNodeStatus(
   nodeStatus: NodeStatus,
 ): Promise<void> {
   if (nodeStatus === "SUCCESS") {
-    await updateDbItemChainStatus(chainName, "nodeStatus", undefined);
+    try {
+      await updateDbItemChainStatus(chainName, "nodeStatus", undefined);
+    } catch (error) {
+      customLogger.error("Clear the node status.", error);
+      storeNoDbSnackBar.set(showSnackBarAsSaveFailed);
+    }
   }
 }
 
@@ -45,9 +53,14 @@ export async function toggleRpcInputType(
   chainName: ChainName,
   inputType: RpcInputType,
 ): Promise<void> {
-  await updateDbItemRpcSettings(
-    chainName,
-    "inputType",
-    getToggledRpcInputType(inputType),
-  );
+  try {
+    await updateDbItemRpcSettings(
+      chainName,
+      "inputType",
+      getToggledRpcInputType(inputType),
+    );
+  } catch (error) {
+    customLogger.error("Save the input type of the RPC.", error);
+    storeNoDbSnackBar.set(showSnackBarAsSaveFailed);
+  }
 }

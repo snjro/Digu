@@ -1,13 +1,20 @@
 import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
+import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
 import { updateDbItemUserSettings } from "@db/dbSettings";
 import { trailingSlash } from "@routes/+layout";
-import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
+import { storeNoDbCurrentWidth, storeNoDbSnackBar } from "@stores/storeNoDb";
 import { storeUserSettings } from "@stores/storeUserSettings";
+import { customLogger } from "@utils/logger";
 import { get } from "svelte/store";
 
 export async function toggleLeftSideBar(): Promise<void> {
   const isOpenSidebar = get(storeUserSettings).isOpenSidebar;
-  await updateDbItemUserSettings("isOpenSidebar", !isOpenSidebar);
+  try {
+    await updateDbItemUserSettings("isOpenSidebar", !isOpenSidebar);
+  } catch (error) {
+    customLogger.error("Save the sidebar state.", error);
+    storeNoDbSnackBar.set(showSnackBarAsSaveFailed);
+  }
 }
 export async function toggleLeftSideBarWithCondition(): Promise<void> {
   if (get(storeNoDbCurrentWidth) <= breakPointWidths.sm) {

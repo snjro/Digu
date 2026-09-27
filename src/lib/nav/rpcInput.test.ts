@@ -1,4 +1,11 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { get } from "svelte/store";
+import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import {
+  storeNoDbSnackBar,
+  storeNoDbSnackBarInitialValue,
+} from "@stores/storeNoDb";
+import { customLogger } from "@utils/logger";
 import type { Chain } from "@constants/chains/types";
 import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
 import { updateDbItemRpcSettings } from "@db/dbSettings";
@@ -22,6 +29,10 @@ const targetChain = { name: "eth" } as unknown as Chain;
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+afterEach(() => {
+  vi.restoreAllMocks();
+  storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
 });
 
 describe("updateRpc", () => {
@@ -88,6 +99,17 @@ describe("clearSucceededNodeStatus", () => {
     await clearSucceededNodeStatus("eth", nodeStatus);
     expect(updateDbItemChainStatus).not.toHaveBeenCalled();
   });
+
+  test("should show the save failed snackbar when saving fails", async () => {
+    const error = new Error("DB error");
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    vi.mocked(updateDbItemChainStatus).mockRejectedValueOnce(error);
+    await clearSucceededNodeStatus("eth", "SUCCESS");
+    expect(spyError).toHaveBeenCalledWith("Clear the node status.", error);
+    expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed);
+  });
 });
 
 describe("getToggledRpcInputType", () => {
@@ -111,6 +133,20 @@ describe("toggleRpcInputType", () => {
       "inputType",
       toggled,
     );
+  });
+
+  test("should show the save failed snackbar when saving fails", async () => {
+    const error = new Error("DB error");
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    vi.mocked(updateDbItemRpcSettings).mockRejectedValueOnce(error);
+    await toggleRpcInputType("eth", "text");
+    expect(spyError).toHaveBeenCalledWith(
+      "Save the input type of the RPC.",
+      error,
+    );
+    expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed);
   });
 });
 

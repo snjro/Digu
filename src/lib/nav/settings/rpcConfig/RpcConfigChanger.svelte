@@ -1,8 +1,11 @@
 <script lang="ts">
   import type { HelperTextState } from "$lib/base/helperTextState";
+  import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
   import type { ChainName } from "@constants/chains/types";
+  import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import { customLogger } from "@utils/logger";
   import classNames from "classnames";
   import type { RpcConfigParam } from "./rpcConfigParams";
   import { isInRpcConfigRange } from "./rpcConfigValidation";
@@ -46,8 +49,19 @@
   async function updateNumberItemValue(newValue: number): Promise<void> {
     helperTextState = "indeterminate";
     if (isInRpcConfigRange(rpcConfigParam, newValue)) {
-      await saveRpcConfigValue(targetChainName, rpcConfigParam.name, newValue);
-      helperTextState = "success";
+      try {
+        await saveRpcConfigValue(
+          targetChainName,
+          rpcConfigParam.name,
+          newValue,
+        );
+        helperTextState = "success";
+      } catch (error) {
+        customLogger.error("Save the RPC config.", error);
+        // "error" is only for a value out of the range.
+        helperTextState = undefined;
+        $storeNoDbSnackBar = showSnackBarAsSaveFailed;
+      }
     } else {
       helperTextState = "error";
     }
