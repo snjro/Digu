@@ -164,9 +164,16 @@ describe("fetchBlockTimesForEventLogs", () => {
     const { nodeProvider, getBlock } = fakeProvider();
     getBlock.mockResolvedValueOnce(null);
 
-    await expect(
-      fetchBlockTimesForEventLogs(nodeProvider, chainName, eventLogsAt([20])),
-    ).rejects.toThrow("Block number is 20");
+    const error: unknown = await fetchBlockTimesForEventLogs(
+      nodeProvider,
+      chainName,
+      eventLogsAt([20]),
+    ).catch((error: unknown) => error);
+
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toContain("returned no block");
+    expect((error as Error).message).toContain("Block number is 20");
+    expect((error as Error).cause).toBeUndefined();
   });
 
   test("should throw with the cause when the request for the block fails", async () => {
@@ -177,7 +184,9 @@ describe("fetchBlockTimesForEventLogs", () => {
     await expect(
       fetchBlockTimesForEventLogs(nodeProvider, chainName, eventLogsAt([20])),
     ).rejects.toMatchObject({
-      message: expect.stringContaining("Block number is 20"),
+      message: expect.stringContaining(
+        'Exception in "nodeProvider.getBlock". Block number is 20.',
+      ),
       cause: rpcError,
     });
   });
