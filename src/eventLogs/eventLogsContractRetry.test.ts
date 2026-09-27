@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { JsonRpcProvider, Network } from "ethers";
 import type { JsonRpcPayload, JsonRpcResult } from "ethers";
-import { fetchEventLogsContract, MAX_BULK_UNIT } from "./eventLogsContract";
+import {
+  fetchEventLogsContract,
+  MAX_BULK_UNIT,
+  SUCCESSES_TO_RAISE_LIMIT,
+} from "./eventLogsContract";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
 import { extractEventContracts } from "@utils/utilsEthers";
@@ -225,6 +229,32 @@ describe("fetchEventLogsContract", () => {
       [creationBlockNumber + 2 * half, creationBlockNumber + 3 * half - 1],
     ]);
     expect(startAbortingInChain).not.toHaveBeenCalled();
+  });
+
+  test("should raise the limit after SUCCESSES_TO_RAISE_LIMIT successes in a row", async () => {
+    storeChainStatus.updateState(targetChain.name, {
+      latestBlockNumber: creationBlockNumber + 100 * bulkUnit,
+    });
+    const { provider, getLogsRanges } = providerFailingGetLogs(1);
+    registerUntil(SUCCESSES_TO_RAISE_LIMIT + 1);
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    // The first request fails, the halved width until the limit is raised,
+    // and then the doubled width.
+    expect(
+      getLogsRanges().map(([from, to]: number[]) => to - from + 1),
+    ).toEqual([
+      bulkUnit,
+      ...Array(SUCCESSES_TO_RAISE_LIMIT).fill(bulkUnit / 2),
+      bulkUnit,
+    ]);
   });
 
   test("should double the range after each success up to MAX_BULK_UNIT", async () => {

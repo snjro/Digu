@@ -32,6 +32,9 @@ type FetchingTargetInfo = ContractIdentifier & {
 const RETRY_WAIT_MS: number = 1000;
 // A public RPC of Polygon returned 100,000 blocks in a few seconds.
 export const MAX_BULK_UNIT: number = 100000;
+// An RPC may pass each request to a different node, with a different limit or
+// a transient error, so the limit learned from an error is raised again.
+export const SUCCESSES_TO_RAISE_LIMIT: number = 10;
 export async function fetchEventLogsContract(
   dbEventLogs: DbEventLogs,
   targetContract: Contract,
@@ -52,9 +55,11 @@ export async function fetchEventLogsContract(
   let errorCount: number = 0;
   // Doubled after each success, and halved after each error, in case the
   // range exceeds a limit of the RPC. After an error, it is not doubled beyond
-  // the halved width, so that the same error does not come again.
+  // the halved width until SUCCESSES_TO_RAISE_LIMIT successes in a row, so
+  // that the same error does not come each time.
   let bulkUnit: number = rpcSetting.bulkUnit;
   let maxBulkUnit: number = MAX_BULK_UNIT;
+  let successCount: number = 0;
 
   // Skip sync process for a contract that is not sync target.
   if (!contractSyncStatus.isSyncTarget) {
@@ -164,12 +169,18 @@ export async function fetchEventLogsContract(
       errorCount = 0;
       // A range cut at the latest block does not show that the width works.
       if (toBlockNumber - fromBlockNumber + 1 === bulkUnit) {
+        successCount++;
+        if (successCount >= SUCCESSES_TO_RAISE_LIMIT) {
+          maxBulkUnit = Math.min(maxBulkUnit * 2, MAX_BULK_UNIT);
+          successCount = 0;
+        }
         bulkUnit = Math.min(bulkUnit * 2, maxBulkUnit);
       }
     } catch (error) {
       errorCount++;
       bulkUnit = Math.max(1, Math.floor(bulkUnit / 2));
       maxBulkUnit = bulkUnit;
+      successCount = 0;
 
       customLogger.error("Fetch eventLogs. Error occurred:", {
         errorCount: `${errorCount}/${maxErrorCount}`,
