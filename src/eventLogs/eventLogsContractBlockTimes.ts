@@ -2,7 +2,11 @@ import type { ChainName } from "@constants/chains/types";
 import { getDbRecordsBlockTime } from "@db/dbBlockTimesDataHandlers";
 import type { BlockTime, EthersEventLog } from "@db/dbTypes";
 import { removeDuplicateValuesFromArray } from "@utils/utilsCommon";
-import { getLoggableError, type NodeProvider } from "@utils/utilsEthers";
+import {
+  getBlockTimestampFromLogs,
+  getLoggableError,
+  type NodeProvider,
+} from "@utils/utilsEthers";
 import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
 import type { Block } from "ethers";
 
@@ -26,24 +30,46 @@ export async function fetchBlockTimesForEventLogs(
   const eventLogBlockNumbers = removeDuplicateValuesFromArray<number>(
     deplicateEventLogBlockNumbers,
   );
+  const blockTimesForEventLogs: BlockTimeForEventLog[] = [];
+  // The time in the logs, which saves a request for the block.
+  const blockNumbersNotInLogs: number[] = [];
+  for (const eventLogBlockNumber of eventLogBlockNumbers) {
+    const timestamp: number | undefined = getBlockTimestampFromLogs(
+      nodeProvider,
+      eventLogBlockNumber,
+    );
+    if (timestamp === undefined) {
+      blockNumbersNotInLogs.push(eventLogBlockNumber);
+    } else {
+      blockTimesForEventLogs.push({
+        fetchedBlockTime: {
+          blockNumber: eventLogBlockNumber,
+          timestamp: timestamp,
+          isoDatetime: convertTimestampSecToIso8601(timestamp),
+        },
+        fetchedFromProvider: true,
+      });
+    }
+  }
   // Read at once, instead of one transaction for each block.
   const blockTimesInDb: (BlockTime | undefined)[] = await getDbRecordsBlockTime(
     chainName,
-    eventLogBlockNumbers,
+    blockNumbersNotInLogs,
   );
-  const blockTimesForEventLogs: BlockTimeForEventLog[] = [];
   const blockNumbersNotInDb: number[] = [];
-  eventLogBlockNumbers.forEach((eventLogBlockNumber: number, index: number) => {
-    const blockTime: BlockTime | undefined = blockTimesInDb[index];
-    if (blockTime) {
-      blockTimesForEventLogs.push({
-        fetchedBlockTime: blockTime,
-        fetchedFromProvider: false,
-      });
-    } else {
-      blockNumbersNotInDb.push(eventLogBlockNumber);
-    }
-  });
+  blockNumbersNotInLogs.forEach(
+    (eventLogBlockNumber: number, index: number) => {
+      const blockTime: BlockTime | undefined = blockTimesInDb[index];
+      if (blockTime) {
+        blockTimesForEventLogs.push({
+          fetchedBlockTime: blockTime,
+          fetchedFromProvider: false,
+        });
+      } else {
+        blockNumbersNotInDb.push(eventLogBlockNumber);
+      }
+    },
+  );
 
   // A few at a time, so that the RPC does not limit the requests.
   for (

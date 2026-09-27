@@ -10,8 +10,16 @@ import { setDbBlockTime } from "@db/dbBlockTimesDataHandlers";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { ChainName } from "@constants/chains/types";
 import type { BlockTime, EthersEventLog } from "@db/dbTypes";
-import type { NodeProvider } from "@utils/utilsEthers";
+import {
+  getBlockTimestampFromLogs,
+  type NodeProvider,
+} from "@utils/utilsEthers";
 import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
+
+vi.mock("@utils/utilsEthers", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@utils/utilsEthers")>()),
+  getBlockTimestampFromLogs: vi.fn(),
+}));
 
 const chainName: ChainName = TARGET_CHAINS[0].name;
 
@@ -48,7 +56,30 @@ function fakeProvider(): {
 describe("fetchBlockTimesForEventLogs", () => {
   beforeEach(async () => {
     vi.restoreAllMocks();
+    // No time in the logs.
+    vi.mocked(getBlockTimestampFromLogs).mockReset();
     await dbBlockTimes.table(chainName).clear();
+  });
+
+  test("should use the time in the logs without requesting the block", async () => {
+    vi.mocked(getBlockTimestampFromLogs).mockImplementation(
+      (_nodeProvider: NodeProvider, blockNumber: number) =>
+        blockNumber === 10 ? timestampOf(10) : undefined,
+    );
+    const { nodeProvider, getBlock } = fakeProvider();
+
+    const result = await fetchBlockTimesForEventLogs(
+      nodeProvider,
+      chainName,
+      eventLogsAt([10, 20]),
+    );
+
+    expect(result).toEqual([
+      { fetchedBlockTime: blockTimeOf(10), fetchedFromProvider: true },
+      { fetchedBlockTime: blockTimeOf(20), fetchedFromProvider: true },
+    ]);
+    // Only the block without the time in the logs.
+    expect(getBlock.mock.calls).toEqual([[20]]);
   });
 
   test("should use the block time in the DB without requesting the block", async () => {

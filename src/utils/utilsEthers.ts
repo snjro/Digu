@@ -14,8 +14,11 @@ import {
   Network,
   WebSocketProvider,
   EventLog,
+  getNumber,
+  isHexString,
   type Contract as EthersContract,
   type Log,
+  type LogParams,
   type JsonRpcApiProviderOptions,
 } from "ethers";
 export type AbiFormatType = "json" | "full" | "minimal";
@@ -34,6 +37,48 @@ export function extractEventContracts(targetContracts: Contract[]): Contract[] {
   return eventContracts;
 }
 export type NodeProvider = JsonRpcProvider | WebSocketProvider;
+
+// The blockTimestamp that an RPC may put in each log, by block number, for
+// each provider. ethers does not keep it in a Log.
+const blockTimestampsOfProviders: WeakMap<
+  NodeProvider,
+  Map<number, number>
+> = new WeakMap();
+function keepBlockTimestamp(provider: NodeProvider, log: LogParams): void {
+  // The raw log from the RPC, which ethers types as LogParams.
+  const blockTimestamp: unknown = (log as { blockTimestamp?: unknown })
+    .blockTimestamp;
+  if (!isHexString(blockTimestamp)) {
+    return;
+  }
+  let blockTimestamps: Map<number, number> | undefined =
+    blockTimestampsOfProviders.get(provider);
+  if (blockTimestamps === undefined) {
+    blockTimestamps = new Map();
+    blockTimestampsOfProviders.set(provider, blockTimestamps);
+  }
+  blockTimestamps.set(getNumber(log.blockNumber), getNumber(blockTimestamp));
+}
+// The blockTimestamp of a log that this provider has returned, if any.
+export function getBlockTimestampFromLogs(
+  provider: NodeProvider,
+  blockNumber: number,
+): number | undefined {
+  return blockTimestampsOfProviders.get(provider)?.get(blockNumber);
+}
+// ethers calls _wrapLog with each log of eth_getLogs.
+class JsonRpcProviderKeepingBlockTimestamps extends JsonRpcProvider {
+  override _wrapLog(value: LogParams, network: Network): Log {
+    keepBlockTimestamp(this, value);
+    return super._wrapLog(value, network);
+  }
+}
+class WebSocketProviderKeepingBlockTimestamps extends WebSocketProvider {
+  override _wrapLog(value: LogParams, network: Network): Log {
+    keepBlockTimestamp(this, value);
+    return super._wrapLog(value, network);
+  }
+}
 
 // The number of the latest call for each chain, so that an earlier call that
 // ends last does not overwrite the node status of a later one.
@@ -73,14 +118,14 @@ export async function getNodeProvider(
           // each request. Do not pass targetNetwork: then it is never asked.
           staticNetwork: true,
         };
-        nodeProvider = new JsonRpcProvider(
+        nodeProvider = new JsonRpcProviderKeepingBlockTimestamps(
           rpc,
           undefined,
           jsonRpcApiProviderOptions,
         );
       } else {
         // It opens the socket at once, and that can throw.
-        nodeProvider = new WebSocketProvider(rpc);
+        nodeProvider = new WebSocketProviderKeepingBlockTimestamps(rpc);
       }
       const providedNetwork: Network = await Promise.race([
         nodeProvider.getNetwork(),
