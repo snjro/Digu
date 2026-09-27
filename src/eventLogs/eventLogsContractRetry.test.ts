@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { JsonRpcProvider, Network } from "ethers";
 import type { JsonRpcPayload, JsonRpcResult } from "ethers";
-import { fetchEventLogsContract } from "./eventLogsContract";
+import { fetchEventLogsContract, MAX_BULK_UNIT } from "./eventLogsContract";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
 import { extractEventContracts } from "@utils/utilsEthers";
@@ -184,21 +184,29 @@ describe("fetchEventLogsContract", () => {
     );
   });
 
-  test("should halve the range after an error and return to Bulk Unit after a success", async () => {
-    const { provider, getLogsRanges } = providerFailingGetLogs(1);
-    // Register the fetched block number, and abort after the second
-    // registration.
+  // Registers the fetched block number, and aborts after the given number of
+  // registrations. onRegister runs after each registration.
+  function registerUntil(
+    count: number,
+    onRegister: (registerCount: number) => void = () => {},
+  ): void {
     let registerCount: number = 0;
     vi.mocked(registerEventLogsAndBlockTimes).mockImplementation(
       async (_dbEventLogs, _targetContract, _nodeProvider, _logs, to) => {
         registerCount++;
         storeSyncStatus.update((state: SyncStatusesChain) => {
           contractInState(state).fetchedBlockNumber = to;
-          contractInState(state).isAbort = registerCount >= 2;
+          contractInState(state).isAbort = registerCount >= count;
           return state;
         });
+        onRegister(registerCount);
       },
     );
+  }
+
+  test("should halve the range after an error and not widen it beyond the halved width", async () => {
+    const { provider, getLogsRanges } = providerFailingGetLogs(1);
+    registerUntil(3);
 
     const promise: Promise<void> = fetchEventLogsContract(
       dbEventLogs,
@@ -209,15 +217,64 @@ describe("fetchEventLogsContract", () => {
     await promise;
 
     // The first request fails, and then one request for each range.
+    const half: number = bulkUnit / 2;
     expect(getLogsRanges()).toEqual([
       [creationBlockNumber, creationBlockNumber + bulkUnit - 1],
-      [creationBlockNumber, creationBlockNumber + bulkUnit / 2 - 1],
-      [
-        creationBlockNumber + bulkUnit / 2,
-        creationBlockNumber + bulkUnit / 2 + bulkUnit - 1,
-      ],
+      [creationBlockNumber, creationBlockNumber + half - 1],
+      [creationBlockNumber + half, creationBlockNumber + 2 * half - 1],
+      [creationBlockNumber + 2 * half, creationBlockNumber + 3 * half - 1],
     ]);
     expect(startAbortingInChain).not.toHaveBeenCalled();
+  });
+
+  test("should double the range after each success up to MAX_BULK_UNIT", async () => {
+    const startBulkUnit: number = 30000;
+    storeRpcSettings.updateState(targetChain.name, { bulkUnit: startBulkUnit });
+    storeChainStatus.updateState(targetChain.name, {
+      latestBlockNumber: creationBlockNumber + 10 * MAX_BULK_UNIT,
+    });
+    const { provider, getLogsRanges } = providerFailingGetLogs(0);
+    registerUntil(4);
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(
+      getLogsRanges().map(([from, to]: number[]) => to - from + 1),
+    ).toEqual([startBulkUnit, 2 * startBulkUnit, MAX_BULK_UNIT, MAX_BULK_UNIT]);
+  });
+
+  test("should not widen the range after a range cut at the latest block", async () => {
+    const latestBlockNumber: number = creationBlockNumber + bulkUnit + 50;
+    storeChainStatus.updateState(targetChain.name, { latestBlockNumber });
+    const { provider, getLogsRanges } = providerFailingGetLogs(0);
+    registerUntil(3, (registerCount: number) => {
+      if (registerCount === 2) {
+        storeChainStatus.updateState(targetChain.name, {
+          latestBlockNumber: creationBlockNumber + 100 * bulkUnit,
+        });
+      }
+    });
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    // Doubled after the first range, and not after the second one.
+    expect(getLogsRanges()).toEqual([
+      [creationBlockNumber, creationBlockNumber + bulkUnit - 1],
+      [creationBlockNumber + bulkUnit, latestBlockNumber],
+      [latestBlockNumber + 1, latestBlockNumber + 2 * bulkUnit],
+    ]);
   });
 
   test("should keep at least 2 blocks from the creation block after halving", async () => {

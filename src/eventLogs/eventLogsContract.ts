@@ -30,6 +30,8 @@ type FetchingTargetInfo = ContractIdentifier & {
 // Longer than the 250 ms for which ethers returns the result of an identical
 // request, so that a retry sends the request again.
 const RETRY_WAIT_MS: number = 1000;
+// A public RPC of Polygon returned 100,000 blocks in a few seconds.
+export const MAX_BULK_UNIT: number = 100000;
 export async function fetchEventLogsContract(
   dbEventLogs: DbEventLogs,
   targetContract: Contract,
@@ -48,8 +50,11 @@ export async function fetchEventLogsContract(
   const rpcSetting: RpcSetting = get(storeRpcSettings)[chainName];
   const maxErrorCount: number = rpcSetting.tryCount;
   let errorCount: number = 0;
-  // Halved after each error, in case the range exceeds a limit of the RPC.
+  // Doubled after each success, and halved after each error, in case the
+  // range exceeds a limit of the RPC. After an error, it is not doubled beyond
+  // the halved width, so that the same error does not come again.
   let bulkUnit: number = rpcSetting.bulkUnit;
+  let maxBulkUnit: number = MAX_BULK_UNIT;
 
   // Skip sync process for a contract that is not sync target.
   if (!contractSyncStatus.isSyncTarget) {
@@ -157,10 +162,14 @@ export async function fetchEventLogsContract(
         });
       }
       errorCount = 0;
-      bulkUnit = rpcSetting.bulkUnit;
+      // A range cut at the latest block does not show that the width works.
+      if (toBlockNumber - fromBlockNumber + 1 === bulkUnit) {
+        bulkUnit = Math.min(bulkUnit * 2, maxBulkUnit);
+      }
     } catch (error) {
       errorCount++;
       bulkUnit = Math.max(1, Math.floor(bulkUnit / 2));
+      maxBulkUnit = bulkUnit;
 
       customLogger.error("Fetch eventLogs. Error occurred:", {
         errorCount: `${errorCount}/${maxErrorCount}`,

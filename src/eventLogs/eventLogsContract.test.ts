@@ -104,12 +104,13 @@ describe("fetchEventLogsContract", () => {
       null as unknown as NodeProvider,
     );
 
+    // The range is doubled after each success.
     expect(fetchedRanges()).toEqual([
       [creationBlockNumber, creationBlockNumber + bulkUnit - 1],
-      [creationBlockNumber + bulkUnit, creationBlockNumber + 2 * bulkUnit - 1],
+      [creationBlockNumber + bulkUnit, creationBlockNumber + 3 * bulkUnit - 1],
       [
-        creationBlockNumber + 2 * bulkUnit,
-        creationBlockNumber + 3 * bulkUnit - 1,
+        creationBlockNumber + 3 * bulkUnit,
+        creationBlockNumber + 7 * bulkUnit - 1,
       ],
     ]);
   });
@@ -125,10 +126,11 @@ describe("fetchEventLogsContract", () => {
     );
 
     // The creation block is not marked as fetched until a later block is.
+    // The first range is not doubled: it is wider than Bulk Unit.
     expect(fetchedRanges()).toEqual([
       [creationBlockNumber, creationBlockNumber + 1],
       [creationBlockNumber + 2, creationBlockNumber + 2],
-      [creationBlockNumber + 3, creationBlockNumber + 3],
+      [creationBlockNumber + 3, creationBlockNumber + 4],
     ]);
   });
 });
