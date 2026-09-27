@@ -84,7 +84,7 @@
   style="--url: url({checkboxStyle.checkboxImageFile})"
 />
 
-<style lang="scss">
+<style>
   input[type="checkbox"] {
     background-image: var(--url);
   }

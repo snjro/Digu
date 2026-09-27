@@ -102,7 +102,7 @@
   </div>
 </div>
 
-<style lang="scss">
+<style>
   .background-animate {
     -webkit-animation: DotStreaming 8s infinite linear;
     -moz-animation: DotStreaming 8s infinite linear;
