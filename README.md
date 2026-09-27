@@ -29,8 +29,8 @@ The main libraries that are used to achieve this are:
 
 ![how it works](./docs/overview.drawio.png)<br>
 
-As an example, you can view event logs like this:<br>
-<img src="./docs/ui-eventLogs.png" width="70%" />
+For example, the contracts of a version look like this:<br>
+<img src="./docs/ui-contracts.png" width="70%" />
 
 ## Getting started
 
