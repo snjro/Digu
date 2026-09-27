@@ -1,8 +1,8 @@
 // Upgrade check: data made by v1.0.2 (Dexie 3) opened by the new build (Dexie 4).
 // Runs in the compose "test" service.
-// Usage: node upgrade-check.mjs <old|new> <buildDir> <outDir>
+// Usage: node upgrade-check.mjs <old|new|grid|probe> <buildDir> <outDir>
 // The same Chrome profile (<outDir>/profile) and the same origin are used by
-// both phases. Only localhost and the fake RPC are answered; every other
+// all phases. Only localhost and the fake RPC are answered; every other
 // request is aborted.
 import fs from "node:fs";
 import http from "node:http";
@@ -462,7 +462,7 @@ async function syncUntil(page, prefix, target) {
   await record(page, `${prefix}-sync-stopped`);
 }
 
-await new Promise((resolve) => server.listen(PORT, resolve));
+await new Promise((resolve) => server.listen(PORT, "127.0.0.1", resolve));
 if (phase === "old") fs.rmSync(profileDir, { recursive: true, force: true });
 const browser = await puppeteer.launch({
   userDataDir: profileDir,

@@ -1,5 +1,6 @@
 // Section 5 (ABI) and 8 (keyboard, quirks).
 import fs from "node:fs";
+import path from "node:path";
 import * as L from "./lib.mjs";
 await L.startServers();
 await L.launch();
@@ -9,7 +10,7 @@ await ctx.overridePermissions(L.ROOT, [
   "clipboard-write",
   "clipboard-sanitized-write",
 ]);
-const DL = "/out/downloads";
+const DL = path.join(L.OUT, "downloads");
 fs.mkdirSync(DL, { recursive: true });
 const cdp = await page.createCDPSession();
 await cdp.send("Browser.setDownloadBehavior", {

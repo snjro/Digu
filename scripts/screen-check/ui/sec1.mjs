@@ -70,7 +70,7 @@ await L.step(`${P}-2`, page, async () => {
   for (const [label, exp] of want) {
     let vis = await sbClick(label);
     if (vis === "hidden" && prev) {
-      // the selected item's own accordion stays closed (inventory 9); open it with the arrow
+      // the selected item's own accordion stays closed; open it with the arrow
       await page.click(`${SB} [aria-label="Toggle ${prev}"]`);
       await L.settle(page, 200);
       vis = "hidden→arrow " + (await sbClick(label));

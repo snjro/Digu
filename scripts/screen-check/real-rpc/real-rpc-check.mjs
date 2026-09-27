@@ -529,7 +529,7 @@ async function readDb(page, chain, db, contract) {
 }
 
 // ---- runs ----
-await new Promise((r) => server.listen(PORT, r));
+await new Promise((r) => server.listen(PORT, "127.0.0.1", r));
 const allowed = FAKE ? [] : Object.values(HOSTS).map((h) => `, EXCLUDE ${h}`);
 const browser = await puppeteer.launch({
   args: [

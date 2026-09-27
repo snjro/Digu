@@ -61,8 +61,8 @@ const servers = [];
 export async function startServers() {
   const a = serve("");
   const b = serve("/Digu");
-  await new Promise((r) => a.listen(4173, r));
-  await new Promise((r) => b.listen(4174, r));
+  await new Promise((r) => a.listen(4173, "127.0.0.1", r));
+  await new Promise((r) => b.listen(4174, "127.0.0.1", r));
   servers.push(a, b);
 }
 

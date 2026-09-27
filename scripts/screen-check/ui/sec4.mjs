@@ -1,5 +1,6 @@
 // Section 4: grids. Also 1-5 "View all Event Logs" with seeded logs.
 import fs from "node:fs";
+import path from "node:path";
 import * as L from "./lib.mjs";
 import { seed } from "./seed.mjs";
 await L.startServers();
@@ -10,7 +11,7 @@ await ctx.overridePermissions(L.ROOT, [
   "clipboard-write",
   "clipboard-sanitized-write",
 ]);
-const DL = "/out/downloads";
+const DL = path.join(L.OUT, "downloads");
 fs.mkdirSync(DL, { recursive: true });
 const cdp = await page.createCDPSession();
 await cdp.send("Browser.setDownloadBehavior", {
@@ -511,7 +512,7 @@ await L.step("4-8", page, async () => {
   await c2.close();
   L.rec(
     "4-8",
-    sn.includes("Copied") && sn2.length ? "OK" : "NG",
+    sn.includes("Copied") && sn2.includes("Copy failed") ? "OK" : "NG",
     JSON.stringify({
       granted: { snackbar: sn, clipboard: clip },
       denied: { snackbar: sn2 },
