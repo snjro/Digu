@@ -55,7 +55,7 @@
       $storeNoDbCurrentWidth <= breakPointWidths.sm &&
       $storeUserSettings.isOpenSidebar
     ) {
-      $storeUserSettings.isOpenSidebar = false;
+      // updateDbItemUserSettings closes it after the save succeeds.
       try {
         await updateDbItemUserSettings("isOpenSidebar", false);
       } catch (error) {

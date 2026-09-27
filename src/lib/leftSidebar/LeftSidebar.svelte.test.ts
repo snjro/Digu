@@ -35,10 +35,19 @@ describe("LeftSidebar.svelte", () => {
   });
 
   test("closes on a click outside on a narrow screen and saves it", async () => {
-    renderSidebar(breakPointWidths.sm, true);
+    // Like the real one, it changes the store after the write.
+    vi.mocked(updateDbItemUserSettings).mockImplementationOnce(
+      async (key, value) => {
+        storeUserSettings.updateState({ [key]: value });
+      },
+    );
+    const sidebar = renderSidebar(breakPointWidths.sm, true);
 
     await fireEvent.click(document.body);
-    expect(get(storeUserSettings).isOpenSidebar).toBe(false);
+    await vi.waitFor(() =>
+      expect(get(storeUserSettings).isOpenSidebar).toBe(false),
+    );
+    expect(sidebar.classList).toContain("hidden");
     expect(updateDbItemUserSettings).toHaveBeenCalledOnce();
     expect(updateDbItemUserSettings).toHaveBeenCalledWith(
       "isOpenSidebar",
@@ -46,19 +55,21 @@ describe("LeftSidebar.svelte", () => {
     );
   });
 
-  test("shows the save failed snackbar when saving the close fails", async () => {
+  test("stays open and shows the save failed snackbar when saving the close fails", async () => {
     const error = new Error("DB error");
     const spyError = vi
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});
     vi.mocked(updateDbItemUserSettings).mockRejectedValueOnce(error);
-    renderSidebar(breakPointWidths.sm, true);
+    const sidebar = renderSidebar(breakPointWidths.sm, true);
 
     await fireEvent.click(document.body);
     await vi.waitFor(() =>
       expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
     );
     expect(spyError).toHaveBeenCalledWith("Save the sidebar state.", error);
+    expect(get(storeUserSettings).isOpenSidebar).toBe(true);
+    expect(sidebar.classList).not.toContain("hidden");
   });
 
   test("stays open on a click inside", async () => {
