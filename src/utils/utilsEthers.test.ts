@@ -13,6 +13,7 @@ import {
   extractDecodedEventLogs,
   extractEventContracts,
   getAndUpdateLatestBlockNumber,
+  getBlockTimestampFromLogs,
   getEthersEventLogs,
   getLoggableError,
   getNodeProvider,
@@ -34,7 +35,11 @@ import {
   makeError,
   type Contract as EthersContract,
   type Filter,
+  toQuantity,
   type JsonRpcApiProviderOptions,
+  type JsonRpcPayload,
+  type JsonRpcResult,
+  type LogParams,
   type Networkish,
   type Provider,
   type WebSocketLike,
@@ -611,6 +616,106 @@ describe("getEthersEventLogs", async () => {
     ]);
     spyGetLogs.mockRestore();
     await provider.destroy();
+  });
+});
+
+describe("getBlockTimestampFromLogs", () => {
+  let spyJsonRpcGetNetwork: MockInstance;
+  let spyWebSocketGetNetWork: MockInstance;
+  beforeAll(() => {
+    spyJsonRpcGetNetwork = vi
+      .spyOn(JsonRpcProvider.prototype, "getNetwork")
+      .mockResolvedValue(new Network("", BigInt(targetChain.chainId)));
+    spyWebSocketGetNetWork = vi
+      .spyOn(WebSocketProvider.prototype, "getNetwork")
+      .mockResolvedValue(new Network("", BigInt(targetChain.chainId)));
+  });
+  afterAll(() => {
+    spyJsonRpcGetNetwork.mockRestore();
+    spyWebSocketGetNetWork.mockRestore();
+  });
+  const contractInterface = new ethers.Interface([
+    "event EventB(uint256 amount)",
+  ]);
+  const address: string = "0x" + "1".repeat(40);
+  // A log as an RPC returns it, with or without blockTimestamp.
+  function rawLog(
+    blockNumber: number,
+    blockTimestamp?: number,
+  ): Record<string, unknown> {
+    const { data, topics } = contractInterface.encodeEventLog(
+      contractInterface.getEvent("EventB")!,
+      [7n],
+    );
+    return {
+      address,
+      data,
+      topics,
+      blockNumber: toQuantity(blockNumber),
+      blockHash: `0x${blockNumber.toString(16).padStart(64, "b")}`,
+      transactionHash: `0x${blockNumber.toString(16).padStart(64, "a")}`,
+      transactionIndex: "0x0",
+      logIndex: "0x0",
+      removed: false,
+      ...(blockTimestamp === undefined
+        ? {}
+        : { blockTimestamp: toQuantity(blockTimestamp) }),
+    };
+  }
+
+  test("should keep the blockTimestamp of the logs of eth_getLogs", async () => {
+    const nodeProvider = (await getNodeProvider(
+      targetChain,
+      "https://bar",
+    )) as JsonRpcProvider;
+    vi.spyOn(nodeProvider, "_send").mockImplementation(
+      async (
+        payload: JsonRpcPayload | JsonRpcPayload[],
+      ): Promise<JsonRpcResult[]> =>
+        [payload].flat().map((request: JsonRpcPayload) => {
+          if (request.method !== "eth_getLogs") {
+            throw new Error(`unexpected method: ${request.method}`);
+          }
+          return { id: request.id, result: [rawLog(10, 1000), rawLog(11)] };
+        }),
+    );
+    const ethersContract: EthersContract = new ethers.Contract(
+      address,
+      contractInterface,
+      nodeProvider,
+    );
+
+    const logs: EthersEventLog[] = await getEthersEventLogs(
+      ["EventB"],
+      ethersContract,
+      10,
+      11,
+    );
+
+    expect(logs).toHaveLength(2);
+    expect(getBlockTimestampFromLogs(nodeProvider, 10)).toBe(1000);
+    // No blockTimestamp in the log.
+    expect(getBlockTimestampFromLogs(nodeProvider, 11)).toBeUndefined();
+    await nodeProvider.destroy();
+  });
+
+  test("should keep the blockTimestamp for each provider, also for a WebSocket", async () => {
+    const webSocketProvider = (await getNodeProvider(
+      targetChain,
+      "wss://127.0.0.1:9",
+    ))!;
+    const otherProvider = (await getNodeProvider(targetChain, "https://bar"))!;
+
+    webSocketProvider._wrapLog(
+      rawLog(10, 1000) as unknown as LogParams,
+      Network.from(targetChain.chainId),
+    );
+
+    expect(webSocketProvider).toBeInstanceOf(WebSocketProvider);
+    expect(getBlockTimestampFromLogs(webSocketProvider, 10)).toBe(1000);
+    expect(getBlockTimestampFromLogs(otherProvider, 10)).toBeUndefined();
+    await webSocketProvider.destroy();
+    await otherProvider.destroy();
   });
 });
 
