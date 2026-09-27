@@ -10,7 +10,6 @@
 
   interface Props {
     size?: BaseSize;
-    // export let iconSize: BaseSize = "xl";
     colorCategoryThumbToggleOn?: ColorCategory;
     colorCategoryThumbToggleOff?: ColorCategory;
     colorCategoryTrack: ColorCategory;

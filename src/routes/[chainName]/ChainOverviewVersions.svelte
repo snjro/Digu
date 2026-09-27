@@ -27,7 +27,6 @@
   } from "./versions";
 
   interface Props {
-    // export let contracts: Contract[];
     targetChain: Chain;
     targetProject: Project;
   }

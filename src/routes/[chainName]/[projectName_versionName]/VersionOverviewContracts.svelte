@@ -27,7 +27,6 @@
   import { hasSyncTargetEvents } from "@utils/utilsEthers";
 
   interface Props {
-    // export let contracts: Contract[];
     targetChain: Chain;
     targetProject: Project;
     targetVersion: Version;
