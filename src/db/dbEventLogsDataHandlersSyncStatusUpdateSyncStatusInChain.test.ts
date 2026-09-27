@@ -11,6 +11,10 @@ import type {
 import type { Contract } from "@constants/chains/types";
 import { extractEventContracts } from "@utils/utilsEthers";
 import { updateSyncStatusInChain } from "./dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain";
+import {
+  startAbortingInChain,
+  stopSyncingInChain,
+} from "./dbEventLogsDataHandlersSyncStatus";
 import { DbEventLogs } from "./dbEventLogs";
 import { DB_TABLE_NAMES } from "./constants";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
@@ -30,13 +34,9 @@ describe("updateSyncStatusInChain", () => {
   for (const targetChain of TARGET_CHAINS) {
     test(`should update the table and the store of the matching rows in "${targetChain.name}"`, async () => {
       // The initial rows have isAbort false.
-      await updateSyncStatusInChain(
-        targetChain.name,
-        "isAbort",
-        false,
-        "isAbort",
-        true,
-      );
+      await updateSyncStatusInChain(targetChain.name, "isAbort", false, {
+        isAbort: true,
+      });
 
       for (const targetProject of targetChain.projects) {
         for (const targetVersion of targetProject.versions) {
@@ -97,13 +97,9 @@ describe("updateSyncStatusInChain", () => {
         getStoreSyncStatusContract(otherContractIdentifier);
 
       // call target: what startAbortingInChain does
-      await updateSyncStatusInChain(
-        targetChain.name,
-        "isSyncing",
-        true,
-        "isAbort",
-        true,
-      );
+      await updateSyncStatusInChain(targetChain.name, "isSyncing", true, {
+        isAbort: true,
+      });
 
       expect((await table.get(matchingContract.name))?.isAbort).toBe(true);
       expect(
@@ -116,6 +112,48 @@ describe("updateSyncStatusInChain", () => {
       expect(getStoreSyncStatusContract(otherContractIdentifier)).toBe(
         storeOtherContractBefore,
       );
+    } finally {
+      dbEventLogs.close();
+    }
+  });
+
+  test("should update several fields in one call", async () => {
+    const targetChain = TARGET_CHAINS[0];
+    const targetProject = targetChain.projects[0];
+    const targetVersion = targetProject.versions[0];
+    const targetContract: Contract = extractEventContracts(
+      targetVersion.contracts,
+    )[0];
+    const versionIdentifier: VersionIdentifier = {
+      chainName: targetChain.name,
+      projectName: targetProject.name,
+      versionName: targetVersion.name,
+    };
+    const dbEventLogs = new DbEventLogs(versionIdentifier);
+    try {
+      const table = dbEventLogs.table(tableNameSyncStatus);
+      await table.update(targetContract.name, {
+        isSyncing: true,
+        isAbort: true,
+      });
+
+      // call target: what stopSyncingInChain does
+      await updateSyncStatusInChain(targetChain.name, "isSyncing", true, {
+        isSyncing: false,
+        isAbort: false,
+      });
+
+      const syncStatusContract: SyncStatusContract | undefined =
+        await table.get(targetContract.name);
+      expect(syncStatusContract?.isSyncing).toBe(false);
+      expect(syncStatusContract?.isAbort).toBe(false);
+      const storeSyncStatusContract: SyncStatusContract =
+        getStoreSyncStatusContract({
+          ...versionIdentifier,
+          contractName: targetContract.name,
+        });
+      expect(storeSyncStatusContract.isSyncing).toBe(false);
+      expect(storeSyncStatusContract.isAbort).toBe(false);
     } finally {
       dbEventLogs.close();
     }
@@ -175,13 +213,9 @@ describe("updateSyncStatusInChain with a row that changes while it runs", () => 
         });
 
       // call target: what startAbortingInChain does
-      await updateSyncStatusInChain(
-        targetChain.name,
-        "isSyncing",
-        true,
-        "isAbort",
-        true,
-      );
+      await updateSyncStatusInChain(targetChain.name, "isSyncing", true, {
+        isAbort: true,
+      });
       spyTable.mockRestore();
       spyTable = undefined;
       expect(stopContract).toBeDefined();
@@ -193,6 +227,78 @@ describe("updateSyncStatusInChain with a row that changes while it runs", () => 
           .get(targetContract.name);
       expect(syncStatusContract?.isSyncing).toBe(false);
       expect(syncStatusContract?.isAbort).toBe(false);
+    } finally {
+      spyTable?.mockRestore();
+      otherDbEventLogs.close();
+    }
+  });
+
+  test("should not leave isAbort on a contract aborted while it stops", async () => {
+    const targetChain = TARGET_CHAINS[0];
+    const targetProject = targetChain.projects[0];
+    const targetVersion = targetProject.versions[0];
+    const targetContract: Contract = extractEventContracts(
+      targetVersion.contracts,
+    )[0];
+    const versionIdentifier: VersionIdentifier = {
+      chainName: targetChain.name,
+      projectName: targetProject.name,
+      versionName: targetVersion.name,
+    };
+    const contractIdentifier: ContractIdentifier = {
+      ...versionIdentifier,
+      contractName: targetContract.name,
+    };
+    const otherDbEventLogs = new DbEventLogs(versionIdentifier);
+    let spyTable: MockInstance | undefined;
+    try {
+      await otherDbEventLogs.open();
+      await otherDbEventLogs
+        .table(tableNameSyncStatus)
+        .update(targetContract.name, { isSyncing: true, isAbort: false });
+
+      // An abort starts right after the stop reads the rows.
+      let abort: Promise<unknown> | undefined;
+      const originalTable = DbEventLogs.prototype.table;
+      spyTable = vi
+        .spyOn(DbEventLogs.prototype, "table")
+        .mockImplementation(function (this: DbEventLogs, tableName: string) {
+          const table = originalTable.call(this, tableName);
+          if (
+            abort === undefined &&
+            this !== otherDbEventLogs &&
+            this.name === otherDbEventLogs.name &&
+            tableName === tableNameSyncStatus
+          ) {
+            const originalToArray = table.toArray.bind(table);
+            table.toArray = (() =>
+              originalToArray().then((rows) => {
+                abort ??= Dexie.ignoreTransaction(() =>
+                  startAbortingInChain(targetChain.name),
+                );
+                return rows;
+              })) as typeof table.toArray;
+          }
+          return table;
+        });
+
+      // call target
+      await stopSyncingInChain(targetChain.name);
+      spyTable.mockRestore();
+      spyTable = undefined;
+      expect(abort).toBeDefined();
+      await abort;
+
+      const syncStatusContract: SyncStatusContract | undefined =
+        await otherDbEventLogs
+          .table(tableNameSyncStatus)
+          .get(targetContract.name);
+      expect(syncStatusContract?.isSyncing).toBe(false);
+      expect(syncStatusContract?.isAbort).toBe(false);
+      const storeSyncStatusContract: SyncStatusContract =
+        getStoreSyncStatusContract(contractIdentifier);
+      expect(storeSyncStatusContract.isSyncing).toBe(false);
+      expect(storeSyncStatusContract.isAbort).toBe(false);
     } finally {
       spyTable?.mockRestore();
       otherDbEventLogs.close();

@@ -61,7 +61,9 @@ describe("the connections to the DB of a version", () => {
   });
   test("updateSyncStatusInChain() does not open more each time", async () => {
     await expectNoNewConnection(() =>
-      updateSyncStatusInChain(chain.name, "isSyncing", true, "isAbort", false),
+      updateSyncStatusInChain(chain.name, "isSyncing", true, {
+        isAbort: false,
+      }),
     );
   });
   test("initializeDBSyncStatusInChain() does not open more each time", async () => {

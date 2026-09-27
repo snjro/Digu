@@ -10,13 +10,11 @@ const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 
 export async function updateSyncStatusInChain<
   T extends keyof SyncStatusContract,
-  U extends keyof SyncStatusContract,
 >(
   chainName: ChainName,
   targetKey: T,
   targetValue: SyncStatusContract[T],
-  updateKey: U,
-  updateValue: SyncStatusContract[U],
+  newSyncStatusContract: Partial<SyncStatusContract>,
 ): Promise<void> {
   const targetChain: Chain = getTargetChain({ chainName: chainName });
   const promiseUpdate: Promise<void>[] = [];
@@ -33,8 +31,7 @@ export async function updateSyncStatusInChain<
           dbEventLogs,
           targetKey,
           targetValue,
-          updateKey,
-          updateValue,
+          newSyncStatusContract,
         ),
       );
     }
@@ -42,19 +39,12 @@ export async function updateSyncStatusInChain<
   await Promise.all(promiseUpdate);
 }
 
-async function updateSyncStatusInVersion<
-  T extends keyof SyncStatusContract,
-  U extends keyof SyncStatusContract,
->(
+async function updateSyncStatusInVersion<T extends keyof SyncStatusContract>(
   dbEventLogs: DbEventLogs,
   targetKey: T,
   targetValue: SyncStatusContract[T],
-  updateKey: U,
-  updateValue: SyncStatusContract[U],
+  newSyncStatusContract: Partial<SyncStatusContract>,
 ): Promise<void> {
-  const newSyncStatusContract: Partial<SyncStatusContract> = {
-    [updateKey]: updateValue,
-  };
   // Read and write in one transaction, so that a row changed in between is
   // not overwritten with the result of an old read.
   const targetSyncStatusesContract: SyncStatusContract[] =
