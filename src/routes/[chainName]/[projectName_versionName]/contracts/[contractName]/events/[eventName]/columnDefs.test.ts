@@ -108,10 +108,10 @@ describe("columnDefs", () => {
     expect(formatValue(children(args[2])[0])).toBe("7");
   });
 
-  test("should not format a value that is not a bigint", () => {
+  test("should show a value that is not a bigint as text", () => {
     const ok: ColumnDef = children(args[3])[0];
     expect(getValue(ok)).toBe(true);
-    expect(formatValue(ok)).toBe(true);
+    expect(formatValue(ok)).toBe("true");
     expect((ok as ColDef).cellClass).toBe("");
   });
 });
@@ -260,5 +260,79 @@ describe("the datetime column in ag-grid", () => {
     const gridApi = createRealGrid();
     gridApi.applyColumnState({ state: [{ colId: "jsDate", sort }] });
     expect(shownRows(gridApi)).toEqual(expected);
+  });
+});
+
+describe("the args columns in ag-grid", () => {
+  const argsFragment: EventFragment = EventFragment.from(
+    "event Args(bool ok, string name, uint256[] amounts)",
+  );
+  // The second row has one amount, so its amounts[1] is empty.
+  const rows = [
+    ["0xa1", [true, "abc", [1234n, 5n]]],
+    ["0xb1", [false, "", [6n]]],
+  ].map(
+    ([transactionHash, args]) =>
+      ({ transactionHash, args }) as unknown as ConvertedEventLog,
+  );
+  let element: HTMLElement | undefined;
+  let gridApi: GridApi<ConvertedEventLog> | undefined;
+  afterEach(() => {
+    gridApi?.destroy();
+    element?.remove();
+    gridApi = undefined;
+    element = undefined;
+  });
+  function createRealGrid(): GridApi<ConvertedEventLog> {
+    ModuleRegistry.registerModules([AllCommunityModule]);
+    element = document.createElement("div");
+    document.body.append(element);
+    const args: ColumnDef = columnDefs(argsFragment, [1, 1, 2])[1];
+    gridApi = createGrid<ConvertedEventLog>(element, {
+      columnDefs: getColumnDefs([{ field: "transactionHash" }, args]),
+      defaultColDef: { sortable: true, filter: true },
+      defaultColGroupDef: { openByDefault: true, marryChildren: true },
+      suppressFieldDotNotation: true,
+      rowData: rows,
+    });
+    return gridApi;
+  }
+
+  test("shows each value as text, and nothing for a missing one", async () => {
+    createRealGrid();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const texts: string[][] = [...element!.querySelectorAll(".ag-row")]
+      .sort(
+        (a, b) =>
+          Number(a.getAttribute("row-index")) -
+          Number(b.getAttribute("row-index")),
+      )
+      .map((row) =>
+        [...row.querySelectorAll(".ag-cell")].map(
+          (cell) => cell.textContent ?? "",
+        ),
+      );
+    // The first column is the row number.
+    expect(texts).toEqual([
+      ["1", "0xa1", "true", "abc", 1234n.toLocaleString(), "5"],
+      ["2", "0xb1", "false", "", "6", ""],
+    ]);
+  });
+
+  test("exports each value as text, and nothing for a missing one", () => {
+    const gridApi = createRealGrid();
+    expect(
+      getCsvText(gridApi, {
+        skipRowNumber: { selectedValue: true },
+        columnSeparator: { selectedValue: "," },
+        suppressDoubleQuotes: { selectedValue: false },
+        skipColumnHeaders: { selectedValue: true },
+        filteredSorted: { selectedValue: "all" },
+      }),
+    ).toBe(
+      ['"0xa1","true","abc","1234","5"', '"0xb1","false","","6",""'].join(
+        "\r\n",
+      ),
+    );
   });
 });

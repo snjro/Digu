@@ -193,4 +193,10 @@ describe("areValuesEqual", () => {
     const obj2 = { a: 1, b: 2, c: 4 };
     expect(areValuesEqual(obj1, obj2)).toBe(false);
   });
+
+  test("should return false for null and an object", () => {
+    expect(areValuesEqual(null, {})).toBe(false);
+    expect(areValuesEqual({}, null)).toBe(false);
+    expect(areValuesEqual({ a: null }, { a: {} })).toBe(false);
+  });
 });

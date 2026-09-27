@@ -304,10 +304,10 @@ const argChildColumnDef = (
           valueFormatterParams.data.args[indexOfInputs],
           indexOfArgChild,
         );
-        // ag-grid shows a value that is not a string (such as a boolean) as it is.
-        return typeof argChildValue === "bigint"
-          ? argChildValue.toLocaleString()
-          : (argChildValue as string);
+        if (typeof argChildValue === "bigint") {
+          return argChildValue.toLocaleString();
+        }
+        return argChildValue == null ? "" : String(argChildValue);
       },
       valueGetter: (valueGetterParams: ValueGetterParams) => {
         return getArgChildValue(
