@@ -208,6 +208,19 @@ await L.step("5-4", page, async () => {
   });
   await L.settle(page, 800);
   await page.waitForSelector(".ag-row");
+  // The Constructor column group starts closed (#535): open it first.
+  await page.evaluate(() => {
+    const c = [...document.querySelectorAll(".ag-header-group-cell")].find(
+      (e) => /Constructor/.test(e.innerText),
+    );
+    const ctl =
+      c?.querySelector(".ag-header-expand-icon:not(.ag-hidden)") ??
+      c?.querySelector("button,[role=button]") ??
+      c?.querySelector(".ag-header-group-cell-label");
+    ctl?.scrollIntoView({ inline: "center" });
+    ctl?.click();
+  });
+  await L.settle(page);
   const clicked = await page.evaluate(() => {
     const bs = [...document.querySelectorAll(".ag-cell button")].filter(
       (e) => /^\d+$/.test(e.innerText.trim()) && e.innerText.trim() !== "0",
