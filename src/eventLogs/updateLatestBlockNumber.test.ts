@@ -98,6 +98,44 @@ describe("startUpdateLatestBlockNumber", () => {
     expect(startAbortingInChain).not.toHaveBeenCalled();
   });
 
+  test("should not warn when a request fails after it is stopped", async () => {
+    let failRequest: () => void = () => {};
+    vi.mocked(getAndUpdateLatestBlockNumber)
+      .mockResolvedValueOnce(1)
+      .mockImplementationOnce(
+        () =>
+          new Promise((_resolve, reject) => {
+            failRequest = () =>
+              reject(new Error("provider destroyed; cancelled request"));
+          }),
+      );
+    const { customLogger } = await import("@utils/logger");
+    const spyWarn = vi.spyOn(customLogger, "warn");
+
+    const stop = await startUpdateLatestBlockNumber(chainName, nodeProvider);
+    await vi.advanceTimersByTimeAsync(blockIntervalMs);
+    stop();
+    failRequest();
+    await vi.advanceTimersByTimeAsync(blockIntervalMs);
+
+    expect(spyWarn).not.toHaveBeenCalled();
+  });
+
+  test("should warn when a request fails while it is not stopped", async () => {
+    vi.mocked(getAndUpdateLatestBlockNumber)
+      .mockResolvedValueOnce(1)
+      .mockRejectedValueOnce(new Error("RPC error"));
+    const { customLogger } = await import("@utils/logger");
+    const spyWarn = vi.spyOn(customLogger, "warn");
+
+    stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
+    await vi.advanceTimersByTimeAsync(blockIntervalMs);
+
+    expect(spyWarn).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ errorCount: `1/${tryCount}` }),
+    );
+  });
+
   test("should log an error when aborting fails", async () => {
     vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
       new Error("RPC error"),
