@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/no-explicit-any: 0 */
 /**
  * Base class for embedding a svelte component within an AGGrid call.
  * See: https://stackoverflow.com/a/72608215
@@ -13,8 +12,8 @@ import { MountedComponents } from "./mountedComponents";
  * to create a component with the column definitions.
  */
 export abstract class AbstractCellRenderer implements ICellRendererComp {
-  eGui: any;
-  protected value: any;
+  eGui: HTMLElement;
+  protected value: unknown;
   private mountedComponents = new MountedComponents();
 
   constructor(parentElement = "div") {
@@ -77,7 +76,7 @@ export function cellRendererFactory(
   ) => void,
 ) {
   class Renderer extends AbstractCellRenderer {
-    createComponent(cellRendererParams: ICellRendererParams<any, any>): void {
+    createComponent(cellRendererParams: ICellRendererParams): void {
       svelteComponent(this, cellRendererParams);
     }
   }

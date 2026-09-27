@@ -186,9 +186,10 @@ const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
     },
   ];
 };
-/* eslint-disable @typescript-eslint/no-explicit-any */
-function getArgChildValue(argChildValue: any, indexArgChild: number): any {
-  /* eslint-enable @typescript-eslint/no-explicit-any */
+function getArgChildValue(
+  argChildValue: unknown,
+  indexArgChild: number,
+): unknown {
   if (Array.isArray(argChildValue)) {
     argChildValue = argChildValue[indexArgChild];
   }
@@ -272,14 +273,15 @@ const argChildColumnDef = (
           cell: AbstractCellRenderer,
           cellRendererParams: ICellRendererParams,
         ) => {
+          const address: unknown = getArgChildValue(
+            cellRendererParams.data.args[indexOfInputs],
+            indexOfArgChild,
+          );
           cell.mount(CommonChainExplorerLink, {
             target: cell.eGui,
             props: {
               subdirectory: "address",
-              value: getArgChildValue(
-                cellRendererParams.data.args[indexOfInputs],
-                indexOfArgChild,
-              ),
+              value: typeof address === "string" ? address : undefined,
               isFontMono: true,
               textSize: sizeSettings.grid,
             },
@@ -302,9 +304,10 @@ const argChildColumnDef = (
           valueFormatterParams.data.args[indexOfInputs],
           indexOfArgChild,
         );
+        // ag-grid shows a value that is not a string (such as a boolean) as it is.
         return typeof argChildValue === "bigint"
           ? argChildValue.toLocaleString()
-          : argChildValue;
+          : (argChildValue as string);
       },
       valueGetter: (valueGetterParams: ValueGetterParams) => {
         return getArgChildValue(

@@ -60,8 +60,7 @@
   }
 
   onNavigate((navigation: OnNavigate) => {
-    const documentAsAny: any = document; // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!documentAsAny.startViewTransition) return;
+    if (typeof document.startViewTransition !== "function") return;
     // Adding the tab hash (PageWrapper) does not change the screen,
     // and a new view transition would skip the one of the page change.
     const { from, to } = navigation;
@@ -73,7 +72,7 @@
       return;
 
     return new Promise((resolve) => {
-      documentAsAny.startViewTransition(async () => {
+      document.startViewTransition(async () => {
         resolve();
         await navigation.complete;
       });
