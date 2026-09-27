@@ -33,6 +33,7 @@ import {
   ethers,
   makeError,
   type Contract as EthersContract,
+  type Filter,
   type JsonRpcApiProviderOptions,
   type Networkish,
   type Provider,
@@ -507,15 +508,21 @@ describe("getEthersEventLogs", async () => {
       .spyOn(ethersContract, "queryFilter")
       .mockResolvedValue([]);
   });
+  beforeEach(() => {
+    sypQueryFilter.mockClear();
+  });
   afterAll(() => {
     sypQueryFilter.mockRestore();
   });
-  test(`should be called with args when the arg "eventNames" is not []`, async () => {
+  test(`should be called once with all the names as one OR list when the arg "eventNames" is not []`, async () => {
     await getEthersEventLogs(["event1", "event2"], ethersContract, 0, 1);
-    expect(sypQueryFilter).toHaveBeenNthCalledWith(1, "event1", 0, 1);
-    expect(sypQueryFilter).toHaveBeenNthCalledWith(2, "event2", 0, 1);
+    expect(sypQueryFilter).toHaveBeenCalledExactlyOnceWith(
+      [["event1", "event2"]],
+      0,
+      1,
+    );
   });
-  test(`should return [] when the arg "eventNames" is []`, async () => {
+  test(`should return [] without a request when the arg "eventNames" is []`, async () => {
     const actualEthersEventLogs: EthersEventLog[] = await getEthersEventLogs(
       [],
       ethersContract,
@@ -524,6 +531,86 @@ describe("getEthersEventLogs", async () => {
     );
     const expectedEthersEventLogs: EthersEventLog[] = [];
     expect(actualEthersEventLogs).toStrictEqual(expectedEthersEventLogs);
+    expect(sypQueryFilter).not.toHaveBeenCalled();
+  });
+  test("should send one eth_getLogs with an OR on topic 0 and decode each log with its event", async () => {
+    const contractInterface = new ethers.Interface([
+      "event EventA(address indexed account)",
+      "event EventB(uint256 amount)",
+    ]);
+    const eventA = contractInterface.getEvent("EventA")!;
+    const eventB = contractInterface.getEvent("EventB")!;
+    const network: Network = Network.from(targetChain.chainId);
+    const provider: JsonRpcProvider = new JsonRpcProvider(
+      "http://fake-rpc.invalid/",
+      network,
+      { staticNetwork: network },
+    );
+    const address: string = "0x" + "1".repeat(40);
+    // The order of an RPC: by block number and log index, events mixed.
+    const rawLogs = [
+      { blockNumber: 10, index: 0, event: eventB, values: [7n] },
+      {
+        blockNumber: 10,
+        index: 1,
+        event: eventA,
+        values: ["0x0000000000000000000000000000000000000001"],
+      },
+      { blockNumber: 11, index: 0, event: eventB, values: [8n] },
+    ].map(({ blockNumber, index, event, values }) => {
+      const { data, topics } = contractInterface.encodeEventLog(event, values);
+      return new Log(
+        {
+          transactionHash: `0x${blockNumber.toString(16).padStart(64, "a")}`,
+          blockHash: `0x${blockNumber.toString(16).padStart(64, "b")}`,
+          blockNumber,
+          removed: false,
+          address,
+          data,
+          topics,
+          index,
+          transactionIndex: 0,
+        },
+        provider,
+      );
+    });
+    const spyGetLogs = vi.spyOn(provider, "getLogs").mockResolvedValue(rawLogs);
+    const ethersContract: EthersContract = new ethers.Contract(
+      address,
+      contractInterface,
+      provider,
+    );
+
+    const actual: EthersEventLog[] = await getEthersEventLogs(
+      ["EventA", "EventB"],
+      ethersContract,
+      0,
+      1,
+    );
+
+    expect(spyGetLogs).toHaveBeenCalledOnce();
+    const { topics, ...filter } = spyGetLogs.mock.calls[0][0] as Filter;
+    expect(filter).toEqual({ address, fromBlock: 0, toBlock: 1 });
+    // ethers sorts the OR list on topic 0, so the order is not compared.
+    expect(topics).toHaveLength(1);
+    expect(topics![0]).toHaveLength(2);
+    expect(topics![0]).toEqual(
+      expect.arrayContaining([eventA.topicHash, eventB.topicHash]),
+    );
+    expect(
+      actual.map((log) => [
+        log.eventName,
+        log.blockNumber,
+        log.index,
+        log.args[0],
+      ]),
+    ).toEqual([
+      ["EventB", 10, 0, 7n],
+      ["EventA", 10, 1, "0x0000000000000000000000000000000000000001"],
+      ["EventB", 11, 0, 8n],
+    ]);
+    spyGetLogs.mockRestore();
+    await provider.destroy();
   });
 });
 
@@ -562,10 +649,11 @@ describe("extractDecodedEventLogs", () => {
     const spyError = vi
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});
-    const actual: EthersEventLog[] = extractDecodedEventLogs(
-      [eventLog, undecodedEventLog, plainLog],
-      "event1",
-    );
+    const actual: EthersEventLog[] = extractDecodedEventLogs([
+      eventLog,
+      undecodedEventLog,
+      plainLog,
+    ]);
     expect(actual).toStrictEqual([eventLog]);
     expect(actual[0].eventName).toBe("event1");
     expect(spyError).toHaveBeenCalledTimes(2);
@@ -573,7 +661,7 @@ describe("extractDecodedEventLogs", () => {
       1,
       "Skip an event log that could not be decoded.",
       {
-        eventName: "event1",
+        topic0: eventFragment.topicHash,
         blockNumber: 10,
         transactionHash: baseLog.transactionHash,
         logIndex: 1,

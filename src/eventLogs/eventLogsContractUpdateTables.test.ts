@@ -40,10 +40,14 @@ function blockTimeOf(blockNumber: number): BlockTime {
     isoDatetime: convertTimestampSecToIso8601(timestampOf(blockNumber)),
   };
 }
-function eventLogAt(blockNumber: number, index: number = 0): EthersEventLog {
+function eventLogAt(
+  blockNumber: number,
+  index: number = 0,
+  name: string = eventName,
+): EthersEventLog {
   const hex: string = "0x" + blockNumber.toString(16).padStart(64, "0");
   return {
-    eventName,
+    eventName: name,
     eventSignature: "Test()",
     args: [],
     blockNumber,
@@ -110,6 +114,47 @@ describe("registerEventLogsAndBlockTimes", () => {
       [20, 0, new Date(timestampOf(20) * 1000)],
       [30, 0, new Date(timestampOf(30) * 1000)],
       [30, 1, new Date(timestampOf(30) * 1000)],
+    ]);
+  });
+
+  test("should group the logs of mixed events by event name in block order", async () => {
+    const otherEventName: string = targetContract.events.names[1];
+    expect(otherEventName).toBeDefined();
+
+    // The order of one eth_getLogs for all the events.
+    await registerEventLogsAndBlockTimes(
+      dbEventLogs,
+      targetContract,
+      fakeProvider(),
+      [
+        eventLogAt(20, 0, otherEventName),
+        eventLogAt(20, 1),
+        eventLogAt(30, 0),
+        eventLogAt(30, 1, otherEventName),
+        eventLogAt(31, 0, otherEventName),
+      ],
+      40,
+    );
+
+    const [, , groupedEventLogs] = vi.mocked(
+      addEventLogs_updateFetchedBlockNumber,
+    ).mock.calls[0];
+    const blocksOf = (name: string): number[][] =>
+      (groupedEventLogs as GroupedEventLogs)[name].map((eventLog) => [
+        eventLog.blockNumber,
+        eventLog.logIndex,
+      ]);
+    expect(Object.keys(groupedEventLogs).sort()).toEqual(
+      [eventName, otherEventName].sort(),
+    );
+    expect(blocksOf(eventName)).toEqual([
+      [20, 1],
+      [30, 0],
+    ]);
+    expect(blocksOf(otherEventName)).toEqual([
+      [20, 0],
+      [30, 1],
+      [31, 0],
     ]);
   });
 
