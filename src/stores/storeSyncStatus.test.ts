@@ -65,7 +65,7 @@ async function importStoreSyncStatus() {
   return (await import("./storeSyncStatus")).storeSyncStatus;
 }
 
-describe("storeSyncStaus", () => {
+describe("storeSyncStatus", () => {
   beforeEach(() => {
     vi.resetModules();
   });

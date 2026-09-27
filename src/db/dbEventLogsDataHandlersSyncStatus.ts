@@ -12,7 +12,7 @@ export async function startSyncingInChain(chainName: ChainName): Promise<void> {
 export async function startAbortingInChain(
   chainName: ChainName,
 ): Promise<void> {
-  const log = `Update syncStaus for aborting. Chain: ${chainName}`;
+  const log = `Update syncStatus for aborting. Chain: ${chainName}`;
   customLogger.start(log);
   await updateSyncStatusInChain(chainName, "isSyncing", true, {
     isAbort: true,

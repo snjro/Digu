@@ -11,7 +11,7 @@ import { storeSyncStatus } from "@stores/storeSyncStatus";
 import type { RpcSetting } from "@db/dbTypes";
 import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
 
-const functionName: string = "updateLatestBlocknumber";
+const functionName: string = "updateLatestBlockNumber";
 
 // Resolves a function that stops the updates.
 export async function startUpdateLatestBlockNumber(
