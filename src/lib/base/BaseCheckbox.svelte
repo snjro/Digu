@@ -14,6 +14,8 @@
     indeterminate?: boolean;
     disabled?: boolean;
     onclick?: ((event: MouseEvent) => void) | undefined;
+    // Runs after bind:checked and bind:indeterminate have taken the change.
+    onchange?: ((event: Event) => void) | undefined;
     ariaLabel?: string;
   }
 
@@ -25,6 +27,7 @@
     indeterminate = $bindable(false),
     disabled = false,
     onclick = undefined,
+    onchange = undefined,
     ariaLabel = undefined,
   }: Props = $props();
 
@@ -65,6 +68,7 @@
   type="checkbox"
   bind:checked
   {onclick}
+  {onchange}
   bind:indeterminate
   {value}
   {disabled}

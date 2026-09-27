@@ -1,11 +1,17 @@
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { tick } from "svelte";
-import type { Writable } from "svelte/store";
+import { get, type Writable } from "svelte/store";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import RpcConfigChanger from "./RpcConfigChanger.svelte";
 import type { RpcConfigParam } from "./rpcConfigParams";
 import { saveRpcConfigValue } from "./rpcConfigSave";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import {
+  storeNoDbSnackBar,
+  storeNoDbSnackBarInitialValue,
+} from "@stores/storeNoDb";
+import { customLogger } from "@utils/logger";
 
 // The real stores build their state from the chain data, which loads ethers.
 // ethers does not load in the client project, so the stores are plain ones.
@@ -34,6 +40,12 @@ function setIsSyncing(isSyncing: boolean): void {
 }
 
 describe("RpcConfigChanger.svelte", () => {
+  afterEach(() => {
+    storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+  });
+
   test("shows the saved value again when sync starts after an invalid value", async () => {
     render(RpcConfigChanger, {
       targetChainName: "chain1",
@@ -61,5 +73,32 @@ describe("RpcConfigChanger.svelte", () => {
     await tick();
     expect(input.value).toBe("100");
     expect(screen.queryByText(/Error/)).toBeNull();
+  });
+
+  test("shows the save failed snackbar and no Checking... when saving fails", async () => {
+    const error = new Error("DB error");
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    vi.mocked(saveRpcConfigValue).mockRejectedValueOnce(error);
+    render(RpcConfigChanger, {
+      targetChainName: "chain1",
+      rpcConfigParam,
+      initializeValue: true,
+    });
+    const input = screen.getByRole("spinbutton", { name: "Bulk Unit" });
+
+    await fireEvent.input(input, { target: { value: "200" } });
+    await fireEvent.change(input);
+    await vi.waitFor(() =>
+      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
+    );
+    await tick();
+    expect(spyError).toHaveBeenCalledWith("Save the RPC config.", error);
+    expect(screen.queryByText("Checking...")).toBeNull();
+    expect(screen.queryByText(/Error/)).toBeNull();
+    expect(screen.queryByText("Updated.")).toBeNull();
+    expect((input as HTMLInputElement).value).toBe("100");
+    expect((screen.getByRole("slider") as HTMLInputElement).value).toBe("100");
   });
 });

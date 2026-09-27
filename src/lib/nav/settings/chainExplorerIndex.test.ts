@@ -1,4 +1,11 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { get } from "svelte/store";
+import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import {
+  storeNoDbSnackBar,
+  storeNoDbSnackBarInitialValue,
+} from "@stores/storeNoDb";
+import { customLogger } from "@utils/logger";
 import { updateDbItemRpcSettings } from "@db/dbSettings";
 import { updateChainExplorerIndex } from "./chainExplorerIndex";
 
@@ -6,6 +13,10 @@ vi.mock("@db/dbSettings", () => ({ updateDbItemRpcSettings: vi.fn() }));
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+afterEach(() => {
+  vi.restoreAllMocks();
+  storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
 });
 
 describe("updateChainExplorerIndex", () => {
@@ -21,5 +32,16 @@ describe("updateChainExplorerIndex", () => {
       "chainExplorerIndex",
       index,
     );
+  });
+
+  test("should show the save failed snackbar when saving fails", async () => {
+    const error = new Error("DB error");
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    vi.mocked(updateDbItemRpcSettings).mockRejectedValueOnce(error);
+    await updateChainExplorerIndex("eth", "1");
+    expect(spyError).toHaveBeenCalledWith("Save the chain explorer.", error);
+    expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed);
   });
 });

@@ -4,6 +4,7 @@
   import type { BaseIconProps } from "$lib/base/BaseIcon";
   import BaseToggle from "$lib/base/BaseToggle.svelte";
   import { iconNameForSyncStateText } from "$lib/common/CommonSyncStateText.svelte";
+  import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
   import type { Chain, ChainName } from "@constants/chains/types";
   import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
   import type {
@@ -15,8 +16,10 @@
   import { fetchEventLogs } from "@eventLogs/eventLogs";
   import { storeSyncLockedByOtherTab } from "@eventLogs/syncLock";
   import { storeChainStatus } from "@stores/storeChainStatus";
+  import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { storeUserSettings } from "@stores/storeUserSettings";
+  import { customLogger } from "@utils/logger";
   import { getTargetChain } from "@utils/utilsDb";
   import classNames from "classnames";
   import { isSyncToggleDisabled } from "./syncToggleDisabled";
@@ -51,7 +54,17 @@
       isStarting = false;
       if (!started) toggleOn = false;
     } else {
-      await startAbortingInChain(targetChain.name);
+      try {
+        await startAbortingInChain(targetChain.name);
+      } catch (error) {
+        customLogger.error("Start aborting the sync.", {
+          chainName: targetChain.name,
+          errorObject: error,
+        });
+        $storeNoDbSnackBar = showSnackBarAsSaveFailed;
+        // The sync goes on, unless it has stopped in the meantime.
+        toggleOn = syncStateText !== "stopped";
+      }
     }
   };
 

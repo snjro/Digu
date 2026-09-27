@@ -4,6 +4,12 @@ import Layout from "./+layout.svelte";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { saveSelectedChainName } from "$lib/leftSidebar/Header/selectChain";
+import { customLogger } from "@utils/logger";
+import {
+  storeNoDbSnackBar,
+  storeNoDbSnackBarInitialValue,
+} from "@stores/storeNoDb";
+import { get } from "svelte/store";
 
 vi.mock("$app/state", () => ({
   page: {
@@ -20,7 +26,7 @@ vi.mock("$app/navigation", () => ({
 }));
 vi.mock("$app/paths", () => ({ base: "" }));
 vi.mock("$lib/leftSidebar/Header/selectChain", () => ({
-  saveSelectedChainName: vi.fn(),
+  saveSelectedChainName: vi.fn(async () => {}),
 }));
 // The real chain data and children load ethers, which does not load in the client project.
 vi.mock("@constants/chains/_index", () => ({
@@ -34,6 +40,8 @@ describe("+layout.svelte", () => {
   afterEach(() => {
     storeUserSettings.set({ ...initialDataUserSettings });
     vi.mocked(saveSelectedChainName).mockClear();
+    vi.restoreAllMocks();
+    storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
   });
 
   test("saves the chain in the URL when it differs from the saved one", () => {
@@ -46,5 +54,20 @@ describe("+layout.svelte", () => {
     storeUserSettings.updateState({ selectedChainName: "matic" });
     render(Layout);
     expect(saveSelectedChainName).not.toHaveBeenCalled();
+  });
+
+  test("only logs when saving the chain in the URL fails", async () => {
+    const error = new Error("DB error");
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    vi.mocked(saveSelectedChainName).mockRejectedValueOnce(error);
+    storeUserSettings.updateState({ selectedChainName: "eth" });
+    render(Layout);
+    await vi.waitFor(() =>
+      expect(customLogger.error).toHaveBeenCalledWith(
+        "Save the chain in the URL.",
+        error,
+      ),
+    );
+    expect(get(storeNoDbSnackBar).visible).toBe(false);
   });
 });

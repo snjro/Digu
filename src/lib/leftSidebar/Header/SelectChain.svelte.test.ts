@@ -2,7 +2,13 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { render } from "@testing-library/svelte";
 import { get } from "svelte/store";
 import { goto } from "$app/navigation";
-import { storeNodbShowLoader } from "@stores/storeNoDb";
+import {
+  storeNoDbSnackBar,
+  storeNoDbSnackBarInitialValue,
+  storeNodbShowLoader,
+} from "@stores/storeNoDb";
+import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import { customLogger } from "@utils/logger";
 import SelectChain from "./SelectChain.svelte";
 import { saveSelectedChainName } from "./selectChain";
 
@@ -38,7 +44,9 @@ describe("SelectChain.svelte", () => {
   afterEach(() => {
     vi.mocked(saveSelectedChainName).mockReset();
     vi.mocked(goto).mockReset();
+    vi.restoreAllMocks();
     storeNodbShowLoader.set(false);
+    storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
     selectProps.onchange = undefined;
   });
 
@@ -54,9 +62,16 @@ describe("SelectChain.svelte", () => {
     expect(get(storeNodbShowLoader)).toBe(false);
   });
 
-  test("hides the loader when saving the chain fails", async () => {
-    vi.mocked(saveSelectedChainName).mockRejectedValue(new Error("DB error"));
-    await expect(selectChain("matic")).rejects.toThrow("DB error");
+  test("shows a snackbar and hides the loader when saving the chain fails", async () => {
+    const error = new Error("DB error");
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    vi.mocked(saveSelectedChainName).mockRejectedValue(error);
+    await expect(selectChain("matic")).resolves.toBeUndefined();
+    expect(customLogger.error).toHaveBeenCalledWith(
+      "Save the selected chain.",
+      error,
+    );
+    expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed);
     expect(goto).not.toHaveBeenCalled();
     expect(get(storeNodbShowLoader)).toBe(false);
   });
