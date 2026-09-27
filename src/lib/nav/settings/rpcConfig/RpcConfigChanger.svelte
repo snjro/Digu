@@ -58,8 +58,8 @@
         helperTextState = "success";
       } catch (error) {
         customLogger.error("Save the RPC config.", error);
-        // "error" is only for a value out of the range.
-        helperTextState = undefined;
+        // Show the saved value again. "error" is only for a value out of the range.
+        initialization();
         $storeNoDbSnackBar = showSnackBarAsSaveFailed;
       }
     } else {

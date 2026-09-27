@@ -51,6 +51,7 @@
 
   // Bound to the box, because a click changes it before the write. After a
   // failed write the store does not change, so set the saved values again.
+  // The write starts on change, after the bindings have taken the click.
   let checked: boolean = $state(false);
   let indeterminate: boolean = $state(false);
   function showSavedValues(): void {
@@ -96,7 +97,7 @@
       bind:indeterminate
       {size}
       disabled={getTargetSyncStatus($storeSyncStatus, targetChain)?.isSyncing}
-      onclick={checkChanged}
+      onchange={checkChanged}
       ariaLabel={`Sync target: ${targetName}`}
     />
     <BaseLabel

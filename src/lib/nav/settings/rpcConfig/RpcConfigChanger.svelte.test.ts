@@ -98,5 +98,7 @@ describe("RpcConfigChanger.svelte", () => {
     expect(screen.queryByText("Checking...")).toBeNull();
     expect(screen.queryByText(/Error/)).toBeNull();
     expect(screen.queryByText("Updated.")).toBeNull();
+    expect((input as HTMLInputElement).value).toBe("100");
+    expect((screen.getByRole("slider") as HTMLInputElement).value).toBe("100");
   });
 });

@@ -63,6 +63,25 @@ const store = storeSyncStatus as unknown as Writable<SyncStatusesChain>;
 function getCheckbox(): HTMLInputElement {
   return screen.getByRole("checkbox") as HTMLInputElement;
 }
+// fireEvent.click fires change before the microtasks run. A browser changes
+// the box, runs the click listeners and then the microtasks, and after that
+// fires change, or restores the box when the click was canceled.
+async function clickAsUser(input: HTMLInputElement): Promise<void> {
+  const { checked, indeterminate } = input;
+  input.checked = !checked;
+  input.indeterminate = false;
+  const click = new Event("click", { bubbles: true, cancelable: true });
+  input.dispatchEvent(click);
+  for (let i = 0; i < 10; i++) await Promise.resolve();
+  if (click.defaultPrevented) {
+    input.checked = checked;
+    input.indeterminate = indeterminate;
+  } else {
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+  await tick();
+}
 // Like storeSyncStatus.updateState, these return a new state instead of
 // changing the current one.
 function setContractIsSyncTarget(target: Contract, value: boolean): void {
@@ -198,25 +217,46 @@ describe("CommonToggleSyncTarget.svelte", () => {
     );
   });
 
-  test("shows the save failed snackbar and the saved value when toggling fails", async () => {
-    const error = new Error("DB error");
-    const spyError = vi
-      .spyOn(customLogger, "error")
-      .mockImplementation(() => {});
-    vi.mocked(toggleIsSyncTarget).mockRejectedValueOnce(error);
+  test("changes the box when the store changes after the write", async () => {
+    vi.mocked(toggleIsSyncTarget).mockImplementationOnce(async () => {
+      setContractIsSyncTarget(contract, false);
+    });
     render(CommonToggleSyncTarget, contractProps);
-    const savedClassName = getCheckbox().className;
 
-    await fireEvent.click(getCheckbox());
-    await vi.waitFor(() =>
-      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
-    );
-    await tick();
-    expect(spyError).toHaveBeenCalledWith("Toggle the sync target.", error);
-    expect(getCheckbox().checked).toBe(true);
-    expect(getCheckbox().className).toBe(savedClassName);
-    expect(screen.getByText("Yes")).toBeTruthy();
+    await clickAsUser(getCheckbox());
+    expect(getCheckbox().checked).toBe(false);
+    expect(screen.getByText("No")).toBeTruthy();
   });
+
+  test.each([
+    ["rejects", () => Promise.reject(new Error("DB error"))],
+    [
+      "throws",
+      () => {
+        throw new Error("DB error");
+      },
+    ],
+  ])(
+    "shows the save failed snackbar and the saved value when toggling %s",
+    async (_, fail) => {
+      const spyError = vi
+        .spyOn(customLogger, "error")
+        .mockImplementation(() => {});
+      vi.mocked(toggleIsSyncTarget).mockImplementationOnce(fail);
+      render(CommonToggleSyncTarget, contractProps);
+      const savedClassName = getCheckbox().className;
+
+      await clickAsUser(getCheckbox());
+      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed);
+      expect(spyError).toHaveBeenCalledWith(
+        "Toggle the sync target.",
+        new Error("DB error"),
+      );
+      expect(getCheckbox().checked).toBe(true);
+      expect(getCheckbox().className).toBe(savedClassName);
+      expect(screen.getByText("Yes")).toBeTruthy();
+    },
+  );
 
   test("keeps an indeterminate box when toggling fails", async () => {
     vi.spyOn(customLogger, "error").mockImplementation(() => {});
@@ -230,11 +270,8 @@ describe("CommonToggleSyncTarget.svelte", () => {
     });
     expect(getCheckbox().indeterminate).toBe(true);
 
-    await fireEvent.click(getCheckbox());
-    await vi.waitFor(() =>
-      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
-    );
-    await tick();
+    await clickAsUser(getCheckbox());
+    expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed);
     expect(getCheckbox().indeterminate).toBe(true);
     expect(getCheckbox().classList).toContain("bg-yellow-500");
     expect(screen.getByText("Partially")).toBeTruthy();
