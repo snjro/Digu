@@ -9,7 +9,7 @@ export const columnDefsCreation = <T extends ContractRow>(): ColumnDef => {
     openByDefault: false,
     children: [
       columnDefChainExplorerLinkByKeyName<T>(
-        "Creation Blocknumber",
+        "Creation Block Number",
         "contractCreationBlockNumber",
         "block",
         undefined,

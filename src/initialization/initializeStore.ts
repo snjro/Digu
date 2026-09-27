@@ -85,7 +85,7 @@ async function InitializeStoreRpcSettings(chainName: ChainName): Promise<void> {
     storeRpcSettings.updateState(chainName, rpcSetting);
   } else {
     customLogger.error(
-      `Error occured in "InitializeStoreRpcSettings"`,
+      `Error occurred in "InitializeStoreRpcSettings"`,
       `getDbRecordRpcSettings(${chainName}) returned "undefined"`,
     );
   }
@@ -98,7 +98,7 @@ async function initializeStoreUserSettings(): Promise<void> {
     storeUserSettings.updateState(userSettings);
   } else {
     customLogger.error(
-      `Error occured in "initializeStoreUserSettings"`,
+      `Error occurred in "initializeStoreUserSettings"`,
       `getDbRecordUserSettings() returned "undefined"`,
     );
   }
