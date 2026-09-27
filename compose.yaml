@@ -14,7 +14,7 @@ services:
   # Has Chrome for scripts/visual-compare and scripts/a11y-scan.
   # Keep the image tag the same as the puppeteer version in package-lock.json.
   test:
-    image: ghcr.io/puppeteer/puppeteer:25.11.0
+    image: ghcr.io/puppeteer/puppeteer:25.12.0
     profiles: ["test"]
     user: "1001:1001"
     working_dir: /app
