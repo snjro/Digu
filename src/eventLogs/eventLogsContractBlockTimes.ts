@@ -79,11 +79,6 @@ async function fetchBlockFromNodeProvider(
   let block: Block | null;
   try {
     block = await nodeProvider.getBlock(blockNumber);
-    if (isPureBlock(block)) {
-      return block;
-    } else {
-      throw new Error();
-    }
   } catch (error) {
     throw new Error(
       `Error! Exception in "nodeProvider.getBlock". Block number is ${blockNumber}.`,
@@ -92,6 +87,12 @@ async function fetchBlockFromNodeProvider(
       { cause: getLoggableError(error) },
     );
   }
+  if (!isPureBlock(block)) {
+    throw new Error(
+      `"nodeProvider.getBlock" returned no block. Block number is ${blockNumber}.`,
+    );
+  }
+  return block;
 }
 function isPureBlock(value: Block | null): value is Block {
   return value !== null;
