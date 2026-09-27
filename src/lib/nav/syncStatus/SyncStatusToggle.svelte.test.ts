@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick } from "svelte";
-import type { Writable } from "svelte/store";
+import { get, type Writable } from "svelte/store";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import SyncStatusToggle from "./SyncStatusToggle.svelte";
 import type {
@@ -15,6 +15,12 @@ import { storeSyncLockedByOtherTab } from "@eventLogs/syncLock";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeUserSettings } from "@stores/storeUserSettings";
+import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import {
+  storeNoDbSnackBar,
+  storeNoDbSnackBarInitialValue,
+} from "@stores/storeNoDb";
+import { customLogger } from "@utils/logger";
 
 // The real stores build their state from the chain data, which loads ethers.
 // ethers does not load in the client project, so the stores are plain ones.
@@ -119,6 +125,8 @@ describe("SyncStatusToggle.svelte", () => {
   });
   afterEach(() => {
     storeUserSettings.set({ ...initialDataUserSettings });
+    storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
+    vi.restoreAllMocks();
     vi.clearAllMocks();
   });
 
@@ -180,6 +188,28 @@ describe("SyncStatusToggle.svelte", () => {
     await fireEvent.click(getToggle());
     expect(startAbortingInChain).toHaveBeenCalledWith("eth");
     expect(screen.getByText("start sync")).toBeTruthy();
+  });
+
+  test("turns on again and shows the save failed snackbar when stopping fails", async () => {
+    const error = new Error("DB error");
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    render(SyncStatusToggle);
+    await startSync();
+
+    vi.mocked(startAbortingInChain).mockRejectedValueOnce(error);
+    await fireEvent.click(getToggle());
+    await vi.waitFor(() =>
+      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
+    );
+    await tick();
+    expect(spyError).toHaveBeenCalledWith("Start aborting the sync.", {
+      chainName: "eth",
+      errorObject: error,
+    });
+    expect(screen.getByText("stop sync")).toBeTruthy();
+    expect(getIcon().classList).toContain("animate-spin");
   });
 
   test("can still stop the sync when the node is not ready", async () => {

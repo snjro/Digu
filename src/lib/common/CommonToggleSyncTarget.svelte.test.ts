@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick } from "svelte";
-import type { Writable } from "svelte/store";
+import { get, type Writable } from "svelte/store";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import CommonToggleSyncTarget from "./CommonToggleSyncTarget.svelte";
 import { toggleIsSyncTarget } from "./toggleSyncTarget";
@@ -12,6 +12,12 @@ import type {
 } from "@constants/chains/types";
 import type { SyncStatusesChain } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import {
+  storeNoDbSnackBar,
+  storeNoDbSnackBarInitialValue,
+} from "@stores/storeNoDb";
+import { customLogger } from "@utils/logger";
 
 // The real store builds its state from the chain data, which loads ethers.
 // ethers does not load in the client project, so the store is a plain one.
@@ -88,6 +94,8 @@ describe("CommonToggleSyncTarget.svelte", () => {
     store.set(initialState());
   });
   afterEach(() => {
+    storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
+    vi.restoreAllMocks();
     vi.clearAllMocks();
   });
 
@@ -188,6 +196,21 @@ describe("CommonToggleSyncTarget.svelte", () => {
       version.name,
       contract.name,
     );
+  });
+
+  test("shows the save failed snackbar when toggling fails", async () => {
+    const error = new Error("DB error");
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    vi.mocked(toggleIsSyncTarget).mockRejectedValueOnce(error);
+    render(CommonToggleSyncTarget, contractProps);
+
+    await fireEvent.click(getCheckbox());
+    await vi.waitFor(() =>
+      expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
+    );
+    expect(spyError).toHaveBeenCalledWith("Toggle the sync target.", error);
   });
 
   test("passes undefined for the levels below a chain target", async () => {
