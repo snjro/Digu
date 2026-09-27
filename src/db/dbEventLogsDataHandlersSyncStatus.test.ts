@@ -17,7 +17,7 @@ import {
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Chain, Contract } from "@constants/chains/types";
 import * as UpdateSyncStatusInChain from "./dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain";
-import * as DbItemSyncStatus from "./dbEventLogsDataHandlersSyncStatusUpdateDbItemSyncStatus";
+import * as UpdateDbRecordSyncStatus from "./dbEventLogsDataHandlersSyncStatusUpdateDbRecordSyncStatus";
 import type { VersionIdentifier } from "./dbTypes";
 import { DbEventLogs } from "./dbEventLogs";
 import { extractEventContracts } from "@utils/utilsEthers";
@@ -42,8 +42,7 @@ describe("startSyncingInChain", () => {
         chainName,
         "isSyncTarget",
         true,
-        "isSyncing",
-        true,
+        { isSyncing: true },
       );
     });
   }
@@ -69,8 +68,7 @@ describe("startAbortingInChain", () => {
         chainName,
         "isSyncing",
         true,
-        "isAbort",
-        true,
+        { isAbort: true },
       );
     });
   }
@@ -91,22 +89,13 @@ describe("stopSyncingInChain", () => {
       // call target
       await stopSyncingInChain(chainName);
       // expect
-      expect(spyUpdateSyncStatusInChain).toBeCalledTimes(2);
-      expect(spyUpdateSyncStatusInChain).toHaveBeenNthCalledWith(
-        1,
+      // Both fields in one write.
+      expect(spyUpdateSyncStatusInChain).toBeCalledTimes(1);
+      expect(spyUpdateSyncStatusInChain).toBeCalledWith(
         chainName,
         "isSyncing",
         true,
-        "isAbort",
-        false,
-      );
-      expect(spyUpdateSyncStatusInChain).toHaveBeenNthCalledWith(
-        2,
-        chainName,
-        "isSyncing",
-        true,
-        "isSyncing",
-        false,
+        { isSyncing: false, isAbort: false },
       );
     });
   }
@@ -114,11 +103,11 @@ describe("stopSyncingInChain", () => {
 
 describe("stopSyncingInContract", () => {
   // set spy
-  const spyUpdateDbItemSyncStatus: MockInstance = vi
-    .spyOn(DbItemSyncStatus, "updateDbItemSyncStatus")
+  const spyUpdateDbRecordSyncStatus: MockInstance = vi
+    .spyOn(UpdateDbRecordSyncStatus, "updateDbRecordSyncStatus")
     .mockResolvedValue(undefined);
   beforeEach(() => {
-    spyUpdateDbItemSyncStatus.mockClear();
+    spyUpdateDbRecordSyncStatus.mockClear();
   });
   for (const targetChain of TARGET_CHAINS) {
     const chainName: Chain["name"] = targetChain.name;
@@ -139,18 +128,12 @@ describe("stopSyncingInContract", () => {
             // call target
             await stopSyncingInContract(dbEventLogs, contractName);
             // expect
-            expect(spyUpdateDbItemSyncStatus).toBeCalledTimes(2);
-            expect(spyUpdateDbItemSyncStatus).toBeCalledWith(
+            // Both fields in one write.
+            expect(spyUpdateDbRecordSyncStatus).toBeCalledTimes(1);
+            expect(spyUpdateDbRecordSyncStatus).toBeCalledWith(
               dbEventLogs,
               contractName,
-              "isSyncing",
-              false,
-            );
-            expect(spyUpdateDbItemSyncStatus).toBeCalledWith(
-              dbEventLogs,
-              contractName,
-              "isAbort",
-              false,
+              { isSyncing: false, isAbort: false },
             );
           });
         }
