@@ -24,6 +24,30 @@ export async function addEventLogs_updateFetchedBlockNumber(
   groupedEventLogs: GroupedEventLogs,
   toBlockNumber: number,
 ): Promise<void> {
+  const newSyncStatusContract: Partial<SyncStatusContract> =
+    await saveEventLogs_updateFetchedBlockNumber(
+      dbEventLogs,
+      targetContract,
+      groupedEventLogs,
+      toBlockNumber,
+    );
+  // Update the store only after the commit: the next range starts from the
+  // fetchedBlockNumber in the store.
+  storeSyncStatus.updateState(
+    { ...dbEventLogs.versionIdentifier, contractName: targetContract.name },
+    newSyncStatusContract,
+  );
+}
+
+// Saves the logs and moves fetchedBlockNumber in one transaction, without the
+// store: for the DB worker, whose store is not the page's. Returns the new
+// values of the sync status, for the store of the page.
+export async function saveEventLogs_updateFetchedBlockNumber(
+  dbEventLogs: DbEventLogs,
+  targetContract: Contract,
+  groupedEventLogs: GroupedEventLogs,
+  toBlockNumber: number,
+): Promise<Partial<SyncStatusContract>> {
   const eventLogTables: Table[] = getUpdateTargetEventLogTables(
     dbEventLogs,
     targetContract.name,
@@ -90,12 +114,7 @@ export async function addEventLogs_updateFetchedBlockNumber(
       .table(DB_TABLE_NAMES.EventLog.syncStatus)
       .update(targetContract.name, newSyncStatusContract);
   });
-  // Update the store only after the commit: the next range starts from the
-  // fetchedBlockNumber in the store.
-  storeSyncStatus.updateState(
-    { ...dbEventLogs.versionIdentifier, contractName: targetContract.name },
-    newSyncStatusContract,
-  );
+  return newSyncStatusContract;
 }
 
 export async function getEventLogTableRecordCount(

@@ -103,10 +103,8 @@ export function getWarpSyncEnd(
 ): number | undefined {
   let end: number | undefined = undefined;
   for (const chunk of manifest.chunks) {
-    for (const range of chunk.contracts) {
-      if (!targets.has(getWarpSyncKey(range))) continue;
-      end = Math.max(end ?? range.toBlock, range.toBlock);
-    }
+    if (!targets.has(getWarpSyncKey(chunk))) continue;
+    end = Math.max(end ?? chunk.toBlock, chunk.toBlock);
   }
   return end;
 }

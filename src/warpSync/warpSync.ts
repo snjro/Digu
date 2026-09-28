@@ -77,7 +77,7 @@ async function runImport(targetChain: Chain): Promise<void> {
     setWarpSyncState(chainName, {
       status: toBlock === undefined ? "none" : "imported",
       toBlock,
-      createdAt: manifest.chunks.at(-1)?.createdAt,
+      createdAt: manifest.runs.at(-1)?.createdAt,
     });
   } catch (error) {
     customLogger.error("Import the warp sync snapshot.", {

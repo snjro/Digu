@@ -1,4 +1,6 @@
 import "fake-indexeddb/auto";
+import { createHash } from "node:crypto";
+import { gzipSync } from "node:zlib";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Chain, Contract } from "@constants/chains/types";
@@ -8,6 +10,7 @@ import {
   updateDbItemChainStatus,
 } from "@db/dbChainStatusDataHandlers";
 import { DB_TABLE_NAMES } from "@db/constants";
+import { startDbWorker } from "@db/db.worker.portal";
 import type {
   ConvertedEventLog,
   SyncStatusContract,
@@ -18,16 +21,29 @@ import { storeSyncStatus } from "@stores/storeSyncStatus";
 import Dexie from "dexie";
 import { get } from "svelte/store";
 import { makeWarpSyncLog } from "../testUtils/warpSyncLogs";
-import { fetchWarpSyncChunk } from "./warpSyncFetch";
 import { importWarpSync } from "./warpSyncImport";
 import type {
-  WarpSyncChunk,
   WarpSyncLog,
   WarpSyncManifest,
   WarpSyncManifestChunk,
 } from "./warpSyncTypes";
 
-vi.mock("./warpSyncFetch", () => ({ fetchWarpSyncChunk: vi.fn() }));
+vi.mock("$app/paths", () => ({ base: "" }));
+// The worker runs in this process: the same function, without a Worker.
+vi.mock("@db/db.worker.portal", () => ({
+  startDbWorker: vi.fn(
+    async (message: { targetFunctionName: string; params: unknown }) => {
+      const { executeTargetFunction } =
+        await import("@db/db.worker.executeTargetFunction");
+      return await executeTargetFunction(
+        message.targetFunctionName as "importWarpSyncFile",
+        message.params as never,
+      );
+    },
+  ),
+}));
+const fetchMock = vi.fn();
+vi.stubGlobal("fetch", fetchMock);
 
 const matic: Chain = TARGET_CHAINS.find((chain) => chain.name === "matic")!;
 const project = matic.projects[0];
@@ -43,9 +59,10 @@ const FROM = "0x1111111111111111111111111111111111111111";
 const TO = "0x2222222222222222222222222222222222222222";
 const key = { project: project.name, version: version.name, name: feePot.name };
 
-// Two chunks: to 20,000,000 and to 30,000,000.
-const chunkLogs: Record<string, [number, number, WarpSyncLog[]]> = {
-  "logs-20000000.json": [
+// A file to 20,000,000, a range without logs to 25,000,000, and a file to
+// 30,000,000.
+const ranges: [number, number, WarpSyncLog[] | null][] = [
+  [
     CREATION,
     20_000_000,
     [
@@ -54,55 +71,68 @@ const chunkLogs: Record<string, [number, number, WarpSyncLog[]]> = {
       makeWarpSyncLog(feePot, "Transfer", [FROM, TO, 3n], 19_000_000, 0),
     ],
   ],
-  "logs-30000000.json": [
-    20_000_001,
+  [20_000_001, 25_000_000, null],
+  [
+    25_000_001,
     30_000_000,
-    [makeWarpSyncLog(feePot, "Transfer", [FROM, TO, 4n], 25_000_000, 0)],
+    [makeWarpSyncLog(feePot, "Transfer", [FROM, TO, 4n], 26_000_000, 0)],
   ],
-};
+];
+const sha256 = (data: Uint8Array | string) =>
+  createHash("sha256").update(data).digest("hex");
+const files: Map<string, Uint8Array> = new Map();
+const chunks: WarpSyncManifestChunk[] = ranges.map(
+  ([fromBlock, toBlock, logs], index) => {
+    const range = { ...key, fromBlock, toBlock, logCount: logs?.length ?? 0 };
+    if (logs === null) return { ...range, file: null };
+    // The first file starts at the creation block unless a test moves it.
+    const text = JSON.stringify({
+      formatVersion: 2,
+      chainId: 137,
+      ...key,
+      address: feePot.address,
+      fromBlock: index === 0 ? CREATION : fromBlock,
+      toBlock,
+      logs,
+    });
+    const gzip = new Uint8Array(gzipSync(text));
+    const file = `Augur-turbo-FeePot-${toBlock}.json.gz`;
+    files.set(file, gzip);
+    return {
+      ...range,
+      file,
+      bytes: gzip.length,
+      rawBytes: text.length,
+      sha256: sha256(gzip),
+      rawSha256: sha256(text),
+    };
+  },
+);
 function manifest(
   change: Partial<WarpSyncManifest["contracts"][number]> = {},
   firstFromBlock: number = CREATION,
 ): WarpSyncManifest {
-  const chunks: WarpSyncManifestChunk[] = Object.entries(chunkLogs).map(
-    ([file, [fromBlock, toBlock, logs]], index) => ({
-      file,
-      sha256: "",
-      createdAt: "",
-      latestBlockNumber: 0,
-      logCount: logs.length,
-      contracts: [
-        {
-          ...key,
-          fromBlock: index === 0 ? firstFromBlock : fromBlock,
-          toBlock,
-          logCount: logs.length,
-        },
-      ],
-    }),
-  );
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     chainName: "matic",
     chainId: 137,
     contracts: [
       { ...key, address: feePot.address, creationBlock: CREATION, ...change },
     ],
-    chunks,
+    runs: [
+      {
+        createdAt: "2026-09-28T00:00:00.000Z",
+        latestBlockNumber: 30_000_128,
+        toBlock: 30_000_000,
+        logCount: 4,
+      },
+    ],
+    chunks: [{ ...chunks[0], fromBlock: firstFromBlock }, ...chunks.slice(1)],
+    totals: { logCount: 4, bytes: 0, rawBytes: 0 },
   };
 }
-vi.mocked(fetchWarpSyncChunk).mockImplementation(
-  async (_, manifestChunk): Promise<WarpSyncChunk> => {
-    const [fromBlock, toBlock, logs] = chunkLogs[manifestChunk.file];
-    return {
-      formatVersion: 1,
-      chainId: 137,
-      contracts: [
-        { ...key, address: feePot.address, fromBlock, toBlock, logs },
-      ],
-    };
-  },
-);
+const fetchedFiles = () =>
+  fetchMock.mock.calls.map(([url]) => String(url).split("/").at(-1));
 
 const db = () => getDbEventLogs(versionIdentifier);
 async function rows(eventName: string): Promise<ConvertedEventLog[]> {
@@ -121,17 +151,24 @@ describe("importWarpSync", () => {
   beforeEach(async () => {
     await Dexie.delete(db().name);
     await updateDbItemChainStatus("matic", "latestBlockNumber", 0);
-    vi.mocked(fetchWarpSyncChunk).mockClear();
+    vi.mocked(startDbWorker).mockClear();
+    fetchMock.mockReset();
+    fetchMock.mockImplementation(async (url: string) => {
+      const gzip = files.get(url.split("/").at(-1)!);
+      return gzip
+        ? new Response(gzip as BodyInit)
+        : new Response("", { status: 404 });
+    });
   });
 
-  test("imports every chunk into a DB that has nothing yet", async () => {
+  test("imports every file into a DB that has nothing yet, in the DB worker", async () => {
     expect(await importWarpSync(matic, manifest())).toBe(30_000_000);
 
     const transfers = await rows("Transfer");
     expect(transfers.map((row) => row.blockNumber)).toEqual([
       CREATION + 10,
       19_000_000,
-      25_000_000,
+      26_000_000,
     ]);
     expect(transfers.map((row) => row.args)).toEqual([
       [FROM, TO, 1n],
@@ -157,6 +194,21 @@ describe("importWarpSync", () => {
     expect(storeContract.fetchedBlockNumber).toBe(30_000_000);
     expect(storeContract.events.Transfer?.recordCount).toBe(3);
 
+    // One worker for each file; the range without logs needs none.
+    expect(startDbWorker).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(startDbWorker).mock.calls[0][0]).toMatchObject({
+      targetFunctionName: "importWarpSyncFile",
+      params: {
+        versionIdentifier,
+        contractName: "FeePot",
+        chainId: 137,
+        url: new URL(
+          "/warp-sync/matic/Augur-turbo-FeePot-20000000.json.gz",
+          location.href,
+        ).href,
+      },
+    });
+
     // The progress uses it when there is no RPC.
     expect((await getDbRecordChainStatus("matic")).latestBlockNumber).toBe(
       30_000_000,
@@ -168,31 +220,40 @@ describe("importWarpSync", () => {
     await setFetchedBlockNumber(19_500_000);
     await importWarpSync(matic, manifest());
     expect((await rows("Transfer")).map((row) => row.blockNumber)).toEqual([
-      25_000_000,
+      26_000_000,
     ]);
     expect(await rows("Approval")).toEqual([]);
     expect((await syncStatus()).fetchedBlockNumber).toBe(30_000_000);
   });
 
-  test("skips the chunks that the DB has", async () => {
+  test("skips the files that the DB has, and moves over a range without logs", async () => {
     await setFetchedBlockNumber(20_000_000);
     await importWarpSync(matic, manifest());
-    expect(fetchWarpSyncChunk).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(fetchWarpSyncChunk).mock.calls[0][1].file).toBe(
-      "logs-30000000.json",
-    );
+    expect(fetchedFiles()).toEqual(["Augur-turbo-FeePot-30000000.json.gz"]);
+    expect((await syncStatus()).fetchedBlockNumber).toBe(30_000_000);
   });
 
   test("fetches nothing when the DB has the whole snapshot", async () => {
     await setFetchedBlockNumber(31_000_000);
     expect(await importWarpSync(matic, manifest())).toBe(30_000_000);
-    expect(fetchWarpSyncChunk).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
     expect((await syncStatus()).fetchedBlockNumber).toBe(31_000_000);
+  });
+
+  test("keeps the files imported before a file that fails", async () => {
+    fetchMock.mockImplementation(async (url: string) =>
+      url.endsWith("30000000.json.gz")
+        ? new Response("", { status: 500 })
+        : new Response(files.get(url.split("/").at(-1)!)! as BodyInit),
+    );
+    await expect(importWarpSync(matic, manifest())).rejects.toThrow("HTTP 500");
+    expect((await syncStatus()).fetchedBlockNumber).toBe(25_000_000);
+    expect(await rows("Transfer")).toHaveLength(2);
   });
 
   test("skips a contract whose logs would have a gap", async () => {
     await importWarpSync(matic, manifest({}, CREATION + 100));
-    expect(fetchWarpSyncChunk).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
     expect((await syncStatus()).fetchedBlockNumber).toBe(CREATION);
   });
 
@@ -203,7 +264,7 @@ describe("importWarpSync", () => {
         manifest({ address: "0x0000000000000000000000000000000000000001" }),
       ),
     ).toBeUndefined();
-    expect(fetchWarpSyncChunk).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
     expect((await getDbRecordChainStatus("matic")).latestBlockNumber).toBe(0);
   });
 

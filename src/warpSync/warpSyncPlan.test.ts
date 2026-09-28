@@ -28,11 +28,13 @@ function manifestContract(contract: Contract): WarpSyncManifestContract {
 }
 function manifest(contracts: WarpSyncManifestContract[]): WarpSyncManifest {
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     chainName: "matic",
     chainId: 137,
     contracts,
+    runs: [],
     chunks: [],
+    totals: { logCount: 0, bytes: 0, rawBytes: 0 },
   };
 }
 
@@ -156,22 +158,9 @@ describe("getWarpSyncEnd", () => {
     const value: WarpSyncManifest = {
       ...manifest([key]),
       chunks: [
-        {
-          file: "a",
-          sha256: "",
-          createdAt: "",
-          latestBlockNumber: 0,
-          logCount: 0,
-          contracts: [range(key.name, 200)],
-        },
-        {
-          file: "b",
-          sha256: "",
-          createdAt: "",
-          latestBlockNumber: 0,
-          logCount: 0,
-          contracts: [range(key.name, 300), range(other.name, 900)],
-        },
+        { ...range(key.name, 200), file: null },
+        { ...range(key.name, 300), file: null },
+        { ...range(other.name, 900), file: null },
       ],
     };
     expect(getWarpSyncEnd(value, targets)).toBe(300);

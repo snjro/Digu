@@ -7,6 +7,10 @@ import type {
   DbWorkerResultValue,
   TargetFunctionName,
 } from "./db.worker.types";
+import {
+  importWarpSyncFile,
+  type ImportWarpSyncFileParams,
+} from "@warpSync/warpSyncImportFile";
 
 export async function executeTargetFunction<T extends TargetFunctionName>(
   targetFunctionName: T,
@@ -25,6 +29,11 @@ export async function executeTargetFunction<T extends TargetFunctionName>(
     case "getConvertedEventLogs":
       resultValue = await dbWorkerFuncGetConvertedEventLogs(
         params as AbiFragmentIdentifier,
+      );
+      break;
+    case "importWarpSyncFile":
+      resultValue = await importWarpSyncFile(
+        params as ImportWarpSyncFileParams,
       );
       break;
   }

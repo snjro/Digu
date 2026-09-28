@@ -40,7 +40,7 @@ vi.mock("@eventLogs/syncLock", () => ({
 const matic = { name: "matic" } as Chain;
 const eth = { name: "eth" } as Chain;
 const manifest = {
-  chunks: [{ createdAt: "2026-09-28T00:00:00.000Z" }],
+  runs: [{ createdAt: "2026-09-28T00:00:00.000Z" }],
 } as WarpSyncManifest;
 
 function setWarpSync(chainName: string, warpSync: boolean): void {
