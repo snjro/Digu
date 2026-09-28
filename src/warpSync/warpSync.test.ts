@@ -40,7 +40,7 @@ vi.mock("@eventLogs/syncLock", () => ({
 const matic = { name: "matic" } as Chain;
 const eth = { name: "eth" } as Chain;
 const manifest = {
-  chunks: [{ createdAt: "2026-09-28T00:00:00.000Z" }],
+  runs: [{ createdAt: "2026-09-28T00:00:00.000Z" }],
 } as WarpSyncManifest;
 
 function setWarpSync(chainName: string, warpSync: boolean): void {
@@ -118,6 +118,22 @@ describe("warpSync", () => {
     await startWarpSync(matic);
     await startWarpSync(eth);
     expect(fetchWarpSyncManifest).not.toHaveBeenCalled();
+  });
+
+  test("fetches nothing without DecompressionStream, says so, and does not try again", async () => {
+    vi.stubGlobal("DecompressionStream", undefined);
+    try {
+      await startWarpSync(matic);
+      await importWarpSyncBeforeSync(matic);
+      expect(fetchWarpSyncManifest).not.toHaveBeenCalled();
+      expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
+        "unsupported",
+      );
+      await startWarpSync(matic);
+      expect(fetchWarpSyncManifest).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   test("says so when the chain has no snapshot", async () => {

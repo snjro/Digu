@@ -23,7 +23,7 @@ function isWarpSyncOn(chainName: ChainName): boolean {
 }
 function isDone(chainName: ChainName): boolean {
   const { status } = selectWarpSyncState(get(storeWarpSync), chainName);
-  return status === "imported" || status === "none";
+  return status === "imported" || status === "none" || status === "unsupported";
 }
 
 // The imports that run in this tab.
@@ -62,6 +62,14 @@ export async function importWarpSyncBeforeSync(
 
 async function runImport(targetChain: Chain): Promise<void> {
   const chainName: ChainName = targetChain.name;
+  // The files are gzip. Nothing is fetched, and the sync fetches the logs.
+  if (typeof DecompressionStream === "undefined") {
+    customLogger.info("Skip the warp sync: no DecompressionStream.", {
+      chainName,
+    });
+    setWarpSyncState(chainName, { status: "unsupported" });
+    return;
+  }
   setWarpSyncState(chainName, { status: "importing" });
   try {
     const manifest: WarpSyncManifest | undefined =
@@ -77,7 +85,7 @@ async function runImport(targetChain: Chain): Promise<void> {
     setWarpSyncState(chainName, {
       status: toBlock === undefined ? "none" : "imported",
       toBlock,
-      createdAt: manifest.chunks.at(-1)?.createdAt,
+      createdAt: manifest.runs.at(-1)?.createdAt,
     });
   } catch (error) {
     customLogger.error("Import the warp sync snapshot.", {

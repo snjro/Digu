@@ -40,6 +40,8 @@ export function getWarpSyncHelperText(
       return `Could not import the event logs published with this site. ${TURN_OFF}`;
     case "none":
       return "This site has no event logs of this chain to import.";
+    case "unsupported":
+      return "This browser cannot import the event logs published with this site: the logs are fetched only from your RPC.";
     default:
       return `Imports the event logs published with this site when the chain is opened. ${TURN_OFF}`;
   }

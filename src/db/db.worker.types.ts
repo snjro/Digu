@@ -1,17 +1,32 @@
+import type {
+  ImportWarpSyncFileParams,
+  ImportWarpSyncFileResult,
+} from "@warpSync/warpSyncImportFile";
 import type { AbiFragmentIdentifier, ConvertedEventLog } from "./dbTypes";
 
 export type TargetFunctionName =
-  "initializeDBSyncStatus" | "initializeDbSettings" | "getConvertedEventLogs";
+  | "initializeDBSyncStatus"
+  | "initializeDbSettings"
+  | "getConvertedEventLogs"
+  | "importWarpSyncFile";
 
 export type DbWorkerMessageParams<T extends TargetFunctionName> =
-  T extends "getConvertedEventLogs" ? AbiFragmentIdentifier : undefined;
+  T extends "getConvertedEventLogs"
+    ? AbiFragmentIdentifier
+    : T extends "importWarpSyncFile"
+      ? ImportWarpSyncFileParams
+      : undefined;
 
 export type DbWorkerMessage<T extends TargetFunctionName> = {
   targetFunctionName: T;
   params: DbWorkerMessageParams<T>;
 };
 export type DbWorkerResultValue<T extends TargetFunctionName> =
-  T extends "getConvertedEventLogs" ? ConvertedEventLog[] : undefined;
+  T extends "getConvertedEventLogs"
+    ? ConvertedEventLog[]
+    : T extends "importWarpSyncFile"
+      ? ImportWarpSyncFileResult
+      : undefined;
 
 export type DbWorkerResult<T extends TargetFunctionName> =
   | { log: string; value: DbWorkerResultValue<T> }

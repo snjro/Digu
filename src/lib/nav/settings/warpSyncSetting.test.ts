@@ -65,6 +65,10 @@ describe("getWarpSyncHelperText", () => {
     ],
     ["none", "This site has no event logs of this chain to import."],
     [
+      "unsupported",
+      "This browser cannot import the event logs published with this site: the logs are fetched only from your RPC.",
+    ],
+    [
       "idle",
       "Imports the event logs published with this site when the chain is opened. Turn it off to fetch logs only from your RPC.",
     ],
