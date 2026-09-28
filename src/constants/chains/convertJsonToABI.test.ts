@@ -45,10 +45,20 @@ describe("convertJsonFilesContractToContracts", () => {
     ).toEqual(["anonymousEvent", "namedEvent"]);
   });
   test(`should exclude "LogNote" of "Cash" from events.names`, () => {
+    // Cash itself is not synced.
+    const [contract]: Contract[] = convertJsonFilesContractToContracts([
+      { ...(Cash as JsonFileContract), syncEvents: true },
+    ]);
+    expect(contract.events.names).toEqual(["Approval", "Transfer"]);
+    expect(
+      contract.events.abiFragments.map((abiFragment) => abiFragment.name),
+    ).toEqual(["Approval", "LogNote", "Transfer"]);
+  });
+  test(`should give "Cash" no event name to sync, and keep its ABI`, () => {
     const [contract]: Contract[] = convertJsonFilesContractToContracts([
       Cash as JsonFileContract,
     ]);
-    expect(contract.events.names).toEqual(["Approval", "Transfer"]);
+    expect(contract.events.names).toEqual([]);
     expect(
       contract.events.abiFragments.map((abiFragment) => abiFragment.name),
     ).toEqual(["Approval", "LogNote", "Transfer"]);

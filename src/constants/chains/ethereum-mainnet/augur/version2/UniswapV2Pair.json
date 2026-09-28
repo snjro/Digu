@@ -8,6 +8,7 @@
     "timestamp": 1589164213
   },
   "sourceCodeUrl": "https://github.com/AugurProject/augur/blob/dev/packages/augur-core/src/contracts/uniswap/UniswapV2Pair.sol",
+  "syncEvents": false,
   "abi": [
     {
       "inputs": [],

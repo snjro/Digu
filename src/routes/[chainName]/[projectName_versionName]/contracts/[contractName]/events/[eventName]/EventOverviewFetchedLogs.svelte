@@ -21,7 +21,7 @@
   import { customLogger } from "@utils/logger";
   import classNames from "classnames";
   import EventOverviewFetchedLogsEdge from "./EventOverviewFetchedLogsEdge.svelte";
-  import { MESSAGE_ANONYMOUS_EVENT_LOGS } from "./EventLogs.svelte";
+  import { getUnfetchedLogsMessage } from "./unfetchedLogsMessage";
   import { applyLatestLoad } from "./latestLoad";
 
   interface Props {
@@ -40,6 +40,10 @@
     targetEventAbiFragment,
   }: Props = $props();
 
+  let unfetchedLogsMessage: string | undefined = $derived(
+    getUnfetchedLogsMessage(targetContract, targetEventAbiFragment),
+  );
+
   // The sync adds to it when it saves logs of this event.
   let recordCount: number | undefined = $derived(
     $storeSyncStatus[targetChain.name].subSyncStatuses[targetProject.name]
@@ -54,8 +58,7 @@
   };
   let edges: EventLogEdges = $state.raw(noLogs);
   $effect.pre(() => {
-    // Logs of anonymous events are not fetched, so their table does not exist.
-    if (targetEventAbiFragment.anonymous) {
+    if (unfetchedLogsMessage) {
       edges = noLogs;
       return;
     }
@@ -91,9 +94,9 @@
   );
 </script>
 
-{#if targetEventAbiFragment.anonymous}
+{#if unfetchedLogsMessage}
   <BaseLabel
-    text={MESSAGE_ANONYMOUS_EVENT_LOGS}
+    text={unfetchedLogsMessage}
     italic
     textSize={sizeSettings.itemWarningMessage}
   />

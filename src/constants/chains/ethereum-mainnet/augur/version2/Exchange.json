@@ -8,6 +8,7 @@
     "timestamp": 1574017290
   },
   "sourceCodeUrl": "https://github.com/AugurProject/augur/blob/dev/packages/augur-core/src/contracts/0x/exchange/contracts/src/Exchange.sol",
+  "syncEvents": false,
   "abi": [
     {
       "inputs": [

@@ -8,6 +8,7 @@
     "timestamp": 1513077455
   },
   "sourceCodeUrl": "https://github.com/AugurProject/augur/blob/dev/packages/augur-core/src/contracts/0x/erc20/contracts/src/WETH9.sol",
+  "syncEvents": false,
   "abi": [
     {
       "anonymous": false,

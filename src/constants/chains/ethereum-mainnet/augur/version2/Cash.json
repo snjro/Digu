@@ -8,6 +8,7 @@
     "timestamp": 1573672677
   },
   "sourceCodeUrl": "https://github.com/AugurProject/augur/blob/dev/packages/augur-core/src/contracts/Cash.sol",
+  "syncEvents": false,
   "abi": [
     {
       "inputs": [

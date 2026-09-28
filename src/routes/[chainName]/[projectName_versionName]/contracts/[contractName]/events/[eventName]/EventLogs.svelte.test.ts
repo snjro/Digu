@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick } from "svelte";
 import type { Writable } from "svelte/store";
 import { render, screen, waitFor } from "@testing-library/svelte";
-import type { EventAbiFragment } from "@constants/chains/types";
+import type { Contract, EventAbiFragment } from "@constants/chains/types";
 import type {
   AbiFragmentIdentifier,
   ConvertedEventLog,
@@ -12,6 +12,7 @@ import type {
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { gridRows } from "./gridRows";
 import EventLogs, { EVENT_LOGS_RELOAD_INTERVAL } from "./EventLogs.svelte";
+import { MESSAGE_UNSYNCED_CONTRACT_EVENT_LOGS } from "./unfetchedLogsMessage";
 
 // The real store and DB load the chain data, which loads ethers. ethers does
 // not load in the client project, so they are replaced.
@@ -60,6 +61,10 @@ const targetEventIdentifier: AbiFragmentIdentifier = {
   contractName: "contract1",
   abiFragmentName: "Transfer",
 } as AbiFragmentIdentifier;
+const targetContract = {
+  name: "contract1",
+  events: { names: ["Transfer", "Approval"] },
+} as unknown as Contract;
 const targetEventAbiFragment = {
   name: "Transfer",
   anonymous: false,
@@ -128,9 +133,13 @@ async function saveLogs(transfer: number): Promise<void> {
   await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
 }
 
-function renderGrid(eventLogType: "text" | "hex") {
+function renderGrid(
+  eventLogType: "text" | "hex",
+  contract: Contract = targetContract,
+) {
   return render(EventLogs, {
     targetEventIdentifier,
+    targetContract: contract,
     targetEventAbiFragment,
     eventLogType,
     isFullScreen: false,
@@ -258,5 +267,16 @@ describe("EventLogs.svelte", () => {
     expect(load).toHaveBeenCalledTimes(2);
     expect(load).toHaveBeenLastCalledWith(approval, expect.any(AbortSignal));
     await waitFor(() => expect(shown().rows).toBe(1));
+  });
+
+  test('shows a message and does not load for a contract with "syncEvents": false', async () => {
+    renderGrid("text", {
+      ...targetContract,
+      events: { ...targetContract.events, names: [] },
+    });
+    await tick();
+    expect(screen.getByText(MESSAGE_UNSYNCED_CONTRACT_EVENT_LOGS)).toBeTruthy();
+    expect(screen.queryByTestId("stub")).toBeNull();
+    expect(load).not.toHaveBeenCalled();
   });
 });

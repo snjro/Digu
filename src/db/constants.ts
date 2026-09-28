@@ -13,7 +13,8 @@ export const DB_NAME = {
 } as const;
 
 export const DB_VERSIONS = {
-  EventLog: 1,
+  // 2: stopped syncing the contracts with "syncEvents": false.
+  EventLog: 2,
   Settings: 1,
   BlockTimes: 1,
   ChainStatus: 1,
