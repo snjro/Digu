@@ -109,7 +109,6 @@
         "max-w-fit",
         "overflow-x-hidden",
         "whitespace-nowrap",
-        // "w-fit",
         hoverEffect && "hover:underline",
         baseTextSizes[textSize],
         colorClasses[colorCategory ?? "interactive"].text,

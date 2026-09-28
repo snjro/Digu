@@ -221,7 +221,6 @@
   let customClass: string = $derived(
     forcedClass ??
       twMerge(
-        // "lg:text-center",
         "inline-flex",
         "items-center",
         "disabled:cursor-not-allowed",
@@ -236,7 +235,6 @@
         type === "normal" && baseTextSizes[size],
         padding(),
         rounded && "rounded-sm",
-        // "relative",
         shadowEffect && "flex items-center",
         shadowEffect && baseShadowSizes[size],
         "dark:shadow-none",

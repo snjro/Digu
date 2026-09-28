@@ -50,9 +50,6 @@ vitest.mock("@constants/chains/_index", (): { TARGET_CHAINS: Chain[] } => {
               {
                 name: "version1",
                 contracts: [],
-                // contracts: convertJsonFilesContractToContracts([
-                //   Augur,
-                // ] as JsonFileContract[]),
               },
             ],
           },

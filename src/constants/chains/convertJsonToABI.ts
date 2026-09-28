@@ -3,7 +3,6 @@ import type { JsonFileContract } from "./jsonFileTypes";
 import type {
   AdditionalContract,
   BaseContract,
-  // AbiFragments,
   ConstructorAbiFragment,
   Contract,
   ContractInterface,

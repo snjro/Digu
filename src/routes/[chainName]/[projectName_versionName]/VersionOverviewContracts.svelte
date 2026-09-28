@@ -1,12 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { changeSize, type BaseSize } from "$lib/base/baseSizes";
-  import type {
-    Chain,
-    // Contract,
-    Project,
-    Version,
-  } from "@constants/chains/types";
+  import type { Chain, Project, Version } from "@constants/chains/types";
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseA from "$lib/base/BaseA.svelte";

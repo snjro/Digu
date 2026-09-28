@@ -74,7 +74,6 @@
       "rounded-sm",
       shadowStyle,
       "w-fit",
-      // "h-full",
       "max-h-[90%]",
       "backdrop:backdrop-brightness-50",
       colorClasses[colorSettings.dialogHeader].bg,

@@ -98,10 +98,8 @@
     (detailsPosition === "top" || detailsPosition === "bottom") && "space-y-3",
     "w-full",
     "h-full",
-    // "mx-10",
     animatePulse,
     "",
-    // "bg-green-300",
   )}
 >
   <svg

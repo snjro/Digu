@@ -18,7 +18,6 @@ export type LoadEventLogs = {
   targetContract: Contract;
   targetEventAbiFragment: EventAbiFragment;
   targetEventIdentifier: AbiFragmentIdentifier;
-  // targetConvertedEventLogs: ConvertedEventLog[];
 };
 export function load({
   params,
