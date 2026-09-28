@@ -29,7 +29,6 @@ const FAKE_RPC = `http://fake-rpc.invalid/v3/${FAKE_KEY}`;
 // #498: the Goal is latest - CONF, so every latest below is the value before #498 + CONF.
 const CONF = CONFIRMATION_BLOCKS;
 const V1_CREATION = 5926229;
-const V2_CASH_CREATION = 8928158;
 
 const results = {};
 const consoleLog = []; // {scenario, page, type, text}
@@ -489,7 +488,12 @@ async function dbDump(page, contractNames = null) {
   }, contractNames);
 }
 
-async function snap(page, name, extra = {}, contractNames = ["Augur", "Cash"]) {
+async function snap(
+  page,
+  name,
+  extra = {},
+  contractNames = ["Augur", "REPv2"],
+) {
   lastAction = `snap ${name}`;
   await page.screenshot({ path: path.join(outDir, `${name}.png`) });
   const step = {
@@ -615,7 +619,6 @@ async function goalCheck(page) {
 }
 
 const V1 = "Digu_EventLog_eth_Augur_version1";
-const V2 = "Digu_EventLog_eth_Augur_version2";
 const EV = "/eth/Augur-version1/contracts/Augur/events/MarketCreated/";
 
 // ---------- S1: 6-1, 6-2, 6-3, 6-5, 6-6, 6-9 ----------
@@ -875,64 +878,6 @@ if (want("S1")) {
       .catch(() => {});
   }
   note("rpc S1 all", rpcSummary(rpcState));
-  await context.close();
-}
-
-// ---------- S2: 6-4 anonymous events (v2 Cash) ----------
-if (want("S2")) {
-  scenario = "S2";
-  rpcState = makeState({ latest: V2_CASH_CREATION + 200 + CONF, delayMs: 30 });
-  const context = await browser.createBrowserContext();
-  const page = await newPage(context, "A");
-  try {
-    await gotoApp(page, "/eth/");
-    note("settingsHelper", await setupRpc(page));
-    await clickCheckbox(page, "Sync target: Augur version1");
-    await clickCheckbox(page, "Sync target: Augur version2");
-    await navIn(page, "/eth/Augur-version2/contracts/Cash/");
-    await clickCheckbox(page, "Sync target: Cash", -1);
-    await snap(page, "S2-6-4-a-cash-target", {
-      checkboxes: await checkboxes(page),
-    });
-    rpcState.calls.length = 0;
-    await clickToggle(page);
-    note(
-      "start",
-      await watchTransitions(
-        page,
-        V2,
-        "Cash",
-        (t, s) => s?.fetched >= V2_CASH_CREATION + 200,
-        60000,
-      ),
-    );
-    note("rpc", rpcSummary(rpcState));
-    await navIn(page, "/eth/Augur-version2/contracts/Cash/events/LogNote/");
-    await snap(page, "S2-6-4-b-lognote-overview");
-    await page.evaluate(() => (location.hash = "#event-logs-text"));
-    await settle(page);
-    await snap(page, "S2-6-4-c-lognote-logs-tab");
-    await navIn(page, "/eth/Augur-version2/contracts/Cash/events/Transfer/");
-    await snap(page, "S2-6-4-d-transfer-overview");
-    await navIn(page, "/eth/Augur-version2/contracts/Cash/");
-    await snap(page, "S2-6-4-e-cash-contract");
-    await clickToggle(page);
-    note(
-      "stop",
-      await watchTransitions(
-        page,
-        V2,
-        "Cash",
-        (t, s) => s?.isSyncing === false,
-        30000,
-      ),
-    );
-  } catch (e) {
-    note("error", String(e.stack ?? e));
-    await page
-      .screenshot({ path: path.join(outDir, "S2-error.png") })
-      .catch(() => {});
-  }
   await context.close();
 }
 

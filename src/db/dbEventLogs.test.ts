@@ -179,6 +179,72 @@ describe("addInitialDataOfDbEventLogs", () => {
   });
 });
 
+describe("the upgrade to version 2", () => {
+  test("should delete the tables and the sync status of the removed contracts", async () => {
+    const targetChain = TARGET_CHAINS.find((chain) => chain.name === "eth")!;
+    const targetProject = targetChain.projects[0];
+    const targetVersion = targetProject.versions.find(
+      (version) => version.name === "version2",
+    )!;
+    const versionIdentifier: VersionIdentifier = {
+      chainName: targetChain.name,
+      projectName: targetProject.name,
+      versionName: targetVersion.name,
+    };
+    const tableName = DB_TABLE_NAMES.EventLog.syncStatus;
+    const syncedContract: Contract = targetVersion.contracts.find(
+      (contract) => contract.name === "Augur",
+    )!;
+    const removedContractName = "USDT";
+    expect(
+      targetVersion.contracts.map((contract) => contract.name),
+    ).not.toContain(removedContractName);
+    const syncedTableName: string = getEventTableNames([syncedContract])[0];
+    const removedTableName = `${removedContractName}_Transfer`;
+    const dbName: string = new DbEventLogs(versionIdentifier).name;
+    await Dexie.delete(dbName);
+
+    // create the database of version 1, which had the contract
+    const oldDb = new Dexie(dbName);
+    const oldSchema: SchemaDefinition = {
+      [syncedTableName]: PK_AUTO_INCREMENTED,
+      [removedTableName]: PK_AUTO_INCREMENTED,
+      [tableName]: "name",
+    };
+    oldDb.version(1).stores(oldSchema);
+    const syncedSyncStatus: SyncStatusContract = {
+      ...getInitialDataOfSyncStatusContract(syncedContract),
+      fetchedBlockNumber: syncedContract.creation.blockNumber + 10,
+    };
+    await oldDb
+      .table(tableName)
+      .bulkAdd([
+        syncedSyncStatus,
+        { ...syncedSyncStatus, name: removedContractName },
+      ]);
+    await oldDb.table(syncedTableName).add({ blockNumber: 1 });
+    await oldDb.table(removedTableName).add({ blockNumber: 1 });
+    oldDb.close();
+
+    // call target
+    const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
+    await dbEventLogs.open();
+
+    const storeNames: string[] = [...dbEventLogs.backendDB().objectStoreNames];
+    expect(storeNames).not.toContain(removedTableName);
+    expect(storeNames).toContain(syncedTableName);
+    expect(
+      await dbEventLogs.table(tableName).get(removedContractName),
+    ).toBeUndefined();
+    expect(await dbEventLogs.table(tableName).get(syncedContract.name)).toEqual(
+      syncedSyncStatus,
+    );
+    expect(await dbEventLogs.table(syncedTableName).count()).toBe(1);
+    dbEventLogs.close();
+    await Dexie.delete(dbName);
+  });
+});
+
 describe("getDbEventLogs", () => {
   const targetChain = TARGET_CHAINS[0];
   const targetProject = targetChain.projects[0];

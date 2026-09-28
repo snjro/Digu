@@ -13,7 +13,8 @@ export const DB_NAME = {
 } as const;
 
 export const DB_VERSIONS = {
-  EventLog: 1,
+  // 2: removed the contracts of Augur version2 that Augur did not deploy.
+  EventLog: 2,
   Settings: 1,
   BlockTimes: 1,
   ChainStatus: 1,
