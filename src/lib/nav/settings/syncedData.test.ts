@@ -54,7 +54,7 @@ describe("getResetDisabledReason", () => {
       "Stop the sync first.",
     );
     expect(getResetDisabledReason({ ...free, syncStateText: "stopping" })).toBe(
-      "Stop the sync first.",
+      "Wait until the sync stops.",
     );
     expect(getResetDisabledReason({ ...free, isSyncingInOtherTab: true })).toBe(
       "The chain is synced in another tab.",

@@ -34,11 +34,10 @@ export function getResetDisabledReason(
   if (conditions.isSyncingInOtherTab) {
     return "The chain is synced in another tab.";
   }
-  if (
-    conditions.syncStateText === "syncing" ||
-    conditions.syncStateText === "stopping"
-  ) {
-    return "Stop the sync first.";
+  if (conditions.syncStateText === "syncing") return "Stop the sync first.";
+  // "stop sync" was pressed: the contracts end what they are doing first.
+  if (conditions.syncStateText === "stopping") {
+    return "Wait until the sync stops.";
   }
   if (conditions.isImporting) {
     return "Wait until the logs published with this site are imported.";

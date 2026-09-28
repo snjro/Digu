@@ -98,6 +98,14 @@ describe("SyncedData.svelte", () => {
     setChain("syncing", 0);
     render(SyncedData);
     expect(resetButton().disabled).toBe(true);
+    // As text next to the button.
+    expect(screen.getByText("Stop the sync first.")).toBeTruthy();
+
+    setChain("stopping", 0);
+    await tick();
+    expect(resetButton().disabled).toBe(true);
+    expect(screen.getByText("Wait until the sync stops.")).toBeTruthy();
+    expect(screen.queryByText("Stop the sync first.")).toBeNull();
 
     setChain("stopped", 0);
     storeSyncLockedByOtherTab.set({ matic: true });
@@ -112,6 +120,7 @@ describe("SyncedData.svelte", () => {
     setWarpSyncState("matic", { status: "imported" });
     await tick();
     expect(resetButton().disabled).toBe(false);
+    expect(screen.queryByText(/^Wait until|^Stop the sync/)).toBeNull();
   });
 
   test("asks first, and deletes nothing when it is cancelled", async () => {

@@ -120,9 +120,17 @@
       colorCategoryFront="white"
       colorCategoryBg="error"
       disabled={disabledReason !== undefined}
-      tooltipText={disabledReason}
       onclick={() => openDialog(dialogElement)}
     />
+    <!-- As text, not a tooltip: a touch screen has no hover. -->
+    {#if disabledReason}
+      <BaseLabel
+        text={disabledReason}
+        textSize={sizeSettings.navInputHelperText}
+        colorCategoryFront={colorSettings.navSettings}
+        truncate={false}
+      />
+    {/if}
   </div>
 </CommonItemMember>
 <BaseDialog
