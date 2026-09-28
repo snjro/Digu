@@ -23,6 +23,7 @@ vi.mock("@stores/storeRpcSettings", async () => {
     storeRpcSettings: writable({
       eth: { warpSync: true },
       matic: { warpSync: true },
+      other: { warpSync: true },
     }),
   };
 });
@@ -53,7 +54,8 @@ describe("WarpSyncConfig.svelte", () => {
   });
 
   test("is not shown for a chain without a snapshot", () => {
-    userSettings.set({ selectedChainName: "eth" });
+    // Every chain of the app has a snapshot now.
+    userSettings.set({ selectedChainName: "other" });
     render(WarpSyncConfig);
     expect(screen.queryByRole("checkbox", { name: "Warp sync" })).toBeNull();
   });

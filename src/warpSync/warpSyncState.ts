@@ -4,7 +4,7 @@ import { writable, type Writable } from "svelte/store";
 // Without ethers, so that the components can import it.
 
 // The chains that have a snapshot under static/warp-sync.
-export const WARP_SYNC_CHAIN_NAMES: readonly ChainName[] = ["matic"];
+export const WARP_SYNC_CHAIN_NAMES: readonly ChainName[] = ["matic", "eth"];
 
 // What is left to import (see getWarpSyncPending of warpSyncImport.ts).
 export type WarpSyncPending = {
