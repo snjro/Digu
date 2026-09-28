@@ -1,13 +1,22 @@
 // Builds the warp sync snapshot of a chain: the raw event logs of its
 // contracts, fetched with eth_getLogs under the same conditions as the sync.
 // Run it again to add the logs after the last snapshot. See README.md.
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import readline from "node:readline";
 import { parseArgs } from "node:util";
 import { Interface } from "ethers";
+import {
+  CHUNK_LOGS,
+  chunkFileName,
+  keyOf,
+  lastBlocks,
+  moveChunkFiles,
+  readManifest,
+  writeContractChunks,
+  writeManifest,
+} from "./snapshot-format.mjs";
 
-export const FORMAT_VERSION = 1;
 const CHAINS_DIR = "src/constants/chains";
 // The widths of the eth_getLogs ranges, in blocks. pocket returned 500,000
 // blocks with the topics in about 10 seconds; wider ranges were not tried.
@@ -155,20 +164,21 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Fetches the logs of [fromBlock, toBlock] in ranges, like the sync (#549,
 // #554): a failed range is tried again once, then halved, and the half
 // becomes the widest range until SUCCESSES_TO_RAISE_LIMIT full ranges work in
-// a row. A full range that works doubles the next one. After each range,
-// onProgress gets the next block and the logs so far. It stops before the
-// next request when signal is aborted (another contract stopped).
+// a row. A full range that works doubles the next one. Each range that works
+// goes to onRange(from, to, logs), with its logs by block and log index, so
+// that the logs are not all kept in memory. Returns the number of logs. It
+// stops before the next request when signal is aborted (another segment
+// stopped).
 export async function fetchLogs(
   rpc,
   contract,
   fromBlock,
   toBlock,
   log,
-  onProgress = () => {},
-  logsSoFar = [],
+  onRange = () => {},
   signal = undefined,
 ) {
-  const logs = [...logsSoFar];
+  let count = 0;
   let width = FIRST_WIDTH;
   let maxWidth = MAX_WIDTH;
   let successes = 0;
@@ -177,8 +187,9 @@ export async function fetchLogs(
   while (from <= toBlock) {
     signal?.throwIfAborted();
     const to = Math.min(from + width - 1, toBlock);
+    let result;
     try {
-      const result = await rpc("eth_getLogs", [
+      result = await rpc("eth_getLogs", [
         {
           address: contract.address,
           topics: [contract.topics],
@@ -186,20 +197,6 @@ export async function fetchLogs(
           toBlock: toHex(to),
         },
       ]);
-      logs.push(...result);
-      log(`${contract.name}: ${from}-${to} ${result.length} logs`);
-      failures = 0;
-      // A range cut at toBlock does not show that the width works.
-      if (to - from + 1 === width) {
-        successes++;
-        if (successes >= SUCCESSES_TO_RAISE_LIMIT) {
-          maxWidth = Math.min(maxWidth * 2, MAX_WIDTH);
-          successes = 0;
-        }
-        width = Math.min(width * 2, maxWidth);
-      }
-      from = to + 1;
-      onProgress(from, logs);
     } catch (error) {
       if (error instanceof RequestLimitError || signal?.aborted) throw error;
       failures++;
@@ -211,33 +208,56 @@ export async function fetchLogs(
         successes = 0;
       }
       await sleep(RETRY_WAIT_MS);
+      continue;
     }
+    // Outside the try: an error of onRange (writing the file) is not a
+    // failure of the RPC.
+    onRange(from, to, sortLogs(result));
+    count += result.length;
+    log(`${contract.name}: ${from}-${to} ${result.length} logs`);
+    failures = 0;
+    // A range cut at toBlock does not show that the width works.
+    if (to - from + 1 === width) {
+      successes++;
+      if (successes >= SUCCESSES_TO_RAISE_LIMIT) {
+        maxWidth = Math.min(maxWidth * 2, MAX_WIDTH);
+        successes = 0;
+      }
+      width = Math.min(width * 2, maxWidth);
+    }
+    from = to + 1;
   }
-  return logs;
+  return count;
 }
 
-// Keeps the fields that the app reads, as the RPC returned them. A log
-// without blockTimestamp gets it from its block.
-export async function toSnapshotLogs(rpc, contract, rawLogs) {
-  const timestamps = new Map();
-  const logs = [];
-  for (const raw of rawLogs) {
+const sortLogs = (logs) =>
+  [...logs].sort(
+    (a, b) =>
+      Number(a.blockNumber) - Number(b.blockNumber) ||
+      Number(a.logIndex) - Number(b.logIndex),
+  );
+
+// Keeps the fields that the app reads, as the RPC returned them, for logs by
+// block and log index. A log without blockTimestamp gets it from its block.
+export async function* toSnapshotLogs(rpc, contract, rawLogs) {
+  let timestamp = undefined; // [blockNumber, blockTimestamp] of the last block asked
+  for await (const raw of rawLogs) {
     if (raw.removed) throw new Error(`A removed log: ${JSON.stringify(raw)}`);
     if (raw.address.toLowerCase() !== contract.address.toLowerCase()) {
       throw new Error(`A log of another address: ${raw.address}`);
     }
     let blockTimestamp = raw.blockTimestamp;
     if (!blockTimestamp) {
-      if (!timestamps.has(raw.blockNumber)) {
+      if (timestamp?.[0] !== raw.blockNumber) {
         const block = await rpc("eth_getBlockByNumber", [
           raw.blockNumber,
           false,
         ]);
-        timestamps.set(raw.blockNumber, block.timestamp);
+        timestamp = [raw.blockNumber, block.timestamp];
       }
-      blockTimestamp = timestamps.get(raw.blockNumber);
+      blockTimestamp = timestamp[1];
     }
-    logs.push({
+    yield {
       blockNumber: raw.blockNumber,
       blockHash: raw.blockHash,
       blockTimestamp,
@@ -247,13 +267,8 @@ export async function toSnapshotLogs(rpc, contract, rawLogs) {
       address: raw.address,
       data: raw.data,
       topics: raw.topics,
-    });
+    };
   }
-  return logs.sort(
-    (a, b) =>
-      Number(a.blockNumber) - Number(b.blockNumber) ||
-      Number(a.logIndex) - Number(b.logIndex),
-  );
 }
 
 // Splits [fromBlock, toBlock] into at most `segments` ranges in order, each of
@@ -273,67 +288,84 @@ export function splitRange(fromBlock, toBlock, segments) {
 
 // ---------- the snapshot ----------
 
-const keyOf = (contract) =>
-  `${contract.project}/${contract.version}/${contract.name}`;
-
-function readManifest(file, chain) {
-  if (!fs.existsSync(file)) {
-    return {
-      formatVersion: FORMAT_VERSION,
-      chainName: chain.name,
-      chainId: chain.chainId,
-      contracts: [],
-      chunks: [],
-    };
-  }
-  const manifest = JSON.parse(read(file));
-  if (manifest.formatVersion !== FORMAT_VERSION) {
-    throw new Error(`${file} has formatVersion ${manifest.formatVersion}.`);
-  }
-  if (manifest.chainId !== chain.chainId) {
-    throw new Error(`${file} is for chainId ${manifest.chainId}.`);
-  }
-  return manifest;
+// The logs fetched so far of each segment, so that a run that stopped (at
+// --max-requests, or after failures) goes on where it stopped. Each segment
+// has a .jsonl file, to which the logs of each range are added, one log per
+// line, and a .state.json file with the next block to fetch. The logs are
+// added before the state is written, so after a stop the lines of the blocks
+// from the next block on are dropped.
+const PARTIAL_DIR = ".partial";
+// The files of the snapshot, written before they are moved next to the
+// manifest.
+const OUT_DIR = "out";
+const segmentKeyOf = (segment) =>
+  `${keyOf(segment)}/${segment.segmentFrom}-${segment.segmentTo}`;
+function segmentFiles(partialDir, segment) {
+  const base = path.join(
+    partialDir,
+    `${segment.project}__${segment.version}__${segment.name}__${segment.segmentFrom}`,
+  );
+  return { logs: `${base}.jsonl`, state: `${base}.state.json` };
 }
-
-// The last block in the snapshot for each contract.
-function lastBlocks(manifest) {
-  const last = new Map();
-  for (const chunk of manifest.chunks) {
-    for (const contract of chunk.contracts) {
-      last.set(keyOf(contract), contract.toBlock);
+function readStates(partialDir) {
+  const states = new Map();
+  if (!fs.existsSync(partialDir)) return states;
+  for (const file of fs.readdirSync(partialDir)) {
+    if (file.endsWith(".state.json")) {
+      const state = JSON.parse(read(path.join(partialDir, file)));
+      states.set(segmentKeyOf(state), state);
+    } else if (file.endsWith(".json")) {
+      // The logs of a segment in one .json file, before formatVersion 2.
+      throw new Error(
+        `${path.join(partialDir, file)} is of an older version of this script. Delete ${partialDir} and run it again.`,
+      );
     }
   }
-  return last;
+  return states;
 }
-
-// The logs fetched so far of each segment, so that a run that stopped (at
-// --max-requests, or after failures) goes on where it stopped.
-const PARTIAL_DIR = ".partial";
-const segmentKeyOf = (partial) =>
-  `${keyOf(partial)}/${partial.segmentFrom}-${partial.segmentTo}`;
-function partialFile(partialDir, partial) {
-  return path.join(
-    partialDir,
-    `${partial.project}__${partial.version}__${partial.name}__${partial.segmentFrom}.json`,
-  );
-}
-function readPartials(partialDir) {
-  const partials = new Map();
-  if (!fs.existsSync(partialDir)) return partials;
-  for (const file of fs.readdirSync(partialDir)) {
-    if (!file.endsWith(".json")) continue;
-    const partial = JSON.parse(read(path.join(partialDir, file)));
-    partials.set(segmentKeyOf(partial), partial);
-  }
-  return partials;
-}
-function writePartial(partialDir, partial) {
-  fs.mkdirSync(partialDir, { recursive: true });
-  const file = partialFile(partialDir, partial);
+function writeState(file, state) {
   // Written whole and then renamed, so that a stop does not leave half a file.
-  fs.writeFileSync(`${file}.tmp`, JSON.stringify(partial));
+  fs.writeFileSync(`${file}.tmp`, JSON.stringify(state));
   fs.renameSync(`${file}.tmp`, file);
+}
+// Keeps the lines of the blocks before nextBlock. A line that a stop left
+// half written is dropped too. It streams the file, which can be larger than
+// a string can hold.
+export async function keepLogsBefore(file, nextBlock) {
+  if (!fs.existsSync(file)) return;
+  const tmp = `${file}.tmp`;
+  const out = fs.openSync(tmp, "w");
+  try {
+    const lines = readline.createInterface({
+      input: fs.createReadStream(file),
+      crlfDelay: Infinity,
+    });
+    for await (const line of lines) {
+      let raw;
+      try {
+        raw = JSON.parse(line);
+      } catch {
+        continue;
+      }
+      if (Number(raw.blockNumber) < nextBlock) fs.writeSync(out, `${line}\n`);
+    }
+  } finally {
+    fs.closeSync(out);
+  }
+  fs.renameSync(tmp, file);
+}
+async function* readLogs(file) {
+  if (!fs.existsSync(file)) return;
+  const lines = readline.createInterface({
+    input: fs.createReadStream(file),
+    crlfDelay: Infinity,
+  });
+  for await (const line of lines) {
+    if (line) yield JSON.parse(line);
+  }
+}
+async function* readSegments(files) {
+  for (const file of files) yield* readLogs(file);
 }
 
 export async function buildSnapshot({
@@ -343,18 +375,19 @@ export async function buildSnapshot({
   toBlock,
   maxRequests,
   segments = DEFAULT_SEGMENTS,
+  chunkLogs = CHUNK_LOGS,
   log,
 }) {
   const chain = loadChain(chainName);
   const rpc = createRpc(rpcUrl, maxRequests);
   try {
-    return await build(chain, rpc, outDir, toBlock, segments, log);
+    return await build(chain, rpc, outDir, toBlock, segments, chunkLogs, log);
   } finally {
     log(`Requests: ${JSON.stringify(rpc.counts)}`);
   }
 }
 
-async function build(chain, rpc, outDir, toBlock, segments, log) {
+async function build(chain, rpc, outDir, toBlock, segments, chunkLogs, log) {
   const chainId = Number(await rpc("eth_chainId"));
   if (chainId !== chain.chainId) {
     throw new Error(`The RPC is for chainId ${chainId}, not ${chain.chainId}.`);
@@ -364,8 +397,8 @@ async function build(chain, rpc, outDir, toBlock, segments, log) {
 
   const dir = path.join(outDir, chain.name);
   const partialDir = path.join(dir, PARTIAL_DIR);
-  const partials = readPartials(partialDir);
-  const partialEnds = new Set([...partials.values()].map((p) => p.end));
+  const states = readStates(partialDir);
+  const partialEnds = new Set([...states.values()].map((s) => s.end));
   if (partialEnds.size > 1) {
     throw new Error(`${partialDir} has runs to different blocks.`);
   }
@@ -385,15 +418,6 @@ async function build(chain, rpc, outDir, toBlock, segments, log) {
 
   const manifestFile = path.join(dir, "manifest.json");
   const manifest = readManifest(manifestFile, chain);
-  // Another run to the same block would overwrite its file, and the sha256
-  // in the manifest would not match any more. Stop before fetching.
-  const file = `logs-${end}.json`;
-  if (
-    fs.existsSync(path.join(dir, file)) ||
-    manifest.chunks.some((chunk) => chunk.file === file)
-  ) {
-    throw new Error(`${path.join(dir, file)} is there already.`);
-  }
   const known = new Map(manifest.contracts.map((c) => [keyOf(c), c]));
   for (const contract of chain.contracts) {
     const before = known.get(keyOf(contract));
@@ -408,22 +432,34 @@ async function build(chain, rpc, outDir, toBlock, segments, log) {
     }
   }
   const last = lastBlocks(manifest);
-
-  // The contracts are fetched at the same time, like the sync, and each
-  // contract in segments at the same time. When one segment stops (at
-  // --max-requests, or after failures), the others stop before their next
-  // request, and all keep what they fetched in .partial/.
-  const controller = new AbortController();
   const plans = [];
   for (const contract of chain.contracts) {
     const lastBlock = last.get(keyOf(contract));
     const from =
       lastBlock === undefined ? contract.creationBlock : lastBlock + 1;
     if (from > end) continue;
+    // Another run to the same block would overwrite the file of its last
+    // logs. Stop before fetching.
+    const file = chunkFileName(contract, end);
+    if (fs.existsSync(path.join(dir, file))) {
+      throw new Error(`${path.join(dir, file)} is there already.`);
+    }
     plans.push({ contract, from, ranges: splitRange(from, end, segments) });
   }
+  if (plans.length === 0) {
+    fs.rmSync(partialDir, { recursive: true, force: true });
+    log(`Nothing to add: the snapshot already reaches block ${end}.`);
+    return undefined;
+  }
+
+  // The contracts are fetched at the same time, like the sync, and each
+  // contract in segments at the same time. When one segment stops (at
+  // --max-requests, or after failures), the others stop before their next
+  // request, and all keep what they fetched in .partial/.
+  fs.mkdirSync(partialDir, { recursive: true });
+  const controller = new AbortController();
   const fetchSegment = async ({ contract, from }, [segmentFrom, segmentTo]) => {
-    const partial = {
+    const segment = {
       project: contract.project,
       version: contract.version,
       name: contract.name,
@@ -432,24 +468,32 @@ async function build(chain, rpc, outDir, toBlock, segments, log) {
       segmentFrom,
       segmentTo,
     };
-    const saved = partials.get(segmentKeyOf(partial));
+    const files = segmentFiles(partialDir, segment);
+    const saved = states.get(segmentKeyOf(segment));
     const resumed = saved?.fromBlock === from ? saved : undefined;
+    const nextBlock = resumed?.nextBlock ?? segmentFrom;
+    await keepLogsBefore(files.logs, nextBlock);
     if (resumed) {
       log(
-        `${keyOf(contract)} ${segmentFrom}-${segmentTo}: go on from ${resumed.nextBlock}.`,
+        `${keyOf(contract)} ${segmentFrom}-${segmentTo}: go on from ${nextBlock}.`,
       );
     }
-    return fetchLogs(
+    await fetchLogs(
       rpc,
       contract,
-      resumed?.nextBlock ?? segmentFrom,
+      nextBlock,
       segmentTo,
       log,
-      (nextBlock, logs) =>
-        writePartial(partialDir, { ...partial, nextBlock, logs }),
-      resumed?.logs,
+      (_from, to, logs) => {
+        fs.appendFileSync(
+          files.logs,
+          logs.map((raw) => `${JSON.stringify(raw)}\n`).join(""),
+        );
+        writeState(files.state, { ...segment, nextBlock: to + 1 });
+      },
       controller.signal,
     );
+    return files.logs;
   };
   const fetches = plans.map((plan) =>
     plan.ranges.map((range) =>
@@ -464,33 +508,28 @@ async function build(chain, rpc, outDir, toBlock, segments, log) {
     // The error of the segment that stopped first.
     throw controller.signal.reason;
   }
-  const chunkContracts = await Promise.all(
-    plans.map(async ({ contract, from }, i) => {
-      const rawLogs = (await Promise.all(fetches[i])).flat();
-      return {
-        project: contract.project,
-        version: contract.version,
-        name: contract.name,
-        address: contract.address,
+
+  // Writes the files one contract at a time, reading the logs of its
+  // segments in the order of the blocks, so that the logs are not all in
+  // memory.
+  const tmpDir = path.join(partialDir, OUT_DIR);
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  const rows = [];
+  for (const [i, { contract, from }] of plans.entries()) {
+    const files = await Promise.all(fetches[i]);
+    rows.push(
+      ...(await writeContractChunks({
+        chainId: chain.chainId,
+        contract,
         fromBlock: from,
         toBlock: end,
-        logs: await toSnapshotLogs(rpc, contract, rawLogs),
-      };
-    }),
-  );
-  if (chunkContracts.length === 0) {
-    fs.rmSync(partialDir, { recursive: true, force: true });
-    log(`Nothing to add: the snapshot already reaches block ${end}.`);
-    return undefined;
+        logs: toSnapshotLogs(rpc, contract, readSegments(files)),
+        outDir: tmpDir,
+        maxLogs: chunkLogs,
+      })),
+    );
   }
-
-  const text = JSON.stringify({
-    formatVersion: FORMAT_VERSION,
-    chainId: chain.chainId,
-    contracts: chunkContracts,
-  });
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, file), text);
+  moveChunkFiles(rows, tmpDir, dir, manifest);
 
   for (const contract of chain.contracts) {
     known.set(keyOf(contract), {
@@ -502,24 +541,18 @@ async function build(chain, rpc, outDir, toBlock, segments, log) {
     });
   }
   manifest.contracts = [...known.values()];
-  manifest.chunks.push({
-    file,
-    sha256: crypto.createHash("sha256").update(text).digest("hex"),
+  manifest.runs.push({
     createdAt: new Date().toISOString(),
     latestBlockNumber: latest,
-    logCount: chunkContracts.reduce((sum, c) => sum + c.logs.length, 0),
-    contracts: chunkContracts.map((c) => ({
-      project: c.project,
-      version: c.version,
-      name: c.name,
-      fromBlock: c.fromBlock,
-      toBlock: c.toBlock,
-      logCount: c.logs.length,
-    })),
+    toBlock: end,
+    logCount: rows.reduce((sum, row) => sum + row.logCount, 0),
+    requests: { ...rpc.counts },
   });
-  fs.writeFileSync(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
+  manifest.chunks.push(...rows);
+  writeManifest(manifestFile, manifest);
   fs.rmSync(partialDir, { recursive: true, force: true });
-  log(`Wrote ${path.join(dir, file)} and ${manifestFile}.`);
+  const written = rows.filter((row) => row.file !== null).length;
+  log(`Wrote ${written} files to ${dir} and ${manifestFile}.`);
   return manifest;
 }
 
