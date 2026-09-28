@@ -184,6 +184,55 @@ test("converts the snapshot to formatVersion 2 with the same logs", async () => 
   );
 });
 
+test("stops at a contract that the manifest does not have", async () => {
+  const range = {
+    project: "Augur",
+    version: "turbo",
+    name: "X",
+    fromBlock: 1,
+    toBlock: 9,
+    logs: [],
+  };
+  const text = JSON.stringify({
+    formatVersion: 1,
+    chainId: 137,
+    contracts: [{ ...range, address: "0xX" }],
+  });
+  fs.writeFileSync(path.join(dir, "logs-9.json"), text);
+  fs.writeFileSync(
+    path.join(dir, "manifest.json"),
+    JSON.stringify({
+      formatVersion: 1,
+      chainName: "matic",
+      chainId: 137,
+      contracts,
+      chunks: [
+        {
+          file: "logs-9.json",
+          sha256: crypto.createHash("sha256").update(text).digest("hex"),
+          createdAt: "",
+          latestBlockNumber: 0,
+          logCount: 0,
+          contracts: [
+            {
+              project: "Augur",
+              version: "turbo",
+              name: "X",
+              fromBlock: 1,
+              toBlock: 9,
+              logCount: 0,
+            },
+          ],
+        },
+      ],
+    }),
+  );
+  await expect(convertSnapshot({ dir, log: () => {} })).rejects.toThrow(
+    "is not in the contracts of the manifest",
+  );
+  expect(fs.existsSync(path.join(dir, "logs-9.json"))).toBe(true);
+});
+
 test("stops when a file does not match its sha256", async () => {
   const sha256 = writeV1("logs-1.json", []);
   fs.appendFileSync(path.join(dir, "logs-1.json"), " ");

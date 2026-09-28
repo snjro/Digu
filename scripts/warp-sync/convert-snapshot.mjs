@@ -47,10 +47,16 @@ export async function convertSnapshot({ dir, log }) {
           `${chunk.file} does not have the logs of ${keyOf(range)}.`,
         );
       }
+      const address = addresses.get(keyOf(range));
+      if (!address) {
+        throw new Error(
+          `${keyOf(range)} of ${chunk.file} is not in the contracts of the manifest.`,
+        );
+      }
       manifest.chunks.push(
         ...(await writeContractChunks({
           chainId: old.chainId,
-          contract: { ...range, address: addresses.get(keyOf(range)) },
+          contract: { ...range, address },
           fromBlock: range.fromBlock,
           toBlock: range.toBlock,
           logs: contract.logs,

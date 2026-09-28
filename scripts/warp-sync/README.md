@@ -74,7 +74,10 @@ The first run fetches from the creation block of each contract. A later run
 reads `manifest.json` and fetches only the blocks after the last run, into
 new files. It stops when a contract changed its address or creation block,
 and when a file that it would write is there already (another run to the
-same block would overwrite it).
+same block would overwrite it). A run that stopped after it moved its files
+next to the manifest and before it wrote the manifest leaves files that the
+manifest does not list, and the next run stops at them: delete the files that
+are not in `manifest.json` (`git status` shows them), and run it again.
 
 A snapshot of formatVersion 1 is converted once, without sending anything,
 before the first run of this script on it:
@@ -86,7 +89,10 @@ docker compose run --rm app node scripts/warp-sync/convert-snapshot.mjs \
 
 It checks the `sha256` of each file of formatVersion 1, writes the same logs
 into the files of formatVersion 2 (one run of formatVersion 1 becomes one
-run), writes `manifest.json` and deletes the files of formatVersion 1.
+run), writes `manifest.json` and deletes the files of formatVersion 1. It
+stops when a contract of a file is not in the contracts of the manifest. If it
+stops after it moved the new files, delete them (`git status`) and run it
+again.
 
 It fetches like the sync: one `eth_getLogs` per range with the address and
 the topic 0 of the events that are not anonymous. The ranges start at
