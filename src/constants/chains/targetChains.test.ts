@@ -17,6 +17,17 @@ const contracts = TARGET_CHAINS.flatMap((targetChain) =>
     ),
   ),
 );
+const versions = TARGET_CHAINS.flatMap((targetChain) =>
+  targetChain.projects.flatMap((targetProject) =>
+    targetProject.versions.map(
+      (targetVersion) =>
+        [
+          `${targetChain.name}/${targetProject.name}-${targetVersion.name}`,
+          targetVersion,
+        ] as const,
+    ),
+  ),
+);
 const ABI_FRAGMENT_TYPES = [
   "constructor",
   "function",
@@ -39,6 +50,18 @@ describe("TARGET_CHAINS", () => {
       expect(Number.isInteger(blockNumber) && blockNumber > 0).toBe(true);
       expect(Number.isInteger(timestamp) && timestamp > 0).toBe(true);
       expect(isHexString(creator, 20)).toBe(true);
+    });
+  });
+  // The URL, the table names and the store use the contract name as the key.
+  describe.each(versions)("%s", (_, targetVersion) => {
+    test("contract names are unique", () => {
+      const names = targetVersion.contracts.map(
+        (targetContract) => targetContract.name,
+      );
+      const duplicates = names.filter(
+        (name, index) => names.indexOf(name) !== index,
+      );
+      expect(duplicates).toEqual([]);
     });
   });
 });
