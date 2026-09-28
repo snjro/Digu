@@ -22,15 +22,26 @@ const CHAINS_DIR = "src/constants/chains";
 // blocks with the topics in about 10 seconds; wider ranges were not tried.
 const FIRST_WIDTH = 100_000;
 const MAX_WIDTH = 500_000;
+// The widest range for a chain whose public RPC passes the requests to nodes
+// that refuse more than 10,000 blocks (Ethereum with pocket: #576, #580).
+const MAX_WIDTHS = { eth: 9_999 };
 // Like the sync (SUCCESSES_TO_RAISE_LIMIT of eventLogsContract.ts): an RPC may
 // pass each request to another node with another limit, so a limit learned
 // from failures is doubled again after this many successes in a row.
 const SUCCESSES_TO_RAISE_LIMIT = 10;
-// The range of each contract is split into this many segments, fetched at
-// the same time. A segment has at least MAX_WIDTH blocks.
-const DEFAULT_SEGMENTS = 4;
+// Like the sync (ERRORS_TO_HALVE_ANYWAY): failures in a row, of any kind,
+// after which the range is halved.
+const ERRORS_TO_HALVE_ANYWAY = 3;
+// The blocks of each contract are split into parts of this many blocks, and
+// DEFAULT_CONCURRENCY workers take the next part when they finish one (#586).
+const DEFAULT_PART_BLOCKS = 500_000;
+const DEFAULT_CONCURRENCY = 24;
 // Failures in a row before the script gives up.
 const MAX_FAILURES = 10;
+// A request that does not answer in this time is a failure.
+const REQUEST_TIMEOUT_MS = Number(
+  process.env.WARP_SYNC_REQUEST_TIMEOUT_MS ?? 60_000,
+);
 // The wait after a failure. Shorter only to check the script with a fake RPC.
 const RETRY_WAIT_MS = Number(process.env.WARP_SYNC_RETRY_WAIT_MS ?? 1000);
 
@@ -130,6 +141,18 @@ function loadContracts(chainDir, chainIndex) {
 // Thrown before a request over the limit is sent. Not tried again.
 export class RequestLimitError extends Error {}
 
+// An error that the RPC returned: an HTTP status, or the error of the
+// JSON-RPC response.
+export class RpcError extends Error {
+  constructor(method, { status, rpcError }) {
+    super(
+      `${method}: ${status !== undefined ? `HTTP ${status}` : JSON.stringify(rpcError)}`,
+    );
+    this.status = status;
+    this.rpcError = rpcError;
+  }
+}
+
 // rpc.counts has the number of requests sent, by method.
 export function createRpc(url, maxRequests = Infinity) {
   let id = 0;
@@ -145,48 +168,106 @@ export function createRpc(url, maxRequests = Infinity) {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ jsonrpc: "2.0", id: ++id, method, params }),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
-    if (!response.ok) {
-      throw new Error(`${method}: HTTP ${response.status}`);
-    }
+    if (!response.ok) throw new RpcError(method, { status: response.status });
     const body = await response.json();
-    if (body.error) {
-      throw new Error(`${method}: ${JSON.stringify(body.error)}`);
-    }
+    if (body.error) throw new RpcError(method, { rpcError: body.error });
     return body.result;
   }
   rpc.counts = counts;
   return rpc;
 }
+
+// Like isErrorUnrelatedToRange of the sync (src/utils/utilsEthers.ts): the
+// errors of a node without old blocks, which come for any width.
+const ERRORS_UNRELATED_TO_RANGE = [
+  "historical state is not available",
+  "pruned history unavailable",
+  "old data not available due to pruning",
+];
+// "results": the range has more logs than the RPC returns at once (pocket:
+// "query exceeds max results 20000"). "unrelated": an error that may not come
+// again for the same range, as in the sync: HTTP 500 or 504, or a node
+// without old blocks. "range": any other error, which may come from a range
+// that is too wide.
+export function classifyError(error) {
+  if (!(error instanceof RpcError)) return "range";
+  if (error.status === 500 || error.status === 504) return "unrelated";
+  const message = String(error.rpcError?.message ?? "");
+  if (/max results/i.test(message)) return "results";
+  if (ERRORS_UNRELATED_TO_RANGE.some((text) => message.includes(text))) {
+    return "unrelated";
+  }
+  return "range";
+}
 const toHex = (value) => `0x${value.toString(16)}`;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// The widths of the ranges of one contract, shared by its parts, which are
+// fetched at the same time: what one part learns, the others use.
+export function createWidths(maxWidth = MAX_WIDTH) {
+  return {
+    cap: maxWidth,
+    width: Math.min(FIRST_WIDTH, maxWidth),
+    maxWidth,
+    successes: 0,
+  };
+}
+function halve(widths) {
+  widths.width = Math.max(1, Math.floor(widths.width / 2));
+  widths.maxWidth = widths.width;
+  widths.successes = 0;
+}
+
+// What happened in a run, for the manifest.
+export function createFetchStats() {
+  return {
+    // #576: an empty result is asked again once; the second answer is kept.
+    emptyRangesAskedAgain: 0,
+    emptyRangesWithLogs: 0,
+    errors: { results: 0, unrelated: 0, range: 0 },
+  };
+}
+
 // Fetches the logs of [fromBlock, toBlock] in ranges, like the sync (#549,
-// #554): a failed range is tried again once, then halved, and the half
-// becomes the widest range until SUCCESSES_TO_RAISE_LIMIT full ranges work in
-// a row. A full range that works doubles the next one. Each range that works
-// goes to onRange(from, to, logs), with its logs by block and log index, so
-// that the logs are not all kept in memory. Returns the number of logs. It
-// stops before the next request when signal is aborted (another segment
-// stopped).
+// #554, #591). A full range that works doubles the next one, up to maxWidth.
+// A failure is tried again after a wait:
+// - "results" (too many logs): the range is halved at once, without a wait
+//   and without counting a failure.
+// - "unrelated" (HTTP 500, 504, a node without old blocks): the same range.
+// - "range": halved after two in a row, and the half becomes the widest
+//   range until SUCCESSES_TO_RAISE_LIMIT full ranges work in a row.
+// - Any kind: halved after ERRORS_TO_HALVE_ANYWAY in a row; the script stops
+//   after MAX_FAILURES in a row.
+// An empty result is asked again once (#576): an RPC may return no logs for
+// a range that has some. Each range that works goes to onRange(from, to,
+// logs), with its logs by block and log index, so that the logs are not all
+// kept in memory. Returns the number of logs. It stops before the next
+// request when signal is aborted (another part stopped).
 export async function fetchLogs(
   rpc,
   contract,
   fromBlock,
   toBlock,
-  log,
-  onRange = () => {},
-  signal = undefined,
+  {
+    log = () => {},
+    onRange = () => {},
+    signal = undefined,
+    widths = createWidths(),
+    stats = createFetchStats(),
+  } = {},
 ) {
   let count = 0;
-  let width = FIRST_WIDTH;
-  let maxWidth = MAX_WIDTH;
-  let successes = 0;
   let from = fromBlock;
   let failures = 0;
+  let rangeFailures = 0;
+  // The end of an empty range that is asked again.
+  let askAgainTo = undefined;
   while (from <= toBlock) {
     signal?.throwIfAborted();
-    const to = Math.min(from + width - 1, toBlock);
+    const width = widths.width;
+    const to = askAgainTo ?? Math.min(from + width - 1, toBlock);
     let result;
     try {
       result = await rpc("eth_getLogs", [
@@ -199,31 +280,52 @@ export async function fetchLogs(
       ]);
     } catch (error) {
       if (error instanceof RequestLimitError || signal?.aborted) throw error;
+      const kind = classifyError(error);
+      stats.errors[kind]++;
+      log(`${contract.name}: ${from}-${to} failed (${kind}): ${error.message}`);
+      if (kind === "results") {
+        // Not the empty range any more: a narrower one.
+        askAgainTo = undefined;
+        halve(widths);
+        continue;
+      }
       failures++;
-      log(`${contract.name}: ${from}-${to} failed: ${error.message}`);
+      if (kind === "range") rangeFailures++;
       if (failures >= MAX_FAILURES) throw error;
-      if (failures >= 2) {
-        width = Math.max(1, Math.floor(width / 2));
-        maxWidth = width;
-        successes = 0;
+      if (rangeFailures >= 2 || failures >= ERRORS_TO_HALVE_ANYWAY) {
+        askAgainTo = undefined;
+        halve(widths);
       }
       await sleep(RETRY_WAIT_MS);
       continue;
     }
+    if (result.length === 0 && askAgainTo === undefined) {
+      askAgainTo = to;
+      stats.emptyRangesAskedAgain++;
+      continue;
+    }
+    if (askAgainTo !== undefined && result.length > 0) {
+      stats.emptyRangesWithLogs++;
+      log(
+        `${contract.name}: ${from}-${to} was empty, then ${result.length} logs`,
+      );
+    }
+    askAgainTo = undefined;
     // Outside the try: an error of onRange (writing the file) is not a
     // failure of the RPC.
     onRange(from, to, sortLogs(result));
     count += result.length;
     log(`${contract.name}: ${from}-${to} ${result.length} logs`);
     failures = 0;
+    rangeFailures = 0;
     // A range cut at toBlock does not show that the width works.
     if (to - from + 1 === width) {
-      successes++;
-      if (successes >= SUCCESSES_TO_RAISE_LIMIT) {
-        maxWidth = Math.min(maxWidth * 2, MAX_WIDTH);
-        successes = 0;
+      widths.successes++;
+      if (widths.successes >= SUCCESSES_TO_RAISE_LIMIT) {
+        widths.maxWidth = Math.min(widths.maxWidth * 2, widths.cap);
+        widths.successes = 0;
       }
-      width = Math.min(width * 2, maxWidth);
+      widths.width = Math.min(widths.width * 2, widths.maxWidth);
     }
     from = to + 1;
   }
@@ -271,25 +373,20 @@ export async function* toSnapshotLogs(rpc, contract, rawLogs) {
   }
 }
 
-// Splits [fromBlock, toBlock] into at most `segments` ranges in order, each of
-// MAX_WIDTH blocks or more (one range when it is shorter).
-export function splitRange(fromBlock, toBlock, segments) {
-  const length = toBlock - fromBlock + 1;
-  const count = Math.max(1, Math.min(segments, Math.floor(length / MAX_WIDTH)));
-  const ranges = [];
-  for (let i = 0; i < count; i++) {
-    ranges.push([
-      fromBlock + Math.floor((length * i) / count),
-      fromBlock + Math.floor((length * (i + 1)) / count) - 1,
-    ]);
+// Splits [fromBlock, toBlock] into parts of partBlocks blocks, in order (the
+// last one shorter).
+export function splitParts(fromBlock, toBlock, partBlocks) {
+  const parts = [];
+  for (let from = fromBlock; from <= toBlock; from += partBlocks) {
+    parts.push([from, Math.min(from + partBlocks - 1, toBlock)]);
   }
-  return ranges;
+  return parts;
 }
 
 // ---------- the snapshot ----------
 
-// The logs fetched so far of each segment, so that a run that stopped (at
-// --max-requests, or after failures) goes on where it stopped. Each segment
+// The logs fetched so far of each part, so that a run that stopped (at
+// --max-requests, or after failures) goes on where it stopped. Each part
 // has a .jsonl file, to which the logs of each range are added, one log per
 // line, and a .state.json file with the next block to fetch. The logs are
 // added before the state is written, so after a stop the lines of the blocks
@@ -298,12 +395,11 @@ const PARTIAL_DIR = ".partial";
 // The files of the snapshot, written before they are moved next to the
 // manifest.
 const OUT_DIR = "out";
-const segmentKeyOf = (segment) =>
-  `${keyOf(segment)}/${segment.segmentFrom}-${segment.segmentTo}`;
-function segmentFiles(partialDir, segment) {
+const partKeyOf = (part) => `${keyOf(part)}/${part.partFrom}-${part.partTo}`;
+function partFiles(partialDir, part) {
   const base = path.join(
     partialDir,
-    `${segment.project}__${segment.version}__${segment.name}__${segment.segmentFrom}`,
+    `${part.project}__${part.version}__${part.name}__${part.partFrom}`,
   );
   return { logs: `${base}.jsonl`, state: `${base}.state.json` };
 }
@@ -313,7 +409,7 @@ function readStates(partialDir) {
   for (const file of fs.readdirSync(partialDir)) {
     if (file.endsWith(".state.json")) {
       const state = JSON.parse(read(path.join(partialDir, file)));
-      states.set(segmentKeyOf(state), state);
+      states.set(partKeyOf(state), state);
     } else if (file.endsWith(".json")) {
       // The logs of a segment in one .json file, before formatVersion 2.
       throw new Error(
@@ -364,7 +460,7 @@ async function* readLogs(file) {
     if (line) yield JSON.parse(line);
   }
 }
-async function* readSegments(files) {
+async function* readParts(files) {
   for (const file of files) yield* readLogs(file);
 }
 
@@ -374,20 +470,30 @@ export async function buildSnapshot({
   outDir,
   toBlock,
   maxRequests,
-  segments = DEFAULT_SEGMENTS,
+  concurrency = DEFAULT_CONCURRENCY,
+  partBlocks = DEFAULT_PART_BLOCKS,
+  maxWidth = undefined,
   chunkLogs = CHUNK_LOGS,
   log,
 }) {
   const chain = loadChain(chainName);
   const rpc = createRpc(rpcUrl, maxRequests);
+  const options = {
+    concurrency,
+    partBlocks,
+    maxWidth: maxWidth ?? MAX_WIDTHS[chain.name] ?? MAX_WIDTH,
+    chunkLogs,
+    log,
+  };
   try {
-    return await build(chain, rpc, outDir, toBlock, segments, chunkLogs, log);
+    return await build(chain, rpc, outDir, toBlock, options);
   } finally {
     log(`Requests: ${JSON.stringify(rpc.counts)}`);
   }
 }
 
-async function build(chain, rpc, outDir, toBlock, segments, chunkLogs, log) {
+async function build(chain, rpc, outDir, toBlock, options) {
+  const { concurrency, partBlocks, maxWidth, chunkLogs, log } = options;
   const chainId = Number(await rpc("eth_chainId"));
   if (chainId !== chain.chainId) {
     throw new Error(`The RPC is for chainId ${chainId}, not ${chain.chainId}.`);
@@ -444,7 +550,14 @@ async function build(chain, rpc, outDir, toBlock, segments, chunkLogs, log) {
     if (fs.existsSync(path.join(dir, file))) {
       throw new Error(`${path.join(dir, file)} is there already.`);
     }
-    plans.push({ contract, from, ranges: splitRange(from, end, segments) });
+    plans.push({
+      contract,
+      from,
+      parts: splitParts(from, end, partBlocks),
+      widths: createWidths(maxWidth),
+      // The .jsonl file of each part, in the order of the blocks.
+      files: [],
+    });
   }
   if (plans.length === 0) {
     fs.rmSync(partialDir, { recursive: true, force: true });
@@ -452,78 +565,88 @@ async function build(chain, rpc, outDir, toBlock, segments, chunkLogs, log) {
     return undefined;
   }
 
-  // The contracts are fetched at the same time, like the sync, and each
-  // contract in segments at the same time. When one segment stops (at
-  // --max-requests, or after failures), the others stop before their next
-  // request, and all keep what they fetched in .partial/.
+  // The parts wait in a queue, the first part of each contract first, and
+  // `concurrency` workers take the next part when they finish one, so that
+  // the requests at a time stay the same until the end (#586). When one part
+  // stops (at --max-requests, or after failures), the others stop before
+  // their next request, and all keep what they fetched in .partial/.
   fs.mkdirSync(partialDir, { recursive: true });
   const controller = new AbortController();
-  const fetchSegment = async ({ contract, from }, [segmentFrom, segmentTo]) => {
-    const segment = {
+  const stats = createFetchStats();
+  const queue = [];
+  const most = Math.max(...plans.map((plan) => plan.parts.length));
+  for (let i = 0; i < most; i++) {
+    for (const plan of plans) {
+      if (i < plan.parts.length) queue.push({ plan, index: i });
+    }
+  }
+  const fetchPart = async ({ plan, index }) => {
+    const { contract, from, widths } = plan;
+    const [partFrom, partTo] = plan.parts[index];
+    const part = {
       project: contract.project,
       version: contract.version,
       name: contract.name,
       end,
       fromBlock: from,
-      segmentFrom,
-      segmentTo,
+      partFrom,
+      partTo,
     };
-    const files = segmentFiles(partialDir, segment);
-    const saved = states.get(segmentKeyOf(segment));
+    const files = partFiles(partialDir, part);
+    plan.files[index] = files.logs;
+    const saved = states.get(partKeyOf(part));
     const resumed = saved?.fromBlock === from ? saved : undefined;
-    const nextBlock = resumed?.nextBlock ?? segmentFrom;
+    const nextBlock = resumed?.nextBlock ?? partFrom;
     await keepLogsBefore(files.logs, nextBlock);
-    if (resumed) {
-      log(
-        `${keyOf(contract)} ${segmentFrom}-${segmentTo}: go on from ${nextBlock}.`,
-      );
+    if (resumed && nextBlock <= partTo) {
+      log(`${keyOf(contract)} ${partFrom}-${partTo}: go on from ${nextBlock}.`);
     }
-    await fetchLogs(
-      rpc,
-      contract,
-      nextBlock,
-      segmentTo,
+    await fetchLogs(rpc, contract, nextBlock, partTo, {
       log,
-      (_from, to, logs) => {
+      onRange: (_from, to, logs) => {
         fs.appendFileSync(
           files.logs,
           logs.map((raw) => `${JSON.stringify(raw)}\n`).join(""),
         );
-        writeState(files.state, { ...segment, nextBlock: to + 1 });
+        writeState(files.state, { ...part, nextBlock: to + 1 });
       },
-      controller.signal,
-    );
-    return files.logs;
+      signal: controller.signal,
+      widths,
+      stats,
+    });
   };
-  const fetches = plans.map((plan) =>
-    plan.ranges.map((range) =>
-      fetchSegment(plan, range).catch((error) => {
+  const worker = async () => {
+    while (queue.length > 0 && !controller.signal.aborted) {
+      await fetchPart(queue.shift());
+    }
+  };
+  const results = await Promise.allSettled(
+    Array.from({ length: Math.min(concurrency, queue.length) }, () =>
+      worker().catch((error) => {
         controller.abort(error);
         throw error;
       }),
     ),
   );
-  const results = await Promise.allSettled(fetches.flat());
   if (results.some((result) => result.status === "rejected")) {
-    // The error of the segment that stopped first.
+    // The error of the part that stopped first.
     throw controller.signal.reason;
   }
+  log(`Checks: ${JSON.stringify(stats)}`);
 
-  // Writes the files one contract at a time, reading the logs of its
-  // segments in the order of the blocks, so that the logs are not all in
-  // memory.
+  // Writes the files one contract at a time, reading the logs of its parts
+  // in the order of the blocks, so that the logs are not all in memory.
   const tmpDir = path.join(partialDir, OUT_DIR);
   fs.rmSync(tmpDir, { recursive: true, force: true });
   const rows = [];
-  for (const [i, { contract, from }] of plans.entries()) {
-    const files = await Promise.all(fetches[i]);
+  for (const { contract, from, files } of plans) {
     rows.push(
       ...(await writeContractChunks({
         chainId: chain.chainId,
         contract,
         fromBlock: from,
         toBlock: end,
-        logs: toSnapshotLogs(rpc, contract, readSegments(files)),
+        logs: toSnapshotLogs(rpc, contract, readParts(files)),
         outDir: tmpDir,
         maxLogs: chunkLogs,
       })),
@@ -547,6 +670,7 @@ async function build(chain, rpc, outDir, toBlock, segments, chunkLogs, log) {
     toBlock: end,
     logCount: rows.reduce((sum, row) => sum + row.logCount, 0),
     requests: { ...rpc.counts },
+    checks: stats,
   });
   manifest.chunks.push(...rows);
   writeManifest(manifestFile, manifest);
@@ -558,6 +682,15 @@ async function build(chain, rpc, outDir, toBlock, segments, chunkLogs, log) {
 
 // ---------- command line ----------
 
+function positiveInteger(values, name) {
+  const value = Number(values[name]);
+  if (!Number.isInteger(value) || value <= 0) {
+    console.error(`--${name} must be a positive integer.`);
+    process.exit(2);
+  }
+  return value;
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const { values } = parseArgs({
     options: {
@@ -566,23 +699,15 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       out: { type: "string", default: "static/warp-sync" },
       to: { type: "string" },
       "max-requests": { type: "string", default: "3000" },
-      segments: { type: "string", default: String(DEFAULT_SEGMENTS) },
+      concurrency: { type: "string", default: String(DEFAULT_CONCURRENCY) },
+      "part-blocks": { type: "string", default: String(DEFAULT_PART_BLOCKS) },
+      "max-width": { type: "string" },
     },
   });
   if (!values.chain || !values.rpc) {
     console.error(
-      "Usage: node scripts/warp-sync/build-snapshot.mjs --chain <name> --rpc <url> [--to <block>] [--out <dir>] [--max-requests <n>] [--segments <n>]",
+      "Usage: node scripts/warp-sync/build-snapshot.mjs --chain <name> --rpc <url> [--to <block>] [--out <dir>] [--max-requests <n>] [--concurrency <n>] [--part-blocks <n>] [--max-width <n>]",
     );
-    process.exit(2);
-  }
-  const maxRequests = Number(values["max-requests"]);
-  if (!Number.isInteger(maxRequests) || maxRequests <= 0) {
-    console.error(`--max-requests must be a positive integer.`);
-    process.exit(2);
-  }
-  const segments = Number(values.segments);
-  if (!Number.isInteger(segments) || segments <= 0) {
-    console.error(`--segments must be a positive integer.`);
     process.exit(2);
   }
   await buildSnapshot({
@@ -590,8 +715,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     rpcUrl: values.rpc,
     outDir: values.out,
     toBlock: values.to === undefined ? undefined : Number(values.to),
-    maxRequests,
-    segments,
+    maxRequests: positiveInteger(values, "max-requests"),
+    concurrency: positiveInteger(values, "concurrency"),
+    partBlocks: positiveInteger(values, "part-blocks"),
+    maxWidth:
+      values["max-width"] === undefined
+        ? undefined
+        : positiveInteger(values, "max-width"),
     log: (message) => console.log(message),
   });
 }
