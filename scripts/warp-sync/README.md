@@ -38,13 +38,16 @@ In the repository root, with the `app` service of `compose.yaml`:
 
 ```sh
 docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
-  --chain matic --rpc <url> [--to <block>] [--out static/warp-sync] \
+  --chain matic --rpc <url> [--rpc-key-file <path>] [--to <block>] \
+  [--out static/warp-sync] \
   [--max-requests 3000] [--concurrency 24] [--part-blocks 500000] \
   [--max-width <blocks>]
 ```
 
 - `--chain`: the `name` of a chain in `src/constants/chains` (`matic`, `eth`).
 - `--rpc`: a JSON-RPC URL of the chain. The script sends its requests there.
+- `--rpc-key-file`: a file with the key of the RPC, which is added to the end
+  of `--rpc`, so that the key is not in the command line.
 - `--to`: the last block of the snapshot. Without it, the latest block minus
   the `confirmationBlocks` of the chain, which is the highest block allowed.
 - `--out`: where to write. The default is `static/warp-sync`.
@@ -55,6 +58,31 @@ docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
   many blocks, which wait in a queue. The default is 500,000.
 - `--max-width`: the widest range of one request. The default is 9,999 for
   `eth` and 500,000 for the others.
+
+### Which RPC
+
+Use an RPC with a key for Ethereum. The public RPC of pocket (no key) returned
+no logs, without an error, for ranges that have logs, even three times in a
+row (#576): two runs for Ethereum on 2026-09-28 each missed thousands of logs,
+not the same ones. The first snapshot of Ethereum was made from Infura (free
+plan: 3 million credits a day, 255 for each `eth_getLogs`, at most 10,000
+blocks and 10,000 logs for one request), whose logs included every log of the
+two runs. Blockscout was not a check either: its API returned some logs twice
+with another `logIndex`.
+
+With Infura, give the key file to the container, read only, and send few
+requests at a time (the free plan allows about two `eth_getLogs` a second):
+
+```sh
+docker compose run --rm -v <key file>:/run/secrets/rpc-key:ro \
+  app node scripts/warp-sync/build-snapshot.mjs --chain eth \
+  --rpc https://mainnet.infura.io/v3/ --rpc-key-file /run/secrets/rpc-key \
+  --concurrency 2
+```
+
+A run for a release adds only the blocks after the last run, so it needs few
+requests. A run of a whole chain asks each contract for every range of
+`--max-width` blocks, which may be more than the credits of a day.
 
 When a run stops (at `--max-requests`, or after failures), the logs fetched
 so far are in `<chain>/.partial/` (not committed): for each part, a
@@ -105,7 +133,8 @@ the topic 0 of the events that are not anonymous.
   `--max-width`. The parts of a contract share their widths.
 - **Failures** (like #549, #554 and #591 in the sync: the RPC may pass each
   request to another node). The script waits a second and tries again:
-  - HTTP 500 or 504, and the errors of a node without old blocks
+  - HTTP 429 (too many requests), 500 or 504, and the errors of a node without
+    old blocks
     ("historical state is not available", "pruned history unavailable", "old
     data not available due to pruning"): the same range, since they come for
     any width.
@@ -114,8 +143,9 @@ the topic 0 of the events that are not anonymous.
     doubled again.
   - After three errors in a row of any kind, the range is halved too, in case
     a node answers a range that is too wide with HTTP 500.
-  - Too many logs for one answer ("max results", 20,000 with pocket): the
-    range is halved at once, without a wait and without counting a failure.
+  - Too many logs for one answer ("max results", 20,000 with pocket; "more
+    than 10000 results" with Infura): the range is halved at once, without a
+    wait and without counting a failure.
   - A request that does not answer in 60 seconds is a failure. After 10
     failures in a row of one part, the script stops.
 - **Empty results (#576):** an RPC may return no logs, without an error, for a
