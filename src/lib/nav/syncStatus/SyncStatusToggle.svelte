@@ -104,9 +104,12 @@
       ? "syncing in another tab"
       : isStarting
         ? "starting sync"
-        : toggleOn
-          ? "stop sync"
-          : "start sync",
+        : // The toggle is already off: the contracts end what they do first.
+          isStopping
+          ? "stopping sync"
+          : toggleOn
+            ? "stop sync"
+            : "start sync",
   );
 </script>
 
