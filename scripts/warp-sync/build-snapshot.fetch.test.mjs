@@ -1,5 +1,8 @@
 // fetchLogs with a scripted RPC: the widths after each kind of error, and an
 // empty result asked again (#576, #580).
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, test } from "vitest";
 
 // No wait after a failure. Read when the script is imported.
@@ -44,6 +47,7 @@ describe("classifyError", () => {
   test.each([
     [httpError(500), "unrelated"],
     [httpError(504), "unrelated"],
+    [httpError(429), "unrelated"],
     [rpcError("historical state is not available"), "unrelated"],
     [
       rpcError("pruned history unavailable: requested 1, earliest available 2"),
@@ -57,6 +61,7 @@ describe("classifyError", () => {
       rpcError("query exceeds max results 20000, retry with the range 1-2"),
       "results",
     ],
+    [rpcError("query returned more than 10000 results"), "results"],
     [rpcError("query exceeds max block range 10000"), "range"],
     [
       rpcError(
@@ -184,6 +189,28 @@ describe("fetchLogs", () => {
   test("stops after ten failures in a row", async () => {
     const answers = Array.from({ length: 10 }, () => httpError(500));
     await expect(run(answers, 1, 9_999)).rejects.toThrow("HTTP 500");
+  });
+});
+
+describe("withKey", () => {
+  test("adds the key in the file to the end of the URL", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-key-"));
+    try {
+      const file = path.join(dir, "key");
+      fs.writeFileSync(file, "abc123\n");
+      expect(script.withKey("https://rpc.example/v3/", file)).toBe(
+        "https://rpc.example/v3/abc123",
+      );
+      expect(script.withKey("https://rpc.example/", undefined)).toBe(
+        "https://rpc.example/",
+      );
+      fs.writeFileSync(file, "\n");
+      expect(() => script.withKey("https://rpc.example/", file)).toThrow(
+        "is empty",
+      );
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 

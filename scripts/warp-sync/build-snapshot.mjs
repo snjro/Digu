@@ -191,14 +191,17 @@ const ERRORS_UNRELATED_TO_RANGE = [
 ];
 // "results": the range has more logs than the RPC returns at once (pocket:
 // "query exceeds max results 20000"). "unrelated": an error that may not come
-// again for the same range, as in the sync: HTTP 500 or 504, or a node
+// again for the same range, as in the sync: HTTP 429, 500 or 504, or a node
 // without old blocks. "range": any other error, which may come from a range
 // that is too wide.
 export function classifyError(error) {
   if (!(error instanceof RpcError)) return "range";
-  if (error.status === 500 || error.status === 504) return "unrelated";
+  // 429: too many requests at a time (Infura), whatever the range.
+  if ([429, 500, 504].includes(error.status)) return "unrelated";
   const message = String(error.rpcError?.message ?? "");
-  if (/max results/i.test(message)) return "results";
+  // pocket: "max results 20000"; Infura: "query returned more than 10000
+  // results".
+  if (/max results|more than \d+ results/i.test(message)) return "results";
   if (ERRORS_UNRELATED_TO_RANGE.some((text) => message.includes(text))) {
     return "unrelated";
   }
@@ -690,6 +693,15 @@ async function build(chain, rpc, outDir, toBlock, options) {
 
 // ---------- command line ----------
 
+// The URL of an RPC with a key: the key in keyFile is added to the end of
+// url, so that it is not in the command line.
+export function withKey(url, keyFile) {
+  if (keyFile === undefined) return url;
+  const key = fs.readFileSync(keyFile, "utf8").trim();
+  if (!key) throw new Error(`${keyFile} is empty.`);
+  return `${url}${key}`;
+}
+
 function positiveInteger(values, name) {
   const value = Number(values[name]);
   if (!Number.isInteger(value) || value <= 0) {
@@ -710,17 +722,18 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       concurrency: { type: "string", default: String(DEFAULT_CONCURRENCY) },
       "part-blocks": { type: "string", default: String(DEFAULT_PART_BLOCKS) },
       "max-width": { type: "string" },
+      "rpc-key-file": { type: "string" },
     },
   });
   if (!values.chain || !values.rpc) {
     console.error(
-      "Usage: node scripts/warp-sync/build-snapshot.mjs --chain <name> --rpc <url> [--to <block>] [--out <dir>] [--max-requests <n>] [--concurrency <n>] [--part-blocks <n>] [--max-width <n>]",
+      "Usage: node scripts/warp-sync/build-snapshot.mjs --chain <name> --rpc <url> [--rpc-key-file <path>] [--to <block>] [--out <dir>] [--max-requests <n>] [--concurrency <n>] [--part-blocks <n>] [--max-width <n>]",
     );
     process.exit(2);
   }
   await buildSnapshot({
     chainName: values.chain,
-    rpcUrl: values.rpc,
+    rpcUrl: withKey(values.rpc, values["rpc-key-file"]),
     outDir: values.out,
     toBlock: values.to === undefined ? undefined : Number(values.to),
     maxRequests: positiveInteger(values, "max-requests"),
