@@ -28,8 +28,9 @@ type FetchingTargetInfo = ContractIdentifier & {
   blocks: { from: number; to: number; latest: number };
 };
 // Longer than the 250 ms for which ethers returns the result of an identical
-// request, so that a retry sends the request again.
-const RETRY_WAIT_MS: number = 1000;
+// request, so that a retry sends the request again. Not much longer: a public
+// RPC may fail about a fifth of the requests.
+const RETRY_WAIT_MS: number = 300;
 // A public RPC of Polygon returned 100,000 blocks in a few seconds.
 export const MAX_BULK_UNIT: number = 100000;
 // An RPC may pass each request to a different node, with a different limit or
