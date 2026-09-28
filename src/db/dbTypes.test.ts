@@ -42,6 +42,7 @@ describe("initialDataRpcSetting", () => {
       blockIntervalMs: dummyChain.blockIntervalMs,
       tryCount: dummyChain.tryCount,
       inputType: "text",
+      warpSync: true,
     };
 
     expect(result).toEqual(expectedRpcSetting);

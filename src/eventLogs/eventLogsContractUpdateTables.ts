@@ -106,7 +106,8 @@ function getConvertedEventLogs(
 
   return convertedEventLogs;
 }
-function convertEthersEventToEventLog(
+// Also used by the warp sync, so that its rows are the same as the sync's.
+export function convertEthersEventToEventLog(
   ethersEventLog: EthersEventLog,
   timestamp: number,
 ): ConvertedEventLog {
@@ -155,7 +156,7 @@ function convertEthersEventToEventLog(
     throw new Error(errorMessage);
   }
 }
-function groupEventLogsByEventName(
+export function groupEventLogsByEventName(
   convertedEventLogs: ConvertedEventLog[],
 ): GroupedEventLogs {
   const groupedEventLogs: GroupedEventLogs = {};

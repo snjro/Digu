@@ -52,6 +52,7 @@ describe("updateDbItemRpcSettings", () => {
     blockIntervalMs: 30,
     tryCount: 40,
     inputType: "password",
+    warpSync: true,
   };
 
   for (const key of Object.keys(updatedRpcSetting)) {

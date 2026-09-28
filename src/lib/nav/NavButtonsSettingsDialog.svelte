@@ -5,6 +5,7 @@
   import classNames from "classnames";
   import ChainExplorer from "./settings/ChainExplorer.svelte";
   import RpcConfig from "./settings/rpcConfig/RpcConfig.svelte";
+  import WarpSyncConfig from "./settings/WarpSyncConfig.svelte";
 
   interface Props {
     initializeValue: boolean;
@@ -31,6 +32,7 @@
       {#snippet PageWrapperContentBody()}
         <CommonItemGroup text="RPC configuration" gridTrack={gridTrackRpc}>
           <RpcConfig {initializeValue} />
+          <WarpSyncConfig />
         </CommonItemGroup>
         <CommonItemGroup text="Chain Explorer" gridTrack={gridTrackRpc}>
           <ChainExplorer />

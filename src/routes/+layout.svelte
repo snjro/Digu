@@ -21,6 +21,8 @@
   import { customLogger } from "@utils/logger";
   import { PROJECT_NAME } from "@utils/utilsConstants";
   import { untrack, type Snippet } from "svelte";
+  import { TARGET_CHAINS } from "@constants/chains/_index";
+  import { startWarpSync } from "@warpSync/warpSync";
 
   interface Props {
     children?: Snippet;
@@ -53,6 +55,15 @@
         customLogger.error("Save the chain in the URL.", error);
       });
     }
+  });
+
+  // Import the warp sync snapshot of the chain in the URL.
+  $effect(() => {
+    const paramsChainName: string | undefined = page.params.chainName;
+    const targetChain = TARGET_CHAINS.find(
+      (chain) => chain.name === paramsChainName,
+    );
+    if (targetChain) void startWarpSync(targetChain);
   });
 
   function onResize(): void {

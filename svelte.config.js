@@ -29,6 +29,7 @@ const config = {
       "@utils/*": "src/utils/*",
       "@routes/*": "src/routes/*",
       "@eventLogs/*": "src/eventLogs/*",
+      "@warpSync/*": "src/warpSync/*",
     },
     version: { name: pkgJson.version },
     // Prerendered pages get it as a <meta> tag, which ignores frame-ancestors,
