@@ -751,7 +751,10 @@ try {
       ["new-02-eth", "/eth"],
       ["new-03-eth-v1", "/eth/Augur-version1"],
       ["new-04-eth-v2", "/eth/Augur-version2"],
-      ["new-05-eth-v2-cash", "/eth/Augur-version2/contracts/Cash"],
+      [
+        "new-05-eth-v2-repv2-yes-1",
+        "/eth/Augur-version2/contracts/REPv2_Yes_1",
+      ],
       ["new-06-v1-augur", "/eth/Augur-version1/contracts/Augur"],
       ["new-07-v1-lrt", "/eth/Augur-version1/contracts/LegacyReputationToken"],
       [
