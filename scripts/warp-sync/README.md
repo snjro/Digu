@@ -119,9 +119,10 @@ the topic 0 of the events that are not anonymous.
   - A request that does not answer in 60 seconds is a failure. After 10
     failures in a row of one part, the script stops.
 - **Empty results (#576):** an RPC may return no logs, without an error, for a
-  range that has some. Every range that returns no logs is asked again once,
-  and the second answer is kept. This almost doubles the requests where the
-  logs are sparse.
+  range that has some, even twice in a row. Every range that returns no logs
+  is asked again until it returns logs or three empty answers in a row. This
+  almost triples the requests where the logs are sparse. It makes a lost range
+  less likely, not impossible: check the snapshot with another source.
 - **Parts (#586):** the blocks of each contract are split into parts of
   `--part-blocks`, which wait in a queue, the first part of each contract
   first. `--concurrency` workers take the next part when they finish one, so
