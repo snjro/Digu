@@ -290,6 +290,23 @@ describe("SyncStatusToggle.svelte", () => {
     expect((container.firstElementChild as HTMLElement).classList).toContain(
       "animate-pulse",
     );
+    // Not "start sync", although the toggle is off.
+    expect(screen.getByText("stopping sync")).toBeTruthy();
+  });
+
+  test("says stopping sync after stop sync is pressed, until it has stopped", async () => {
+    render(SyncStatusToggle);
+    await startSync();
+    setSyncStatus("eth", { syncStateText: "syncing" });
+    await tick();
+    vi.mocked(startAbortingInChain).mockResolvedValueOnce();
+    await fireEvent.click(getToggle());
+    setSyncStatus("eth", { syncStateText: "stopping" });
+    await tick();
+    expect(screen.getByText("stopping sync")).toBeTruthy();
+    setSyncStatus("eth", { syncStateText: "stopped" });
+    await tick();
+    expect(screen.getByText("start sync")).toBeTruthy();
   });
 
   test("is disabled while another tab syncs the chain", async () => {

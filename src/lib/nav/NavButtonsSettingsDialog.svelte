@@ -6,6 +6,7 @@
   import ChainExplorer from "./settings/ChainExplorer.svelte";
   import RpcConfig from "./settings/rpcConfig/RpcConfig.svelte";
   import SyncedData from "./settings/SyncedData.svelte";
+  import SyncNotice from "./settings/SyncNotice.svelte";
   import WarpSyncConfig from "./settings/WarpSyncConfig.svelte";
 
   interface Props {
@@ -31,6 +32,7 @@
   {#snippet dialogBody()}
     <PageWrapperContent hasMultipleTabs={false} gridCols="grid-cols-1">
       {#snippet PageWrapperContentBody()}
+        <SyncNotice />
         <CommonItemGroup text="RPC configuration" gridTrack={gridTrackRpc}>
           <RpcConfig {initializeValue} />
           <WarpSyncConfig />
