@@ -1,5 +1,5 @@
 {
-  "formatVersion": 1,
+  "formatVersion": 2,
   "chainName": "matic",
   "chainId": 137,
   "contracts": [
@@ -46,120 +46,149 @@
       "creationBlock": 15336692
     }
   ],
-  "chunks": [
+  "runs": [
     {
-      "file": "logs-24000000.json",
-      "sha256": "9272f50036a5b21ea942af28247c1d35465249132a6f7426692ebcfe8762b918",
       "createdAt": "2026-09-28T02:51:43.033Z",
       "latestBlockNumber": 94571652,
-      "logCount": 4064,
-      "contracts": [
-        {
-          "project": "Augur",
-          "version": "turbo",
-          "name": "AMMFactory",
-          "fromBlock": 15336699,
-          "toBlock": 24000000,
-          "logCount": 361
-        },
-        {
-          "project": "Augur",
-          "version": "turbo",
-          "name": "BalancerFactory",
-          "fromBlock": 14852456,
-          "toBlock": 24000000,
-          "logCount": 913
-        },
-        {
-          "project": "Augur",
-          "version": "turbo",
-          "name": "FeePot",
-          "fromBlock": 14853221,
-          "toBlock": 24000000,
-          "logCount": 0
-        },
-        {
-          "project": "Augur",
-          "version": "turbo",
-          "name": "MMALinkMarketFactory",
-          "fromBlock": 15336696,
-          "toBlock": 24000000,
-          "logCount": 0
-        },
-        {
-          "project": "Augur",
-          "version": "turbo",
-          "name": "PlaceholderReputationToken",
-          "fromBlock": 14853218,
-          "toBlock": 24000000,
-          "logCount": 0
-        },
-        {
-          "project": "Augur",
-          "version": "turbo",
-          "name": "SportsLinkMarketFactory",
-          "fromBlock": 15336692,
-          "toBlock": 24000000,
-          "logCount": 2790
-        }
-      ]
+      "toBlock": 24000000,
+      "logCount": 4064
     },
     {
-      "file": "logs-94575065.json",
-      "sha256": "4110d8b9fd50768e2f72ebb69dfed3f036326960c42bbaca950a35a04d0ccd7a",
       "createdAt": "2026-09-28T07:11:08.088Z",
       "latestBlockNumber": 94575193,
-      "logCount": 76,
-      "contracts": [
-        {
-          "project": "Augur",
-          "version": "turbo",
-          "name": "AMMFactory",
-          "fromBlock": 24000001,
-          "toBlock": 94575065,
-          "logCount": 0
-        },
-        {
-          "project": "Augur",
-          "version": "turbo",
-          "name": "BalancerFactory",
-          "fromBlock": 24000001,
-          "toBlock": 94575065,
-          "logCount": 0
-        },
-        {
-          "project": "Augur",
-          "version": "turbo",
-          "name": "FeePot",
-          "fromBlock": 24000001,
-          "toBlock": 94575065,
-          "logCount": 0
-        },
-        {
-          "project": "Augur",
-          "version": "turbo",
-          "name": "MMALinkMarketFactory",
-          "fromBlock": 24000001,
-          "toBlock": 94575065,
-          "logCount": 0
-        },
-        {
-          "project": "Augur",
-          "version": "turbo",
-          "name": "PlaceholderReputationToken",
-          "fromBlock": 24000001,
-          "toBlock": 94575065,
-          "logCount": 0
-        },
-        {
-          "project": "Augur",
-          "version": "turbo",
-          "name": "SportsLinkMarketFactory",
-          "fromBlock": 24000001,
-          "toBlock": 94575065,
-          "logCount": 76
-        }
-      ]
+      "toBlock": 94575065,
+      "logCount": 76
     }
-  ]
+  ],
+  "chunks": [
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "AMMFactory",
+      "fromBlock": 15336699,
+      "toBlock": 24000000,
+      "logCount": 361,
+      "file": "Augur-turbo-AMMFactory-24000000.json.gz",
+      "bytes": 44458,
+      "rawBytes": 334418,
+      "sha256": "34a4d0598459a0bd2617fb085b403ae00829636f8908277db7b57652a965245d",
+      "rawSha256": "9af7bcde19cbd7947240ecb2216e0e3f1c816b98ec824828a5a9395f357a4161"
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "BalancerFactory",
+      "fromBlock": 14852456,
+      "toBlock": 24000000,
+      "logCount": 913,
+      "file": "Augur-turbo-BalancerFactory-24000000.json.gz",
+      "bytes": 102813,
+      "rawBytes": 507026,
+      "sha256": "9531fac5c41b0bf3d014da18c50fa70faa3bbb008853a5ab4f5abd2298358aac",
+      "rawSha256": "6d8f78727c4c27bda45e9791928af910dad0469a901557d3cfb5ff865484c1b6"
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "FeePot",
+      "fromBlock": 14853221,
+      "toBlock": 24000000,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "MMALinkMarketFactory",
+      "fromBlock": 15336696,
+      "toBlock": 24000000,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "PlaceholderReputationToken",
+      "fromBlock": 14853218,
+      "toBlock": 24000000,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "SportsLinkMarketFactory",
+      "fromBlock": 15336692,
+      "toBlock": 24000000,
+      "logCount": 2790,
+      "file": "Augur-turbo-SportsLinkMarketFactory-24000000.json.gz",
+      "bytes": 279516,
+      "rawBytes": 2098034,
+      "sha256": "4cd5ba9108780dfa32ba1aacf28825cbf7066703dc88e77eb5ee8747ca22afe6",
+      "rawSha256": "dbafa7e9e26544a279c42a1bfa2ee0f051b55045f36e9f6c30b65fb869132317"
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "AMMFactory",
+      "fromBlock": 24000001,
+      "toBlock": 94575065,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "BalancerFactory",
+      "fromBlock": 24000001,
+      "toBlock": 94575065,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "FeePot",
+      "fromBlock": 24000001,
+      "toBlock": 94575065,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "MMALinkMarketFactory",
+      "fromBlock": 24000001,
+      "toBlock": 94575065,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "PlaceholderReputationToken",
+      "fromBlock": 24000001,
+      "toBlock": 94575065,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "SportsLinkMarketFactory",
+      "fromBlock": 24000001,
+      "toBlock": 94575065,
+      "logCount": 76,
+      "file": "Augur-turbo-SportsLinkMarketFactory-94575065.json.gz",
+      "bytes": 914,
+      "rawBytes": 46424,
+      "sha256": "8d880f0f46fe146f5f836e8153ae0ef219bb63af8937daae9cfd09d801d24a1b",
+      "rawSha256": "c29d03cc62aac78709e67c458817f459c77507803c7d0b2c6ed7b9015a130a61"
+    }
+  ],
+  "totals": {
+    "logCount": 4140,
+    "bytes": 427701,
+    "rawBytes": 2985902
+  }
 }
