@@ -33,12 +33,22 @@ describe("SyncNotice.svelte", () => {
       "Syncing. Stop the sync to change these settings.",
     );
     expect(status.classList).not.toContain("contents");
+    expect(
+      screen.getByText("Syncing. Stop the sync to change these settings.")
+        .classList,
+    ).not.toContain("motion-safe:animate-pulse");
 
     syncStatus.set({ eth: { syncStateText: "stopping" } });
     await tick();
     expect(status.textContent).toContain(
       "Stopping the sync… The settings can be changed once it stops.",
     );
+    // Something goes on: it pulses, unless the user reduces the motion.
+    expect(
+      screen.getByText(
+        "Stopping the sync… The settings can be changed once it stops.",
+      ).classList,
+    ).toContain("motion-safe:animate-pulse");
 
     syncStatus.set({ eth: { syncStateText: "stopped" } });
     await tick();
