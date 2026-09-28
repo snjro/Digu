@@ -17,6 +17,7 @@ import {
   getEthersEventLogs,
   getLoggableError,
   getNodeProvider,
+  isErrorUnrelatedToRange,
   type NodeProvider,
 } from "./utilsEthers";
 import { convertJsonFilesContractToContracts } from "@constants/chains/convertJsonToABI";
@@ -45,7 +46,11 @@ import {
   type WebSocketLike,
 } from "ethers";
 import { customLogger } from "./logger";
-import { jsonFileContracts } from "./testCommon";
+import {
+  jsonFileContracts,
+  providerAnsweringGetLogs,
+  type GetLogsAnswer,
+} from "./testCommon";
 
 // The WebSocketProvider made in getNodeProvider uses a socket that never
 // opens, so that the tests do not connect to anywhere.
@@ -453,6 +458,51 @@ describe("getLoggableError", () => {
     "should return %s as it is when it is not an ethers error",
     (error: unknown) => {
       expect(getLoggableError(error)).toBe(error);
+    },
+  );
+});
+
+describe("isErrorUnrelatedToRange", () => {
+  // The error that ethers throws for the answer of the RPC.
+  async function errorOf(answer: GetLogsAnswer): Promise<unknown> {
+    const { provider } = providerAnsweringGetLogs(1, () => answer);
+    try {
+      await provider.send("eth_getLogs", [
+        { fromBlock: "0x1", toBlock: "0x2" },
+      ]);
+    } catch (error) {
+      return error;
+    } finally {
+      provider.destroy();
+    }
+    throw new Error("the request did not fail");
+  }
+
+  test.each([
+    500,
+    504,
+    "historical state is not available",
+    "pruned history unavailable: requested 11849286, earliest available 15500000",
+    "old data not available due to pruning: requested block 6134861",
+  ])("should be true for %s", async (answer: GetLogsAnswer) => {
+    expect(isErrorUnrelatedToRange(await errorOf(answer))).toBe(true);
+  });
+
+  test.each([
+    400,
+    502,
+    503,
+    "query exceeds max block range 10000",
+    "query exceeds max results 5000, retry with the range 5934929-5935049",
+  ])("should be false for %s", async (answer: GetLogsAnswer) => {
+    expect(isErrorUnrelatedToRange(await errorOf(answer))).toBe(false);
+  });
+
+  // A browser gives no response for an error without CORS headers.
+  test.each([new TypeError("Failed to fetch"), "text", undefined])(
+    "should be false for %s, which is not an error of the RPC",
+    (error: unknown) => {
+      expect(isErrorUnrelatedToRange(error)).toBe(false);
     },
   );
 });

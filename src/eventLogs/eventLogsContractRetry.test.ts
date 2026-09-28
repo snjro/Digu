@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { JsonRpcProvider, Network } from "ethers";
 import type { JsonRpcPayload, JsonRpcResult } from "ethers";
 import {
+  ERRORS_TO_HALVE_ANYWAY,
   fetchEventLogsContract,
   MAX_BULK_UNIT,
   SUCCESSES_TO_RAISE_LIMIT,
@@ -9,6 +10,10 @@ import {
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
 import { extractEventContracts } from "@utils/utilsEthers";
+import {
+  providerAnsweringGetLogs,
+  type GetLogsAnswer,
+} from "@utils/testCommon";
 import { customLogger } from "@utils/logger";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
@@ -390,5 +395,146 @@ describe("fetchEventLogsContract", () => {
     expect(getLogsRanges()).toEqual(
       Array(3).fill([creationBlockNumber, creationBlockNumber + 1]),
     );
+  });
+
+  // Errors that do not depend on the width of the range.
+  const errorsUnrelatedToRange: GetLogsAnswer[] = [
+    500,
+    504,
+    "historical state is not available",
+  ];
+  const widthsOf = (ranges: number[][]): number[] =>
+    ranges.map(([from, to]: number[]) => to - from + 1);
+
+  test.each(errorsUnrelatedToRange)(
+    "should try the same range again after two errors of %s in a row, without halving it",
+    async (answer: GetLogsAnswer) => {
+      const { provider, getLogsRanges } = providerAnsweringGetLogs(
+        targetChain.chainId,
+        (requestNumber: number) => (requestNumber <= 2 ? answer : undefined),
+      );
+      registerUntil(2);
+
+      const promise: Promise<void> = fetchEventLogsContract(
+        dbEventLogs,
+        targetContract,
+        provider,
+      );
+      await vi.runAllTimersAsync();
+      await promise;
+
+      // The range is doubled as usual after the success.
+      expect(getLogsRanges()).toEqual([
+        ...Array(3).fill([
+          creationBlockNumber,
+          creationBlockNumber + bulkUnit - 1,
+        ]),
+        [
+          creationBlockNumber + bulkUnit,
+          creationBlockNumber + 3 * bulkUnit - 1,
+        ],
+      ]);
+      expect(startAbortingInChain).not.toHaveBeenCalled();
+    },
+  );
+
+  test.each(errorsUnrelatedToRange)(
+    "should count the errors of %s toward Try Count",
+    async (answer: GetLogsAnswer) => {
+      const { provider, getLogsRanges } = providerAnsweringGetLogs(
+        targetChain.chainId,
+        () => answer,
+      );
+
+      const promise: Promise<void> = fetchEventLogsContract(
+        dbEventLogs,
+        targetContract,
+        provider,
+      );
+      await vi.runAllTimersAsync();
+      await promise;
+
+      expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(
+        targetChain.name,
+      );
+      expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
+      expect(widthsOf(getLogsRanges())).toEqual(
+        Array(tryCount + 1).fill(bulkUnit),
+      );
+    },
+  );
+
+  test("should halve the range after ERRORS_TO_HALVE_ANYWAY errors in a row that do not depend on the range", async () => {
+    storeRpcSettings.updateState(targetChain.name, { tryCount: 10 });
+    const { provider, getLogsRanges } = providerAnsweringGetLogs(
+      targetChain.chainId,
+      (requestNumber: number) =>
+        requestNumber <= ERRORS_TO_HALVE_ANYWAY + 1 ? 500 : undefined,
+    );
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    // Halved after each error from the ERRORS_TO_HALVE_ANYWAY-th one, in case
+    // the RPC answers a range that is too wide with HTTP 500.
+    expect(widthsOf(getLogsRanges())).toEqual([
+      ...Array(ERRORS_TO_HALVE_ANYWAY).fill(bulkUnit),
+      bulkUnit / 2,
+      bulkUnit / 4,
+    ]);
+    expect(startAbortingInChain).not.toHaveBeenCalled();
+  });
+
+  test("should not halve the range after an error of each kind", async () => {
+    const answers: GetLogsAnswer[] = [
+      "query exceeds max block range 10000",
+      504,
+    ];
+    const { provider, getLogsRanges } = providerAnsweringGetLogs(
+      targetChain.chainId,
+      (requestNumber: number) => answers[requestNumber - 1],
+    );
+    registerUntil(2);
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(widthsOf(getLogsRanges())).toEqual([
+      bulkUnit,
+      bulkUnit,
+      bulkUnit,
+      2 * bulkUnit,
+    ]);
+  });
+
+  test("should halve the range after two errors in a row of another HTTP status", async () => {
+    const { provider, getLogsRanges } = providerAnsweringGetLogs(
+      targetChain.chainId,
+      (requestNumber: number) => (requestNumber <= 2 ? 503 : undefined),
+    );
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(widthsOf(getLogsRanges())).toEqual([
+      bulkUnit,
+      bulkUnit,
+      bulkUnit / 2,
+    ]);
   });
 });
