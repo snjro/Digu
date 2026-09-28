@@ -5,6 +5,7 @@
   import classNames from "classnames";
   import ChainExplorer from "./settings/ChainExplorer.svelte";
   import RpcConfig from "./settings/rpcConfig/RpcConfig.svelte";
+  import SyncedData from "./settings/SyncedData.svelte";
   import WarpSyncConfig from "./settings/WarpSyncConfig.svelte";
 
   interface Props {
@@ -36,6 +37,9 @@
         </CommonItemGroup>
         <CommonItemGroup text="Chain Explorer" gridTrack={gridTrackRpc}>
           <ChainExplorer />
+        </CommonItemGroup>
+        <CommonItemGroup text="Synced data" gridTrack={gridTrackRpc}>
+          <SyncedData />
         </CommonItemGroup>
       {/snippet}
     </PageWrapperContent>
