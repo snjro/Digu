@@ -10,6 +10,7 @@ import {
   storeNoDbSnackBarInitialValue,
 } from "@stores/storeNoDb";
 import { get } from "svelte/store";
+import { startWarpSync } from "@warpSync/warpSync";
 
 vi.mock("$app/state", () => ({
   page: {
@@ -35,6 +36,9 @@ vi.mock("@constants/chains/_index", () => ({
 vi.mock("$lib/leftSidebar/LeftSidebar.svelte", () => ({ default: () => {} }));
 vi.mock("$lib/nav/Nav.svelte", () => ({ default: () => {} }));
 vi.mock("$lib/breadcrumb/Breadcrumb.svelte", () => ({ default: () => {} }));
+vi.mock("@warpSync/warpSync", () => ({
+  startWarpSync: vi.fn(async () => {}),
+}));
 
 describe("+layout.svelte", () => {
   afterEach(() => {
@@ -42,6 +46,12 @@ describe("+layout.svelte", () => {
     vi.mocked(saveSelectedChainName).mockClear();
     vi.restoreAllMocks();
     storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
+    vi.mocked(startWarpSync).mockClear();
+  });
+
+  test("starts the warp sync of the chain in the URL", () => {
+    render(Layout);
+    expect(startWarpSync).toHaveBeenCalledExactlyOnceWith({ name: "matic" });
   });
 
   test("saves the chain in the URL when it differs from the saved one", () => {

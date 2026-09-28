@@ -8,6 +8,7 @@
   import classNames from "classnames";
   import SyncStatusProgress from "./SyncStatusProgress.svelte";
   import SyncStatusToggle from "./SyncStatusToggle.svelte";
+  import WarpSyncStatus from "./WarpSyncStatus.svelte";
 
   let hideProgressCircle = $derived((): boolean => {
     if ($storeNoDbCurrentWidth <= breakPointWidths.sm) return true;
@@ -35,4 +36,5 @@
 >
   <SyncStatusToggle />
   <SyncStatusProgress hideProgressCircle={hideProgressCircle()} />
+  <WarpSyncStatus />
 </div>

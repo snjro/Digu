@@ -37,6 +37,7 @@ describe("storeRpcSettings", () => {
       blockIntervalMs: 3,
       tryCount: 4,
       inputType: "password",
+      warpSync: true,
     };
     // set test data to the store by using `set`
     storeRpcSettings.set({
@@ -59,6 +60,7 @@ describe("storeRpcSettings", () => {
       blockIntervalMs: 30,
       tryCount: 40,
       inputType: "text",
+      warpSync: true,
     };
     // set test data to the store by using `updateState`
     storeRpcSettings.updateState(chainNameEth, rpcSetting);
@@ -79,6 +81,7 @@ describe("storeRpcSettings", () => {
       blockIntervalMs: 3,
       tryCount: 4,
       inputType: "password",
+      warpSync: true,
     };
     const rpcSettings: StateRpcSettings = { [chainNameEth]: rpcSetting };
     storeRpcSettings.set(rpcSettings);

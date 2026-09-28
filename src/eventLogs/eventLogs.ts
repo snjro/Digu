@@ -15,15 +15,22 @@ import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { get } from "svelte/store";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { requestSyncLock } from "./syncLock";
+import { importWarpSyncBeforeSync, waitForWarpSync } from "@warpSync/warpSync";
 
 // Resolves true once every sync target is marked as syncing, so that an abort
 // reaches all of them. Resolves false without syncing when the chain is
 // already synced (by another tab or by this tab). Waits up to a second for
-// another tab that holds the lock briefly.
+// another tab that holds the lock briefly. Imports the warp sync snapshot
+// first, so that the sync goes on from its end.
 export async function fetchEventLogs(targetChain: Chain): Promise<boolean> {
+  // The import of this tab holds the lock: wait for it instead.
+  await waitForWarpSync(targetChain.name);
   return await requestSyncLock(
     targetChain.name,
-    () => startSyncingInChain(targetChain.name),
+    async () => {
+      await importWarpSyncBeforeSync(targetChain);
+      await startSyncingInChain(targetChain.name);
+    },
     () => syncEventLogs(targetChain),
   );
 }

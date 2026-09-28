@@ -14,7 +14,8 @@ In the repository root, with the `app` service of `compose.yaml`:
 
 ```sh
 docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
-  --chain matic --rpc <url> [--to <block>] [--out static/warp-sync]
+  --chain matic --rpc <url> [--to <block>] [--out static/warp-sync] \
+  [--max-requests 3000]
 ```
 
 - `--chain`: the `name` of a chain in `src/constants/chains` (`matic`, `eth`).
@@ -22,14 +23,34 @@ docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
 - `--to`: the last block of the snapshot. Without it, the latest block minus
   the `confirmationBlocks` of the chain, which is the highest block allowed.
 - `--out`: where to write. The default is `static/warp-sync`.
+- `--max-requests`: the most requests to send, of all the contracts. The
+  script stops before it sends one more. The default is 3000.
+
+When a run stops (at `--max-requests`, or after failures), the logs fetched
+so far are in `<chain>/.partial/`, one file per contract (not committed).
+Run it again without `--to`: it goes on to the same block, from where it
+stopped. The files of the snapshot are written only at the end, and then
+`.partial/` is deleted. The block times fetched for the logs without
+`blockTimestamp` (`eth_getBlockByNumber`) are not kept in `.partial/`: with
+an RPC that does not return `blockTimestamp`, a run that stops while it
+fetches them fetches them again the next time.
 
 The first run fetches from the creation block of each contract. A later run
 reads `manifest.json` and fetches only the blocks after the last run, into a
-new file. It stops when a contract changed its address or creation block.
+new file. It stops when a contract changed its address or creation block,
+and when the file of the last block is there already (another run to the
+same block would overwrite it).
 
 It fetches like the sync: one `eth_getLogs` per range with the address and
-the topic 0 of the events that are not anonymous. A failed range is tried
-again once, then halved, and the half becomes the widest range.
+the topic 0 of the events that are not anonymous. The ranges start at
+100,000 blocks and are doubled after each one that works, up to 500,000. A
+failed range is tried again once, then halved, and the half becomes the
+widest range until 10 ranges in a row work; then it is doubled again (like
+#549 and #554 in the sync: the RPC may pass each request to another node). The
+contracts are fetched at the same time, like the sync: one request at a time
+for each contract. The script waits a second after a failure, and stops
+after 10 failures in a row of one contract. When one contract stops, the
+others stop before their next request.
 
 ## Format (formatVersion 1)
 

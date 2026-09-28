@@ -9,11 +9,18 @@ import { Interface } from "ethers";
 
 export const FORMAT_VERSION = 1;
 const CHAINS_DIR = "src/constants/chains";
-// The widths of the eth_getLogs ranges, in blocks.
+// The widths of the eth_getLogs ranges, in blocks. pocket returned 500,000
+// blocks with the topics in about 10 seconds; wider ranges were not tried.
 const FIRST_WIDTH = 100_000;
-const MAX_WIDTH = 1_000_000;
+const MAX_WIDTH = 500_000;
+// Like the sync (SUCCESSES_TO_RAISE_LIMIT of eventLogsContract.ts): an RPC may
+// pass each request to another node with another limit, so a limit learned
+// from failures is doubled again after this many successes in a row.
+const SUCCESSES_TO_RAISE_LIMIT = 10;
 // Failures in a row before the script gives up.
 const MAX_FAILURES = 10;
+// The wait after a failure. Shorter only to check the script with a fake RPC.
+const RETRY_WAIT_MS = Number(process.env.WARP_SYNC_RETRY_WAIT_MS ?? 1000);
 
 // ---------- the constants of the app ----------
 
@@ -108,9 +115,20 @@ function loadContracts(chainDir, chainIndex) {
 
 // ---------- JSON-RPC ----------
 
-export function createRpc(url) {
+// Thrown before a request over the limit is sent. Not tried again.
+export class RequestLimitError extends Error {}
+
+// rpc.counts has the number of requests sent, by method.
+export function createRpc(url, maxRequests = Infinity) {
   let id = 0;
-  return async function rpc(method, params = []) {
+  const counts = {};
+  async function rpc(method, params = []) {
+    if (id >= maxRequests) {
+      throw new RequestLimitError(
+        `Stopped at the limit of ${maxRequests} requests.`,
+      );
+    }
+    counts[method] = (counts[method] ?? 0) + 1;
     const response = await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -124,21 +142,37 @@ export function createRpc(url) {
       throw new Error(`${method}: ${JSON.stringify(body.error)}`);
     }
     return body.result;
-  };
+  }
+  rpc.counts = counts;
+  return rpc;
 }
 const toHex = (value) => `0x${value.toString(16)}`;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Fetches the logs of [fromBlock, toBlock] in ranges. Like the sync (#554),
-// a failed range is tried again once, then halved, and the half becomes the
-// widest range. A range that works doubles the next one.
-export async function fetchLogs(rpc, contract, fromBlock, toBlock, log) {
-  const logs = [];
+// Fetches the logs of [fromBlock, toBlock] in ranges, like the sync (#549,
+// #554): a failed range is tried again once, then halved, and the half
+// becomes the widest range until SUCCESSES_TO_RAISE_LIMIT full ranges work in
+// a row. A full range that works doubles the next one. After each range,
+// onProgress gets the next block and the logs so far. It stops before the
+// next request when signal is aborted (another contract stopped).
+export async function fetchLogs(
+  rpc,
+  contract,
+  fromBlock,
+  toBlock,
+  log,
+  onProgress = () => {},
+  logsSoFar = [],
+  signal = undefined,
+) {
+  const logs = [...logsSoFar];
   let width = FIRST_WIDTH;
   let maxWidth = MAX_WIDTH;
+  let successes = 0;
   let from = fromBlock;
   let failures = 0;
   while (from <= toBlock) {
+    signal?.throwIfAborted();
     const to = Math.min(from + width - 1, toBlock);
     try {
       const result = await rpc("eth_getLogs", [
@@ -151,18 +185,29 @@ export async function fetchLogs(rpc, contract, fromBlock, toBlock, log) {
       ]);
       logs.push(...result);
       log(`${contract.name}: ${from}-${to} ${result.length} logs`);
-      from = to + 1;
       failures = 0;
-      width = Math.min(width * 2, maxWidth);
+      // A range cut at toBlock does not show that the width works.
+      if (to - from + 1 === width) {
+        successes++;
+        if (successes >= SUCCESSES_TO_RAISE_LIMIT) {
+          maxWidth = Math.min(maxWidth * 2, MAX_WIDTH);
+          successes = 0;
+        }
+        width = Math.min(width * 2, maxWidth);
+      }
+      from = to + 1;
+      onProgress(from, logs);
     } catch (error) {
+      if (error instanceof RequestLimitError || signal?.aborted) throw error;
       failures++;
       log(`${contract.name}: ${from}-${to} failed: ${error.message}`);
       if (failures >= MAX_FAILURES) throw error;
       if (failures >= 2) {
         width = Math.max(1, Math.floor(width / 2));
         maxWidth = width;
+        successes = 0;
       }
-      await sleep(1000);
+      await sleep(RETRY_WAIT_MS);
     }
   }
   return logs;
@@ -244,31 +289,90 @@ function lastBlocks(manifest) {
   return last;
 }
 
+// The logs fetched so far of each contract, so that a run that stopped (at
+// --max-requests, or after failures) goes on where it stopped.
+const PARTIAL_DIR = ".partial";
+function partialFile(partialDir, contract) {
+  return path.join(
+    partialDir,
+    `${contract.project}__${contract.version}__${contract.name}.json`,
+  );
+}
+function readPartials(partialDir) {
+  const partials = new Map();
+  if (!fs.existsSync(partialDir)) return partials;
+  for (const file of fs.readdirSync(partialDir)) {
+    if (!file.endsWith(".json")) continue;
+    const partial = JSON.parse(read(path.join(partialDir, file)));
+    partials.set(keyOf(partial), partial);
+  }
+  return partials;
+}
+function writePartial(partialDir, partial) {
+  fs.mkdirSync(partialDir, { recursive: true });
+  const file = partialFile(partialDir, partial);
+  // Written whole and then renamed, so that a stop does not leave half a file.
+  fs.writeFileSync(`${file}.tmp`, JSON.stringify(partial));
+  fs.renameSync(`${file}.tmp`, file);
+}
+
 export async function buildSnapshot({
   chainName,
   rpcUrl,
   outDir,
   toBlock,
+  maxRequests,
   log,
 }) {
   const chain = loadChain(chainName);
-  const rpc = createRpc(rpcUrl);
+  const rpc = createRpc(rpcUrl, maxRequests);
+  try {
+    return await build(chain, rpc, outDir, toBlock, log);
+  } finally {
+    log(`Requests: ${JSON.stringify(rpc.counts)}`);
+  }
+}
+
+async function build(chain, rpc, outDir, toBlock, log) {
   const chainId = Number(await rpc("eth_chainId"));
   if (chainId !== chain.chainId) {
     throw new Error(`The RPC is for chainId ${chainId}, not ${chain.chainId}.`);
   }
   const latest = Number(await rpc("eth_blockNumber"));
   const goal = latest - chain.confirmationBlocks;
-  const end = toBlock ?? goal;
+
+  const dir = path.join(outDir, chain.name);
+  const partialDir = path.join(dir, PARTIAL_DIR);
+  const partials = readPartials(partialDir);
+  const partialEnds = new Set([...partials.values()].map((p) => p.end));
+  if (partialEnds.size > 1) {
+    throw new Error(`${partialDir} has runs to different blocks.`);
+  }
+  const [partialEnd] = partialEnds;
+  // A run that stopped goes on to the same block.
+  const end = toBlock ?? partialEnd ?? goal;
+  if (partialEnd !== undefined && end !== partialEnd) {
+    throw new Error(
+      `The run that stopped was to ${partialEnd}. Run it without --to, or with --to ${partialEnd}.`,
+    );
+  }
   if (end > goal) {
     throw new Error(
       `--to ${end} is above latest - confirmationBlocks (${goal}).`,
     );
   }
 
-  const dir = path.join(outDir, chain.name);
   const manifestFile = path.join(dir, "manifest.json");
   const manifest = readManifest(manifestFile, chain);
+  // Another run to the same block would overwrite its file, and the sha256
+  // in the manifest would not match any more. Stop before fetching.
+  const file = `logs-${end}.json`;
+  if (
+    fs.existsSync(path.join(dir, file)) ||
+    manifest.chunks.some((chunk) => chunk.file === file)
+  ) {
+    throw new Error(`${path.join(dir, file)} is there already.`);
+  }
   const known = new Map(manifest.contracts.map((c) => [keyOf(c), c]));
   for (const contract of chain.contracts) {
     const before = known.get(keyOf(contract));
@@ -284,14 +388,38 @@ export async function buildSnapshot({
   }
   const last = lastBlocks(manifest);
 
-  const chunkContracts = [];
-  for (const contract of chain.contracts) {
+  // The contracts are fetched at the same time, like the sync. When one
+  // stops (at --max-requests, or after failures), the others stop before
+  // their next request, and all keep what they fetched in .partial/.
+  const controller = new AbortController();
+  const fetchContract = async (contract) => {
     const lastBlock = last.get(keyOf(contract));
     const from =
       lastBlock === undefined ? contract.creationBlock : lastBlock + 1;
-    if (from > end) continue;
-    const rawLogs = await fetchLogs(rpc, contract, from, end, log);
-    chunkContracts.push({
+    if (from > end) return undefined;
+    const partial = partials.get(keyOf(contract));
+    const resumed = partial?.fromBlock === from ? partial : undefined;
+    if (resumed) log(`${keyOf(contract)}: go on from ${resumed.nextBlock}.`);
+    const rawLogs = await fetchLogs(
+      rpc,
+      contract,
+      resumed?.nextBlock ?? from,
+      end,
+      log,
+      (nextBlock, logs) =>
+        writePartial(partialDir, {
+          project: contract.project,
+          version: contract.version,
+          name: contract.name,
+          end,
+          fromBlock: from,
+          nextBlock,
+          logs,
+        }),
+      resumed?.logs,
+      controller.signal,
+    );
+    return {
       project: contract.project,
       version: contract.version,
       name: contract.name,
@@ -299,14 +427,29 @@ export async function buildSnapshot({
       fromBlock: from,
       toBlock: end,
       logs: await toSnapshotLogs(rpc, contract, rawLogs),
-    });
+    };
+  };
+  const results = await Promise.allSettled(
+    chain.contracts.map((contract) =>
+      fetchContract(contract).catch((error) => {
+        controller.abort(error);
+        throw error;
+      }),
+    ),
+  );
+  if (results.some((result) => result.status === "rejected")) {
+    // The error of the contract that stopped first.
+    throw controller.signal.reason;
   }
+  const chunkContracts = results
+    .map((result) => result.value)
+    .filter((chunkContract) => chunkContract !== undefined);
   if (chunkContracts.length === 0) {
+    fs.rmSync(partialDir, { recursive: true, force: true });
     log(`Nothing to add: the snapshot already reaches block ${end}.`);
     return undefined;
   }
 
-  const file = `logs-${end}.json`;
   const text = JSON.stringify({
     formatVersion: FORMAT_VERSION,
     chainId: chain.chainId,
@@ -341,6 +484,7 @@ export async function buildSnapshot({
     })),
   });
   fs.writeFileSync(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
+  fs.rmSync(partialDir, { recursive: true, force: true });
   log(`Wrote ${path.join(dir, file)} and ${manifestFile}.`);
   return manifest;
 }
@@ -354,12 +498,18 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       rpc: { type: "string" },
       out: { type: "string", default: "static/warp-sync" },
       to: { type: "string" },
+      "max-requests": { type: "string", default: "3000" },
     },
   });
   if (!values.chain || !values.rpc) {
     console.error(
-      "Usage: node scripts/warp-sync/build-snapshot.mjs --chain <name> --rpc <url> [--to <block>] [--out <dir>]",
+      "Usage: node scripts/warp-sync/build-snapshot.mjs --chain <name> --rpc <url> [--to <block>] [--out <dir>] [--max-requests <n>]",
     );
+    process.exit(2);
+  }
+  const maxRequests = Number(values["max-requests"]);
+  if (!Number.isInteger(maxRequests) || maxRequests <= 0) {
+    console.error(`--max-requests must be a positive integer.`);
     process.exit(2);
   }
   await buildSnapshot({
@@ -367,6 +517,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     rpcUrl: values.rpc,
     outDir: values.out,
     toBlock: values.to === undefined ? undefined : Number(values.to),
+    maxRequests,
     log: (message) => console.log(message),
   });
 }

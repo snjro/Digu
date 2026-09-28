@@ -49,6 +49,8 @@ export type RpcSetting = {
   blockIntervalMs: number;
   tryCount: number;
   inputType: RpcInputType;
+  // Imports the warp sync snapshot of the chain, when it has one.
+  warpSync: boolean;
 };
 export const initialDataRpcSetting = (targetChain: Chain): RpcSetting => {
   return {
@@ -60,6 +62,7 @@ export const initialDataRpcSetting = (targetChain: Chain): RpcSetting => {
     blockIntervalMs: targetChain.blockIntervalMs,
     tryCount: targetChain.tryCount,
     inputType: "text",
+    warpSync: true,
   };
 };
 
