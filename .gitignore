@@ -3,3 +3,5 @@ node_modules
 .svelte-kit
 *.code-workspace
 coverage
+# Left by scripts/warp-sync when a run stops
+static/warp-sync/*/.partial/
