@@ -47,8 +47,11 @@ function abort(): void {
 }
 
 // A real ethers provider, so that its request cache is used, with an RPC
-// that fails the first eth_getLogs requests.
-function providerFailingGetLogs(failCount: number): {
+// that fails the first eth_getLogs requests, or the requests for which
+// failCount returns true (the first request is 1).
+function providerFailingGetLogs(
+  failCount: number | ((requestNumber: number) => boolean),
+): {
   provider: JsonRpcProvider;
   getLogsCount: () => number;
   // [fromBlock, toBlock] of each eth_getLogs request.
@@ -74,7 +77,11 @@ function providerFailingGetLogs(failCount: number): {
           request.params as [{ fromBlock: string; toBlock: string }]
         )[0];
         getLogsRanges.push([Number(fromBlock), Number(toBlock)]);
-        return getLogsCount <= failCount
+        const fails: boolean =
+          typeof failCount === "number"
+            ? getLogsCount <= failCount
+            : failCount(getLogsCount);
+        return fails
           ? ({
               id: request.id,
               error: { code: -32000, message: "temporary error" },
@@ -208,8 +215,30 @@ describe("fetchEventLogsContract", () => {
     );
   }
 
-  test("should halve the range after an error and not widen it beyond the halved width", async () => {
+  test("should try the same range again after an error, without halving it", async () => {
     const { provider, getLogsRanges } = providerFailingGetLogs(1);
+    registerUntil(2);
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    // The first request fails, the same range succeeds, and the range is
+    // doubled as usual.
+    expect(getLogsRanges()).toEqual([
+      [creationBlockNumber, creationBlockNumber + bulkUnit - 1],
+      [creationBlockNumber, creationBlockNumber + bulkUnit - 1],
+      [creationBlockNumber + bulkUnit, creationBlockNumber + 3 * bulkUnit - 1],
+    ]);
+    expect(startAbortingInChain).not.toHaveBeenCalled();
+  });
+
+  test("should halve the range after two errors in a row and not widen it beyond the halved width", async () => {
+    const { provider, getLogsRanges } = providerFailingGetLogs(2);
     registerUntil(3);
 
     const promise: Promise<void> = fetchEventLogsContract(
@@ -220,9 +249,10 @@ describe("fetchEventLogsContract", () => {
     await vi.runAllTimersAsync();
     await promise;
 
-    // The first request fails, and then one request for each range.
+    // The first two requests fail, and then one request for each range.
     const half: number = bulkUnit / 2;
     expect(getLogsRanges()).toEqual([
+      [creationBlockNumber, creationBlockNumber + bulkUnit - 1],
       [creationBlockNumber, creationBlockNumber + bulkUnit - 1],
       [creationBlockNumber, creationBlockNumber + half - 1],
       [creationBlockNumber + half, creationBlockNumber + 2 * half - 1],
@@ -235,7 +265,7 @@ describe("fetchEventLogsContract", () => {
     storeChainStatus.updateState(targetChain.name, {
       latestBlockNumber: creationBlockNumber + 100 * bulkUnit,
     });
-    const { provider, getLogsRanges } = providerFailingGetLogs(1);
+    const { provider, getLogsRanges } = providerFailingGetLogs(2);
     registerUntil(SUCCESSES_TO_RAISE_LIMIT + 1);
 
     const promise: Promise<void> = fetchEventLogsContract(
@@ -246,13 +276,50 @@ describe("fetchEventLogsContract", () => {
     await vi.runAllTimersAsync();
     await promise;
 
-    // The first request fails, the halved width until the limit is raised,
-    // and then the doubled width.
+    // The first two requests fail, the halved width until the limit is
+    // raised, and then the doubled width.
     expect(
       getLogsRanges().map(([from, to]: number[]) => to - from + 1),
     ).toEqual([
       bulkUnit,
+      bulkUnit,
       ...Array(SUCCESSES_TO_RAISE_LIMIT).fill(bulkUnit / 2),
+      bulkUnit,
+    ]);
+  });
+
+  test("should not start counting the successes again after one error", async () => {
+    storeChainStatus.updateState(targetChain.name, {
+      latestBlockNumber: creationBlockNumber + 100 * bulkUnit,
+    });
+    const successesBeforeError: number = 5;
+    // Two errors halve the range; later, one error in the middle.
+    const middleError: number = 2 + successesBeforeError + 1;
+    const { provider, getLogsRanges } = providerFailingGetLogs(
+      (requestNumber: number) =>
+        requestNumber <= 2 || requestNumber === middleError,
+    );
+    registerUntil(SUCCESSES_TO_RAISE_LIMIT + 1);
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    // The limit is raised after SUCCESSES_TO_RAISE_LIMIT successes, counting
+    // the ones before the error in the middle.
+    const half: number = bulkUnit / 2;
+    expect(
+      getLogsRanges().map(([from, to]: number[]) => to - from + 1),
+    ).toEqual([
+      bulkUnit,
+      bulkUnit,
+      ...Array(successesBeforeError).fill(half),
+      half,
+      ...Array(SUCCESSES_TO_RAISE_LIMIT - successesBeforeError).fill(half),
       bulkUnit,
     ]);
   });
@@ -309,7 +376,7 @@ describe("fetchEventLogsContract", () => {
 
   test("should keep at least 2 blocks from the creation block after halving", async () => {
     storeRpcSettings.updateState(targetChain.name, { bulkUnit: 2 });
-    const { provider, getLogsRanges } = providerFailingGetLogs(1);
+    const { provider, getLogsRanges } = providerFailingGetLogs(2);
 
     const promise: Promise<void> = fetchEventLogsContract(
       dbEventLogs,
@@ -319,9 +386,9 @@ describe("fetchEventLogsContract", () => {
     await vi.runAllTimersAsync();
     await promise;
 
-    // The first request fails, and then one request for the range.
+    // The first two requests fail, and then one request for the range.
     expect(getLogsRanges()).toEqual(
-      Array(2).fill([creationBlockNumber, creationBlockNumber + 1]),
+      Array(3).fill([creationBlockNumber, creationBlockNumber + 1]),
     );
   });
 });
