@@ -17,6 +17,9 @@ const MAX_WIDTH = 500_000;
 // pass each request to another node with another limit, so a limit learned
 // from failures is doubled again after this many successes in a row.
 const SUCCESSES_TO_RAISE_LIMIT = 10;
+// The range of each contract is split into this many segments, fetched at
+// the same time. A segment has at least MAX_WIDTH blocks.
+const DEFAULT_SEGMENTS = 4;
 // Failures in a row before the script gives up.
 const MAX_FAILURES = 10;
 // The wait after a failure. Shorter only to check the script with a fake RPC.
@@ -253,6 +256,21 @@ export async function toSnapshotLogs(rpc, contract, rawLogs) {
   );
 }
 
+// Splits [fromBlock, toBlock] into at most `segments` ranges in order, each of
+// MAX_WIDTH blocks or more (one range when it is shorter).
+export function splitRange(fromBlock, toBlock, segments) {
+  const length = toBlock - fromBlock + 1;
+  const count = Math.max(1, Math.min(segments, Math.floor(length / MAX_WIDTH)));
+  const ranges = [];
+  for (let i = 0; i < count; i++) {
+    ranges.push([
+      fromBlock + Math.floor((length * i) / count),
+      fromBlock + Math.floor((length * (i + 1)) / count) - 1,
+    ]);
+  }
+  return ranges;
+}
+
 // ---------- the snapshot ----------
 
 const keyOf = (contract) =>
@@ -289,13 +307,15 @@ function lastBlocks(manifest) {
   return last;
 }
 
-// The logs fetched so far of each contract, so that a run that stopped (at
+// The logs fetched so far of each segment, so that a run that stopped (at
 // --max-requests, or after failures) goes on where it stopped.
 const PARTIAL_DIR = ".partial";
-function partialFile(partialDir, contract) {
+const segmentKeyOf = (partial) =>
+  `${keyOf(partial)}/${partial.segmentFrom}-${partial.segmentTo}`;
+function partialFile(partialDir, partial) {
   return path.join(
     partialDir,
-    `${contract.project}__${contract.version}__${contract.name}.json`,
+    `${partial.project}__${partial.version}__${partial.name}__${partial.segmentFrom}.json`,
   );
 }
 function readPartials(partialDir) {
@@ -304,7 +324,7 @@ function readPartials(partialDir) {
   for (const file of fs.readdirSync(partialDir)) {
     if (!file.endsWith(".json")) continue;
     const partial = JSON.parse(read(path.join(partialDir, file)));
-    partials.set(keyOf(partial), partial);
+    partials.set(segmentKeyOf(partial), partial);
   }
   return partials;
 }
@@ -322,18 +342,19 @@ export async function buildSnapshot({
   outDir,
   toBlock,
   maxRequests,
+  segments = DEFAULT_SEGMENTS,
   log,
 }) {
   const chain = loadChain(chainName);
   const rpc = createRpc(rpcUrl, maxRequests);
   try {
-    return await build(chain, rpc, outDir, toBlock, log);
+    return await build(chain, rpc, outDir, toBlock, segments, log);
   } finally {
     log(`Requests: ${JSON.stringify(rpc.counts)}`);
   }
 }
 
-async function build(chain, rpc, outDir, toBlock, log) {
+async function build(chain, rpc, outDir, toBlock, segments, log) {
   const chainId = Number(await rpc("eth_chainId"));
   if (chainId !== chain.chainId) {
     throw new Error(`The RPC is for chainId ${chainId}, not ${chain.chainId}.`);
@@ -388,62 +409,75 @@ async function build(chain, rpc, outDir, toBlock, log) {
   }
   const last = lastBlocks(manifest);
 
-  // The contracts are fetched at the same time, like the sync. When one
-  // stops (at --max-requests, or after failures), the others stop before
-  // their next request, and all keep what they fetched in .partial/.
+  // The contracts are fetched at the same time, like the sync, and each
+  // contract in segments at the same time. When one segment stops (at
+  // --max-requests, or after failures), the others stop before their next
+  // request, and all keep what they fetched in .partial/.
   const controller = new AbortController();
-  const fetchContract = async (contract) => {
+  const plans = [];
+  for (const contract of chain.contracts) {
     const lastBlock = last.get(keyOf(contract));
     const from =
       lastBlock === undefined ? contract.creationBlock : lastBlock + 1;
-    if (from > end) return undefined;
-    const partial = partials.get(keyOf(contract));
-    const resumed = partial?.fromBlock === from ? partial : undefined;
-    if (resumed) log(`${keyOf(contract)}: go on from ${resumed.nextBlock}.`);
-    const rawLogs = await fetchLogs(
-      rpc,
-      contract,
-      resumed?.nextBlock ?? from,
-      end,
-      log,
-      (nextBlock, logs) =>
-        writePartial(partialDir, {
-          project: contract.project,
-          version: contract.version,
-          name: contract.name,
-          end,
-          fromBlock: from,
-          nextBlock,
-          logs,
-        }),
-      resumed?.logs,
-      controller.signal,
-    );
-    return {
+    if (from > end) continue;
+    plans.push({ contract, from, ranges: splitRange(from, end, segments) });
+  }
+  const fetchSegment = async ({ contract, from }, [segmentFrom, segmentTo]) => {
+    const partial = {
       project: contract.project,
       version: contract.version,
       name: contract.name,
-      address: contract.address,
+      end,
       fromBlock: from,
-      toBlock: end,
-      logs: await toSnapshotLogs(rpc, contract, rawLogs),
+      segmentFrom,
+      segmentTo,
     };
+    const saved = partials.get(segmentKeyOf(partial));
+    const resumed = saved?.fromBlock === from ? saved : undefined;
+    if (resumed) {
+      log(
+        `${keyOf(contract)} ${segmentFrom}-${segmentTo}: go on from ${resumed.nextBlock}.`,
+      );
+    }
+    return fetchLogs(
+      rpc,
+      contract,
+      resumed?.nextBlock ?? segmentFrom,
+      segmentTo,
+      log,
+      (nextBlock, logs) =>
+        writePartial(partialDir, { ...partial, nextBlock, logs }),
+      resumed?.logs,
+      controller.signal,
+    );
   };
-  const results = await Promise.allSettled(
-    chain.contracts.map((contract) =>
-      fetchContract(contract).catch((error) => {
+  const fetches = plans.map((plan) =>
+    plan.ranges.map((range) =>
+      fetchSegment(plan, range).catch((error) => {
         controller.abort(error);
         throw error;
       }),
     ),
   );
+  const results = await Promise.allSettled(fetches.flat());
   if (results.some((result) => result.status === "rejected")) {
-    // The error of the contract that stopped first.
+    // The error of the segment that stopped first.
     throw controller.signal.reason;
   }
-  const chunkContracts = results
-    .map((result) => result.value)
-    .filter((chunkContract) => chunkContract !== undefined);
+  const chunkContracts = await Promise.all(
+    plans.map(async ({ contract, from }, i) => {
+      const rawLogs = (await Promise.all(fetches[i])).flat();
+      return {
+        project: contract.project,
+        version: contract.version,
+        name: contract.name,
+        address: contract.address,
+        fromBlock: from,
+        toBlock: end,
+        logs: await toSnapshotLogs(rpc, contract, rawLogs),
+      };
+    }),
+  );
   if (chunkContracts.length === 0) {
     fs.rmSync(partialDir, { recursive: true, force: true });
     log(`Nothing to add: the snapshot already reaches block ${end}.`);
@@ -499,11 +533,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       out: { type: "string", default: "static/warp-sync" },
       to: { type: "string" },
       "max-requests": { type: "string", default: "3000" },
+      segments: { type: "string", default: String(DEFAULT_SEGMENTS) },
     },
   });
   if (!values.chain || !values.rpc) {
     console.error(
-      "Usage: node scripts/warp-sync/build-snapshot.mjs --chain <name> --rpc <url> [--to <block>] [--out <dir>] [--max-requests <n>]",
+      "Usage: node scripts/warp-sync/build-snapshot.mjs --chain <name> --rpc <url> [--to <block>] [--out <dir>] [--max-requests <n>] [--segments <n>]",
     );
     process.exit(2);
   }
@@ -512,12 +547,18 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.error(`--max-requests must be a positive integer.`);
     process.exit(2);
   }
+  const segments = Number(values.segments);
+  if (!Number.isInteger(segments) || segments <= 0) {
+    console.error(`--segments must be a positive integer.`);
+    process.exit(2);
+  }
   await buildSnapshot({
     chainName: values.chain,
     rpcUrl: values.rpc,
     outDir: values.out,
     toBlock: values.to === undefined ? undefined : Number(values.to),
     maxRequests,
+    segments,
     log: (message) => console.log(message),
   });
 }
