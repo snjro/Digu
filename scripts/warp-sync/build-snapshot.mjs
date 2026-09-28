@@ -108,9 +108,17 @@ function loadContracts(chainDir, chainIndex) {
 
 // ---------- JSON-RPC ----------
 
-export function createRpc(url) {
+// Thrown before a request over the limit is sent. Not tried again.
+export class RequestLimitError extends Error {}
+
+export function createRpc(url, maxRequests = Infinity) {
   let id = 0;
   return async function rpc(method, params = []) {
+    if (id >= maxRequests) {
+      throw new RequestLimitError(
+        `Stopped at the limit of ${maxRequests} requests.`,
+      );
+    }
     const response = await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -155,6 +163,7 @@ export async function fetchLogs(rpc, contract, fromBlock, toBlock, log) {
       failures = 0;
       width = Math.min(width * 2, maxWidth);
     } catch (error) {
+      if (error instanceof RequestLimitError) throw error;
       failures++;
       log(`${contract.name}: ${from}-${to} failed: ${error.message}`);
       if (failures >= MAX_FAILURES) throw error;
@@ -249,10 +258,11 @@ export async function buildSnapshot({
   rpcUrl,
   outDir,
   toBlock,
+  maxRequests,
   log,
 }) {
   const chain = loadChain(chainName);
-  const rpc = createRpc(rpcUrl);
+  const rpc = createRpc(rpcUrl, maxRequests);
   const chainId = Number(await rpc("eth_chainId"));
   if (chainId !== chain.chainId) {
     throw new Error(`The RPC is for chainId ${chainId}, not ${chain.chainId}.`);
@@ -362,11 +372,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       rpc: { type: "string" },
       out: { type: "string", default: "static/warp-sync" },
       to: { type: "string" },
+      "max-requests": { type: "string", default: "3000" },
     },
   });
   if (!values.chain || !values.rpc) {
     console.error(
-      "Usage: node scripts/warp-sync/build-snapshot.mjs --chain <name> --rpc <url> [--to <block>] [--out <dir>]",
+      "Usage: node scripts/warp-sync/build-snapshot.mjs --chain <name> --rpc <url> [--to <block>] [--out <dir>] [--max-requests <n>]",
     );
     process.exit(2);
   }
@@ -375,6 +386,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     rpcUrl: values.rpc,
     outDir: values.out,
     toBlock: values.to === undefined ? undefined : Number(values.to),
+    maxRequests: Number(values["max-requests"]),
     log: (message) => console.log(message),
   });
 }

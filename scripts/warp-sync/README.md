@@ -14,7 +14,8 @@ In the repository root, with the `app` service of `compose.yaml`:
 
 ```sh
 docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
-  --chain matic --rpc <url> [--to <block>] [--out static/warp-sync]
+  --chain matic --rpc <url> [--to <block>] [--out static/warp-sync] \
+  [--max-requests 3000]
 ```
 
 - `--chain`: the `name` of a chain in `src/constants/chains` (`matic`, `eth`).
@@ -22,6 +23,8 @@ docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
 - `--to`: the last block of the snapshot. Without it, the latest block minus
   the `confirmationBlocks` of the chain, which is the highest block allowed.
 - `--out`: where to write. The default is `static/warp-sync`.
+- `--max-requests`: the most requests to send. The script stops before it
+  sends one more, and writes nothing. The default is 3000.
 
 The first run fetches from the creation block of each contract. A later run
 reads `manifest.json` and fetches only the blocks after the last run, into a
@@ -31,7 +34,9 @@ same block would overwrite it).
 
 It fetches like the sync: one `eth_getLogs` per range with the address and
 the topic 0 of the events that are not anonymous. A failed range is tried
-again once, then halved, and the half becomes the widest range.
+again once, then halved, and the half becomes the widest range. The
+requests are sent one at a time, and the script waits a second after a
+failure. It stops after 10 failures in a row.
 
 ## Format (formatVersion 1)
 
