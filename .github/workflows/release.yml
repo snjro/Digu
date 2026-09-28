@@ -30,23 +30,20 @@ jobs:
       - name: Check the screen check of this commit
         run: scripts/screen-check/wait-for-pass.sh "$GITHUB_SHA"
 
-  # Warns when a warp sync snapshot is old; it never stops the release. It
-  # only reads static/warp-sync/*/manifest.json. See scripts/warp-sync/README.md.
+  # Warns when a warp sync snapshot was not made on the day of the release (in
+  # Japan); it never stops the release. It only reads
+  # static/warp-sync/*/manifest.json. See scripts/warp-sync/README.md.
   warp_sync_age:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    env:
-      WARP_SYNC_MAX_AGE_DAYS: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
       - name: Check the age of the warp sync snapshots
         continue-on-error: true
-        run: |
-          python3 scripts/warp-sync/check-age.py \
-            --at "$(git log -1 --format=%cI "$GITHUB_SHA")" --max-days "$WARP_SYNC_MAX_AGE_DAYS"
+        run: python3 scripts/warp-sync/check-age.py
 
   test:
     # The other jobs need test, so none runs before the screen check passed.
