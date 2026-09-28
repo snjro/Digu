@@ -6,12 +6,21 @@ import {
   storeNoDbSnackBarInitialValue,
 } from "@stores/storeNoDb";
 import { customLogger } from "@utils/logger";
-import { startWarpSync } from "@warpSync/warpSync";
+import { forgetWarpSyncConfirmation, startWarpSync } from "@warpSync/warpSync";
+import { setWarpSyncStopController } from "@warpSync/warpSyncState";
 import { get } from "svelte/store";
-import { getWarpSyncHelperText, updateWarpSync } from "./warpSyncSetting";
+import {
+  canImportNow,
+  getWarpSyncHelperText,
+  updateWarpSync,
+} from "./warpSyncSetting";
 
 vi.mock("@db/dbSettings", () => ({ updateDbItemRpcSettings: vi.fn() }));
-vi.mock("@warpSync/warpSync", () => ({ startWarpSync: vi.fn(async () => {}) }));
+vi.mock("@warpSync/warpSync", () => ({
+  startWarpSync: vi.fn(async () => {}),
+  confirmWarpSync: vi.fn(async () => {}),
+  forgetWarpSyncConfirmation: vi.fn(),
+}));
 
 const matic = { name: "matic" } as Chain;
 
@@ -32,9 +41,17 @@ describe("updateWarpSync", () => {
     );
     expect(startWarpSync).toHaveBeenCalledWith(matic);
   });
-  test("does not import when it is turned off", async () => {
+  test("asks again for a large import when it is turned on", async () => {
+    await updateWarpSync(matic, true);
+    expect(forgetWarpSyncConfirmation).toHaveBeenCalledWith("matic");
+  });
+  test("does not import, and stops the import of this tab, when it is turned off", async () => {
+    const controller = new AbortController();
+    setWarpSyncStopController("matic", controller);
     expect(await updateWarpSync(matic, false)).toBe(true);
     expect(startWarpSync).not.toHaveBeenCalled();
+    expect(controller.signal.aborted).toBe(true);
+    setWarpSyncStopController("matic", undefined);
   });
   test("returns false and shows a snackbar when the save fails", async () => {
     vi.spyOn(customLogger, "error").mockImplementation(() => {});
@@ -65,6 +82,10 @@ describe("getWarpSyncHelperText", () => {
     ],
     ["none", "This site has no event logs of this chain to import."],
     [
+      "confirm",
+      "Waiting for your answer to import the event logs published with this site.",
+    ],
+    [
       "unsupported",
       "This browser cannot import the event logs published with this site: the logs are fetched only from your RPC.",
     ],
@@ -79,5 +100,39 @@ describe("getWarpSyncHelperText", () => {
     expect(getWarpSyncHelperText(false, { status: "imported" })).toBe(
       "Off: the logs are fetched only from your RPC.",
     );
+  });
+});
+
+describe("after Not now or a stop", () => {
+  const pending = {
+    logCount: 1_200_000,
+    snapshotLogCount: 2_328_259,
+    bytes: 101_000_000,
+    rawBytes: 0,
+    files: 60,
+  };
+  test.each(["declined", "stopped"] as const)(
+    "%s says what is left, and can import",
+    (status) => {
+      expect(getWarpSyncHelperText(true, { status, pending })).toBe(
+        "Not imported yet: 1,200,000 logs (101 MB) are left to import.",
+      );
+      expect(canImportNow(true, { status, pending })).toBe(true);
+      expect(canImportNow(false, { status, pending })).toBe(false);
+    },
+  );
+  test("says when Import could not start, and without the numbers", () => {
+    expect(
+      getWarpSyncHelperText(true, { status: "declined", pending, busy: true }),
+    ).toBe(
+      "Could not import now: the chain is synced. Choose Import when the sync stops. Not imported yet: 1,200,000 logs (101 MB) are left to import.",
+    );
+    expect(getWarpSyncHelperText(true, { status: "stopped" })).toBe(
+      "Not imported yet.",
+    );
+  });
+  test("cannot import now in the other states", () => {
+    expect(canImportNow(true, { status: "confirm" })).toBe(false);
+    expect(canImportNow(true, { status: "importing" })).toBe(false);
   });
 });

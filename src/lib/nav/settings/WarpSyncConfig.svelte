@@ -1,6 +1,7 @@
 <script lang="ts">
   import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import BaseButton from "$lib/base/BaseButton.svelte";
   import BaseCheckbox from "$lib/base/BaseCheckbox.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
   import CommonItemMember from "$lib/common/CommonItemMember.svelte";
@@ -13,7 +14,12 @@
     storeWarpSync,
   } from "@warpSync/warpSyncState";
   import classNames from "classnames";
-  import { getWarpSyncHelperText, updateWarpSync } from "./warpSyncSetting";
+  import { confirmWarpSync } from "@warpSync/warpSync";
+  import {
+    canImportNow,
+    getWarpSyncHelperText,
+    updateWarpSync,
+  } from "./warpSyncSetting";
 
   let targetChainName = $derived(
     $storeUserSettings.selectedChainName.toString(),
@@ -28,6 +34,9 @@
       isOn,
       selectWarpSyncState($storeWarpSync, targetChainName),
     ),
+  );
+  let showImport: boolean = $derived(
+    canImportNow(isOn, selectWarpSyncState($storeWarpSync, targetChainName)),
   );
 
   async function change(): Promise<void> {
@@ -51,6 +60,15 @@
         colorCategoryFront={colorSettings.navSettings}
         truncate={false}
       />
+      {#if showImport}
+        <BaseButton
+          label="Import"
+          size={sizeSettings.navSettings}
+          colorCategoryFront="white"
+          colorCategoryBg="interactive"
+          onclick={() => void confirmWarpSync(targetChain)}
+        />
+      {/if}
     </div>
   </CommonItemMember>
 {/if}

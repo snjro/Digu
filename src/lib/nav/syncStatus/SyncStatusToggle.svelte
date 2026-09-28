@@ -22,6 +22,8 @@
   import { customLogger } from "@utils/logger";
   import { getTargetChain } from "@utils/utilsDb";
   import classNames from "classnames";
+  import { selectWarpSyncState, storeWarpSync } from "@warpSync/warpSyncState";
+  import { SYNC_WAITS_FOR_IMPORT } from "@warpSync/warpSyncTexts";
   import { isSyncToggleDisabled } from "./syncToggleDisabled";
 
   let toggleOn: boolean = $state(false);
@@ -81,6 +83,12 @@
   let isSyncingInOtherTab: boolean = $derived(
     $storeSyncLockedByOtherTab[targetChainName],
   );
+  // A large import of this tab, which shows its progress and has Stop. A
+  // small one takes seconds, and the sync waits for it as before.
+  let isWarpSyncImporting: boolean = $derived.by(() => {
+    const warpState = selectWarpSyncState($storeWarpSync, targetChainName);
+    return warpState.status === "importing" && warpState.progress !== undefined;
+  });
   let disabled: boolean = $derived(
     isSyncToggleDisabled({
       nodeStatus,
@@ -89,6 +97,7 @@
       syncStateText,
       isStarting,
       isSyncingInOtherTab,
+      isWarpSyncImporting,
     }),
   );
 
@@ -109,7 +118,9 @@
           ? "stopping sync"
           : toggleOn
             ? "stop sync"
-            : "start sync",
+            : isWarpSyncImporting
+              ? SYNC_WAITS_FOR_IMPORT
+              : "start sync",
   );
 </script>
 

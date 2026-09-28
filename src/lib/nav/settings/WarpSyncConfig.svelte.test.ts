@@ -32,7 +32,11 @@ vi.mock("@utils/utilsDb", () => ({
   }),
 }));
 vi.mock("@db/dbSettings", () => ({ updateDbItemRpcSettings: vi.fn() }));
-vi.mock("@warpSync/warpSync", () => ({ startWarpSync: vi.fn(async () => {}) }));
+vi.mock("@warpSync/warpSync", () => ({
+  startWarpSync: vi.fn(async () => {}),
+  confirmWarpSync: vi.fn(async () => {}),
+  forgetWarpSyncConfirmation: vi.fn(),
+}));
 
 const userSettings = storeUserSettings as unknown as Writable<{
   selectedChainName: string;

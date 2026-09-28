@@ -41,8 +41,9 @@ export function getResetDisabledReason(
   if (conditions.syncStateText === "syncing") return "Stop the sync first.";
   // "stop sync" was pressed: the contracts end what they are doing first.
   if (conditions.syncStateText === "stopping") return WAIT_UNTIL_THE_SYNC_STOPS;
+  // The nav has "Stop" for a large import.
   if (conditions.isImporting) {
-    return "Wait until the logs published with this site are imported.";
+    return "Wait until the logs published with this site are imported, or stop the import.";
   }
   return undefined;
 }
@@ -56,7 +57,7 @@ export function getResetConfirmationTexts(
     `This deletes the ${logCount} event logs of ${chainFullName} and their block times saved in this browser, and the sync of every contract starts again from its creation block.`,
     "Your settings are kept: the RPC, the warp sync and the contracts to sync.",
     isWarpSyncOn
-      ? "The logs published with this site are imported again first. Turn off the warp sync to fetch every log from your RPC."
+      ? "The logs published with this site are imported again first; when they are many, you are asked first. Turn off the warp sync to fetch every log from your RPC."
       : NEXT_SYNC_FETCHES_ALL,
   ];
 }
@@ -122,6 +123,17 @@ export function getImportResultLine(
     case "none":
       return {
         text: `This site has no event logs of this chain to import. ${NEXT_SYNC_FETCHES_ALL}`,
+        isError: false,
+      };
+    case "confirm":
+      return {
+        text: "Many logs are published with this site: they are imported after you confirm.",
+        isError: false,
+      };
+    case "declined":
+    case "stopped":
+      return {
+        text: "The logs published with this site were not imported. Import them from the warp sync setting.",
         isError: false,
       };
     default:
