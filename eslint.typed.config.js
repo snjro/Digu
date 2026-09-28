@@ -12,6 +12,9 @@ export default defineConfig(
       parserOptions: {
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
+        // For every file, not only .svelte: when it differs between two files,
+        // typescript-eslint reloads the whole project.
+        extraFileExtensions: [".svelte"],
       },
     },
     rules: {
