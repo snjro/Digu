@@ -18,6 +18,11 @@ import {
 import { fetchWarpSyncManifest } from "./warpSyncFetch";
 import { importWarpSync } from "./warpSyncImport";
 import {
+  isSyncedByThisTab,
+  reloadSyncStatusInChain,
+  waitForSyncLockRelease,
+} from "@eventLogs/syncLock";
+import {
   selectWarpSyncState,
   setWarpSyncState,
   storeWarpSync,
@@ -26,6 +31,11 @@ import type { WarpSyncManifest } from "./warpSyncTypes";
 
 vi.mock("./warpSyncFetch", () => ({ fetchWarpSyncManifest: vi.fn() }));
 vi.mock("./warpSyncImport", () => ({ importWarpSync: vi.fn() }));
+vi.mock("@eventLogs/syncLock", () => ({
+  isSyncedByThisTab: vi.fn(() => false),
+  reloadSyncStatusInChain: vi.fn(async () => {}),
+  waitForSyncLockRelease: vi.fn(),
+}));
 
 const matic = { name: "matic" } as Chain;
 const eth = { name: "eth" } as Chain;
@@ -46,6 +56,8 @@ describe("warpSync", () => {
     setWarpSync("matic", true);
     vi.mocked(fetchWarpSyncManifest).mockReset().mockResolvedValue(manifest);
     vi.mocked(importWarpSync).mockReset().mockResolvedValue(30_000_000);
+    vi.mocked(reloadSyncStatusInChain).mockClear();
+    vi.mocked(waitForSyncLockRelease).mockClear();
   });
   afterEach(() => {
     removeLockManager();
@@ -154,16 +166,35 @@ describe("warpSync", () => {
     expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
       "idle",
     );
+    // The stores are read again when the other tab releases the lock.
+    expect(waitForSyncLockRelease).toHaveBeenCalledExactlyOnceWith("matic");
 
     release();
     await startWarpSync(matic);
     expect(importWarpSync).toHaveBeenCalledTimes(1);
   });
 
+  test("reads the DB into the stores after it, while it holds the lock", async () => {
+    let held: boolean | undefined;
+    vi.mocked(reloadSyncStatusInChain).mockImplementationOnce(async () => {
+      held = (await lockManager.query()).held?.length === 1;
+    });
+    await startWarpSync(matic);
+    expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("matic");
+    expect(held).toBe(true);
+  });
+
   test("works without Web Locks (insecure context)", async () => {
     removeLockManager();
     await startWarpSync(matic);
     expect(importWarpSync).toHaveBeenCalledTimes(1);
+  });
+
+  test("does not import without Web Locks while this tab syncs the chain", async () => {
+    removeLockManager();
+    vi.mocked(isSyncedByThisTab).mockReturnValueOnce(true);
+    await startWarpSync(matic);
+    expect(importWarpSync).not.toHaveBeenCalled();
   });
 
   test("lets the sync wait for the import of this tab", async () => {

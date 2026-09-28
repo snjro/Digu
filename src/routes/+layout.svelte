@@ -57,9 +57,11 @@
     }
   });
 
-  // Import the warp sync snapshot of the chain in the URL.
+  // Import the warp sync snapshot of the chain in the URL. Only when the
+  // chain changes: not on each page of the same chain.
+  let urlChainName: string | undefined = $derived(page.params.chainName);
   $effect(() => {
-    const paramsChainName: string | undefined = page.params.chainName;
+    const paramsChainName: string | undefined = urlChainName;
     const targetChain = TARGET_CHAINS.find(
       (chain) => chain.name === paramsChainName,
     );

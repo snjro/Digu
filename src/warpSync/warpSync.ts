@@ -3,6 +3,11 @@ import { getSyncLockName, SYNC_LOCK_TIMEOUT_MS } from "@db/constants";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { customLogger } from "@utils/logger";
 import { get } from "svelte/store";
+import {
+  isSyncedByThisTab,
+  reloadSyncStatusInChain,
+  waitForSyncLockRelease,
+} from "@eventLogs/syncLock";
 import { fetchWarpSyncManifest } from "./warpSyncFetch";
 import { importWarpSync } from "./warpSyncImport";
 import type { WarpSyncManifest } from "./warpSyncTypes";
@@ -87,22 +92,35 @@ async function withSyncLock(
   chainName: ChainName,
   run: () => Promise<void>,
 ): Promise<void> {
-  // Without Web Locks (insecure context), work as a single tab, as the sync.
+  // Without Web Locks (insecure context), work as a single tab, as the sync:
+  // do not import while this tab syncs the chain.
   if (!navigator.locks) {
-    await run();
+    if (!isSyncedByThisTab(chainName)) await run();
     return;
   }
   try {
     await navigator.locks.request(
       getSyncLockName(chainName),
       { signal: AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS) },
-      run,
+      async (): Promise<void> => {
+        await run();
+        // Another tab may have imported or synced since this tab read the
+        // DB, and then this import skips everything.
+        await reloadSyncStatusInChain(chainName).catch((error: unknown) => {
+          customLogger.error("Reload the sync status after the warp sync.", {
+            chainName,
+            errorObject: error,
+          });
+        });
+      },
     );
   } catch (error) {
-    // A TimeoutError when another tab holds the lock: try again next time.
+    // A TimeoutError when another tab holds the lock: read the DB when it
+    // releases it, as the sync does, and try again next time.
     customLogger.info("Skip the warp sync: the chain is synced now.", {
       chainName,
       errorObject: error,
     });
+    waitForSyncLockRelease(chainName);
   }
 }

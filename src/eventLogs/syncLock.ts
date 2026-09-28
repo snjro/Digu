@@ -24,6 +24,9 @@ export const storeSyncLockedByOtherTab: Writable<Record<ChainName, boolean>> =
 
 // Chains whose sync lock this tab holds.
 const chainsSyncedByThisTab: Set<ChainName> = new Set();
+export function isSyncedByThisTab(chainName: ChainName): boolean {
+  return chainsSyncedByThisTab.has(chainName);
+}
 
 // Runs `start` and then `sync` while holding the lock. Resolves true once
 // `start` has finished, or false when the lock is held (by another tab for
@@ -135,7 +138,7 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
   );
 }
 
-function waitForSyncLockRelease(chainName: ChainName): void {
+export function waitForSyncLockRelease(chainName: ChainName): void {
   if (get(storeSyncLockedByOtherTab)[chainName]) return;
   storeSyncLockedByOtherTab.update((state) => ({
     ...state,
@@ -145,10 +148,7 @@ function waitForSyncLockRelease(chainName: ChainName): void {
   navigator.locks
     .request(getSyncLockName(chainName), async (): Promise<void> => {
       try {
-        await resetSyncStatusInChain(chainName);
-        // Only the syncing tab updates the latest block number.
-        const { latestBlockNumber } = await getDbRecordChainStatus(chainName);
-        storeChainStatus.updateState(chainName, { latestBlockNumber });
+        await reloadSyncStatusInChain(chainName);
       } catch (error) {
         // A failure only leaves this chain's status stale.
         customLogger.error("Reset sync status after release.", {
@@ -173,6 +173,17 @@ function waitForSyncLockRelease(chainName: ChainName): void {
         [chainName]: false,
       }));
     });
+}
+
+// Reads the chain from the DB into the stores, after another tab (or the warp
+// sync) changed it. Call only while holding the sync lock of the chain.
+export async function reloadSyncStatusInChain(
+  chainName: ChainName,
+): Promise<void> {
+  await resetSyncStatusInChain(chainName);
+  // Only the syncing tab updates the latest block number.
+  const { latestBlockNumber } = await getDbRecordChainStatus(chainName);
+  storeChainStatus.updateState(chainName, { latestBlockNumber });
 }
 
 // Call only while holding the sync lock of the chain.

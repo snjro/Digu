@@ -507,12 +507,17 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     );
     process.exit(2);
   }
+  const maxRequests = Number(values["max-requests"]);
+  if (!Number.isInteger(maxRequests) || maxRequests <= 0) {
+    console.error(`--max-requests must be a positive integer.`);
+    process.exit(2);
+  }
   await buildSnapshot({
     chainName: values.chain,
     rpcUrl: values.rpc,
     outDir: values.out,
     toBlock: values.to === undefined ? undefined : Number(values.to),
-    maxRequests: Number(values["max-requests"]),
+    maxRequests,
     log: (message) => console.log(message),
   });
 }
