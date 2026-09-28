@@ -120,6 +120,22 @@ describe("warpSync", () => {
     expect(fetchWarpSyncManifest).not.toHaveBeenCalled();
   });
 
+  test("fetches nothing without DecompressionStream, says so, and does not try again", async () => {
+    vi.stubGlobal("DecompressionStream", undefined);
+    try {
+      await startWarpSync(matic);
+      await importWarpSyncBeforeSync(matic);
+      expect(fetchWarpSyncManifest).not.toHaveBeenCalled();
+      expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
+        "unsupported",
+      );
+      await startWarpSync(matic);
+      expect(fetchWarpSyncManifest).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   test("says so when the chain has no snapshot", async () => {
     vi.mocked(fetchWarpSyncManifest).mockResolvedValueOnce(undefined);
     await startWarpSync(matic);

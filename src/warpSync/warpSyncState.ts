@@ -8,7 +8,8 @@ export const WARP_SYNC_CHAIN_NAMES: readonly ChainName[] = ["matic"];
 
 export type WarpSyncState = {
   // "none": the chain has no snapshot, or none of its contracts is in the app.
-  status: "idle" | "importing" | "imported" | "failed" | "none";
+  // "unsupported": the browser cannot decompress the files.
+  status: "idle" | "importing" | "imported" | "failed" | "none" | "unsupported";
   // The last block of the snapshot and when it was made, once it is read.
   toBlock?: number;
   createdAt?: string;
