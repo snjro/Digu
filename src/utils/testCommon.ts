@@ -1,6 +1,15 @@
 import type { JsonFileContract } from "@constants/chains/jsonFileTypes";
 import type { Readable } from "svelte/store";
 import { vi } from "vitest";
+import {
+  FetchRequest,
+  JsonRpcProvider,
+  Network,
+  toUtf8Bytes,
+  toUtf8String,
+  type GetUrlResponse,
+  type JsonRpcPayload,
+} from "ethers";
 
 const jsonFileContract1EventOnly: JsonFileContract = {
   name: "contractName1",
@@ -81,4 +90,57 @@ export function trackStoreSubscriptions<T>(store: Readable<T>): {
     countActive: () => numOfActive,
     restore: () => spySubscribe.mockRestore(),
   };
+}
+
+// The answer of the RPC to an eth_getLogs request: an HTTP status other than
+// 200, the message of a JSON-RPC error with HTTP 200, or no logs (undefined).
+export type GetLogsAnswer = number | string | undefined;
+// A real ethers provider over a fake HTTP connection, so that ethers makes the
+// errors as for a real RPC. answer is called for each eth_getLogs request with
+// its number (the first request is 1).
+export function providerAnsweringGetLogs(
+  chainId: number,
+  answer: (requestNumber: number) => GetLogsAnswer,
+): {
+  provider: JsonRpcProvider;
+  // [fromBlock, toBlock] of each eth_getLogs request.
+  getLogsRanges: () => number[][];
+} {
+  const network: Network = Network.from(chainId);
+  const request: FetchRequest = new FetchRequest("http://fake-rpc.invalid/");
+  const getLogsRanges: number[][] = [];
+  request.getUrlFunc = async (req: FetchRequest): Promise<GetUrlResponse> => {
+    const payload = JSON.parse(toUtf8String(req.body!)) as JsonRpcPayload;
+    if (payload.method !== "eth_getLogs") {
+      throw new Error(`unexpected method: ${payload.method}`);
+    }
+    const { fromBlock, toBlock } = (
+      payload.params as [{ fromBlock: string; toBlock: string }]
+    )[0];
+    getLogsRanges.push([Number(fromBlock), Number(toBlock)]);
+    const result: GetLogsAnswer = answer(getLogsRanges.length);
+    const statusCode: number = typeof result === "number" ? result : 200;
+    const body: object =
+      result === undefined
+        ? { jsonrpc: "2.0", id: payload.id, result: [] }
+        : {
+            jsonrpc: "2.0",
+            id: payload.id,
+            error: {
+              code: -32000,
+              message: typeof result === "string" ? result : "fake error",
+            },
+          };
+    return {
+      statusCode,
+      statusMessage: statusCode === 200 ? "OK" : "Fake Error",
+      headers: {},
+      body: toUtf8Bytes(JSON.stringify(body)),
+    };
+  };
+  const provider = new JsonRpcProvider(request, network, {
+    staticNetwork: network,
+    batchMaxSize: 1,
+  });
+  return { provider, getLogsRanges: () => getLogsRanges };
 }

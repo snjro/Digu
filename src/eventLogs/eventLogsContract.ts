@@ -8,6 +8,7 @@ import type { ChainName, Contract } from "@constants/chains/types";
 import {
   getEthersEventLogs,
   getLoggableError,
+  isErrorUnrelatedToRange,
   type NodeProvider,
 } from "@utils/utilsEthers";
 import { customLogger } from "@utils/logger";
@@ -36,6 +37,10 @@ export const MAX_BULK_UNIT: number = 100000;
 // An RPC may pass each request to a different node, with a different limit or
 // a transient error, so the limit learned from an error is raised again.
 export const SUCCESSES_TO_RAISE_LIMIT: number = 10;
+// Errors in a row, of any kind, after which the range is halved. A node may
+// answer a range that is too wide with HTTP 500. Below the default Try Count
+// (10), so that the range is halved several times before giving up.
+export const ERRORS_TO_HALVE_ANYWAY: number = 3;
 export async function fetchEventLogsContract(
   dbEventLogs: DbEventLogs,
   targetContract: Contract,
@@ -54,10 +59,13 @@ export async function fetchEventLogsContract(
   const rpcSetting: RpcSetting = get(storeRpcSettings)[chainName];
   const maxErrorCount: number = rpcSetting.tryCount;
   let errorCount: number = 0;
-  // Doubled after each success, and halved after two errors in a row, in case
-  // the range exceeds a limit of the RPC. After that, it is not doubled beyond
-  // the halved width until SUCCESSES_TO_RAISE_LIMIT successes in a row, so
-  // that the same error does not come each time.
+  // Errors in a row that may come from a range that is too wide.
+  let rangeErrorCount: number = 0;
+  // Doubled after each success, and halved after two errors in a row that may
+  // come from a range that is too wide, or after ERRORS_TO_HALVE_ANYWAY errors
+  // of any kind. After that, it is not doubled beyond the halved width until
+  // SUCCESSES_TO_RAISE_LIMIT successes in a row, so that the same error does
+  // not come each time.
   let bulkUnit: number = rpcSetting.bulkUnit;
   let maxBulkUnit: number = MAX_BULK_UNIT;
   let successCount: number = 0;
@@ -168,6 +176,7 @@ export async function fetchEventLogsContract(
         });
       }
       errorCount = 0;
+      rangeErrorCount = 0;
       // A range cut at the latest block does not show that the width works.
       if (toBlockNumber - fromBlockNumber + 1 === bulkUnit) {
         successCount++;
@@ -179,9 +188,14 @@ export async function fetchEventLogsContract(
       }
     } catch (error) {
       errorCount++;
-      // One error may come from one node of the RPC, such as a node without
-      // old blocks, so the same range is tried once more before halving.
-      if (errorCount >= 2) {
+      // Such an error does not show that the range is too wide, so the same
+      // range is tried again. It still counts toward Try Count.
+      if (!isErrorUnrelatedToRange(error)) {
+        rangeErrorCount++;
+      }
+      // One error may come from one node of the RPC, so the same range is
+      // tried once more before halving.
+      if (rangeErrorCount >= 2 || errorCount >= ERRORS_TO_HALVE_ANYWAY) {
         bulkUnit = Math.max(1, Math.floor(bulkUnit / 2));
         maxBulkUnit = bulkUnit;
         successCount = 0;

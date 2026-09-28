@@ -15,6 +15,7 @@ import {
   WebSocketProvider,
   EventLog,
   getNumber,
+  isError,
   isHexString,
   type Contract as EthersContract,
   type Log,
@@ -202,6 +203,29 @@ export function getLoggableError(error: unknown): unknown {
     };
   }
   return loggableError;
+}
+// Errors of a node without old blocks, which come for any width. Seen with
+// Pocket Network on Ethereum (#580): 209 of 405 errors in 1,821 requests.
+const ERRORS_UNRELATED_TO_RANGE: string[] = [
+  "historical state is not available",
+  "pruned history unavailable",
+  "old data not available due to pruning",
+];
+// An error that may not come again for the same range: HTTP 500 or 504 (such
+// as a relay that failed), or a node without old blocks behind the RPC.
+export function isErrorUnrelatedToRange(error: unknown): boolean {
+  if (isError(error, "SERVER_ERROR")) {
+    const statusCode: number | undefined = error.response?.statusCode;
+    return statusCode === 500 || statusCode === 504;
+  }
+  // The error in the JSON-RPC response, as in getLoggableError.
+  if (!(isError(error, "UNKNOWN_ERROR") && isJsonRpcError(error.error))) {
+    return false;
+  }
+  const rpcMessage: string = error.error.message;
+  return ERRORS_UNRELATED_TO_RANGE.some((message: string) =>
+    rpcMessage.includes(message),
+  );
 }
 function isJsonRpcError(
   value: unknown,
