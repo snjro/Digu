@@ -35,8 +35,5 @@ type JsonFileAbiFragment = {
 export type JsonFileAbi = readonly JsonFileAbiFragment[];
 
 export type JsonFileContract = BaseContract & {
-  // false for a contract that is not synced, e.g. a token that is not only
-  // for the project.
-  readonly syncEvents?: boolean;
   readonly abi: JsonFileAbi;
 };

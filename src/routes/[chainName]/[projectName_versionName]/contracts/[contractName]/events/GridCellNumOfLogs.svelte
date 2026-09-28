@@ -18,7 +18,7 @@
   let { contractIdentifier, targetEventName, urlPathName }: Props = $props();
 
   // undefined for events that are not synced (anonymous events), and for
-  // contracts that have only anonymous events or "syncEvents": false
+  // contracts that have only anonymous events
   let currentRecordCount: number | undefined = $derived(
     $storeSyncStatus[contractIdentifier.chainName].subSyncStatuses[
       contractIdentifier.projectName

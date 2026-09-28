@@ -42,19 +42,9 @@ const jsonFileContractNamedAndAnonymous: JsonFileContract = {
     },
   ],
 };
-const jsonFileContractUnsynced: JsonFileContract = {
-  ...jsonFileContractNamedAndAnonymous,
-  name: "unsyncedContract",
-  syncEvents: false,
-};
-const [
-  anonymousOnlyContract,
-  namedAndAnonymousContract,
-  unsyncedContract,
-]: Contract[] = [
+const [anonymousOnlyContract, namedAndAnonymousContract]: Contract[] = [
   jsonFileContractAnonymousOnly,
   jsonFileContractNamedAndAnonymous,
-  jsonFileContractUnsynced,
 ].map(
   (jsonFileContract: JsonFileContract) =>
     convertJsonFilesContractToContracts([jsonFileContract])[0],
@@ -70,19 +60,11 @@ describe("a contract that has only anonymous events", () => {
   });
 });
 
-describe('a contract with "syncEvents": false', () => {
-  test("should have the ABI of the events but no event name to sync", () => {
-    expect(unsyncedContract.events.abiFragments).toHaveLength(2);
-    expect(unsyncedContract.events.names).toEqual([]);
-  });
-});
-
 describe("hasSyncTargetEvents", () => {
   test.each([
     ["an event", eventContract, true],
     ["named and anonymous events", namedAndAnonymousContract, true],
     ["only anonymous events", anonymousOnlyContract, false],
-    ['"syncEvents": false', unsyncedContract, false],
     ["only a function", functionOnlyContract, false],
   ])("a contract that has %s -> %s", (_, contract, expected) => {
     expect(hasSyncTargetEvents(contract)).toBe(expected);
@@ -98,11 +80,6 @@ describe("extractEventContracts", () => {
         eventContract,
       ]),
     ).toEqual([namedAndAnonymousContract, eventContract]);
-  });
-  test('should exclude a contract with "syncEvents": false', () => {
-    expect(extractEventContracts([unsyncedContract, eventContract])).toEqual([
-      eventContract,
-    ]);
   });
 });
 

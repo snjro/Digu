@@ -30,8 +30,8 @@ export class DbEventLogs extends dbBase {
     const schemaDefinition = this.getSchemaDefinition(targetContracts);
     this.version(DB_VERSIONS.EventLog)
       .stores(schemaDefinition)
-      // On the upgrade, Dexie deletes the tables of the contracts that are no
-      // longer synced. This deletes their sync statuses.
+      // On the upgrade, Dexie deletes the tables of the removed contracts.
+      // This deletes their sync statuses.
       .upgrade(async (tx: Transaction) => {
         const targetContractNames: string[] = targetContracts.map(
           (targetContract: Contract) => targetContract.name,

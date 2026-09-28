@@ -116,7 +116,6 @@ it does not show in the console (#483).
 | Scenario | What it does                                                                                                                                                                                             |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | S1       | Picks the sync targets, syncs Augur version1 to the Goal (latest − depth, #498), follows the progress on the pages while it syncs, changes the chain during the sync, stops it, reloads, and syncs again |
-| S2       | Anonymous events of the version2 `Cash` contract are not fetched                                                                                                                                         |
 | S3       | RPC errors, one mode each: `errorGetLogs` and `errorGetLogs10` (Retry Count 2 and 10), `errorOnce`, `errorAll`, `nullBlock` (`eth_getBlockByNumber` returns null, #519)                                  |
 | S4       | Two tabs: a sync in one, what the other shows, and after the first stops or closes                                                                                                                       |
 | S5       | Page errors on in-app navigation with real links                                                                                                                                                         |

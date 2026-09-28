@@ -24,7 +24,7 @@ import {
 export type AbiFormatType = "json" | "full" | "minimal";
 
 // Anonymous events are not synced, so a contract that has only anonymous
-// events has no event to sync. Neither has a contract with "syncEvents": false.
+// events has no event to sync.
 export function hasSyncTargetEvents(contract: Contract): boolean {
   return contract.events.names.length > 0;
 }

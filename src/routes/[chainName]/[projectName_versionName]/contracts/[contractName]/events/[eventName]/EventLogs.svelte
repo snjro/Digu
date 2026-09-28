@@ -1,4 +1,6 @@
 <script lang="ts" module>
+  export const MESSAGE_ANONYMOUS_EVENT_LOGS: string =
+    "Logs of anonymous events are not fetched.";
   // While the sync saves logs, reload the rows at most once in this time.
   export const EVENT_LOGS_RELOAD_INTERVAL: number = 3000;
 </script>
@@ -8,7 +10,7 @@
   import BaseGrid from "$lib/grid/BaseGrid.svelte";
   import type { ColumnDef } from "$lib/grid/types";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import type { Contract, EventAbiFragment } from "@constants/chains/types";
+  import type { EventAbiFragment } from "@constants/chains/types";
   import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
   import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
   import type { EventLogType } from "$lib/contracts/eventLogType";
@@ -16,11 +18,9 @@
   import { createThrottledLoad } from "./latestLoad";
   import { getEachArgsMaxLengths } from "../../../maxParamsLength";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { getUnfetchedLogsMessage } from "./unfetchedLogsMessage";
 
   interface Props {
     targetEventIdentifier: AbiFragmentIdentifier;
-    targetContract: Contract;
     targetEventAbiFragment: EventAbiFragment;
     eventLogType: EventLogType;
     isFullScreen: boolean;
@@ -28,15 +28,10 @@
 
   let {
     targetEventIdentifier,
-    targetContract,
     targetEventAbiFragment,
     eventLogType,
     isFullScreen = $bindable(),
   }: Props = $props();
-
-  let unfetchedLogsMessage: string | undefined = $derived(
-    getUnfetchedLogsMessage(targetContract, targetEventAbiFragment),
-  );
 
   // The sync adds to it when it saves logs of this event.
   let recordCount: number | undefined = $derived(
@@ -48,8 +43,9 @@
   );
 
   let rows: ConvertedEventLog[] | undefined = $state.raw(undefined);
+  // Logs of anonymous events are not fetched, so their table does not exist.
   $effect.pre(() => {
-    if (unfetchedLogsMessage) {
+    if (targetEventAbiFragment.anonymous) {
       rows = [];
       return;
     }
@@ -88,9 +84,9 @@
   );
 </script>
 
-{#if unfetchedLogsMessage}
+{#if targetEventAbiFragment.anonymous}
   <BaseLabel
-    text={unfetchedLogsMessage}
+    text={MESSAGE_ANONYMOUS_EVENT_LOGS}
     italic
     textSize={sizeSettings.itemWarningMessage}
   />

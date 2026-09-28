@@ -26,8 +26,8 @@ export const CONFIRMATION_BLOCKS = Number(
 const PLAN = [
   ["version1", "Augur", "MarketCreated", [5, 50, 50, 150, 230]],
   ["version1", "Augur", "UniverseCreated", [5, 120]],
-  ["version2", "Cash", "Transfer", [3, 100]],
-  ["version2", "Cash", "Approval", [60]],
+  ["version2", "REPv2", "Transfer", [3, 100]],
+  ["version2", "REPv2", "Approval", [60]],
 ];
 
 export const contracts = {}; // lower-case address -> {version, name, abi, creation, iface}

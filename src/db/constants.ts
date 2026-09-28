@@ -13,7 +13,7 @@ export const DB_NAME = {
 } as const;
 
 export const DB_VERSIONS = {
-  // 2: stopped syncing the contracts with "syncEvents": false.
+  // 2: removed the contracts of Augur version2 that Augur did not deploy.
   EventLog: 2,
   Settings: 1,
   BlockTimes: 1,

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs sync-check.mjs (or smoke.mjs) in the test service of <build-dir>.
-# Usage: scripts/screen-check/sync/run.sh <build-dir> <out-dir> sync-check.mjs [S1,S2,S3,S4,S5]
+# Usage: scripts/screen-check/sync/run.sh <build-dir> <out-dir> sync-check.mjs [S1,S3,S4,S5]
 #        scripts/screen-check/sync/run.sh <build-dir> <out-dir> smoke.mjs
 #   <build-dir>: made by ../build.sh (has compose.yaml, node_modules and _build).
 #   <out-dir>: where the results go, outside the repository.

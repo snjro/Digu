@@ -18,7 +18,6 @@ import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { getEventLogEdges } from "@db/dbEventLogsGetEventLogEdges";
 import { customLogger } from "@utils/logger";
 import EventOverviewFetchedLogs from "./EventOverviewFetchedLogs.svelte";
-import { MESSAGE_UNSYNCED_CONTRACT_EVENT_LOGS } from "./unfetchedLogsMessage";
 
 // The real store and DB load the chain data, which loads ethers. ethers does
 // not load in the client project, so they are replaced.
@@ -34,6 +33,9 @@ vi.mock("@utils/logger", () => ({
     error: vi.fn(),
   },
 }));
+vi.mock("./EventLogs.svelte", () => ({
+  MESSAGE_ANONYMOUS_EVENT_LOGS: "Logs of anonymous events are not fetched.",
+}));
 vi.mock("$lib/common/CommonChainExplorerLink.svelte", async () => {
   const { default: Stub } =
     await import("../../functions/[functionName]/pageTabs.testStub.svelte");
@@ -46,10 +48,7 @@ vi.mock("$lib/common/CommonChainExplorerLink.svelte", async () => {
 const targetChain = { name: "chain1" } as Chain;
 const targetProject = { name: "project1" } as Project;
 const targetVersion = { name: "version1" } as Version;
-const targetContract = {
-  name: "contract1",
-  events: { names: ["Transfer", "Approval"] },
-} as unknown as Contract;
+const targetContract = { name: "contract1" } as Contract;
 const targetEventAbiFragment = {
   name: "Transfer",
   anonymous: false,
@@ -105,12 +104,12 @@ function log(blockNumber: number): ConvertedEventLog {
 const load = vi.mocked(getEventLogEdges);
 const noLogs = { count: 0, oldest: undefined, latest: undefined };
 
-function renderSection(contract: Contract = targetContract) {
+function renderSection() {
   return render(EventOverviewFetchedLogs, {
     targetChain,
     targetProject,
     targetVersion,
-    targetContract: contract,
+    targetContract,
     targetEventAbiFragment,
   });
 }
@@ -194,15 +193,5 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     await tick();
     await tick();
     expect(load).toHaveBeenCalledTimes(1);
-  });
-
-  test('shows a message and does not load for a contract with "syncEvents": false', async () => {
-    renderSection({
-      ...targetContract,
-      events: { ...targetContract.events, names: [] },
-    });
-    await tick();
-    expect(screen.getByText(MESSAGE_UNSYNCED_CONTRACT_EVENT_LOGS)).toBeTruthy();
-    expect(load).not.toHaveBeenCalled();
   });
 });

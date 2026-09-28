@@ -35,16 +35,13 @@ export function convertJsonFilesContractToContracts(
 
       // Anonymous events are excluded from sync targets because their logs
       // cannot be fetched by event name. Their ABI is still shown.
-      const eventNames: EventAbiFragment["name"][] =
-        jsonFileContract.syncEvents === false
-          ? []
-          : eventAbiFragments
-              .filter((eventAbiFragment: EventAbiFragment) => {
-                return !eventAbiFragment.anonymous;
-              })
-              .map((eventAbiFragment: EventAbiFragment) => {
-                return eventAbiFragment.name;
-              });
+      const eventNames: EventAbiFragment["name"][] = eventAbiFragments
+        .filter((eventAbiFragment: EventAbiFragment) => {
+          return !eventAbiFragment.anonymous;
+        })
+        .map((eventAbiFragment: EventAbiFragment) => {
+          return eventAbiFragment.name;
+        });
 
       const baseContract: BaseContract = {
         name: jsonFileContract.name,
