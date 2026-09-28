@@ -1,0 +1,128 @@
+name: Screen check
+
+# Runs scripts/screen-check/run-all.sh on develop and judges it with judge.py.
+# On a failure it opens an issue with the label screen-check-failure, or
+# comments on the open one; on a pass it closes it. release.yml stops unless
+# this passed on the commit of the tag. See scripts/screen-check/README.md.
+on:
+  # Not on pull requests: it takes about 15 min.
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+    inputs:
+      jobs:
+        description: "How many checks run at once (--jobs of run-all.sh)"
+        default: "2"
+
+concurrency:
+  group: screen-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  screen_check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # build.sh copies v1.0.2 with git archive.
+          fetch-depth: 0
+
+      # compose.yaml and build.sh run the containers as 1001:1001, which must
+      # be able to write the build folders.
+      - name: Check the user id
+        run: |
+          id
+          if [ "$(id -u)" != 1001 ]; then
+            echo "::error::The runner's user is not uid 1001, the user of the containers"
+            exit 1
+          fi
+
+      # v1.0.2 does not change; upgrade/ uses only its _build.
+      - name: Restore the build of v1.0.2
+        id: restore_102
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/build-102/_build
+          key: screen-check-v1.0.2-${{ hashFiles('scripts/screen-check/build.sh') }}
+
+      - name: Build v1.0.2
+        if: steps.restore_102.outputs.cache-hit != 'true'
+        run: scripts/screen-check/build.sh v1.0.2 "$RUNNER_TEMP/build-102"
+
+      - name: Save the build of v1.0.2
+        if: steps.restore_102.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ runner.temp }}/build-102/_build
+          key: ${{ steps.restore_102.outputs.cache-primary-key }}
+
+      - name: Build
+        run: scripts/screen-check/build.sh "$GITHUB_SHA" "$RUNNER_TEMP/build"
+
+      # Upgrade B is skipped: its data is made by hand for a release.
+      # judge.py reads the exit codes, so a failure here does not stop the job.
+      - name: Run the screen check
+        env:
+          JOBS: ${{ inputs.jobs || '2' }}
+        run: |
+          scripts/screen-check/run-all.sh "$RUNNER_TEMP/build" "$RUNNER_TEMP/build-102" "$RUNNER_TEMP/out" \
+            --jobs="$JOBS" || true
+
+      - name: Judge
+        # bash, for pipefail: the exit code of judge.py, not of tee.
+        shell: bash
+        run: python3 scripts/screen-check/judge.py "$RUNNER_TEMP/out" | tee "$RUNNER_TEMP/judge.txt"
+
+      # The screenshots of the CHECK steps are for a person to look at.
+      - name: Upload the results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: screen-check-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/out
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Open or update the issue
+        if: failure()
+        run: |
+          gh label create screen-check-failure --color B60205 \
+            --description "The screen check failed on develop" --force
+          {
+            echo "The screen check failed on $GITHUB_SHA ($(git log -1 --format=%s))."
+            echo
+            echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo
+            if [ -s "$RUNNER_TEMP/judge.txt" ]; then
+              echo '```'
+              cat "$RUNNER_TEMP/judge.txt"
+              echo '```'
+            else
+              echo "It stopped before judge.py. See the run."
+            fi
+          } >"$RUNNER_TEMP/issue.md"
+          number=$(gh api "repos/$GH_REPO/issues?labels=screen-check-failure&state=open" --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh api "repos/$GH_REPO/issues/$number/comments" -F body=@"$RUNNER_TEMP/issue.md" --jq .html_url
+          else
+            gh api "repos/$GH_REPO/issues" -f title="The screen check failed on develop" \
+              -f "labels[]=screen-check-failure" -F body=@"$RUNNER_TEMP/issue.md" --jq .html_url
+          fi
+
+      - name: Close the issue
+        if: success()
+        run: |
+          for number in $(gh api "repos/$GH_REPO/issues?labels=screen-check-failure&state=open" --jq '.[].number'); do
+            gh api "repos/$GH_REPO/issues/$number/comments" \
+              -f body="Passed on $GITHUB_SHA: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .html_url
+            gh api -X PATCH "repos/$GH_REPO/issues/$number" -f state=closed -f state_reason=completed --jq .html_url
+          done
