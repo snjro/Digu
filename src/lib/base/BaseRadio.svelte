@@ -164,17 +164,7 @@
 {#if radioButtonType === "circle"}
   <div class={classNames("flex", "flex-col", "space-y-1")}>
     {#each labelAndValues as { labelText, value, inputId } (inputId)}
-      <div
-        class={classNames(
-          // childGridColSpan(),
-          "flex",
-          "flex-row",
-          "items-center",
-          "w-fit",
-          // "space-x-2",
-          "",
-        )}
-      >
+      <div class={classNames("flex", "flex-row", "items-center", "w-fit", "")}>
         <div
           class={classNames(
             radioSizes[size],
@@ -236,7 +226,6 @@
       roundedSize(radioButtonType === "tab" ? "tl" : "l"),
       roundedSize(radioButtonType === "tab" ? "tr" : "r"),
       radioButtonType === "tab" && colorClasses[colorSettings.tabSelected].bg,
-      // "space-x-px",
       "static",
     )}
   >

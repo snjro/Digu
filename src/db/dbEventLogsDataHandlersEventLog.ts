@@ -1,7 +1,6 @@
 import type { Contract, ContractName } from "@constants/chains/types";
 import type { DbEventLogs } from "./dbEventLogs";
 import type { Table } from "dexie";
-// import type { Event as EthersEvent } from "ethers";
 import { getEventLogTableName } from "@utils/utilsDb";
 import { assertIsDefined } from "@utils/utilsCommon";
 import { customLogger } from "@utils/logger";

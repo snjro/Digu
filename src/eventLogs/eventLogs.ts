@@ -62,7 +62,6 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
         for (const targetContract of extractEventContracts(
           targetVersion.contracts,
         )) {
-          // await setSyncing(dbEventLogs, targetContract.name);
           promiseFetchAndInsertEthersEvents.push(
             fetchEventLogsContract(
               dbEventLogs,

@@ -35,10 +35,6 @@
 
   const textSize: BaseSize = sizeSettings.itemMemberTable;
   const warningTextSize: BaseSize = sizeSettings.itemWarningMessage;
-  // const hrefFrontPart: string =
-  //   trailingSlash === "always"
-  //     ? `${page.url.pathname}`
-  //     : `${page.url.pathname}/`;
   const hrefFrontPart = (targetVersion: Version): string =>
     getVersionHref(
       page.url.pathname,

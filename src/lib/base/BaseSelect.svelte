@@ -50,8 +50,6 @@
         "form-select",
         "rounded-sm",
         "w-full",
-        // "pr-2",
-        // "py-0.5",
         "p-1",
         colorCategoryBg ? colorClasses[colorCategoryBg].bg : "bg-inherit",
         colorCategoryFront
@@ -66,7 +64,6 @@
         "outline-hidden",
         baseTextSizes[size],
         "cursor-pointer",
-        // "appearance-none",
         appendClass,
       ),
   );
@@ -79,7 +76,6 @@
     "justify-items-center",
     "rounded-sm",
     colorCategoryBg ? colorClasses[colorCategoryBg].bg : "bg-inherit",
-    // "shadow-md dark:shadow-none",
     baseShadowSizes[size],
     "dark:shadow-none",
     colorCategoryFront

@@ -52,41 +52,21 @@ function setSingleColumnClass(singleColumnDef: ColDef): void {
 }
 function setGroupColumnClassHeader(groupColumnDef: ColGroupDef): void {
   groupColumnDef.headerClass = classNames(
-    // "px-1",
-    // "text-lg",
-    // "border-r",
-    // "border-white",
-    // headerColorBg,
     groupColumnDef.headerClass?.toString(),
   );
 }
 function setGroupColumnClassCell(groupColumnDef: ColGroupDef): void {
-  // for (const childColumnDef of groupColumnDef.children) {
-  //   setSingleColumnClass(childColumnDef);
-  // }
   for (let i = 0; i < groupColumnDef.children.length; i++) {
     setSingleColumnClass(groupColumnDef.children[i]);
   }
 }
 function setSingleColumnClassHeader(singleColumnDef: ColDef): void {
   singleColumnDef.headerClass = classNames(
-    // "px-1",
-    // "text-md",
-    // "border-y border-r",
-    // "border-white",
-    // headerColorBg,
     singleColumnDef.headerClass?.toString(),
   );
 }
 function setSingleColumnClassCell(singleColumnDef: ColDef): void {
   singleColumnDef.cellClass = classNames(
-    // "px-1",
-    // "text-md",
-    // "flex",
-    // "items-center",
-    // "bg-black",
-    // "border-l",
-    // "border-gray-700",
     singleColumnDef.cellClass ? singleColumnDef.cellClass.toString() : "",
   );
 }

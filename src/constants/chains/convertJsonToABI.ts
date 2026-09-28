@@ -3,7 +3,6 @@ import type { JsonFileContract } from "./jsonFileTypes";
 import type {
   AdditionalContract,
   BaseContract,
-  // AbiFragments,
   ConstructorAbiFragment,
   Contract,
   ContractInterface,
@@ -30,8 +29,6 @@ export function convertJsonFilesContractToContracts(
         getFunctionAbiFragmentsFromContractInterface(contractInterface);
       const fallbackAbiFragment: FallbackAbiFragment =
         getFallbackAbiFragmentFromContractInterface(contractInterface);
-      // const errorAbiFragments: ErrorAbiFragment[] =
-      //   getErrorAbiFragmentsFromContractInterface(contractInterface);
 
       // Anonymous events are excluded from sync targets because their logs
       // cannot be fetched by event name. Their ABI is still shown.

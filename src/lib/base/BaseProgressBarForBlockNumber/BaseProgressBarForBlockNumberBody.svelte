@@ -8,7 +8,6 @@
   import { baseTextHeight, type BaseSize } from "$lib/base/baseSizes";
   import classNames from "classnames";
 
-  // import BaseLabel from "./BaseLabel.svelte";
   import BaseProgressBarForBlockNumberBodyBar from "./BaseProgressBarForBlockNumberBodyBar.svelte";
   interface Props {
     processing: boolean;

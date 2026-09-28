@@ -43,7 +43,6 @@
 
   const suffixIcon = (): BaseIconProps | undefined => {
     if (withIcon) {
-      // return { name: "linkVariant", size: textSize, appendClass: "ml-1" };
       return {
         name: "linkVariant",
         size: changeSize(textSize, -1),

@@ -41,11 +41,3 @@
     </div>
   {/snippet}
 </PageWrapperContent>
-<!-- <style>
-  :global(.abi-row-border-only-first) {
-    border-top: solid 1px var(--color-frame-border) !important;
-  }
-  :global(.ag-theme-balham-dark .ag-cell) {
-    border-left: solid 1px red;
-  }
-</style> -->

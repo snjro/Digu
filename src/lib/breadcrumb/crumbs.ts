@@ -28,7 +28,6 @@ function getPathNameWithUrlHash(
   currentPathName: string,
 ): string {
   let urlHash: string;
-  // if (indexPathNames === pathNames.length - 1) {
   switch (previousPathName) {
     case DIR_NAME_CONTRACTS:
       urlHash = TAB_VALUES_CONTRACT[0];
@@ -46,7 +45,6 @@ function getPathNameWithUrlHash(
   if (urlHash) {
     urlHash = `#${convertToKebabCase(urlHash)}`;
   }
-  // }
   return currentPathName + urlHash;
 }
 function convertUrlTextToLabelText(path: string): string {

@@ -220,17 +220,3 @@
     `--color-row-border:${colorDefs.row.border};`,
   )}
 ></div>
-
-<style>
-  /* :global(.cell-span) {
-    background-color: var(--color-row-bg);
-    border-bottom: var(--color-row-border);
-  } */
-
-  /* :global(.abi-row-border-only-first) {
-    border-top: solid 1px var(--color-frame-border) !important;
-  } */
-  /* :global(.ag-theme-balham-dark .ag-cell) {
-    border-left: solid 1px red;
-  } */
-</style>
