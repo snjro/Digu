@@ -38,6 +38,9 @@ const DEFAULT_PART_BLOCKS = 500_000;
 const DEFAULT_CONCURRENCY = 24;
 // Failures in a row before the script gives up.
 const MAX_FAILURES = 10;
+// Empty answers in a row after which a range is kept as empty (#576). pocket
+// returned no logs twice in a row for ranges with logs.
+const EMPTY_ANSWERS_TO_KEEP = 3;
 // A request that does not answer in this time is a failure.
 const REQUEST_TIMEOUT_MS = Number(
   process.env.WARP_SYNC_REQUEST_TIMEOUT_MS ?? 60_000,
@@ -223,7 +226,8 @@ function halve(widths) {
 // What happened in a run, for the manifest.
 export function createFetchStats() {
   return {
-    // #576: an empty result is asked again once; the second answer is kept.
+    // #576: an empty range is asked again until EMPTY_ANSWERS_TO_KEEP empty
+    // answers in a row, or until an answer has logs.
     emptyRangesAskedAgain: 0,
     emptyRangesWithLogs: 0,
     errors: { results: 0, unrelated: 0, range: 0 },
@@ -240,10 +244,10 @@ export function createFetchStats() {
 //   range until SUCCESSES_TO_RAISE_LIMIT full ranges work in a row.
 // - Any kind: halved after ERRORS_TO_HALVE_ANYWAY in a row; the script stops
 //   after MAX_FAILURES in a row.
-// An empty result is asked again once (#576): an RPC may return no logs for
-// a range that has some. Each range that works goes to onRange(from, to,
-// logs), with its logs by block and log index, so that the logs are not all
-// kept in memory. Returns the number of logs. It stops before the next
+// An empty result is asked again until EMPTY_ANSWERS_TO_KEEP empty answers in
+// a row (#576): an RPC may return no logs for a range that has some. Each
+// range that works goes to onRange(from, to, logs), with its logs by block and
+// log index, so that the logs are not all kept in memory. Returns the number of logs. It stops before the next
 // request when signal is aborted (another part stopped).
 export async function fetchLogs(
   rpc,
@@ -262,8 +266,9 @@ export async function fetchLogs(
   let from = fromBlock;
   let failures = 0;
   let rangeFailures = 0;
-  // The end of an empty range that is asked again.
+  // The end of an empty range that is asked again, and its empty answers.
   let askAgainTo = undefined;
+  let emptyAnswers = 0;
   while (from <= toBlock) {
     signal?.throwIfAborted();
     const width = widths.width;
@@ -286,6 +291,7 @@ export async function fetchLogs(
       if (kind === "results") {
         // Not the empty range any more: a narrower one.
         askAgainTo = undefined;
+        emptyAnswers = 0;
         halve(widths);
         continue;
       }
@@ -294,14 +300,15 @@ export async function fetchLogs(
       if (failures >= MAX_FAILURES) throw error;
       if (rangeFailures >= 2 || failures >= ERRORS_TO_HALVE_ANYWAY) {
         askAgainTo = undefined;
+        emptyAnswers = 0;
         halve(widths);
       }
       await sleep(RETRY_WAIT_MS);
       continue;
     }
-    if (result.length === 0 && askAgainTo === undefined) {
+    if (result.length === 0 && ++emptyAnswers < EMPTY_ANSWERS_TO_KEEP) {
+      if (askAgainTo === undefined) stats.emptyRangesAskedAgain++;
       askAgainTo = to;
-      stats.emptyRangesAskedAgain++;
       continue;
     }
     if (askAgainTo !== undefined && result.length > 0) {
@@ -311,6 +318,7 @@ export async function fetchLogs(
       );
     }
     askAgainTo = undefined;
+    emptyAnswers = 0;
     // Outside the try: an error of onRange (writing the file) is not a
     // failure of the RPC.
     onRange(from, to, sortLogs(result));

@@ -47,7 +47,8 @@ function logsOf(contract, from, to) {
 }
 
 let request = 0;
-const empties = new Set();
+// The empty answers given for each range with logs.
+const empties = new Map();
 const faults = {
   empty: 0,
   tooWide: 0,
@@ -107,10 +108,15 @@ beforeAll(async () => {
           },
         });
       }
-      // The first answer for a range with logs is empty, one time in four.
+      // The first two answers for a range with logs are empty, one time in
+      // four (pocket was empty twice in a row).
       const key = `${address}/${from}-${to}`;
+      if (logs.length > 0 && empties.get(key) === 1) {
+        empties.set(key, 2);
+        return send(200, { result: [] });
+      }
       if (logs.length > 0 && !empties.has(key) && n % 4 === 0) {
-        empties.add(key);
+        empties.set(key, 1);
         faults.empty++;
         return send(200, { result: [] });
       }

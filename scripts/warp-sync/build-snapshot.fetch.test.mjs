@@ -78,7 +78,8 @@ describe("fetchLogs", () => {
       [1, 9_999],
       [10_000, 19_998],
       [19_999, 20_000],
-      // The last range was empty: asked again.
+      // The last range was empty: asked until three empty answers.
+      [19_999, 20_000],
       [19_999, 20_000],
     ]);
   });
@@ -151,8 +152,19 @@ describe("fetchLogs", () => {
     });
   });
 
-  test("keeps an empty range that is empty twice", async () => {
-    const { ranges, stats } = await run([[], []], 1, 9_999);
+  test("keeps the logs of the third answer after two empty answers", async () => {
+    const { asked, ranges, stats } = await run([[], [], [log(7)]], 1, 9_999);
+    expect(asked).toHaveLength(3);
+    expect(ranges).toEqual([[1, 9_999, 1]]);
+    expect(stats).toMatchObject({
+      emptyRangesAskedAgain: 1,
+      emptyRangesWithLogs: 1,
+    });
+  });
+
+  test("keeps an empty range that is empty three times", async () => {
+    const { asked, ranges, stats } = await run([[], [], []], 1, 9_999);
+    expect(asked).toHaveLength(3);
     expect(ranges).toEqual([[1, 9_999, 0]]);
     expect(stats).toMatchObject({
       emptyRangesAskedAgain: 1,
