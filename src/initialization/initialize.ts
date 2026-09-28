@@ -3,6 +3,7 @@ import { initializeStore } from "./initializeStore";
 import { browser } from "$app/environment";
 import { customLogger } from "@utils/logger";
 import { watchSyncLocksOfOtherTabs } from "@eventLogs/syncLock";
+import { watchSyncResetsOfOtherTabs } from "@eventLogs/syncReset";
 import { watchRpcSettings } from "./watchRpcSettings";
 
 export async function initialize(): Promise<void> {
@@ -14,6 +15,7 @@ export async function initialize(): Promise<void> {
     await initializeStore();
     customLogger.finished("initializeStore");
     watchRpcSettings();
+    watchSyncResetsOfOtherTabs();
     await watchSyncLocksOfOtherTabs();
   }
 }
