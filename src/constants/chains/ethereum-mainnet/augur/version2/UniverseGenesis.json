@@ -10,18 +10,152 @@
   "sourceCodeUrl": "https://github.com/AugurProject/augur/blob/dev/packages/augur-core/src/contracts/reporting/Universe.sol",
   "abi": [
     {
-      "constant": false,
       "inputs": [
         {
-          "name": "_amount",
+          "internalType": "contract IAugur",
+          "name": "_augur",
+          "type": "address"
+        },
+        {
+          "internalType": "contract IUniverse",
+          "name": "_parentUniverse",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_parentPayoutDistributionHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "_payoutNumerators",
+          "type": "uint256[]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "DEFAULT_NUM_OUTCOMES",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
           "type": "uint256"
         }
       ],
-      "name": "incrementOpenInterestFromMarket",
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "DEFAULT_NUM_TICKS",
       "outputs": [
         {
+          "internalType": "uint256",
           "name": "",
-          "type": "bool"
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "INITIAL_WINDOW_ID_BUFFER",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "augur",
+      "outputs": [
+        {
+          "internalType": "contract IAugur",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "cash",
+      "outputs": [
+        {
+          "internalType": "contract ICash",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_endTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_feePerCashInAttoCash",
+          "type": "uint256"
+        },
+        {
+          "internalType": "contract IAffiliateValidator",
+          "name": "_affiliateValidator",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_affiliateFeeDivisor",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_designatedReporterAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32[]",
+          "name": "_outcomes",
+          "type": "bytes32[]"
+        },
+        {
+          "internalType": "string",
+          "name": "_extraInfo",
+          "type": "string"
+        }
+      ],
+      "name": "createCategoricalMarket",
+      "outputs": [
+        {
+          "internalType": "contract IMarket",
+          "name": "_newMarket",
+          "type": "address"
         }
       ],
       "payable": false,
@@ -30,10 +164,17 @@
     },
     {
       "constant": false,
-      "inputs": [],
-      "name": "getOrCreateNextFeeWindow",
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "_parentPayoutNumerators",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "createChildUniverse",
       "outputs": [
         {
+          "internalType": "contract IUniverse",
           "name": "",
           "type": "address"
         }
@@ -46,43 +187,186 @@
       "constant": false,
       "inputs": [
         {
+          "internalType": "uint256",
+          "name": "_endTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_feePerCashInAttoCash",
+          "type": "uint256"
+        },
+        {
+          "internalType": "contract IAffiliateValidator",
+          "name": "_affiliateValidator",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_affiliateFeeDivisor",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_designatedReporterAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "int256[]",
+          "name": "_prices",
+          "type": "int256[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_numTicks",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "_extraInfo",
+          "type": "string"
+        }
+      ],
+      "name": "createScalarMarket",
+      "outputs": [
+        {
+          "internalType": "contract IMarket",
+          "name": "_newMarket",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_endTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_feePerCashInAttoCash",
+          "type": "uint256"
+        },
+        {
+          "internalType": "contract IAffiliateValidator",
+          "name": "_affiliateValidator",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_affiliateFeeDivisor",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_designatedReporterAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "_extraInfo",
+          "type": "string"
+        }
+      ],
+      "name": "createYesNoMarket",
+      "outputs": [
+        {
+          "internalType": "contract IMarket",
+          "name": "_newMarket",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "creationTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
           "name": "_amount",
           "type": "uint256"
+        }
+      ],
+      "name": "decrementOpenInterest",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "contract IMarket",
+          "name": "_market",
+          "type": "address"
         }
       ],
       "name": "decrementOpenInterestFromMarket",
       "outputs": [
         {
+          "internalType": "bool",
           "name": "",
           "type": "bool"
         }
       ],
       "payable": false,
       "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getRepMarketCapInAttoeth",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
       "type": "function"
     },
     {
       "constant": false,
-      "inputs": [],
-      "name": "getOrCreatePreviousFeeWindow",
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_sender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_market",
+          "type": "address"
+        }
+      ],
+      "name": "deposit",
       "outputs": [
         {
+          "internalType": "bool",
           "name": "",
-          "type": "address"
+          "type": "bool"
         }
       ],
       "payable": false,
@@ -93,41 +377,15 @@
       "constant": true,
       "inputs": [
         {
-          "name": "_shadyFeeToken",
-          "type": "address"
-        }
-      ],
-      "name": "isContainerForFeeToken",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getController",
-      "outputs": [
-        {
+          "internalType": "address",
           "name": "",
           "type": "address"
         }
       ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getDisputeRoundDurationInSeconds",
+      "name": "designatedReportNoShowBondInAttoRep",
       "outputs": [
         {
+          "internalType": "uint256",
           "name": "",
           "type": "uint256"
         }
@@ -140,13 +398,51 @@
       "constant": true,
       "inputs": [
         {
-          "name": "_feeWindowId",
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "designatedReportStakeInAttoRep",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
           "type": "uint256"
         }
       ],
-      "name": "getFeeWindow",
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "disputeWindowFactory",
       "outputs": [
         {
+          "internalType": "contract IDisputeWindowFactory",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "disputeWindows",
+      "outputs": [
+        {
+          "internalType": "contract IDisputeWindow",
           "name": "",
           "type": "address"
         }
@@ -161,6 +457,7 @@
       "name": "fork",
       "outputs": [
         {
+          "internalType": "bool",
           "name": "",
           "type": "bool"
         }
@@ -172,403 +469,10 @@
     {
       "constant": true,
       "inputs": [],
-      "name": "getTargetRepMarketCapInAttoeth",
+      "name": "formulas",
       "outputs": [
         {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [],
-      "name": "getOrCreatePreviousPreviousFeeWindow",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "name": "_shadyShareToken",
-          "type": "address"
-        }
-      ],
-      "name": "isContainerForShareToken",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_attotokens",
-          "type": "uint256"
-        }
-      ],
-      "name": "buyParticipationTokens",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "name": "_badMarkets",
-          "type": "uint256"
-        },
-        {
-          "name": "_totalMarkets",
-          "type": "uint256"
-        },
-        {
-          "name": "_targetDivisor",
-          "type": "uint256"
-        },
-        {
-          "name": "_previousValue",
-          "type": "uint256"
-        },
-        {
-          "name": "_defaultValue",
-          "type": "uint256"
-        },
-        {
-          "name": "_floor",
-          "type": "uint256"
-        }
-      ],
-      "name": "calculateFloatingValue",
-      "outputs": [
-        {
-          "name": "_newValue",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getInitialReportMinValue",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [],
-      "name": "getOrCreateCurrentFeeWindow",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getOpenInterestInAttoEth",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getPreviousFeeWindow",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getWinningChildUniverse",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_endTime",
-          "type": "uint256"
-        },
-        {
-          "name": "_feePerEthInWei",
-          "type": "uint256"
-        },
-        {
-          "name": "_denominationToken",
-          "type": "address"
-        },
-        {
-          "name": "_designatedReporterAddress",
-          "type": "address"
-        },
-        {
-          "name": "_minPrice",
-          "type": "int256"
-        },
-        {
-          "name": "_maxPrice",
-          "type": "int256"
-        },
-        {
-          "name": "_numTicks",
-          "type": "uint256"
-        },
-        {
-          "name": "_topic",
-          "type": "bytes32"
-        },
-        {
-          "name": "_description",
-          "type": "string"
-        },
-        {
-          "name": "_extraInfo",
-          "type": "string"
-        }
-      ],
-      "name": "createScalarMarket",
-      "outputs": [
-        {
-          "name": "_newMarket",
-          "type": "address"
-        }
-      ],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [],
-      "name": "removeMarketFrom",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getForkEndTime",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getCurrentFeeWindow",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getForkReputationGoal",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_reportingParticipants",
-          "type": "address[]"
-        },
-        {
-          "name": "_feeWindows",
-          "type": "address[]"
-        }
-      ],
-      "name": "redeemStake",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [],
-      "name": "getOrCacheReportingFeeDivisor",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_controller",
-          "type": "address"
-        }
-      ],
-      "name": "setController",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "name": "_shadyChild",
-          "type": "address"
-        }
-      ],
-      "name": "isParentOf",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [],
-      "name": "updateForkValues",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "name": "_shadyMarket",
-          "type": "address"
-        }
-      ],
-      "name": "isContainerForMarket",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getParentUniverse",
-      "outputs": [
-        {
+          "internalType": "contract IFormulas",
           "name": "",
           "type": "address"
         }
@@ -581,415 +485,7 @@
       "constant": true,
       "inputs": [
         {
-          "name": "_timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "getFeeWindowByTimestamp",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [],
-      "name": "getOrCacheValidityBond",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [],
-      "name": "getInitialReportStakeSize",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "decrementOpenInterest",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "getOrCreateFeeWindowByTimestamp",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getReputationToken",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_parentUniverse",
-          "type": "address"
-        },
-        {
-          "name": "_parentPayoutDistributionHash",
-          "type": "bytes32"
-        }
-      ],
-      "name": "initialize",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "isForking",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "controllerLookupName",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getParentPayoutDistributionHash",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "name": "_shadyFeeWindow",
-          "type": "address"
-        }
-      ],
-      "name": "isContainerForFeeWindow",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_endTime",
-          "type": "uint256"
-        },
-        {
-          "name": "_feePerEthInWei",
-          "type": "uint256"
-        },
-        {
-          "name": "_denominationToken",
-          "type": "address"
-        },
-        {
-          "name": "_designatedReporterAddress",
-          "type": "address"
-        },
-        {
-          "name": "_topic",
-          "type": "bytes32"
-        },
-        {
-          "name": "_description",
-          "type": "string"
-        },
-        {
-          "name": "_extraInfo",
-          "type": "string"
-        }
-      ],
-      "name": "createYesNoMarket",
-      "outputs": [
-        {
-          "name": "_newMarket",
-          "type": "address"
-        }
-      ],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getForkingMarket",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "incrementOpenInterest",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_endTime",
-          "type": "uint256"
-        },
-        {
-          "name": "_feePerEthInWei",
-          "type": "uint256"
-        },
-        {
-          "name": "_denominationToken",
-          "type": "address"
-        },
-        {
-          "name": "_designatedReporterAddress",
-          "type": "address"
-        },
-        {
-          "name": "_outcomes",
-          "type": "bytes32[]"
-        },
-        {
-          "name": "_topic",
-          "type": "bytes32"
-        },
-        {
-          "name": "_description",
-          "type": "string"
-        },
-        {
-          "name": "_extraInfo",
-          "type": "string"
-        }
-      ],
-      "name": "createCategoricalMarket",
-      "outputs": [
-        {
-          "name": "_newMarket",
-          "type": "address"
-        }
-      ],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "name": "_timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "getFeeWindowId",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getTypeName",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_parentPayoutNumerators",
-          "type": "uint256[]"
-        },
-        {
-          "name": "_parentInvalid",
-          "type": "bool"
-        }
-      ],
-      "name": "createChildUniverse",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_feeWindow",
-          "type": "address"
-        }
-      ],
-      "name": "getOrCreateFeeWindowBefore",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [],
-      "name": "getOrCacheDesignatedReportStake",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [],
-      "name": "getOrCacheMarketCreationCost",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
+          "internalType": "bytes32",
           "name": "_parentPayoutDistributionHash",
           "type": "bytes32"
         }
@@ -997,8 +493,51 @@
       "name": "getChildUniverse",
       "outputs": [
         {
+          "internalType": "contract IUniverse",
           "name": "",
           "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bool",
+          "name": "_initial",
+          "type": "bool"
+        }
+      ],
+      "name": "getCurrentDisputeWindow",
+      "outputs": [
+        {
+          "internalType": "contract IDisputeWindow",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bool",
+          "name": "_initial",
+          "type": "bool"
+        }
+      ],
+      "name": "getDisputeRoundDurationInSeconds",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "payable": false,
@@ -1008,63 +547,12 @@
     {
       "constant": true,
       "inputs": [],
-      "name": "getNextFeeWindow",
+      "name": "getDisputeThresholdForDisputePacing",
       "outputs": [
         {
+          "internalType": "uint256",
           "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "getInitialized",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_parentPayoutDistributionHash",
-          "type": "bytes32"
-        }
-      ],
-      "name": "updateTentativeWinningChildUniverse",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "name": "_shadyReportingParticipant",
-          "type": "address"
-        }
-      ],
-      "name": "isContainerForReportingParticipant",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
+          "type": "uint256"
         }
       ],
       "payable": false,
@@ -1077,6 +565,186 @@
       "name": "getDisputeThresholdForFork",
       "outputs": [
         {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_disputeWindowId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getDisputeWindow",
+      "outputs": [
+        {
+          "internalType": "contract IDisputeWindow",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "_initial",
+          "type": "bool"
+        }
+      ],
+      "name": "getDisputeWindowByTimestamp",
+      "outputs": [
+        {
+          "internalType": "contract IDisputeWindow",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "_initial",
+          "type": "bool"
+        }
+      ],
+      "name": "getDisputeWindowId",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "_initial",
+          "type": "bool"
+        }
+      ],
+      "name": "getDisputeWindowStartTimeAndDuration",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "_startTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_duration",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getForkEndTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getForkReputationGoal",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getForkingMarket",
+      "outputs": [
+        {
+          "internalType": "contract IMarket",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getInitialReportMinValue",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getOpenInterestInAttoCash",
+      "outputs": [
+        {
+          "internalType": "uint256",
           "name": "",
           "type": "uint256"
         }
@@ -1091,6 +759,7 @@
       "name": "getOrCacheDesignatedReportNoShowBond",
       "outputs": [
         {
+          "internalType": "uint256",
           "name": "",
           "type": "uint256"
         }
@@ -1102,9 +771,836 @@
     {
       "constant": false,
       "inputs": [],
-      "name": "addMarketTo",
+      "name": "getOrCacheDesignatedReportStake",
       "outputs": [
         {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "getOrCacheMarketRepBond",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "getOrCacheReportingFeeDivisor",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "getOrCacheValidityBond",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "bool",
+          "name": "_initial",
+          "type": "bool"
+        }
+      ],
+      "name": "getOrCreateCurrentDisputeWindow",
+      "outputs": [
+        {
+          "internalType": "contract IDisputeWindow",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "_initial",
+          "type": "bool"
+        }
+      ],
+      "name": "getOrCreateDisputeWindowByTimestamp",
+      "outputs": [
+        {
+          "internalType": "contract IDisputeWindow",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "bool",
+          "name": "_initial",
+          "type": "bool"
+        }
+      ],
+      "name": "getOrCreateNextDisputeWindow",
+      "outputs": [
+        {
+          "internalType": "contract IDisputeWindow",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "bool",
+          "name": "_initial",
+          "type": "bool"
+        }
+      ],
+      "name": "getOrCreatePreviousDisputeWindow",
+      "outputs": [
+        {
+          "internalType": "contract IDisputeWindow",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "bool",
+          "name": "_initial",
+          "type": "bool"
+        }
+      ],
+      "name": "getOrCreatePreviousPreviousDisputeWindow",
+      "outputs": [
+        {
+          "internalType": "contract IDisputeWindow",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getParentPayoutDistributionHash",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getParentUniverse",
+      "outputs": [
+        {
+          "internalType": "contract IUniverse",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_outcome",
+          "type": "uint256"
+        }
+      ],
+      "name": "getPayoutNumerator",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getPayoutNumerators",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getReportingFeeDivisor",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getReputationToken",
+      "outputs": [
+        {
+          "internalType": "contract IV2ReputationToken",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getTargetRepMarketCapInAttoCash",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_outcome",
+          "type": "uint256"
+        }
+      ],
+      "name": "getWinningChildPayoutNumerator",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getWinningChildUniverse",
+      "outputs": [
+        {
+          "internalType": "contract IUniverse",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "incrementOpenInterest",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "contract IDisputeWindow",
+          "name": "_shadyDisputeWindow",
+          "type": "address"
+        }
+      ],
+      "name": "isContainerForDisputeWindow",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "contract IMarket",
+          "name": "_shadyMarket",
+          "type": "address"
+        }
+      ],
+      "name": "isContainerForMarket",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "contract IReportingParticipant",
+          "name": "_shadyReportingParticipant",
+          "type": "address"
+        }
+      ],
+      "name": "isContainerForReportingParticipant",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isForking",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isForkingMarket",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_address",
+          "type": "address"
+        }
+      ],
+      "name": "isOpenInterestCash",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "contract IUniverse",
+          "name": "_shadyChild",
+          "type": "address"
+        }
+      ],
+      "name": "isParentOf",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "marketBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "marketFactory",
+      "outputs": [
+        {
+          "internalType": "contract IMarketFactory",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "contract IMarket",
+          "name": "_market",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_cashBalance",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_marketOI",
+          "type": "uint256"
+        }
+      ],
+      "name": "migrateMarketIn",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "contract IUniverse",
+          "name": "_destinationUniverse",
+          "type": "address"
+        }
+      ],
+      "name": "migrateMarketOut",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "openInterestCash",
+      "outputs": [
+        {
+          "internalType": "contract IOICash",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "payoutNumerators",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "pokeRepMarketCapInAttoCash",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "previousDesignatedReportNoShowBondInAttoRep",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "previousDesignatedReportStakeInAttoRep",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "previousReportingFeeDivisor",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "previousValidityBondInAttoCash",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "repOracle",
+      "outputs": [
+        {
+          "internalType": "contract IRepOracle",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "runPeriodicals",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "shareSettlementFeeDivisor",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "shareToken",
+      "outputs": [
+        {
+          "internalType": "contract IShareToken",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "totalBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "updateForkValues",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_parentPayoutDistributionHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "updateTentativeWinningChildUniverse",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "validityBondInAttoCash",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_recipient",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_market",
+          "type": "address"
+        }
+      ],
+      "name": "withdraw",
+      "outputs": [
+        {
+          "internalType": "bool",
           "name": "",
           "type": "bool"
         }
