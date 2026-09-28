@@ -71,7 +71,8 @@ describe("resetDbSyncedData", () => {
   });
 
   test("empties the logs and sets the sync status back to the creation block", async () => {
-    await resetDbSyncedData(matic);
+    // The two logs that fillChain() added.
+    expect(await resetDbSyncedData(matic)).toBe(2);
 
     const { db, version, contract } = firstVersion(matic);
     for (const eventContract of extractEventContracts(version.contracts)) {

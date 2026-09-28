@@ -40,7 +40,7 @@ vi.mock("@eventLogs/syncLock", async () => {
 // ends, which the browser reports as an error.
 vi.mock("svelte/transition", () => ({ fly: () => ({}) }));
 vi.mock("@eventLogs/syncReset", () => ({
-  resetSyncedData: vi.fn(async () => "reset"),
+  resetSyncedData: vi.fn(async () => ({ result: "reset", deletedLogCount: 0 })),
 }));
 
 const syncStatus = storeSyncStatus as unknown as Writable<unknown>;
@@ -67,6 +67,11 @@ const resetButton = (): HTMLButtonElement =>
 function dialog(container: HTMLElement): HTMLDialogElement {
   return container.querySelector("dialog")!;
 }
+// The button at the bottom, not the × of the header, which has the same name.
+const closeButton = (): HTMLButtonElement =>
+  screen
+    .getAllByRole<HTMLButtonElement>("button", { name: "Close" })
+    .find((button) => button.textContent?.trim() === "Close")!;
 // The button in the dialog, not the one that opens it.
 function confirmButton(container: HTMLElement): HTMLButtonElement {
   return [...dialog(container).querySelectorAll("button")].find(
@@ -127,24 +132,104 @@ describe("SyncedData.svelte", () => {
     expect(resetSyncedData).not.toHaveBeenCalled();
   });
 
-  test("resets the chain and tells the result", async () => {
+  test("shows the result in the dialog, and then the import of the warp sync", async () => {
+    let finishImport: () => void = () => {};
+    const warpSyncImport = new Promise<void>((resolve) => {
+      finishImport = resolve;
+    });
+    vi.mocked(resetSyncedData).mockResolvedValueOnce({
+      result: "reset",
+      deletedLogCount: 1234,
+      warpSyncImport,
+    });
     setChain("stopped", 1234);
     const { container } = render(SyncedData);
     await fireEvent.click(resetButton());
     await fireEvent.click(confirmButton(container));
 
-    await vi.waitFor(() => expect(dialog(container).open).toBe(false));
     expect(resetSyncedData).toHaveBeenCalledExactlyOnceWith({
       name: "matic",
       fullName: "Polygon Mainnet",
     });
-    expect(get(storeNoDbSnackBar).text).toBe(
-      "The sync of Polygon Mainnet was reset.",
+    const status = screen.getByRole("status");
+    expect(status.getAttribute("aria-live")).toBe("polite");
+    await vi.waitFor(() =>
+      expect(status.textContent).toContain(
+        "Deleted 1,234 event logs of Polygon Mainnet.",
+      ),
+    );
+    expect(status.textContent).toContain(
+      "Importing the logs published with this site…",
+    );
+    expect(dialog(container).open).toBe(true);
+    expect(screen.getByText("Reset the sync of Polygon Mainnet")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
+    // The dialog shows it: no snackbar.
+    expect(get(storeNoDbSnackBar).visible).toBe(false);
+
+    setWarpSyncState("matic", { status: "imported", toBlock: 24_000_000 });
+    setChain("stopped", 4064);
+    finishImport();
+    await vi.waitFor(() =>
+      expect(status.textContent).toContain(
+        "Imported 4,064 logs up to block 24,000,000.",
+      ),
+    );
+    expect(status.textContent).not.toContain("Importing");
+
+    await fireEvent.click(closeButton());
+    expect(dialog(container).open).toBe(false);
+    // Opened again, it asks first.
+    await fireEvent.click(resetButton());
+    expect(screen.getByText(/^This deletes the 4,064 event logs/)).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toBe("");
+  });
+
+  test("says what comes next without the warp sync", async () => {
+    vi.mocked(resetSyncedData).mockResolvedValueOnce({
+      result: "reset",
+      deletedLogCount: 7,
+    });
+    setChain("stopped", 7);
+    const { container } = render(SyncedData);
+    await fireEvent.click(resetButton());
+    await fireEvent.click(confirmButton(container));
+
+    const status = screen.getByRole("status");
+    await vi.waitFor(() =>
+      expect(status.textContent).toContain(
+        "The next sync fetches every log again from your RPC.",
+      ),
     );
   });
 
-  test("tells when the chain was synced at the time", async () => {
-    vi.mocked(resetSyncedData).mockResolvedValueOnce("busy");
+  test("can be closed while it resets, and the late result does not show up later", async () => {
+    let finish: () => void = () => {};
+    vi.mocked(resetSyncedData).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = () => resolve({ result: "reset", deletedLogCount: 7 });
+      }),
+    );
+    setChain("stopped", 7);
+    const { container } = render(SyncedData);
+    await fireEvent.click(resetButton());
+    await fireEvent.click(confirmButton(container));
+    expect(screen.getByRole("status").textContent).toContain("Resetting…");
+
+    await fireEvent.click(closeButton());
+    expect(dialog(container).open).toBe(false);
+    finish();
+    await tick();
+    await fireEvent.click(resetButton());
+    expect(screen.getByRole("status").textContent).toBe("");
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeTruthy();
+  });
+
+  test("tells in the dialog and the snackbar when the chain was synced at the time", async () => {
+    vi.mocked(resetSyncedData).mockResolvedValueOnce({
+      result: "busy",
+      deletedLogCount: 0,
+    });
     setChain("stopped", 0);
     const { container } = render(SyncedData);
     await fireEvent.click(resetButton());
@@ -154,6 +239,9 @@ describe("SyncedData.svelte", () => {
       expect(get(storeNoDbSnackBar).text).toBe(
         "The chain is synced now. Stop the sync first.",
       ),
+    );
+    expect(screen.getByRole("status").textContent).toContain(
+      "The chain is synced now, so nothing was deleted.",
     );
   });
 });

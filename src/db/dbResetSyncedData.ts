@@ -10,11 +10,13 @@ import type { SyncStatusContract } from "./dbTypes";
 
 // Empties the tables instead of deleting the DBs, so that the open
 // connections of this tab and the other tabs stay usable. Call only while
-// holding the sync lock of the chain.
-export async function resetDbSyncedData(targetChain: Chain): Promise<void> {
+// holding the sync lock of the chain. Returns the number of event logs it
+// deleted.
+export async function resetDbSyncedData(targetChain: Chain): Promise<number> {
+  let deletedLogCount: number = 0;
   for (const targetProject of targetChain.projects) {
     for (const targetVersion of targetProject.versions) {
-      await resetDbEventLogs(
+      deletedLogCount += await resetDbEventLogs(
         getDbEventLogs({
           chainName: targetChain.name,
           projectName: targetProject.name,
@@ -27,6 +29,7 @@ export async function resetDbSyncedData(targetChain: Chain): Promise<void> {
   await dbBlockTimes.transaction("rw", targetChain.name, async () => {
     await dbBlockTimes.table(targetChain.name).clear();
   });
+  return deletedLogCount;
 }
 
 // One transaction for each version, so that its logs and fetchedBlockNumber
@@ -34,7 +37,7 @@ export async function resetDbSyncedData(targetChain: Chain): Promise<void> {
 async function resetDbEventLogs(
   dbEventLogs: DbEventLogs,
   targetVersion: Version,
-): Promise<void> {
+): Promise<number> {
   const targetContracts: Contract[] = extractEventContracts(
     targetVersion.contracts,
   );
@@ -44,10 +47,13 @@ async function resetDbEventLogs(
   const eventTables: Table[] = getEventTableNames(targetContracts).map(
     (eventTableName: string) => dbEventLogs.table(eventTableName),
   );
-  await dbEventLogs.transaction(
+  return await dbEventLogs.transaction(
     "rw",
     [syncStatusTable, ...eventTables],
-    async () => {
+    async (): Promise<number> => {
+      const counts: number[] = await Promise.all(
+        eventTables.map((eventTable) => eventTable.count()),
+      );
       await Promise.all(eventTables.map((eventTable) => eventTable.clear()));
       const records: (SyncStatusContract | undefined)[] =
         await syncStatusTable.bulkGet(
@@ -68,6 +74,7 @@ async function resetDbEventLogs(
           };
         }),
       );
+      return counts.reduce((sum: number, count: number) => sum + count, 0);
     },
   );
 }

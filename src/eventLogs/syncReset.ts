@@ -19,6 +19,13 @@ import {
 
 // "busy": the chain is synced or imported now, and nothing was deleted.
 export type SyncResetResult = "reset" | "busy" | "failed";
+export type SyncResetOutcome = {
+  result: SyncResetResult;
+  // 0 unless the result is "reset".
+  deletedLogCount: number;
+  // The import of the warp sync snapshot that starts after the reset.
+  warpSyncImport?: Promise<void>;
+};
 
 const SYNC_RESET_CHANNEL_NAME: string = `${DB_NAME.firstName}_syncReset`;
 type SyncResetMessage = { chainName: ChainName };
@@ -27,16 +34,17 @@ type SyncResetMessage = { chainName: ChainName };
 // imports the warp sync snapshot again when it is on.
 export async function resetSyncedData(
   targetChain: Chain,
-): Promise<SyncResetResult> {
+): Promise<SyncResetOutcome> {
   const chainName: ChainName = targetChain.name;
-  if (isSyncedByThisTab(chainName) || isImporting(chainName)) return "busy";
-  let result: SyncResetResult;
+  const busy: SyncResetOutcome = { result: "busy", deletedLogCount: 0 };
+  if (isSyncedByThisTab(chainName) || isImporting(chainName)) return busy;
+  let outcome: SyncResetOutcome;
   // Without Web Locks (insecure context), work as a single tab, as the sync.
   if (!navigator.locks) {
-    result = await resetInLock(targetChain);
+    outcome = await resetInLock(targetChain);
   } else {
     try {
-      result = await navigator.locks.request(
+      outcome = await navigator.locks.request(
         getSyncLockName(chainName),
         { signal: AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS) },
         () => resetInLock(targetChain),
@@ -48,13 +56,13 @@ export async function resetSyncedData(
         errorObject: error,
       });
       waitForSyncLockRelease(chainName);
-      return "busy";
+      return busy;
     }
   }
   if (hasWarpSync(chainName) && get(storeRpcSettings)[chainName].warpSync) {
-    void startWarpSync(targetChain);
+    outcome.warpSyncImport = startWarpSync(targetChain);
   }
-  return result;
+  return outcome;
 }
 
 function isImporting(chainName: ChainName): boolean {
@@ -63,17 +71,18 @@ function isImporting(chainName: ChainName): boolean {
   );
 }
 
-async function resetInLock(targetChain: Chain): Promise<SyncResetResult> {
+async function resetInLock(targetChain: Chain): Promise<SyncResetOutcome> {
   const chainName: ChainName = targetChain.name;
-  let result: SyncResetResult = "reset";
+  let outcome: SyncResetOutcome;
   try {
-    await resetDbSyncedData(targetChain);
+    const deletedLogCount: number = await resetDbSyncedData(targetChain);
+    outcome = { result: "reset", deletedLogCount };
   } catch (error) {
     customLogger.error("Reset the synced data.", {
       chainName,
       errorObject: error,
     });
-    result = "failed";
+    outcome = { result: "failed", deletedLogCount: 0 };
   }
   // Even after a failure: some versions may have been reset.
   forgetWarpSyncImport(chainName);
@@ -84,7 +93,7 @@ async function resetInLock(targetChain: Chain): Promise<SyncResetResult> {
       errorObject: error,
     });
   });
-  return result;
+  return outcome;
 }
 
 // "imported" is kept only in memory, and would skip the next import.

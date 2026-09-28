@@ -53,7 +53,7 @@ describe("resetSyncedData", () => {
     lockManager = installFakeLockManager();
     setWarpSyncState("matic", { status: "imported", toBlock: 30_000_000 });
     setWarpSync(true);
-    vi.mocked(resetDbSyncedData).mockReset().mockResolvedValue();
+    vi.mocked(resetDbSyncedData).mockReset().mockResolvedValue(7);
     vi.mocked(startWarpSync).mockClear();
     vi.mocked(reloadSyncStatusInChain).mockClear();
     vi.mocked(waitForSyncLockRelease).mockClear();
@@ -73,17 +73,26 @@ describe("resetSyncedData", () => {
     const recordLock = async (): Promise<void> => {
       held.push((await lockManager.query()).held?.[0]?.name ?? "none");
     };
-    vi.mocked(resetDbSyncedData).mockImplementationOnce(recordLock);
+    vi.mocked(resetDbSyncedData).mockImplementationOnce(async () => {
+      await recordLock();
+      return 7;
+    });
     vi.mocked(reloadSyncStatusInChain).mockImplementationOnce(recordLock);
 
-    expect(await resetSyncedData(matic)).toBe("reset");
+    expect((await resetSyncedData(matic)).result).toBe("reset");
     expect(resetDbSyncedData).toHaveBeenCalledExactlyOnceWith(matic);
     expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("matic");
     expect(held).toEqual([getSyncLockName("matic"), getSyncLockName("matic")]);
   });
 
   test("imports the snapshot again right away when the warp sync is on", async () => {
-    expect(await resetSyncedData(matic)).toBe("reset");
+    const importing: Promise<void> = Promise.resolve();
+    vi.mocked(startWarpSync).mockReturnValueOnce(importing);
+    expect(await resetSyncedData(matic)).toEqual({
+      result: "reset",
+      deletedLogCount: 7,
+      warpSyncImport: importing,
+    });
     expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
       "idle",
     );
@@ -101,8 +110,11 @@ describe("resetSyncedData", () => {
 
   test("does not import when the warp sync is off or the chain has none", async () => {
     setWarpSync(false);
-    expect(await resetSyncedData(matic)).toBe("reset");
-    expect(await resetSyncedData(eth)).toBe("reset");
+    expect(await resetSyncedData(matic)).toEqual({
+      result: "reset",
+      deletedLogCount: 7,
+    });
+    expect((await resetSyncedData(eth)).warpSyncImport).toBeUndefined();
     expect(startWarpSync).not.toHaveBeenCalled();
   });
 
@@ -114,7 +126,7 @@ describe("resetSyncedData", () => {
       () => new Promise<void>((resolve) => (release = resolve)),
     );
     // Waits SYNC_LOCK_TIMEOUT_MS (1 s), as the sync does.
-    expect(await resetSyncedData(matic)).toBe("busy");
+    expect((await resetSyncedData(matic)).result).toBe("busy");
     expect(resetDbSyncedData).not.toHaveBeenCalled();
     expect(startWarpSync).not.toHaveBeenCalled();
     expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
@@ -127,9 +139,9 @@ describe("resetSyncedData", () => {
 
   test("deletes nothing while this tab syncs or imports the chain", async () => {
     vi.mocked(isSyncedByThisTab).mockReturnValueOnce(true);
-    expect(await resetSyncedData(matic)).toBe("busy");
+    expect((await resetSyncedData(matic)).result).toBe("busy");
     setWarpSyncState("matic", { status: "importing" });
-    expect(await resetSyncedData(matic)).toBe("busy");
+    expect((await resetSyncedData(matic)).result).toBe("busy");
     expect(resetDbSyncedData).not.toHaveBeenCalled();
   });
 
@@ -140,7 +152,10 @@ describe("resetSyncedData", () => {
     const error = new Error("blocked");
     vi.mocked(resetDbSyncedData).mockRejectedValueOnce(error);
 
-    expect(await resetSyncedData(matic)).toBe("failed");
+    expect(await resetSyncedData(matic)).toMatchObject({
+      result: "failed",
+      deletedLogCount: 0,
+    });
     expect(spyError).toHaveBeenCalledWith("Reset the synced data.", {
       chainName: "matic",
       errorObject: error,
@@ -153,7 +168,7 @@ describe("resetSyncedData", () => {
 
   test("works without Web Locks (insecure context)", async () => {
     removeLockManager();
-    expect(await resetSyncedData(matic)).toBe("reset");
+    expect((await resetSyncedData(matic)).result).toBe("reset");
     expect(resetDbSyncedData).toHaveBeenCalledTimes(1);
   });
 });
