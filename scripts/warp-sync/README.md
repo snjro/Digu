@@ -39,7 +39,8 @@ In the repository root, with the `app` service of `compose.yaml`:
 ```sh
 docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
   --chain matic --rpc <url> [--to <block>] [--out static/warp-sync] \
-  [--max-requests 3000] [--segments 4]
+  [--max-requests 3000] [--concurrency 24] [--part-blocks 500000] \
+  [--max-width <blocks>]
 ```
 
 - `--chain`: the `name` of a chain in `src/constants/chains` (`matic`, `eth`).
@@ -49,16 +50,18 @@ docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
 - `--out`: where to write. The default is `static/warp-sync`.
 - `--max-requests`: the most requests to send, of all the contracts. The
   script stops before it sends one more. The default is 3000.
-- `--segments`: the number of segments that the blocks of each contract are
-  split into, fetched at the same time. The default is 4. A segment has at
-  least 500,000 blocks, so a short range is split into fewer.
+- `--concurrency`: the requests sent at the same time. The default is 24.
+- `--part-blocks`: the blocks of each contract are split into parts of this
+  many blocks, which wait in a queue. The default is 500,000.
+- `--max-width`: the widest range of one request. The default is 9,999 for
+  `eth` and 500,000 for the others.
 
 When a run stops (at `--max-requests`, or after failures), the logs fetched
-so far are in `<chain>/.partial/` (not committed): for each segment, a
+so far are in `<chain>/.partial/` (not committed): for each part, a
 `.jsonl` file to which the logs of each range are added, one log per line,
 and a `.state.json` file with the next block to fetch. Run it again without
-`--to`, with the same `--segments`: it goes on to the same block, from where
-each segment stopped, and drops the lines of the blocks that the state does
+`--to`, with the same `--part-blocks`: it goes on to the same block, from
+where each part stopped, and drops the lines of the blocks that the state does
 not count yet (such as a line half written when it stopped). A `.partial/`
 of the script before formatVersion 2 stops it: delete the folder and run it
 again. The logs are not all kept in memory, so a chain with millions of logs
@@ -95,18 +98,40 @@ stops after it moved the new files, delete them (`git status`) and run it
 again.
 
 It fetches like the sync: one `eth_getLogs` per range with the address and
-the topic 0 of the events that are not anonymous. The ranges start at
-100,000 blocks and are doubled after each one that works, up to 500,000. A
-failed range is tried again once, then halved, and the half becomes the
-widest range until 10 ranges in a row work; then it is doubled again (like
-#549 and #554 in the sync: the RPC may pass each request to another node). The
-contracts are fetched at the same time, like the sync, and the blocks of each
-contract in `--segments` segments at the same time: one request at a time for
-each segment (6 contracts × 4 segments = 24 at a time). Each segment has its
-own widths. The script waits a second after a failure, and stops after 10
-failures in a row of one segment. When one segment stops, the others stop
-before their next request. The logs of each range are sorted by block and
-log index, and the segments of a contract are read in the order of the blocks.
+the topic 0 of the events that are not anonymous.
+
+- **Widths:** the ranges start at 100,000 blocks (or `--max-width`, if
+  narrower) and are doubled after each full range that works, up to
+  `--max-width`. The parts of a contract share their widths.
+- **Failures** (like #549, #554 and #591 in the sync: the RPC may pass each
+  request to another node). The script waits a second and tries again:
+  - HTTP 500 or 504, and the errors of a node without old blocks
+    ("historical state is not available", "pruned history unavailable", "old
+    data not available due to pruning"): the same range, since they come for
+    any width.
+  - Any other error: the range is halved after two in a row, and the half
+    becomes the widest range until 10 ranges in a row work; then it is
+    doubled again.
+  - After three errors in a row of any kind, the range is halved too, in case
+    a node answers a range that is too wide with HTTP 500.
+  - Too many logs for one answer ("max results", 20,000 with pocket): the
+    range is halved at once, without a wait and without counting a failure.
+  - A request that does not answer in 60 seconds is a failure. After 10
+    failures in a row of one part, the script stops.
+- **Empty results (#576):** an RPC may return no logs, without an error, for a
+  range that has some. Every range that returns no logs is asked again once,
+  and the second answer is kept. This almost doubles the requests where the
+  logs are sparse.
+- **Parts (#586):** the blocks of each contract are split into parts of
+  `--part-blocks`, which wait in a queue, the first part of each contract
+  first. `--concurrency` workers take the next part when they finish one, so
+  that the requests at a time stay the same until the end. When one part
+  stops, the others stop before their next request.
+
+The logs of each range are sorted by block and log index, and the parts of a
+contract are read in the order of the blocks. The run in the manifest has
+`checks`: the empty ranges asked again, those that had logs the second time,
+and the errors of each kind.
 
 ## Format (formatVersion 2)
 
@@ -138,6 +163,12 @@ log index, and the segments of a contract are read in the order of the blocks.
       // By method, of the invocation that finished the run (not those that
       // stopped before it). Not in a run converted from formatVersion 1.
       "requests": { "eth_getLogs": 21000 },
+      // What the fetching met. Not in a converted run.
+      "checks": {
+        "emptyRangesAskedAgain": 18000,
+        "emptyRangesWithLogs": 3,
+        "errors": { "results": 40, "unrelated": 900, "range": 30 },
+      },
     },
   ],
   // One per file, and one per range without logs (no file). A run adds its
