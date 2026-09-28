@@ -48,6 +48,14 @@ const config: UserConfig = {
           exclude: [...configDefaults.exclude, "src/**/*.svelte.test.ts"],
         },
       },
+      {
+        // The Node scripts of the owner, such as the warp sync snapshot.
+        test: {
+          name: "scripts",
+          environment: "node",
+          include: ["scripts/**/*.test.mjs"],
+        },
+      },
     ],
   },
 };

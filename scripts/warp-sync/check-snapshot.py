@@ -3,8 +3,9 @@ release, by the date in UTC, for release.yml.
 Usage: python3 scripts/warp-sync/check-snapshot.py [--at <ISO time>]
   --at: the time of the release (default: now).
   WARP_SYNC_SNAPSHOT_CHECK=off: warn instead of failing.
-Fails (exit 1) when the last chunk of a manifest.json was made on another day
-or a manifest cannot be read. A chain without a snapshot is not checked.
+Fails (exit 1) when the last run of a manifest.json (the last chunk in
+formatVersion 1) was made on another day or a manifest cannot be read. A chain
+without a snapshot is not checked.
 Writes a table to $GITHUB_STEP_SUMMARY (or to stdout without it). It only
 reads the files of the repository.
 """
@@ -58,9 +59,19 @@ for chain in chains:
         continue
     try:
         with open(path) as f:
-            last = json.load(f)["chunks"][-1]
+            manifest = json.load(f)
+        # formatVersion 1 has a chunk for each run; 2 has the runs apart.
+        if manifest["formatVersion"] == 1:
+            last = manifest["chunks"][-1]
+            label = last["file"]
+            to_block = max(c["toBlock"] for c in last["contracts"])
+        elif manifest["formatVersion"] == 2:
+            last = manifest["runs"][-1]
+            label = f"run {len(manifest['runs'])}"
+            to_block = last["toBlock"]
+        else:
+            raise ValueError(f"formatVersion {manifest['formatVersion']}")
         created = parse_time(last["createdAt"])
-        to_block = max(c["toBlock"] for c in last["contracts"])
     except (OSError, ValueError, KeyError, IndexError, TypeError) as e:
         problem(f"Warp sync snapshot of {chain}: cannot read {os.path.relpath(path, root)} ({e!r})")
         rows.append([chain, "Cannot read the manifest", "", "", ""])
@@ -68,7 +79,7 @@ for chain in chains:
     created_utc = created.astimezone(UTC)
     days = (at - created).total_seconds() / 86400
     rows.append(
-        [chain, last["file"], created_utc.strftime("%Y-%m-%d %H:%M UTC"), f"{to_block:,}", f"{days:.1f}"]
+        [chain, label, created_utc.strftime("%Y-%m-%d %H:%M UTC"), f"{to_block:,}", f"{days:.1f}"]
     )
     if created_utc.date() != release_day:
         problem(
@@ -81,7 +92,7 @@ lines = [f"### Warp sync snapshots (release on {release_day}, in UTC)", ""]
 if not check:
     lines += ["WARP_SYNC_SNAPSHOT_CHECK is off: warnings only.", ""]
 lines += [
-    "| Chain | Last chunk | Created | toBlock | Days |",
+    "| Chain | Last run | Created | toBlock | Days |",
     "| --- | --- | --- | --- | --- |",
 ] + ["| " + " | ".join(r) + " |" for r in rows]
 summary = os.environ.get("GITHUB_STEP_SUMMARY")
