@@ -13,6 +13,8 @@ import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Chain, Contract } from "@constants/chains/types";
 import type { DbEventLogs } from "@db/dbEventLogs";
+import { stopSyncingInContract } from "@db/dbEventLogsDataHandlersSyncStatus";
+import { customLogger } from "@utils/logger";
 import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
 
 vi.mock("@utils/utilsEthers", async (importOriginal) => {
@@ -85,6 +87,58 @@ describe("fetchEventLogsContract", () => {
     );
 
     expect(vi.mocked(sleep).mock.calls).toEqual([[blockIntervalMs]]);
+  });
+
+  test("should stop at once when stopped while it sleeps at the latest block", async () => {
+    storeSyncStatus.update((state: SyncStatusesChain) => {
+      contractInState(state).fetchedBlockNumber = creationBlockNumber + 10;
+      return state;
+    });
+    // A Block Interval that does not end in the test.
+    vi.mocked(sleep).mockReturnValueOnce(new Promise(() => {}));
+    const fetching: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      null as unknown as NodeProvider,
+    );
+    await vi.waitFor(() => expect(sleep).toHaveBeenCalledWith(blockIntervalMs));
+
+    storeSyncStatus.update((state: SyncStatusesChain) => {
+      contractInState(state).isAbort = true;
+      return state;
+    });
+    await fetching;
+
+    expect(stopSyncingInContract).toHaveBeenCalledExactlyOnceWith(
+      dbEventLogs,
+      targetContract.name,
+    );
+    expect(getEthersEventLogs).not.toHaveBeenCalled();
+  });
+
+  test("should stop at once when stopped while it waits to try again", async () => {
+    vi.mocked(getEthersEventLogs).mockRejectedValueOnce(new Error("rpc"));
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    // Far from the latest block, so that only the wait to try again sleeps.
+    storeChainStatus.updateState(targetChain.name, {
+      latestBlockNumber: creationBlockNumber + 1000,
+    });
+    vi.mocked(sleep).mockReturnValueOnce(new Promise(() => {}));
+    const fetching: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      null as unknown as NodeProvider,
+    );
+    await vi.waitFor(() => expect(sleep).toHaveBeenCalledTimes(1));
+
+    storeSyncStatus.update((state: SyncStatusesChain) => {
+      contractInState(state).isAbort = true;
+      return state;
+    });
+    await fetching;
+
+    expect(getEthersEventLogs).toHaveBeenCalledTimes(1);
+    expect(stopSyncingInContract).toHaveBeenCalledTimes(1);
   });
 
   test("should skip fetching when no new block has been generated", async () => {
