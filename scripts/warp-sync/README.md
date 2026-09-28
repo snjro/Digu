@@ -23,8 +23,8 @@ docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
 - `--to`: the last block of the snapshot. Without it, the latest block minus
   the `confirmationBlocks` of the chain, which is the highest block allowed.
 - `--out`: where to write. The default is `static/warp-sync`.
-- `--max-requests`: the most requests to send. The script stops before it
-  sends one more. The default is 3000.
+- `--max-requests`: the most requests to send, of all the contracts. The
+  script stops before it sends one more. The default is 3000.
 
 When a run stops (at `--max-requests`, or after failures), the logs fetched
 so far are in `<chain>/.partial/`, one file per contract (not committed).
@@ -44,8 +44,10 @@ the topic 0 of the events that are not anonymous. The ranges start at
 failed range is tried again once, then halved, and the half becomes the
 widest range until 10 ranges in a row work; then it is doubled again (like
 #549 and #554 in the sync: the RPC may pass each request to another node). The
-requests are sent one at a time, and the script waits a second after a
-failure. It stops after 10 failures in a row.
+contracts are fetched at the same time, like the sync: one request at a time
+for each contract. The script waits a second after a failure, and stops
+after 10 failures in a row of one contract. When one contract stops, the
+others stop before their next request.
 
 ## Format (formatVersion 1)
 

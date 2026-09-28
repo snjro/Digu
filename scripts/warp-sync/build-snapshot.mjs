@@ -148,7 +148,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // #554): a failed range is tried again once, then halved, and the half
 // becomes the widest range until SUCCESSES_TO_RAISE_LIMIT full ranges work in
 // a row. A full range that works doubles the next one. After each range,
-// onProgress gets the next block and the logs so far.
+// onProgress gets the next block and the logs so far. It stops before the
+// next request when signal is aborted (another contract stopped).
 export async function fetchLogs(
   rpc,
   contract,
@@ -157,6 +158,7 @@ export async function fetchLogs(
   log,
   onProgress = () => {},
   logsSoFar = [],
+  signal = undefined,
 ) {
   const logs = [...logsSoFar];
   let width = FIRST_WIDTH;
@@ -165,6 +167,7 @@ export async function fetchLogs(
   let from = fromBlock;
   let failures = 0;
   while (from <= toBlock) {
+    signal?.throwIfAborted();
     const to = Math.min(from + width - 1, toBlock);
     try {
       const result = await rpc("eth_getLogs", [
@@ -190,7 +193,7 @@ export async function fetchLogs(
       from = to + 1;
       onProgress(from, logs);
     } catch (error) {
-      if (error instanceof RequestLimitError) throw error;
+      if (error instanceof RequestLimitError || signal?.aborted) throw error;
       failures++;
       log(`${contract.name}: ${from}-${to} failed: ${error.message}`);
       if (failures >= MAX_FAILURES) throw error;
@@ -372,12 +375,15 @@ export async function buildSnapshot({
   }
   const last = lastBlocks(manifest);
 
-  const chunkContracts = [];
-  for (const contract of chain.contracts) {
+  // The contracts are fetched at the same time, like the sync. When one
+  // stops (at --max-requests, or after failures), the others stop before
+  // their next request, and all keep what they fetched in .partial/.
+  const controller = new AbortController();
+  const fetchContract = async (contract) => {
     const lastBlock = last.get(keyOf(contract));
     const from =
       lastBlock === undefined ? contract.creationBlock : lastBlock + 1;
-    if (from > end) continue;
+    if (from > end) return undefined;
     const partial = partials.get(keyOf(contract));
     const resumed = partial?.fromBlock === from ? partial : undefined;
     if (resumed) log(`${keyOf(contract)}: go on from ${resumed.nextBlock}.`);
@@ -398,8 +404,9 @@ export async function buildSnapshot({
           logs,
         }),
       resumed?.logs,
+      controller.signal,
     );
-    chunkContracts.push({
+    return {
       project: contract.project,
       version: contract.version,
       name: contract.name,
@@ -407,8 +414,23 @@ export async function buildSnapshot({
       fromBlock: from,
       toBlock: end,
       logs: await toSnapshotLogs(rpc, contract, rawLogs),
-    });
+    };
+  };
+  const results = await Promise.allSettled(
+    chain.contracts.map((contract) =>
+      fetchContract(contract).catch((error) => {
+        controller.abort(error);
+        throw error;
+      }),
+    ),
+  );
+  if (results.some((result) => result.status === "rejected")) {
+    // The error of the contract that stopped first.
+    throw controller.signal.reason;
   }
+  const chunkContracts = results
+    .map((result) => result.value)
+    .filter((chunkContract) => chunkContract !== undefined);
   if (chunkContracts.length === 0) {
     fs.rmSync(partialDir, { recursive: true, force: true });
     log(`Nothing to add: the snapshot already reaches block ${end}.`);
