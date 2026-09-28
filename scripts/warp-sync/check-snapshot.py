@@ -1,5 +1,5 @@
 """Checks that the warp sync snapshot of each chain was made on the day of the
-release, by the date in Japan, for release.yml.
+release, by the date in UTC, for release.yml.
 Usage: python3 scripts/warp-sync/check-snapshot.py [--at <ISO time>]
   --at: the time of the release (default: now).
   WARP_SYNC_SNAPSHOT_CHECK=off: warn instead of failing.
@@ -16,8 +16,7 @@ import os
 import re
 import sys
 
-# Asia/Tokyo, which has no daylight saving time.
-JST = datetime.timezone(datetime.timedelta(hours=9), "JST")
+UTC = datetime.timezone.utc
 
 
 
@@ -48,8 +47,8 @@ for index in sorted(glob.glob(os.path.join(root, "src/constants/chains/*/_index.
     if match:
         chains.append(match.group(1))
 
-at = args.at or datetime.datetime.now(datetime.timezone.utc)
-release_day = at.astimezone(JST).date()
+at = args.at or datetime.datetime.now(UTC)
+release_day = at.astimezone(UTC).date()
 
 rows = []
 for chain in chains:
@@ -66,19 +65,19 @@ for chain in chains:
         problem(f"Warp sync snapshot of {chain}: cannot read {os.path.relpath(path, root)} ({e!r})")
         rows.append([chain, "Cannot read the manifest", "", "", ""])
         continue
-    created_jst = created.astimezone(JST)
+    created_utc = created.astimezone(UTC)
     days = (at - created).total_seconds() / 86400
     rows.append(
-        [chain, last["file"], created_jst.strftime("%Y-%m-%d %H:%M JST"), f"{to_block:,}", f"{days:.1f}"]
+        [chain, last["file"], created_utc.strftime("%Y-%m-%d %H:%M UTC"), f"{to_block:,}", f"{days:.1f}"]
     )
-    if created_jst.date() != release_day:
+    if created_utc.date() != release_day:
         problem(
-            f"The warp sync snapshot of {chain} was made on {created_jst:%Y-%m-%d}, not on the day"
-            f" of the release ({release_day}, in Japan); up to block {to_block:,}."
+            f"The warp sync snapshot of {chain} was made on {created_utc:%Y-%m-%d}, not on the day"
+            f" of the release ({release_day}, in UTC); up to block {to_block:,}."
             " Update it with scripts/warp-sync/build-snapshot.mjs, or see scripts/warp-sync/README.md."
         )
 
-lines = [f"### Warp sync snapshots (release on {release_day}, in Japan)", ""]
+lines = [f"### Warp sync snapshots (release on {release_day}, in UTC)", ""]
 if not check:
     lines += ["WARP_SYNC_SNAPSHOT_CHECK is off: warnings only.", ""]
 lines += [

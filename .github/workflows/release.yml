@@ -31,7 +31,7 @@ jobs:
         run: scripts/screen-check/wait-for-pass.sh "$GITHUB_SHA"
 
   # Stops the release unless the warp sync snapshot of each chain was made on
-  # the day of the release (in Japan). With the repository variable
+  # the day of the release (in UTC). With the repository variable
   # WARP_SYNC_SNAPSHOT_CHECK=off it only warns. See scripts/warp-sync/README.md.
   warp_sync_snapshot:
     runs-on: ubuntu-latest

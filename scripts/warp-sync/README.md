@@ -15,8 +15,8 @@ release. `release.yml` runs `check-snapshot.py` before it deploys. It shows,
 for each chain, the last chunk of `manifest.json`, when it was made
 (`createdAt`), its `toBlock` and its age in days, in the summary of the run.
 It stops the release when the last chunk was not made on the day of the
-release, by the date in Japan (Asia/Tokyo), and when it cannot read a
-manifest. A chain without a snapshot is not checked.
+release, by the date in UTC, and when it cannot read a manifest. A chain
+without a snapshot is not checked.
 
 ```sh
 python3 scripts/warp-sync/check-snapshot.py [--at <ISO time>]   # the default is now
