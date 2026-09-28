@@ -8,6 +8,30 @@ on from the end of the snapshot.
 The owner runs it before a release, checks the files, and commits them. The
 users of the app do not run it.
 
+## Before a release
+
+Update the snapshot on the day of a release: it reaches the users only with a
+release. `release.yml` runs `check-snapshot.py` before it deploys. It shows,
+for each chain, the last chunk of `manifest.json`, when it was made
+(`createdAt`), its `toBlock` and its age in days, in the summary of the run.
+It stops the release when the last chunk was not made on the day of the
+release, by the date in Japan (Asia/Tokyo), and when it cannot read a
+manifest. A chain without a snapshot is not checked.
+
+```sh
+python3 scripts/warp-sync/check-snapshot.py [--at <ISO time>]   # the default is now
+```
+
+When the snapshot cannot be made on that day (for example, the RPC is down)
+or a release does not change the data (an urgent fix), turn the check into a
+warning for that release only:
+
+```sh
+gh variable set WARP_SYNC_SNAPSHOT_CHECK --body off -R snjro/Digu
+gh workflow run release.yml --ref <tag> -R snjro/Digu   # a new run reads the variable
+gh variable delete WARP_SYNC_SNAPSHOT_CHECK -R snjro/Digu   # after the release
+```
+
 ## Run
 
 In the repository root, with the `app` service of `compose.yaml`:
