@@ -48,7 +48,6 @@
     <div class={classNames("row-span-1", "col-span-8")}>
       <SelectChain />
     </div>
-    <!-- <div class={classNames("row-span-1", "col-span-1")} /> -->
     <div class={classNames("row-span-1", "col-span-4")}>
       <ButtonAccordionHandler />
     </div>

@@ -14,7 +14,6 @@
 
   let { data }: Props = $props();
 
-  // let selectedTabValue: SelectedTabValueFunction = "Overview";
   let tabsDefinition: TabsDefinitionFunction = $state({
     selected: "Overview",
     values: TAB_VALUES_FUNCTION,

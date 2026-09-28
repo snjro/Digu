@@ -24,6 +24,5 @@ export async function load() {
     } else {
       throw error(404, "could not get a chain name");
     }
-    // await goto(`${base}/${selectedChainName}`);
   }
 }

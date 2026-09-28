@@ -9,7 +9,6 @@ export function setAutoColumnWidth(
   setTimeout(() => {
     gridApi.autoSizeAllColumns(skipHeader);
   }, waitMilliSecond);
-  // columnApi.autoSizeAllColumns(skipHeader);
 }
 export function setAllColumnGroupState(gridApi: GridApi, open: boolean): void {
   const stateItems: {
