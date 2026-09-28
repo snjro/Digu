@@ -4,7 +4,8 @@ Scripts to check a build in a browser before a release: the pages and their
 actions, the event log sync, the upgrade from the data of v1.0.2, the public
 RPC of PublicNode, and the public site after the release.
 
-They are run by hand. They are not part of CI.
+They are run by hand before a release. `run-all.sh` also runs in CI after
+each push to develop (see [CI](#ci-screen-checkyml)).
 
 | Folder         | What it checks                                          | Network                                    |
 | -------------- | ------------------------------------------------------- | ------------------------------------------ |
@@ -86,6 +87,47 @@ and does not run `public-site/`.
   the exit code of each step and `times.txt` its start, end and seconds, made
   from the files in `status/`; the output of each step is in
   `log-<step>.txt`. It exits 1 when a step failed.
+
+## Judge (`judge.py`)
+
+```sh
+python3 scripts/screen-check/judge.py <out-dir>
+```
+
+The scripts write their judgements to the results; the exit code of a
+`run.sh` is not 0 only when a script or Docker failed. `judge.py` reads an
+`<out-dir>` of `run-all.sh`, prints each failure and exits 1 when there is
+one:
+
+- a step of `exit-codes.txt` that is not 0 (`skipped` is not a failure),
+- `NG` or `ERROR` in `ui/`; `CHECK` is left to a person,
+- an `ok` that is false, or an exception (`error`), in `sync/`,
+- `[script-error]` in a log of `upgrade/`; its records have no judgement,
+- `1 helper`, `2 goal` or `3 sync` not `ok`, or an exception, in the `http`
+  runs of `real-rpc/ --fake`. The `wss` runs end in an error with `--fake`.
+
+## CI (`screen-check.yml`)
+
+`.github/workflows/screen-check.yml` runs on each push to develop and by hand
+(`workflow_dispatch`), not on pull requests. A newer run on the same ref
+cancels the older one.
+
+- It builds the commit with `build.sh`, and v1.0.2 once (it is kept in the
+  cache of Actions), runs `run-all.sh --jobs=2` without upgrade B (its data
+  is made by hand for a release), and runs `judge.py`. The number of jobs can
+  be set when it is run by hand.
+- The `<out-dir>` is uploaded as an artifact for 14 days, for the
+  screenshots of the `CHECK` steps.
+- On a failure it opens an issue with the label `screen-check-failure` and
+  the failures of `judge.py`, or comments on the open one. On a pass it
+  closes the open one.
+- `release.yml` runs `wait-for-pass.sh` first: the release stops unless this
+  workflow passed on the commit of the tag. While a run on that commit is
+  queued or in progress, it waits up to 30 min. When the commit has no run
+  (for example, a newer push cancelled it), run it with
+  `gh workflow run screen-check.yml --ref <tag>`, then run the release again.
+- The checks by hand before a release (upgrade B, `real-rpc/` without
+  `--fake`, the `CHECK` steps and `public-site/` after it) are still needed.
 
 ## UI check (`ui/`)
 

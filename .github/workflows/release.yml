@@ -13,7 +13,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Stops the release unless screen-check.yml passed on this commit. It waits
+  # while a run of it on this commit is queued or in progress (up to 30 min).
+  screen_check_passed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      actions: read
+      contents: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check the screen check of this commit
+        run: scripts/screen-check/wait-for-pass.sh "$GITHUB_SHA"
+
   test:
+    # The other jobs need test, so none runs before the screen check passed.
+    needs: screen_check_passed
     uses: ./.github/workflows/test.yml
     # A called workflow cannot have more permissions than this.
     permissions:
