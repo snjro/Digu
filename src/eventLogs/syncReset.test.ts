@@ -33,6 +33,7 @@ vi.mock("@db/dbResetSyncedData", () => ({
 }));
 vi.mock("@warpSync/warpSync", () => ({
   startWarpSync: vi.fn(async () => {}),
+  forgetWarpSyncConfirmation: vi.fn(),
 }));
 vi.mock("./syncLock", () => ({
   isSyncedByThisTab: vi.fn(() => false),

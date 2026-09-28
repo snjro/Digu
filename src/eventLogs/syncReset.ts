@@ -3,7 +3,7 @@ import { DB_NAME, getSyncLockName, SYNC_LOCK_TIMEOUT_MS } from "@db/constants";
 import { resetDbSyncedData } from "@db/dbResetSyncedData";
 import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { customLogger } from "@utils/logger";
-import { startWarpSync } from "@warpSync/warpSync";
+import { forgetWarpSyncConfirmation, startWarpSync } from "@warpSync/warpSync";
 import {
   hasWarpSync,
   selectWarpSyncState,
@@ -96,8 +96,10 @@ async function resetInLock(targetChain: Chain): Promise<SyncResetOutcome> {
   return outcome;
 }
 
-// "imported" is kept only in memory, and would skip the next import.
+// "imported" is kept only in memory, and would skip the next import. A large
+// import is asked again, even if it was confirmed in this tab.
 function forgetWarpSyncImport(chainName: ChainName): void {
+  forgetWarpSyncConfirmation(chainName);
   setWarpSyncState(chainName, { status: "idle" });
 }
 

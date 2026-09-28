@@ -12,6 +12,7 @@ const enabled: SyncToggleConditions = {
   syncStateText: "stopped",
   isStarting: false,
   isSyncingInOtherTab: false,
+  isWarpSyncImporting: false,
 };
 
 describe("isSyncToggleDisabled", () => {
@@ -103,5 +104,19 @@ describe("isSyncToggleDisabled", () => {
     expect(
       isSyncToggleDisabled({ ...enabled, isSyncingInOtherTab: true }),
     ).toBe(true);
+  });
+
+  test("should be disabled while the warp sync of this tab imports, until it is on", () => {
+    expect(
+      isSyncToggleDisabled({ ...enabled, isWarpSyncImporting: true }),
+    ).toBe(true);
+    // The import before the sync: the running sync can still be stopped.
+    expect(
+      isSyncToggleDisabled({
+        ...enabled,
+        isToggleOn: true,
+        isWarpSyncImporting: true,
+      }),
+    ).toBe(false);
   });
 });

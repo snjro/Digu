@@ -18,11 +18,66 @@ import {
   matchWarpSyncContracts,
   type WarpSyncTarget,
 } from "./warpSyncPlan";
+import type { WarpSyncPending } from "./warpSyncState";
 import type {
   WarpSyncManifest,
   WarpSyncManifestChunk,
   WarpSyncManifestChunkWithFile,
 } from "./warpSyncTypes";
+
+// What is left to import: the ranges that have blocks the DB does not have,
+// in the same way as importWarpSync, without importing: a contract goes on
+// from its fetchedBlockNumber until a gap.
+export async function getWarpSyncPending(
+  targetChain: Chain,
+  manifest: WarpSyncManifest,
+): Promise<WarpSyncPending> {
+  const targets: Map<string, WarpSyncTarget> = matchWarpSyncContracts(
+    targetChain,
+    manifest,
+  );
+  const pending: WarpSyncPending = {
+    logCount: 0,
+    bytes: 0,
+    rawBytes: 0,
+    files: 0,
+  };
+  // The fetchedBlockNumber of each contract as if the ranges before were
+  // imported; undefined after a gap.
+  const fetched: Map<string, number | undefined> = new Map();
+  for (const chunk of manifest.chunks) {
+    const key: string = getWarpSyncKey(chunk);
+    const target: WarpSyncTarget | undefined = targets.get(key);
+    if (!target) continue;
+    if (!fetched.has(key))
+      fetched.set(key, await getFetchedBlockNumber(target));
+    const fetchedBlockNumber: number | undefined = fetched.get(key);
+    if (fetchedBlockNumber === undefined) continue;
+    const action = getRangeAction(
+      chunk,
+      fetchedBlockNumber,
+      target.contract.creation.blockNumber,
+    );
+    if (action === "gap") fetched.set(key, undefined);
+    if (action !== "import") continue;
+    fetched.set(key, chunk.toBlock);
+    pending.logCount += chunk.logCount;
+    if (chunk.file !== null) {
+      pending.bytes += chunk.bytes;
+      pending.rawBytes += chunk.rawBytes;
+      pending.files += 1;
+    }
+  }
+  return pending;
+}
+
+export type ImportWarpSyncOptions = {
+  // Stops before the next range, and stops the DB worker of the file that is
+  // imported.
+  signal?: AbortSignal;
+  // After each range is saved.
+  onRangeDone?: (chunk: WarpSyncManifestChunk) => void;
+};
 
 // Imports the files that have blocks the DB does not have yet, one at a time,
 // in the order of the manifest. Run it while holding the sync lock of the
@@ -31,6 +86,7 @@ import type {
 export async function importWarpSync(
   targetChain: Chain,
   manifest: WarpSyncManifest,
+  options: ImportWarpSyncOptions = {},
 ): Promise<number | undefined> {
   const targets: Map<string, WarpSyncTarget> = matchWarpSyncContracts(
     targetChain,
@@ -42,6 +98,7 @@ export async function importWarpSync(
     const key: string = getWarpSyncKey(chunk);
     const target: WarpSyncTarget | undefined = targets.get(key);
     if (!target || stopped.has(key)) continue;
+    options.signal?.throwIfAborted();
     const action = getRangeAction(
       chunk,
       await getFetchedBlockNumber(target),
@@ -54,7 +111,10 @@ export async function importWarpSync(
         fromBlock: chunk.fromBlock,
       });
     }
-    if (action === "import") await importChunk(targetChain, target, chunk);
+    if (action === "import") {
+      await importChunk(targetChain, target, chunk, options.signal);
+      options.onRangeDone?.(chunk);
+    }
   }
   const end: number | undefined = getWarpSyncEnd(manifest, targets);
   if (end !== undefined) await raiseLatestBlockNumber(targetChain.name, end);
@@ -74,6 +134,7 @@ async function importChunk(
   targetChain: Chain,
   target: WarpSyncTarget,
   chunk: WarpSyncManifestChunk,
+  signal: AbortSignal | undefined,
 ): Promise<void> {
   // A range without logs only moves fetchedBlockNumber.
   if (chunk.file === null) {
@@ -89,6 +150,7 @@ async function importChunk(
     targetChain,
     target,
     chunk,
+    signal,
   );
   // After the commit, as the sync does.
   if (result.syncStatusContract) {
@@ -103,18 +165,28 @@ export async function importWarpSyncFileInWorker(
   targetChain: Chain,
   target: WarpSyncTarget,
   chunk: WarpSyncManifestChunkWithFile,
+  // Aborting it terminates the worker; its transaction is not committed.
+  signal?: AbortSignal,
 ): Promise<ImportWarpSyncFileResult> {
-  return await startDbWorker({
-    targetFunctionName: "importWarpSyncFile",
-    params: {
-      versionIdentifier: target.versionIdentifier,
-      contractName: target.contract.name,
-      chainId: targetChain.chainId,
-      url: getWarpSyncFileUrl(targetChain, chunk.file),
-      chunk,
+  // A fetch that never ends would keep the sync lock of the chain.
+  const timeout: AbortSignal = AbortSignal.timeout(FILE_TIMEOUT_MS);
+  return await startDbWorker(
+    {
+      targetFunctionName: "importWarpSyncFile",
+      params: {
+        versionIdentifier: target.versionIdentifier,
+        contractName: target.contract.name,
+        chainId: targetChain.chainId,
+        url: getWarpSyncFileUrl(targetChain, chunk.file),
+        chunk,
+      },
     },
-  });
+    signal ? AbortSignal.any([signal, timeout]) : timeout,
+  );
 }
+// A file has at most 20,000 logs (about 2 MB as gzip); the worker imports
+// about 4,500 logs a second on a desktop computer.
+export const FILE_TIMEOUT_MS = 120_000;
 
 // Without an RPC, the latest block is 0 and the progress stays at 0%. The end
 // of the snapshot is a block that exists and is at most latest -

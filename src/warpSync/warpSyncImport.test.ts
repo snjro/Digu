@@ -21,7 +21,7 @@ import { storeSyncStatus } from "@stores/storeSyncStatus";
 import Dexie from "dexie";
 import { get } from "svelte/store";
 import { makeWarpSyncLog } from "../testUtils/warpSyncLogs";
-import { importWarpSync } from "./warpSyncImport";
+import { getWarpSyncPending, importWarpSync } from "./warpSyncImport";
 import type {
   WarpSyncLog,
   WarpSyncManifest,
@@ -284,5 +284,73 @@ describe("importWarpSync", () => {
     expect((await getDbRecordChainStatus("matic")).latestBlockNumber).toBe(
       40_000_000,
     );
+  });
+});
+
+describe("getWarpSyncPending", () => {
+  beforeEach(async () => {
+    await Dexie.delete(db().name);
+  });
+  const file = (index: number) =>
+    chunks[index] as Extract<WarpSyncManifestChunk, { file: string }>;
+
+  test("counts every range for a DB that has nothing", async () => {
+    expect(await getWarpSyncPending(matic, manifest())).toEqual({
+      logCount: 4,
+      bytes: file(0).bytes + file(2).bytes,
+      rawBytes: file(0).rawBytes + file(2).rawBytes,
+      files: 2,
+    });
+  });
+  test("counts only the ranges after the fetched block", async () => {
+    await setFetchedBlockNumber(20_000_000);
+    expect(await getWarpSyncPending(matic, manifest())).toEqual({
+      logCount: 1,
+      bytes: file(2).bytes,
+      rawBytes: file(2).rawBytes,
+      files: 1,
+    });
+    await setFetchedBlockNumber(31_000_000);
+    expect((await getWarpSyncPending(matic, manifest())).files).toBe(0);
+  });
+  test("counts nothing after a gap, like the import", async () => {
+    expect(
+      await getWarpSyncPending(matic, manifest({}, CREATION + 100)),
+    ).toEqual({ logCount: 0, bytes: 0, rawBytes: 0, files: 0 });
+  });
+});
+
+describe("importWarpSync with options", () => {
+  beforeEach(async () => {
+    await Dexie.delete(db().name);
+    vi.mocked(startDbWorker).mockClear();
+    fetchMock.mockReset();
+    fetchMock.mockImplementation(
+      async (url: string) =>
+        new Response(files.get(url.split("/").at(-1)!)! as BodyInit),
+    );
+  });
+
+  test("tells each range once saved, and gives the worker a signal", async () => {
+    const done: number[] = [];
+    await importWarpSync(matic, manifest(), {
+      onRangeDone: (chunk) => done.push(chunk.toBlock),
+    });
+    expect(done).toEqual([20_000_000, 25_000_000, 30_000_000]);
+    for (const [, signal] of vi.mocked(startDbWorker).mock.calls) {
+      expect(signal).toBeInstanceOf(AbortSignal);
+    }
+  });
+
+  test("stops before the next range once aborted, and keeps what was saved", async () => {
+    const controller = new AbortController();
+    await expect(
+      importWarpSync(matic, manifest(), {
+        signal: controller.signal,
+        onRangeDone: () => controller.abort(new Error("stop")),
+      }),
+    ).rejects.toThrow("stop");
+    expect((await syncStatus()).fetchedBlockNumber).toBe(20_000_000);
+    expect(startDbWorker).toHaveBeenCalledTimes(1);
   });
 });

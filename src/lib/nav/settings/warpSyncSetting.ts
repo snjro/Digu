@@ -4,10 +4,14 @@ import { updateDbItemRpcSettings } from "@db/dbSettings";
 import { storeNoDbSnackBar } from "@stores/storeNoDb";
 import { customLogger } from "@utils/logger";
 import { numberWithCommas } from "@utils/utilsCommon";
-import { startWarpSync } from "@warpSync/warpSync";
-import type { WarpSyncState } from "@warpSync/warpSyncState";
+import { forgetWarpSyncConfirmation, startWarpSync } from "@warpSync/warpSync";
+import { stopWarpSync, type WarpSyncState } from "@warpSync/warpSyncState";
+import { formatBytes } from "@warpSync/warpSyncTexts";
 
-/** Returns false when the save fails. Turning it on imports the snapshot. */
+/**
+ * Returns false when the save fails. Turning it on imports the snapshot, or
+ * asks first when it is large; turning it off stops the import of this tab.
+ */
 export async function updateWarpSync(
   targetChain: Chain,
   warpSync: boolean,
@@ -19,7 +23,12 @@ export async function updateWarpSync(
     storeNoDbSnackBar.set(showSnackBarAsSaveFailed);
     return false;
   }
-  if (warpSync) void startWarpSync(targetChain);
+  if (warpSync) {
+    forgetWarpSyncConfirmation(targetChain.name);
+    void startWarpSync(targetChain);
+  } else {
+    stopWarpSync(targetChain.name);
+  }
   return true;
 }
 
@@ -36,6 +45,13 @@ export function getWarpSyncHelperText(
       return `Imports the event logs published with this site, up to block ${numberWithCommas(
         state.toBlock ?? 0,
       )} (${state.createdAt?.slice(0, 10) ?? "-"}). ${TURN_OFF}`;
+    case "confirm":
+      return "Waiting for your answer to import the event logs published with this site.";
+    case "declined":
+    case "stopped":
+      return `Not imported yet: ${numberWithCommas(
+        state.pending?.logCount ?? 0,
+      )} logs (${formatBytes(state.pending?.bytes ?? 0)}) are left to import.`;
     case "failed":
       return `Could not import the event logs published with this site. ${TURN_OFF}`;
     case "none":
@@ -45,4 +61,9 @@ export function getWarpSyncHelperText(
     default:
       return `Imports the event logs published with this site when the chain is opened. ${TURN_OFF}`;
   }
+}
+
+// "Import" next to the text: after "Not now" or a stop in this tab.
+export function canImportNow(isOn: boolean, state: WarpSyncState): boolean {
+  return isOn && (state.status === "declined" || state.status === "stopped");
 }

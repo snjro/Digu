@@ -60,7 +60,7 @@ describe("getResetDisabledReason", () => {
       "The chain is synced in another tab.",
     );
     expect(getResetDisabledReason({ ...free, isImporting: true })).toBe(
-      "Wait until the logs published with this site are imported.",
+      "Wait until the logs published with this site are imported, or stop the import.",
     );
     expect(getResetDisabledReason({ ...free, isResetting: true })).toBe(
       "Resetting…",
@@ -152,6 +152,14 @@ describe("getImportResultLine", () => {
       "This site has no event logs of this chain to import. The next sync fetches every log again from your RPC.",
     );
     // Another tab took the lock first.
+    expect(getImportResultLine({ status: "confirm" }, "0").text).toBe(
+      "Many logs are published with this site: they are imported after you confirm.",
+    );
+    for (const status of ["declined", "stopped"] as const) {
+      expect(getImportResultLine({ status }, "0").text).toBe(
+        "The logs published with this site were not imported. Import them from the warp sync setting.",
+      );
+    }
     expect(getImportResultLine({ status: "idle" }, "0").text).toBe(
       "The logs published with this site are imported the next time the chain is opened or synced.",
     );

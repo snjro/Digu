@@ -11,6 +11,7 @@
   import { saveSelectedChainName } from "$lib/leftSidebar/Header/selectChain";
   import LeftSidebar from "$lib/leftSidebar/LeftSidebar.svelte";
   import Nav from "$lib/nav/Nav.svelte";
+  import WarpSyncConfirmDialog from "$lib/nav/WarpSyncConfirmDialog.svelte";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import type { OnNavigate } from "@sveltejs/kit";
@@ -121,6 +122,7 @@
     )}
   >
     <Nav />
+    <WarpSyncConfirmDialog />
     <main
       class={classNames(
         "min-h-0 flex-auto",

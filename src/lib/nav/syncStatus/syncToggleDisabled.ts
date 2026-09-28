@@ -7,6 +7,8 @@ export type SyncToggleConditions = {
   syncStateText: SyncStateText;
   isStarting: boolean;
   isSyncingInOtherTab: boolean;
+  // The warp sync of this tab imports the chain: the sync would wait for it.
+  isWarpSyncImporting: boolean;
 };
 
 export function isSyncToggleDisabled(
@@ -20,6 +22,7 @@ export function isSyncToggleDisabled(
     (!conditions.isToggleOn && !isAbleToSync) ||
     isStopping ||
     conditions.isStarting ||
-    conditions.isSyncingInOtherTab
+    conditions.isSyncingInOtherTab ||
+    (!conditions.isToggleOn && conditions.isWarpSyncImporting)
   );
 }
