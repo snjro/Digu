@@ -573,10 +573,18 @@ for (const [id, chain, rpc] of RUNS) {
     const seen = [];
     await typeInto(page, 'input[aria-label="RPC URL"]', rpc);
     const t0 = Date.now();
+    // Right after Tab, the helper can show "Error. Invalid URL." for a moment:
+    // the new URL is saved before the node status leaves INVALID_URL (#573).
+    // So stop at "Connected." or at an error that stays for 1 s.
+    let since = t0;
     while (Date.now() - t0 < 30000) {
       const h = await helper(page);
-      if (seen.at(-1) !== h) seen.push(h);
-      if (/^(Connected\.|Error\.)/.test(h)) break;
+      if (seen.at(-1) !== h) {
+        seen.push(h);
+        since = Date.now();
+      }
+      if (h.startsWith("Connected.")) break;
+      if (h.startsWith("Error.") && Date.now() - since >= 1000) break;
       await new Promise((r) => setTimeout(r, 100));
     }
     const connected = seen.at(-1) === "Connected.";
