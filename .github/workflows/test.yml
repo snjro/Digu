@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - develop
+    # edited: a pull request stacked on another one gets develop as its base
+    # after the other one is merged. The jobs skip the other edits.
+    types: [opened, synchronize, reopened, edited]
   # Also test develop after a merge: two PRs can pass alone and fail together.
   push:
     branches:
@@ -17,6 +20,8 @@ env:
 
 jobs:
   run_unit_test:
+    # Not for an edit of the title or the body.
+    if: github.event.action != 'edited' || github.event.changes.base != null
     runs-on: ubuntu-latest
 
     permissions:
@@ -45,6 +50,8 @@ jobs:
 
   # Apart from run_lint_and_check, because linting with type information is slow.
   run_typed_lint:
+    # Not for an edit of the title or the body.
+    if: github.event.action != 'edited' || github.event.changes.base != null
     runs-on: ubuntu-latest
 
     permissions:
@@ -68,6 +75,8 @@ jobs:
         run: npm run lint:types
 
   run_lint_and_check:
+    # Not for an edit of the title or the body.
+    if: github.event.action != 'edited' || github.event.changes.base != null
     runs-on: ubuntu-latest
 
     permissions:
