@@ -124,7 +124,7 @@ export async function fetchEventLogsContract(
     if (toBlockNumber === latestBlockNumber) {
       // If "toBlockNumber" reaches the latest,
       // sleep for fetching events to be called in the next loop
-      await sleep(rpcSetting.blockIntervalMs);
+      await sleepUnlessAborted(contractIdentifier, rpcSetting.blockIntervalMs);
       // Stopped while sleeping: stop at the top of the loop without fetching.
       if (syncStatusContract(contractIdentifier).isAbort) {
         continue;
@@ -203,8 +203,26 @@ export async function fetchEventLogsContract(
       );
       await startAbortingInChain(chainName);
     } else if (errorCount > 0) {
-      await sleep(RETRY_WAIT_MS);
+      await sleepUnlessAborted(contractIdentifier, RETRY_WAIT_MS);
     }
+  }
+}
+// Ends early when the contract is stopped, so that "stop sync" does not wait
+// for the Block Interval (20 s on Ethereum). Nothing is being saved then, and
+// the loop stops at its top.
+async function sleepUnlessAborted(
+  contractIdentifier: ContractIdentifier,
+  ms: number,
+): Promise<void> {
+  let wake: () => void = () => {};
+  const aborted: Promise<void> = new Promise((resolve) => (wake = resolve));
+  const unsubscribe = storeSyncStatus.subscribe(() => {
+    if (syncStatusContract(contractIdentifier).isAbort) wake();
+  });
+  try {
+    await Promise.race([sleep(ms), aborted]);
+  } finally {
+    unsubscribe();
   }
 }
 export const syncStatusContract = (
