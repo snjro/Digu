@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
   import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
   import BaseCheckbox from "$lib/base/BaseCheckbox.svelte";
   import BaseLabel from "$lib/base/BaseLabel.svelte";
@@ -47,6 +48,7 @@
       <BaseLabel
         text={helperText}
         textSize={sizeSettings.navInputHelperText}
+        colorCategoryFront={colorSettings.navSettings}
         truncate={false}
       />
     </div>

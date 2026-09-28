@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
+import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
 import type { Writable } from "svelte/store";
 import { customLogger } from "@utils/logger";
 import { updateDbItemRpcSettings } from "@db/dbSettings";
@@ -64,6 +66,15 @@ describe("WarpSyncConfig.svelte", () => {
     expect(
       screen.getByText(/up to block 83,000,000 \(2026-09-28\)/),
     ).toBeTruthy();
+  });
+
+  // Without a color it took the black of <dialog>, which the dark theme hid.
+  test("colors the helper text as the other texts of the settings", () => {
+    render(WarpSyncConfig);
+    const helper = screen.getByText(/^Imports the event logs/);
+    expect(helper.classList).toContain(
+      colorClasses[colorSettings.navSettings].text,
+    );
   });
 
   test("saves it when it is turned off", async () => {
