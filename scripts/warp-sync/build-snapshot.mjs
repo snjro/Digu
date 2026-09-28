@@ -118,14 +118,17 @@ function loadContracts(chainDir, chainIndex) {
 // Thrown before a request over the limit is sent. Not tried again.
 export class RequestLimitError extends Error {}
 
+// rpc.counts has the number of requests sent, by method.
 export function createRpc(url, maxRequests = Infinity) {
   let id = 0;
-  return async function rpc(method, params = []) {
+  const counts = {};
+  async function rpc(method, params = []) {
     if (id >= maxRequests) {
       throw new RequestLimitError(
         `Stopped at the limit of ${maxRequests} requests.`,
       );
     }
+    counts[method] = (counts[method] ?? 0) + 1;
     const response = await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -139,7 +142,9 @@ export function createRpc(url, maxRequests = Infinity) {
       throw new Error(`${method}: ${JSON.stringify(body.error)}`);
     }
     return body.result;
-  };
+  }
+  rpc.counts = counts;
+  return rpc;
 }
 const toHex = (value) => `0x${value.toString(16)}`;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -321,6 +326,14 @@ export async function buildSnapshot({
 }) {
   const chain = loadChain(chainName);
   const rpc = createRpc(rpcUrl, maxRequests);
+  try {
+    return await build(chain, rpc, outDir, toBlock, log);
+  } finally {
+    log(`Requests: ${JSON.stringify(rpc.counts)}`);
+  }
+}
+
+async function build(chain, rpc, outDir, toBlock, log) {
   const chainId = Number(await rpc("eth_chainId"));
   if (chainId !== chain.chainId) {
     throw new Error(`The RPC is for chainId ${chainId}, not ${chain.chainId}.`);
