@@ -188,7 +188,9 @@ function summary() {
 }
 
 // --fake: answers like PublicNode did in September 2026.
-const FAKE_LATEST = { eth: 21_000_000, matic: 70_000_000 };
+// Keep matic above the end of the warp sync snapshot (static/warp-sync/matic/),
+// or the sync has no range to ask for after the import.
+const FAKE_LATEST = { eth: 21_000_000, matic: 100_000_000 };
 function fakeAnswer(chain, p) {
   const q = (n) => "0x" + n.toString(16);
   switch (p.method) {
