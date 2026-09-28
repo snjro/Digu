@@ -269,6 +269,15 @@ export async function buildSnapshot({
   const dir = path.join(outDir, chain.name);
   const manifestFile = path.join(dir, "manifest.json");
   const manifest = readManifest(manifestFile, chain);
+  // Another run to the same block would overwrite its file, and the sha256
+  // in the manifest would not match any more. Stop before fetching.
+  const file = `logs-${end}.json`;
+  if (
+    fs.existsSync(path.join(dir, file)) ||
+    manifest.chunks.some((chunk) => chunk.file === file)
+  ) {
+    throw new Error(`${path.join(dir, file)} is there already.`);
+  }
   const known = new Map(manifest.contracts.map((c) => [keyOf(c), c]));
   for (const contract of chain.contracts) {
     const before = known.get(keyOf(contract));
@@ -306,7 +315,6 @@ export async function buildSnapshot({
     return undefined;
   }
 
-  const file = `logs-${end}.json`;
   const text = JSON.stringify({
     formatVersion: FORMAT_VERSION,
     chainId: chain.chainId,

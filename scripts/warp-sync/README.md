@@ -25,7 +25,9 @@ docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
 
 The first run fetches from the creation block of each contract. A later run
 reads `manifest.json` and fetches only the blocks after the last run, into a
-new file. It stops when a contract changed its address or creation block.
+new file. It stops when a contract changed its address or creation block,
+and when the file of the last block is there already (another run to the
+same block would overwrite it).
 
 It fetches like the sync: one `eth_getLogs` per range with the address and
 the topic 0 of the events that are not anonymous. A failed range is tried
