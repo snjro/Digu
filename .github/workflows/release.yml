@@ -30,24 +30,25 @@ jobs:
       - name: Check the screen check of this commit
         run: scripts/screen-check/wait-for-pass.sh "$GITHUB_SHA"
 
-  # Warns when a warp sync snapshot was not made on the day of the release (in
-  # Japan); it never stops the release. It only reads
-  # static/warp-sync/*/manifest.json. See scripts/warp-sync/README.md.
-  warp_sync_age:
+  # Stops the release unless the warp sync snapshot of each chain was made on
+  # the day of the release (in Japan). With the repository variable
+  # WARP_SYNC_SNAPSHOT_CHECK=off it only warns. See scripts/warp-sync/README.md.
+  warp_sync_snapshot:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      WARP_SYNC_SNAPSHOT_CHECK: ${{ vars.WARP_SYNC_SNAPSHOT_CHECK }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Check the age of the warp sync snapshots
-        continue-on-error: true
-        run: python3 scripts/warp-sync/check-age.py
+      - name: Check the warp sync snapshots
+        run: python3 scripts/warp-sync/check-snapshot.py
 
   test:
-    # The other jobs need test, so none runs before the screen check passed.
-    needs: screen_check_passed
+    # The other jobs need test, so none runs before these passed.
+    needs: [screen_check_passed, warp_sync_snapshot]
     uses: ./.github/workflows/test.yml
     # A called workflow cannot have more permissions than this.
     permissions:
