@@ -1,5 +1,8 @@
 import type { Chain, ChainName } from "@constants/chains/types";
-import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
+import {
+  getDbRecordChainStatus,
+  updateDbItemChainStatus,
+} from "@db/dbChainStatusDataHandlers";
 import { getDbEventLogs, type DbEventLogs } from "@db/dbEventLogs";
 import { addEventLogs_updateFetchedBlockNumber } from "@db/dbEventLogsDataHandlersEventLog";
 import { getDbItemSyncStatus } from "@db/dbEventLogsDataHandlersSyncStatusGetters";
@@ -12,10 +15,8 @@ import {
   convertEthersEventToEventLog,
   groupEventLogsByEventName,
 } from "@eventLogs/eventLogsContractUpdateTables";
-import { storeChainStatus } from "@stores/storeChainStatus";
 import { customLogger } from "@utils/logger";
 import { getNumber } from "ethers";
-import { get } from "svelte/store";
 import { decodeWarpSyncLogs } from "./warpSyncDecode";
 import { fetchWarpSyncChunk } from "./warpSyncFetch";
 import {
@@ -155,8 +156,8 @@ async function raiseLatestBlockNumber(
   chainName: ChainName,
   end: number,
 ): Promise<void> {
-  const latestBlockNumber: number =
-    get(storeChainStatus)[chainName].latestBlockNumber;
+  // From the DB: the store may lag behind another tab that synced.
+  const { latestBlockNumber } = await getDbRecordChainStatus(chainName);
   if (end <= latestBlockNumber) return;
   await updateDbItemChainStatus(chainName, "latestBlockNumber", end);
 }

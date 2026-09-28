@@ -207,6 +207,16 @@ describe("importWarpSync", () => {
     expect((await getDbRecordChainStatus("matic")).latestBlockNumber).toBe(0);
   });
 
+  test("compares with the latest block number of the DB, not of the store", async () => {
+    await updateDbItemChainStatus("matic", "latestBlockNumber", 40_000_000);
+    // Like a store that lags behind another tab.
+    storeChainStatus.updateState("matic", { latestBlockNumber: 0 });
+    await importWarpSync(matic, manifest());
+    expect((await getDbRecordChainStatus("matic")).latestBlockNumber).toBe(
+      40_000_000,
+    );
+  });
+
   test("does not lower the latest block number", async () => {
     await updateDbItemChainStatus("matic", "latestBlockNumber", 40_000_000);
     await importWarpSync(matic, manifest());
