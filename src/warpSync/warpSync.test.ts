@@ -46,7 +46,6 @@ vi.mock("@eventLogs/syncLock", () => ({
 }));
 
 const matic = { name: "matic" } as Chain;
-const eth = { name: "eth" } as Chain;
 const manifest = {
   runs: [{ createdAt: "2026-09-28T00:00:00.000Z", toBlock: 30_000_000 }],
   totals: { logCount: 2_000_000 },
@@ -146,7 +145,8 @@ describe("warpSync", () => {
   test("does nothing when it is off, or for a chain without a snapshot", async () => {
     setWarpSync("matic", false);
     await startWarpSync(matic);
-    await startWarpSync(eth);
+    // Every chain of the app has a snapshot now.
+    await startWarpSync({ name: "other" } as unknown as Chain);
     expect(fetchWarpSyncManifest).not.toHaveBeenCalled();
   });
 

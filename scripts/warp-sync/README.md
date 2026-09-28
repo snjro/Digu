@@ -8,6 +8,19 @@ on from the end of the snapshot.
 The owner runs it before a release, checks the files, and commits them. The
 users of the app do not run it.
 
+## The snapshots
+
+- `matic`: made by this script with the public RPC of pocket.
+- `eth`: 2,640,510 logs of 16 contracts to block 26,075,462, in 140 files
+  (218 MB of gzip, 2.0 GB of JSON). Its first run was not made by this
+  script: pocket dropped logs (#576), so the logs were fetched from Infura
+  with all the contracts in one `eth_getLogs` for each range of 10,000 blocks
+  (2,293 requests, the `requests` of the run), and written with
+  `writeContractChunks` of `snapshot-format.mjs`. They were checked against
+  two runs of this script with pocket (every log of both is in the snapshot,
+  with the same fields) and the sample of 539 ranges of the estimate (the same
+  counts). Later runs are made by this script.
+
 ## Before a release
 
 Update the snapshot on the day of a release: it reaches the users only with a

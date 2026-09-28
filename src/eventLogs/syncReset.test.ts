@@ -42,7 +42,6 @@ vi.mock("./syncLock", () => ({
 }));
 
 const matic = { name: "matic" } as Chain;
-const eth = { name: "eth" } as Chain;
 
 function setWarpSync(warpSync: boolean): void {
   storeRpcSettings.updateState("matic", { warpSync });
@@ -115,7 +114,9 @@ describe("resetSyncedData", () => {
       result: "reset",
       deletedLogCount: 7,
     });
-    expect((await resetSyncedData(eth)).warpSyncImport).toBeUndefined();
+    // Every chain of the app has a snapshot now.
+    const other = { name: "other" } as unknown as Chain;
+    expect((await resetSyncedData(other)).warpSyncImport).toBeUndefined();
     expect(startWarpSync).not.toHaveBeenCalled();
   });
 
