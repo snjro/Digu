@@ -34,6 +34,7 @@
     getResetResultLines,
     getResetSnackBar,
     type ResetResultLine,
+    WAIT_UNTIL_THE_SYNC_STOPS,
   } from "./syncedData";
 
   let targetChainName: ChainName = $derived(
@@ -129,6 +130,9 @@
         textSize={sizeSettings.navInputHelperText}
         colorCategoryFront={colorSettings.navSettings}
         truncate={false}
+        appendClass={disabledReason === WAIT_UNTIL_THE_SYNC_STOPS
+          ? "motion-safe:animate-pulse"
+          : undefined}
       />
     {/if}
   </div>

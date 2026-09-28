@@ -98,13 +98,18 @@ describe("SyncedData.svelte", () => {
     setChain("syncing", 0);
     render(SyncedData);
     expect(resetButton().disabled).toBe(true);
-    // As text next to the button.
-    expect(screen.getByText("Stop the sync first.")).toBeTruthy();
+    // As text next to the button. It waits for the user: no pulse.
+    expect(screen.getByText("Stop the sync first.").classList).not.toContain(
+      "motion-safe:animate-pulse",
+    );
 
     setChain("stopping", 0);
     await tick();
     expect(resetButton().disabled).toBe(true);
-    expect(screen.getByText("Wait until the sync stops.")).toBeTruthy();
+    // Something goes on: it pulses, unless the user reduces the motion.
+    expect(screen.getByText("Wait until the sync stops.").classList).toContain(
+      "motion-safe:animate-pulse",
+    );
     expect(screen.queryByText("Stop the sync first.")).toBeNull();
 
     setChain("stopped", 0);

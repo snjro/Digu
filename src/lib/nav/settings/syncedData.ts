@@ -19,6 +19,10 @@ export function countSyncedLogs(syncStatusChain: SyncStatusChain): number {
   return count;
 }
 
+// Shown with a pulse: something goes on, unlike "Stop the sync first.",
+// which waits for the user.
+export const WAIT_UNTIL_THE_SYNC_STOPS = "Wait until the sync stops.";
+
 export type ResetConditions = {
   syncStateText: SyncStateText;
   isSyncingInOtherTab: boolean;
@@ -36,9 +40,7 @@ export function getResetDisabledReason(
   }
   if (conditions.syncStateText === "syncing") return "Stop the sync first.";
   // "stop sync" was pressed: the contracts end what they are doing first.
-  if (conditions.syncStateText === "stopping") {
-    return "Wait until the sync stops.";
-  }
+  if (conditions.syncStateText === "stopping") return WAIT_UNTIL_THE_SYNC_STOPS;
   if (conditions.isImporting) {
     return "Wait until the logs published with this site are imported.";
   }
