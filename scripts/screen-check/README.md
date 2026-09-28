@@ -27,6 +27,10 @@ They are run by hand. They are not part of CI.
   which runs (`--only`) and which Retry Count (`--retry`) to use.
 - Steps marked `CHECK` need a person: look at the screenshot or the file the
   step names.
+- The host needs bash, Docker with Compose, git and python3. `run-all.sh`
+  also needs bash 4.3 or later and `flock` (util-linux); without them it
+  stops with an error, so on macOS run the checks one by one with each
+  `run.sh`.
 
 ## Build
 
@@ -49,6 +53,39 @@ of `<build-dir>/compose.yaml`, with `/app` as `<build-dir>`, so it uses the
 scripts of this folder are mounted at `/scripts` and `<out-dir>` at `/out`.
 The Docker Compose project is `<repo>-sc-<check>`, or `PROJECT`; each `run.sh`
 removes it when it ends.
+
+## All the checks at once (`run-all.sh`)
+
+```sh
+scripts/screen-check/run-all.sh <build-dir> <v1.0.2-build-dir> <out-dir>
+scripts/screen-check/run-all.sh <build-dir> <v1.0.2-build-dir> <out-dir> --jobs=1
+scripts/screen-check/run-all.sh <build-dir> <v1.0.2-build-dir> <out-dir> --upgrade-b=<dir>
+```
+
+It runs the checks that need no network on one build: all of `ui/` and
+`merge.py`, `smoke.mjs` and `sync-check.mjs` of `sync/`, `old`, `new` and
+`grid` of `upgrade/` (A), and `real-rpc/` with `--fake`. It does not build
+and does not run `public-site/`.
+
+- `<out-dir>`: a new or empty folder outside the repository. The results of
+  each check go to a folder in it: `ui`, `sync-smoke`, `sync`, `upgrade`,
+  `upgrade-b` and `real-rpc-fake`.
+- `--jobs=N`: how many checks run at once, longest first (default 4). Each
+  check is a Chrome in its own container. Lower it when the machine is slow or
+  busy: under a heavy load, timing and screenshots can change (#494).
+  `--jobs=1` runs them one by one in the order of this README.
+- `--upgrade-b=<dir>`: also runs `new` of `upgrade/` (B) on a copy of `<dir>`
+  in `<out-dir>/upgrade-b`, such as an `<out-dir>` of `upgrade/` with the data
+  of an older version. Without it, B is skipped and `exit-codes.txt` says so.
+- Each check has its own Docker Compose project, `<repo>-sc-<pid>-<check>`.
+- One `run-all.sh` runs at a time: a second one waits for the lock
+  `${XDG_RUNTIME_DIR:-/tmp}/digu-screen-check.lock`. `scripts/visual-compare`
+  has another lock, so the two can run at the same time, and the load adds
+  up.
+- A failed step does not stop the others. At the end, `exit-codes.txt` has
+  the exit code of each step and `times.txt` its start, end and seconds, made
+  from the files in `status/`; the output of each step is in
+  `log-<step>.txt`. It exits 1 when a step failed.
 
 ## UI check (`ui/`)
 
