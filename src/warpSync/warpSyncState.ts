@@ -9,6 +9,9 @@ export const WARP_SYNC_CHAIN_NAMES: readonly ChainName[] = ["matic"];
 // What is left to import (see getWarpSyncPending of warpSyncImport.ts).
 export type WarpSyncPending = {
   logCount: number;
+  // The logs of the contracts of the app in the whole snapshot: fewer are
+  // left when some were imported (or synced) before.
+  snapshotLogCount: number;
   // Of the gzip files, and of their JSON.
   bytes: number;
   rawBytes: number;
@@ -42,9 +45,8 @@ export type WarpSyncState = {
   toBlock?: number;
   createdAt?: string;
   pending?: WarpSyncPending;
-  // The logs of the whole snapshot, to tell a first import from one that
-  // goes on.
-  totalLogCount?: number;
+  // "Import" could not start: the chain was synced (the lock was held).
+  busy?: boolean;
   // While importing: the logs of the ranges done, of pending.logCount.
   progress?: { doneLogCount: number; startedAt: number };
 };

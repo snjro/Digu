@@ -37,11 +37,11 @@ const state: WarpSyncState = {
   createdAt: "2026-10-01T00:00:00.000Z",
   pending: {
     logCount: 2_328_259,
+    snapshotLogCount: 2_328_259,
     bytes: 194_000_000,
     rawBytes: 1_816_000_000,
     files: 118,
   },
-  totalLogCount: 2_328_259,
 };
 
 describe("getConfirmationTexts", () => {
@@ -68,7 +68,7 @@ describe("getConfirmationTexts", () => {
       undefined,
     );
     expect(texts.header).toBe(
-      "Continue importing the event logs published with this site?",
+      "Import the rest of the event logs published with this site?",
     );
     expect(texts.lines[0]).toBe(
       "Ethereum Mainnet: 1,200,000 of 2,328,259 logs are left, up to block 26,073,896 (2026-10-01).",

@@ -53,6 +53,7 @@ const manifest = {
 } as WarpSyncManifest;
 const small: WarpSyncPending = {
   logCount: 4_140,
+  snapshotLogCount: 4_140,
   bytes: 427_701,
   rawBytes: 2_985_902,
   files: 4,
@@ -60,6 +61,7 @@ const small: WarpSyncPending = {
 // Above 10,000 logs: asked first.
 const large: WarpSyncPending = {
   logCount: 2_000_000,
+  snapshotLogCount: 2_000_000,
   bytes: 170_000_000,
   rawBytes: 1_600_000_000,
   files: 100,
@@ -292,7 +294,6 @@ describe("warpSync", () => {
         toBlock: 30_000_000,
         createdAt: "2026-09-28T00:00:00.000Z",
         pending: large,
-        totalLogCount: 2_000_000,
       });
       await startWarpSync(matic);
       expect(fetchWarpSyncManifest).toHaveBeenCalledTimes(1);
@@ -377,6 +378,8 @@ describe("warpSync", () => {
         status: "stopped",
         pending: left,
       });
+      // A file may have been saved after the stop: the stores follow the DB.
+      expect(reloadSyncStatusInChain).toHaveBeenCalledWith("matic");
       // Not again in this tab until Import.
       setWarpSyncState("matic", { status: "idle" });
       await startWarpSync(matic);
@@ -394,5 +397,83 @@ describe("warpSync", () => {
       );
       expect(importWarpSync).toHaveBeenCalledTimes(1);
     });
+
+    test("says so when Import cannot take the lock, and keeps Import", async () => {
+      vi.spyOn(customLogger, "info").mockImplementation(() => {});
+      await startWarpSync(matic);
+      declineWarpSync("matic");
+      let release: () => void = () => {};
+      void lockManager.request(
+        getSyncLockName("matic"),
+        () => new Promise<void>((resolve) => (release = resolve)),
+      );
+      // Waits SYNC_LOCK_TIMEOUT_MS (1 s), as the sync does.
+      await confirmWarpSync(matic);
+      expect(importWarpSync).not.toHaveBeenCalled();
+      expect(selectWarpSyncState(get(storeWarpSync), "matic")).toMatchObject({
+        status: "declined",
+        busy: true,
+        pending: large,
+      });
+      // Still held: not imported when the chain is opened again.
+      release();
+      await startWarpSync(matic);
+      expect(importWarpSync).not.toHaveBeenCalled();
+      await confirmWarpSync(matic);
+      expect(importWarpSync).toHaveBeenCalledTimes(1);
+      expect(selectWarpSyncState(get(storeWarpSync), "matic").busy).toBe(
+        undefined,
+      );
+    });
+
+    test("stops before it imports when it is turned off meanwhile", async () => {
+      vi.spyOn(customLogger, "info").mockImplementation(() => {});
+      await startWarpSync(matic);
+      let give: (value: WarpSyncManifest) => void = () => {};
+      vi.mocked(fetchWarpSyncManifest).mockReturnValueOnce(
+        new Promise((resolve) => (give = resolve)),
+      );
+      const importing = confirmWarpSync(matic);
+      await vi.waitFor(() => expect(fetchWarpSyncManifest).toHaveBeenCalled());
+      stopWarpSync("matic");
+      give(manifest);
+      await importing;
+      expect(importWarpSync).not.toHaveBeenCalled();
+      expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
+        "stopped",
+      );
+    });
+
+    test("leaves importing even when what is left cannot be counted after a stop", async () => {
+      vi.spyOn(customLogger, "info").mockImplementation(() => {});
+      vi.spyOn(customLogger, "error").mockImplementation(() => {});
+      vi.mocked(importWarpSync).mockImplementationOnce(
+        (_chain, _manifest, options) =>
+          new Promise((_, reject) =>
+            options?.signal?.addEventListener("abort", () =>
+              reject(options.signal!.reason),
+            ),
+          ),
+      );
+      await startWarpSync(matic);
+      const importing = confirmWarpSync(matic);
+      await vi.waitFor(() => expect(importWarpSync).toHaveBeenCalled());
+      vi.mocked(getWarpSyncPending).mockRejectedValueOnce(new Error("db"));
+      stopWarpSync("matic");
+      await importing;
+      const state = selectWarpSyncState(get(storeWarpSync), "matic");
+      expect(state.status).toBe("stopped");
+      expect(state.pending).toBeUndefined();
+    });
+  });
+
+  test("shows no progress for a small import", async () => {
+    const progress: unknown[] = [];
+    const unsubscribe = storeWarpSync.subscribe((all) =>
+      progress.push(all.matic?.progress),
+    );
+    await startWarpSync(matic);
+    unsubscribe();
+    expect(progress.every((value) => value === undefined)).toBe(true);
   });
 });

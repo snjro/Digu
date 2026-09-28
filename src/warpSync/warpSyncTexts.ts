@@ -37,20 +37,21 @@ export function getConfirmationTexts(
 ): WarpSyncConfirmationTexts {
   const pending = state.pending ?? {
     logCount: 0,
+    snapshotLogCount: 0,
     bytes: 0,
     rawBytes: 0,
     files: 0,
   };
   const logs: string = numberWithCommas(pending.logCount);
   const upTo: string = `up to block ${numberWithCommas(state.toBlock ?? 0)} (${state.createdAt?.slice(0, 10) ?? "-"})`;
-  const isContinue: boolean =
-    state.totalLogCount !== undefined && pending.logCount < state.totalLogCount;
+  // Some were imported before (or synced from an RPC).
+  const isRest: boolean = pending.logCount < pending.snapshotLogCount;
   const [low, high] = STORED_BYTES_PER_LOG.map(
     (bytesPerLog) => pending.logCount * bytesPerLog,
   );
   const lines: string[] = [
-    isContinue
-      ? `${chainFullName}: ${logs} of ${numberWithCommas(state.totalLogCount!)} logs are left, ${upTo}.`
+    isRest
+      ? `${chainFullName}: ${logs} of ${numberWithCommas(pending.snapshotLogCount)} logs are left, ${upTo}.`
       : `${chainFullName}: ${logs} logs ${upTo}.`,
     `Download: ${formatBytes(pending.bytes)}. Stored in this browser: about ${formatBytes(low)} to ${formatBytes(high)}.`,
     `Time: about ${formatDuration(pending.logCount / IMPORTED_LOGS_PER_SECOND)} on a desktop computer; slower on a phone.`,
@@ -60,8 +61,8 @@ export function getConfirmationTexts(
     lines.push(`Free space for this site: ${formatBytes(freeBytes)}.`);
   }
   return {
-    header: isContinue
-      ? "Continue importing the event logs published with this site?"
+    header: isRest
+      ? "Import the rest of the event logs published with this site?"
       : "Import the event logs published with this site?",
     lines,
     warning:

@@ -64,7 +64,8 @@
         <BaseButton
           label="Import"
           size={sizeSettings.navSettings}
-          border
+          colorCategoryFront="white"
+          colorCategoryBg="interactive"
           onclick={() => void confirmWarpSync(targetChain)}
         />
       {/if}

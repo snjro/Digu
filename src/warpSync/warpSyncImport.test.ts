@@ -21,7 +21,11 @@ import { storeSyncStatus } from "@stores/storeSyncStatus";
 import Dexie from "dexie";
 import { get } from "svelte/store";
 import { makeWarpSyncLog } from "../testUtils/warpSyncLogs";
-import { getWarpSyncPending, importWarpSync } from "./warpSyncImport";
+import {
+  anySignal,
+  getWarpSyncPending,
+  importWarpSync,
+} from "./warpSyncImport";
 import type {
   WarpSyncLog,
   WarpSyncManifest,
@@ -297,6 +301,7 @@ describe("getWarpSyncPending", () => {
   test("counts every range for a DB that has nothing", async () => {
     expect(await getWarpSyncPending(matic, manifest())).toEqual({
       logCount: 4,
+      snapshotLogCount: 4,
       bytes: file(0).bytes + file(2).bytes,
       rawBytes: file(0).rawBytes + file(2).rawBytes,
       files: 2,
@@ -306,6 +311,7 @@ describe("getWarpSyncPending", () => {
     await setFetchedBlockNumber(20_000_000);
     expect(await getWarpSyncPending(matic, manifest())).toEqual({
       logCount: 1,
+      snapshotLogCount: 4,
       bytes: file(2).bytes,
       rawBytes: file(2).rawBytes,
       files: 1,
@@ -316,7 +322,13 @@ describe("getWarpSyncPending", () => {
   test("counts nothing after a gap, like the import", async () => {
     expect(
       await getWarpSyncPending(matic, manifest({}, CREATION + 100)),
-    ).toEqual({ logCount: 0, bytes: 0, rawBytes: 0, files: 0 });
+    ).toEqual({
+      logCount: 0,
+      snapshotLogCount: 4,
+      bytes: 0,
+      rawBytes: 0,
+      files: 0,
+    });
   });
 });
 
@@ -352,5 +364,31 @@ describe("importWarpSync with options", () => {
     ).rejects.toThrow("stop");
     expect((await syncStatus()).fetchedBlockNumber).toBe(20_000_000);
     expect(startDbWorker).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("anySignal", () => {
+  test.each([
+    ["with AbortSignal.any", false],
+    ["without AbortSignal.any (older browsers)", true],
+  ])("is aborted when either is, %s", (_, remove) => {
+    const any = AbortSignal.any;
+    if (remove) (AbortSignal as { any?: unknown }).any = undefined;
+    try {
+      const first = new AbortController();
+      const second = new AbortController();
+      const signal = anySignal(first.signal, second.signal);
+      expect(signal.aborted).toBe(false);
+      second.abort(new Error("second"));
+      expect(signal.aborted).toBe(true);
+      expect((signal.reason as Error).message).toBe("second");
+      const done = new AbortController();
+      done.abort(new Error("before"));
+      expect(anySignal(done.signal, new AbortController().signal).aborted).toBe(
+        true,
+      );
+    } finally {
+      AbortSignal.any = any;
+    }
   });
 });

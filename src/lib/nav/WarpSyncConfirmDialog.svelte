@@ -122,7 +122,7 @@
               label="Import"
               size={sizeSettings.dialogFooter}
               colorCategoryFront="white"
-              colorCategoryBg="primary"
+              colorCategoryBg="interactive"
               onclick={() => answer(() => void confirmWarpSync(targetChain))}
             />
           </div>

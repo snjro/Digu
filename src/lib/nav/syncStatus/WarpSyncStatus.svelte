@@ -41,7 +41,8 @@
       <BaseButton
         label="Stop"
         size={sizeSettings.navInputHelperText}
-        border
+        colorCategoryFront="white"
+        colorCategoryBg="error"
         onclick={() => stopWarpSync(chainName)}
       />
     {/if}

@@ -48,10 +48,14 @@ export function getWarpSyncHelperText(
     case "confirm":
       return "Waiting for your answer to import the event logs published with this site.";
     case "declined":
-    case "stopped":
-      return `Not imported yet: ${numberWithCommas(
-        state.pending?.logCount ?? 0,
-      )} logs (${formatBytes(state.pending?.bytes ?? 0)}) are left to import.`;
+    case "stopped": {
+      const left: string = state.pending
+        ? `Not imported yet: ${numberWithCommas(state.pending.logCount)} logs (${formatBytes(state.pending.bytes)}) are left to import.`
+        : "Not imported yet.";
+      return state.busy
+        ? `Could not import now: the chain is synced. Choose Import when the sync stops. ${left}`
+        : left;
+    }
     case "failed":
       return `Could not import the event logs published with this site. ${TURN_OFF}`;
     case "none":

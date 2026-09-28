@@ -38,6 +38,7 @@ export async function getWarpSyncPending(
   );
   const pending: WarpSyncPending = {
     logCount: 0,
+    snapshotLogCount: 0,
     bytes: 0,
     rawBytes: 0,
     files: 0,
@@ -49,6 +50,7 @@ export async function getWarpSyncPending(
     const key: string = getWarpSyncKey(chunk);
     const target: WarpSyncTarget | undefined = targets.get(key);
     if (!target) continue;
+    pending.snapshotLogCount += chunk.logCount;
     if (!fetched.has(key))
       fetched.set(key, await getFetchedBlockNumber(target));
     const fetchedBlockNumber: number | undefined = fetched.get(key);
@@ -181,8 +183,29 @@ export async function importWarpSyncFileInWorker(
         chunk,
       },
     },
-    signal ? AbortSignal.any([signal, timeout]) : timeout,
+    signal ? anySignal(signal, timeout) : timeout,
   );
+}
+// Aborted when either is. AbortSignal.any is missing in some browsers that
+// have DecompressionStream (such as Safari before 17.4).
+export function anySignal(
+  first: AbortSignal,
+  second: AbortSignal,
+): AbortSignal {
+  if (typeof AbortSignal.any === "function") {
+    return AbortSignal.any([first, second]);
+  }
+  const controller = new AbortController();
+  for (const signal of [first, second]) {
+    if (signal.aborted) {
+      controller.abort(signal.reason);
+      break;
+    }
+    signal.addEventListener("abort", () => controller.abort(signal.reason), {
+      once: true,
+    });
+  }
+  return controller.signal;
 }
 // A file has at most 20,000 logs (about 2 MB as gzip); the worker imports
 // about 4,500 logs a second on a desktop computer.

@@ -106,6 +106,7 @@ describe("getWarpSyncHelperText", () => {
 describe("after Not now or a stop", () => {
   const pending = {
     logCount: 1_200_000,
+    snapshotLogCount: 2_328_259,
     bytes: 101_000_000,
     rawBytes: 0,
     files: 60,
@@ -120,6 +121,16 @@ describe("after Not now or a stop", () => {
       expect(canImportNow(false, { status, pending })).toBe(false);
     },
   );
+  test("says when Import could not start, and without the numbers", () => {
+    expect(
+      getWarpSyncHelperText(true, { status: "declined", pending, busy: true }),
+    ).toBe(
+      "Could not import now: the chain is synced. Choose Import when the sync stops. Not imported yet: 1,200,000 logs (101 MB) are left to import.",
+    );
+    expect(getWarpSyncHelperText(true, { status: "stopped" })).toBe(
+      "Not imported yet.",
+    );
+  });
   test("cannot import now in the other states", () => {
     expect(canImportNow(true, { status: "confirm" })).toBe(false);
     expect(canImportNow(true, { status: "importing" })).toBe(false);
