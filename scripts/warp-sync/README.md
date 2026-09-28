@@ -8,6 +8,21 @@ on from the end of the snapshot.
 The owner runs it before a release, checks the files, and commits them. The
 users of the app do not run it.
 
+## Before a release
+
+Update the snapshot before a release: it reaches the users only with a
+release. `release.yml` runs `check-age.py`, which shows, for each chain, the
+last chunk of `manifest.json`, its `createdAt` and `toBlock`, and its age in
+days at the time of the tagged commit, in the summary of the run. It prints a
+warning for a chain whose last chunk is older than `WARP_SYNC_MAX_AGE_DAYS`
+(30, in `release.yml`), and for a manifest it cannot read. A chain without a
+snapshot shows "No snapshot". It only reads the files and never stops the
+release.
+
+```sh
+python3 scripts/warp-sync/check-age.py --at <ISO time> [--max-days 30]
+```
+
 ## Run
 
 In the repository root, with the `app` service of `compose.yaml`:
