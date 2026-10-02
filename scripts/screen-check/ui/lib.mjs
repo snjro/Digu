@@ -190,7 +190,11 @@ export async function setupPage(page, tag = "") {
   page.on("request", (req) => {
     if (req.isInterceptResolutionHandled()) return;
     const u = new URL(req.url());
-    if (u.hostname.endsWith(".invalid")) {
+    // The import of the warp sync snapshot of eth asks first (it is large), and
+    // its dialog covers the page (#604). Without the snapshot, eth syncs as before.
+    if (u.pathname.includes("/warp-sync/eth/")) {
+      req.respond({ status: 404, body: "" });
+    } else if (u.hostname.endsWith(".invalid")) {
       answerRpc(req);
     } else if (u.protocol.startsWith("http") && u.hostname !== "localhost") {
       blocked.add(req.url());

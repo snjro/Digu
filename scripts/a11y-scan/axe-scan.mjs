@@ -80,7 +80,11 @@ page.on("request", (req) => {
     url.startsWith("blob:");
   if (!local) blocked.add(new URL(url).origin);
   if (!intercept) return;
-  if (local) {
+  // The import of the warp sync snapshot of eth asks first (it is large), and
+  // its dialog covers the page (#604). Without the snapshot, eth syncs as before.
+  if (new URL(url).pathname.includes("/warp-sync/eth/")) {
+    req.respond({ status: 404, body: "" });
+  } else if (local) {
     req.continue();
   } else {
     req.abort();

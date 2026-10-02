@@ -640,7 +640,11 @@ async function newPage(browsers, log, { hover = false } = {}) {
   await page.setRequestInterception(true);
   page.on("request", (req) => {
     const url = new URL(req.url());
-    if (url.protocol.startsWith("http") && url.origin !== ORIGIN) {
+    // The import of the warp sync snapshot of eth asks first (it is large), and
+    // its dialog covers the page (#604). Without the snapshot, eth syncs as before.
+    if (url.pathname.includes("/warp-sync/eth/")) {
+      req.respond({ status: 404, body: "" });
+    } else if (url.protocol.startsWith("http") && url.origin !== ORIGIN) {
       log.push(`[blocked] ${req.url()}`);
       req.abort();
     } else {

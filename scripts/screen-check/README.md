@@ -15,6 +15,11 @@ each push to develop (see [CI](#ci-screen-checkyml)).
 | `real-rpc/`    | Connection, Goal and the stop of a sync with a real RPC | PublicNode (without `--fake`)              |
 | `public-site/` | The site on GitHub Pages after the release              | `https://snjro.github.io/Digu` (read only) |
 
+The checks of a local build answer the warp sync files of Ethereum
+(`/warp-sync/eth/`) with 404, so Ethereum has no snapshot and syncs from the
+RPC as before. Its import asks first, and that dialog would cover the page
+(#604). The snapshot of Polygon is still imported.
+
 ## Before you run
 
 - Pick the commit to release and build it with `build.sh`. Run the checks on

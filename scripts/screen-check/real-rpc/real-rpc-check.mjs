@@ -279,6 +279,12 @@ async function newPage(context) {
   await page.setRequestInterception(true);
   page.on("request", (req) => {
     const url = new URL(req.url());
+    // The import of the warp sync snapshot of eth asks first (it is large), and
+    // its dialog covers the page (#604). Without the snapshot, eth syncs as before.
+    if (url.pathname.includes("/warp-sync/eth/")) {
+      req.respond({ status: 404, body: "" });
+      return;
+    }
     const chain = Object.keys(HOSTS).find((c) => HOSTS[c] === url.hostname);
     if (chain && url.protocol === "https:") {
       let body = null;
