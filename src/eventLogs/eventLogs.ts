@@ -93,6 +93,7 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
       }
     }
   } catch (error) {
+    recordSyncStoppedReason(targetChain.name, "UNEXPECTED_ERROR");
     // Stop the contracts that already started, so that the wait below ends.
     await startAbortingInChain(targetChain.name).catch(
       (abortError: unknown) => {

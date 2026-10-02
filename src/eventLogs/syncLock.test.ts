@@ -708,6 +708,7 @@ describe("sync with two tabs (issue #49)", () => {
     expect(await waitFor(async () => !(await isSyncLockHeld()))).toBe(true);
     expect(a.isChainSyncing()).toBe(false);
     expect(isCleanedUp()).toBe(true);
+    expect(a.syncStoppedReason()).toBe("UNEXPECTED_ERROR");
   }, 30_000);
 
   test("waits for the started contracts when the sync fails while starting them", async () => {
