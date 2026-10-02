@@ -25,7 +25,7 @@ each push to develop (see [CI](#ci-screen-checkyml)).
   because v1.0.2 has no `compose.yaml`.
 - `real-rpc/` without `--fake` sends requests to PublicNode, a service of a
   third party. Ask the owner of the repository before you run it, and agree
-  which runs (`--only`) and which Retry Count (`--retry`) to use.
+  which runs (`--only`) to use.
 - Steps marked `CHECK` need a person: look at the screenshot or the file the
   step names.
 - The host needs bash, Docker with Compose, git and python3. `run-all.sh`
@@ -152,7 +152,7 @@ other hosts are blocked (DNS and request interception). The RPC URLs
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sec1.mjs`  | 1: the start page, the sidebar tree, the breadcrumb, the tabs and a reload, the links in tables and grids, Back and Forward, unknown names and the error page, a `/matic/` URL opened directly, another chain in the sidebar. 1-10: the same under `/Digu/`, and that the links and the logo stay under `/Digu/`                          |
 | `sec2.mjs`  | 2: the theme switch and the theme after a reload, the sidebar closed and after a reload, its accordions (click, Enter, Space), a narrow window (the sidebar, a click outside it, the three-dots menu), the footer links                                                                                                                   |
-| `sec3.mjs`  | 3: the RPC input (its helper text, invalid URLs, a wrong chain, "Connected." and after a reload, show and hide), the settings dialog (its values and sliders, closing it with X, Escape or the backdrop), the explorer and its links, a change seen in another tab, the placeholder, Enter in the RPC input, and invalid settings         |
+| `sec3.mjs`  | 3: the RPC input (its helper text, invalid URLs, a wrong chain, "Connected." and after a reload, show and hide), the settings dialog (no RPC settings, closing it with X, Escape or the backdrop), the explorer links (Etherscan), the RPC URL seen in another tab, the placeholder, and Enter in the RPC input                           |
 | `sec4.mjs`  | 4: on the contracts, events and functions grids: sort, column filter, quick search, Reset all filters, Reload, Show all columns and Hide minor columns, the column widths, full screen and Escape, paging, Copy, the CSV dialog and its file. Also the event log grids with fake logs written to IndexedDB, and 1-5 "View all Event Logs" |
 | `sec58.mjs` | 5: the ABI tab (its formats and JSON colors, line wrap, the export and its file, the Components dialog of a tuple). 8: Tab into a grid's Copy button with Enter and Space, the RPC input's label, the versions table, a function URL with a wrong name, an unknown URL, and no horizontal scroll at 390 px                                |
 | `extra.mjs` | Back after opening a tabbed page without a hash, page errors on links without a hash, and the keyboard into a grid cell's Copy button                                                                                                                                                                                                     |
@@ -195,7 +195,7 @@ it does not show in the console (#483).
 | Scenario | What it does                                                                                                                                                                                             |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | S1       | Picks the sync targets, syncs Augur version1 to the Goal (latest − depth, #498), follows the progress on the pages while it syncs, changes the chain during the sync, stops it, reloads, and syncs again |
-| S3       | RPC errors, one mode each: `errorGetLogs` and `errorGetLogs10` (Retry Count 2 and 10), `errorOnce`, `errorAll`, `nullBlock` (`eth_getBlockByNumber` returns null, #519)                                  |
+| S3       | RPC errors, one mode each: `errorGetLogs`, `errorOnce`, `errorAll` (it stops after about 200 s: the latest block is asked once per 20 s), `nullBlock` (`eth_getBlockByNumber` returns null, #519)        |
 | S4       | Two tabs: a sync in one, what the other shows, and after the first stops or closes                                                                                                                       |
 | S5       | Page errors on in-app navigation with real links                                                                                                                                                         |
 
@@ -221,8 +221,12 @@ python3 scripts/screen-check/upgrade/diff_db.py <out-dir>/db-old-old-06-final.js
 - `old` uses the settings of v1.0.2 (its names, such as `Try Count`), sets a
   fake RPC and syncs. `new` opens the new build, checks the settings, the
   chain, the sync targets and the sync state, and syncs on from where v1.0.2
-  stopped. `grid` opens the Event Logs grids on the logs of both. `probe`
-  only opens the new build and logs the stack if the page stops answering.
+  stopped. It also logs a `[check]` line on the Settings database: its
+  version after the upgrade, and that the upgrade removed `bulkUnit`,
+  `chainExplorerIndex`, `blockIntervalMs` and `tryCount` from each RPC setting
+  and kept the rest. `grid` opens the Event Logs grids on the logs of both.
+  `probe` only opens the new build and logs the stack if the page stops
+  answering.
 - `NEW_LATEST` sets the latest block of the fake RPC in the new phases. A
   value below what v1.0.2 fetched checks #498 with Current above the Goal.
 
@@ -239,7 +243,7 @@ service. Ask the owner of the repository before running it.**
 ```sh
 scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --fake                  # no request leaves the container
 scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir>                         # PublicNode, all 4 runs
-scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http --retry=2
+scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
 ```
 
 - A run is one chain and one protocol, in a new browser profile:
@@ -247,8 +251,7 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http --ret
   is `https://` or `wss://` `ethereum-rpc.publicnode.com` or
   `polygon-bor-rpc.publicnode.com`, without a key. Other hosts are blocked by
   DNS and request interception.
-- A run sets Retry Count to `--retry` (default 2) so that few requests are
-  sent, turns off all sync targets but one contract (Augur of Augur version1
+- A run turns off all sync targets but one contract (Augur of Augur version1
   on eth, AMMFactory of Augur turbo on matic), types the RPC URL, waits for
   "Connected." (30 s), starts the sync and waits until it stops by itself
   (120 s).
@@ -256,7 +259,8 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http --ret
   - `1 helper`: "Connected." was shown.
   - `2 goal`: the Goal is a latest block the RPC returned, less the
     confirmation depth of the build (eth 96, matic 128, #498).
-  - `3 sync`: `eth_getLogs` was sent Retry Count + 1 times and each was
+  - `3 sync`: `eth_getLogs` was sent `TRY_COUNT` + 1 times (11; `TRY_COUNT`
+    of `src/eventLogs/eventLogsContract.ts` in the build) and each was
     refused with an error (any code), the toggle is off, the nav says
     "stopped", the RPC host is not in the console (#483), no contract is left
     syncing or aborting, and the contracts grid shows "stopped" (#515).

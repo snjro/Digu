@@ -25,21 +25,9 @@ async function typeInto(sel, text) {
 const rpcDb = async (p = page) => {
   const d = await L.idb(p);
   return d.Digu_Settings?.RpcSettings?.filter((r) => r.chainName === "eth").map(
-    ({
+    ({ rpc, inputType, ...rest }) => ({
       rpc,
-      bulkUnit,
-      tryCount,
-      blockIntervalMs,
       inputType,
-      chainExplorerIndex,
-      ...rest
-    }) => ({
-      rpc,
-      bulkUnit,
-      tryCount,
-      blockIntervalMs,
-      inputType,
-      chainExplorerIndex,
       keys: Object.keys(rest).join(","),
     }),
   )[0];
@@ -164,139 +152,67 @@ async function openSettings() {
   await page.waitForSelector("dialog[open]");
   await L.settle(page, 200);
 }
-const dialogTexts = () =>
-  page.evaluate(() =>
-    [...document.querySelectorAll("dialog[open] *")]
-      .filter((e) => e.children.length === 0 && e.getClientRects().length)
-      .map((e) => e.textContent.trim())
-      .filter((t) => /Error\.|Updated\.|Checking/.test(t)),
-  );
 
+// The settings dialog has no RPC settings and no "RPC configuration" group.
+// Warp sync is shown only on a chain with a snapshot (not eth), so its place
+// in "Synced data" is not checked here.
 await L.step("3-6", page, async () => {
   await openSettings();
   const shots = [await L.shot(page, "3-6-dialog")];
-  const out = [];
-  let ok = true;
-  for (const [label, good, bad, expErr] of [
-    ["Bulk Unit", "500", "10001", "1-10000"],
-    ["Retry Count", "3", "0", "1-10"],
-    ["Block Interval [ms]", "1000", "20001", "1-20000"],
-  ]) {
-    const sel = `dialog[open] input[aria-label="${label}"]`;
-    await typeInto(sel, good);
-    await L.settle(page);
-    const t1 = await dialogTexts();
-    const db1 = await rpcDb();
-    await typeInto(sel, bad);
-    await L.settle(page);
-    const t2 = await dialogTexts();
-    const db2 = await rpcDb();
-    const key = {
-      "Bulk Unit": "bulkUnit",
-      "Retry Count": "tryCount",
-      "Block Interval [ms]": "blockIntervalMs",
-    }[label];
-    const g =
-      t1.some((t) => /Updated/.test(t)) &&
-      String(db1[key]) === good &&
-      t2.some((t) => t.includes(expErr)) &&
-      String(db2[key]) === good;
-    if (!g) ok = false;
-    out.push({
-      label,
-      good: { texts: t1, db: db1[key] },
-      bad: {
-        texts: t2,
-        db: db2[key],
-        input: await page.$eval(sel, (i) => i.value),
-      },
-    });
-    shots.push(await L.shot(page, `3-6-${key}-bad`));
-    // restore a valid value
-    await typeInto(sel, good);
-    await L.settle(page);
-  }
-  // slider: keyboard on Bulk Unit slider
-  const sl = 'dialog[open] input[aria-label="Bulk Unit slider"]';
-  const before = await page.$eval(sl, (i) => i.value);
-  await page.focus(sl);
-  await page.keyboard.press("ArrowRight");
-  await page.keyboard.press("ArrowRight");
+  const removed = [
+    "Bulk Unit",
+    "Bulk Unit slider",
+    "Retry Count",
+    "Retry Count slider",
+    "Block Interval [ms]",
+    "Block Interval [ms] slider",
+    "Chain Explorer",
+  ];
+  const out = await page.evaluate((removed) => {
+    const d = document.querySelector("dialog[open]");
+    return {
+      removedControls: removed.filter((l) =>
+        d.querySelector(`[aria-label="${l}"]`),
+      ),
+      labels: [...d.querySelectorAll("*")]
+        .filter((e) => e.children.length === 0 && e.getClientRects().length)
+        .map((e) => e.textContent.trim())
+        .filter((t) =>
+          [
+            "RPC configuration",
+            "Chain Explorer",
+            "Synced data",
+            "Warp sync",
+            "Event logs",
+          ].includes(t),
+        ),
+    };
+  }, removed);
+  await page.keyboard.press("Escape");
   await L.settle(page);
-  const after = await page.$eval(sl, (i) => i.value);
-  const numInput = await page.$eval(
-    'dialog[open] input[aria-label="Bulk Unit"]',
-    (i) => i.value,
-  );
-  const tS = await dialogTexts();
-  const dbS = (await rpcDb()).bulkUnit;
-  // mouse drag on the Retry Count slider
-  const tc = await page.$(
-    'dialog[open] input[aria-label="Retry Count slider"]',
-  );
-  const bb = await tc.boundingBox();
-  await page.mouse.move(bb.x + 2, bb.y + bb.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(bb.x + bb.width * 0.55, bb.y + bb.height / 2, {
-    steps: 5,
-  });
-  await page.mouse.up();
-  await L.settle(page);
-  const tcv = await tc.evaluate((i) => i.value);
-  const tcNum = await page.$eval(
-    'dialog[open] input[aria-label="Retry Count"]',
-    (i) => i.value,
-  );
-  const dbT = (await rpcDb()).tryCount;
-  shots.push(await L.shot(page, "3-6-slider"));
-  const sOk =
-    after !== before &&
-    numInput === after &&
-    String(dbS) === after &&
-    String(dbT) === tcv &&
-    tcNum === tcv;
-  if (!sOk) ok = false;
-  out.push({
-    sliderKeyboard: { before, after, numInput, texts: tS, db: dbS },
-    sliderMouse: { value: tcv, numInput: tcNum, db: dbT },
-  });
+  const ok =
+    out.removedControls.length === 0 &&
+    !out.labels.includes("RPC configuration") &&
+    !out.labels.includes("Chain Explorer") &&
+    out.labels.includes("Synced data");
   L.rec("3-6", ok ? "OK" : "NG", JSON.stringify(out), shots);
 });
 
+// One explorer per chain: Etherscan on eth.
 await L.step("3-7", page, async () => {
-  const opts = await page.$$eval(
-    'dialog[open] select[aria-label="Chain Explorer"] option',
-    (o) => o.map((x) => [x.value, x.textContent.trim()]),
-  );
-  const bc = opts.find((o) => o[1] === "Blockchair");
-  await page.select('dialog[open] select[aria-label="Chain Explorer"]', bc[0]);
-  await L.settle(page);
-  const link = await page.$$eval("dialog[open] a", (as) =>
-    as.map((a) => [a.getAttribute("href"), a.target]),
-  );
-  const s1 = await L.shot(page, "3-7-dialog-blockchair");
-  await page.keyboard.press("Escape");
-  await L.settle(page);
   const hrefs = await page.$$eval("main a[target=_blank]", (as) =>
     as.map((a) => a.getAttribute("href")).filter((h) => !/github\.com/.test(h)),
   );
-  const s2 = await L.shot(page, "3-7-contract-links");
-  const db = (await rpcDb())?.chainExplorerIndex;
+  const s = await L.shot(page, "3-7-contract-links");
   const ok =
     hrefs.length > 0 &&
-    hrefs.every((h) => h.startsWith("https://blockchair.com"));
+    hrefs.every((h) => h.startsWith("https://etherscan.io"));
   L.rec(
     "3-7",
     ok ? "OK" : "NG",
-    `options=${JSON.stringify(opts)} dialogLink=${JSON.stringify(link)} db=${db}; main explorer links: ${JSON.stringify(hrefs)}`,
-    [s1, s2],
+    `main explorer links: ${JSON.stringify(hrefs)}`,
+    [s],
   );
-  // back to Etherscan
-  await openSettings();
-  await page.select('dialog[open] select[aria-label="Chain Explorer"]', "0");
-  await L.settle(page);
-  await page.keyboard.press("Escape");
-  await L.settle(page);
 });
 
 await L.step("3-8", page, async () => {
@@ -305,10 +221,6 @@ await L.step("3-8", page, async () => {
   const shots = [];
   for (const how of ["X", "Esc", "backdrop"]) {
     await openSettings();
-    // produce a helper text
-    await typeInto('dialog[open] input[aria-label="Bulk Unit"]', "0");
-    await L.settle(page);
-    const t0 = await dialogTexts();
     if (how === "X")
       await page
         .click('dialog[open] button[aria-label="Close"]')
@@ -318,16 +230,11 @@ await L.step("3-8", page, async () => {
     await L.settle(page);
     const closed = !(await page.$("dialog[open]"));
     await openSettings();
-    const t1 = await dialogTexts();
-    const val = await page.$eval(
-      'dialog[open] input[aria-label="Bulk Unit"]',
-      (i) => i.value,
-    );
     shots.push(await L.shot(page, `3-8-reopen-after-${how}`));
     await page.keyboard.press("Escape");
     await L.settle(page);
-    if (!closed || t1.length) ok = false;
-    out.push({ how, before: t0, closed, afterReopen: t1, bulkUnitInput: val });
+    if (!closed) ok = false;
+    out.push({ how, closed });
   }
   L.rec("3-8", ok ? "OK" : "NG", JSON.stringify(out), shots);
 });
@@ -340,36 +247,19 @@ await L.step("3-9", page, async () => {
   await L.settle(p2, 800);
   // change in tab 1
   await page.bringToFront();
-  await openSettings();
-  await typeInto('dialog[open] input[aria-label="Bulk Unit"]', "777");
-  await L.settle(page);
-  await page.keyboard.press("Escape");
   await typeInto(RPC, "http://fake-rpc.invalid/v2");
   await L.settle(page, 800);
   await L.sleep(1000);
   // tab 2
   await p2.bringToFront();
   const rpc2 = await p2.$eval(RPC, (i) => i.value);
-  await p2.click('nav button[aria-label="Settings"]');
-  await p2.waitForSelector("dialog[open]");
-  await L.settle(p2);
-  const bu2 = await p2.$eval(
-    'dialog[open] input[aria-label="Bulk Unit"]',
-    (i) => i.value,
-  );
   const s = await L.shot(p2, "3-9-tab2");
-  const ok = bu2 === "777" && rpc2 === "http://fake-rpc.invalid/v2";
-  L.rec(
-    "3-9",
-    ok ? "OK" : "NG",
-    `tab2: rpc input="${rpc2}", Bulk Unit="${bu2}"`,
-    [s],
-  );
+  const ok = rpc2 === "http://fake-rpc.invalid/v2";
+  L.rec("3-9", ok ? "OK" : "NG", `tab2: rpc input="${rpc2}"`, [s]);
   await p2.close();
 });
 
-// #459: the placeholder, and Enter commits the URL. #460: 1.5, 1e3 and an
-// empty value in the settings (RpcConfigChangerInput.svelte, rpcConfigValidation.ts).
+// #459: the placeholder, and Enter commits the URL.
 await L.step("3-10", page, async () => {
   const out = {};
   await page.bringToFront();
@@ -393,31 +283,12 @@ await L.step("3-10", page, async () => {
     ),
     db: (await rpcDb())?.rpc,
   };
-  await openSettings();
-  const sel = 'dialog[open] input[aria-label="Bulk Unit"]';
-  await typeInto(sel, "100");
-  await L.settle(page);
-  for (const v of ["1.5", "1e3", ""]) {
-    await typeInto(sel, v);
-    await L.settle(page);
-    out[`bulkUnit "${v}"`] = {
-      texts: await dialogTexts(),
-      db: (await rpcDb()).bulkUnit,
-      input: await page.$eval(sel, (i) => i.value),
-    };
-  }
-  const s = await L.shot(page, "3-10-settings-empty");
-  await page.keyboard.press("Escape");
-  await L.settle(page);
-  const err = (k) => out[k].texts.some((t) => /^Error/.test(t));
+  const s = await L.shot(page, "3-10-after-enter");
   const ok =
     out.placeholder === "http://localhost:8545" &&
     out.afterEnter.helper === "Connected." &&
     !out.afterEnter.stillFocused &&
-    out.afterEnter.db === enterUrl &&
-    err('bulkUnit "1.5"') &&
-    out['bulkUnit "1e3"'].db === 1000 &&
-    err('bulkUnit ""');
+    out.afterEnter.db === enterUrl;
   L.rec("3-10", ok ? "OK" : "NG", JSON.stringify(out), [s]);
 });
 
