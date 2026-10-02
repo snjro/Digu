@@ -211,7 +211,9 @@ const toHex = (value) => `0x${value.toString(16)}`;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // The widths of the ranges of one contract, shared by its parts, which are
-// fetched at the same time: what one part learns, the others use.
+// fetched at the same time: what one part learns, the others use. A part that
+// fails keeps its own narrowed widths too (#601), so that the others, which
+// work, do not raise them.
 export function createWidths(maxWidth = MAX_WIDTH) {
   return {
     cap: maxWidth,
@@ -224,6 +226,24 @@ function halve(widths) {
   widths.width = Math.max(1, Math.floor(widths.width / 2));
   widths.maxWidth = widths.width;
   widths.successes = 0;
+}
+// Halves the shared widths, and returns the own widths of a part that failed
+// at width: its half.
+function narrow(widths, width) {
+  halve(widths);
+  const own = { cap: widths.cap, width, maxWidth: width, successes: 0 };
+  halve(own);
+  return own;
+}
+// After a full range that works: the width is doubled, up to maxWidth, which
+// is doubled after SUCCESSES_TO_RAISE_LIMIT in a row, up to cap.
+function raise(widths) {
+  widths.successes++;
+  if (widths.successes >= SUCCESSES_TO_RAISE_LIMIT) {
+    widths.maxWidth = Math.min(widths.maxWidth * 2, widths.cap);
+    widths.successes = 0;
+  }
+  widths.width = Math.min(widths.width * 2, widths.maxWidth);
 }
 
 // What happened in a run, for the manifest.
@@ -247,6 +267,11 @@ export function createFetchStats() {
 //   range until SUCCESSES_TO_RAISE_LIMIT full ranges work in a row.
 // - Any kind: halved after ERRORS_TO_HALVE_ANYWAY in a row; the script stops
 //   after MAX_FAILURES in a row.
+// A halving halves the shared widths and gives the part its own widths
+// (#601): its width is the narrower of the two, so that the other parts may
+// narrow it but not raise it. Its own widths are raised by the same rules as
+// the shared ones, and it uses the shared ones again when its own width
+// reaches theirs.
 // An empty result is asked again until EMPTY_ANSWERS_TO_KEEP empty answers in
 // a row (#576): an RPC may return no logs for a range that has some. Each
 // range that works goes to onRange(from, to, logs), with its logs by block and
@@ -269,12 +294,14 @@ export async function fetchLogs(
   let from = fromBlock;
   let failures = 0;
   let rangeFailures = 0;
+  // The own widths of the part after a halving, until they reach the shared.
+  let own = undefined;
   // The end of an empty range that is asked again, and its empty answers.
   let askAgainTo = undefined;
   let emptyAnswers = 0;
   while (from <= toBlock) {
     signal?.throwIfAborted();
-    const width = widths.width;
+    const width = own ? Math.min(own.width, widths.width) : widths.width;
     const to = askAgainTo ?? Math.min(from + width - 1, toBlock);
     let result;
     try {
@@ -295,7 +322,7 @@ export async function fetchLogs(
         // Not the empty range any more: a narrower one.
         askAgainTo = undefined;
         emptyAnswers = 0;
-        halve(widths);
+        own = narrow(widths, width);
         continue;
       }
       failures++;
@@ -304,7 +331,7 @@ export async function fetchLogs(
       if (rangeFailures >= 2 || failures >= ERRORS_TO_HALVE_ANYWAY) {
         askAgainTo = undefined;
         emptyAnswers = 0;
-        halve(widths);
+        own = narrow(widths, width);
       }
       await sleep(RETRY_WAIT_MS);
       continue;
@@ -331,12 +358,8 @@ export async function fetchLogs(
     rangeFailures = 0;
     // A range cut at toBlock does not show that the width works.
     if (to - from + 1 === width) {
-      widths.successes++;
-      if (widths.successes >= SUCCESSES_TO_RAISE_LIMIT) {
-        widths.maxWidth = Math.min(widths.maxWidth * 2, widths.cap);
-        widths.successes = 0;
-      }
-      widths.width = Math.min(widths.width * 2, widths.maxWidth);
+      raise(own ?? widths);
+      if (own && own.width >= widths.width) own = undefined;
     }
     from = to + 1;
   }

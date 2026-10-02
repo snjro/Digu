@@ -192,6 +192,49 @@ describe("fetchLogs", () => {
   });
 });
 
+// A part in a dense range (below block 10,000) that fails above 1,249 blocks,
+// while another part of the same contract works and doubles the widths that
+// they share (#601).
+describe("fetchLogs with the widths of another part", () => {
+  async function runDense(toBlock) {
+    const widths = script.createWidths(9_999);
+    let otherFrom = 1_000_000;
+    // Before each answer to the dense part, the other part fetches 20 ranges
+    // that work, which raises the shared widths back to 9,999.
+    const other = async () => {
+      const from = otherFrom;
+      otherFrom += 20 * 9_999;
+      const works = async () => [log(0)];
+      await script.fetchLogs(works, contract, from, otherFrom - 1, { widths });
+    };
+    const asked = [];
+    const rpc = async (_method, [{ fromBlock, toBlock: to }]) => {
+      await other();
+      const width = Number(to) - Number(fromBlock) + 1;
+      asked.push(width);
+      if (Number(fromBlock) < 10_000 && width > 1_249) {
+        throw new TypeError("fetch failed");
+      }
+      return [log(Number(fromBlock))];
+    };
+    await script.fetchLogs(rpc, contract, 1, toBlock, { widths });
+    return { asked, widths };
+  }
+
+  test("keeps its own narrowed width while it fails", async () => {
+    const { asked } = await runDense(20_000);
+    expect(asked.slice(0, 5)).toEqual([9_999, 9_999, 4_999, 2_499, 1_249]);
+  });
+
+  test("widens from its own width after it works", async () => {
+    const { asked, widths } = await runDense(10 * 1_249 + 2 * 2_498);
+    // Ten full ranges of 1,249 blocks before it doubles, like after a
+    // halving of the shared widths, though they are 9,999 again.
+    expect(asked.slice(4)).toEqual([...Array(10).fill(1_249), 2_498, 2_498]);
+    expect(widths.width).toBe(9_999);
+  });
+});
+
 describe("withKey", () => {
   test("adds the key in the file to the end of the URL", () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-key-"));
