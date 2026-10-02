@@ -30,8 +30,8 @@ and `.svelte-kit`.
    2. `axe-scan.mjs` serves `_build` inside the container (no port is opened),
       opens each page with the Chrome of puppeteer, and runs axe-core.
       Requests to other hosts are blocked, so the app does not call an RPC.
-      It opens the settings dialog with the button whose tooltip is
-      "Settings", and stops when the button or the dialog is not found.
+      It opens the sync panel with the progress in the nav, and stops when
+      the button or the panel is not found.
 3. `summarize.py` counts the problems by rule and by page.
 
 ## Pages
@@ -39,7 +39,7 @@ and `.svelte-kit`.
 With a window of 1400 × 900, the light theme and no synced data:
 
 - top (`/`), chain, version, contracts, contract, events, event, functions
-- the settings dialog, opened from the top page (only the dialog is scanned)
+- the sync panel, opened from the top page (only the panel is scanned)
 
 To add a page, edit `pages` in `axe-scan.mjs`.
 

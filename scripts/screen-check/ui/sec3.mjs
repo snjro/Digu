@@ -1,4 +1,4 @@
-// Section 3: RPC input and the settings dialog (fake RPC: eth_chainId / eth_blockNumber only).
+// Section 3: RPC input and the sync panel (fake RPC: eth_chainId / eth_blockNumber only).
 import fs from "node:fs";
 import * as L from "./lib.mjs";
 await L.startServers();
@@ -159,17 +159,14 @@ await L.step("3-5", page, async () => {
   );
 });
 
-async function openSettings() {
-  await page.click('nav button[aria-label="Settings"]');
-  await page.waitForSelector("dialog[open]");
-  await L.settle(page, 200);
-}
+const isSyncPanelOpen = () =>
+  page.$eval("#sync-panel", (e) => !e.classList.contains("hidden"));
 
-// The settings dialog has no RPC settings and no "RPC configuration" group:
-// only "Synced data", with Warp sync and then Event logs.
+// The sync panel of the chain has no RPC settings: its heading, then Warp sync
+// and Event logs. The settings dialog is gone (#596).
 await L.step("3-6", page, async () => {
-  await openSettings();
-  const shots = [await L.shot(page, "3-6-dialog")];
+  await L.openSyncPanel(page);
+  const shots = [await L.shot(page, "3-6-sync-panel")];
   const removed = [
     "Bulk Unit",
     "Bulk Unit slider",
@@ -180,8 +177,10 @@ await L.step("3-6", page, async () => {
     "Chain Explorer",
   ];
   const out = await page.evaluate((removed) => {
-    const d = document.querySelector("dialog[open]");
+    const d = document.getElementById("sync-panel");
     return {
+      settingsButton: !!document.querySelector('[aria-label="Settings"]'),
+      heading: d.querySelector("h2")?.innerText.trim(),
       removedControls: removed.filter((l) =>
         d.querySelector(`[aria-label="${l}"]`),
       ),
@@ -202,9 +201,10 @@ await L.step("3-6", page, async () => {
   await page.keyboard.press("Escape");
   await L.settle(page);
   const ok =
+    !out.settingsButton &&
+    out.heading === "Sync of Ethereum Mainnet" &&
     out.removedControls.length === 0 &&
-    JSON.stringify(out.labels) ===
-      JSON.stringify(["Synced data", "Warp sync", "Event logs"]);
+    JSON.stringify(out.labels) === JSON.stringify(["Warp sync", "Event logs"]);
   L.rec("3-6", ok ? "OK" : "NG", JSON.stringify(out), shots);
 });
 
@@ -232,22 +232,33 @@ await L.step("3-8", page, async () => {
   const out = [];
   let ok = true;
   const shots = [];
-  for (const how of ["X", "Esc", "backdrop"]) {
-    await openSettings();
-    if (how === "X")
-      await page
-        .click('dialog[open] button[aria-label="Close"]')
-        .catch(async () => L.click(page, "Close", { scope: "dialog[open]" }));
+  // The progress again, Escape, or a click outside (the bottom right of the
+  // page). The first two give the focus back to the progress.
+  for (const how of ["progress", "Esc", "outside"]) {
+    await L.openSyncPanel(page);
+    if (how === "progress") await page.click(L.SYNC_PANEL_BUTTON);
     if (how === "Esc") await page.keyboard.press("Escape");
-    if (how === "backdrop") await page.mouse.click(5, 895);
+    if (how === "outside") await page.mouse.click(1395, 895);
     await L.settle(page);
-    const closed = !(await page.$("dialog[open]"));
-    await openSettings();
+    const closed = !(await isSyncPanelOpen());
+    const expanded = await page.$eval(L.SYNC_PANEL_BUTTON, (b) =>
+      b.getAttribute("aria-expanded"),
+    );
+    const focusOnProgress = await page.$eval(
+      L.SYNC_PANEL_BUTTON,
+      (b) => document.activeElement === b,
+    );
+    await L.openSyncPanel(page);
     shots.push(await L.shot(page, `3-8-reopen-after-${how}`));
     await page.keyboard.press("Escape");
     await L.settle(page);
-    if (!closed) ok = false;
-    out.push({ how, closed });
+    if (
+      !closed ||
+      expanded !== "false" ||
+      focusOnProgress !== (how !== "outside")
+    )
+      ok = false;
+    out.push({ how, closed, expanded, focusOnProgress });
   }
   L.rec("3-8", ok ? "OK" : "NG", JSON.stringify(out), shots);
 });

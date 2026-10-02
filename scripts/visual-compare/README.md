@@ -73,15 +73,16 @@ Light and dark theme of:
 - the pages: home, chain, version, contracts, contract, events, event,
   functions, function
 - the events page after an action:
-  - the settings dialog: opened, closed with its close button or Escape
+  - the sync panel: opened with the progress in the nav, closed with a click
+    outside or Escape
   - the "Export as CSV" dialog: opened, after choosing "No"
   - a quick search, and after clearing it
   - the sidebar: the accordion of "Augur version2" opened by a click or the
     Enter key, the mouse over an item or an accordion arrow
   - another chain chosen in the sidebar
   - the sync toggle clicked (there is no RPC, so the sync does not start)
-  - a narrow window (760 px), its "three dots" menu, and the settings dialog
-    opened from that menu
+  - a narrow window (760 px), and the sync panel opened in it
+  - the sync panel at 390 × 844, with the sidebar closed
 - the version page after unchecking the sync target of a contract
 - the error page (404), after a link to an unknown chain
 - the ABI tab of the contract, the event and the function page, the
@@ -102,6 +103,10 @@ That is 52 screens for each theme, 104 in all.
 
 Each action starts from a fresh browser profile, so what it saves in the
 browser (settings, the chain) does not change the next screen.
+
+An action that cannot be done in a build, such as opening the sync panel in a
+build before it (#596), returns `NOT_IN_THIS_BUILD`: the screen is not taken,
+and `report.md` lists it as missing in that build.
 
 To add a screen, edit `PAGES`, `STATES`, `MORE_STATES`, `PHONE_PAGES` or
 `DATA_PAGES` in `shots.mjs`.

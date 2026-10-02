@@ -19,6 +19,8 @@ export const FAKE_RPC_WRONG = "http://wrong-chain.invalid/";
 // and the placeholder became http://localhost:8545 in #459.
 export const RPC_INPUT = 'input[aria-label="RPC URL"]';
 export const QUICK_SEARCH = 'main input[aria-label="Quick search"]';
+// The progress in the nav, which opens the sync panel (#596).
+export const SYNC_PANEL_BUTTON = 'nav button[aria-controls="sync-panel"]';
 fs.mkdirSync(path.join(OUT, "shots"), { recursive: true });
 
 const TYPES = {
@@ -211,6 +213,12 @@ export async function newContextPage(w = 1400, h = 900, tag = "") {
   await page.setViewport({ width: w, height: h });
   await setupPage(page, tag);
   return { ctx, page };
+}
+
+export async function openSyncPanel(page) {
+  await page.click(SYNC_PANEL_BUTTON);
+  await page.waitForSelector("#sync-panel:not(.hidden)");
+  await settle(page, 200);
 }
 
 export async function settle(page, ms = 400) {
