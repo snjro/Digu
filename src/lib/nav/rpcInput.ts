@@ -3,20 +3,42 @@ import type { Chain, ChainName } from "@constants/chains/types";
 import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
 import { updateDbItemRpcSettings } from "@db/dbSettings";
 import type { NodeStatus, RpcInputType } from "@db/dbTypes";
+import { storeChainStatus } from "@stores/storeChainStatus";
 import { storeNoDbSnackBar } from "@stores/storeNoDb";
 import { customLogger } from "@utils/logger";
-import { getNodeProvider, type NodeProvider } from "@utils/utilsEthers";
+import {
+  cancelNodeProviderCall,
+  getNodeProvider,
+  startNodeProviderCall,
+  type NodeProvider,
+} from "@utils/utilsEthers";
+import { get } from "svelte/store";
 
 export async function updateRpc(
   targetChain: Chain,
   newRpc: string,
 ): Promise<void> {
-  await updateDbItemRpcSettings(targetChain.name, "rpc", newRpc);
+  const previousNodeStatus: NodeStatus =
+    get(storeChainStatus)[targetChain.name].nodeStatus;
+  // CONNECTING comes first: the helper label must not show the new RPC with
+  // the status of the old one.
+  const callNumber: number = await startNodeProviderCall(targetChain.name);
+  try {
+    await updateDbItemRpcSettings(targetChain.name, "rpc", newRpc);
+  } catch (error) {
+    await cancelNodeProviderCall(
+      targetChain.name,
+      callNumber,
+      previousNodeStatus,
+    );
+    throw error;
+  }
 
   //By calling "getNodeProvider", nodeStatus is updated
   const nodeProvider: NodeProvider | undefined = await getNodeProvider(
     targetChain,
     newRpc,
+    callNumber,
   );
   // The provider is used only to check the node here.
   await nodeProvider?.destroy();
