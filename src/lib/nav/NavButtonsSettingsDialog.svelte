@@ -4,7 +4,6 @@
   import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
   import classNames from "classnames";
   import SyncedData from "./settings/SyncedData.svelte";
-  import SyncNotice from "./settings/SyncNotice.svelte";
   import WarpSyncConfig from "./settings/WarpSyncConfig.svelte";
 
   interface Props {
@@ -24,8 +23,7 @@
   {#snippet dialogBody()}
     <PageWrapperContent hasMultipleTabs={false} gridCols="grid-cols-1">
       {#snippet PageWrapperContentBody()}
-        <SyncNotice />
-        <CommonItemGroup text="Synced data" gridTrack={gridTrack}>
+        <CommonItemGroup text="Synced data" {gridTrack}>
           <WarpSyncConfig />
           <SyncedData />
         </CommonItemGroup>
