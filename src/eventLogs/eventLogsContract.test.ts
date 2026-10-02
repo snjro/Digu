@@ -120,6 +120,10 @@ describe("fetchEventLogsContract", () => {
   });
 
   test("should stop without saving the range when stopped while it fetches", async () => {
+    // clearAllMocks in beforeEach keeps the implementation.
+    onTestFinished(() => {
+      vi.mocked(registerEventLogsAndBlockTimes).mockReset();
+    });
     vi.mocked(registerEventLogsAndBlockTimes).mockImplementation(
       async (_dbEventLogs, _targetContract, _nodeProvider, _logs, to) => {
         storeSyncStatus.update((state: SyncStatusesChain) => {

@@ -172,6 +172,7 @@ export async function fetchEventLogsContract(
         nodeProvider,
         ethersEventLogs,
         toBlockNumber,
+        () => syncStatusContract(contractIdentifier).isAbort,
       );
       if (ethersEventLogs.length) {
         customLogger.success("Fetch eventLogs. Fetched & registered to DB:", {
