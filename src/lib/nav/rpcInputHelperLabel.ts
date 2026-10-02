@@ -5,12 +5,19 @@ import type { BaseSize } from "#lib/base/baseSizes.js";
 import type { NodeStatus } from "#db/dbTypes.js";
 import classNames from "classnames";
 
+// The section of the guide on how to get an RPC URL.
+export const RPC_GUIDE_URL: string =
+  "https://github.com/snjro/Digu/blob/develop/docs/getting-started-as-user/README.md#rpc-endpoint-url";
+
+// helpHref: a link to the guide, shown after the text.
+export type RpcInputHelperLabelProps = BaseLabelProps & { helpHref?: string };
+
 export function getRpcInputHelperLabelProps(
   nodeStatus: NodeStatus,
   rpc: string,
-): BaseLabelProps {
+): RpcInputHelperLabelProps {
   const size: BaseSize = sizeSettings.navInputHelperText;
-  let labelProps: BaseLabelProps;
+  let labelProps: RpcInputHelperLabelProps;
   switch (nodeStatus) {
     case "SUCCESS": {
       labelProps = {
@@ -39,6 +46,7 @@ export function getRpcInputHelperLabelProps(
     }
     default: {
       let errorMessage: string | undefined;
+      let helpHref: string | undefined;
       switch (nodeStatus) {
         case "INVALID_PROTOCOL": {
           errorMessage = `Error. Protocol is invalid.`;
@@ -49,6 +57,7 @@ export function getRpcInputHelperLabelProps(
             errorMessage = "Error. Invalid URL.";
           } else {
             errorMessage = "Enter URL of RPC.";
+            helpHref = RPC_GUIDE_URL;
           }
           break;
         }
@@ -57,7 +66,9 @@ export function getRpcInputHelperLabelProps(
           break;
         }
         case "NETWORK_ERROR": {
-          errorMessage = "Error. cannot get a network data.";
+          errorMessage =
+            "Error. Cannot reach this RPC. Check the URL or use another one.";
+          helpHref = RPC_GUIDE_URL;
           break;
         }
         default: {
@@ -76,6 +87,9 @@ export function getRpcInputHelperLabelProps(
         textSize: size,
         colorCategoryFront: "error",
       };
+      if (helpHref) {
+        labelProps.helpHref = helpHref;
+      }
     }
   }
   if (labelProps.prefixIcon) {

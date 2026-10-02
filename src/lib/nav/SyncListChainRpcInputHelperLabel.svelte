@@ -1,4 +1,5 @@
 <script lang="ts">
+  import BaseA from "#lib/base/BaseA.svelte";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import { storeChainStatus } from "#stores/storeChainStatus.js";
   import { storeRpcSettings } from "#stores/storeRpcSettings.js";
@@ -12,11 +13,24 @@
   let nodeStatus = $derived($storeChainStatus[targetChainName].nodeStatus);
   let rpc = $derived($storeRpcSettings[targetChainName].rpc);
 
-  let helperLabelProps = $derived(() =>
+  let { helpHref, ...helperLabelProps } = $derived(
     getRpcInputHelperLabelProps(nodeStatus, rpc),
   );
 </script>
 
 <div class={classNames("ml-2")}>
-  <BaseLabel {...helperLabelProps()} />
+  <!-- The link is in the label, to follow the text when the text wraps. inline-flex
+  leaves out the spaces of the template of BaseA. -->
+  <BaseLabel {...helperLabelProps}>
+    {#if helpHref}
+      <BaseA
+        href={helpHref}
+        textSize={helperLabelProps.textSize}
+        appendClass={classNames("inline-flex", "ml-1", "underline")}
+        openNewTab
+      >
+        {#snippet anchorContent()}How to get one{/snippet}
+      </BaseA>
+    {/if}
+  </BaseLabel>
 </div>

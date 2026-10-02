@@ -12,6 +12,7 @@ There is one way to use Digu as a user:
   - [Using Digu with `GitHub Pages`](#using-digu-with-github-pages)
   - [Using Digu with `Visual Studio Code`](#using-digu-with-visual-studio-code)
   - [Using Digu with `Node.js`](#using-digu-with-nodejs)
+- [**RPC endpoint URL**](#rpc-endpoint-url)
 
 ## [**Web application** (Need a server)](#web-application-need-a-server)
 
@@ -90,3 +91,30 @@ The steps:
    <img src="nodeJsRunHttpServer.png" width="60%">
 
    Visit `http://localhost:8080` with your browser to view Digu.
+
+## [**RPC endpoint URL**](#rpc-endpoint-url)
+
+Digu gets the event logs of the contracts from an [RPC endpoint](https://ethereum.org/en/developers/docs/apis/json-rpc/) URL that you enter in the RPC URL field.
+
+1. **What the URL is for**  
+   Digu sends `eth_getLogs` requests to this URL to get the event logs, and stores the logs in your browser. The URL is saved only in your browser, too.
+
+2. **The URL of the selected chain**  
+   The URL must be for the chain that you selected: `Ethereum Mainnet` or `Polygon Mainnet`. A URL of another chain shows "Error. Target chain is wrong."
+
+3. **Where to get one**
+
+   - The free plan of an RPC provider that gives you an API key. This is the recommended way.
+   - A public URL without a key. [chainlist.org](https://chainlist.org/) lists them. A public URL has a limit on the number of requests.
+   - Your own node, such as `http://localhost:8545`.
+
+   A public URL without a key can leave out some event logs without an error. Use a URL with a key if you can. If you synced with a public URL before, you can get the logs again: open the settings and press "Reset" of "Event logs". With the warp sync on, Digu then imports the logs published with this site again, and gets only the logs after them from your RPC.
+
+4. **With the warp sync**  
+   On the chains that have the warp sync (`Ethereum Mainnet` and `Polygon Mainnet` now), Digu imports the event logs published with this site. Your RPC is needed only for the blocks after them.
+
+5. **`https:` and `wss:`**  
+   On the public site (`https://snjro.github.io/Digu/`), use a URL that starts with `https:` or `wss:`. Use `http:` or `ws:` only for your own node on `localhost`: these requests are not encrypted, and an API key in the URL is sent as it is. On the public site, the browser blocks an `http:` or `ws:` URL of another host as mixed content (checked with Chrome), so it shows "Error. Cannot reach this RPC. Check the URL or use another one."
+
+6. **No default URL**  
+   Digu has no default URL, because a public URL can stop working.
