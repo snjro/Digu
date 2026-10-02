@@ -88,21 +88,44 @@ const latestNodeProviderCalls: Record<ChainName, number> = {};
 // A WebSocket that never opens makes getNetwork wait forever.
 const GET_NETWORK_TIMEOUT_MS: number = 10000;
 
+// Shows CONNECTING. The number is taken before the write, so that an earlier
+// call cannot write its status after it.
+export async function startNodeProviderCall(
+  chainName: ChainName,
+): Promise<number> {
+  const callNumber: number = (latestNodeProviderCalls[chainName] ?? 0) + 1;
+  latestNodeProviderCalls[chainName] = callNumber;
+  await updateDbItemChainStatus(chainName, "nodeStatus", "CONNECTING");
+  return callNumber;
+}
+
+// For a started call that does not connect. Giving the number back lets an
+// earlier call that is still running write its status.
+export async function cancelNodeProviderCall(
+  chainName: ChainName,
+  callNumber: number,
+  previousNodeStatus: NodeStatus,
+): Promise<void> {
+  if (latestNodeProviderCalls[chainName] === callNumber) {
+    latestNodeProviderCalls[chainName] = callNumber - 1;
+    await updateDbItemChainStatus(chainName, "nodeStatus", previousNodeStatus);
+  }
+}
+
 // Returns the provider when this call succeeds, even if a newer call ran.
 export async function getNodeProvider(
   targetChain: Chain,
   rpc: string,
+  startedCallNumber?: number,
 ): Promise<NodeProvider | undefined> {
   const callNumber: number =
-    (latestNodeProviderCalls[targetChain.name] ?? 0) + 1;
-  latestNodeProviderCalls[targetChain.name] = callNumber;
+    startedCallNumber ?? (await startNodeProviderCall(targetChain.name));
   const httpProtocols: string[] = ["http:", "https:"];
   const webSocketProtocols: string[] = ["ws:", "wss:"];
   const url: URL | undefined = getUrlObject(rpc);
 
   let nodeProvider: NodeProvider | undefined = undefined;
-  let nodeStatus: NodeStatus = "CONNECTING";
-  await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
+  let nodeStatus: NodeStatus;
   if (url === undefined) {
     nodeStatus = "INVALID_URL";
   } else if ([...httpProtocols, ...webSocketProtocols].includes(url.protocol)) {

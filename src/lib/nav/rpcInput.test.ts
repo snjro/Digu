@@ -10,7 +10,13 @@ import type { Chain } from "@constants/chains/types";
 import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
 import { updateDbItemRpcSettings } from "@db/dbSettings";
 import type { NodeStatus } from "@db/dbTypes";
-import { getNodeProvider, type NodeProvider } from "@utils/utilsEthers";
+import { storeChainStatus } from "@stores/storeChainStatus";
+import {
+  cancelNodeProviderCall,
+  getNodeProvider,
+  startNodeProviderCall,
+  type NodeProvider,
+} from "@utils/utilsEthers";
 import {
   blurOnEnter,
   clearSucceededNodeStatus,
@@ -23,12 +29,17 @@ vi.mock("@db/dbSettings", () => ({ updateDbItemRpcSettings: vi.fn() }));
 vi.mock("@db/dbChainStatusDataHandlers", () => ({
   updateDbItemChainStatus: vi.fn(),
 }));
-vi.mock("@utils/utilsEthers", () => ({ getNodeProvider: vi.fn() }));
+vi.mock("@utils/utilsEthers", () => ({
+  cancelNodeProviderCall: vi.fn(),
+  getNodeProvider: vi.fn(),
+  startNodeProviderCall: vi.fn(),
+}));
 
 const targetChain = { name: "eth" } as unknown as Chain;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(startNodeProviderCall).mockResolvedValue(1);
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -48,10 +59,48 @@ describe("updateRpc", () => {
     expect(getNodeProvider).toHaveBeenCalledWith(
       targetChain,
       "https://localhost:8545",
+      1,
     );
     expect(
       vi.mocked(updateDbItemRpcSettings).mock.invocationCallOrder[0],
     ).toBeLessThan(vi.mocked(getNodeProvider).mock.invocationCallOrder[0]);
+  });
+
+  test("should show CONNECTING before saving the rpc", async () => {
+    vi.mocked(startNodeProviderCall).mockResolvedValueOnce(7);
+    await updateRpc(targetChain, "https://localhost:8545");
+    expect(startNodeProviderCall).toHaveBeenCalledTimes(1);
+    expect(startNodeProviderCall).toHaveBeenCalledWith("eth");
+    expect(
+      vi.mocked(startNodeProviderCall).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      vi.mocked(updateDbItemRpcSettings).mock.invocationCallOrder[0],
+    );
+    // getNodeProvider goes on with the started call.
+    expect(getNodeProvider).toHaveBeenCalledWith(
+      targetChain,
+      "https://localhost:8545",
+      7,
+    );
+    expect(cancelNodeProviderCall).not.toHaveBeenCalled();
+  });
+
+  test("should cancel the started call when saving fails", async () => {
+    const error = new Error("DB error");
+    storeChainStatus.updateState("eth", { nodeStatus: "INVALID_URL" });
+    vi.mocked(startNodeProviderCall).mockResolvedValueOnce(7);
+    vi.mocked(updateDbItemRpcSettings).mockRejectedValueOnce(error);
+    await expect(updateRpc(targetChain, "https://localhost:8545")).rejects.toBe(
+      error,
+    );
+    expect(cancelNodeProviderCall).toHaveBeenCalledTimes(1);
+    expect(cancelNodeProviderCall).toHaveBeenCalledWith(
+      "eth",
+      7,
+      "INVALID_URL",
+    );
+    expect(getNodeProvider).not.toHaveBeenCalled();
+    storeChainStatus.updateState("eth", { nodeStatus: undefined });
   });
 
   test("should destroy the provider after connecting", async () => {
@@ -73,7 +122,7 @@ describe("updateRpc", () => {
   test("should save an empty rpc as it is", async () => {
     await updateRpc(targetChain, "");
     expect(updateDbItemRpcSettings).toHaveBeenCalledWith("eth", "rpc", "");
-    expect(getNodeProvider).toHaveBeenCalledWith(targetChain, "");
+    expect(getNodeProvider).toHaveBeenCalledWith(targetChain, "", 1);
   });
 });
 
