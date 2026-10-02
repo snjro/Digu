@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseProgressBarForBlockNumber from "$lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
-  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
-  import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseProgressBarForBlockNumber from "#lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
+  import CommonItemMember from "#lib/common/CommonItemMember.svelte";
+  import CommonToggleSyncTarget from "#lib/common/CommonToggleSyncTarget.svelte";
   import type {
     Chain,
     Contract,

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { convertTabValueForHref } from "$lib/PageWrapper/tabs";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
-  import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
+  import { convertTabValueForHref } from "#lib/PageWrapper/tabs.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import CommonItemMember from "#lib/common/CommonItemMember.svelte";
+  import CommonViewMoreDetailsButton from "#lib/common/CommonViewMoreDetailsButton.svelte";
   import type {
     Chain,
     Contract,

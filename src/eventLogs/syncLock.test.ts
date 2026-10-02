@@ -32,8 +32,8 @@ const rpc = vi.hoisted(() => ({
 // The number of the timers for the latest block number that are running.
 const latestBlockTimers = vi.hoisted(() => ({ running: 0 }));
 
-vi.mock("$app/environment", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("$app/environment")>()),
+vi.mock("$app/env", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("$app/env")>()),
   browser: true,
 }));
 // Runs the Worker jobs in the page, with the modules of the tab being opened.

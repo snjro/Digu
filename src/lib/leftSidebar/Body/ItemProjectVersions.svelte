@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { base } from "$app/paths";
-  import { getChainRootUrl } from "$lib/common/chainRootUrl";
+  import { basePath } from "#lib/common/basePath.js";
+  import { getChainRootUrl } from "#lib/common/chainRootUrl.js";
   import type { ChainName } from "@constants/chains/types";
   import {
     getProjectVersionNameForLabel,
     getProjectVersionNameForUrl,
-  } from "$lib/common/projectVersionNameHelper";
+  } from "#lib/common/projectVersionNameHelper.js";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getTargetChain } from "@utils/utilsDb";
   import ItemProjectVersionsMember from "./ItemProjectVersionsMember.svelte";
@@ -14,7 +14,7 @@
     $storeUserSettings.selectedChainName.toString(),
   );
 
-  let rootPath: string = $derived(getChainRootUrl(base, chainName));
+  let rootPath: string = $derived(getChainRootUrl(basePath, chainName));
 
   let targetChain = $derived(
     getTargetChain({

@@ -3,9 +3,9 @@ import { tick } from "svelte";
 import type { Writable } from "svelte/store";
 import { render, screen } from "@testing-library/svelte";
 import ContractOverviewSyncStatusProgress from "./ContractOverviewSyncStatusProgress.svelte";
-import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
-import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-import { baseTextSizes, changeSize } from "$lib/base/baseSizes";
+import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js";
+import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+import { baseTextSizes, changeSize } from "#lib/base/baseSizes.js";
 import type {
   Chain,
   Contract,

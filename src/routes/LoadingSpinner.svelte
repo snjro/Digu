@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
   import { afterNavigate, beforeNavigate } from "$app/navigation";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { zIndex } from "$lib/appearanceConfig/zIndex";
-  import BaseSpinner from "$lib/base/BaseSpinner.svelte";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { zIndex } from "#lib/appearanceConfig/zIndex.js";
+  import BaseSpinner from "#lib/base/BaseSpinner.svelte";
   import { storeNodbShowLoader } from "@stores/storeNoDb";
   import classNames from "classnames";
 

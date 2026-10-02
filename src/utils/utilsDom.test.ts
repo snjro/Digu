@@ -5,7 +5,7 @@ import {
   type VerticalViewability,
 } from "./utilsDom";
 
-vi.mock("$app/environment", () => {
+vi.mock("$app/env", () => {
   return {
     browser: true,
   };

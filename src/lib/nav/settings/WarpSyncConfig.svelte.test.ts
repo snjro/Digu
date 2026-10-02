@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
-import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 import type { Writable } from "svelte/store";
 import { customLogger } from "@utils/logger";
 import { updateDbItemRpcSettings } from "@db/dbSettings";

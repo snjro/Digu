@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { convertTabValueForHref } from "$lib/PageWrapper/tabs";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseA from "$lib/base/BaseA.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import { convertTabValueForHref } from "#lib/PageWrapper/tabs.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseA from "#lib/base/BaseA.svelte";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
   import type { AbiFragmentName } from "@constants/chains/types";
   import type { ContractIdentifier } from "@db/dbTypes";
   import { storeSyncStatus } from "@stores/storeSyncStatus";

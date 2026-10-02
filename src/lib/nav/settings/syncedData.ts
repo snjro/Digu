@@ -1,4 +1,4 @@
-import type { BaseSnackbarProps } from "$lib/base/snackbarProps";
+import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
 import type { SyncStateText, SyncStatusChain } from "@db/dbTypes";
 import type { SyncResetOutcome, SyncResetResult } from "@eventLogs/syncReset";
 import { numberWithCommas } from "@utils/utilsCommon";

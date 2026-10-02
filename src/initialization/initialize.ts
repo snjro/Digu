@@ -1,6 +1,6 @@
 import { initializeDB } from "./initializeDB";
 import { initializeStore } from "./initializeStore";
-import { browser } from "$app/environment";
+import { browser } from "$app/env";
 import { customLogger } from "@utils/logger";
 import { watchSyncLocksOfOtherTabs } from "@eventLogs/syncLock";
 import { watchSyncResetsOfOtherTabs } from "@eventLogs/syncReset";

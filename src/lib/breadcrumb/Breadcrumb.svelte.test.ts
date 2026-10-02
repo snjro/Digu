@@ -11,7 +11,7 @@ vi.mock("$app/state", () => ({
     status: 200,
   },
 }));
-vi.mock("$app/paths", () => ({ base: "" }));
+vi.mock("#lib/common/basePath.js", () => ({ basePath: "" }));
 
 describe("Breadcrumb.svelte", () => {
   afterEach(() => {

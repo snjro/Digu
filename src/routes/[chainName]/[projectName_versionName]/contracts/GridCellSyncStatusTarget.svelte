@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
-  import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
+  import CommonToggleSyncTarget from "#lib/common/CommonToggleSyncTarget.svelte";
   import type {
     Chain,
     Contract,

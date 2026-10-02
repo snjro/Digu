@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
-  import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
+  import CommonChainExplorerLink from "#lib/common/CommonChainExplorerLink.svelte";
   import type {
     Chain,
     Contract,

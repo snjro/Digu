@@ -1,5 +1,5 @@
-import type { ColumnDef } from "$lib/grid/types";
-import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
+import type { ColumnDef } from "#lib/grid/types.js";
+import type { ContractRow } from "#lib/gridColumnDefs/rowTypes.js";
 import { columnDefsCreation } from "./columnDefsCreation";
 import { columnDefsBasic } from "./columnDefsBasic";
 import { columnDefsConstructor } from "./columnDefsConstructor";

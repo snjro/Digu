@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import { toggleLeftSideBar } from "$lib/leftSidebar/functions";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseButtonIcon from "#lib/base/BaseButtonIcon.svelte";
+  import { toggleLeftSideBar } from "#lib/leftSidebar/functions.js";
   import { storeUserSettings } from "@stores/storeUserSettings";
 </script>
 

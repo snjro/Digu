@@ -1,15 +1,15 @@
 <script lang="ts">
-  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseButton from "$lib/base/BaseButton.svelte";
-  import BaseDialog from "$lib/base/BaseDialog/BaseDialog.svelte";
+  import PageWrapperContent from "#lib/PageWrapper/PageWrapperContent.svelte";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseButton from "#lib/base/BaseButton.svelte";
+  import BaseDialog from "#lib/base/BaseDialog/BaseDialog.svelte";
   import {
     closeDialog,
     openDialog,
-  } from "$lib/base/BaseDialog/BaseDialogHandler";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { updateWarpSync } from "$lib/nav/settings/warpSyncSetting";
+  } from "#lib/base/BaseDialog/BaseDialogHandler.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import { updateWarpSync } from "#lib/nav/settings/warpSyncSetting.js";
   import type { Chain } from "@constants/chains/types";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getTargetChain } from "@utils/utilsDb";

@@ -1,27 +1,27 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseA from "$lib/base/BaseA.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import BaseTable from "$lib/base/BaseTable/BaseTable.svelte";
-  import BaseTableBodyCell from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
-  import BaseTableRow from "$lib/base/BaseTable/BaseTableRow.svelte";
-  import SequenceBodyCell from "$lib/base/BaseTable/SequenceBodyCell.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
-  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
-  import CommonViewMoreDetailsButton from "$lib/common/CommonViewMoreDetailsButton.svelte";
-  import { getAbiFragmentHref } from "$lib/leftSidebar/Body/functionNameHandler";
-  import { getSubdirectoryHref } from "$lib/common/linkHref";
+  import { getFirstTabUrlHash } from "#lib/PageWrapper/tabs.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseA from "#lib/base/BaseA.svelte";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import BaseTable from "#lib/base/BaseTable/BaseTable.svelte";
+  import BaseTableBodyCell from "#lib/base/BaseTable/BaseTableBodyCell.svelte";
+  import BaseTableRow from "#lib/base/BaseTable/BaseTableRow.svelte";
+  import SequenceBodyCell from "#lib/base/BaseTable/SequenceBodyCell.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
+  import CommonItemMember from "#lib/common/CommonItemMember.svelte";
+  import CommonViewMoreDetailsButton from "#lib/common/CommonViewMoreDetailsButton.svelte";
+  import { getAbiFragmentHref } from "#lib/leftSidebar/Body/functionNameHandler.js";
+  import { getSubdirectoryHref } from "#lib/common/linkHref.js";
   import type {
     Contract,
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
   import { trailingSlash } from "@routes/+layout";
-  import type { AbiFragmentsType } from "$lib/contracts/abiFragmentsType";
+  import type { AbiFragmentsType } from "#lib/contracts/abiFragmentsType.js";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
 
   interface Props {

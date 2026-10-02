@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { base } from "$app/paths";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { getChainRootUrl } from "$lib/common/chainRootUrl";
+  import { basePath } from "#lib/common/basePath.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import { getChainRootUrl } from "#lib/common/chainRootUrl.js";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import BaseItem from "./BaseItem.svelte";
 
@@ -12,7 +12,7 @@
 
 <BaseItem
   label="Home"
-  hrefWithoutUrlHash={getChainRootUrl(base, targetChainName)}
+  hrefWithoutUrlHash={getChainRootUrl(basePath, targetChainName)}
   isTopLevelItem={true}
   size={sizeSettings.leftSidebarTree1st}
   hasChildren={false}

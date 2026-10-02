@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { colorVar } from "$lib/appearanceConfig/color/colorVariables";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { colorVar } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";

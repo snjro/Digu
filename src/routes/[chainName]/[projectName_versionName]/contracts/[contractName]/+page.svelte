@@ -1,10 +1,10 @@
 <script lang="ts">
-  import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
+  import PageWrapper from "#lib/PageWrapper/PageWrapper.svelte";
   import {
     TAB_VALUES_CONTRACT,
     type TabsDefinitionContract,
-  } from "$lib/PageWrapper/tabs";
-  import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
+  } from "#lib/PageWrapper/tabs.js";
+  import AbiJsonViewer from "#lib/contracts/abiJson/AbiJsonViewer.svelte";
   import type { LoadContractData } from "./+page";
   import ContractOverview from "./ContractOverview.svelte";
 

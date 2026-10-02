@@ -1,7 +1,7 @@
-import type { ColumnDef } from "$lib/grid/types";
-import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
-import { columnDefChainExplorerLinkByKeyName } from "$lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName";
-import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
+import type { ColumnDef } from "#lib/grid/types.js";
+import type { ContractRow } from "#lib/gridColumnDefs/rowTypes.js";
+import { columnDefChainExplorerLinkByKeyName } from "#lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName.js";
+import { cellAlign } from "#lib/gridColumnDefs/cellStyles.js";
 
 export const columnDefsCreation = <T extends ContractRow>(): ColumnDef => {
   const columnDef: ColumnDef = {

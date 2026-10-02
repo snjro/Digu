@@ -8,7 +8,7 @@ import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { extractEventContracts } from "@utils/utilsEthers";
 import { trackStoreSubscriptions } from "@utils/testCommon";
 import { columnDefsNumOfLogs } from "./columnDefsNumOfLogs";
-import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
+import type { EventRow } from "#lib/gridColumnDefs/rowTypes.js";
 
 const targetChain: Chain = TARGET_CHAINS[0];
 const targetContract: Contract = extractEventContracts(

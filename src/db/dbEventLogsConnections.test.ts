@@ -7,7 +7,7 @@ import { dbWorkerFuncGetConvertedEventLogs } from "@db/db.worker.func.getConvert
 import { initializeDBSyncStatusInChain } from "@db/db.worker.func.InitializeDBSyncStatus";
 import { updateSyncStatusInChain } from "@db/dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain";
 import { initializeStore } from "../initialization/initializeStore";
-import { toggleIsSyncTarget } from "$lib/common/toggleSyncTarget";
+import { toggleIsSyncTarget } from "#lib/common/toggleSyncTarget.js";
 import { extractEventContracts } from "@utils/utilsEthers";
 
 vi.mock("@utils/logger", () => ({

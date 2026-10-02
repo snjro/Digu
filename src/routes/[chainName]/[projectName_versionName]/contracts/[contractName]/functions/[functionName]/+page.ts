@@ -1,4 +1,4 @@
-import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/functionNameHandler";
+import { getSplittedFunctionNameAndSelector } from "#lib/leftSidebar/Body/functionNameHandler.js";
 import type {
   AbiFragmentName,
   Chain,
@@ -18,7 +18,7 @@ import type {
   AbiFragmentIdentifier,
   ProjectIdentifier,
 } from "@db/dbTypes";
-import { getSplitProjectVersionName } from "$lib/common/projectVersionNameHelper";
+import { getSplitProjectVersionName } from "#lib/common/projectVersionNameHelper.js";
 import type { LoadEvent } from "@sveltejs/kit";
 import {
   getTargetChain,

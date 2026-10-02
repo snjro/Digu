@@ -1,8 +1,8 @@
 <script lang="ts">
-  import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
+  import PageWrapper from "#lib/PageWrapper/PageWrapper.svelte";
   import type { LoadVersionData } from "./+page";
   import VersionOverview from "./VersionOverview.svelte";
-  import { getProjectVersionNameForLabel } from "$lib/common/projectVersionNameHelper";
+  import { getProjectVersionNameForLabel } from "#lib/common/projectVersionNameHelper.js";
 
   interface Props {
     data: LoadVersionData;

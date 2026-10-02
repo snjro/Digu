@@ -32,7 +32,7 @@ import type {
   WarpSyncManifestChunk,
 } from "./warpSyncTypes";
 
-vi.mock("$app/paths", () => ({ base: "" }));
+vi.mock("#lib/common/basePath.js", () => ({ basePath: "" }));
 // The worker runs in this process: the same function, without a Worker.
 vi.mock("@db/db.worker.portal", () => ({
   startDbWorker: vi.fn(

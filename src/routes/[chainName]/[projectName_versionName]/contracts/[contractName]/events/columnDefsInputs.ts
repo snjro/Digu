@@ -1,6 +1,6 @@
-import type { ColumnDef } from "$lib/grid/types";
-import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
-import { columnDefAbiParams } from "$lib/gridColumnDefs/columnDefAbiParams";
+import type { ColumnDef } from "#lib/grid/types.js";
+import type { EventRow } from "#lib/gridColumnDefs/rowTypes.js";
+import { columnDefAbiParams } from "#lib/gridColumnDefs/columnDefAbiParams.js";
 
 export const columnDefsInputs = <T extends EventRow>(
   maxLengthOfEventInputsParams: number,

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/svelte";
 import { goto } from "$app/navigation";
-import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 import PageWrapper from "./PageWrapper.svelte";
 import PageWrapperContentFunctionBarButtonsThreeDots from "./PageWrapperContentFunctionBarButtonsThreeDots.svelte";
 import PageWrapperTestHost from "./PageWrapper.testHost.svelte";
@@ -30,7 +30,7 @@ describe("PageWrapper.svelte", () => {
     renderWithTabs();
     expect(goto).toHaveBeenCalledExactlyOnceWith(
       "/eth/v1/contracts/c/#overview",
-      { replaceState: true },
+      { replace: true },
     );
   });
 

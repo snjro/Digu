@@ -36,7 +36,7 @@ vi.mock("@utils/logger", () => ({
 vi.mock("./EventLogs.svelte", () => ({
   MESSAGE_ANONYMOUS_EVENT_LOGS: "Logs of anonymous events are not fetched.",
 }));
-vi.mock("$lib/common/CommonChainExplorerLink.svelte", async () => {
+vi.mock("#lib/common/CommonChainExplorerLink.svelte", async () => {
   const { default: Stub } =
     await import("../../functions/[functionName]/pageTabs.testStub.svelte");
   return {

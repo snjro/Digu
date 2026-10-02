@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/svelte";
-import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import BaseA from "./BaseA.svelte";

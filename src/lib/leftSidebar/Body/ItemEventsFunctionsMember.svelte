@@ -1,11 +1,11 @@
 <script lang="ts" generics>
-  import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { getFirstTabUrlHash } from "#lib/PageWrapper/tabs.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import type {
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
-  import type { AbiFragmentsType } from "$lib/contracts/abiFragmentsType";
+  import type { AbiFragmentsType } from "#lib/contracts/abiFragmentsType.js";
   import BaseItem from "./BaseItem.svelte";
   import { getAbiFragmentHref } from "./functionNameHandler";
 

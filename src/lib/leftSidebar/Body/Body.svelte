@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import {
     getScrollbarStyle,
     type ScrollbarStyle,
-  } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
+  } from "#lib/appearanceConfig/scrollbar/scrollbarSetting.js";
   import classNames from "classnames";
   import ItemHome from "./ItemHome.svelte";
   import ItemProjectVersions from "./ItemProjectVersions.svelte";

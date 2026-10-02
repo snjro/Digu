@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { PageWrapperContentFunctionBarDefinition } from "$lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
-  import PageWrapperContentFunctionBarButtons from "$lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
-  import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { openDialog } from "$lib/base/BaseDialog/BaseDialogHandler";
+  import type { PageWrapperContentFunctionBarDefinition } from "#lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
+  import PageWrapperContentFunctionBarButtons from "#lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
+  import { breakPointWidthThresholds } from "#lib/appearanceConfig/size/sizeDefinitions.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import { openDialog } from "#lib/base/BaseDialog/BaseDialogHandler.js";
   import type { ThemeColor } from "@db/dbTypes";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import NavButtonsSettingsDialog from "./NavButtonsSettingsDialog.svelte";

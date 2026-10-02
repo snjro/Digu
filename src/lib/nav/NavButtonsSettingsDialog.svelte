@@ -1,7 +1,7 @@
 <script lang="ts">
-  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
-  import BaseDialog from "$lib/base/BaseDialog/BaseDialog.svelte";
-  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
+  import PageWrapperContent from "#lib/PageWrapper/PageWrapperContent.svelte";
+  import BaseDialog from "#lib/base/BaseDialog/BaseDialog.svelte";
+  import CommonItemGroup from "#lib/common/CommonItemGroup.svelte";
   import classNames from "classnames";
   import SyncedData from "./settings/SyncedData.svelte";
   import WarpSyncConfig from "./settings/WarpSyncConfig.svelte";

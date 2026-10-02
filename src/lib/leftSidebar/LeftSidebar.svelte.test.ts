@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { get } from "svelte/store";
 import LeftSidebar from "./LeftSidebar.svelte";
-import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
+import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { updateDbItemUserSettings } from "@db/dbSettings";
 import {
@@ -10,7 +10,7 @@ import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
 } from "@stores/storeNoDb";
-import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import { customLogger } from "@utils/logger";
 import { storeUserSettings } from "@stores/storeUserSettings";
 

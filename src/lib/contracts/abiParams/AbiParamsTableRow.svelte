@@ -10,13 +10,13 @@
 </script>
 
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseTableBodyCell from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
-  import BaseTableRow from "$lib/base/BaseTable/BaseTableRow.svelte";
-  import SequenceBodyCell from "$lib/base/BaseTable/SequenceBodyCell.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
-  import { getComponentsFromAbiFragmentParam } from "$lib/gridColumnDefs/columnDefAbiParamsArgsChildren";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseTableBodyCell from "#lib/base/BaseTable/BaseTableBodyCell.svelte";
+  import BaseTableRow from "#lib/base/BaseTable/BaseTableRow.svelte";
+  import SequenceBodyCell from "#lib/base/BaseTable/SequenceBodyCell.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
+  import { getComponentsFromAbiFragmentParam } from "#lib/gridColumnDefs/columnDefAbiParamsArgsChildren.js";
   import type {
     AbiFragmentParam,
     EventAbiFragment,

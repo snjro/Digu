@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
-import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,

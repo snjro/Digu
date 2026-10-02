@@ -1,4 +1,4 @@
-import type { ColumnDef } from "$lib/grid/types";
+import type { ColumnDef } from "#lib/grid/types.js";
 import { capitalizeFirstLetter } from "@utils/utilsCommon";
 import { columnDefAbiParamsNumOfParams } from "./columnDefAbiParamsNumOfParams";
 import { columnDefAbiParamsArgs } from "./columnDefAbiParamsArgs";

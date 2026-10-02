@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { colorVar } from "$lib/appearanceConfig/color/colorVariables";
-  import type { SyncStateTextLabelProps } from "$lib/common/CommonSyncStateText.svelte";
+  import type { ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { colorVar } from "#lib/appearanceConfig/color/colorVariables.js";
+  import type { SyncStateTextLabelProps } from "#lib/common/CommonSyncStateText.svelte";
   import classNames from "classnames";
   import { getProgressRate } from "../BaseProgressBarForBlockNumber/progressRate";
   import { changeSize, type BaseSize } from "../baseSizes";

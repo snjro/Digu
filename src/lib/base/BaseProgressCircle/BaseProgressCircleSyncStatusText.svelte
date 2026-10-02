@@ -2,7 +2,7 @@
   import classNames from "classnames";
   import CommonSyncStateText, {
     type SyncStateTextLabelProps,
-  } from "$lib/common/CommonSyncStateText.svelte";
+  } from "#lib/common/CommonSyncStateText.svelte";
   interface Props {
     syncStateTextLabelProps?: SyncStateTextLabelProps | undefined;
   }

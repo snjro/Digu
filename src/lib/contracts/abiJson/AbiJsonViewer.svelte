@@ -1,17 +1,17 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
-  import type { PageWrapperContentFunctionBarDefinition } from "$lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
+  import PageWrapperContent from "#lib/PageWrapper/PageWrapperContent.svelte";
+  import type { PageWrapperContentFunctionBarDefinition } from "#lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
   // Named apart from the snippet PageWrapperContentFunctionBar of PageWrapperContent.
-  import PageWrapperContentFunctionBarComponent from "$lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
-  import { fullScreenButtonDefinition } from "$lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
-  import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseHighlight from "$lib/base/BaseHighlight.svelte";
-  import { copyTextToClipboard } from "$lib/common/clipboard";
+  import PageWrapperContentFunctionBarComponent from "#lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
+  import { fullScreenButtonDefinition } from "#lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
+  import { breakPointWidthThresholds } from "#lib/appearanceConfig/size/sizeDefinitions.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseHighlight from "#lib/base/BaseHighlight.svelte";
+  import { copyTextToClipboard } from "#lib/common/clipboard.js";
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
   import type { AbiFormatType } from "@utils/utilsEthers";
   import {
     getAbiExportTooltipText,

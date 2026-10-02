@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { base } from "$app/paths";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { basePath } from "#lib/common/basePath.js";
   import { page } from "$app/state";
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import BaseButton from "$lib/base/BaseButton.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import BaseButton from "#lib/base/BaseButton.svelte";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
   import classNames from "classnames";
 
   const colorCategory: ColorCategory = colorSettings.errorPage;
@@ -62,7 +62,7 @@
     <BaseButton
       size="md"
       label="HOME"
-      href={`${base}/`}
+      href={`${basePath}/`}
       border
       shadowEffect
       hoverEffect

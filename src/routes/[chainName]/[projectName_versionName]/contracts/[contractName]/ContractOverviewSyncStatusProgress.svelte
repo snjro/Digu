@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseProgressCircle from "$lib/base/BaseProgressCircle/BaseProgressCircle.svelte";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
-  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseProgressCircle from "#lib/base/BaseProgressCircle/BaseProgressCircle.svelte";
+  import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
+  import CommonItemMember from "#lib/common/CommonItemMember.svelte";
   import type {
     Chain,
     Contract,

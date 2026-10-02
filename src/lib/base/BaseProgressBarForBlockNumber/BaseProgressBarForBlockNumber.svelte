@@ -13,8 +13,8 @@
 
 <script lang="ts">
   import classNames from "classnames";
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
+  import type { ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
   import BaseProgressBarForBlockNumberBody from "./BaseProgressBarForBlockNumberBody.svelte";
   import BaseProgressBarForBlockNumberChainExplorerLink from "./BaseProgressBarForBlockNumberChainExplorerLink.svelte";
   import BaseProgressBarForBlockNumberPointer from "./BaseProgressBarForBlockNumberPointer.svelte";

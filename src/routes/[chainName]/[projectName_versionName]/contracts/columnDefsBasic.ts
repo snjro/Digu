@@ -1,19 +1,19 @@
-import BaseA from "$lib/base/BaseA.svelte";
+import BaseA from "#lib/base/BaseA.svelte";
 import {
   cellRendererFactory,
   type AbstractCellRenderer,
-} from "$lib/grid/cellRenderFactory";
-import type { ColumnDef } from "$lib/grid/types";
-import BaseLabel from "$lib/base/BaseLabel.svelte";
-import CommonOpenLink from "$lib/common/CommonOpenLink.svelte";
+} from "#lib/grid/cellRenderFactory.js";
+import type { ColumnDef } from "#lib/grid/types.js";
+import BaseLabel from "#lib/base/BaseLabel.svelte";
+import CommonOpenLink from "#lib/common/CommonOpenLink.svelte";
 import { NO_DATA } from "@utils/utilsConstants";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import classNames from "classnames";
-import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
-import { columnDefChainExplorerLinkByKeyName } from "$lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName";
-import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-import type { BaseSize } from "$lib/base/baseSizes";
-import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
+import type { ContractRow } from "#lib/gridColumnDefs/rowTypes.js";
+import { columnDefChainExplorerLinkByKeyName } from "#lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName.js";
+import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+import type { BaseSize } from "#lib/base/baseSizes.js";
+import { getFirstTabUrlHash } from "#lib/PageWrapper/tabs.js";
 
 const gridSize: BaseSize = sizeSettings.grid;
 const cellClass: string = classNames("");

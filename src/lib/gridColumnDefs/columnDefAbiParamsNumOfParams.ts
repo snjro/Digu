@@ -1,9 +1,9 @@
 import {
   AbstractCellRenderer,
   cellRendererFactory,
-} from "$lib/grid/cellRenderFactory";
-import type { ColumnDef } from "$lib/grid/types";
-import AbiParamsNumberButton from "$lib/contracts/abiParams/AbiParamsNumberButton.svelte";
+} from "#lib/grid/cellRenderFactory.js";
+import type { ColumnDef } from "#lib/grid/types.js";
+import AbiParamsNumberButton from "#lib/contracts/abiParams/AbiParamsNumberButton.svelte";
 import { capitalizeFirstLetter } from "@utils/utilsCommon";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import { cellAlign } from "./cellStyles";

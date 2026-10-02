@@ -1,5 +1,5 @@
-import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+import type { ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 
 export function getFrontColorCategory(
   isSelected: boolean,

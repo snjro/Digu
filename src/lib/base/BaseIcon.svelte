@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
   import classNames from "classnames";
   import { iconNames, type BaseIconProps } from "./BaseIcon";
   import type { BaseSize } from "./baseSizes";

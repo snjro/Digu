@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { type ColorDefinitionForParts } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { type ColorDefinitionForParts } from "#lib/appearanceConfig/color/colorDefinitions.js";
   import classNames from "classnames";
   import { radioSizes } from "./BaseRadio.svelte";
   import type { BaseSize } from "./baseSizes";
-  import { base } from "$app/paths";
+  import { basePath } from "#lib/common/basePath.js";
 
   interface Props {
     size?: BaseSize;
@@ -48,17 +48,17 @@
     if (indeterminate) {
       return {
         backgroundColor: "bg-yellow-500",
-        checkboxImageFile: `${base}/checkboxIndeterminate.svg`,
+        checkboxImageFile: `${basePath}/checkboxIndeterminate.svg`,
       };
     } else if (checked) {
       return {
         backgroundColor: colorClasses["success"].bg,
-        checkboxImageFile: `${base}/checkboxChecked.svg`,
+        checkboxImageFile: `${basePath}/checkboxChecked.svg`,
       };
     } else {
       return {
         backgroundColor: colorClasses["error"].bg,
-        checkboxImageFile: `${base}/checkboxCross.svg`,
+        checkboxImageFile: `${basePath}/checkboxCross.svg`,
       };
     }
   });

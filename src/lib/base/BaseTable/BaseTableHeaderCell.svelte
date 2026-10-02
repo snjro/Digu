@@ -12,8 +12,8 @@
 </script>
 
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
   import classNames from "classnames";
   import BaseLabel from "../BaseLabel.svelte";
   import type { BaseSize } from "../baseSizes";

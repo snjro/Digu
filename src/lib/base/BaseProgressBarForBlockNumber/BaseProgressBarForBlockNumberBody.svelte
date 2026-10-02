@@ -3,9 +3,9 @@
     colorClasses,
     colorVar,
     dotsImageVar,
-  } from "$lib/appearanceConfig/color/colorVariables";
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { baseTextHeight, type BaseSize } from "$lib/base/baseSizes";
+  } from "#lib/appearanceConfig/color/colorVariables.js";
+  import type { ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import { baseTextHeight, type BaseSize } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
 
   import BaseProgressBarForBlockNumberBodyBar from "./BaseProgressBarForBlockNumberBodyBar.svelte";

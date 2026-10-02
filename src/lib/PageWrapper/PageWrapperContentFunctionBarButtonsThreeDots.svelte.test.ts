@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
-import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 import PageWrapperContentFunctionBarButtonsThreeDots from "./PageWrapperContentFunctionBarButtonsThreeDots.svelte";
 
 function renderThreeDots() {

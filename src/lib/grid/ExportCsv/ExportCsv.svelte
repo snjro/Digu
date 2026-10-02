@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  import { openDialog } from "$lib/base/BaseDialog/BaseDialogHandler";
+  import { openDialog } from "#lib/base/BaseDialog/BaseDialogHandler.js";
 
   export function openDialogExportCsv(
     dialogElement: HTMLDialogElement | undefined,
@@ -23,22 +23,22 @@
 
 <script lang="ts" generics="GridRow">
   import { page } from "$app/state";
-  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
+  import PageWrapperContent from "#lib/PageWrapper/PageWrapperContent.svelte";
   // Named apart from the snippet PageWrapperContentFooter of PageWrapperContent.
   import PageWrapperContentFooterComponent, {
     type PageWrapperContentFooterDefinition,
-  } from "$lib/PageWrapper/PageWrapperContentFooter.svelte";
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseDialog from "$lib/base/BaseDialog/BaseDialog.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  } from "#lib/PageWrapper/PageWrapperContentFooter.svelte";
+  import type { ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseDialog from "#lib/base/BaseDialog/BaseDialog.svelte";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
   import BaseRadio, {
     type RadioLabelAndValues,
-  } from "$lib/base/BaseRadio.svelte";
-  import { copyTextToClipboard } from "$lib/common/clipboard";
-  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
-  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
+  } from "#lib/base/BaseRadio.svelte";
+  import { copyTextToClipboard } from "#lib/common/clipboard.js";
+  import CommonItemGroup from "#lib/common/CommonItemGroup.svelte";
+  import CommonItemMember from "#lib/common/CommonItemMember.svelte";
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { getExportFileName, type ExportFilePrefix } from "@utils/utilsFile";
   import type { GridApi } from "ag-grid-community";

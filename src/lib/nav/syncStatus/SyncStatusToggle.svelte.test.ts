@@ -15,7 +15,7 @@ import { storeSyncLockedByOtherTab } from "@eventLogs/syncLock";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeUserSettings } from "@stores/storeUserSettings";
-import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,

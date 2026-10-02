@@ -2,7 +2,7 @@
   import {
     breakPointWidthThresholds,
     breakPointWidths,
-  } from "$lib/appearanceConfig/size/sizeDefinitions";
+  } from "#lib/appearanceConfig/size/sizeDefinitions.js";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";

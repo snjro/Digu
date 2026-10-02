@@ -1,7 +1,7 @@
-import type { ColumnDef } from "$lib/grid/types";
-import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
-import { columnDefAbiParams } from "$lib/gridColumnDefs/columnDefAbiParams";
-import { columnDefStateMutability } from "$lib/gridColumnDefs/columnDefStateMutability";
+import type { ColumnDef } from "#lib/grid/types.js";
+import type { ContractRow } from "#lib/gridColumnDefs/rowTypes.js";
+import { columnDefAbiParams } from "#lib/gridColumnDefs/columnDefAbiParams.js";
+import { columnDefStateMutability } from "#lib/gridColumnDefs/columnDefStateMutability.js";
 
 export const columnDefsConstructor = <T extends ContractRow>(
   maxLengthOfConstructorInputsParams: number,

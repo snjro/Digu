@@ -3,8 +3,8 @@
 </script>
 
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import classNames from "classnames";
   import ButtonAccordionHandler from "./ButtonAccordionHandler.svelte";
   import ButtonClose from "./ButtonClose.svelte";

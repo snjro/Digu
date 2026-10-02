@@ -16,8 +16,8 @@ import { installFakeLockManager } from "../testUtils/fakeLockManager";
 import { initialize } from "./initialize";
 import { watchRpcSettings } from "./watchRpcSettings";
 
-vi.mock("$app/environment", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("$app/environment")>()),
+vi.mock("$app/env", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("$app/env")>()),
   browser: true,
 }));
 // Runs the Worker jobs in the page.

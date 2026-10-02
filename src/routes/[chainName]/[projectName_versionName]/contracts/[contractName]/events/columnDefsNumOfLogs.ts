@@ -1,15 +1,15 @@
 import {
   AbstractCellRenderer,
   cellRendererFactory,
-} from "$lib/grid/cellRenderFactory";
-import type { ColumnDef } from "$lib/grid/types";
+} from "#lib/grid/cellRenderFactory.js";
+import type { ColumnDef } from "#lib/grid/types.js";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import type { ContractIdentifier } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { get } from "svelte/store";
-import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
+import type { EventRow } from "#lib/gridColumnDefs/rowTypes.js";
 import type { AbiFragmentName } from "@constants/chains/types";
-import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
+import { cellAlign } from "#lib/gridColumnDefs/cellStyles.js";
 import GridCellNumOfLogs from "./GridCellNumOfLogs.svelte";
 
 export const columnDefsNumOfLogs = <T extends EventRow>(

@@ -6,8 +6,8 @@
 <script lang="ts">
   import BaseButtonIcon, {
     type SimplifiedButtonDefinition,
-  } from "$lib/base/BaseButtonIcon.svelte";
-  import { buttonHeight } from "$lib/base/baseSizes";
+  } from "#lib/base/BaseButtonIcon.svelte";
+  import { buttonHeight } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
   import type { PageWrapperContentFooterDefinition } from "./PageWrapperContentFooter.svelte";
 

@@ -1,9 +1,9 @@
 import {
   cellRendererFactory,
   type AbstractCellRenderer,
-} from "$lib/grid/cellRenderFactory";
-import type { ColumnDef } from "$lib/grid/types";
-import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
+} from "#lib/grid/cellRenderFactory.js";
+import type { ColumnDef } from "#lib/grid/types.js";
+import CommonChainExplorerLink from "#lib/common/CommonChainExplorerLink.svelte";
 import type { EventAbiFragment } from "@constants/chains/types";
 import type {
   ICellRendererParams,
@@ -17,8 +17,8 @@ import {
   convertJsDateToIso8601,
   convertJsDateToTimestampSec,
 } from "@utils/utilsTime";
-import { columnDefChainExplorerLinkByKeyName } from "$lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName";
-import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+import { columnDefChainExplorerLinkByKeyName } from "#lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName.js";
+import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 const cellClass: string = classNames("");
 const sortable = true;
 const editable = false;

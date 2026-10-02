@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseA from "$lib/base/BaseA.svelte";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseA from "#lib/base/BaseA.svelte";
+  import BaseButtonIcon from "#lib/base/BaseButtonIcon.svelte";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
   import type { CrumbItem } from "./crumbs";
   import BreadcrumbItemSeparator from "./BreadcrumbItemSeparator.svelte";

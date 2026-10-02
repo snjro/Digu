@@ -2,10 +2,10 @@ import {
   TAB_VALUES_CONTRACT,
   TAB_VALUES_EVENT,
   TAB_VALUES_FUNCTION,
-} from "$lib/PageWrapper/tabs";
-import type { BaseIconProps } from "$lib/base/BaseIcon";
-import { getChainRootUrl } from "$lib/common/chainRootUrl";
-import { getSplittedFunctionNameAndSelector } from "$lib/leftSidebar/Body/functionNameHandler";
+} from "#lib/PageWrapper/tabs.js";
+import type { BaseIconProps } from "#lib/base/BaseIcon.js";
+import { getChainRootUrl } from "#lib/common/chainRootUrl.js";
+import { getSplittedFunctionNameAndSelector } from "#lib/leftSidebar/Body/functionNameHandler.js";
 import { convertToKebabCase } from "@utils/utilsCommon";
 import {
   DIR_NAME_CONTRACTS,

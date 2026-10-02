@@ -1,4 +1,4 @@
-import { browser } from "$app/environment";
+import { browser } from "$app/env";
 import { error } from "@sveltejs/kit";
 import { initialize } from "../initialization/initialize";
 import "../app.css";
@@ -13,7 +13,7 @@ export const ssr = false;
 export const csr = true;
 export const prerender = true;
 
-export { trailingSlash } from "$lib/common/trailingSlash";
+export { trailingSlash } from "#lib/common/trailingSlash.js";
 
 export async function load(): Promise<void> {
   if (browser) {

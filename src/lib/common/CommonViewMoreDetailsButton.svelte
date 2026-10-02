@@ -1,6 +1,6 @@
 <script lang="ts">
-  import BaseButton from "$lib/base/BaseButton.svelte";
-  import { buttonHeight, type BaseSize } from "$lib/base/baseSizes";
+  import BaseButton from "#lib/base/BaseButton.svelte";
+  import { buttonHeight, type BaseSize } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
   interface Props {
     size: BaseSize;

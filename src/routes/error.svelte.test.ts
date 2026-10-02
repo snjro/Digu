@@ -27,12 +27,12 @@ vi.mock("$app/state", async () => {
   };
 });
 // The base path when the app is served under /Digu/.
-vi.mock("$app/paths", () => ({ base: "/Digu" }));
+vi.mock("#lib/common/basePath.js", () => ({ basePath: "/Digu" }));
 
 describe("+error.svelte", () => {
   beforeEach(() => {
     page.status = 404;
-    page.error = { message: "chain not found: foo" };
+    page.error = { status: 404, message: "chain not found: foo" };
   });
 
   test("links HOME to the root of the app", () => {
@@ -48,7 +48,7 @@ describe("+error.svelte", () => {
     expect(screen.getByText("chain not found: foo")).toBeTruthy();
 
     page.status = 500;
-    page.error = { message: "Digu needs the browser storage" };
+    page.error = { status: 500, message: "Digu needs the browser storage" };
     flushSync();
     expect(screen.getByText("500")).toBeTruthy();
     expect(screen.getByText("Digu needs the browser storage")).toBeTruthy();

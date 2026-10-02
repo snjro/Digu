@@ -1,6 +1,6 @@
-import { getFunctionSelectorWithSplitter } from "$lib/leftSidebar/Body/functionNameHandler";
+import { getFunctionSelectorWithSplitter } from "#lib/leftSidebar/Body/functionNameHandler.js";
 import type { FunctionAbiFragment } from "@constants/chains/types";
-import type { FunctionRow } from "$lib/gridColumnDefs/rowTypes";
+import type { FunctionRow } from "#lib/gridColumnDefs/rowTypes.js";
 
 export const gridRows = (
   targetFunctionAbiFragments: FunctionAbiFragment[],

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import { tick } from "svelte";
 import { render, screen } from "@testing-library/svelte";
 import BaseTableHeaderCell from "./BaseTableHeaderCell.svelte";
-import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { htmlSnippet, slotProps } from "../../../testUtils/snippets";

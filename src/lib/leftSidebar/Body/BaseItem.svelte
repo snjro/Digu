@@ -4,22 +4,22 @@
 </script>
 
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { browser } from "$app/environment";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { browser } from "$app/env";
   import { page } from "$app/state";
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import BaseButton, {
     type BaseButtonProps,
-  } from "$lib/base/BaseButton.svelte";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  } from "#lib/base/BaseButton.svelte";
+  import BaseButtonIcon from "#lib/base/BaseButtonIcon.svelte";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
   import {
     buttonHeight,
     leftSideBarItemHeight,
     type BaseSize,
-  } from "$lib/base/baseSizes";
+  } from "#lib/base/baseSizes.js";
   import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
   import classNames from "classnames";
   import {

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import classNames from "classnames";
   import BaseButtonIcon from "../BaseButtonIcon.svelte";
   import type { BaseIconProps } from "../BaseIcon";

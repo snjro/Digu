@@ -1,6 +1,6 @@
 <script lang="ts">
-  import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import CommonChainExplorerLink from "#lib/common/CommonChainExplorerLink.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
   interface Props {
     textSize: BaseSize;
     blocknumber: number;

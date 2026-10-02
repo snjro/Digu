@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { zIndex } from "$lib/appearanceConfig/zIndex";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { zIndex } from "#lib/appearanceConfig/zIndex.js";
   import {
     storeNoDbSnackBar,
     storeNoDbSnackBarInitialValue,

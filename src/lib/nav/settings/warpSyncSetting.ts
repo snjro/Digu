@@ -1,4 +1,4 @@
-import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import type { Chain } from "@constants/chains/types";
 import { updateDbItemRpcSettings } from "@db/dbSettings";
 import { storeNoDbSnackBar } from "@stores/storeNoDb";

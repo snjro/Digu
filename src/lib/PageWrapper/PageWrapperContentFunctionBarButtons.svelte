@@ -15,15 +15,15 @@
 </script>
 
 <script lang="ts">
-  import type { PageWrapperContentFunctionBarDefinition } from "$lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
-  import PageWrapperContentFunctionBarButtonsThreeDots from "$lib/PageWrapper/PageWrapperContentFunctionBarButtonsThreeDots.svelte";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
+  import type { PageWrapperContentFunctionBarDefinition } from "#lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
+  import PageWrapperContentFunctionBarButtonsThreeDots from "#lib/PageWrapper/PageWrapperContentFunctionBarButtonsThreeDots.svelte";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js";
   import BaseButtonIcon, {
     type SimplifiedButtonDefinition,
-  } from "$lib/base/BaseButtonIcon.svelte";
-  import BaseDividerVertical from "$lib/base/BaseDividerVertical.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  } from "#lib/base/BaseButtonIcon.svelte";
+  import BaseDividerVertical from "#lib/base/BaseDividerVertical.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";

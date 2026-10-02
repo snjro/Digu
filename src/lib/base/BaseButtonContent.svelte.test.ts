@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/svelte";
-import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 import BaseButtonContent from "./BaseButtonContent.svelte";
 import { baseTextSizes } from "./baseSizes";
 import { htmlSnippet, slotProps } from "../../testUtils/snippets";

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
   import BaseAccordionChildren from "./BaseAccordionChildren.svelte";

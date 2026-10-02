@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
   import type { BaseIconProps } from "../BaseIcon";

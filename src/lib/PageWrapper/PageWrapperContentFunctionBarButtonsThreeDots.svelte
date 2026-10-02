@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import type { PageWrapperContentFunctionBarButtonsDefinition } from "$lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { zIndex } from "$lib/appearanceConfig/zIndex";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import BaseDividerHorizontal from "$lib/base/BaseDividerHorizontal.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import type { PageWrapperContentFunctionBarButtonsDefinition } from "#lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import { zIndex } from "#lib/appearanceConfig/zIndex.js";
+  import BaseButtonIcon from "#lib/base/BaseButtonIcon.svelte";
+  import BaseDividerHorizontal from "#lib/base/BaseDividerHorizontal.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
 
   interface Props {

@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import BaseIcon from "$lib/base/BaseIcon.svelte";
-  import BaseInput from "$lib/base/BaseInput.svelte";
-  import { changeSize } from "$lib/base/baseSizes";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseButtonIcon from "#lib/base/BaseButtonIcon.svelte";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
+  import BaseIcon from "#lib/base/BaseIcon.svelte";
+  import BaseInput from "#lib/base/BaseInput.svelte";
+  import { changeSize } from "#lib/base/baseSizes.js";
   import type { Chain } from "@constants/chains/types";
   import type { NodeStatus, RpcInputType } from "@db/dbTypes";
-  import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+  import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
@@ -19,7 +19,7 @@
   import classNames from "classnames";
   import { untrack } from "svelte";
   import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
-  import type { HelperTextState } from "$lib/base/helperTextState";
+  import type { HelperTextState } from "#lib/base/helperTextState.js";
   import {
     blurOnEnter,
     clearSucceededNodeStatus,

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
   import type { Snippet } from "svelte";
   import classNames from "classnames";
   import { baseTextSizes, type BaseSize } from "./baseSizes";

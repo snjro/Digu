@@ -6,12 +6,12 @@
 </script>
 
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import BaseIcon from "$lib/base/BaseIcon.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
+  import BaseIcon from "#lib/base/BaseIcon.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
   import type { HoverType } from "./BaseAccordionHeader.svelte";
   import { leftSidebarItemRoundedStyle } from "./BaseItem.svelte";

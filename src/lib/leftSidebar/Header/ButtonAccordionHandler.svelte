@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { BaseButtonProps } from "$lib/base/BaseButton.svelte";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import type { BaseButtonProps } from "#lib/base/BaseButton.svelte";
+  import BaseButtonIcon from "#lib/base/BaseButtonIcon.svelte";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
   import {
     storeNoDbOpenLeftSidebarAccordion,
     type OpenStateLeftSidebarAccordion,

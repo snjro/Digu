@@ -2,14 +2,14 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import CommonCopyButton from "./CommonCopyButton.svelte";
-import type { BaseSnackbarProps } from "$lib/base/snackbarProps";
-import { copyTextToClipboard } from "$lib/common/clipboard";
+import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
+import { copyTextToClipboard } from "#lib/common/clipboard.js";
 import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
 } from "@stores/storeNoDb";
 
-vi.mock("$lib/common/clipboard", () => ({ copyTextToClipboard: vi.fn() }));
+vi.mock("#lib/common/clipboard.js", () => ({ copyTextToClipboard: vi.fn() }));
 
 const copyFailed: BaseSnackbarProps = {
   visible: true,

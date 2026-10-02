@@ -1,6 +1,6 @@
 <script lang="ts">
-  import BaseA, { type BaseAProps } from "$lib/base/BaseA.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import BaseA, { type BaseAProps } from "#lib/base/BaseA.svelte";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
   import classNames from "classnames";
 
   interface Props {

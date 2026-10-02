@@ -1,9 +1,10 @@
-// svelte.config.js fails to load under happy-dom, whose URL has no file scheme.
+// vite.config.ts fails to load under happy-dom, whose URL has no file scheme.
 // @vitest-environment node
+import { loadConfig } from "@sveltejs/load-config";
+import { fileURLToPath } from "url";
 import { describe, expect, test } from "vitest";
-import config from "../../../svelte.config.js";
 import { TARGET_CHAINS } from "./_index";
-import { getAbiFragmentHref } from "$lib/leftSidebar/Body/functionNameHandler";
+import { getAbiFragmentHref } from "#lib/leftSidebar/Body/functionNameHandler.js";
 import {
   DIR_NAME_CONTRACTS,
   DIR_NAME_EVENTS,
@@ -44,8 +45,18 @@ function getExpectedEntries(): string[] {
   return [...new Set(entries)].sort();
 }
 
-describe("prerender entries in svelte.config.js", () => {
-  const actualEntries: string[] = config.kit?.prerender?.entries ?? [];
+const loaded = await loadConfig(
+  fileURLToPath(new URL("../../../vite.config.ts", import.meta.url)),
+);
+if (!loaded || !("config" in loaded)) {
+  throw new Error("vite.config.ts could not be loaded", {
+    cause: loaded?.error,
+  });
+}
+const prerender = loaded.config.prerender as { entries?: string[] } | undefined;
+
+describe("prerender entries in vite.config.ts", () => {
+  const actualEntries: string[] = prerender?.entries ?? [];
   const expectedEntries: string[] = getExpectedEntries();
 
   test("has no duplicates", () => {

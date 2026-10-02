@@ -1,7 +1,7 @@
-import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
-import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js";
+import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import { updateDbItemUserSettings } from "@db/dbSettings";
-import { trailingSlash } from "$lib/common/trailingSlash";
+import { trailingSlash } from "#lib/common/trailingSlash.js";
 import { storeNoDbCurrentWidth, storeNoDbSnackBar } from "@stores/storeNoDb";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { customLogger } from "@utils/logger";

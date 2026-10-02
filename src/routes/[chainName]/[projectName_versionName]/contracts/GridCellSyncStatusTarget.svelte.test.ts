@@ -18,7 +18,7 @@ vi.mock("@stores/storeSyncStatus", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncStatus: writable({}) };
 });
-vi.mock("$lib/common/toggleSyncTarget", () => ({
+vi.mock("#lib/common/toggleSyncTarget.js", () => ({
   toggleIsSyncTarget: vi.fn(),
 }));
 

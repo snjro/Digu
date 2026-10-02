@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseButton from "$lib/base/BaseButton.svelte";
-  import BaseCheckbox from "$lib/base/BaseCheckbox.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseButton from "#lib/base/BaseButton.svelte";
+  import BaseCheckbox from "#lib/base/BaseCheckbox.svelte";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import CommonItemMember from "#lib/common/CommonItemMember.svelte";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import { getTargetChain } from "@utils/utilsDb";

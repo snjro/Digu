@@ -18,10 +18,10 @@
 </script>
 
 <script lang="ts">
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import type { ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
   import type { SyncStateText } from "@db/dbTypes";
   import classNames from "classnames";
 

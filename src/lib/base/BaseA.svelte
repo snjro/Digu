@@ -27,8 +27,8 @@
 </script>
 
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
   import type { Snippet } from "svelte";
   import { NO_DATA } from "@utils/utilsConstants";
   import classNames from "classnames";

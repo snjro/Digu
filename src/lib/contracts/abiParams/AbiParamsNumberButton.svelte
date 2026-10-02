@@ -1,12 +1,12 @@
 <script lang="ts">
-  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseButton from "$lib/base/BaseButton.svelte";
-  import BaseDialog from "$lib/base/BaseDialog/BaseDialog.svelte";
-  import { openDialog } from "$lib/base/BaseDialog/BaseDialogHandler";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import PageWrapperContent from "#lib/PageWrapper/PageWrapperContent.svelte";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseButton from "#lib/base/BaseButton.svelte";
+  import BaseDialog from "#lib/base/BaseDialog/BaseDialog.svelte";
+  import { openDialog } from "#lib/base/BaseDialog/BaseDialogHandler.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
   import AbiParamsTable, {
     type CommonAbiParamsTableProps,
   } from "./AbiParamsTable.svelte";

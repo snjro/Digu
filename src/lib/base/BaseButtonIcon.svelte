@@ -9,12 +9,12 @@
 </script>
 
 <script lang="ts">
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+  import type { ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
   import BaseButton, {
     type BaseButtonProps,
-  } from "$lib/base/BaseButton.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import BaseIcon from "$lib/base/BaseIcon.svelte";
+  } from "#lib/base/BaseButton.svelte";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
+  import BaseIcon from "#lib/base/BaseIcon.svelte";
 
   interface Props {
     label?: BaseButtonProps["label"];

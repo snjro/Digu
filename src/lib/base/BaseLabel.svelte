@@ -24,9 +24,9 @@
 </script>
 
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import CommonCopyButton from "$lib/common/CommonCopyButton.svelte";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import CommonCopyButton from "#lib/common/CommonCopyButton.svelte";
   import { NO_DATA } from "@utils/utilsConstants";
   import classNames from "classnames";
   import { twMerge } from "tailwind-merge";

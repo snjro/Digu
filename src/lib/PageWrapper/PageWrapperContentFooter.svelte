@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
   import type { PageWrapperContentFooterButtonsDefinition } from "./PageWrapperContentFooterButtons.svelte";

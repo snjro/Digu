@@ -1,16 +1,16 @@
 <script lang="ts">
-  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseButton from "$lib/base/BaseButton.svelte";
-  import BaseDialog from "$lib/base/BaseDialog/BaseDialog.svelte";
+  import PageWrapperContent from "#lib/PageWrapper/PageWrapperContent.svelte";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseButton from "#lib/base/BaseButton.svelte";
+  import BaseDialog from "#lib/base/BaseDialog/BaseDialog.svelte";
   import {
     closeDialog,
     openDialog,
-  } from "$lib/base/BaseDialog/BaseDialogHandler";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import type { BaseSnackbarProps } from "$lib/base/snackbarProps";
-  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
+  } from "#lib/base/BaseDialog/BaseDialogHandler.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
+  import CommonItemMember from "#lib/common/CommonItemMember.svelte";
   import type { Chain, ChainName } from "@constants/chains/types";
   import { storeSyncLockedByOtherTab } from "@eventLogs/syncLock";
   import { resetSyncedData, type SyncResetOutcome } from "@eventLogs/syncReset";

@@ -20,7 +20,7 @@ vi.mock("@stores/storeSyncStatus", async () => {
   return { storeSyncStatus: writable({}) };
 });
 vi.mock("./gridRows", () => ({ gridRows: vi.fn() }));
-vi.mock("$lib/common/CommonChainExplorerLink.svelte", async () => {
+vi.mock("#lib/common/CommonChainExplorerLink.svelte", async () => {
   const { default: Stub } =
     await import("../../functions/[functionName]/pageTabs.testStub.svelte");
   return {
@@ -37,7 +37,7 @@ function columnDefsId(columnDefs: object): number {
   }
   return columnDefsIds.get(columnDefs)!;
 }
-vi.mock("$lib/grid/BaseGrid.svelte", async () => {
+vi.mock("#lib/grid/BaseGrid.svelte", async () => {
   const { default: Stub } =
     await import("../../functions/[functionName]/pageTabs.testStub.svelte");
   return {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { LoadChainData } from "./+page";
-  import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
+  import PageWrapper from "#lib/PageWrapper/PageWrapper.svelte";
   import ChainOverview from "./ChainOverview.svelte";
 
   interface Props {

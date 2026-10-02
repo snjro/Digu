@@ -2,29 +2,29 @@
   lang="ts"
   generics=" TabsDefinition extends  TabsDefinitionContract|TabsDefinitionEvent|TabsDefinitionFunction"
 >
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
   import { goto } from "$app/navigation";
   import { navigating, page } from "$app/state";
   import PageWrapperTitle, {
     type PageWrapperTitleProps,
-  } from "$lib/PageWrapper/PageWrapperTitle.svelte";
+  } from "#lib/PageWrapper/PageWrapperTitle.svelte";
   import {
     convertTabValueForHref,
     type TabsDefinitionContract,
     type TabsDefinitionEvent,
     type TabsDefinitionFunction,
-  } from "$lib/PageWrapper/tabs";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  } from "#lib/PageWrapper/tabs.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import {
     breakPointWidths,
     type BreakPointWidthKey,
-  } from "$lib/appearanceConfig/size/sizeDefinitions";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { zIndex } from "$lib/appearanceConfig/zIndex";
+  } from "#lib/appearanceConfig/size/sizeDefinitions.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import { zIndex } from "#lib/appearanceConfig/zIndex.js";
   import BaseRadio, {
     type RadioLabelAndValues,
-  } from "$lib/base/BaseRadio.svelte";
-  import type { EventLogType } from "$lib/contracts/eventLogType";
+  } from "#lib/base/BaseRadio.svelte";
+  import type { EventLogType } from "#lib/contracts/eventLogType.js";
   import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
@@ -125,7 +125,7 @@
             `${page.url.pathname}${convertTabValueForHref(
               tabsDefinition.selected,
             )}`,
-            { replaceState: true },
+            { replace: true },
           );
         }
       }

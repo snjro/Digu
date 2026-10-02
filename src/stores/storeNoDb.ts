@@ -1,4 +1,4 @@
-import type { BaseSnackbarProps } from "$lib/base/snackbarProps";
+import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
 import { getScreenWidth } from "@utils/utilsDom";
 import { writable, type Writable } from "svelte/store";
 export type OpenStateLeftSidebarAccordion =

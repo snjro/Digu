@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import BaseButtonIcon from "$lib/base/BaseButtonIcon.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
-  import { copyTextToClipboard } from "$lib/common/clipboard";
+  import type { ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import BaseButtonIcon from "#lib/base/BaseButtonIcon.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
+  import { copyTextToClipboard } from "#lib/common/clipboard.js";
   import { storeNoDbSnackBar } from "@stores/storeNoDb";
 
   interface Props {
