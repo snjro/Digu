@@ -1,5 +1,5 @@
-import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-import { colorVar } from "$lib/appearanceConfig/color/colorVariables";
+import type { ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+import { colorVar } from "#lib/appearanceConfig/color/colorVariables.js";
 export function getColorDefinitionsForGrid(
   colorCategoryGridHeader: ColorCategory,
   colorCategoryGridRow: ColorCategory,

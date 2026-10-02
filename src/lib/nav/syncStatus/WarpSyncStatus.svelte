@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseButton from "$lib/base/BaseButton.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseButton from "#lib/base/BaseButton.svelte";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import {
     selectWarpSyncState,

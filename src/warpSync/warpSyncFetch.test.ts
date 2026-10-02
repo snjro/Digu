@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import type { Chain } from "@constants/chains/types";
 import { fetchWarpSyncManifest, getWarpSyncFileUrl } from "./warpSyncFetch";
 
-vi.mock("$app/paths", () => ({ base: "/Digu" }));
+vi.mock("#lib/common/basePath.js", () => ({ basePath: "/Digu" }));
 
 const chain = { name: "matic", chainId: 137 } as Chain;
 const fetchMock = vi.fn();

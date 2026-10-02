@@ -1,17 +1,17 @@
-import BaseA from "$lib/base/BaseA.svelte";
+import BaseA from "#lib/base/BaseA.svelte";
 import {
   cellRendererFactory,
   type AbstractCellRenderer,
-} from "$lib/grid/cellRenderFactory";
-import type { ColumnDef } from "$lib/grid/types";
-import BaseLabel from "$lib/base/BaseLabel.svelte";
+} from "#lib/grid/cellRenderFactory.js";
+import type { ColumnDef } from "#lib/grid/types.js";
+import BaseLabel from "#lib/base/BaseLabel.svelte";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import classNames from "classnames";
-import type { FunctionRow } from "$lib/gridColumnDefs/rowTypes";
-import { columnDefStateMutability } from "$lib/gridColumnDefs/columnDefStateMutability";
-import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-import type { BaseSize } from "$lib/base/baseSizes";
-import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
+import type { FunctionRow } from "#lib/gridColumnDefs/rowTypes.js";
+import { columnDefStateMutability } from "#lib/gridColumnDefs/columnDefStateMutability.js";
+import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+import type { BaseSize } from "#lib/base/baseSizes.js";
+import { getFirstTabUrlHash } from "#lib/PageWrapper/tabs.js";
 
 const cellClass: string = classNames("");
 const sortable = true;

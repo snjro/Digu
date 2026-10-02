@@ -6,7 +6,7 @@ import type {
   SortComparatorFn,
   ValueGetterParams,
 } from "ag-grid-community";
-import type { ColumnDef } from "$lib/grid/types";
+import type { ColumnDef } from "#lib/grid/types.js";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type {
   Chain,
@@ -17,14 +17,14 @@ import type {
 import type { SyncStatusContract } from "@db/dbTypes";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
-import { syncTargetLabelText } from "$lib/common/syncTargetStatus";
+import { syncTargetLabelText } from "#lib/common/syncTargetStatus.js";
 import { extractEventContracts } from "@utils/utilsEthers";
 import { trackStoreSubscriptions } from "@utils/testCommon";
 import { columnDefsSyncStatusBlockNumber } from "./columnDefsSyncStatusBlockNumber";
 import { columnDefsSyncstatusCurrentState } from "./columnDefsSyncStatusCurrentState";
 import { columnDefsSyncstatusProgressBar } from "./columnDefsSyncStatusProgressBar";
 import { columnDefsSyncStatusTarget } from "./columnDefsSyncStatusTarget";
-import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
+import type { ContractRow } from "#lib/gridColumnDefs/rowTypes.js";
 
 const targetChain: Chain = TARGET_CHAINS[0];
 const targetProject: Project = targetChain.projects[0];

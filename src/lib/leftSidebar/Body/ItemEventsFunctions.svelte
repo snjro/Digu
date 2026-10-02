@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import type {
     EventAbiFragment,
     FunctionAbiFragment,
   } from "@constants/chains/types";
-  import type { AbiFragmentsType } from "$lib/contracts/abiFragmentsType";
+  import type { AbiFragmentsType } from "#lib/contracts/abiFragmentsType.js";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
   import BaseAccordion from "./BaseAccordion.svelte";
   import ItemEventsFunctionsMember from "./ItemEventsFunctionsMember.svelte";

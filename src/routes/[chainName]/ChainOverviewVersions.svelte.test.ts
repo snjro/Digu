@@ -34,7 +34,7 @@ vi.mock("@utils/utilsEthers", () => ({
   hasSyncTargetEvents: (contract: Contract): boolean =>
     contract.events.names.length > 0,
 }));
-vi.mock("$lib/common/toggleSyncTarget", () => ({
+vi.mock("#lib/common/toggleSyncTarget.js", () => ({
   toggleIsSyncTarget: vi.fn(),
 }));
 

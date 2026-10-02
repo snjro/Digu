@@ -10,10 +10,10 @@
 </script>
 
 <script lang="ts">
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseTable from "$lib/base/BaseTable/BaseTable.svelte";
-  import type { BaseTableBodyCellProps } from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseTable from "#lib/base/BaseTable/BaseTable.svelte";
+  import type { BaseTableBodyCellProps } from "#lib/base/BaseTable/BaseTableBodyCell.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
   import type {
     EventAbiFragment,
     FunctionAbiFragment,

@@ -7,7 +7,7 @@ import {
   storeNoDbSnackBarInitialValue,
   storeNodbShowLoader,
 } from "@stores/storeNoDb";
-import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import { customLogger } from "@utils/logger";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
@@ -20,7 +20,7 @@ const { selectProps } = vi.hoisted(() => ({
 }));
 
 vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
-vi.mock("$app/paths", () => ({ base: "" }));
+vi.mock("#lib/common/basePath.js", () => ({ basePath: "" }));
 vi.mock("./selectChain", () => ({ saveSelectedChainName: vi.fn() }));
 // The real chain data loads ethers, which does not load in the client project.
 vi.mock("@constants/chains/_index", () => ({
@@ -30,7 +30,7 @@ vi.mock("@constants/chains/_index", () => ({
   ],
 }));
 // Keeps the change handler, so that a test can wait for its promise.
-vi.mock("$lib/base/BaseSelect.svelte", async (importOriginal) => {
+vi.mock("#lib/base/BaseSelect.svelte", async (importOriginal) => {
   const { default: BaseSelect } = await importOriginal<{
     default: (anchor: unknown, props: unknown) => unknown;
   }>();

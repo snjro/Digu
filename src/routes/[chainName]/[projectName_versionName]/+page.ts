@@ -6,7 +6,7 @@ import {
   getTargetProject,
   getTargetVersion,
 } from "@utils/utilsDb";
-import { getSplitProjectVersionName } from "$lib/common/projectVersionNameHelper";
+import { getSplitProjectVersionName } from "#lib/common/projectVersionNameHelper.js";
 import { throwNotFoundAs404 } from "@routes/targetNotFound";
 
 export type LoadVersionData = {

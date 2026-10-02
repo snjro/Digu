@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { getProgressRate } from "$lib/base/BaseProgressBarForBlockNumber/progressRate";
-  import BaseProgressCircle from "$lib/base/BaseProgressCircle/BaseProgressCircle.svelte";
-  import BaseProgressCircleSyncStatus from "$lib/base/BaseProgressCircle/BaseProgressCircleSyncStatus.svelte";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
-  import type { SyncStateTextLabelProps } from "$lib/common/CommonSyncStateText.svelte";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import { getProgressRate } from "#lib/base/BaseProgressBarForBlockNumber/progressRate.js";
+  import BaseProgressCircle from "#lib/base/BaseProgressCircle/BaseProgressCircle.svelte";
+  import BaseProgressCircleSyncStatus from "#lib/base/BaseProgressCircle/BaseProgressCircleSyncStatus.svelte";
+  import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
+  import type { SyncStateTextLabelProps } from "#lib/common/CommonSyncStateText.svelte";
   import type { Chain, ChainName } from "@constants/chains/types";
   import type { SyncStateText } from "@db/dbTypes";
   import { storeChainStatus } from "@stores/storeChainStatus";

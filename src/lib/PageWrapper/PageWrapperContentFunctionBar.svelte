@@ -9,10 +9,10 @@
 </script>
 
 <script lang="ts">
-  import type { PageWrapperContentFunctionBarButtonsDefinition } from "$lib/PageWrapper//PageWrapperContentFunctionBarButtons.svelte";
-  import PageWrapperContentFunctionBarButtons from "$lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
-  import type { BreakPointWidthValue } from "$lib/appearanceConfig/size/sizeDefinitions";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import type { PageWrapperContentFunctionBarButtonsDefinition } from "#lib/PageWrapper//PageWrapperContentFunctionBarButtons.svelte";
+  import PageWrapperContentFunctionBarButtons from "#lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
+  import type { BreakPointWidthValue } from "#lib/appearanceConfig/size/sizeDefinitions.js";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
 

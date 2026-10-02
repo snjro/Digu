@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
   import { getProgressRateForLabel } from "./progressRate";
 

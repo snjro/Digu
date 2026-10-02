@@ -1,11 +1,11 @@
 import {
   cellRendererFactory,
   type AbstractCellRenderer,
-} from "$lib/grid/cellRenderFactory";
-import type { ColumnDef } from "$lib/grid/types";
+} from "#lib/grid/cellRenderFactory.js";
+import type { ColumnDef } from "#lib/grid/types.js";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
-import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
-import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
+import type { ContractRow } from "#lib/gridColumnDefs/rowTypes.js";
+import { cellAlign } from "#lib/gridColumnDefs/cellStyles.js";
 import type {
   Chain,
   ContractName,

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { colorVar } from "$lib/appearanceConfig/color/colorVariables";
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { colorVar } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
   import classNames from "classnames";
   import { spinnerSize, type BaseSize } from "./baseSizes";
 

@@ -1,8 +1,8 @@
-import { browser } from "$app/environment";
+import { browser } from "$app/env";
 import type { ChainName } from "@constants/chains/types";
 import { error, redirect } from "@sveltejs/kit";
-import { base } from "$app/paths";
-import { getChainRootUrl } from "$lib/common/chainRootUrl";
+import { basePath } from "#lib/common/basePath.js";
+import { getChainRootUrl } from "#lib/common/chainRootUrl.js";
 import { getDbItemUserSettings } from "@db/dbSettings";
 import { initialDataUserSettings } from "@db/dbTypes";
 
@@ -20,7 +20,7 @@ export async function load() {
     // In a load function, you should use "redirect" instead of "goto"
     // https://kit.svelte.jp/docs/load#redirects
     if (selectedChainName) {
-      throw redirect(308, getChainRootUrl(base, selectedChainName));
+      throw redirect(308, getChainRootUrl(basePath, selectedChainName));
     } else {
       throw error(404, "could not get a chain name");
     }

@@ -1,4 +1,4 @@
-import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+import type { ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
 import type { BaseSize } from "./baseSizes";
 export type BaseIconProps = {
   name: keyof typeof iconNames;

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
 

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
+  import PageWrapper from "#lib/PageWrapper/PageWrapper.svelte";
   import {
     TAB_VALUES_FUNCTION,
     type TabsDefinitionFunction,
-  } from "$lib/PageWrapper/tabs";
-  import AbiJsonViewer from "$lib/contracts/abiJson/AbiJsonViewer.svelte";
+  } from "#lib/PageWrapper/tabs.js";
+  import AbiJsonViewer from "#lib/contracts/abiJson/AbiJsonViewer.svelte";
   import type { LoadFunction } from "./+page";
   import FunctionOverview from "./FunctionOverview.svelte";
 

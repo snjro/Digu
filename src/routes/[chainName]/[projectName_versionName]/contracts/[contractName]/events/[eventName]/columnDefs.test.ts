@@ -10,9 +10,9 @@ import {
   type ValueFormatterParams,
   type ValueGetterParams,
 } from "ag-grid-community";
-import type { ColumnDef } from "$lib/grid/types";
-import { getColumnDefs } from "$lib/grid/GridBody/getColumnDefs";
-import { getCsvText } from "$lib/grid/ExportCsv/exportCsv";
+import type { ColumnDef } from "#lib/grid/types.js";
+import { getColumnDefs } from "#lib/grid/GridBody/getColumnDefs.js";
+import { getCsvText } from "#lib/grid/ExportCsv/exportCsv.js";
 import type { ConvertedEventLog } from "@db/dbTypes";
 import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
 

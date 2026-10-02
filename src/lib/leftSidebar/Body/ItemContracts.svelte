@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import type { Contract } from "@constants/chains/types";
   import { capitalizeFirstLetter } from "@utils/utilsCommon";
   import { DIR_NAME_CONTRACTS } from "@utils/utilsConstants";

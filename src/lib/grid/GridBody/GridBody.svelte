@@ -1,12 +1,12 @@
 <script lang="ts" generics="GridRow">
-  import BaseSpinner from "$lib/base/BaseSpinner.svelte";
+  import BaseSpinner from "#lib/base/BaseSpinner.svelte";
   import { setAutoColumnWidth } from "../gridColumns";
   import {
     AbstractOverlayRenderer,
     loadingOverlayRendererFactory,
   } from "./loadingOverlayRenderFactory";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import {
     type GridOptions,
     type GridApi,
@@ -33,7 +33,7 @@
   } from "ag-grid-community";
   import { onDestroy, onMount, untrack } from "svelte";
   import "./gridBodyStyle.css";
-  import { baseTextSizesPixel, type BaseSize } from "$lib/base/baseSizes";
+  import { baseTextSizesPixel, type BaseSize } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
   import type { ColumnDef } from "../types";
   import { getColorDefinitionsForGrid } from "./getColorDefs";

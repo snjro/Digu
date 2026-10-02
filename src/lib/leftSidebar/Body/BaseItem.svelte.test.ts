@@ -4,19 +4,19 @@ import { get } from "svelte/store";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { goto } from "$app/navigation";
 import BaseItem from "./BaseItem.svelte";
-import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 import { page } from "$app/state";
-import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
+import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js";
 import { updateDbItemUserSettings } from "@db/dbSettings";
 import {
   storeNoDbCurrentWidth,
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
 } from "@stores/storeNoDb";
-import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import { customLogger } from "@utils/logger";
 
 // page of $app/state is not a store. SvelteURL makes page.url reactive.
@@ -25,11 +25,11 @@ vi.mock("$app/state", async () => {
   return { page: { url: new SvelteURL("http://localhost/") } };
 });
 vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
-vi.mock("$app/environment", () => ({ browser: false }));
+vi.mock("$app/env", () => ({ browser: false }));
 vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
 
 const setPathname = (pathname: string): void => {
-  page.url.href = `http://localhost${pathname}`;
+  (page.url as URL).href = `http://localhost${pathname}`;
 };
 
 const initialWidth: number = get(storeNoDbCurrentWidth);

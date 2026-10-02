@@ -1,7 +1,7 @@
 <script lang="ts">
-  import BaseCheckbox from "$lib/base/BaseCheckbox.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
+  import BaseCheckbox from "#lib/base/BaseCheckbox.svelte";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
   import type {
     Chain,
     Contract,

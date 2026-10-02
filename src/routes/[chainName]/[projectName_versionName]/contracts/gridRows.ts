@@ -2,7 +2,7 @@ import type { Contract } from "@constants/chains/types";
 import { NO_DATA } from "@utils/utilsConstants";
 import { hasSyncTargetEvents } from "@utils/utilsEthers";
 import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
-import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
+import type { ContractRow } from "#lib/gridColumnDefs/rowTypes.js";
 
 export function gridRows(contracts: Contract[]): ContractRow[] {
   const contractRows: ContractRow[] = [];

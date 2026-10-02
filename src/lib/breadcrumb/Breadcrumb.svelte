@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { base } from "$app/paths";
+  import { basePath } from "#lib/common/basePath.js";
   import { page } from "$app/state";
-  import { getPageChainName } from "$lib/common/pageChainName";
-  import { trailingSlash } from "$lib/common/trailingSlash";
+  import { getPageChainName } from "#lib/common/pageChainName.js";
+  import { trailingSlash } from "#lib/common/trailingSlash.js";
   import { storeUserSettings } from "@stores/storeUserSettings";
   import classNames from "classnames";
   import BreadcrumbItems from "./BreadcrumbItems.svelte";
@@ -18,7 +18,7 @@
     return getCrumbItems(
       page.url.pathname,
       targetChainName,
-      base,
+      basePath,
       trailingSlash,
     );
   };

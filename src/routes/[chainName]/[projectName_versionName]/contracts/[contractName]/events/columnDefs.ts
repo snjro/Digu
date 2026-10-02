@@ -1,5 +1,5 @@
-import type { ColumnDef } from "$lib/grid/types";
-import type { EventRow } from "$lib/gridColumnDefs/rowTypes";
+import type { ColumnDef } from "#lib/grid/types.js";
+import type { EventRow } from "#lib/gridColumnDefs/rowTypes.js";
 import { columnDefsBasic } from "./columnDefsBasic";
 import { columnDefsInputs } from "./columnDefsInputs";
 import { columnDefsNumOfLogs } from "./columnDefsNumOfLogs";

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import CommonSyncStateText from "$lib/common/CommonSyncStateText.svelte";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import CommonSyncStateText from "#lib/common/CommonSyncStateText.svelte";
   import type {
     Chain,
     Contract,

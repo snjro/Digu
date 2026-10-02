@@ -1,11 +1,11 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import BaseA from "$lib/base/BaseA.svelte";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import BaseA from "#lib/base/BaseA.svelte";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
   import { storeUserSettings } from "@stores/storeUserSettings";
 
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import { changeSize } from "$lib/base/baseSizes";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import { changeSize } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
   import CommonCopyButton from "./CommonCopyButton.svelte";
   import { getPageChainName } from "./pageChainName";

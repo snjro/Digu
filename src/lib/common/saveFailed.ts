@@ -1,4 +1,4 @@
-import type { BaseSnackbarProps } from "$lib/base/snackbarProps";
+import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
 
 export const showSnackBarAsSaveFailed: BaseSnackbarProps = {
   visible: true,

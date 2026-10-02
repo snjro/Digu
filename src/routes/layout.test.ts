@@ -9,7 +9,7 @@ import { customLogger } from "@utils/logger";
 // storeNoDb reads "browser" when it is imported, before the tests run.
 const mockEnvironment = vi.hoisted(() => ({ browser: false }));
 
-vi.mock("$app/environment", () => mockEnvironment);
+vi.mock("$app/env", () => mockEnvironment);
 vi.mock("../initialization/initialize", () => ({ initialize: vi.fn() }));
 
 describe("load", () => {

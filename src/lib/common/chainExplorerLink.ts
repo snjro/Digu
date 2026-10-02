@@ -1,4 +1,4 @@
-import type { BaseAProps } from "$lib/base/BaseA.svelte";
+import type { BaseAProps } from "#lib/base/BaseA.svelte";
 import type { Chain, ChainExplorer, ChainName } from "@constants/chains/types";
 import { numberWithCommas } from "@utils/utilsCommon";
 import { getTargetChain } from "@utils/utilsDb";

@@ -1,6 +1,6 @@
 <script lang="ts">
   import classNames from "classnames";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
   import { changeSize, type BaseSize } from "../baseSizes";
   import { getProgressRateForLabel } from "../BaseProgressBarForBlockNumber/progressRate";
 

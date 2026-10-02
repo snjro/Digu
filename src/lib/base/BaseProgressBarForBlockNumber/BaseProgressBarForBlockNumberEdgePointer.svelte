@@ -1,7 +1,7 @@
 <script lang="ts">
   import classNames from "classnames";
-  import type { BaseSize } from "$lib/base/baseSizes";
-  import type { ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
+  import type { ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
   import BaseProgressBarForBlockNumberChainExplorerLink from "./BaseProgressBarForBlockNumberChainExplorerLink.svelte";
   import BaseProgressBarForBlockNumberPointer from "./BaseProgressBarForBlockNumberPointer.svelte";
   interface Props {

@@ -4,7 +4,19 @@ import svelte from "eslint-plugin-svelte";
 import { defineConfig } from "eslint/config";
 import globals from "globals";
 import ts from "typescript-eslint";
-import svelteConfig from "./svelte.config.js";
+import { loadConfig } from "@sveltejs/load-config";
+import { fileURLToPath } from "url";
+
+const loaded = await loadConfig(
+  fileURLToPath(new URL("vite.config.ts", import.meta.url)),
+);
+if (!loaded || !("config" in loaded) || loaded.configSource !== "vite") {
+  // Without Vite, load-config imports vite.config.ts as a Svelte config.
+  throw new Error("vite.config.ts could not be loaded through Vite", {
+    cause: loaded && "error" in loaded ? loaded.error : undefined,
+  });
+}
+const svelteConfig = loaded.config;
 
 export default defineConfig(
   {
@@ -34,7 +46,7 @@ export default defineConfig(
       // (chain explorers, GitHub), so resolve() cannot be used without reworking them.
       "svelte/no-navigation-without-resolve": "off",
       // ag-grid runs a string expression with new Function, which the Content
-      // Security Policy (kit.csp in svelte.config.js) blocks: no 'unsafe-eval'.
+      // Security Policy (csp in vite.config.ts) blocks: no 'unsafe-eval'.
       "no-restricted-syntax": [
         "error",
         {

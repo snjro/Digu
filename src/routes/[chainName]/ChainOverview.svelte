@@ -1,6 +1,6 @@
 <script lang="ts">
-  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
-  import CommonItemGroup from "$lib/common/CommonItemGroup.svelte";
+  import PageWrapperContent from "#lib/PageWrapper/PageWrapperContent.svelte";
+  import CommonItemGroup from "#lib/common/CommonItemGroup.svelte";
   import type { Chain } from "@constants/chains/types";
   import classNames from "classnames";
   import ChainOverviewVersions from "./ChainOverviewVersions.svelte";

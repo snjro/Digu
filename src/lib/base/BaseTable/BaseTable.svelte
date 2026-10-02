@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import {
     getScrollbarStyle,
     type ScrollbarStyle,
-  } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
+  } from "#lib/appearanceConfig/scrollbar/scrollbarSetting.js";
   import classNames from "classnames";
   import type { BaseSize } from "../baseSizes";
   import type { BaseTableHeaderCellProps } from "./BaseTableHeaderCell.svelte";

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import BaseProgressBarForBlockNumber from "$lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import BaseProgressBarForBlockNumber from "#lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
+  import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
   import type {
     Chain,
     Contract,

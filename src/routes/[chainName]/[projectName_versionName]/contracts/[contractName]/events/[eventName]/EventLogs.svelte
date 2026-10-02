@@ -6,14 +6,14 @@
 </script>
 
 <script lang="ts">
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseGrid from "$lib/grid/BaseGrid.svelte";
-  import type { ColumnDef } from "$lib/grid/types";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseGrid from "#lib/grid/BaseGrid.svelte";
+  import type { ColumnDef } from "#lib/grid/types.js";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
   import type { EventAbiFragment } from "@constants/chains/types";
   import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
   import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
-  import type { EventLogType } from "$lib/contracts/eventLogType";
+  import type { EventLogType } from "#lib/contracts/eventLogType.js";
   import { gridRows } from "./gridRows";
   import { createThrottledLoad } from "./latestLoad";
   import { getEachArgsMaxLengths } from "../../../maxParamsLength";

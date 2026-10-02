@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseProgressCircle from "$lib/base/BaseProgressCircle/BaseProgressCircle.svelte";
-  import { changeSize } from "$lib/base/baseSizes";
-  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseProgressCircle from "#lib/base/BaseProgressCircle/BaseProgressCircle.svelte";
+  import { changeSize } from "#lib/base/baseSizes.js";
+  import CommonItemMember from "#lib/common/CommonItemMember.svelte";
   import type { Chain, Project, Version } from "@constants/chains/types";
   import type { SyncStateText, SyncStatusVersion } from "@db/dbTypes";
   import { storeChainStatus } from "@stores/storeChainStatus";

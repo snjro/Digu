@@ -7,11 +7,11 @@
 </script>
 
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { zIndex } from "$lib/appearanceConfig/zIndex";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import { zIndex } from "#lib/appearanceConfig/zIndex.js";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
   import { baseTextSizes } from "./baseSizes";

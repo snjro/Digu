@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import BaseToggle from "$lib/base/BaseToggle.svelte";
-  import { iconNameForSyncStateText } from "$lib/common/CommonSyncStateText.svelte";
-  import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
+  import BaseToggle from "#lib/base/BaseToggle.svelte";
+  import { iconNameForSyncStateText } from "#lib/common/CommonSyncStateText.svelte";
+  import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
   import type { Chain, ChainName } from "@constants/chains/types";
   import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
   import type {

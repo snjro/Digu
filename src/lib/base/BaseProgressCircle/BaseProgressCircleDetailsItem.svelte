@@ -1,5 +1,5 @@
 <script lang="ts">
-  import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
+  import CommonChainExplorerLink from "#lib/common/CommonChainExplorerLink.svelte";
   import classNames from "classnames";
   import BaseLabel from "../BaseLabel.svelte";
   import type { BaseSize } from "../baseSizes";

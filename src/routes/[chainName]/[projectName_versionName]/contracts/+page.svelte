@@ -1,13 +1,13 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import PageWrapper from "$lib/PageWrapper/PageWrapper.svelte";
-  import BaseGrid from "$lib/grid/BaseGrid.svelte";
+  import PageWrapper from "#lib/PageWrapper/PageWrapper.svelte";
+  import BaseGrid from "#lib/grid/BaseGrid.svelte";
   import { trailingSlash } from "@routes/+layout";
   import type { LoadVersionData } from "../+page";
-  import { getProjectVersionNameForLabelFromUrl } from "$lib/common/projectVersionNameHelper";
+  import { getProjectVersionNameForLabelFromUrl } from "#lib/common/projectVersionNameHelper.js";
   import { columnDefs } from "./columnDefs";
   import { gridRows } from "./gridRows";
-  import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
+  import type { ContractRow } from "#lib/gridColumnDefs/rowTypes.js";
   import { getMaxParamsLength } from "./maxParamsLength";
 
   interface Props {

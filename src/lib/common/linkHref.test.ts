@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { EventFragment, FunctionFragment } from "ethers";
-import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
-import { getAbiFragmentHref } from "$lib/leftSidebar/Body/functionNameHandler";
+import { getFirstTabUrlHash } from "#lib/PageWrapper/tabs.js";
+import { getAbiFragmentHref } from "#lib/leftSidebar/Body/functionNameHandler.js";
 import {
   getContractHref,
   getContractHrefFromBase,

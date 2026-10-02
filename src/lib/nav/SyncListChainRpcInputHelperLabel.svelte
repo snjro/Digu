@@ -1,5 +1,5 @@
 <script lang="ts">
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeUserSettings } from "@stores/storeUserSettings";

@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { base } from "$app/paths";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseA from "$lib/base/BaseA.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import type { BaseSize } from "$lib/base/baseSizes";
-  import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
-  import { getContractHrefFromBase } from "$lib/common/linkHref";
-  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
-  import CommonOpenLink from "$lib/common/CommonOpenLink.svelte";
+  import { basePath } from "#lib/common/basePath.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseA from "#lib/base/BaseA.svelte";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import type { BaseSize } from "#lib/base/baseSizes.js";
+  import CommonChainExplorerLink from "#lib/common/CommonChainExplorerLink.svelte";
+  import { getContractHrefFromBase } from "#lib/common/linkHref.js";
+  import CommonItemMember from "#lib/common/CommonItemMember.svelte";
+  import CommonOpenLink from "#lib/common/CommonOpenLink.svelte";
   import type {
     Chain,
     Contract,
@@ -39,7 +39,7 @@
 
   let hrefToContractName: string = $derived(
     getContractHrefFromBase(
-      base,
+      basePath,
       targetChain.name,
       targetProject.name,
       targetVersion.name,

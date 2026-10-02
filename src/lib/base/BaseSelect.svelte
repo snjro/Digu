@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
   import classNames from "classnames";
   import { baseTextSizes, type BaseSize } from "./baseSizes";
 
@@ -17,7 +17,7 @@
 </script>
 
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
   import { baseShadowSizes } from "./baseSizes";
 
   interface Props {

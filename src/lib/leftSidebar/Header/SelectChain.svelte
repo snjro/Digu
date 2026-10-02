@@ -1,17 +1,17 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import BaseSelect, {
     type BaseSelectProps,
-  } from "$lib/base/BaseSelect.svelte";
+  } from "#lib/base/BaseSelect.svelte";
   import { TARGET_CHAINS } from "@constants/chains/_index";
   import type { Chain, ChainName } from "@constants/chains/types";
   import { storeNoDbSnackBar, storeNodbShowLoader } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";
-  import { base } from "$app/paths";
-  import { getChainRootUrl } from "$lib/common/chainRootUrl";
-  import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+  import { basePath } from "#lib/common/basePath.js";
+  import { getChainRootUrl } from "#lib/common/chainRootUrl.js";
+  import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
   import { customLogger } from "@utils/logger";
   import { saveSelectedChainName } from "./selectChain";
   const items: BaseSelectProps["items"] = TARGET_CHAINS.map(
@@ -42,7 +42,7 @@
         return;
       }
       //jump to home
-      const rootUrl = getChainRootUrl(base, changedChainName);
+      const rootUrl = getChainRootUrl(basePath, changedChainName);
       await goto(rootUrl);
     } finally {
       // The loader covers the whole screen, so hide it even when saving fails.

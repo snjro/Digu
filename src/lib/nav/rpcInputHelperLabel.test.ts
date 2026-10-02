@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 import type { NodeStatus } from "@db/dbTypes";
 import { getRpcInputHelperLabelProps } from "./rpcInputHelperLabel";
 

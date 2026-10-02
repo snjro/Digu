@@ -3,15 +3,15 @@
 </script>
 
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
   import { page } from "$app/state";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import type { BaseIconProps } from "$lib/base/BaseIcon";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import type { BaseIconProps } from "#lib/base/BaseIcon.js";
   import {
     buttonHeight,
     leftSideBarItemHeight,
     type BaseSize,
-  } from "$lib/base/baseSizes";
+  } from "#lib/base/baseSizes.js";
   import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
   import classNames from "classnames";
   import { onMount } from "svelte";

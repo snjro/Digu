@@ -1,4 +1,4 @@
-import { changeSize, type BaseSize } from "$lib/base/baseSizes";
+import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
 
 type SizeSettings = Record<
   | "leftSidebarLogo"

@@ -1,16 +1,16 @@
 import {
   cellRendererFactory,
   type AbstractCellRenderer,
-} from "$lib/grid/cellRenderFactory";
-import type { ColumnDef } from "$lib/grid/types";
+} from "#lib/grid/cellRenderFactory.js";
+import type { ColumnDef } from "#lib/grid/types.js";
 import type {
   CellClassParams,
   CellStyle,
   ICellRendererParams,
   ValueGetterParams,
 } from "ag-grid-community";
-import type { ContractRow } from "$lib/gridColumnDefs/rowTypes";
-import { cellAlign } from "$lib/gridColumnDefs/cellStyles";
+import type { ContractRow } from "#lib/gridColumnDefs/rowTypes.js";
+import { cellAlign } from "#lib/gridColumnDefs/cellStyles.js";
 import type {
   Chain,
   ContractName,
@@ -24,7 +24,7 @@ import { get } from "svelte/store";
 import {
   syncTargetLabelText,
   type SyncTargetLabelText,
-} from "$lib/common/syncTargetStatus";
+} from "#lib/common/syncTargetStatus.js";
 import { NO_DATA } from "@utils/utilsConstants";
 
 export const columnDefsSyncStatusTarget = <T extends ContractRow>(

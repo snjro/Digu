@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { leftSidebarHeaderHeight } from "$lib/leftSidebar/Header/Header.svelte";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { leftSidebarHeaderHeight } from "#lib/leftSidebar/Header/Header.svelte";
   import classNames from "classnames";
   import NavButtonLeftSidebar from "./NavButtonLeftSidebar.svelte";
   import NavButtons from "./NavButtons.svelte";

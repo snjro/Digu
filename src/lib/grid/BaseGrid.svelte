@@ -1,5 +1,5 @@
 <script lang="ts" generics="GridRow">
-  import PageWrapperContent from "$lib/PageWrapper/PageWrapperContent.svelte";
+  import PageWrapperContent from "#lib/PageWrapper/PageWrapperContent.svelte";
   import type { ExportFilePrefix } from "@utils/utilsFile";
   import type { GridApi } from "ag-grid-community";
   import BaseGridFunctionBar from "./BaseGridFunctionBar.svelte";

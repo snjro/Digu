@@ -12,11 +12,11 @@ vi.mock("$app/state", async () => {
   return { page: { url: new SvelteURL("http://localhost/") } };
 });
 vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
-vi.mock("$app/environment", () => ({ browser: false }));
+vi.mock("$app/env", () => ({ browser: false }));
 vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
 
 const setPathname = (pathname: string): void => {
-  page.url.href = `http://localhost${pathname}`;
+  (page.url as URL).href = `http://localhost${pathname}`;
 };
 
 const HREF = "/eth/Augur-version1";

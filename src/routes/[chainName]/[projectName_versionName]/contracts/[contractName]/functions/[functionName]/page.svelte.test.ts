@@ -26,7 +26,7 @@ vi.mock("./FunctionOverview.svelte", async () => {
       Stub(anchor as never, { ...props, stubName: "FunctionOverview" }),
   };
 });
-vi.mock("$lib/contracts/abiJson/AbiJsonViewer.svelte", async () => {
+vi.mock("#lib/contracts/abiJson/AbiJsonViewer.svelte", async () => {
   const { default: Stub } = await import("./pageTabs.testStub.svelte");
   return {
     default: (anchor: unknown, props: Record<string, unknown>) =>

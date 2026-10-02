@@ -1,4 +1,4 @@
-import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import { updateDbItemUserSettings } from "@db/dbSettings";
 import type { ThemeColor } from "@db/dbTypes";
 import { storeNoDbSnackBar } from "@stores/storeNoDb";

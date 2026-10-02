@@ -1,10 +1,10 @@
 import {
   AbstractCellRenderer,
   cellRendererFactory,
-} from "$lib/grid/cellRenderFactory";
-import type { ColumnDef } from "$lib/grid/types";
-import CommonChainExplorerLink from "$lib/common/CommonChainExplorerLink.svelte";
-import type { CommonChainExplorerLinkProps } from "$lib/common/chainExplorerLink";
+} from "#lib/grid/cellRenderFactory.js";
+import type { ColumnDef } from "#lib/grid/types.js";
+import CommonChainExplorerLink from "#lib/common/CommonChainExplorerLink.svelte";
+import type { CommonChainExplorerLinkProps } from "#lib/common/chainExplorerLink.js";
 import type { ChainExplorer } from "@constants/chains/types";
 import type {
   CellClassParams,
@@ -13,10 +13,10 @@ import type {
   ValueGetterParams,
 } from "ag-grid-community";
 import { cellAlign, type CellAlignPosition } from "./cellStyles";
-import BaseLabel from "$lib/base/BaseLabel.svelte";
+import BaseLabel from "#lib/base/BaseLabel.svelte";
 import { NO_DATA } from "@utils/utilsConstants";
-import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-import type { BaseSize } from "$lib/base/baseSizes";
+import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+import type { BaseSize } from "#lib/base/baseSizes.js";
 
 const gridSize: BaseSize = sizeSettings.grid;
 export const columnDefChainExplorerLinkByKeyName = <T>(

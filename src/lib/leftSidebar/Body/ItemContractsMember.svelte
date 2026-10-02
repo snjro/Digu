@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { getFirstTabUrlHash } from "$lib/PageWrapper/tabs";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
+  import { getFirstTabUrlHash } from "#lib/PageWrapper/tabs.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
   import type { Contract } from "@constants/chains/types";
-  import { getContractHref } from "$lib/common/linkHref";
+  import { getContractHref } from "#lib/common/linkHref.js";
   import BaseAccordion from "./BaseAccordion.svelte";
   import type { BaseAccordionHeaderSuffixIcon } from "./BaseAccordionHeaderSuffixIcons.svelte";
   import BaseItem from "./BaseItem.svelte";

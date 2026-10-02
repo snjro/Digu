@@ -1,13 +1,13 @@
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { load } from "./+page";
 import { isHttpError, isRedirect, redirect } from "@sveltejs/kit";
-import { base } from "$app/paths";
+import { basePath } from "#lib/common/basePath.js";
 import * as dbSettingsDataHandlersUser from "@db/dbSettings";
 
 let mockBrowser: boolean; //Variable for changing the value of "browser" in each test
 
 // create mocks
-vi.mock("$app/environment", () => {
+vi.mock("$app/env", () => {
   return {
     get browser() {
       return mockBrowser;
@@ -52,7 +52,7 @@ describe("load", () => {
     expect(spyRedirect).toHaveBeenCalledOnce();
     expect(spyRedirect).toHaveBeenCalledWith(
       308,
-      `${base}/${expectedSelectedChainName}`,
+      `${basePath}/${expectedSelectedChainName}`,
     );
     expect(spyRedirect.mock.results[0]).toEqual({
       type: "throw",
@@ -61,7 +61,7 @@ describe("load", () => {
     expect(isRedirect(thrown)).toBe(true);
     expect(thrown).toMatchObject({
       status: 308,
-      location: `${base}/${expectedSelectedChainName}`,
+      location: `${basePath}/${expectedSelectedChainName}`,
     });
   });
 

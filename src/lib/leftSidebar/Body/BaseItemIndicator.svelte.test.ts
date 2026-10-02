@@ -2,8 +2,8 @@ import { afterEach, describe, expect, test } from "vitest";
 import { tick, type ComponentProps } from "svelte";
 import { render } from "@testing-library/svelte";
 import BaseItemIndicator from "./BaseItemIndicator.svelte";
-import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeUserSettings } from "@stores/storeUserSettings";
 

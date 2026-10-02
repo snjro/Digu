@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick, type ComponentProps } from "svelte";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import BaseAccordionHeader from "./BaseAccordionHeader.svelte";
-import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
+import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 import { initialDataUserSettings } from "@db/dbTypes";
 import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
 import { storeUserSettings } from "@stores/storeUserSettings";
@@ -15,11 +15,11 @@ vi.mock("$app/state", async () => {
   return { page: { url: new SvelteURL("http://localhost/") } };
 });
 vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
-vi.mock("$app/environment", () => ({ browser: false }));
+vi.mock("$app/env", () => ({ browser: false }));
 vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
 
 const setPathname = (pathname: string): void => {
-  page.url.href = `http://localhost${pathname}`;
+  (page.url as URL).href = `http://localhost${pathname}`;
 };
 
 const HREF = "/eth/Augur-version1";

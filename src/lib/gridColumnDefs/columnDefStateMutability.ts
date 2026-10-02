@@ -1,4 +1,4 @@
-import type { ColumnDef } from "$lib/grid/types";
+import type { ColumnDef } from "#lib/grid/types.js";
 import classNames from "classnames";
 
 export const columnDefStateMutability = <T>(fieldName: keyof T): ColumnDef => {

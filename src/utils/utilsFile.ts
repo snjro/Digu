@@ -1,4 +1,4 @@
-import type { EventLogType } from "$lib/contracts/eventLogType";
+import type { EventLogType } from "#lib/contracts/eventLogType.js";
 import { convertTimestampSecToIso8601 } from "./utilsTime";
 
 export type ExportFilePrefix =

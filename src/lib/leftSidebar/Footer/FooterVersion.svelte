@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { version } from "$app/environment";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseA from "$lib/base/BaseA.svelte";
+  import { version } from "$app/env";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseA from "#lib/base/BaseA.svelte";
   import { GITHUB_REPOSITORY_URL } from "@utils/utilsConstants";
 
   const versionName: string = `v${version}`;

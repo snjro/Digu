@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { breakPointWidths } from "$lib/appearanceConfig/size/sizeDefinitions";
-  import { zIndex } from "$lib/appearanceConfig/zIndex";
-  import { showSnackBarAsSaveFailed } from "$lib/common/saveFailed";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js";
+  import { zIndex } from "#lib/appearanceConfig/zIndex.js";
+  import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
   import { updateDbItemUserSettings } from "@db/dbSettings";
   import { storeNoDbCurrentWidth, storeNoDbSnackBar } from "@stores/storeNoDb";
   import { storeUserSettings } from "@stores/storeUserSettings";

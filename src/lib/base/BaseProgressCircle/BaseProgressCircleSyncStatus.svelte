@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { BaseSize } from "../baseSizes";
-  import type { SyncStateTextLabelProps } from "$lib/common/CommonSyncStateText.svelte";
+  import type { SyncStateTextLabelProps } from "#lib/common/CommonSyncStateText.svelte";
   import BaseProgressCircleSyncStatusPercentage from "./BaseProgressCircleSyncStatusPercentage.svelte";
   import BaseProgressCircleSyncStatusText from "./BaseProgressCircleSyncStatusText.svelte";
 

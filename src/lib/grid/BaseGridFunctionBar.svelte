@@ -3,13 +3,13 @@
 
   import type { ExportFilePrefix } from "@utils/utilsFile";
 
-  import { breakPointWidthThresholds } from "$lib/appearanceConfig/size/sizeDefinitions";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import PageWrapperContentFunctionBar from "$lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
+  import { breakPointWidthThresholds } from "#lib/appearanceConfig/size/sizeDefinitions.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import PageWrapperContentFunctionBar from "#lib/PageWrapper/PageWrapperContentFunctionBar.svelte";
   import {
     fullScreenButtonDefinition,
     type PageWrapperContentFunctionBarButtonsDefinition,
-  } from "$lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
+  } from "#lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
   import type { GridApi } from "ag-grid-community";
   import ExportCsv, { openDialogExportCsv } from "./ExportCsv/ExportCsv.svelte";
   import { setAllColumnGroupState, setAutoColumnWidth } from "./gridColumns";

@@ -1,16 +1,16 @@
 import {
   AbstractCellRenderer,
   cellRendererFactory,
-} from "$lib/grid/cellRenderFactory";
-import type { ColumnDef } from "$lib/grid/types";
+} from "#lib/grid/cellRenderFactory.js";
+import type { ColumnDef } from "#lib/grid/types.js";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import type { AbiFragmentParam } from "@constants/chains/types";
 import { NO_DATA } from "@utils/utilsConstants";
-import BaseLabel from "$lib/base/BaseLabel.svelte";
+import BaseLabel from "#lib/base/BaseLabel.svelte";
 import { capitalizeFirstLetter } from "@utils/utilsCommon";
-import AbiParamComponentsDetailsButton from "$lib/contracts/abiParams/AbiParamComponentsDetailsButton.svelte";
+import AbiParamComponentsDetailsButton from "#lib/contracts/abiParams/AbiParamComponentsDetailsButton.svelte";
 import { cellAlign } from "./cellStyles";
-import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
+import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 import { getAbiParamsFromAbiRow } from "./getAbiParamsFromAbiRow";
 import type { AbiRow } from "./types";
 

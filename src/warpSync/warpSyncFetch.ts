@@ -1,10 +1,10 @@
-import { base } from "$app/paths";
+import { basePath } from "#lib/common/basePath.js";
 import type { Chain } from "@constants/chains/types";
 import { checkFormat } from "./warpSyncFile";
 import { WARP_SYNC_DIR, type WarpSyncManifest } from "./warpSyncTypes";
 
 function getUrl(targetChain: Chain, file: string): string {
-  return `${base}/${WARP_SYNC_DIR}/${targetChain.name}/${file}`;
+  return `${basePath}/${WARP_SYNC_DIR}/${targetChain.name}/${file}`;
 }
 // Absolute, for the DB worker, whose URL is not the page's.
 export function getWarpSyncFileUrl(targetChain: Chain, file: string): string {

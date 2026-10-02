@@ -63,10 +63,10 @@
 </script>
 
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
   import { twMerge } from "tailwind-merge";
 
-  import { type ColorCategory } from "$lib/appearanceConfig/color/colorDefinitions";
+  import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
   import type { Snippet } from "svelte";
   import classNames from "classnames";
   import { setPropsByOpenNewTab } from "./BaseA.svelte";

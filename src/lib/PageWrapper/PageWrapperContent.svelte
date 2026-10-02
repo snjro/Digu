@@ -16,13 +16,13 @@
 </script>
 
 <script lang="ts">
-  import { colorClasses } from "$lib/appearanceConfig/color/colorVariables";
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { getScrollbarStyle } from "$lib/appearanceConfig/scrollbar/scrollbarSetting";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { getScrollbarStyle } from "#lib/appearanceConfig/scrollbar/scrollbarSetting.js";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
-  import { focusableWhenScrolling } from "$lib/base/focusableWhenScrolling";
+  import { focusableWhenScrolling } from "#lib/base/focusableWhenScrolling.js";
 
   interface Props {
     isAgGrid?: boolean;

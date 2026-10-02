@@ -1,22 +1,22 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import { changeSize, type BaseSize } from "$lib/base/baseSizes";
+  import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
   import type { Chain, Project, Version } from "@constants/chains/types";
-  import { colorSettings } from "$lib/appearanceConfig/color/colorSettings";
-  import { sizeSettings } from "$lib/appearanceConfig/size/sizeSettings";
-  import BaseA from "$lib/base/BaseA.svelte";
-  import BaseLabel from "$lib/base/BaseLabel.svelte";
-  import BaseTable from "$lib/base/BaseTable/BaseTable.svelte";
-  import BaseTableBodyCell from "$lib/base/BaseTable/BaseTableBodyCell.svelte";
-  import BaseTableRow from "$lib/base/BaseTable/BaseTableRow.svelte";
-  import SequenceBodyCell from "$lib/base/BaseTable/SequenceBodyCell.svelte";
-  import CommonItemMember from "$lib/common/CommonItemMember.svelte";
-  import CommonSyncStateText from "$lib/common/CommonSyncStateText.svelte";
-  import CommonToggleSyncTarget from "$lib/common/CommonToggleSyncTarget.svelte";
+  import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
+  import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+  import BaseA from "#lib/base/BaseA.svelte";
+  import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import BaseTable from "#lib/base/BaseTable/BaseTable.svelte";
+  import BaseTableBodyCell from "#lib/base/BaseTable/BaseTableBodyCell.svelte";
+  import BaseTableRow from "#lib/base/BaseTable/BaseTableRow.svelte";
+  import SequenceBodyCell from "#lib/base/BaseTable/SequenceBodyCell.svelte";
+  import CommonItemMember from "#lib/common/CommonItemMember.svelte";
+  import CommonSyncStateText from "#lib/common/CommonSyncStateText.svelte";
+  import CommonToggleSyncTarget from "#lib/common/CommonToggleSyncTarget.svelte";
   import { trailingSlash } from "@routes/+layout";
   import { storeSyncStatus } from "@stores/storeSyncStatus";
   import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsConstants";
-  import BaseProgressBarForBlockNumber from "$lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
+  import BaseProgressBarForBlockNumber from "#lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
   import { storeChainStatus } from "@stores/storeChainStatus";
   import type { SyncStatusProject } from "@db/dbTypes";
   import {
