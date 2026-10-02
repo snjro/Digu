@@ -1,5 +1,5 @@
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { ChainName } from "@constants/chains/types";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { ChainName } from "#constants/chains/types.js";
 
 // The chain in the URL to save as the selected chain, or undefined when nothing should be saved.
 export function getUrlChainNameToSave(

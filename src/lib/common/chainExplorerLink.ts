@@ -1,7 +1,11 @@
 import type { BaseAProps } from "#lib/base/BaseA.svelte";
-import type { Chain, ChainExplorer, ChainName } from "@constants/chains/types";
-import { numberWithCommas } from "@utils/utilsCommon";
-import { getTargetChain } from "@utils/utilsDb";
+import type {
+  Chain,
+  ChainExplorer,
+  ChainName,
+} from "#constants/chains/types.js";
+import { numberWithCommas } from "#utils/utilsCommon.js";
+import { getTargetChain } from "#utils/utilsDb.js";
 
 export type CommonChainExplorerLinkProps = {
   subdirectory: keyof ChainExplorer["subdirectory"];

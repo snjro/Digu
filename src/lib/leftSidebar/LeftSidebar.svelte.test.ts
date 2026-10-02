@@ -3,18 +3,18 @@ import { fireEvent, render, screen } from "@testing-library/svelte";
 import { get } from "svelte/store";
 import LeftSidebar from "./LeftSidebar.svelte";
 import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { updateDbItemUserSettings } from "@db/dbSettings";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { updateDbItemUserSettings } from "#db/dbSettings.js";
 import {
   storeNoDbCurrentWidth,
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
-} from "@stores/storeNoDb";
+} from "#stores/storeNoDb.js";
 import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
-import { customLogger } from "@utils/logger";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import { customLogger } from "#utils/logger.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 
-vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
+vi.mock("#db/dbSettings.js", () => ({ updateDbItemUserSettings: vi.fn() }));
 vi.mock("./Header/Header.svelte", () => ({ default: () => {} }));
 vi.mock("./Body/Body.svelte", () => ({ default: () => {} }));
 vi.mock("./Footer/Footer.svelte", () => ({ default: () => {} }));

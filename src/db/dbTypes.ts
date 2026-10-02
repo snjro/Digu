@@ -6,8 +6,8 @@ import type {
   AbiFragmentName,
   HexString,
   Chain,
-} from "@constants/chains/types";
-import type { NO_DATA } from "@utils/utilsConstants";
+} from "#constants/chains/types.js";
+import type { NO_DATA } from "#utils/utilsConstants.js";
 import type { EventLog as OriginalEthersEventLog } from "ethers";
 import type { HTMLInputTypeAttribute } from "svelte/elements";
 

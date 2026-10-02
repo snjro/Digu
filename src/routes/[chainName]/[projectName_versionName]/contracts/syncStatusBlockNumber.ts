@@ -1,4 +1,4 @@
-import type { SyncStatusContract } from "@db/dbTypes";
+import type { SyncStatusContract } from "#db/dbTypes.js";
 
 export type HeaderName = "Start" | "Current" | "Goal";
 export function getBlockNumberByHeaderName(

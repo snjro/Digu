@@ -2,8 +2,8 @@ import { browser } from "$app/env";
 import { error } from "@sveltejs/kit";
 import { initialize } from "../initialization/initialize";
 import "../app.css";
-import { storeNodbShowLoader } from "@stores/storeNoDb";
-import { customLogger } from "@utils/logger";
+import { storeNodbShowLoader } from "#stores/storeNoDb.js";
+import { customLogger } from "#utils/logger.js";
 
 // If Vite hangs indefinitely in dev mode,
 // then Disable SSR (server side rendering).

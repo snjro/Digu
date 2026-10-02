@@ -1,7 +1,7 @@
-import type { Contract, EventAbiFragment } from "@constants/chains/types";
-import type { SyncStatusesEvent } from "@db/dbTypes";
-import type { SyncStatusContract } from "@db/dbTypes";
-import { NO_DATA } from "@utils/utilsConstants";
+import type { Contract, EventAbiFragment } from "#constants/chains/types.js";
+import type { SyncStatusesEvent } from "#db/dbTypes.js";
+import type { SyncStatusContract } from "#db/dbTypes.js";
+import { NO_DATA } from "#utils/utilsConstants.js";
 
 export function getInitialDataOfSyncStatusContract(
   targetContract: Contract,

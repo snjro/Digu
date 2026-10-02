@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { render } from "@testing-library/svelte";
 import LoadingSpinner from "./LoadingSpinner.svelte";
-import { storeNodbShowLoader } from "@stores/storeNoDb";
+import { storeNodbShowLoader } from "#stores/storeNoDb.js";
 
 type ShowParam = {
   storeShow: boolean;

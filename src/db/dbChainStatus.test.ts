@@ -1,14 +1,14 @@
 import "fake-indexeddb/auto";
-import { DB_NAME, DB_TABLE_NAMES, DB_VERSIONS } from "@db/constants";
+import { DB_NAME, DB_TABLE_NAMES, DB_VERSIONS } from "#db/constants.js";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   addInitialDataOfDbChainStatus,
   dbChainStatus,
   initialDataChainStatus,
 } from "./dbChainStatus";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 
-vi.mock("@constants/chains/_index", () => ({
+vi.mock("#constants/chains/_index.js", () => ({
   TARGET_CHAINS: [{ name: "chain1" }, { name: "chain2" }],
 }));
 

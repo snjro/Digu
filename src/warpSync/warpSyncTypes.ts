@@ -2,8 +2,8 @@ import type {
   ContractName,
   ProjectName,
   VersionName,
-} from "@constants/chains/types";
-import type { HexString } from "@constants/chains/types";
+} from "#constants/chains/types.js";
+import type { HexString } from "#constants/chains/types.js";
 
 // The snapshot that scripts/warp-sync/build-snapshot.mjs writes. See
 // scripts/warp-sync/README.md.

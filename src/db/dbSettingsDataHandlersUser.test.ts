@@ -7,7 +7,7 @@ import {
   updateDbItemUserSettings,
 } from "./dbSettings";
 import { dbSettings } from "./dbSettings";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 import { DB_TABLE_NAMES } from "./constants";
 
 const tableName = DB_TABLE_NAMES.Settings.userSettings;

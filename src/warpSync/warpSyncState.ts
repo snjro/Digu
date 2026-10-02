@@ -1,4 +1,4 @@
-import type { ChainName } from "@constants/chains/types";
+import type { ChainName } from "#constants/chains/types.js";
 import { writable, type Writable } from "svelte/store";
 
 // Without ethers, so that the components can import it.

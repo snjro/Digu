@@ -1,9 +1,9 @@
 import "fake-indexeddb/auto";
 import { beforeEach, describe, expect, test } from "vitest";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain, Contract, Version } from "@constants/chains/types";
-import { extractEventContracts } from "@utils/utilsEthers";
-import { getEventLogTableName } from "@utils/utilsDb";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain, Contract, Version } from "#constants/chains/types.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
+import { getEventLogTableName } from "#utils/utilsDb.js";
 import Dexie from "dexie";
 import { DB_TABLE_NAMES } from "./constants";
 import { dbBlockTimes } from "./dbBlockTimes";

@@ -1,13 +1,13 @@
-import type { ChainName } from "@constants/chains/types";
-import { getDbRecordsBlockTime } from "@db/dbBlockTimesDataHandlers";
-import type { BlockTime, EthersEventLog } from "@db/dbTypes";
-import { removeDuplicateValuesFromArray } from "@utils/utilsCommon";
+import type { ChainName } from "#constants/chains/types.js";
+import { getDbRecordsBlockTime } from "#db/dbBlockTimesDataHandlers.js";
+import type { BlockTime, EthersEventLog } from "#db/dbTypes.js";
+import { removeDuplicateValuesFromArray } from "#utils/utilsCommon.js";
 import {
   getBlockTimestampFromLogs,
   getLoggableError,
   type NodeProvider,
-} from "@utils/utilsEthers";
-import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
+} from "#utils/utilsEthers.js";
+import { convertTimestampSecToIso8601 } from "#utils/utilsTime.js";
 import type { Block } from "ethers";
 
 export const MAX_CONCURRENT_BLOCK_REQUESTS: number = 5;

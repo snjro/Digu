@@ -5,7 +5,7 @@ import {
 import type { ColumnDef } from "#lib/grid/types.js";
 import CommonChainExplorerLink from "#lib/common/CommonChainExplorerLink.svelte";
 import type { CommonChainExplorerLinkProps } from "#lib/common/chainExplorerLink.js";
-import type { ChainExplorer } from "@constants/chains/types";
+import type { ChainExplorer } from "#constants/chains/types.js";
 import type {
   CellClassParams,
   CellStyle,
@@ -14,7 +14,7 @@ import type {
 } from "ag-grid-community";
 import { cellAlign, type CellAlignPosition } from "./cellStyles";
 import BaseLabel from "#lib/base/BaseLabel.svelte";
-import { NO_DATA } from "@utils/utilsConstants";
+import { NO_DATA } from "#utils/utilsConstants.js";
 import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 import type { BaseSize } from "#lib/base/baseSizes.js";
 

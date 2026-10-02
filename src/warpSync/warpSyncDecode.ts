@@ -1,6 +1,6 @@
-import type { Contract } from "@constants/chains/types";
-import type { EthersEventLog } from "@db/dbTypes";
-import { extractDecodedEventLogs } from "@utils/utilsEthers";
+import type { Contract } from "#constants/chains/types.js";
+import type { EthersEventLog } from "#db/dbTypes.js";
+import { extractDecodedEventLogs } from "#utils/utilsEthers.js";
 import {
   EventLog,
   getAddress,

@@ -4,7 +4,7 @@ import {
 } from "#lib/grid/cellRenderFactory.js";
 import type { ColumnDef } from "#lib/grid/types.js";
 import AbiParamsNumberButton from "#lib/contracts/abiParams/AbiParamsNumberButton.svelte";
-import { capitalizeFirstLetter } from "@utils/utilsCommon";
+import { capitalizeFirstLetter } from "#utils/utilsCommon.js";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import { cellAlign } from "./cellStyles";
 import { getAbiParamsFromAbiRow } from "./getAbiParamsFromAbiRow";

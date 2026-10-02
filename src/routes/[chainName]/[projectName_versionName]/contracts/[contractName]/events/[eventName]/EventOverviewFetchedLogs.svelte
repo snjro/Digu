@@ -10,15 +10,15 @@
     EventAbiFragment,
     Project,
     Version,
-  } from "@constants/chains/types";
+  } from "#constants/chains/types.js";
   import {
     getEventLogEdges,
     type EventLogEdges,
-  } from "@db/dbEventLogsGetEventLogEdges";
-  import type { AbiFragmentIdentifier } from "@db/dbTypes";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { numberWithCommas } from "@utils/utilsCommon";
-  import { customLogger } from "@utils/logger";
+  } from "#db/dbEventLogsGetEventLogEdges.js";
+  import type { AbiFragmentIdentifier } from "#db/dbTypes.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { numberWithCommas } from "#utils/utilsCommon.js";
+  import { customLogger } from "#utils/logger.js";
   import classNames from "classnames";
   import EventOverviewFetchedLogsEdge from "./EventOverviewFetchedLogsEdge.svelte";
   import { MESSAGE_ANONYMOUS_EVENT_LOGS } from "./EventLogs.svelte";

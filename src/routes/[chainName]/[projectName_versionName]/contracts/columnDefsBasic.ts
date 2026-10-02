@@ -6,7 +6,7 @@ import {
 import type { ColumnDef } from "#lib/grid/types.js";
 import BaseLabel from "#lib/base/BaseLabel.svelte";
 import CommonOpenLink from "#lib/common/CommonOpenLink.svelte";
-import { NO_DATA } from "@utils/utilsConstants";
+import { NO_DATA } from "#utils/utilsConstants.js";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import classNames from "classnames";
 import type { ContractRow } from "#lib/gridColumnDefs/rowTypes.js";

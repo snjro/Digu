@@ -3,7 +3,7 @@
   import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import BaseA from "#lib/base/BaseA.svelte";
-  import { GITHUB_REPOSITORY_URL } from "@utils/utilsConstants";
+  import { GITHUB_REPOSITORY_URL } from "#utils/utilsConstants.js";
 
   const versionName: string = `v${version}`;
 </script>

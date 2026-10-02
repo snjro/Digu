@@ -3,8 +3,8 @@ import type {
   ContractIdentifier,
   SyncStatusContract,
   SyncStatusesChain,
-} from "@db/dbTypes";
-import { NO_DATA } from "@utils/utilsConstants";
+} from "#db/dbTypes.js";
+import { NO_DATA } from "#utils/utilsConstants.js";
 import {
   updateStoreSyncStatusSummarized,
   updateStoreSyncStatusSyncStateText,

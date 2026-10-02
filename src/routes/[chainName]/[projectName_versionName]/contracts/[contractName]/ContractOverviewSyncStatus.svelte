@@ -4,7 +4,7 @@
     Contract,
     Project,
     Version,
-  } from "@constants/chains/types";
+  } from "#constants/chains/types.js";
   import ContractOverviewSyncStatusProgress from "./ContractOverviewSyncStatusProgress.svelte";
   import ContractOverviewSyncStatusTarget from "./ContractOverviewSyncStatusTarget.svelte";
 

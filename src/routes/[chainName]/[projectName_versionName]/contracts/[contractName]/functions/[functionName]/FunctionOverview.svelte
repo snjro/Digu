@@ -7,7 +7,7 @@
     FunctionAbiFragment,
     Project,
     Version,
-  } from "@constants/chains/types";
+  } from "#constants/chains/types.js";
   import classNames from "classnames";
   import ContractOverviewBasic from "../../ContractOverviewBasic.svelte";
   import FunctionOverviewBasic from "./FunctionOverviewBasic.svelte";

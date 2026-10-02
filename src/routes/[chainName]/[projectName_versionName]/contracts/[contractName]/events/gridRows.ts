@@ -1,4 +1,4 @@
-import type { EventAbiFragment } from "@constants/chains/types";
+import type { EventAbiFragment } from "#constants/chains/types.js";
 import type { EventRow } from "#lib/gridColumnDefs/rowTypes.js";
 
 export const gridRows = (

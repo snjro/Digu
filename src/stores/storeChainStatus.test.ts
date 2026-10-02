@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import type { ChainStatus } from "@db/dbTypes";
+import type { ChainStatus } from "#db/dbTypes.js";
 import type { StateChainStatuses } from "./storeTypes";
-import { initialDataChainStatus } from "@db/dbChainStatus";
+import { initialDataChainStatus } from "#db/dbChainStatus.js";
 import { get } from "svelte/store";
-import type { Chain } from "@constants/chains/types";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import type { Chain } from "#constants/chains/types.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 
 const chainNames: Chain["name"][] = TARGET_CHAINS.map((targetChain: Chain) => {
   return targetChain.name;

@@ -1,5 +1,5 @@
 import type { AbiFragmentsType } from "#lib/contracts/abiFragmentsType.js";
-import { convertToKebabCase } from "@utils/utilsCommon";
+import { convertToKebabCase } from "#utils/utilsCommon.js";
 
 export const TAB_VALUES_COMMON = ["Overview", "ABI"] as const;
 export const TAB_VALUES_CONTRACT = TAB_VALUES_COMMON;

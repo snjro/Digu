@@ -1,16 +1,19 @@
 import { describe, expect, test, vi } from "vitest";
-import type { Chain } from "@constants/chains/types";
-import { startSyncingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
-import { importWarpSyncBeforeSync, waitForWarpSync } from "@warpSync/warpSync";
+import type { Chain } from "#constants/chains/types.js";
+import { startSyncingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import {
+  importWarpSyncBeforeSync,
+  waitForWarpSync,
+} from "#warpSync/warpSync.js";
 import { fetchEventLogs } from "./eventLogs";
 import { requestSyncLock } from "./syncLock";
 
 vi.mock("./syncLock", () => ({ requestSyncLock: vi.fn() }));
-vi.mock("@warpSync/warpSync", () => ({
+vi.mock("#warpSync/warpSync.js", () => ({
   waitForWarpSync: vi.fn(),
   importWarpSyncBeforeSync: vi.fn(),
 }));
-vi.mock("@db/dbEventLogsDataHandlersSyncStatus", () => ({
+vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js", () => ({
   startSyncingInChain: vi.fn(),
   startAbortingInChain: vi.fn(),
   stopSyncingInChain: vi.fn(),

@@ -6,8 +6,8 @@
     Contract,
     Project,
     Version,
-  } from "@constants/chains/types";
-  import { hasSyncTargetEvents } from "@utils/utilsEthers";
+  } from "#constants/chains/types.js";
+  import { hasSyncTargetEvents } from "#utils/utilsEthers.js";
   import classNames from "classnames";
   import ContractOverviewBasic from "./ContractOverviewBasic.svelte";
   import ContractOverviewConstructor from "./ContractOverviewConstructor.svelte";

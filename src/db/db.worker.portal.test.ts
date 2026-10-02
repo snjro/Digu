@@ -1,10 +1,10 @@
 import { startDbWorker } from "./db.worker.portal";
-import { customLogger } from "@utils/logger";
-import DbWorker from "@db/db.worker?worker";
+import { customLogger } from "#utils/logger.js";
+import DbWorker from "#db/db.worker.js?worker";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { DbWorkerMessage, TargetFunctionName } from "./db.worker.types";
 
-vi.mock("@utils/logger", () => ({
+vi.mock("#utils/logger.js", () => ({
   customLogger: {
     finished: vi.fn(),
   },
@@ -30,7 +30,7 @@ class FakeWorker {
   }
 }
 
-vi.mock("@db/db.worker?worker", () => ({
+vi.mock("#db/db.worker.js?worker", () => ({
   default: vi.fn().mockImplementation(function () {
     return new FakeWorker();
   }),

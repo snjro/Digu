@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick } from "svelte";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import BaseAccordion from "./BaseAccordion.svelte";
-import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
+import { storeNoDbOpenLeftSidebarAccordion } from "#stores/storeNoDb.js";
 import { htmlSnippet, slotProps } from "../../../testUtils/snippets";
 import { page } from "$app/state";
 
@@ -13,7 +13,7 @@ vi.mock("$app/state", async () => {
 });
 vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
 vi.mock("$app/env", () => ({ browser: false }));
-vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
+vi.mock("#db/dbSettings.js", () => ({ updateDbItemUserSettings: vi.fn() }));
 
 const setPathname = (pathname: string): void => {
   (page.url as URL).href = `http://localhost${pathname}`;

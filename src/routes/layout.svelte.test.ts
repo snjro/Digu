@@ -1,16 +1,16 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { render } from "@testing-library/svelte";
 import Layout from "./+layout.svelte";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 import { saveSelectedChainName } from "#lib/leftSidebar/Header/selectChain.js";
-import { customLogger } from "@utils/logger";
+import { customLogger } from "#utils/logger.js";
 import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
-} from "@stores/storeNoDb";
+} from "#stores/storeNoDb.js";
 import { get } from "svelte/store";
-import { startWarpSync } from "@warpSync/warpSync";
+import { startWarpSync } from "#warpSync/warpSync.js";
 
 vi.mock("$app/state", () => ({
   page: {
@@ -30,13 +30,13 @@ vi.mock("#lib/leftSidebar/Header/selectChain.js", () => ({
   saveSelectedChainName: vi.fn(async () => {}),
 }));
 // The real chain data and children load ethers, which does not load in the client project.
-vi.mock("@constants/chains/_index", () => ({
+vi.mock("#constants/chains/_index.js", () => ({
   TARGET_CHAINS: [{ name: "eth" }, { name: "matic" }],
 }));
 vi.mock("#lib/leftSidebar/LeftSidebar.svelte", () => ({ default: () => {} }));
 vi.mock("#lib/nav/Nav.svelte", () => ({ default: () => {} }));
 vi.mock("#lib/breadcrumb/Breadcrumb.svelte", () => ({ default: () => {} }));
-vi.mock("@warpSync/warpSync", () => ({
+vi.mock("#warpSync/warpSync.js", () => ({
   startWarpSync: vi.fn(async () => {}),
 }));
 

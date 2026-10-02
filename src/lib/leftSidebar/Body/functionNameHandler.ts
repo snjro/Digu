@@ -1,7 +1,7 @@
 import type {
   EventAbiFragment,
   FunctionAbiFragment,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 
 const FUNC_NAME_SPLITTER = "-";
 function isFunctionAbiFragment(

@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Contract } from "@constants/chains/types";
-import { customLogger } from "@utils/logger";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Contract } from "#constants/chains/types.js";
+import { customLogger } from "#utils/logger.js";
 import { makeWarpSyncLog } from "../testUtils/warpSyncLogs";
 import { EventLog } from "ethers";
 import { decodeWarpSyncLogs } from "./warpSyncDecode";

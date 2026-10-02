@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { NodeStatus, SyncStateText } from "@db/dbTypes";
+import type { NodeStatus, SyncStateText } from "#db/dbTypes.js";
 import {
   isSyncToggleDisabled,
   type SyncToggleConditions,

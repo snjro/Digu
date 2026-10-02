@@ -1,10 +1,10 @@
 import "fake-indexeddb/auto";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import { test, type MockInstance, vi, expect, describe } from "vitest";
 import type { SyncStatusContract, VersionIdentifier } from "./dbTypes";
 import { DbEventLogs } from "./dbEventLogs";
-import type { Contract } from "@constants/chains/types";
-import { extractEventContracts } from "@utils/utilsEthers";
+import type { Contract } from "#constants/chains/types.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import { updateDbItemSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbItemSyncStatus";
 import * as UpdateDbRecordSyncStatus from "./dbEventLogsDataHandlersSyncStatusUpdateDbRecordSyncStatus";
 

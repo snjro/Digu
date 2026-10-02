@@ -2,7 +2,7 @@ import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 import type { BaseLabelProps } from "#lib/base/BaseLabel.svelte";
 import type { BaseSize } from "#lib/base/baseSizes.js";
-import type { NodeStatus } from "@db/dbTypes";
+import type { NodeStatus } from "#db/dbTypes.js";
 import classNames from "classnames";
 
 export function getRpcInputHelperLabelProps(

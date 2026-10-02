@@ -11,8 +11,8 @@ import type {
   SyncStatusesChain,
   SyncStatusProject,
   SyncStatusVersion,
-} from "@db/dbTypes";
-import { customLogger } from "@utils/logger";
+} from "#db/dbTypes.js";
+import { customLogger } from "#utils/logger.js";
 
 function store() {
   const { subscribe, set, update } = writable(getInitialState());

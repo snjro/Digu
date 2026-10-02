@@ -11,20 +11,23 @@
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
   import CommonItemMember from "#lib/common/CommonItemMember.svelte";
-  import type { Chain, ChainName } from "@constants/chains/types";
-  import { storeSyncLockedByOtherTab } from "@eventLogs/syncLock";
-  import { resetSyncedData, type SyncResetOutcome } from "@eventLogs/syncReset";
-  import { storeNoDbSnackBar } from "@stores/storeNoDb";
-  import { storeRpcSettings } from "@stores/storeRpcSettings";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { numberWithCommas } from "@utils/utilsCommon";
-  import { getTargetChain } from "@utils/utilsDb";
+  import type { Chain, ChainName } from "#constants/chains/types.js";
+  import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+  import {
+    resetSyncedData,
+    type SyncResetOutcome,
+  } from "#eventLogs/syncReset.js";
+  import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
+  import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
+  import { numberWithCommas } from "#utils/utilsCommon.js";
+  import { getTargetChain } from "#utils/utilsDb.js";
   import {
     hasWarpSync,
     selectWarpSyncState,
     storeWarpSync,
-  } from "@warpSync/warpSyncState";
+  } from "#warpSync/warpSyncState.js";
   import classNames from "classnames";
   import {
     countSyncedLogs,

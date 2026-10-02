@@ -1,8 +1,8 @@
 import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
-import { updateDbItemUserSettings } from "@db/dbSettings";
-import type { ThemeColor } from "@db/dbTypes";
-import { storeNoDbSnackBar } from "@stores/storeNoDb";
-import { customLogger } from "@utils/logger";
+import { updateDbItemUserSettings } from "#db/dbSettings.js";
+import type { ThemeColor } from "#db/dbTypes.js";
+import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
+import { customLogger } from "#utils/logger.js";
 
 export function getToggledThemeColor(
   currentThemeColor: ThemeColor,

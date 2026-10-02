@@ -1,6 +1,6 @@
-import type { ChainName, ContractName } from "@constants/chains/types";
+import type { ChainName, ContractName } from "#constants/chains/types.js";
 import { DbEventLogs } from "./dbEventLogs";
-import { customLogger } from "@utils/logger";
+import { customLogger } from "#utils/logger.js";
 import { updateDbRecordSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbRecordSyncStatus";
 import { updateSyncStatusInChain } from "./dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain";
 

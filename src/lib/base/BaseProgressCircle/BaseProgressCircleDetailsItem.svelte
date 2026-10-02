@@ -3,7 +3,7 @@
   import classNames from "classnames";
   import BaseLabel from "../BaseLabel.svelte";
   import type { BaseSize } from "../baseSizes";
-  import { NO_DATA } from "@utils/utilsConstants";
+  import { NO_DATA } from "#utils/utilsConstants.js";
 
   interface Props {
     title: "start" | "curr" | "current" | "goal";

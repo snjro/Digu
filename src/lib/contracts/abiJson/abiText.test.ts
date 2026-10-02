@@ -1,6 +1,6 @@
 import { EventFragment, FunctionFragment, Interface } from "ethers";
 import { describe, expect, test } from "vitest";
-import type { AbiFormatType } from "@utils/utilsEthers";
+import type { AbiFormatType } from "#utils/utilsEthers.js";
 import {
   formatTargetAbi,
   getAbiExportTooltipText,

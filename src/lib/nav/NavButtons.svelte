@@ -4,8 +4,8 @@
   import { breakPointWidthThresholds } from "#lib/appearanceConfig/size/sizeDefinitions.js";
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import { openDialog } from "#lib/base/BaseDialog/BaseDialogHandler.js";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import type { ThemeColor } from "#db/dbTypes.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
   import NavButtonsSettingsDialog from "./NavButtonsSettingsDialog.svelte";
   import { toggleThemeColor } from "./themeColor";
 

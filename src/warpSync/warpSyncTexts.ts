@@ -1,6 +1,6 @@
 // The texts of the confirmation and the progress of a large import. Without
 // ethers, so that the components can import it.
-import { numberWithCommas } from "@utils/utilsCommon";
+import { numberWithCommas } from "#utils/utilsCommon.js";
 import type { WarpSyncState } from "./warpSyncState";
 
 // Measured with the DB worker on a desktop computer (2,330,000 logs in 519 s).

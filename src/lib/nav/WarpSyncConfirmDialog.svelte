@@ -10,16 +10,16 @@
   } from "#lib/base/BaseDialog/BaseDialogHandler.js";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import { updateWarpSync } from "#lib/nav/settings/warpSyncSetting.js";
-  import type { Chain } from "@constants/chains/types";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { getTargetChain } from "@utils/utilsDb";
-  import { confirmWarpSync, declineWarpSync } from "@warpSync/warpSync";
+  import type { Chain } from "#constants/chains/types.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
+  import { getTargetChain } from "#utils/utilsDb.js";
+  import { confirmWarpSync, declineWarpSync } from "#warpSync/warpSync.js";
   import {
     selectWarpSyncState,
     storeWarpSync,
     type WarpSyncState,
-  } from "@warpSync/warpSyncState";
-  import { getConfirmationTexts } from "@warpSync/warpSyncTexts";
+  } from "#warpSync/warpSyncState.js";
+  import { getConfirmationTexts } from "#warpSync/warpSyncTexts.js";
   import classNames from "classnames";
 
   let targetChain: Chain = $derived(

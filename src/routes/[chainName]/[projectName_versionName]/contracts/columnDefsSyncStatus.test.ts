@@ -7,19 +7,19 @@ import type {
   ValueGetterParams,
 } from "ag-grid-community";
 import type { ColumnDef } from "#lib/grid/types.js";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type {
   Chain,
   Contract,
   Project,
   Version,
-} from "@constants/chains/types";
-import type { SyncStatusContract } from "@db/dbTypes";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { storeChainStatus } from "@stores/storeChainStatus";
+} from "#constants/chains/types.js";
+import type { SyncStatusContract } from "#db/dbTypes.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { syncTargetLabelText } from "#lib/common/syncTargetStatus.js";
-import { extractEventContracts } from "@utils/utilsEthers";
-import { trackStoreSubscriptions } from "@utils/testCommon";
+import { extractEventContracts } from "#utils/utilsEthers.js";
+import { trackStoreSubscriptions } from "#utils/testCommon.js";
 import { columnDefsSyncStatusBlockNumber } from "./columnDefsSyncStatusBlockNumber";
 import { columnDefsSyncstatusCurrentState } from "./columnDefsSyncStatusCurrentState";
 import { columnDefsSyncstatusProgressBar } from "./columnDefsSyncStatusProgressBar";

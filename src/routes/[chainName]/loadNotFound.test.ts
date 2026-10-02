@@ -8,7 +8,7 @@ import { load as loadEvents } from "./[projectName_versionName]/contracts/[contr
 import { load as loadEvent } from "./[projectName_versionName]/contracts/[contractName]/events/[eventName]/+page";
 import { load as loadFunctions } from "./[projectName_versionName]/contracts/[contractName]/functions/+page";
 import { load as loadFunction } from "./[projectName_versionName]/contracts/[contractName]/functions/[functionName]/+page";
-import { getTargetContract } from "@utils/utilsDb";
+import { getTargetContract } from "#utils/utilsDb.js";
 
 type Params = LoadEvent["params"];
 

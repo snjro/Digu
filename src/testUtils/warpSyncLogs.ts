@@ -1,5 +1,5 @@
-import type { Contract } from "@constants/chains/types";
-import type { WarpSyncLog } from "@warpSync/warpSyncTypes";
+import type { Contract } from "#constants/chains/types.js";
+import type { WarpSyncLog } from "#warpSync/warpSyncTypes.js";
 import { toBeHex } from "ethers";
 
 const hex = (value: number): `0x${string}` =>

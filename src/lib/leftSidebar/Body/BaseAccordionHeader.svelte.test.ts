@@ -4,9 +4,9 @@ import { fireEvent, render, screen } from "@testing-library/svelte";
 import BaseAccordionHeader from "./BaseAccordionHeader.svelte";
 import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { storeNoDbOpenLeftSidebarAccordion } from "#stores/storeNoDb.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 import { page } from "$app/state";
 
 // page of $app/state is not a store. SvelteURL makes page.url reactive.
@@ -16,7 +16,7 @@ vi.mock("$app/state", async () => {
 });
 vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
 vi.mock("$app/env", () => ({ browser: false }));
-vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
+vi.mock("#db/dbSettings.js", () => ({ updateDbItemUserSettings: vi.fn() }));
 
 const setPathname = (pathname: string): void => {
   (page.url as URL).href = `http://localhost${pathname}`;

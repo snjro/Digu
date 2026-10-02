@@ -1,4 +1,4 @@
-import type { ProjectName, VersionName } from "@constants/chains/types";
+import type { ProjectName, VersionName } from "#constants/chains/types.js";
 
 export function getProjectVersionNameForUrl(
   projectName: ProjectName,

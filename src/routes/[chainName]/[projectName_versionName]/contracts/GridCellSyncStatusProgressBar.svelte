@@ -9,11 +9,11 @@
     Contract,
     Project,
     Version,
-  } from "@constants/chains/types";
-  import type { SyncStatusContract } from "@db/dbTypes";
-  import { storeChainStatus } from "@stores/storeChainStatus";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { NO_DATA } from "@utils/utilsConstants";
+  } from "#constants/chains/types.js";
+  import type { SyncStatusContract } from "#db/dbTypes.js";
+  import { storeChainStatus } from "#stores/storeChainStatus.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { NO_DATA } from "#utils/utilsConstants.js";
   import classNames from "classnames";
 
   interface Props {

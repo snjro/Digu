@@ -1,20 +1,20 @@
-import type { DbEventLogs } from "@db/dbEventLogs";
+import type { DbEventLogs } from "#db/dbEventLogs.js";
 import {
   isHexStrings,
   type ChainName,
   type Contract,
-} from "@constants/chains/types";
-import { addEventLogs_updateFetchedBlockNumber } from "@db/dbEventLogsDataHandlersEventLog";
+} from "#constants/chains/types.js";
+import { addEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
 import type {
   BlockTime,
   ConvertedEventLog,
   EthersEventLog,
   GroupedEventLogs,
-} from "@db/dbTypes";
-import { setDbBlockTime } from "@db/dbBlockTimesDataHandlers";
+} from "#db/dbTypes.js";
+import { setDbBlockTime } from "#db/dbBlockTimesDataHandlers.js";
 import Dexie from "dexie";
 import { isHexString } from "ethers";
-import type { NodeProvider } from "@utils/utilsEthers";
+import type { NodeProvider } from "#utils/utilsEthers.js";
 import {
   fetchBlockTimesForEventLogs,
   type BlockTimeForEventLog,

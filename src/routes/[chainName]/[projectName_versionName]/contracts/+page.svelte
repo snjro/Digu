@@ -2,7 +2,7 @@
   import { page } from "$app/state";
   import PageWrapper from "#lib/PageWrapper/PageWrapper.svelte";
   import BaseGrid from "#lib/grid/BaseGrid.svelte";
-  import { trailingSlash } from "@routes/+layout";
+  import { trailingSlash } from "#routes/+layout.js";
   import type { LoadVersionData } from "../+page";
   import { getProjectVersionNameForLabelFromUrl } from "#lib/common/projectVersionNameHelper.js";
   import { columnDefs } from "./columnDefs";

@@ -21,8 +21,8 @@
     AbiFragmentParam,
     EventAbiFragment,
     FunctionAbiFragment,
-  } from "@constants/chains/types";
-  import { NO_DATA } from "@utils/utilsConstants";
+  } from "#constants/chains/types.js";
+  import { NO_DATA } from "#utils/utilsConstants.js";
   import AbiParamComponentsDetailsButton from "./AbiParamComponentsDetailsButton.svelte";
 
   interface Props {

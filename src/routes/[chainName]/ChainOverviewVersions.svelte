@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
-  import type { Chain, Project, Version } from "@constants/chains/types";
+  import type { Chain, Project, Version } from "#constants/chains/types.js";
   import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import BaseA from "#lib/base/BaseA.svelte";
@@ -13,12 +13,12 @@
   import CommonItemMember from "#lib/common/CommonItemMember.svelte";
   import CommonSyncStateText from "#lib/common/CommonSyncStateText.svelte";
   import CommonToggleSyncTarget from "#lib/common/CommonToggleSyncTarget.svelte";
-  import { trailingSlash } from "@routes/+layout";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsConstants";
+  import { trailingSlash } from "#routes/+layout.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { DIR_NAME_CONTRACTS, NO_DATA } from "#utils/utilsConstants.js";
   import BaseProgressBarForBlockNumber from "#lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
-  import { storeChainStatus } from "@stores/storeChainStatus";
-  import type { SyncStatusProject } from "@db/dbTypes";
+  import { storeChainStatus } from "#stores/storeChainStatus.js";
+  import type { SyncStatusProject } from "#db/dbTypes.js";
   import {
     getVersionHref,
     hasVersionEvents,

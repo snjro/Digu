@@ -5,7 +5,7 @@ import {
 } from "#lib/grid/cellRenderFactory.js";
 import type { ColumnDef } from "#lib/grid/types.js";
 import BaseLabel from "#lib/base/BaseLabel.svelte";
-import { capitalizeFirstLetter, numberWithCommas } from "@utils/utilsCommon";
+import { capitalizeFirstLetter, numberWithCommas } from "#utils/utilsCommon.js";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
 import type { ContractRow } from "#lib/gridColumnDefs/rowTypes.js";
 import { cellAlign } from "#lib/gridColumnDefs/cellStyles.js";

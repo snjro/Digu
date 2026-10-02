@@ -4,8 +4,8 @@
   import type { BaseSize } from "#lib/base/baseSizes.js";
   import CommonChainExplorerLink from "#lib/common/CommonChainExplorerLink.svelte";
   import CommonItemMember from "#lib/common/CommonItemMember.svelte";
-  import type { Contract } from "@constants/chains/types";
-  import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
+  import type { Contract } from "#constants/chains/types.js";
+  import { convertTimestampSecToIso8601 } from "#utils/utilsTime.js";
 
   interface Props {
     targetContract: Contract;

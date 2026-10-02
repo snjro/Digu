@@ -1,4 +1,4 @@
-import type { Contract, Version } from "@constants/chains/types";
+import type { Contract, Version } from "#constants/chains/types.js";
 import Augur from "./Augur.json";
 import Controller from "./Controller.json";
 import CancelOrder from "./CancelOrder.json";
@@ -16,8 +16,8 @@ import ShareToken from "./ShareToken.json";
 import Trade from "./Trade.json";
 import TradingEscapeHatch from "./TradingEscapeHatch.json";
 import UniverseGenesis from "./UniverseGenesis.json";
-import type { JsonFileContract } from "@constants/chains/jsonFileTypes";
-import { convertJsonFilesContractToContracts } from "@constants/chains/convertJsonToABI";
+import type { JsonFileContract } from "#constants/chains/jsonFileTypes.js";
+import { convertJsonFilesContractToContracts } from "#constants/chains/convertJsonToABI.js";
 const contracts: Contract[] = convertJsonFilesContractToContracts([
   Augur,
   Controller,

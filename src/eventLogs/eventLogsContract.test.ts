@@ -6,27 +6,28 @@ import {
   TRY_COUNT,
 } from "./eventLogsContract";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
-import { getEthersEventLogs, type NodeProvider } from "@utils/utilsEthers";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { storeChainStatus } from "@stores/storeChainStatus";
-import { customLogger } from "@utils/logger";
-import { stopSyncingInContract } from "@db/dbEventLogsDataHandlersSyncStatus";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import { extractEventContracts } from "@utils/utilsEthers";
-import type { Chain, Contract } from "@constants/chains/types";
-import type { DbEventLogs } from "@db/dbEventLogs";
+import { getEthersEventLogs, type NodeProvider } from "#utils/utilsEthers.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
+import { customLogger } from "#utils/logger.js";
+import { stopSyncingInContract } from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
+import type { Chain, Contract } from "#constants/chains/types.js";
+import type { DbEventLogs } from "#db/dbEventLogs.js";
 import type {
   ContractIdentifier,
   SyncStatusContract,
   SyncStatusesChain,
-} from "@db/dbTypes";
+} from "#db/dbTypes.js";
 
-vi.mock("@utils/utilsEthers", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@utils/utilsEthers")>();
+vi.mock("#utils/utilsEthers.js", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("#utils/utilsEthers.js")>();
   return { ...original, getEthersEventLogs: vi.fn().mockResolvedValue([]) };
 });
 vi.mock("./eventLogsContractUpdateTables");
-vi.mock("@db/dbEventLogsDataHandlersSyncStatus");
+vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js");
 
 const targetChain: Chain = TARGET_CHAINS[0];
 const targetProject = targetChain.projects[0];

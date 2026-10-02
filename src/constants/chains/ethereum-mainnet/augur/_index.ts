@@ -1,4 +1,4 @@
-import type { Project } from "@constants/chains/types";
+import type { Project } from "#constants/chains/types.js";
 import { version as version1 } from "./version1/_index";
 import { version as version2 } from "./version2/_index";
 

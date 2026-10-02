@@ -3,8 +3,8 @@ import type {
   ContractName,
   ProjectName,
   VersionName,
-} from "@constants/chains/types";
-import { DIR_NAME_CONTRACTS } from "@utils/utilsConstants";
+} from "#constants/chains/types.js";
+import { DIR_NAME_CONTRACTS } from "#utils/utilsConstants.js";
 import { getChainRootUrl } from "./chainRootUrl";
 import { getProjectVersionNameForUrl } from "./projectVersionNameHelper";
 

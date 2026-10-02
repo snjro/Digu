@@ -11,12 +11,12 @@ import type {
   ContractName,
   Project,
   Version,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 import GridCellSyncStatusSyncStateText from "./GridCellSyncStatusSyncStateText.svelte";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import type { SyncStateText, SyncStatusContract } from "@db/dbTypes";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import type { SyncStateText, SyncStatusContract } from "#db/dbTypes.js";
 import { get } from "svelte/store";
-import { NO_DATA } from "@utils/utilsConstants";
+import { NO_DATA } from "#utils/utilsConstants.js";
 
 export const columnDefsSyncstatusCurrentState = <T extends ContractRow>(
   targetChain: Chain,

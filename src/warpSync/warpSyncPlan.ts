@@ -1,6 +1,6 @@
-import type { Chain, Contract } from "@constants/chains/types";
-import type { VersionIdentifier } from "@db/dbTypes";
-import { hasSyncTargetEvents } from "@utils/utilsEthers";
+import type { Chain, Contract } from "#constants/chains/types.js";
+import type { VersionIdentifier } from "#db/dbTypes.js";
+import { hasSyncTargetEvents } from "#utils/utilsEthers.js";
 import type {
   WarpSyncChunkRange,
   WarpSyncManifest,

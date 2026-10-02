@@ -7,7 +7,7 @@
   import {
     storeNoDbOpenLeftSidebarAccordion,
     type OpenStateLeftSidebarAccordion,
-  } from "@stores/storeNoDb";
+  } from "#stores/storeNoDb.js";
   import classNames from "classnames";
   import { tick } from "svelte";
 

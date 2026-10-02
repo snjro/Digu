@@ -10,7 +10,7 @@ import type {
 import {
   importWarpSyncFile,
   type ImportWarpSyncFileParams,
-} from "@warpSync/warpSyncImportFile";
+} from "#warpSync/warpSyncImportFile.js";
 
 export async function executeTargetFunction<T extends TargetFunctionName>(
   targetFunctionName: T,

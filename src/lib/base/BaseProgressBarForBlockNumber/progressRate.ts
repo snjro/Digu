@@ -1,4 +1,4 @@
-import { round } from "@utils/utilsMath";
+import { round } from "#utils/utilsMath.js";
 
 export function getProgressRate(start: number, end: number, current: number) {
   const processedLength: number = current - start;

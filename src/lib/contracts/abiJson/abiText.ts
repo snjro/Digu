@@ -2,10 +2,10 @@ import type {
   ContractInterface,
   EventAbiFragment,
   FunctionAbiFragment,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 import type { JsonFragment } from "ethers";
-import { jsonStringifyFormatted } from "@utils/utilsCommon";
-import type { AbiFormatType } from "@utils/utilsEthers";
+import { jsonStringifyFormatted } from "#utils/utilsCommon.js";
+import type { AbiFormatType } from "#utils/utilsEthers.js";
 
 export type TargetAbi =
   ContractInterface | EventAbiFragment | FunctionAbiFragment;

@@ -4,7 +4,7 @@
   import type { BaseSize } from "#lib/base/baseSizes.js";
   import CommonItemMember from "#lib/common/CommonItemMember.svelte";
   import AbiParamsTable from "#lib/contracts/abiParams/AbiParamsTable.svelte";
-  import type { EventAbiFragment } from "@constants/chains/types";
+  import type { EventAbiFragment } from "#constants/chains/types.js";
 
   interface Props {
     targetEventAbiFragment: EventAbiFragment;

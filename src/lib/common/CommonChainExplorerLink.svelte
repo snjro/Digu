@@ -2,7 +2,7 @@
   import { page } from "$app/state";
   import BaseA from "#lib/base/BaseA.svelte";
   import type { BaseIconProps } from "#lib/base/BaseIcon.js";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
 
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import { changeSize } from "#lib/base/baseSizes.js";

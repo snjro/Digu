@@ -1,10 +1,10 @@
-import type { Chain, ChainName } from "@constants/chains/types";
+import type { Chain, ChainName } from "#constants/chains/types.js";
 import { DB_TABLE_NAMES } from "./constants";
 import { getDbEventLogs, type DbEventLogs } from "./dbEventLogs";
 import type { SyncStatusContract, VersionIdentifier } from "./dbTypes";
-import { getTargetChain } from "@utils/utilsDb";
+import { getTargetChain } from "#utils/utilsDb.js";
 import { getDbRecordsSyncStatusContractByKeyValue } from "./dbEventLogsDataHandlersSyncStatusGetters";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 

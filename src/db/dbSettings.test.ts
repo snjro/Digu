@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { DB_NAME, DB_TABLE_NAMES, DB_VERSIONS } from "@db/constants";
+import { DB_NAME, DB_TABLE_NAMES, DB_VERSIONS } from "#db/constants.js";
 import { describe, expect, test, vi } from "vitest";
 import { addInitialDataOfDbSettings, dbSettings } from "./dbSettings";
 import type { Transaction } from "dexie";

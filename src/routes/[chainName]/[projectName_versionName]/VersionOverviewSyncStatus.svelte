@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Chain, Project, Version } from "@constants/chains/types";
+  import type { Chain, Project, Version } from "#constants/chains/types.js";
   import VersionOverviewSyncStatusProgress from "./VersionOverviewSyncStatusProgress.svelte";
   import VersionOverviewSyncStatusTarget from "./VersionOverviewSyncStatusTarget.svelte";
 

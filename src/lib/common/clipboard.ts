@@ -1,5 +1,5 @@
 import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
-import { customLogger } from "@utils/logger";
+import { customLogger } from "#utils/logger.js";
 
 export const showSnackBarAsCopied: BaseSnackbarProps = {
   visible: true,

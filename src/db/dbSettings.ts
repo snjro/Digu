@@ -8,11 +8,11 @@ import {
   type SchemaDefinition,
   type UserSetting,
 } from "./dbTypes";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { ChainName } from "@constants/chains/types";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { ChainName } from "#constants/chains/types.js";
 import * as itSelf from "./dbSettings"; // "itSelf" is needed for mocking exported function. Ref: //https://stackoverflow.com/questions/51269431/jest-mock-inner-function
-import { storeRpcSettings } from "@stores/storeRpcSettings";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 
 const tableNameRpcSettings = DB_TABLE_NAMES.Settings.rpcSettings;
 const tableNameUserSettings = DB_TABLE_NAMES.Settings.userSettings;

@@ -9,19 +9,19 @@ import {
   DB_TABLE_NAMES,
   DB_VERSIONS,
   PK_AUTO_INCREMENTED,
-} from "@db/constants";
+} from "#db/constants.js";
 import { describe, expect, test, vi } from "vitest";
 import type {
   SchemaDefinition,
   SyncStatusContract,
   VersionIdentifier,
 } from "./dbTypes";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import { getEventTableNames } from "@utils/utilsDb";
-import { extractEventContracts } from "@utils/utilsEthers";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import { getEventTableNames } from "#utils/utilsDb.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import { getInitialDataOfSyncStatusContract } from "./dbEventLogsAddInitialData";
 import Dexie from "dexie";
-import type { Contract } from "@constants/chains/types";
+import type { Contract } from "#constants/chains/types.js";
 
 describe("DbEventLogs", () => {
   for (const targetChain of TARGET_CHAINS) {

@@ -1,7 +1,7 @@
-import type { Contract, EventAbiFragment } from "@constants/chains/types";
+import type { Contract, EventAbiFragment } from "#constants/chains/types.js";
 import type { SyncStatusContract, SyncStatusesEvent } from "./dbTypes";
 import { updateDbRecordSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbRecordSyncStatus";
-import { getEventLogTableName } from "@utils/utilsDb";
+import { getEventLogTableName } from "#utils/utilsDb.js";
 import { getEventLogTableRecordCount } from "./dbEventLogsDataHandlersEventLog";
 import type { DbEventLogs } from "./dbEventLogs";
 

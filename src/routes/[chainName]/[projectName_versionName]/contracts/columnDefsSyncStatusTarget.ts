@@ -16,16 +16,16 @@ import type {
   ContractName,
   Project,
   Version,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 import GridCellSyncStatusTarget from "./GridCellSyncStatusTarget.svelte";
-import type { SyncStatusContract } from "@db/dbTypes";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
+import type { SyncStatusContract } from "#db/dbTypes.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { get } from "svelte/store";
 import {
   syncTargetLabelText,
   type SyncTargetLabelText,
 } from "#lib/common/syncTargetStatus.js";
-import { NO_DATA } from "@utils/utilsConstants";
+import { NO_DATA } from "#utils/utilsConstants.js";
 
 export const columnDefsSyncStatusTarget = <T extends ContractRow>(
   targetChain: Chain,

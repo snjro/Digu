@@ -1,9 +1,9 @@
 import { getDbEventLogs, type DbEventLogs } from "./dbEventLogs";
 import type { VersionIdentifier } from "./dbTypes";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain } from "@constants/chains/types";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain } from "#constants/chains/types.js";
 import { getSyncLockName } from "./constants";
-import { extractEventContracts } from "@utils/utilsEthers";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import { initializeDBSyncStatusForContract } from "./db.worker.func.InitializeDBSyncStatusForContract";
 
 export async function dbWorkerFuncInitializeDBSyncStatus(): Promise<void> {

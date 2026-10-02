@@ -3,8 +3,8 @@
   import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import BaseA from "#lib/base/BaseA.svelte";
-  import { capitalizeFirstLetter } from "@utils/utilsCommon";
-  import { PROJECT_NAME } from "@utils/utilsConstants";
+  import { capitalizeFirstLetter } from "#utils/utilsCommon.js";
+  import { PROJECT_NAME } from "#utils/utilsConstants.js";
   import classNames from "classnames";
 </script>
 

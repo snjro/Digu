@@ -1,13 +1,13 @@
 <script lang="ts">
   import { basePath } from "#lib/common/basePath.js";
   import { getChainRootUrl } from "#lib/common/chainRootUrl.js";
-  import type { ChainName } from "@constants/chains/types";
+  import type { ChainName } from "#constants/chains/types.js";
   import {
     getProjectVersionNameForLabel,
     getProjectVersionNameForUrl,
   } from "#lib/common/projectVersionNameHelper.js";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { getTargetChain } from "@utils/utilsDb";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
+  import { getTargetChain } from "#utils/utilsDb.js";
   import ItemProjectVersionsMember from "./ItemProjectVersionsMember.svelte";
 
   let chainName: ChainName = $derived(

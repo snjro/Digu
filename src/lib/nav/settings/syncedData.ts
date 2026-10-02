@@ -1,8 +1,11 @@
 import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
-import type { SyncStateText, SyncStatusChain } from "@db/dbTypes";
-import type { SyncResetOutcome, SyncResetResult } from "@eventLogs/syncReset";
-import { numberWithCommas } from "@utils/utilsCommon";
-import type { WarpSyncState } from "@warpSync/warpSyncState";
+import type { SyncStateText, SyncStatusChain } from "#db/dbTypes.js";
+import type {
+  SyncResetOutcome,
+  SyncResetResult,
+} from "#eventLogs/syncReset.js";
+import { numberWithCommas } from "#utils/utilsCommon.js";
+import type { WarpSyncState } from "#warpSync/warpSyncState.js";
 
 // The logs of every event of the chain, as the sync counts them.
 export function countSyncedLogs(syncStatusChain: SyncStatusChain): number {

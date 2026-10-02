@@ -1,6 +1,6 @@
-import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
-import { startDbWorker } from "@db/db.worker.portal";
-import { customLogger } from "@utils/logger";
+import type { AbiFragmentIdentifier, ConvertedEventLog } from "#db/dbTypes.js";
+import { startDbWorker } from "#db/db.worker.portal.js";
+import { customLogger } from "#utils/logger.js";
 
 export async function gridRows(
   eventIdentifier: AbiFragmentIdentifier,

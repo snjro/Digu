@@ -1,10 +1,10 @@
 import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js";
 import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
-import { updateDbItemUserSettings } from "@db/dbSettings";
+import { updateDbItemUserSettings } from "#db/dbSettings.js";
 import { trailingSlash } from "#lib/common/trailingSlash.js";
-import { storeNoDbCurrentWidth, storeNoDbSnackBar } from "@stores/storeNoDb";
-import { storeUserSettings } from "@stores/storeUserSettings";
-import { customLogger } from "@utils/logger";
+import { storeNoDbCurrentWidth, storeNoDbSnackBar } from "#stores/storeNoDb.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
+import { customLogger } from "#utils/logger.js";
 import { get } from "svelte/store";
 
 export async function toggleLeftSideBar(): Promise<void> {

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { StateRpcSettings } from "./storeTypes";
 import { get } from "svelte/store";
-import type { Chain } from "@constants/chains/types";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import { initialDataRpcSetting, type RpcSetting } from "@db/dbTypes";
+import type { Chain } from "#constants/chains/types.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import { initialDataRpcSetting, type RpcSetting } from "#db/dbTypes.js";
 
 // Import a fresh store for each test, so that no test depends on the state
 // left by another test.

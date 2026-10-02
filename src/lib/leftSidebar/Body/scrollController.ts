@@ -1,8 +1,8 @@
-import type { OpenStateLeftSidebarAccordion } from "@stores/storeNoDb";
+import type { OpenStateLeftSidebarAccordion } from "#stores/storeNoDb.js";
 import {
   getVerticalViewabilityInScroll,
   type VerticalViewability,
-} from "@utils/utilsDom";
+} from "#utils/utilsDom.js";
 
 export function setChildElementInScroll(
   browser: boolean,

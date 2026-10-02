@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
-  import type { Chain, Project, Version } from "@constants/chains/types";
+  import type { Chain, Project, Version } from "#constants/chains/types.js";
   import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import BaseA from "#lib/base/BaseA.svelte";
@@ -18,10 +18,10 @@
     getContractHref,
     getSubdirectoryHref,
   } from "#lib/common/linkHref.js";
-  import { trailingSlash } from "@routes/+layout";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { DIR_NAME_CONTRACTS, NO_DATA } from "@utils/utilsConstants";
-  import { hasSyncTargetEvents } from "@utils/utilsEthers";
+  import { trailingSlash } from "#routes/+layout.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { DIR_NAME_CONTRACTS, NO_DATA } from "#utils/utilsConstants.js";
+  import { hasSyncTargetEvents } from "#utils/utilsEthers.js";
 
   interface Props {
     targetChain: Chain;

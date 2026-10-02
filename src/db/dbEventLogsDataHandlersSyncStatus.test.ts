@@ -14,13 +14,13 @@ import {
   stopSyncingInChain,
   stopSyncingInContract,
 } from "./dbEventLogsDataHandlersSyncStatus";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain, Contract } from "@constants/chains/types";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain, Contract } from "#constants/chains/types.js";
 import * as UpdateSyncStatusInChain from "./dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain";
 import * as UpdateDbRecordSyncStatus from "./dbEventLogsDataHandlersSyncStatusUpdateDbRecordSyncStatus";
 import type { VersionIdentifier } from "./dbTypes";
 import { DbEventLogs } from "./dbEventLogs";
-import { extractEventContracts } from "@utils/utilsEthers";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 
 describe("startSyncingInChain", () => {
   // set spy

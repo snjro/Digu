@@ -2,7 +2,7 @@ import "fake-indexeddb/auto";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { dbBlockTimes } from "./dbBlockTimes";
 import { DB_NAME, DB_VERSIONS } from "./constants";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 
 vi.mock("./constants", () => ({
   DB_NAME: {
@@ -15,7 +15,7 @@ vi.mock("./constants", () => ({
   },
 }));
 
-vi.mock("@constants/chains/_index", () => ({
+vi.mock("#constants/chains/_index.js", () => ({
   TARGET_CHAINS: [{ name: "chain1" }, { name: "chain2" }],
 }));
 

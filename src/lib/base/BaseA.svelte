@@ -30,7 +30,7 @@
   import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
   import { type ColorCategory } from "#lib/appearanceConfig/color/colorDefinitions.js";
   import type { Snippet } from "svelte";
-  import { NO_DATA } from "@utils/utilsConstants";
+  import { NO_DATA } from "#utils/utilsConstants.js";
   import classNames from "classnames";
   import { twMerge } from "tailwind-merge";
   import type { BaseIconProps } from "./BaseIcon";

@@ -7,23 +7,23 @@ import type {
   ChainStatus,
   SyncStatusChain,
   SyncStatusesChain,
-} from "@db/dbTypes";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { storeChainStatus } from "@stores/storeChainStatus";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { storeUserSettings } from "@stores/storeUserSettings";
+} from "#db/dbTypes.js";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 
 // The real stores build their state from the chain data, which loads ethers.
 // ethers does not load in the client project, so the stores are plain ones.
-vi.mock("@stores/storeSyncStatus", async () => {
+vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncStatus: writable({}) };
 });
-vi.mock("@stores/storeChainStatus", async () => {
+vi.mock("#stores/storeChainStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeChainStatus: writable({}) };
 });
-vi.mock("@utils/utilsDb", () => ({
+vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
   }),

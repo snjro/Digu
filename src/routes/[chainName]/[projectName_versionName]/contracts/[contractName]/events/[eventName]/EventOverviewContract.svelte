@@ -9,11 +9,11 @@
     Contract,
     Project,
     Version,
-  } from "@constants/chains/types";
-  import type { SyncStatusContract } from "@db/dbTypes";
-  import { storeChainStatus } from "@stores/storeChainStatus";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { hasSyncTargetEvents } from "@utils/utilsEthers";
+  } from "#constants/chains/types.js";
+  import type { SyncStatusContract } from "#db/dbTypes.js";
+  import { storeChainStatus } from "#stores/storeChainStatus.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { hasSyncTargetEvents } from "#utils/utilsEthers.js";
   import ContractOverviewBasic from "../../ContractOverviewBasic.svelte";
 
   interface Props {

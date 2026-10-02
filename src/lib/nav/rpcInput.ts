@@ -1,17 +1,17 @@
 import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
-import type { Chain, ChainName } from "@constants/chains/types";
-import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
-import { updateDbItemRpcSettings } from "@db/dbSettings";
-import type { NodeStatus, RpcInputType } from "@db/dbTypes";
-import { storeChainStatus } from "@stores/storeChainStatus";
-import { storeNoDbSnackBar } from "@stores/storeNoDb";
-import { customLogger } from "@utils/logger";
+import type { Chain, ChainName } from "#constants/chains/types.js";
+import { updateDbItemChainStatus } from "#db/dbChainStatusDataHandlers.js";
+import { updateDbItemRpcSettings } from "#db/dbSettings.js";
+import type { NodeStatus, RpcInputType } from "#db/dbTypes.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
+import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
+import { customLogger } from "#utils/logger.js";
 import {
   cancelNodeProviderCall,
   getNodeProvider,
   startNodeProviderCall,
   type NodeProvider,
-} from "@utils/utilsEthers";
+} from "#utils/utilsEthers.js";
 import { get } from "svelte/store";
 
 export async function updateRpc(

@@ -1,9 +1,9 @@
 import { liveQuery, type Subscription } from "dexie";
-import { DB_TABLE_NAMES } from "@db/constants";
-import { dbSettings } from "@db/dbSettings";
-import type { RpcSetting } from "@db/dbTypes";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
-import { customLogger } from "@utils/logger";
+import { DB_TABLE_NAMES } from "#db/constants.js";
+import { dbSettings } from "#db/dbSettings.js";
+import type { RpcSetting } from "#db/dbTypes.js";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { customLogger } from "#utils/logger.js";
 
 let subscription: Subscription | undefined;
 

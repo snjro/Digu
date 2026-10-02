@@ -7,12 +7,12 @@
     Contract,
     Project,
     Version,
-  } from "@constants/chains/types";
-  import type { SyncStatus } from "@db/dbTypes";
-  import { storeNoDbSnackBar } from "@stores/storeNoDb";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { customLogger } from "@utils/logger";
-  import { NO_DATA } from "@utils/utilsConstants";
+  } from "#constants/chains/types.js";
+  import type { SyncStatus } from "#db/dbTypes.js";
+  import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { customLogger } from "#utils/logger.js";
+  import { NO_DATA } from "#utils/utilsConstants.js";
   import classNames from "classnames";
   import { getProjectVersionNameForLabel } from "./projectVersionNameHelper";
   import { showSnackBarAsSaveFailed } from "./saveFailed";

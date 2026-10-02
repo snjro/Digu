@@ -1,16 +1,16 @@
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain, ChainName } from "@constants/chains/types";
-import { initializeDBSyncStatusInChain } from "@db/db.worker.func.InitializeDBSyncStatus";
-import { getDbEventLogs, type DbEventLogs } from "@db/dbEventLogs";
-import { getDbRecordSyncStatusContract } from "@db/dbEventLogsDataHandlersSyncStatusGetters";
-import type { SyncStatusContract, VersionIdentifier } from "@db/dbTypes";
-import { getSyncLockName, SYNC_LOCK_TIMEOUT_MS } from "@db/constants";
-import { getDbRecordChainStatus } from "@db/dbChainStatusDataHandlers";
-import { storeChainStatus } from "@stores/storeChainStatus";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { extractEventContracts } from "@utils/utilsEthers";
-import { getTargetChain } from "@utils/utilsDb";
-import { customLogger } from "@utils/logger";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain, ChainName } from "#constants/chains/types.js";
+import { initializeDBSyncStatusInChain } from "#db/db.worker.func.InitializeDBSyncStatus.js";
+import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
+import { getDbRecordSyncStatusContract } from "#db/dbEventLogsDataHandlersSyncStatusGetters.js";
+import type { SyncStatusContract, VersionIdentifier } from "#db/dbTypes.js";
+import { getSyncLockName, SYNC_LOCK_TIMEOUT_MS } from "#db/constants.js";
+import { getDbRecordChainStatus } from "#db/dbChainStatusDataHandlers.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
+import { getTargetChain } from "#utils/utilsDb.js";
+import { customLogger } from "#utils/logger.js";
 import { get, writable, type Writable } from "svelte/store";
 
 // true while another tab holds the sync lock of the chain.

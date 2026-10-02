@@ -1,17 +1,20 @@
 import "fake-indexeddb/auto";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import { DB_TABLE_NAMES, getSyncLockName } from "@db/constants";
-import { startDbWorker } from "@db/db.worker.portal";
-import type { DbWorkerMessage, TargetFunctionName } from "@db/db.worker.types";
-import { DbEventLogs } from "@db/dbEventLogs";
-import { dbSettings } from "@db/dbSettings";
-import { syncStatusContract } from "@eventLogs/eventLogsContract";
-import { storeSyncLockedByOtherTab } from "@eventLogs/syncLock";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
-import { customLogger } from "@utils/logger";
-import { extractEventContracts } from "@utils/utilsEthers";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import { DB_TABLE_NAMES, getSyncLockName } from "#db/constants.js";
+import { startDbWorker } from "#db/db.worker.portal.js";
+import type {
+  DbWorkerMessage,
+  TargetFunctionName,
+} from "#db/db.worker.types.js";
+import { DbEventLogs } from "#db/dbEventLogs.js";
+import { dbSettings } from "#db/dbSettings.js";
+import { syncStatusContract } from "#eventLogs/eventLogsContract.js";
+import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { customLogger } from "#utils/logger.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import { installFakeLockManager } from "../testUtils/fakeLockManager";
 import { forgetInitialization, initialize } from "./initialize";
 import { initializeStore } from "./initializeStore";
@@ -27,9 +30,9 @@ vi.mock("./initializeStore", async (importOriginal) => {
   return { initializeStore: vi.fn(actual.initializeStore) };
 });
 // Runs the Worker jobs in the page.
-vi.mock("@db/db.worker.portal", async () => {
+vi.mock("#db/db.worker.portal.js", async () => {
   const { executeTargetFunction } =
-    await import("@db/db.worker.executeTargetFunction");
+    await import("#db/db.worker.executeTargetFunction.js");
   return {
     startDbWorker: vi.fn((message: DbWorkerMessage<TargetFunctionName>) =>
       executeTargetFunction(message.targetFunctionName, message.params),

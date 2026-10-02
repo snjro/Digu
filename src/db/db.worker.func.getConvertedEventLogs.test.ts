@@ -1,10 +1,10 @@
 import { dbWorkerFuncGetConvertedEventLogs } from "./db.worker.func.getConvertedEventLogs"; // ファイル名を適切なものに変更してください
-import { getEventLogTableName } from "@utils/utilsDb";
+import { getEventLogTableName } from "#utils/utilsDb.js";
 import { DbEventLogs, getDbEventLogs } from "./dbEventLogs";
 import { getEventLogTableRecords } from "./dbEventLogsDataHandlersEventLog";
 import { describe, expect, test, vi } from "vitest";
 
-vi.mock("@utils/utilsDb");
+vi.mock("#utils/utilsDb.js");
 vi.mock("./dbEventLogs");
 vi.mock("./dbEventLogsDataHandlersEventLog");
 vi.mocked(getDbEventLogs).mockImplementation(

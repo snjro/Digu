@@ -9,7 +9,7 @@ import {
   DIR_NAME_CONTRACTS,
   DIR_NAME_EVENTS,
   DIR_NAME_FUNCTIONS,
-} from "@utils/utilsConstants";
+} from "#utils/utilsConstants.js";
 
 // ssr is false, so the prerender does not crawl links. Every page that must
 // open directly needs its own entry.

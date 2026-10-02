@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import type { GridApi } from "ag-grid-community";
-import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
+import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
 import BaseGridFunctionBar from "./BaseGridFunctionBar.svelte";
 import { quickSearchWaitMs } from "./BaseGridFunctionBarQuickSearch.svelte";
 

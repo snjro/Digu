@@ -24,8 +24,8 @@
   } from "#lib/base/BaseButtonIcon.svelte";
   import BaseDividerVertical from "#lib/base/BaseDividerVertical.svelte";
   import type { BaseSize } from "#lib/base/baseSizes.js";
-  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
   import classNames from "classnames";
 
   interface Props {

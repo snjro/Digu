@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { Version } from "@constants/chains/types";
+import type { Version } from "#constants/chains/types.js";
 import {
   getVersionHref,
   hasVersionEvents,

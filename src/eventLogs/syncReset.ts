@@ -1,15 +1,22 @@
-import type { Chain, ChainName } from "@constants/chains/types";
-import { DB_NAME, getSyncLockName, SYNC_LOCK_TIMEOUT_MS } from "@db/constants";
-import { resetDbSyncedData } from "@db/dbResetSyncedData";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
-import { customLogger } from "@utils/logger";
-import { forgetWarpSyncConfirmation, startWarpSync } from "@warpSync/warpSync";
+import type { Chain, ChainName } from "#constants/chains/types.js";
+import {
+  DB_NAME,
+  getSyncLockName,
+  SYNC_LOCK_TIMEOUT_MS,
+} from "#db/constants.js";
+import { resetDbSyncedData } from "#db/dbResetSyncedData.js";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { customLogger } from "#utils/logger.js";
+import {
+  forgetWarpSyncConfirmation,
+  startWarpSync,
+} from "#warpSync/warpSync.js";
 import {
   hasWarpSync,
   selectWarpSyncState,
   setWarpSyncState,
   storeWarpSync,
-} from "@warpSync/warpSyncState";
+} from "#warpSync/warpSyncState.js";
 import { get } from "svelte/store";
 import {
   isSyncedByThisTab,

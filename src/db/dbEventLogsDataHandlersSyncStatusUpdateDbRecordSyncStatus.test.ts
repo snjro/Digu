@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import { test, vi, expect, describe } from "vitest";
 import { get } from "svelte/store";
 import type {
@@ -8,11 +8,11 @@ import type {
   VersionIdentifier,
 } from "./dbTypes";
 import { DbEventLogs } from "./dbEventLogs";
-import type { Contract } from "@constants/chains/types";
-import { extractEventContracts } from "@utils/utilsEthers";
+import type { Contract } from "#constants/chains/types.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import { updateDbRecordSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbRecordSyncStatus";
 import { DB_TABLE_NAMES } from "./constants";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 

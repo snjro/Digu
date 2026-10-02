@@ -3,7 +3,7 @@
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import BaseButtonIcon from "#lib/base/BaseButtonIcon.svelte";
   import { toggleLeftSideBar } from "#lib/leftSidebar/functions.js";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
 </script>
 
 {#if !$storeUserSettings.isOpenSidebar}

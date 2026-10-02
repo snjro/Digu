@@ -6,7 +6,7 @@ import {
   expect,
   beforeEach,
 } from "vitest";
-import type { Chain } from "@constants/chains/types";
+import type { Chain } from "#constants/chains/types.js";
 import type { ChainStatus } from "./dbTypes";
 import {
   getDbRecordChainStatus,
@@ -14,7 +14,7 @@ import {
 } from "./dbChainStatusDataHandlers";
 import { dbChainStatus } from "./dbChainStatus";
 import { DB_TABLE_NAMES } from "./constants";
-import { storeChainStatus } from "@stores/storeChainStatus";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
 import Dexie from "dexie";
 const dummyChainName: Chain["name"] = "dummyChainName";
 const tableNameChainStatus = DB_TABLE_NAMES.ChainStatus;

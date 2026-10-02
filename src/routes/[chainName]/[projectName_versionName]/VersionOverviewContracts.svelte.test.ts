@@ -6,16 +6,16 @@ import type {
   Contract,
   Project,
   Version,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 
 vi.mock("$app/state", () => ({
   page: { url: new URL("http://localhost/chain1/project1-version1/") },
 }));
-vi.mock("@routes/+layout", () => ({ trailingSlash: "always" }));
+vi.mock("#routes/+layout.js", () => ({ trailingSlash: "always" }));
 // The real store builds its state from the chain data, which loads ethers.
 // ethers does not load in the client project, so the store is a plain one.
 // contract2 has no event to sync, so it has no sync status.
-vi.mock("@stores/storeSyncStatus", async () => {
+vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return {
     storeSyncStatus: writable({
@@ -41,7 +41,7 @@ vi.mock("@stores/storeSyncStatus", async () => {
   };
 });
 // utilsEthers loads ethers. The same rule as the real hasSyncTargetEvents.
-vi.mock("@utils/utilsEthers", () => ({
+vi.mock("#utils/utilsEthers.js", () => ({
   hasSyncTargetEvents: (contract: Contract): boolean =>
     contract.events.names.length > 0,
 }));

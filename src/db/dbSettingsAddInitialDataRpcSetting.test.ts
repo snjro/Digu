@@ -4,8 +4,8 @@ import * as DBS from "./dbSettings";
 import { initialDataRpcSetting, type RpcSetting } from "./dbTypes";
 import { DB_TABLE_NAMES } from "./constants";
 import type { Transaction } from "dexie";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain } from "@constants/chains/types";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain } from "#constants/chains/types.js";
 const tableName = DB_TABLE_NAMES.Settings.rpcSettings;
 
 describe("addInitialDataRpcSettings", () => {

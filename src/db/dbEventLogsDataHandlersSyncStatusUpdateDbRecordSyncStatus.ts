@@ -1,8 +1,8 @@
-import type { ContractName } from "@constants/chains/types";
+import type { ContractName } from "#constants/chains/types.js";
 import { DB_TABLE_NAMES } from "./constants";
 import { DbEventLogs } from "./dbEventLogs";
 import type { ContractIdentifier, SyncStatusContract } from "./dbTypes";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 

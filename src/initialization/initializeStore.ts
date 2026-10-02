@@ -2,9 +2,9 @@ import {
   addInitialDataOfDbEventLogs,
   getDbEventLogs,
   type DbEventLogs,
-} from "@db/dbEventLogs";
-import { addInitialDataOfDbChainStatus } from "@db/dbChainStatus";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+} from "#db/dbEventLogs.js";
+import { addInitialDataOfDbChainStatus } from "#db/dbChainStatus.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import {
   initialDataUserSettings,
   type ChainStatus,
@@ -13,24 +13,24 @@ import {
   type VersionIdentifier,
   type SyncStatusContract,
   type UserSetting,
-} from "@db/dbTypes";
-import { getDbRecordSyncStatusContract } from "@db/dbEventLogsDataHandlersSyncStatusGetters";
+} from "#db/dbTypes.js";
+import { getDbRecordSyncStatusContract } from "#db/dbEventLogsDataHandlersSyncStatusGetters.js";
 import type {
   ChainName,
   Contract,
   ContractName,
-} from "@constants/chains/types";
-import { getDbRecordChainStatus } from "@db/dbChainStatusDataHandlers";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
-import { storeChainStatus } from "@stores/storeChainStatus";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { storeUserSettings } from "@stores/storeUserSettings";
-import { extractEventContracts } from "@utils/utilsEthers";
+} from "#constants/chains/types.js";
+import { getDbRecordChainStatus } from "#db/dbChainStatusDataHandlers.js";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import {
   getDbRecordRpcSettings,
   getDbRecordUserSettings,
-} from "@db/dbSettings";
-import { customLogger } from "@utils/logger";
+} from "#db/dbSettings.js";
+import { customLogger } from "#utils/logger.js";
 
 export async function initializeStore(): Promise<void> {
   const promiseUpdateStores: Promise<void>[] = [];

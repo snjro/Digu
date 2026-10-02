@@ -1,9 +1,9 @@
 import { initializeDB } from "./initializeDB";
 import { initializeStore } from "./initializeStore";
 import { browser } from "$app/env";
-import { customLogger } from "@utils/logger";
-import { watchSyncLocksOfOtherTabs } from "@eventLogs/syncLock";
-import { watchSyncResetsOfOtherTabs } from "@eventLogs/syncReset";
+import { customLogger } from "#utils/logger.js";
+import { watchSyncLocksOfOtherTabs } from "#eventLogs/syncLock.js";
+import { watchSyncResetsOfOtherTabs } from "#eventLogs/syncReset.js";
 import { watchRpcSettings } from "./watchRpcSettings";
 
 let initialization: Promise<void> | undefined;

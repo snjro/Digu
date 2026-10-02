@@ -25,8 +25,8 @@
     type RadioLabelAndValues,
   } from "#lib/base/BaseRadio.svelte";
   import type { EventLogType } from "#lib/contracts/eventLogType.js";
-  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
   import classNames from "classnames";
   import type { Snippet } from "svelte";
 

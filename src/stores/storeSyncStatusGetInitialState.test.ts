@@ -3,11 +3,11 @@ import {
   getInitialState,
   syncStateText,
 } from "./storeSyncStatusGetInitialState";
-import { NO_DATA } from "@utils/utilsConstants";
-import type { SyncStateText } from "@db/dbTypes";
-import type { Chain } from "@constants/chains/types";
+import { NO_DATA } from "#utils/utilsConstants.js";
+import type { SyncStateText } from "#db/dbTypes.js";
+import type { Chain } from "#constants/chains/types.js";
 
-vitest.mock("@constants/chains/_index", (): { TARGET_CHAINS: Chain[] } => {
+vitest.mock("#constants/chains/_index.js", (): { TARGET_CHAINS: Chain[] } => {
   return {
     TARGET_CHAINS: [
       {

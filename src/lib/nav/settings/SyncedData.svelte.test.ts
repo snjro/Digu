@@ -2,44 +2,44 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { get, type Writable } from "svelte/store";
-import { storeSyncLockedByOtherTab } from "@eventLogs/syncLock";
-import { resetSyncedData } from "@eventLogs/syncReset";
+import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+import { resetSyncedData } from "#eventLogs/syncReset.js";
 import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
-} from "@stores/storeNoDb";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { setWarpSyncState } from "@warpSync/warpSyncState";
+} from "#stores/storeNoDb.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { setWarpSyncState } from "#warpSync/warpSyncState.js";
 import SyncedData from "./SyncedData.svelte";
 
 // The real stores and chain data load ethers, which does not load in the
 // client project.
-vi.mock("@stores/storeUserSettings", async () => {
+vi.mock("#stores/storeUserSettings.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeUserSettings: writable({ selectedChainName: "matic" }) };
 });
-vi.mock("@stores/storeRpcSettings", async () => {
+vi.mock("#stores/storeRpcSettings.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeRpcSettings: writable({ matic: { warpSync: true } }) };
 });
-vi.mock("@stores/storeSyncStatus", async () => {
+vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncStatus: writable({}) };
 });
-vi.mock("@utils/utilsDb", () => ({
+vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
     fullName: "Polygon Mainnet",
   }),
 }));
-vi.mock("@eventLogs/syncLock", async () => {
+vi.mock("#eventLogs/syncLock.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncLockedByOtherTab: writable({ matic: false }) };
 });
 // The fly transition of the snackbar in the dialog is canceled when the test
 // ends, which the browser reports as an error.
 vi.mock("svelte/transition", () => ({ fly: () => ({}) }));
-vi.mock("@eventLogs/syncReset", () => ({
+vi.mock("#eventLogs/syncReset.js", () => ({
   resetSyncedData: vi.fn(async () => ({ result: "reset", deletedLogCount: 0 })),
 }));
 

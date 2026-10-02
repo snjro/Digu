@@ -10,22 +10,22 @@ import {
   TRY_COUNT,
 } from "./eventLogsContract";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
-import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
-import { extractEventContracts } from "@utils/utilsEthers";
+import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import {
   providerAnsweringGetLogs,
   type GetLogsAnswer,
-} from "@utils/testCommon";
-import { customLogger } from "@utils/logger";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { storeChainStatus } from "@stores/storeChainStatus";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain, Contract } from "@constants/chains/types";
-import type { DbEventLogs } from "@db/dbEventLogs";
-import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
+} from "#utils/testCommon.js";
+import { customLogger } from "#utils/logger.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain, Contract } from "#constants/chains/types.js";
+import type { DbEventLogs } from "#db/dbEventLogs.js";
+import type { SyncStatusContract, SyncStatusesChain } from "#db/dbTypes.js";
 
 vi.mock("./eventLogsContractUpdateTables");
-vi.mock("@db/dbEventLogsDataHandlersSyncStatus");
+vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js");
 
 const targetChain: Chain = TARGET_CHAINS[0];
 const targetProject = targetChain.projects[0];

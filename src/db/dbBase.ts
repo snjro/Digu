@@ -1,4 +1,4 @@
-import type { Contract } from "@constants/chains/types";
+import type { Contract } from "#constants/chains/types.js";
 import { Dexie, type Transaction } from "dexie";
 import { DB_NAME } from "./constants";
 import type { SchemaDefinition, VersionIdentifier } from "./dbTypes";

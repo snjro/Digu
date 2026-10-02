@@ -4,12 +4,12 @@ import type {
   Contract,
   Project,
   Version,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 import type {
   SubSyncStatuses,
   SyncStatus,
   SyncStatusesChain,
-} from "@db/dbTypes";
+} from "#db/dbTypes.js";
 import {
   getTargetSyncStatus,
   isSyncTargetIndeterminate,

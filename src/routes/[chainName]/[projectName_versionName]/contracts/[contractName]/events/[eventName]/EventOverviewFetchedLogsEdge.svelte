@@ -3,8 +3,8 @@
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
   import CommonChainExplorerLink from "#lib/common/CommonChainExplorerLink.svelte";
-  import type { ConvertedEventLog } from "@db/dbTypes";
-  import { convertJsDateToIso8601 } from "@utils/utilsTime";
+  import type { ConvertedEventLog } from "#db/dbTypes.js";
+  import { convertJsDateToIso8601 } from "#utils/utilsTime.js";
   import classNames from "classnames";
 
   interface Props {

@@ -1,4 +1,4 @@
-import type { Project } from "@constants/chains/types";
+import type { Project } from "#constants/chains/types.js";
 import { version as turbo } from "./turbo/_index";
 
 export const project: Project = {

@@ -4,7 +4,7 @@
   import type {
     EventAbiFragment,
     FunctionAbiFragment,
-  } from "@constants/chains/types";
+  } from "#constants/chains/types.js";
   import type { AbiFragmentsType } from "#lib/contracts/abiFragmentsType.js";
   import BaseItem from "./BaseItem.svelte";
   import { getAbiFragmentHref } from "./functionNameHandler";

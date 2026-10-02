@@ -2,22 +2,22 @@ import "fake-indexeddb/auto";
 import { createHash } from "node:crypto";
 import { gzipSync } from "node:zlib";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain, Contract } from "@constants/chains/types";
-import { getDbEventLogs } from "@db/dbEventLogs";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain, Contract } from "#constants/chains/types.js";
+import { getDbEventLogs } from "#db/dbEventLogs.js";
 import {
   getDbRecordChainStatus,
   updateDbItemChainStatus,
-} from "@db/dbChainStatusDataHandlers";
-import { DB_TABLE_NAMES } from "@db/constants";
-import { startDbWorker } from "@db/db.worker.portal";
+} from "#db/dbChainStatusDataHandlers.js";
+import { DB_TABLE_NAMES } from "#db/constants.js";
+import { startDbWorker } from "#db/db.worker.portal.js";
 import type {
   ConvertedEventLog,
   SyncStatusContract,
   VersionIdentifier,
-} from "@db/dbTypes";
-import { storeChainStatus } from "@stores/storeChainStatus";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
+} from "#db/dbTypes.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import Dexie from "dexie";
 import { get } from "svelte/store";
 import { makeWarpSyncLog } from "../testUtils/warpSyncLogs";
@@ -34,11 +34,11 @@ import type {
 
 vi.mock("#lib/common/basePath.js", () => ({ basePath: "" }));
 // The worker runs in this process: the same function, without a Worker.
-vi.mock("@db/db.worker.portal", () => ({
+vi.mock("#db/db.worker.portal.js", () => ({
   startDbWorker: vi.fn(
     async (message: { targetFunctionName: string; params: unknown }) => {
       const { executeTargetFunction } =
-        await import("@db/db.worker.executeTargetFunction");
+        await import("#db/db.worker.executeTargetFunction.js");
       return await executeTargetFunction(
         message.targetFunctionName as "importWarpSyncFile",
         message.params as never,

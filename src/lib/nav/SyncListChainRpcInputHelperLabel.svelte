@@ -1,8 +1,8 @@
 <script lang="ts">
   import BaseLabel from "#lib/base/BaseLabel.svelte";
-  import { storeChainStatus } from "@stores/storeChainStatus";
-  import { storeRpcSettings } from "@stores/storeRpcSettings";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { storeChainStatus } from "#stores/storeChainStatus.js";
+  import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
   import classNames from "classnames";
   import { getRpcInputHelperLabelProps } from "./rpcInputHelperLabel";
 

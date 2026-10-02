@@ -2,7 +2,7 @@
   import { basePath } from "#lib/common/basePath.js";
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import { getChainRootUrl } from "#lib/common/chainRootUrl.js";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
   import BaseItem from "./BaseItem.svelte";
 
   let targetChainName = $derived(

@@ -1,5 +1,5 @@
 import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
-import { getScreenWidth } from "@utils/utilsDom";
+import { getScreenWidth } from "#utils/utilsDom.js";
 import { writable, type Writable } from "svelte/store";
 export type OpenStateLeftSidebarAccordion =
   "openAll" | "closeAll" | "openCurrentOnly" | undefined;

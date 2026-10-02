@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { StateUserSettings } from "./storeTypes";
 import { get } from "svelte/store";
-import type { UserSetting } from "@db/dbTypes";
+import type { UserSetting } from "#db/dbTypes.js";
 
 const expectedInitialUserSettings: UserSetting = {
   userSettingsId: "userSetting01",
@@ -73,7 +73,7 @@ describe("storeUserSettings", () => {
   });
   test("should not change the shared initial data", async () => {
     const storeUserSettings = await importStoreUserSettings();
-    const { initialDataUserSettings } = await import("@db/dbTypes");
+    const { initialDataUserSettings } = await import("#db/dbTypes.js");
     // Same as `$storeUserSettings.isOpenSidebar = false` in a component,
     // which changes the current value in place.
     storeUserSettings.update((state: StateUserSettings) => {

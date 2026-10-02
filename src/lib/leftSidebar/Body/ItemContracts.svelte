@@ -1,8 +1,8 @@
 <script lang="ts">
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
-  import type { Contract } from "@constants/chains/types";
-  import { capitalizeFirstLetter } from "@utils/utilsCommon";
-  import { DIR_NAME_CONTRACTS } from "@utils/utilsConstants";
+  import type { Contract } from "#constants/chains/types.js";
+  import { capitalizeFirstLetter } from "#utils/utilsCommon.js";
+  import { DIR_NAME_CONTRACTS } from "#utils/utilsConstants.js";
   import BaseAccordion from "./BaseAccordion.svelte";
   import ItemContractsMember from "./ItemContractsMember.svelte";
 

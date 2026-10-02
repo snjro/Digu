@@ -1,8 +1,8 @@
-import type { ChainName } from "@constants/chains/types";
+import type { ChainName } from "#constants/chains/types.js";
 import { DB_TABLE_NAMES } from "./constants";
 import type { ChainStatus } from "./dbTypes";
 import { dbChainStatus } from "./dbChainStatus";
-import { storeChainStatus } from "@stores/storeChainStatus";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
 const tableNameChainStatus = DB_TABLE_NAMES.ChainStatus;
 export async function getDbRecordChainStatus(
   chainName: ChainName,
