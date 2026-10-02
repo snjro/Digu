@@ -8,9 +8,20 @@ const RPC = L.RPC_INPUT;
 const helper = () =>
   page.evaluate(() => {
     const n = document.querySelector("nav") ?? document.body;
+    // The own text of an element; the link to the guide after it (#402) is left out.
     const t = [...n.querySelectorAll("*")]
-      .filter((e) => e.children.length === 0 && e.getClientRects().length)
-      .map((e) => e.textContent.trim())
+      .filter(
+        (e) =>
+          [...e.children].every((c) => c.tagName === "A") &&
+          e.getClientRects().length,
+      )
+      .map((e) =>
+        [...e.childNodes]
+          .filter((c) => c.nodeType === Node.TEXT_NODE)
+          .map((c) => c.textContent)
+          .join("")
+          .trim(),
+      )
       .filter((t) => /^(Enter URL|Connecting|Connected|Error\.)/.test(t));
     return t.join(" / ");
   });

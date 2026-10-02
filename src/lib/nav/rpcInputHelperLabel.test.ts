@@ -2,7 +2,10 @@ import { describe, expect, test } from "vitest";
 import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 import type { NodeStatus } from "#db/dbTypes.js";
-import { getRpcInputHelperLabelProps } from "./rpcInputHelperLabel";
+import {
+  getRpcInputHelperLabelProps,
+  RPC_GUIDE_URL,
+} from "./rpcInputHelperLabel";
 
 const size = sizeSettings.navInputHelperText;
 const rpc = "https://rpc.example.com";
@@ -49,7 +52,6 @@ describe("getRpcInputHelperLabelProps", () => {
     ["INVALID_PROTOCOL", rpc, "Error. Protocol is invalid."],
     ["INVALID_URL", rpc, "Error. Invalid URL."],
     ["WRONG_CHAIN", rpc, "Error. Target chain is wrong."],
-    ["NETWORK_ERROR", rpc, "Error. cannot get a network data."],
   ])(
     "should show an error with the close icon when the node status is %j (rpc %j)",
     (nodeStatus, rpcValue, text) => {
@@ -67,14 +69,36 @@ describe("getRpcInputHelperLabelProps", () => {
     },
   );
 
-  test("should ask for the URL without an icon when the node status is INVALID_URL and no RPC URL is entered", () => {
+  test("should show that the RPC cannot be reached, with the link to the guide, when the node status is NETWORK_ERROR", () => {
+    expect(getRpcInputHelperLabelProps("NETWORK_ERROR", rpc)).toStrictEqual({
+      prefixIcon: {
+        name: "close",
+        colorCategory: "error",
+        size,
+      },
+      text: "Error. Cannot reach this RPC. Check the URL.",
+      textSize: size,
+      colorCategoryFront: "error",
+      appendClass: "whitespace-pre-wrap",
+      helpHref: RPC_GUIDE_URL,
+    });
+  });
+
+  test("should ask for the URL without an icon, with the link to the guide, when the node status is INVALID_URL and no RPC URL is entered", () => {
     expect(getRpcInputHelperLabelProps("INVALID_URL", "")).toStrictEqual({
       prefixIcon: undefined,
       text: "Enter URL of RPC.",
       textSize: size,
       colorCategoryFront: "error",
       appendClass: "whitespace-pre-wrap",
+      helpHref: RPC_GUIDE_URL,
     });
+  });
+
+  test("should link to the section of the guide on the default branch", () => {
+    expect(RPC_GUIDE_URL).toBe(
+      "https://github.com/snjro/Digu/blob/develop/docs/getting-started-as-user/README.md#rpc-endpoint-url",
+    );
   });
 
   test.each(["", rpc])(

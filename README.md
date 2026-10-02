@@ -9,7 +9,7 @@ If you want to use Digu right away, open this site:
 ## [**Overview**](#overview)
 
 Digu is a user interface to view [smart contracts](https://ethereum.org/en/developers/docs/smart-contracts/) for [Augur](https://github.com/AugurProject). You can browse contract data such as [ABI](https://docs.soliditylang.org/en/develop/abi-spec.html), creation info, [functions](https://ethereum.org/en/developers/docs/smart-contracts/anatomy/#functions), [events](https://ethereum.org/en/developers/docs/smart-contracts/anatomy/#events-and-logs) in detail.
-Digu can import the event logs emitted by the contracts from a snapshot published with this site (warp sync, for Polygon now; it can be turned off for each chain in the settings). If you have a [RPC endpoint](https://ethereum.org/en/developers/docs/apis/json-rpc/) URL, Digu retrieves the event logs after the snapshot, or all of them.
+Digu can import the event logs emitted by the contracts from a snapshot published with this site (warp sync, for Ethereum and Polygon now; it can be turned off for each chain in the settings). If you have a [RPC endpoint](https://ethereum.org/en/developers/docs/apis/json-rpc/) URL, Digu retrieves the event logs after the snapshot, or all of them. To get a URL, see [RPC endpoint URL](./docs/getting-started-as-user/README.md#rpc-endpoint-url).
 
 - **Semi-Serverless:**  
   Digu is a standalone application, basically it runs without a server. It connects to a remote environment only to get event logs: the snapshot of the warp sync, which it reads from this same site (GitHub Pages), and the RPC endpoint you set. These event logs are all stored on your local database.
