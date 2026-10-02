@@ -13,7 +13,7 @@ import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { customLogger } from "@utils/logger";
 import { extractEventContracts } from "@utils/utilsEthers";
 import { installFakeLockManager } from "../testUtils/fakeLockManager";
-import { initialize } from "./initialize";
+import { forgetInitialization, initialize } from "./initialize";
 import { watchRpcSettings } from "./watchRpcSettings";
 
 vi.mock("$app/env", async (importOriginal) => ({
@@ -43,6 +43,7 @@ describe("initialize", () => {
   afterEach(() => {
     // The subscription that initialize() started.
     watchRpcSettings().unsubscribe();
+    forgetInitialization();
     vi.restoreAllMocks();
   });
 
@@ -106,5 +107,29 @@ describe("initialize", () => {
     await vi.waitFor(() => {
       expect(get(storeSyncLockedByOtherTab)[chain.name]).toBe(false);
     });
+  });
+
+  test("runs once when it is called again", async () => {
+    installFakeLockManager();
+    vi.mocked(startDbWorker).mockClear();
+
+    const first = initialize();
+    await first;
+    const second = initialize();
+    await second;
+
+    expect(second).toBe(first);
+    expect(startDbWorker).toHaveBeenCalledTimes(2);
+  });
+
+  test("runs again after a failure", async () => {
+    installFakeLockManager();
+    vi.mocked(startDbWorker).mockClear();
+    vi.mocked(startDbWorker).mockRejectedValueOnce(new Error("test failure"));
+
+    await expect(initialize()).rejects.toThrow("test failure");
+    await expect(initialize()).resolves.toBeUndefined();
+
+    expect(startDbWorker).toHaveBeenCalledTimes(4);
   });
 });
