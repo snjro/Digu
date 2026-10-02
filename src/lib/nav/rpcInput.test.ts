@@ -11,6 +11,8 @@ import { updateDbItemChainStatus } from "#db/dbChainStatusDataHandlers.js";
 import { updateDbItemRpcSettings } from "#db/dbSettings.js";
 import type { NodeStatus } from "#db/dbTypes.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import {
   cancelNodeProviderCall,
   getNodeProvider,
@@ -123,6 +125,39 @@ describe("updateRpc", () => {
     await updateRpc(targetChain, "");
     expect(updateDbItemRpcSettings).toHaveBeenCalledWith("eth", "rpc", "");
     expect(getNodeProvider).toHaveBeenCalledWith(targetChain, "", 1);
+  });
+
+  describe("the reason why the sync stopped", () => {
+    const savedRpc = "https://saved.example";
+    beforeEach(() => {
+      storeRpcSettings.updateState("eth", { rpc: savedRpc });
+      storeSyncStoppedReason.record("eth", "RPC_ERRORS");
+    });
+    afterEach(() => {
+      storeRpcSettings.updateState("eth", { rpc: "" });
+      storeSyncStoppedReason.clear("eth");
+    });
+
+    test("should be cleared when the rpc changes", async () => {
+      await updateRpc(targetChain, "https://localhost:8545");
+      expect(get(storeSyncStoppedReason).eth).toBeUndefined();
+    });
+
+    // On blur, and when the chain is selected.
+    test("should be kept when the same rpc is saved again", async () => {
+      await updateRpc(targetChain, savedRpc);
+      expect(get(storeSyncStoppedReason).eth).toBe("RPC_ERRORS");
+    });
+
+    test("should be kept when saving the rpc fails", async () => {
+      vi.mocked(updateDbItemRpcSettings).mockRejectedValueOnce(
+        new Error("DB error"),
+      );
+      await expect(
+        updateRpc(targetChain, "https://localhost:8545"),
+      ).rejects.toThrow("DB error");
+      expect(get(storeSyncStoppedReason).eth).toBe("RPC_ERRORS");
+    });
   });
 });
 

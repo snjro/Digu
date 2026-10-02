@@ -5,6 +5,8 @@ import { updateDbItemRpcSettings } from "#db/dbSettings.js";
 import type { NodeStatus, RpcInputType } from "#db/dbTypes.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { customLogger } from "#utils/logger.js";
 import {
   cancelNodeProviderCall,
@@ -20,6 +22,9 @@ export async function updateRpc(
 ): Promise<void> {
   const previousNodeStatus: NodeStatus =
     get(storeChainStatus)[targetChain.name].nodeStatus;
+  // Also called with the same RPC on blur and when the chain is selected.
+  const isRpcChanged: boolean =
+    get(storeRpcSettings)[targetChain.name].rpc !== newRpc;
   // CONNECTING comes first: the helper label must not show the new RPC with
   // the status of the old one.
   const callNumber: number = await startNodeProviderCall(targetChain.name);
@@ -33,6 +38,7 @@ export async function updateRpc(
     );
     throw error;
   }
+  if (isRpcChanged) storeSyncStoppedReason.clear(targetChain.name);
 
   //By calling "getNodeProvider", nodeStatus is updated
   const nodeProvider: NodeProvider | undefined = await getNodeProvider(

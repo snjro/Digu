@@ -32,6 +32,11 @@ vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncStatus: writable({ chain1: { isSyncing: false } }) };
 });
+// The real module loads the chain data, which loads ethers.
+vi.mock("#eventLogs/syncLock.js", async () => {
+  const { writable } = await import("svelte/store");
+  return { storeSyncLockedByOtherTab: writable({}) };
+});
 vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: () => ({ name: "chain1" }),
 }));

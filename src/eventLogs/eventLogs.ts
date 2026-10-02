@@ -16,6 +16,7 @@ import {
 import { customLogger } from "#utils/logger.js";
 import { getUrlObject } from "#utils/utilsCommon.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { get } from "svelte/store";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { requestSyncLock } from "./syncLock";
@@ -56,6 +57,7 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
         // Only the host: the rest of the URL may hold an API key.
         rpcHost: getUrlObject(rpc)?.host,
       });
+      recordSyncStoppedReason(targetChain.name, "RPC_ERRORS");
       await startAbortingInChain(targetChain.name);
       return;
     }
@@ -89,6 +91,7 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
       }
     }
   } catch (error) {
+    recordSyncStoppedReason(targetChain.name, "UNEXPECTED_ERROR");
     // Stop the contracts that already started, so that the wait below ends.
     await startAbortingInChain(targetChain.name).catch(
       (abortError: unknown) => {
@@ -126,6 +129,7 @@ async function abortOnError(
     contractName: contractName,
     errorObject: error,
   });
+  recordSyncStoppedReason(chainName, "UNEXPECTED_ERROR");
   await startAbortingInChain(chainName).catch((abortError: unknown) => {
     // allSettled would drop it silently.
     customLogger.error("Start aborting.", {

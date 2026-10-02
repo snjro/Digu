@@ -8,9 +8,11 @@ import {
 } from "#utils/utilsEthers.js";
 import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain, ChainName } from "#constants/chains/types.js";
 import type { SyncStatusesChain } from "#db/dbTypes.js";
+import { get } from "svelte/store";
 
 vi.mock("#utils/utilsEthers.js", async (importOriginal) => {
   const original =
@@ -33,8 +35,10 @@ describe("startUpdateLatestBlockNumber", () => {
     vi.mocked(getAndUpdateLatestBlockNumber).mockResolvedValue(1);
     storeSyncStatus.update((state: SyncStatusesChain) => {
       state[chainName].isSyncing = true;
+      state[chainName].isAbort = false;
       return state;
     });
+    storeSyncStoppedReason.clear(chainName);
   });
   afterEach(() => {
     stopUpdates?.();
@@ -74,6 +78,23 @@ describe("startUpdateLatestBlockNumber", () => {
 
     expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(TRY_COUNT + 1);
     expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(chainName);
+    expect(get(storeSyncStoppedReason)[chainName]).toBe("RPC_ERRORS");
+  });
+
+  test("should keep no reason when the errors exceed Try Count after the user stopped", async () => {
+    vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
+      new Error("RPC error"),
+    );
+    storeSyncStatus.update((state: SyncStatusesChain) => {
+      state[chainName].isAbort = true;
+      return state;
+    });
+
+    await startUpdateLatestBlockNumber(chainName, nodeProvider);
+    await vi.advanceTimersByTimeAsync((TRY_COUNT + 3) * blockIntervalMs);
+
+    expect(startAbortingInChain).toHaveBeenCalledOnce();
+    expect(get(storeSyncStoppedReason)[chainName]).toBeUndefined();
   });
 
   test("should not abort when a request fails after it is stopped", async () => {

@@ -22,6 +22,7 @@ import type {
 } from "#db/dbTypes.js";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { assertIsDefined, sleep } from "#utils/utilsCommon.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 type FetchingTargetInfo = ContractIdentifier & {
@@ -223,6 +224,7 @@ export async function fetchEventLogsContract(
           fetchingTarget: fetchingTargetInfo,
         },
       );
+      recordSyncStoppedReason(chainName, "RPC_ERRORS");
       await startAbortingInChain(chainName);
     } else if (errorCount > 0) {
       await sleepUnlessAborted(contractIdentifier, RETRY_WAIT_MS);

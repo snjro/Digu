@@ -206,6 +206,8 @@ async function openTab(beforeWatch?: () => Promise<void>) {
   const { syncStatusContract } = await import("./eventLogsContract");
   const { storeSyncStatus } = await import("#stores/storeSyncStatus.js");
   const { storeChainStatus } = await import("#stores/storeChainStatus.js");
+  const { storeSyncStoppedReason } =
+    await import("#stores/storeSyncStoppedReason.js");
   const { get } = await import("svelte/store");
   const { updateDbItemChainStatus } =
     await import("#db/dbChainStatusDataHandlers.js");
@@ -241,6 +243,7 @@ async function openTab(beforeWatch?: () => Promise<void>) {
       get(syncLock.storeSyncLockedByOtherTab)[chain.name],
     latestBlockNumber: (): number =>
       get(storeChainStatus)[chain.name].latestBlockNumber,
+    syncStoppedReason: () => get(storeSyncStoppedReason)[chain.name],
     // What the syncing tab writes: the block number from the RPC minus the
     // confirmation depth.
     updateLatestBlockNumber: (latestBlockNumber: number) =>
@@ -379,6 +382,27 @@ describe("sync with two tabs (issue #49)", () => {
     expect(rows).toBe(unique);
   }, 30_000);
 
+  // The label hides the reason while another tab holds the lock
+  // (SyncListChainRpcInputHelperLabel.svelte.test.ts).
+  test("keeps the reason why the sync stopped when another tab holds the lock", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    const b = await openTab();
+    tabs.push(b);
+    rpc.isConnectable = false;
+    expect(await b.fetchEventLogs()).toBe(true);
+    expect(await waitFor(async () => !(await isSyncLockHeld()))).toBe(true);
+    expect(b.syncStoppedReason()).toBe("RPC_ERRORS");
+    rpc.isConnectable = true;
+    expect(await a.fetchEventLogs()).toBe(true);
+    await waitForSavedLogs(a);
+
+    expect(await b.fetchEventLogs()).toBe(false);
+    expect(b.isLockedByOtherTab()).toBe(true);
+    expect(b.syncStoppedReason()).toBe("RPC_ERRORS");
+    await stopAndWait(a);
+  }, 30_000);
+
   test("tab B reloads the latest block number after tab A stops", async () => {
     const a = await openTab();
     tabs.push(a);
@@ -466,8 +490,10 @@ describe("sync with two tabs (issue #49)", () => {
     expect(await a.fetchEventLogs()).toBe(false);
     expect(await isSyncLockHeld()).toBe(false);
     expect(a.storeStatus().isSyncing).toBe(false);
+    expect(a.syncStoppedReason()).toBe("UNEXPECTED_ERROR");
 
     expect(await a.fetchEventLogs()).toBe(true);
+    expect(a.syncStoppedReason()).toBeUndefined();
     await waitForSavedLogs(a);
     await stopAndWait(a);
   }, 30_000);
@@ -616,9 +642,11 @@ describe("sync with two tabs (issue #49)", () => {
     expect(a.storeStatus().syncStateText).toBe("stopped");
     expect(a.isChainSyncing()).toBe(false);
     expect((await dbStatus(a)).isSyncing).toBe(false);
+    expect(a.syncStoppedReason()).toBe("RPC_ERRORS");
 
     rpc.isConnectable = true;
     expect(await a.fetchEventLogs()).toBe(true);
+    expect(a.syncStoppedReason()).toBeUndefined();
     expect(await waitFor(() => a.storeStatus().isSyncing)).toBe(true);
     await stopAndWait(a);
   }, 30_000);
@@ -647,6 +675,7 @@ describe("sync with two tabs (issue #49)", () => {
     expect(latestBlockTimers.running).toBe(1);
 
     await stopAndWait(a);
+    expect(a.syncStoppedReason()).toBeUndefined();
     expect(latestBlockTimers.running).toBe(0);
     expect(rpc.providers).toHaveLength(1);
     expect(rpc.providers[0].destroy).toHaveBeenCalledOnce();
@@ -666,6 +695,7 @@ describe("sync with two tabs (issue #49)", () => {
     // No contract is still syncing when the lock is released.
     expect(a.isChainSyncing()).toBe(false);
     expect(isCleanedUp()).toBe(true);
+    expect(a.syncStoppedReason()).toBe("UNEXPECTED_ERROR");
   }, 30_000);
 
   test("stops every contract when stopping a contract fails", async () => {
@@ -699,6 +729,7 @@ describe("sync with two tabs (issue #49)", () => {
     expect(await waitFor(async () => !(await isSyncLockHeld()))).toBe(true);
     expect(a.isChainSyncing()).toBe(false);
     expect(isCleanedUp()).toBe(true);
+    expect(a.syncStoppedReason()).toBe("UNEXPECTED_ERROR");
   }, 30_000);
 
   test("waits for the started contracts when the sync fails while starting them", async () => {

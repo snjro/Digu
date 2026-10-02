@@ -1,8 +1,11 @@
 <script lang="ts">
   import BaseA from "#lib/base/BaseA.svelte";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
+  import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
   import { storeChainStatus } from "#stores/storeChainStatus.js";
   import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
   import { storeUserSettings } from "#stores/storeUserSettings.js";
   import classNames from "classnames";
   import { getRpcInputHelperLabelProps } from "./rpcInputHelperLabel";
@@ -12,9 +15,16 @@
   );
   let nodeStatus = $derived($storeChainStatus[targetChainName].nodeStatus);
   let rpc = $derived($storeRpcSettings[targetChainName].rpc);
+  // Not while it is stopping, nor while another tab syncs the chain.
+  let syncStoppedReason = $derived(
+    $storeSyncStatus[targetChainName].syncStateText === "stopped" &&
+      !$storeSyncLockedByOtherTab[targetChainName]
+      ? $storeSyncStoppedReason[targetChainName]
+      : undefined,
+  );
 
   let { helpHref, ...helperLabelProps } = $derived(
-    getRpcInputHelperLabelProps(nodeStatus, rpc),
+    getRpcInputHelperLabelProps(nodeStatus, rpc, syncStoppedReason),
   );
 </script>
 
