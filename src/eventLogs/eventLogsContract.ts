@@ -190,7 +190,7 @@ export async function fetchEventLogsContract(
     } catch (error) {
       errorCount++;
       // Such an error does not show that the range is too wide, so the same
-      // range is tried again. It still counts toward Try Count.
+      // range is tried again. It still counts toward TRY_COUNT.
       if (!isErrorUnrelatedToRange(error)) {
         rangeErrorCount++;
       }

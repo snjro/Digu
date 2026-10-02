@@ -108,7 +108,7 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
     `Terminated fetch event logs. Chain: ${targetChain.name}`,
   );
 }
-// Stops the whole chain, as when the errors of a contract exceed Try Count.
+// Stops the whole chain, as when the errors of a contract exceed TRY_COUNT.
 async function abortOnError(
   chainName: ChainName,
   contractName: ContractName,

@@ -13,7 +13,7 @@
 
   let { dialogElement = $bindable() }: Props = $props();
 
-  const gridTrackRpc: string = classNames("col-span-full", "");
+  const gridTrack: string = classNames("col-span-full", "");
 </script>
 
 <BaseDialog
@@ -25,7 +25,7 @@
     <PageWrapperContent hasMultipleTabs={false} gridCols="grid-cols-1">
       {#snippet PageWrapperContentBody()}
         <SyncNotice />
-        <CommonItemGroup text="Synced data" gridTrack={gridTrackRpc}>
+        <CommonItemGroup text="Synced data" gridTrack={gridTrack}>
           <WarpSyncConfig />
           <SyncedData />
         </CommonItemGroup>
