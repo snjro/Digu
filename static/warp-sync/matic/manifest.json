@@ -58,6 +58,26 @@
       "latestBlockNumber": 94575193,
       "toBlock": 94575065,
       "logCount": 76
+    },
+    {
+      "createdAt": "2026-10-02T13:48:04.632Z",
+      "latestBlockNumber": 94829153,
+      "toBlock": 94829025,
+      "logCount": 0,
+      "requests": {
+        "eth_chainId": 1,
+        "eth_blockNumber": 1,
+        "eth_getLogs": 41
+      },
+      "checks": {
+        "emptyRangesAskedAgain": 12,
+        "emptyRangesWithLogs": 0,
+        "errors": {
+          "results": 0,
+          "unrelated": 1,
+          "range": 4
+        }
+      }
     }
   ],
   "chunks": [
@@ -184,6 +204,60 @@
       "rawBytes": 46424,
       "sha256": "8d880f0f46fe146f5f836e8153ae0ef219bb63af8937daae9cfd09d801d24a1b",
       "rawSha256": "c29d03cc62aac78709e67c458817f459c77507803c7d0b2c6ed7b9015a130a61"
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "AMMFactory",
+      "fromBlock": 94575066,
+      "toBlock": 94829025,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "BalancerFactory",
+      "fromBlock": 94575066,
+      "toBlock": 94829025,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "FeePot",
+      "fromBlock": 94575066,
+      "toBlock": 94829025,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "MMALinkMarketFactory",
+      "fromBlock": 94575066,
+      "toBlock": 94829025,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "PlaceholderReputationToken",
+      "fromBlock": 94575066,
+      "toBlock": 94829025,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "SportsLinkMarketFactory",
+      "fromBlock": 94575066,
+      "toBlock": 94829025,
+      "logCount": 0,
+      "file": null
     }
   ],
   "totals": {
