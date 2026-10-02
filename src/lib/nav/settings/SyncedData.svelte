@@ -83,11 +83,14 @@
     // Resolves "busy" instead of deleting while the chain is synced.
     const outcome: SyncResetOutcome = await resetSyncedData(chain);
     isResetting = false;
-    const snackBar: BaseSnackbarProps | undefined = getResetSnackBar(
-      outcome.result,
-    );
-    if (snackBar) $storeNoDbSnackBar = snackBar;
-    if (thisRun !== run) return;
+    if (thisRun !== run) {
+      // The dialog was closed, so the snackbar tells a failure.
+      const snackBar: BaseSnackbarProps | undefined = getResetSnackBar(
+        outcome.result,
+      );
+      if (snackBar) $storeNoDbSnackBar = snackBar;
+      return;
+    }
     const lines: ResetResultLine[] = getResetResultLines(
       outcome,
       chain.fullName,

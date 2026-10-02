@@ -239,7 +239,7 @@ describe("SyncedData.svelte", () => {
     expect(screen.getByRole("button", { name: "Cancel" })).toBeTruthy();
   });
 
-  test("tells in the dialog and the snackbar when the chain was synced at the time", async () => {
+  test("tells in the dialog, not in the snackbar, when the chain was synced at the time", async () => {
     vi.mocked(resetSyncedData).mockResolvedValueOnce({
       result: "busy",
       deletedLogCount: 0,
@@ -250,12 +250,31 @@ describe("SyncedData.svelte", () => {
     await fireEvent.click(confirmButton(container));
 
     await vi.waitFor(() =>
-      expect(get(storeNoDbSnackBar).text).toBe(
-        "The chain is synced now. Stop the sync first.",
+      expect(screen.getByRole("status").textContent?.trim()).toBe(
+        "The chain is synced now, so nothing was deleted. Stop the sync first.",
       ),
     );
-    expect(screen.getByRole("status").textContent).toContain(
-      "The chain is synced now, so nothing was deleted.",
+    expect(get(storeNoDbSnackBar).visible).toBe(false);
+  });
+
+  test("tells a failure in the snackbar when the dialog was closed first", async () => {
+    let finish: () => void = () => {};
+    vi.mocked(resetSyncedData).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = () => resolve({ result: "failed", deletedLogCount: 0 });
+      }),
+    );
+    setChain("stopped", 0);
+    const { container } = render(SyncedData);
+    await fireEvent.click(resetButton());
+    await fireEvent.click(confirmButton(container));
+    await fireEvent.click(closeButton());
+    finish();
+
+    await vi.waitFor(() =>
+      expect(get(storeNoDbSnackBar).text).toBe(
+        "Reset failed. Some logs may be left. Try again.",
+      ),
     );
   });
 });

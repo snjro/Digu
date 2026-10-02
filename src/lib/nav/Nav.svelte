@@ -6,7 +6,11 @@
   import NavButtonLeftSidebar from "./NavButtonLeftSidebar.svelte";
   import NavButtons from "./NavButtons.svelte";
   import SyncListChainRpcInput from "./SyncListChainRpcInput.svelte";
+  import SyncPanel from "./syncStatus/SyncPanel.svelte";
   import SyncStatus from "./syncStatus/SyncStatus.svelte";
+
+  let isSyncPanelOpen: boolean = $state(false);
+  let syncPanelButton: HTMLButtonElement | undefined = $state();
 
   let navClass: string = $derived(
     classNames(
@@ -25,20 +29,24 @@
   );
 </script>
 
-<nav class={navClass}>
-  <NavButtonLeftSidebar />
-  <div
-    class={classNames(
-      "flex",
-      "flex-row",
-      "w-full",
-      "items-center",
-      "space-x-1",
-    )}
-  >
-    <SyncListChainRpcInput />
+<!-- The panel opens just below the nav, over the page. -->
+<div class={classNames("relative", "flex-none")}>
+  <nav class={navClass}>
+    <NavButtonLeftSidebar />
+    <div
+      class={classNames(
+        "flex",
+        "flex-row",
+        "w-full",
+        "items-center",
+        "space-x-1",
+      )}
+    >
+      <SyncListChainRpcInput />
 
-    <SyncStatus />
-  </div>
-  <NavButtons />
-</nav>
+      <SyncStatus bind:isSyncPanelOpen bind:syncPanelButton />
+    </div>
+    <NavButtons />
+  </nav>
+  <SyncPanel bind:open={isSyncPanelOpen} triggerElement={syncPanelButton} />
+</div>

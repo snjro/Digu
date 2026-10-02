@@ -57,7 +57,7 @@ describe("getResetDisabledReason", () => {
       "Wait until the sync stops.",
     );
     expect(getResetDisabledReason({ ...free, isSyncingInOtherTab: true })).toBe(
-      "The chain is synced in another tab.",
+      "Stop the sync in the other tab first.",
     );
     expect(getResetDisabledReason({ ...free, isImporting: true })).toBe(
       "Wait until the logs published with this site are imported, or stop the import.",
@@ -167,13 +167,15 @@ describe("getImportResultLine", () => {
 });
 
 describe("getResetSnackBar", () => {
-  test("shows only the failures, since the dialog shows the result", () => {
+  test("shows only the failures, with the texts of the dialog", () => {
     expect(getResetSnackBar("reset")).toBeUndefined();
     expect(getResetSnackBar("busy")).toMatchObject({
       visible: true,
-      text: "The chain is synced now. Stop the sync first.",
+      text: "The chain is synced now, so nothing was deleted. Stop the sync first.",
       iconProps: { colorCategory: "error" },
     });
-    expect(getResetSnackBar("failed")?.text).toBe("Reset failed. Try again.");
+    expect(getResetSnackBar("failed")?.text).toBe(
+      "Reset failed. Some logs may be left. Try again.",
+    );
   });
 });

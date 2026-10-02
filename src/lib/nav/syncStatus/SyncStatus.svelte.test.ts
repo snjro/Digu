@@ -33,6 +33,7 @@ vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js", () => ({
 vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
+    fullName: "Ethereum Mainnet",
   }),
 }));
 
@@ -104,8 +105,14 @@ describe("SyncStatus.svelte", () => {
 
   test("shows the toggle and the progress", () => {
     setLayout(1400, true);
-    render(SyncStatus);
-    expect(screen.getByRole("button")).toBeTruthy();
+    render(SyncStatus, { isSyncPanelOpen: false });
+    // The toggle, and the progress, which opens the sync panel.
+    expect(screen.getAllByRole("button")).toHaveLength(2);
+    expect(
+      screen.getByRole("button", {
+        name: "Sync of Ethereum Mainnet: 50.0%, stopped",
+      }),
+    ).toBeTruthy();
     expect(screen.getByText("50.0", { selector: "label" })).toBeTruthy();
   });
 
@@ -113,14 +120,14 @@ describe("SyncStatus.svelte", () => {
     "lays out by the width and the sidebar. width=$width isOpenSidebar=$isOpenSidebar",
     ({ width, isOpenSidebar, hideProgressCircle }) => {
       setLayout(width, isOpenSidebar);
-      const { container } = render(SyncStatus);
+      const { container } = render(SyncStatus, { isSyncPanelOpen: false });
       expectLayout(container, hideProgressCircle);
     },
   );
 
   test("follows a change of the width in the store", async () => {
     setLayout(1400, false);
-    const { container } = render(SyncStatus);
+    const { container } = render(SyncStatus, { isSyncPanelOpen: false });
     expectLayout(container, false);
 
     storeNoDbCurrentWidth.set(640);
@@ -134,7 +141,7 @@ describe("SyncStatus.svelte", () => {
 
   test("follows the sidebar opened in storeUserSettings", async () => {
     setLayout(768, false);
-    const { container } = render(SyncStatus);
+    const { container } = render(SyncStatus, { isSyncPanelOpen: false });
     expectLayout(container, false);
 
     storeUserSettings.update((s) => ({ ...s, isOpenSidebar: true }));

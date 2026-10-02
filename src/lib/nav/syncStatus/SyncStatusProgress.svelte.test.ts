@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick } from "svelte";
 import type { Writable } from "svelte/store";
-import { render, screen } from "@testing-library/svelte";
+import { fireEvent, render, screen } from "@testing-library/svelte";
 import SyncStatusProgress from "./SyncStatusProgress.svelte";
 import type {
   ChainStatus,
@@ -26,6 +26,7 @@ vi.mock("#stores/storeChainStatus.js", async () => {
 vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
+    fullName: chainName === "eth" ? "Ethereum Mainnet" : "Polygon Mainnet",
   }),
 }));
 
@@ -66,7 +67,10 @@ function setLatestBlockNumber(chainName: string, latestBlockNumber: number) {
   }));
 }
 function renderProgress(hideProgressCircle: boolean) {
-  return render(SyncStatusProgress, { hideProgressCircle });
+  return render(SyncStatusProgress, {
+    hideProgressCircle,
+    isSyncPanelOpen: false,
+  });
 }
 // The progress rate and "%" are in separate labels.
 function getLabel(text: string): HTMLElement {
@@ -183,5 +187,31 @@ describe("SyncStatusProgress.svelte", () => {
     await rerender({ hideProgressCircle: false });
     expect(hasCircle(container)).toBe(true);
     expect(getLabel("stopped").classList).toContain("text-xl");
+  });
+
+  test("is a button that opens and closes the sync panel", async () => {
+    renderProgress(false);
+    const button: HTMLButtonElement = screen.getByRole("button", {
+      name: "Sync of Ethereum Mainnet: 50.0%, stopped",
+    });
+    expect(button.getAttribute("aria-controls")).toBe("sync-panel");
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+
+    await fireEvent.click(button);
+    expect(button.getAttribute("aria-expanded")).toBe("true");
+    await fireEvent.click(button);
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  test("names the button with the chain, the progress rate and the state", async () => {
+    renderProgress(true);
+
+    storeUserSettings.update((s) => ({ ...s, selectedChainName: "matic" }));
+    await tick();
+    expect(
+      screen.getByRole("button", {
+        name: "Sync of Polygon Mainnet: 20.0%, syncing",
+      }),
+    ).toBeTruthy();
   });
 });

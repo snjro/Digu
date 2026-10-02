@@ -4,5 +4,6 @@ export const zIndex: Record<string, `z-${number}`> = {
   tooltip: "z-10",
   fullScreen: "z-10",
   threeDotsMenu: "z-50",
+  syncPanel: "z-20",
   loadingSpinner: "z-50",
 };
