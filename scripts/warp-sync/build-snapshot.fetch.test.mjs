@@ -292,6 +292,24 @@ describe("fetchLogs with the widths of another part", () => {
     await script.fetchLogs(rpc, contract, 1, 10 * 1_000 + 2_000, { widths });
     expect(asked).toEqual([9_999, 9_999, ...Array(10).fill(1_000), 2_000]);
   });
+
+  // Another part halves or raises the shared widths while the request waits.
+  test.each([
+    ["halved", { width: 9_999, maxWidth: 9_999 }, 4_999],
+    ["raised", { width: 4_999, maxWidth: 9_999 }, 9_999],
+  ])(
+    "does not count a range in shared widths %s while it waits",
+    async (_name, before, after) => {
+      const widths = script.createWidths(9_999);
+      Object.assign(widths, before);
+      const rpc = async () => {
+        Object.assign(widths, { width: after, maxWidth: after, successes: 0 });
+        return [log(1)];
+      };
+      await script.fetchLogs(rpc, contract, 1, before.width, { widths });
+      expect(widths).toMatchObject({ width: after, successes: 0 });
+    },
+  );
 });
 
 describe("withKey", () => {

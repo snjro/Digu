@@ -147,10 +147,12 @@ the topic 0 of the events that are not anonymous.
   one part learns, the others use. A part whose range is halved keeps its own
   widths too, the half of the range that failed (#601). It asks the narrower
   of its own width and the shared one: the other parts may narrow it, but
-  their successes do not raise it. A full range that works raises the widths
-  that set its width (both when they are equal), by the same rules. When its
-  own width is raised to the shared one, the part uses the shared widths
-  again.
+  their successes do not raise it. A full range that works raises, by the
+  same rules, its own widths when it had their width, and the shared widths
+  when it has their width after the answer (another part may have changed
+  them meanwhile). When its own width is raised to the shared one, or is at
+  `--max-width` and not narrower than the shared one, the part uses the shared
+  widths again.
 - **Failures** (like #549, #554 and #591 in the sync: the RPC may pass each
   request to another node). The script waits a second and tries again:
   - HTTP 429 (too many requests), 500 or 504, and the errors of a node without
