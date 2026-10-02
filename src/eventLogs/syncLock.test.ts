@@ -196,8 +196,10 @@ async function openTab(beforeWatch?: () => Promise<void>) {
   const { updateDbItemChainStatus } =
     await import("@db/dbChainStatusDataHandlers");
   storeChainStatus.updateState(chain.name, { nodeStatus: "SUCCESS" });
-  // Above every contract, so that no loop waits for a new block. Also in the
-  // DB, because a tab reloads it when another tab stops syncing.
+  // Far above every contract, so that no loop catches up and waits for a new
+  // block during a test: with the small writes of the mock, a loop fetches
+  // millions of blocks per second. Also in the DB, because a tab reloads it
+  // when another tab stops syncing.
   await updateDbItemChainStatus(
     chain.name,
     "latestBlockNumber",
@@ -209,7 +211,7 @@ async function openTab(beforeWatch?: () => Promise<void>) {
           ),
         ),
       ),
-    ) + 1_000_000,
+    ) + 1_000_000_000,
   );
   const db = new DbEventLogs(versionIdentifier);
   return {
