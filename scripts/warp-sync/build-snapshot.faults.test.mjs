@@ -122,7 +122,7 @@ beforeAll(async () => {
       }
       // The first two answers for a range with logs are empty, one range in
       // four (pocket was empty twice in a row).
-      const key = `${address}/${from}-${to}`;
+      const key = `${start}-${to}`;
       if (logs.length > 0 && empties.get(key) === 1) {
         empties.set(key, 2);
         return send(200, { result: [] });
@@ -178,10 +178,9 @@ test("has every log despite the faults of the RPC", async () => {
     // Every kind of fault happened, and the empty answers were asked again.
     for (const count of Object.values(faults)) expect(count).toBeGreaterThan(0);
     const { checks } = manifest.runs[0];
-    // An empty range is asked again as such unless an error in between
-    // halved the width; then its logs come in the narrower ranges.
-    expect(checks.emptyRangesWithLogs).toBeGreaterThan(0);
-    expect(checks.emptyRangesWithLogs).toBeLessThanOrEqual(faults.empty);
+    // The errors from a first block come before its empty answers, so every
+    // range answered empty is asked again until its logs come.
+    expect(checks.emptyRangesWithLogs).toBe(faults.empty);
     expect(checks.errors).toEqual({
       results: faults.tooMany,
       unrelated: faults.http500 + faults.http504 + faults.noOldBlocks,
