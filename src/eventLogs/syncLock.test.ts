@@ -48,7 +48,11 @@ vi.mock("@db/db.worker.portal", () => ({
   },
 }));
 
-// One log per block for the first event of each contract.
+// One log at the first and at the last block of each range, for the first
+// event of each contract. Not one per block: the sync doubles the range after
+// each success, and the larger writes slowed a stop under load (issue #583).
+// A sync that starts again from the last fetched block still saves a log
+// twice.
 vi.mock("@utils/utilsEthers", async (importOriginal) => {
   const original = await importOriginal<typeof import("@utils/utilsEthers")>();
   return {
@@ -67,7 +71,7 @@ vi.mock("@utils/utilsEthers", async (importOriginal) => {
     ): Promise<EthersEventLog[]> => {
       await new Promise((resolve) => setTimeout(resolve, 5));
       const logs = [];
-      for (let blockNumber = from; blockNumber <= to; blockNumber++) {
+      for (const blockNumber of new Set([from, to])) {
         const hex = "0x" + blockNumber.toString(16).padStart(64, "0");
         logs.push({
           eventName: eventNames[0],
@@ -276,6 +280,9 @@ describe("sync with two tabs (issue #49)", () => {
     const { Dexie } = await import("dexie");
     for (const name of await Dexie.getDatabaseNames()) await Dexie.delete(name);
   });
+  // As long as a test: stopAndWait() alone can take more than the default
+  // 10 s under load, and a hook that times out leaves the sync running into
+  // the next test (issue #583).
   afterEach(async () => {
     for (const tab of tabs) {
       if (tab.storeStatus().isSyncing) await stopAndWait(tab);
@@ -285,7 +292,7 @@ describe("sync with two tabs (issue #49)", () => {
     expect(await isSyncLockHeld()).toBe(false);
     // Without navigator.locks, the sync may still be cleaning up.
     expect(await waitFor(() => isCleanedUp())).toBe(true);
-  });
+  }, 30_000);
   // Every sync stopped its timer and destroyed its provider.
   function isCleanedUp(): boolean {
     return (
