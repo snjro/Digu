@@ -27,11 +27,6 @@ vi.mock("@stores/storeChainStatus", async () => {
   const { writable } = await import("svelte/store");
   return { storeChainStatus: writable({}) };
 });
-// The bar imports CommonChainExplorerLink, which loads the chain data too.
-vi.mock("@stores/storeRpcSettings", async () => {
-  const { writable } = await import("svelte/store");
-  return { storeRpcSettings: writable({}) };
-});
 vi.mock("@utils/utilsDb", () => ({ getTargetChain: vi.fn() }));
 
 const chain = { name: "chain1" } as Chain;
