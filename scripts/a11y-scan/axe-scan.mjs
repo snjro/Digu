@@ -149,7 +149,7 @@ for (const [name, url] of pages) {
   await page.screenshot({ path: `${path.dirname(outJson)}/shot-${name}.png` });
 }
 
-// Settings dialog: open it from the top page and scan only the dialog.
+// The sync panel: open it from the top page and scan only the panel.
 await page.goto(base + "/", { waitUntil: "networkidle0" });
 await page.waitForFunction(
   () => document.querySelectorAll("button").length > 5,
@@ -158,38 +158,27 @@ await page.waitForFunction(
   },
 );
 await new Promise((r) => setTimeout(r, 2000));
-// Clicks the visible button that has the tooltip "Settings", as
-// scripts/visual-compare/shots.mjs does.
-const opened = await page.evaluate((text) => {
-  const isVisible = (e) => e.getClientRects().length > 0;
-  const labels = [...document.querySelectorAll("*")].filter(
-    (e) => e.children.length === 0 && e.textContent.trim() === text,
+// The progress in the nav opens it.
+const opened = await page.evaluate(() => {
+  const button = document.querySelector(
+    'nav button[aria-controls="sync-panel"]',
   );
-  for (const label of labels) {
-    for (let e = label; e; e = e.parentElement) {
-      const button = e.querySelector("button");
-      if (button) {
-        if (!isVisible(button)) break;
-        button.click();
-        return true;
-      }
-    }
-  }
-  return false;
-}, "Settings");
-if (!opened) throw new Error('No visible button with the tooltip "Settings"');
+  button?.click();
+  return !!button;
+});
+if (!opened) throw new Error("No button that opens the sync panel");
 await new Promise((r) => setTimeout(r, 1000));
-const dialogOpen = await page.evaluate(
-  () => !!document.querySelector("dialog[open]"),
+const panelOpen = await page.evaluate(
+  () => !document.getElementById("sync-panel")?.classList.contains("hidden"),
 );
-if (!dialogOpen) throw new Error("The settings dialog did not open");
-results.settingsDialog = {
+if (!panelOpen) throw new Error("The sync panel did not open");
+results.syncPanel = {
   opened,
-  dialogOpen,
-  violations: await runAxe("dialog[open]"),
+  panelOpen,
+  violations: await runAxe("#sync-panel"),
 };
 await page.screenshot({
-  path: `${path.dirname(outJson)}/shot-settingsDialog.png`,
+  path: `${path.dirname(outJson)}/shot-syncPanel.png`,
 });
 
 fs.writeFileSync(

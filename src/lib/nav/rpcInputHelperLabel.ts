@@ -13,7 +13,7 @@ export const RPC_GUIDE_URL: string =
 // helpHref: a link to the guide, shown after the text.
 export type RpcInputHelperLabelProps = BaseLabelProps & { helpHref?: string };
 
-const SYNC_STOPPED_TEXTS: Record<SyncStoppedReason, string> = {
+export const SYNC_STOPPED_TEXTS: Record<SyncStoppedReason, string> = {
   RPC_ERRORS: "Sync stopped: RPC errors. Try another RPC.",
   UNEXPECTED_ERROR: "Sync stopped: unexpected error.",
 };

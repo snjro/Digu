@@ -14,6 +14,5 @@ export type BreakPointWidthValue =
 
 export const breakPointWidthThresholds: Record<string, BreakPointWidthValue> = {
   gridFunctionButtonForOpenedSidebar: breakPointWidths.lg,
-  navButtonForOpenedSidebar: breakPointWidths.md,
   navSyncStatusForOpenedSidebar: breakPointWidths.md,
 };

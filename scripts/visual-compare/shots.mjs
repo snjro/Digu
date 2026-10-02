@@ -45,7 +45,7 @@ const VERSION = "/eth/Augur-version1/";
 // what an action saves in IndexedDB (settings, the chain) does not carry over.
 // With `keepMouse`, the mouse stays where the action put it (for hover).
 const STATES = [
-  ["settings", EVENTS, (page) => clickByTooltip(page, "Settings")],
+  ["sync-panel", EVENTS, (page) => openSyncPanel(page)],
   ["export-csv", EVENTS, (page) => clickByTooltip(page, "Export as CSV")],
   [
     "quick-search",
@@ -94,19 +94,24 @@ const STATES = [
     },
   ],
   [
-    "settings-close",
+    "sync-panel-outside",
     EVENTS,
     async (page) => {
-      await clickByTooltip(page, "Settings");
+      if ((await openSyncPanel(page)) === NOT_IN_THIS_BUILD) {
+        return NOT_IN_THIS_BUILD;
+      }
       await settle(page);
-      await page.click("dialog[open] button");
+      // The padding of the page, below the grid.
+      await page.mouse.click(VIEWPORT.width - 2, VIEWPORT.height - 2);
     },
   ],
   [
-    "settings-escape",
+    "sync-panel-escape",
     EVENTS,
     async (page) => {
-      await clickByTooltip(page, "Settings");
+      if ((await openSyncPanel(page)) === NOT_IN_THIS_BUILD) {
+        return NOT_IN_THIS_BUILD;
+      }
       await settle(page);
       await page.keyboard.press("Escape");
     },
@@ -170,23 +175,24 @@ const STATES = [
     },
   ],
   [
-    "narrow-three-dots",
+    "narrow-sync-panel",
     EVENTS,
     async (page) => {
       await page.setViewport(NARROW_VIEWPORT);
       await settle(page);
-      await openThreeDots(page, "Settings");
+      return openSyncPanel(page);
     },
   ],
+  // The panel is as wide as the window.
   [
-    "narrow-three-dots-settings",
+    "phone-sync-panel",
     EVENTS,
     async (page) => {
-      await page.setViewport(NARROW_VIEWPORT);
+      await page.setViewport(PHONE_VIEWPORT);
       await settle(page);
-      await openThreeDots(page, "Settings");
+      await page.click('button[aria-label="Close sidebar"]');
       await settle(page);
-      await clickByText(page, "Settings");
+      return openSyncPanel(page);
     },
   ],
   // There is no RPC, so the sync does not start.
@@ -269,7 +275,7 @@ const MORE_STATES = [
     "hover-tooltip",
     EVENTS,
     async (page) => {
-      await hover(page, await visible(page, '[aria-label="Settings"]', 0));
+      await hover(page, await visible(page, '[aria-label="Change theme"]', 0));
     },
     { hover: true, keepMouse: true },
   ],
@@ -431,21 +437,17 @@ async function expectTab(page, value) {
   );
 }
 
-// Opens the "three dots" menu that holds the button `itemText`.
-async function openThreeDots(page, itemText) {
-  const clicked = await page.evaluate((itemText) => {
-    const buttons = [...document.querySelectorAll("button")].filter(
-      (b) => b.querySelector("svg#dotsVertical") && b.getClientRects().length,
-    );
-    const button = buttons.find((b) =>
-      [...b.closest(".relative").querySelectorAll("button")].some(
-        (e) => e.innerText.trim() === itemText,
-      ),
-    );
-    button?.click();
-    return Boolean(button);
-  }, itemText);
-  if (!clicked) throw new Error(`No "three dots" menu with "${itemText}"`);
+// Returned by an action that cannot be done in this build. The screen is not
+// taken, and compare.mjs reports it as missing.
+const NOT_IN_THIS_BUILD = Symbol("not in this build");
+
+// Opens the sync panel with the progress in the nav. A build before the panel
+// (#596) has the settings dialog instead.
+async function openSyncPanel(page) {
+  const button = await page.$('button[aria-controls="sync-panel"]');
+  if (!button) return NOT_IN_THIS_BUILD;
+  await button.click();
+  await page.waitForSelector("#sync-panel:not(.hidden)");
 }
 
 async function setTheme(page, theme) {
@@ -687,7 +689,11 @@ for (const theme of ["light", "dark"]) {
         await open(page, url);
         await setTheme(page, theme);
         await settle(page);
-        await action(page);
+        if ((await action(page)) === NOT_IN_THIS_BUILD) {
+          log.push(`${theme}-${name}: not in this build`);
+          await close();
+          return;
+        }
         await settle(page, options);
         await shoot(page, `${theme}-${name}`);
         await close();

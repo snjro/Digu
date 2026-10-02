@@ -9,18 +9,19 @@
   import { storeUserSettings } from "#stores/storeUserSettings.js";
   import classNames from "classnames";
   import { getRpcInputHelperLabelProps } from "./rpcInputHelperLabel";
+  import { getShownSyncStoppedReason } from "./syncStatus/syncPanel";
 
   let targetChainName = $derived(
     $storeUserSettings.selectedChainName.toString(),
   );
   let nodeStatus = $derived($storeChainStatus[targetChainName].nodeStatus);
   let rpc = $derived($storeRpcSettings[targetChainName].rpc);
-  // Not while it is stopping, nor while another tab syncs the chain.
   let syncStoppedReason = $derived(
-    $storeSyncStatus[targetChainName].syncStateText === "stopped" &&
-      !$storeSyncLockedByOtherTab[targetChainName]
-      ? $storeSyncStoppedReason[targetChainName]
-      : undefined,
+    getShownSyncStoppedReason(
+      $storeSyncStatus[targetChainName].syncStateText,
+      $storeSyncLockedByOtherTab[targetChainName],
+      $storeSyncStoppedReason[targetChainName],
+    ),
   );
 
   let { helpHref, ...helperLabelProps } = $derived(

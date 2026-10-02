@@ -38,14 +38,13 @@ await L.step("2-1", page, async () => {
     ["contracts", "/eth/Augur-version2/contracts/"],
     ["abi", "/eth/Augur-version1/contracts/Augur/#abi"],
     ["version", "/eth/Augur-version1/"],
-    ["settings", null],
+    ["sync-panel", null],
   ]) {
     if (u) {
       await page.goto(L.ROOT + u, { waitUntil: "load" });
       await L.settle(page, 800);
     } else {
-      await page.click('nav button[aria-label="Settings"]');
-      await L.settle(page);
+      await L.openSyncPanel(page);
     }
     shots.push(await L.shot(page, `8-3-dark-${n}`));
   }
@@ -229,25 +228,32 @@ await L.step("2-4", page, async () => {
     as.filter((a) => a.getClientRects().length).map((a) => a.innerText.trim()),
   );
   const navBtns = await L.dumpControls(p, "nav");
-  // three-dots menu in nav
-  const more = await p.$(
-    'nav button[aria-label="More"], nav button[aria-label="more"], nav button[aria-label*="menu" i]',
-  );
-  let menu = null;
-  if (more) {
-    await more.click();
-    await L.settle(p);
-    menu = await L.dumpControls(p, "body");
-    menu = menu.filter((x) => /theme|Settings|sync/i.test(x));
-    shots.push(await L.shot(p, "2-4-narrow-more-open"));
-    await p.keyboard.press("Escape");
-    await L.settle(p);
-  }
-  const menuAfterEsc = more
-    ? (await L.dumpControls(p, "body")).filter((x) =>
-        /Change theme|Settings/.test(x),
-      )
-    : null;
+  // The nav in one row, with no "three dots" menu: the RPC input, the toggle,
+  // the progress and the theme button.
+  const navRow = await p.evaluate(() => {
+    const nav = document.querySelector("nav").getBoundingClientRect();
+    return {
+      more: !!document.querySelector('nav button[aria-label="More"]'),
+      controls: [...document.querySelectorAll("nav button, nav input")]
+        .filter((e) => e.getClientRects().length)
+        .map((e) => {
+          const r = e.getBoundingClientRect();
+          return [
+            e.getAttribute("aria-label") ?? e.type,
+            r.top >= nav.top && r.bottom <= nav.bottom && r.right <= innerWidth,
+          ];
+        }),
+    };
+  });
+  // The sync panel, as wide as the window.
+  await L.openSyncPanel(p);
+  const syncPanel = await p.evaluate(() => {
+    const r = document.getElementById("sync-panel").getBoundingClientRect();
+    return { left: Math.round(r.left), width: Math.round(r.width) };
+  });
+  shots.push(await L.shot(p, "2-4-narrow-sync-panel"));
+  await p.keyboard.press("Escape");
+  await L.settle(p);
   // open sidebar, click a tree item: closes on narrow
   const ob = await p.$('button[aria-label="Open sidebar"]');
   await ob?.click();
@@ -267,9 +273,8 @@ await L.step("2-4", page, async () => {
       afterOutsideClick: s1,
       tabs,
       navButtons: navBtns,
-      moreButton: !!more,
-      menu,
-      menuAfterEsc,
+      navRow,
+      syncPanel,
       afterOpen: s2,
       afterTreeClick: [s3, url3],
     }),

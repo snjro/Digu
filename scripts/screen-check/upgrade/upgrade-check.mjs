@@ -844,10 +844,12 @@ try {
       await settle(page, 2000);
       await record(page, name);
     }
-    await clickByTooltip(page, "Settings");
+    // The sync panel (#596), which took the place of the settings dialog.
+    await page.click('nav button[aria-controls="sync-panel"]');
+    await page.waitForSelector("#sync-panel:not(.hidden)");
     await settle(page);
     const dialogValues = await page.evaluate(() => {
-      const d = document.querySelector("dialog[open]");
+      const d = document.getElementById("sync-panel");
       return {
         checkboxes: [...d.querySelectorAll('input[type="checkbox"]')].map(
           (i) => ({
@@ -858,10 +860,8 @@ try {
         text: d.innerText.slice(0, 800),
       };
     });
-    log.push(
-      `[check] settings dialog (eth page): ${JSON.stringify(dialogValues)}`,
-    );
-    await record(page, "new-10-settings-dialog");
+    log.push(`[check] sync panel (eth page): ${JSON.stringify(dialogValues)}`);
+    await record(page, "new-10-sync-panel");
     await page.keyboard.press("Escape");
     await settle(page);
     await syncUntil(page, "new-11", 2);

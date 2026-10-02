@@ -109,7 +109,7 @@ Digu gets the event logs of the contracts from an [RPC endpoint](https://ethereu
    - A public URL without a key. [chainlist.org](https://chainlist.org/) lists them. A public URL has a limit on the number of requests.
    - Your own node, such as `http://localhost:8545`.
 
-   A public URL without a key can leave out some event logs without an error. Use a URL with a key if you can. If you synced with a public URL before, you can get the logs again: open the settings and press "Reset" of "Event logs". With the warp sync on, Digu then imports the logs published with this site again, and gets only the logs after them from your RPC.
+   A public URL without a key can leave out some event logs without an error. Use a URL with a key if you can. If you synced with a public URL before, you can get the logs again: press the sync progress in the header to open the sync panel, and press "Reset" of "Event logs". With the warp sync on, Digu then imports the logs published with this site again, and gets only the logs after them from your RPC.
 
 4. **With the warp sync**  
    On the chains that have the warp sync (`Ethereum Mainnet` and `Polygon Mainnet` now), Digu imports the event logs published with this site. Your RPC is needed only for the blocks after them.

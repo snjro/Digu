@@ -10,6 +10,14 @@
   import SyncStatusToggle from "./SyncStatusToggle.svelte";
   import WarpSyncStatus from "./WarpSyncStatus.svelte";
 
+  interface Props {
+    isSyncPanelOpen: boolean;
+    syncPanelButton?: HTMLButtonElement | undefined;
+  }
+
+  let { isSyncPanelOpen = $bindable(), syncPanelButton = $bindable() }: Props =
+    $props();
+
   let hideProgressCircle = $derived((): boolean => {
     if ($storeNoDbCurrentWidth <= breakPointWidths.sm) return true;
     if (
@@ -35,6 +43,10 @@
   )}
 >
   <SyncStatusToggle />
-  <SyncStatusProgress hideProgressCircle={hideProgressCircle()} />
+  <SyncStatusProgress
+    hideProgressCircle={hideProgressCircle()}
+    bind:isSyncPanelOpen
+    bind:syncPanelButton
+  />
   <WarpSyncStatus />
 </div>

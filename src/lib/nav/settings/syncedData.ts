@@ -22,8 +22,11 @@ export function countSyncedLogs(syncStatusChain: SyncStatusChain): number {
   return count;
 }
 
-// Shown with a pulse: something goes on, unlike "Stop the sync first.",
-// which waits for the user.
+// What to do when the sync blocks an action (Reset, Import).
+export const STOP_THE_SYNC_FIRST = "Stop the sync first.";
+
+// Shown with a pulse: something goes on, unlike STOP_THE_SYNC_FIRST, which
+// waits for the user.
 export const WAIT_UNTIL_THE_SYNC_STOPS = "Wait until the sync stops.";
 
 export type ResetConditions = {
@@ -38,10 +41,11 @@ export function getResetDisabledReason(
   conditions: ResetConditions,
 ): string | undefined {
   if (conditions.isResetting) return "Resetting…";
+  // The panel says that the chain is synced in another tab.
   if (conditions.isSyncingInOtherTab) {
-    return "The chain is synced in another tab.";
+    return "Stop the sync in the other tab first.";
   }
-  if (conditions.syncStateText === "syncing") return "Stop the sync first.";
+  if (conditions.syncStateText === "syncing") return STOP_THE_SYNC_FIRST;
   // "stop sync" was pressed: the contracts end what they are doing first.
   if (conditions.syncStateText === "stopping") return WAIT_UNTIL_THE_SYNC_STOPS;
   // The nav has "Stop" for a large import.
@@ -71,6 +75,10 @@ const NEXT_SYNC_FETCHES_ALL =
 // A line of the result, shown in the confirmation dialog after the reset.
 export type ResetResultLine = { text: string; isError: boolean };
 
+// In the dialog, or in the snackbar when the dialog was closed first.
+const RESET_BUSY = `The chain is synced now, so nothing was deleted. ${STOP_THE_SYNC_FIRST}`;
+const RESET_FAILED = "Reset failed. Some logs may be left. Try again.";
+
 // The lines right after the reset, before the import of the warp sync ends.
 export function getResetResultLines(
   outcome: SyncResetOutcome,
@@ -78,19 +86,9 @@ export function getResetResultLines(
 ): ResetResultLine[] {
   switch (outcome.result) {
     case "busy":
-      return [
-        {
-          text: "The chain is synced now, so nothing was deleted. Stop the sync first.",
-          isError: true,
-        },
-      ];
+      return [{ text: RESET_BUSY, isError: true }];
     case "failed":
-      return [
-        {
-          text: "Reset failed. Some logs may be left. Try again.",
-          isError: true,
-        },
-      ];
+      return [{ text: RESET_FAILED, isError: true }];
     case "reset":
       return [
         {
@@ -148,7 +146,8 @@ export function getImportResultLine(
   }
 }
 
-// Only the failures: the dialog shows the result of a reset.
+// Only the failures of a reset whose dialog was closed first: the dialog shows
+// the result.
 export function getResetSnackBar(
   result: SyncResetResult,
 ): BaseSnackbarProps | undefined {
@@ -159,13 +158,13 @@ export function getResetSnackBar(
       return {
         visible: true,
         iconProps: { name: "close", colorCategory: "error" },
-        text: "The chain is synced now. Stop the sync first.",
+        text: RESET_BUSY,
       };
     case "failed":
       return {
         visible: true,
         iconProps: { name: "close", colorCategory: "error" },
-        text: "Reset failed. Try again.",
+        text: RESET_FAILED,
       };
   }
 }
