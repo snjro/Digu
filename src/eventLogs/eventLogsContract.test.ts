@@ -10,6 +10,7 @@ import { getEthersEventLogs, type NodeProvider } from "@utils/utilsEthers";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import { customLogger } from "@utils/logger";
+import { stopSyncingInContract } from "@db/dbEventLogsDataHandlersSyncStatus";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import { extractEventContracts } from "@utils/utilsEthers";
 import type { Chain, Contract } from "@constants/chains/types";
@@ -116,6 +117,43 @@ describe("fetchEventLogsContract", () => {
         creationBlockNumber + 7 * bulkUnit - 1,
       ],
     ]);
+  });
+
+  test("should stop without saving the range when stopped while it fetches", async () => {
+    vi.mocked(registerEventLogsAndBlockTimes).mockImplementation(
+      async (_dbEventLogs, _targetContract, _nodeProvider, _logs, to) => {
+        storeSyncStatus.update((state: SyncStatusesChain) => {
+          contractInState(state).fetchedBlockNumber = to;
+          return state;
+        });
+      },
+    );
+    vi.mocked(getEthersEventLogs).mockImplementationOnce(async () => {
+      storeSyncStatus.update((state: SyncStatusesChain) => {
+        contractInState(state).isAbort = true;
+        return state;
+      });
+      return [];
+    });
+
+    await fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      null as unknown as NodeProvider,
+    );
+
+    expect(fetchedRanges()).toEqual([
+      [creationBlockNumber, creationBlockNumber + bulkUnit - 1],
+    ]);
+    expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
+    // The next start fetches the range again.
+    expect(contractInState(get(storeSyncStatus)).fetchedBlockNumber).toBe(
+      creationBlockNumber,
+    );
+    expect(stopSyncingInContract).toHaveBeenCalledExactlyOnceWith(
+      dbEventLogs,
+      targetContract.name,
+    );
   });
 
   test("should move past the creation block when Bulk Unit is halved to 1", async () => {

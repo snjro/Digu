@@ -160,6 +160,12 @@ export async function fetchEventLogsContract(
         fromBlockNumber,
         toBlockNumber,
       );
+      // Stopped while fetching: stop at the top of the loop without saving the
+      // range. fetchedBlockNumber does not move, so the next start fetches it
+      // again.
+      if (syncStatusContract(contractIdentifier).isAbort) {
+        continue;
+      }
       await registerEventLogsAndBlockTimes(
         dbEventLogs,
         targetContract,
