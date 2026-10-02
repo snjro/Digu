@@ -66,8 +66,7 @@ export function getRpcInputHelperLabelProps(
           break;
         }
         case "NETWORK_ERROR": {
-          errorMessage =
-            "Error. Cannot reach this RPC. Check the URL or use another one.";
+          errorMessage = "Error. Cannot reach this RPC. Check the URL.";
           helpHref = RPC_GUIDE_URL;
           break;
         }

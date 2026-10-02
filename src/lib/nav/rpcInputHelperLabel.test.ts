@@ -76,7 +76,7 @@ describe("getRpcInputHelperLabelProps", () => {
         colorCategory: "error",
         size,
       },
-      text: "Error. Cannot reach this RPC. Check the URL or use another one.",
+      text: "Error. Cannot reach this RPC. Check the URL.",
       textSize: size,
       colorCategoryFront: "error",
       appendClass: "whitespace-pre-wrap",

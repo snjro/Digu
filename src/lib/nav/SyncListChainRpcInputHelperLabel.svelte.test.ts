@@ -30,7 +30,7 @@ describe("SyncListChainRpcInputHelperLabel.svelte", () => {
     [
       "NETWORK_ERROR",
       "https://foo",
-      "Error. Cannot reach this RPC. Check the URL or use another one.",
+      "Error. Cannot reach this RPC. Check the URL.",
     ],
   ])(
     "shows the link to the guide in a new tab after the text when the node status is %s",
