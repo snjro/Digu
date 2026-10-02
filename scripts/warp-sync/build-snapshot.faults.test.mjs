@@ -2,6 +2,7 @@
 // of pocket: empty results for ranges that have logs (#576), nodes that
 // refuse more than 5,000 blocks, too many results, HTTP 500 and 504, and a
 // node without old blocks (#580). The snapshot must have every log.
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
@@ -46,7 +47,13 @@ function logsOf(contract, from, to) {
   );
 }
 
-let request = 0;
+// The faults depend on the range alone, not on the order in which the
+// requests of the workers come (#623). The script asks the same first block
+// until a range from it works, so the faults are chosen for each first block
+// and by the count of the requests from it.
+const requestsFrom = new Map();
+const hashOf = (text) =>
+  createHash("sha256").update(text).digest().readUInt32BE(0);
 // The empty answers given for each range with logs.
 const empties = new Map();
 const faults = {
@@ -65,7 +72,6 @@ beforeAll(async () => {
     req.on("data", (data) => (body += data));
     req.on("end", () => {
       const { id, method, params } = JSON.parse(body);
-      const n = ++request;
       const send = (status, value) => {
         res.writeHead(status, { "content-type": "application/json" });
         res.end(JSON.stringify({ jsonrpc: "2.0", id, ...value }));
@@ -79,16 +85,22 @@ beforeAll(async () => {
       const contract = chain.contracts.find(
         (c) => c.address.toLowerCase() === address.toLowerCase(),
       );
-      if (n % 17 === 0) return (faults.http500++, send(500, {}));
-      if (n % 19 === 0) return (faults.http504++, send(504, {}));
-      if (n % 23 === 0) {
+      const start = `${address.toLowerCase()}/${from}`;
+      const n = (requestsFrom.get(start) ?? 0) + 1;
+      requestsFrom.set(start, n);
+      // At most 2 failures in a row from any first block (MAX_FAILURES is 10).
+      const fault = hashOf(start) % 8;
+      if (n === 1 && fault === 0) return (faults.http500++, send(500, {}));
+      if (n === 1 && fault === 1) return (faults.http504++, send(504, {}));
+      if (n === 1 && fault === 2) {
         faults.noOldBlocks++;
         return send(200, {
           error: { code: -32000, message: "historical state is not available" },
         });
       }
-      // One node in three refuses more than 5,000 blocks.
-      if (to - from + 1 > 5_000 && n % 3 === 0) {
+      // A node that refuses more than 5,000 blocks, twice, so that the
+      // script halves the range.
+      if (n <= 2 && fault === 3 && to - from + 1 > 5_000) {
         faults.tooWide++;
         return send(200, {
           error: {
@@ -108,14 +120,14 @@ beforeAll(async () => {
           },
         });
       }
-      // The first two answers for a range with logs are empty, one time in
+      // The first two answers for a range with logs are empty, one range in
       // four (pocket was empty twice in a row).
-      const key = `${address}/${from}-${to}`;
+      const key = `${start}-${to}`;
       if (logs.length > 0 && empties.get(key) === 1) {
         empties.set(key, 2);
         return send(200, { result: [] });
       }
-      if (logs.length > 0 && !empties.has(key) && n % 4 === 0) {
+      if (logs.length > 0 && !empties.has(key) && hashOf(key) % 4 === 0) {
         empties.set(key, 1);
         faults.empty++;
         return send(200, { result: [] });
@@ -166,10 +178,9 @@ test("has every log despite the faults of the RPC", async () => {
     // Every kind of fault happened, and the empty answers were asked again.
     for (const count of Object.values(faults)) expect(count).toBeGreaterThan(0);
     const { checks } = manifest.runs[0];
-    // An empty range is asked again as such unless an error in between
-    // halved the width; then its logs come in the narrower ranges.
-    expect(checks.emptyRangesWithLogs).toBeGreaterThan(0);
-    expect(checks.emptyRangesWithLogs).toBeLessThanOrEqual(faults.empty);
+    // The errors from a first block come before its empty answers, so every
+    // range answered empty is asked again until its logs come.
+    expect(checks.emptyRangesWithLogs).toBe(faults.empty);
     expect(checks.errors).toEqual({
       results: faults.tooMany,
       unrelated: faults.http500 + faults.http504 + faults.noOldBlocks,
