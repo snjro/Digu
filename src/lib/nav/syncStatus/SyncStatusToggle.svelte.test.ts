@@ -167,7 +167,7 @@ describe("SyncStatusToggle.svelte", () => {
     await finish(true);
     expect(getToggle().disabled).toBe(false);
     expect(screen.getByText("stop sync")).toBeTruthy();
-    expect(getIcon().classList).toContain("animate-spin");
+    expect(getIcon().classList).toContain("motion-safe:animate-spin");
   });
 
   test("turns off again when the sync did not start", async () => {
@@ -177,7 +177,7 @@ describe("SyncStatusToggle.svelte", () => {
     await fireEvent.click(getToggle());
     await finish(false);
     expect(screen.getByText("start sync")).toBeTruthy();
-    expect(getIcon().classList).not.toContain("animate-spin");
+    expect(getIcon().classList).not.toContain("motion-safe:animate-spin");
   });
 
   test("stops the sync of the selected chain on the second click", async () => {
@@ -211,7 +211,7 @@ describe("SyncStatusToggle.svelte", () => {
       errorObject: error,
     });
     expect(screen.getByText("stop sync")).toBeTruthy();
-    expect(getIcon().classList).toContain("animate-spin");
+    expect(getIcon().classList).toContain("motion-safe:animate-spin");
   });
 
   test("stays off when stopping fails after the sync has stopped", async () => {
@@ -231,7 +231,7 @@ describe("SyncStatusToggle.svelte", () => {
     );
     await tick();
     expect(screen.getByText("start sync")).toBeTruthy();
-    expect(getIcon().classList).not.toContain("animate-spin");
+    expect(getIcon().classList).not.toContain("motion-safe:animate-spin");
   });
 
   test("can still stop the sync when the node is not ready", async () => {
@@ -275,7 +275,7 @@ describe("SyncStatusToggle.svelte", () => {
     storeUserSettings.updateState({ selectedChainName: "eth" });
     await tick();
     expect(screen.getByText("stop sync")).toBeTruthy();
-    expect(getIcon().classList).toContain("animate-spin");
+    expect(getIcon().classList).toContain("motion-safe:animate-spin");
 
     await fireEvent.click(getToggle());
     expect(startAbortingInChain).toHaveBeenCalledWith("eth");
@@ -288,7 +288,7 @@ describe("SyncStatusToggle.svelte", () => {
     await tick();
     expect(getToggle().disabled).toBe(true);
     expect((container.firstElementChild as HTMLElement).classList).toContain(
-      "animate-pulse",
+      "motion-safe:animate-pulse",
     );
     // Not "start sync", although the toggle is off.
     expect(screen.getByText("stopping sync")).toBeTruthy();

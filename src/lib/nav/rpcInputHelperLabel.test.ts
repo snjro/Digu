@@ -33,7 +33,7 @@ describe("getRpcInputHelperLabelProps", () => {
           prefixIcon: {
             name: "sync",
             colorCategory: colorSettings.navText,
-            appendClass: "animate-spin",
+            appendClass: "motion-safe:animate-spin",
             size,
           },
           text: "Connecting...",

@@ -29,7 +29,7 @@ export function getRpcInputHelperLabelProps(
         prefixIcon: {
           name: "sync",
           colorCategory: colorSettings.navText,
-          appendClass: "animate-spin",
+          appendClass: "motion-safe:animate-spin",
         },
         text: "Connecting...",
         textSize: size,

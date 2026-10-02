@@ -67,8 +67,8 @@
     syncStateTextLabelProps?.syncStateText === "stopping",
   );
 
-  let animatePulse: "animate-pulse" | undefined = $derived(
-    isStopping ? "animate-pulse" : undefined,
+  let animatePulse: "motion-safe:animate-pulse" | undefined = $derived(
+    isStopping ? "motion-safe:animate-pulse" : undefined,
   );
 
   let colorCategoryCircleProgress: () => ColorCategory = $derived(

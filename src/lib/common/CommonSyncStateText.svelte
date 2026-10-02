@@ -39,11 +39,11 @@
     syncStateText,
   }: Props = $props();
 
-  let animatePulse: "animate-pulse" | undefined = $derived(
-    syncStateText === "stopping" ? "animate-pulse" : undefined,
+  let animatePulse: "motion-safe:animate-pulse" | undefined = $derived(
+    syncStateText === "stopping" ? "motion-safe:animate-pulse" : undefined,
   );
-  let animateSpin: "animate-spin" | undefined = $derived(
-    syncStateText === "syncing" ? "animate-spin" : undefined,
+  let animateSpin: "motion-safe:animate-spin" | undefined = $derived(
+    syncStateText === "syncing" ? "motion-safe:animate-spin" : undefined,
   );
 
   let prefixIcon: BaseIconProps | undefined = $derived(

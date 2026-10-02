@@ -143,12 +143,14 @@ describe("SyncStatusProgress.svelte", () => {
     "follows a change of the sync state text in the store. hideProgressCircle=%s",
     async (hideProgressCircle) => {
       renderProgress(hideProgressCircle);
-      expect(getLabel("50.0").classList).not.toContain("animate-pulse");
+      expect(getLabel("50.0").classList).not.toContain(
+        "motion-safe:animate-pulse",
+      );
 
       setChain("eth", { syncStateText: "stopping" });
       await tick();
       expect(getLabel("stopping")).toBeTruthy();
-      expect(getLabel("50.0").classList).toContain("animate-pulse");
+      expect(getLabel("50.0").classList).toContain("motion-safe:animate-pulse");
       expect(screen.queryByText("stopped")).toBeNull();
     },
   );
