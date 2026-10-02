@@ -275,7 +275,7 @@ async function toggleInfo(page) {
           return {
             tooltip: label.textContent.trim(),
             disabled: b.disabled,
-            pulse: !!b.closest(".animate-pulse"),
+            pulse: !!b.closest('[class~="motion-safe:animate-pulse"]'),
           };
         }
       }

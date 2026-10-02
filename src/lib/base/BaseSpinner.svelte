@@ -19,7 +19,11 @@
 <svg
   id="base-spinner"
   role="status"
-  class={classNames(spinnerSize[size], "animate-spin", "will-change-transform")}
+  class={classNames(
+    spinnerSize[size],
+    "motion-safe:animate-spin",
+    "will-change-transform",
+  )}
   viewBox="0 0 100 100"
   fill="none"
   xmlns="http://www.w3.org/2000/svg"

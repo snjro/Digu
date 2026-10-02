@@ -80,7 +80,9 @@ describe("GridCellSyncStatusSyncStateText.svelte", () => {
 
   test("shows the sync state text of the contract", () => {
     render(GridCellSyncStatusSyncStateText, props);
-    expect(getLabel("stopped").classList).not.toContain("animate-pulse");
+    expect(getLabel("stopped").classList).not.toContain(
+      "motion-safe:animate-pulse",
+    );
   });
 
   test("follows a change of the sync state text in the store", async () => {
@@ -93,7 +95,9 @@ describe("GridCellSyncStatusSyncStateText.svelte", () => {
 
     setContract({ syncStateText: "stopping" });
     await tick();
-    expect(getLabel("stopping").classList).toContain("animate-pulse");
+    expect(getLabel("stopping").classList).toContain(
+      "motion-safe:animate-pulse",
+    );
   });
 
   test("shows no data when the contract has no sync status", async () => {

@@ -34,7 +34,7 @@
     <BaseLabel
       {text}
       textSize={sizeSettings.navInputHelperText}
-      appendClass="animate-pulse"
+      appendClass="motion-safe:animate-pulse"
     />
     <!-- Only for a large import, which takes minutes. -->
     {#if warpState.progress}

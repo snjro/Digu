@@ -12,8 +12,8 @@
 
   let { progressRate, textSize, isAnimatePulse }: Props = $props();
 
-  let animatePulse: "animate-pulse" | undefined = $derived(
-    isAnimatePulse ? "animate-pulse" : undefined,
+  let animatePulse: "motion-safe:animate-pulse" | undefined = $derived(
+    isAnimatePulse ? "motion-safe:animate-pulse" : undefined,
   );
 </script>
 

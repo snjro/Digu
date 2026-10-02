@@ -139,7 +139,9 @@ describe("VersionOverviewSyncStatusProgress.svelte", () => {
 
     setVersion(version, { syncStateText: "stopping" });
     await tick();
-    expect(getLabel("stopping").classList).toContain("animate-pulse");
+    expect(getLabel("stopping").classList).toContain(
+      "motion-safe:animate-pulse",
+    );
     expect(screen.queryByText("stopped")).toBeNull();
   });
 

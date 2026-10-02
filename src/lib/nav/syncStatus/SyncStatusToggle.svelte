@@ -105,7 +105,7 @@
     name: iconNameForSyncStateText(syncStateText),
     size: sizeSettings.navToggle,
     colorCategory: colorSettings.navToggleIcon,
-    appendClass: classNames(toggleOn && "animate-spin"),
+    appendClass: classNames(toggleOn && "motion-safe:animate-spin"),
   });
 
   let tooltipText: string = $derived(
@@ -124,7 +124,7 @@
   );
 </script>
 
-<div class={classNames(isStopping && "animate-pulse")}>
+<div class={classNames(isStopping && "motion-safe:animate-pulse")}>
   <BaseToggle
     toggleValue={toggleOn}
     size={sizeSettings.navToggle}
