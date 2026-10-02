@@ -105,7 +105,10 @@
     "absolute",
     "top-full",
     zIndex.syncPanel,
-    isNarrow ? "inset-x-0" : ["right-3", "w-[400px]"],
+    // Not over the open sidebar: at most as wide as the nav, less right-3.
+    isNarrow
+      ? "inset-x-0"
+      : ["right-3", "w-[400px]", "max-w-[calc(100%-1.5rem)]"],
     "rounded-sm",
     shadowStyle,
     colorClasses[colorSettings.dialogHeader].bg,
