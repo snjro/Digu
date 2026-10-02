@@ -101,6 +101,22 @@ describe("SyncPanel.svelte", () => {
     expect(document.activeElement).toBe(trigger());
   });
 
+  test("stays open on a held Escape, or Escape in an IME", async () => {
+    render(SyncPanelTestHost);
+    await openPanel();
+
+    await fireEvent.keyDown(document.activeElement!, {
+      key: "Escape",
+      repeat: true,
+    });
+    expect(isOpen()).toBe(true);
+    await fireEvent.keyDown(document.activeElement!, {
+      key: "Escape",
+      isComposing: true,
+    });
+    expect(isOpen()).toBe(true);
+  });
+
   test("leaves Escape to an open dialog", async () => {
     render(SyncPanelTestHost, { withDialog: true });
     await openPanel();
@@ -136,6 +152,25 @@ describe("SyncPanel.svelte", () => {
     await fireEvent.click(trigger());
     expect(isOpen()).toBe(false);
   });
+
+  // Like Import, which goes when it is pressed, and Reset in its dialog,
+  // which Close takes the place of.
+  test.each(["the panel", "a dialog"])(
+    "stays open after a click on a button that goes on the click, in %s",
+    async (where) => {
+      render(SyncPanelTestHost, { withDialog: true });
+      await openPanel();
+      const parent: HTMLElement =
+        where === "the panel" ? panel() : document.querySelector("dialog")!;
+      const button: HTMLButtonElement = document.createElement("button");
+      button.addEventListener("click", () => button.remove());
+      parent.append(button);
+
+      await fireEvent.click(button);
+      expect(button.isConnected).toBe(false);
+      expect(isOpen()).toBe(true);
+    },
+  );
 
   test("tells the state of the sync in one status", async () => {
     render(SyncPanelTestHost);

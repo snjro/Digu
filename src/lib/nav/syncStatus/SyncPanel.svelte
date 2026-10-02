@@ -63,22 +63,31 @@
     if (open) headingElement?.focus();
   });
 
+  // Not a held key, nor Escape in an IME, which cancels the composition.
   function onKeydown(event: KeyboardEvent): void {
-    if (!open || event.key !== "Escape") return;
+    if (!open || event.key !== "Escape" || event.repeat || event.isComposing) {
+      return;
+    }
     // Escape closes a dialog of the panel first.
     if (document.querySelector("dialog[open]")) return;
     open = false;
     triggerElement?.focus();
   }
   // Not the focus: it goes where the click was.
+  // In the capture phase: the button pressed can go on the click (Import, or
+  // Reset in its dialog), and then neither the bubble phase nor its
+  // composedPath() has the panel or the dialog.
   function onClick(event: MouseEvent): void {
     if (!open) return;
-    const target = event.target as Node;
-    if (panelElement?.contains(target) || triggerElement?.contains(target)) {
+    const path: EventTarget[] = event.composedPath();
+    if (
+      (panelElement && path.includes(panelElement)) ||
+      (triggerElement && path.includes(triggerElement))
+    ) {
       return;
     }
     // The dialogs of Reset and of the import of the warp sync.
-    if (target instanceof Element && target.closest("dialog")) return;
+    if (path.some((node) => node instanceof HTMLDialogElement)) return;
     open = false;
   }
 
@@ -92,7 +101,7 @@
   );
 </script>
 
-<svelte:document onkeydown={onKeydown} onclick={onClick} />
+<svelte:document onkeydown={onKeydown} onclickcapture={onClick} />
 
 <!-- Over the page, without trapping the focus, so not a dialog. -->
 <div
