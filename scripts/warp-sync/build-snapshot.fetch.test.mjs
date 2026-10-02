@@ -293,6 +293,35 @@ describe("fetchLogs with the widths of another part", () => {
     expect(asked).toEqual([9_999, 9_999, ...Array(10).fill(1_000), 2_000]);
   });
 
+  test("uses the shared widths again when its own width is raised to them", async () => {
+    const tooWide = rpcError("query exceeds max block range 5000");
+    const widths = script.createWidths(9_999);
+    const answers = [tooWide, tooWide];
+    const asked = [];
+    const rpc = async (_method, [{ fromBlock, toBlock }]) => {
+      asked.push(Number(toBlock) - Number(fromBlock) + 1);
+      // Meanwhile, the other parts raised the shared widths to 8,000.
+      if (asked.length === 3) {
+        Object.assign(widths, { width: 8_000, maxWidth: 8_000, successes: 0 });
+      }
+      const answer = answers.shift() ?? [log(Number(fromBlock))];
+      if (answer instanceof Error) throw answer;
+      return answer;
+    };
+    await script.fetchLogs(rpc, contract, 1, 10 * 4_999 + 10 * 8_000 + 9_999, {
+      widths,
+    });
+    // Ten ranges raise the own width to 9,998, which is not narrower than the
+    // shared 8,000, and the part follows the shared widths up to 9,999.
+    expect(asked).toEqual([
+      9_999,
+      9_999,
+      ...Array(10).fill(4_999),
+      ...Array(10).fill(8_000),
+      9_999,
+    ]);
+  });
+
   // Another part halves or raises the shared widths while the request waits.
   test.each([
     ["halved", { width: 9_999, maxWidth: 9_999 }, 4_999],

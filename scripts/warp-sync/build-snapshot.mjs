@@ -295,7 +295,8 @@ export async function fetchLogs(
   let from = fromBlock;
   let failures = 0;
   let rangeFailures = 0;
-  // The own widths of the part after a halving, until they reach the shared.
+  // The own widths of the part after a halving, until a range that works
+  // raises them to the shared width.
   let own = undefined;
   // The end of an empty range that is asked again, and its empty answers.
   let askAgainTo = undefined;
