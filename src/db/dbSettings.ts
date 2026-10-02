@@ -33,6 +33,7 @@ class DbSettings extends dbBase {
             delete rpcSetting.chainExplorerIndex;
             delete rpcSetting.blockIntervalMs;
             delete rpcSetting.tryCount;
+            delete rpcSetting.abortWatchIntervalMs;
           });
       });
     this.on("populate", async (tx: Transaction) => {

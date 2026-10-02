@@ -229,10 +229,10 @@ python3 scripts/screen-check/upgrade/diff_db.py <out-dir>/db-old-old-06-final.js
   chain, the sync targets and the sync state, and syncs on from where v1.0.2
   stopped. It also logs a `[check]` line on the Settings database: its
   version after the upgrade, and that the upgrade removed `bulkUnit`,
-  `chainExplorerIndex`, `blockIntervalMs` and `tryCount` from each RPC setting
-  and kept the rest. `grid` opens the Event Logs grids on the logs of both.
-  `probe` only opens the new build and logs the stack if the page stops
-  answering.
+  `chainExplorerIndex`, `blockIntervalMs`, `tryCount` and
+  `abortWatchIntervalMs` from each RPC setting and kept the rest. `grid` opens
+  the Event Logs grids on the logs of both. `probe` only opens the new build
+  and logs the stack if the page stops answering.
 - The checks are `[check]` lines in `log-<phase>.txt`. A failed one ends
   with `NG: <reason>`, and `judge.py` counts it as a failure. The others
   are records for a person.
