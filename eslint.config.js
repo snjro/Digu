@@ -5,8 +5,17 @@ import { defineConfig } from "eslint/config";
 import globals from "globals";
 import ts from "typescript-eslint";
 import { loadConfig } from "@sveltejs/load-config";
+import { fileURLToPath } from "url";
 
-const svelteConfig = (await loadConfig("./", { traverse: false }))?.config;
+const loaded = await loadConfig(
+  fileURLToPath(new URL("vite.config.ts", import.meta.url)),
+);
+if (!loaded || !("config" in loaded)) {
+  throw new Error("vite.config.ts could not be loaded", {
+    cause: loaded?.error,
+  });
+}
+const svelteConfig = loaded.config;
 
 export default defineConfig(
   {
