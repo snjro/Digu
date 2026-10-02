@@ -42,7 +42,6 @@ export async function requestSyncLock(
   // Without Web Locks (insecure context), work as a single tab.
   if (!navigator.locks) {
     chainsSyncedByThisTab.add(chainName);
-    storeSyncStoppedReason.clear(chainName);
     const started: boolean = await tryToStart(chainName, start);
     const syncing: Promise<void> = started ? sync() : Promise.resolve();
     void syncing
@@ -65,8 +64,6 @@ export async function requestSyncLock(
         async (): Promise<void> => {
           granted = true;
           chainsSyncedByThisTab.add(chainName);
-          // Only a sync that starts clears the reason of the last one.
-          storeSyncStoppedReason.clear(chainName);
           try {
             const started: boolean = await tryToStart(chainName, async () => {
               // The store may be stale: another tab may have synced since
@@ -100,6 +97,8 @@ async function tryToStart(
   chainName: ChainName,
   start: () => Promise<void>,
 ): Promise<boolean> {
+  // Only a sync that starts clears the reason of the last one.
+  storeSyncStoppedReason.clear(chainName);
   try {
     await start();
     return true;
@@ -150,6 +149,9 @@ export function waitForSyncLockRelease(chainName: ChainName): void {
     ...state,
     [chainName]: true,
   }));
+  // The other tab syncs the chain: the reason of the last sync of this tab no
+  // longer holds.
+  storeSyncStoppedReason.clear(chainName);
   // Granted when the other tab releases the lock. Give it back right away.
   navigator.locks
     .request(getSyncLockName(chainName), async (): Promise<void> => {

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/svelte";
 import { get } from "svelte/store";
+import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
@@ -21,6 +22,10 @@ vi.mock("#stores/storeChainStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeChainStatus: writable({ chain1: { nodeStatus: undefined } }) };
 });
+vi.mock("#eventLogs/syncLock.js", async () => {
+  const { writable } = await import("svelte/store");
+  return { storeSyncLockedByOtherTab: writable({ chain1: false }) };
+});
 vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return {
@@ -33,6 +38,7 @@ describe("SyncListChainRpcInputHelperLabel.svelte", () => {
     storeRpcSettings.set({ chain1: { rpc: "" } } as never);
     storeChainStatus.set({ chain1: { nodeStatus: undefined } } as never);
     storeSyncStatus.set({ chain1: { syncStateText: "stopped" } } as never);
+    storeSyncLockedByOtherTab.set({ chain1: false });
     storeSyncStoppedReason.clear("chain1");
   });
 
@@ -88,14 +94,18 @@ describe("SyncListChainRpcInputHelperLabel.svelte", () => {
     expect(screen.queryByRole("link")).toBeNull();
   });
 
-  // "stopping": this tab is stopping the sync. "syncing": another tab syncs
-  // the chain.
-  test.each(["stopping", "syncing"])(
-    "shows Connected. instead of why the sync stopped while the chain is %s, and keeps the reason",
-    (syncStateText) => {
+  // "stopping": this tab is stopping the sync. Another tab that syncs the
+  // chain holds its lock, and the sync state of this tab stays "stopped".
+  test.each([
+    ["stopping", false],
+    ["stopped", true],
+  ])(
+    "shows Connected. instead of why the sync stopped while the sync state is %s and another tab holds the lock: %s, and keeps the reason",
+    (syncStateText, isLockedByOtherTab) => {
       storeRpcSettings.set({ chain1: { rpc: "https://foo" } } as never);
       storeChainStatus.set({ chain1: { nodeStatus: "SUCCESS" } } as never);
       storeSyncStatus.set({ chain1: { syncStateText } } as never);
+      storeSyncLockedByOtherTab.set({ chain1: isLockedByOtherTab });
       storeSyncStoppedReason.record("chain1", "RPC_ERRORS");
       render(SyncListChainRpcInputHelperLabel);
       expect(screen.getByText("Connected.")).toBeTruthy();
