@@ -271,8 +271,7 @@ export function createFetchStats() {
 // so that the other parts may narrow it but not raise it. A full range that
 // works raises the own widths when it had their width, and the shared ones
 // when it has their width after the answer (another part may have changed
-// them meanwhile). When that raises the own width to the shared one, or the
-// own width is at the widest and not narrower than the shared one, the part
+// them meanwhile). When that raises the own width to the shared one, the part
 // uses the shared widths again.
 // An empty result is asked again until EMPTY_ANSWERS_TO_KEEP empty answers in
 // a row (#576): an RPC may return no logs for a range that has some. Each
@@ -360,13 +359,13 @@ export async function fetchLogs(
     rangeFailures = 0;
     // A range cut at toBlock does not show that the width works.
     if (to - from + 1 === width) {
-      // Both when they are equal: the range shows that each width works.
+      // The widths that have the width of the range count it: the shared
+      // ones by their width after the answer, since another part may have
+      // changed them meanwhile. Both when they are equal.
       if (widths.width === width) raise(widths);
       if (own?.width === width) {
         raise(own);
-        // Raised by this range, or at the widest, where raise cannot widen it.
-        const done = own.width > width || own.width === own.cap;
-        if (done && own.width >= widths.width) own = undefined;
+        if (own.width > width && own.width >= widths.width) own = undefined;
       }
     }
     from = to + 1;
