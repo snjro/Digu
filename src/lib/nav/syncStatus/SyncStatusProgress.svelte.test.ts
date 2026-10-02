@@ -23,12 +23,6 @@ vi.mock("@stores/storeChainStatus", async () => {
   const { writable } = await import("svelte/store");
   return { storeChainStatus: writable({}) };
 });
-// BaseProgressCircle imports CommonChainExplorerLink, which loads the chain
-// data too.
-vi.mock("@stores/storeRpcSettings", async () => {
-  const { writable } = await import("svelte/store");
-  return { storeRpcSettings: writable({}) };
-});
 vi.mock("@utils/utilsDb", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,

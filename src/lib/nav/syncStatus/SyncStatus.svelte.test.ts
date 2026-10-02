@@ -21,10 +21,6 @@ vi.mock("@stores/storeChainStatus", async () => {
   const { writable } = await import("svelte/store");
   return { storeChainStatus: writable({}) };
 });
-vi.mock("@stores/storeRpcSettings", async () => {
-  const { writable } = await import("svelte/store");
-  return { storeRpcSettings: writable({}) };
-});
 // SyncStatusToggle imports these, which load the chain data too.
 vi.mock("@eventLogs/syncLock", async () => {
   const { writable } = await import("svelte/store");

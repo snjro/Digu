@@ -28,10 +28,6 @@ vi.mock("@stores/storeChainStatus", async () => {
   const { writable } = await import("svelte/store");
   return { storeChainStatus: writable({}) };
 });
-vi.mock("@stores/storeRpcSettings", async () => {
-  const { writable } = await import("svelte/store");
-  return { storeRpcSettings: writable({}) };
-});
 vi.mock("@utils/utilsDb", () => ({ getTargetChain: vi.fn() }));
 // utilsEthers loads ethers. The same rule as the real hasSyncTargetEvents.
 vi.mock("@utils/utilsEthers", () => ({
