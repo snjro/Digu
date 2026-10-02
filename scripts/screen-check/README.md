@@ -9,7 +9,7 @@ each push to develop (see [CI](#ci-screen-checkyml)).
 
 | Folder         | What it checks                                          | Network                                    |
 | -------------- | ------------------------------------------------------- | ------------------------------------------ |
-| `ui/`          | Pages, navigation, settings, grids, ABI, keyboard       | None; a fake RPC                           |
+| `ui/`          | Pages, navigation, sync panel, grids, ABI, keyboard     | None; a fake RPC                           |
 | `sync/`        | The event log sync                                      | None; a fake RPC                           |
 | `upgrade/`     | Data saved by v1.0.2, opened by the new build           | None; a fake RPC                           |
 | `real-rpc/`    | Connection, Goal and the stop of a sync with a real RPC | PublicNode (without `--fake`)              |
