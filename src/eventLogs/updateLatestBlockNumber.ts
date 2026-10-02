@@ -1,5 +1,4 @@
-import type { ChainName } from "@constants/chains/types";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
+import type { Chain, ChainName } from "@constants/chains/types";
 import { customLogger } from "@utils/logger";
 import {
   getAndUpdateLatestBlockNumber,
@@ -8,8 +7,9 @@ import {
 } from "@utils/utilsEthers";
 import { get } from "svelte/store";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
-import type { RpcSetting } from "@db/dbTypes";
 import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
+import { getTargetChain } from "@utils/utilsDb";
+import { TRY_COUNT } from "./eventLogsContract";
 
 const functionName: string = "updateLatestBlockNumber";
 
@@ -21,9 +21,7 @@ export async function startUpdateLatestBlockNumber(
   customLogger.start(`${functionName}()`, {
     chainName: targetChainName,
   });
-  // Read once: the RPC settings cannot be changed in this tab while syncing.
-  const rpcSetting: RpcSetting = get(storeRpcSettings)[targetChainName];
-  const maxErrorCount: number = rpcSetting.tryCount;
+  const targetChain: Chain = getTargetChain({ chainName: targetChainName });
   let errorCount: number = 0;
   let isStopped: boolean = false;
 
@@ -37,7 +35,7 @@ export async function startUpdateLatestBlockNumber(
       errorCount++;
       customLogger.warn({
         errorOn: functionName,
-        errorCount: `${errorCount}/${maxErrorCount}`,
+        errorCount: `${errorCount}/${TRY_COUNT}`,
         error: getLoggableError(error),
       });
     }
@@ -60,10 +58,10 @@ export async function startUpdateLatestBlockNumber(
     await tryGetAndUpdateLatestBlockNumber();
     // A request in flight fails when the provider is destroyed after stopping.
     if (isStopped) return;
-    if (errorCount > maxErrorCount) {
+    if (errorCount > TRY_COUNT) {
       customLogger.error({
         errorOn: functionName,
-        errorCount: `${errorCount}/${maxErrorCount}`,
+        errorCount: `${errorCount}/${TRY_COUNT}`,
         errorMessage: "errorCount exceeded the limit. Start aborting.",
       });
 
@@ -81,7 +79,7 @@ export async function startUpdateLatestBlockNumber(
   };
   const intervalId: number = window.setInterval(() => {
     void updateInInterval();
-  }, rpcSetting.blockIntervalMs);
+  }, targetChain.blockIntervalMs);
   return () => {
     isStopped = true;
     stopUpdateLatestBlockNumber(intervalId);

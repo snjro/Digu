@@ -15,7 +15,9 @@ export const DB_NAME = {
 export const DB_VERSIONS = {
   // 2: removed the contracts of Augur version2 that Augur did not deploy.
   EventLog: 2,
-  Settings: 1,
+  // 2: removed bulkUnit, chainExplorerIndex, blockIntervalMs and tryCount from
+  // the RPC settings.
+  Settings: 2,
   BlockTimes: 1,
   ChainStatus: 1,
 } as const;

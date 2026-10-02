@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs real-rpc-check.mjs in the test service of <build-dir>.
 # Without --fake, it sends requests to the public RPC of PublicNode.
-# Usage: scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> [--fake] [--only=eth-http,...] [--retry=2]
+# Usage: scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> [--fake] [--only=eth-http,...]
 #   <build-dir>: made by ../build.sh (has compose.yaml, node_modules and _build).
 #   <out-dir>: where the results go, outside the repository.
 #   PROJECT: the Docker Compose project (default: <repo>-sc-real-rpc).
@@ -9,7 +9,7 @@
 set -euo pipefail
 
 if [[ $# -lt 2 ]]; then
-  echo "Usage: $0 <build-dir> <out-dir> [--fake] [--only=eth-http,...] [--retry=2]" >&2
+  echo "Usage: $0 <build-dir> <out-dir> [--fake] [--only=eth-http,...]" >&2
   exit 2
 fi
 here=$(cd "$(dirname "$0")" && pwd)

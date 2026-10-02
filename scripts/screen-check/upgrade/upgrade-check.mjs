@@ -39,6 +39,19 @@ const LATEST =
   phase === "old"
     ? 5926479
     : Number(process.env.NEW_LATEST || 5926679 + CONFIRMATION_BLOCKS);
+// Settings DB version 2: the upgrade removes these from each RPC setting and
+// keeps the rest (v1.0.2 also has abortWatchIntervalMs, and no warpSync).
+const REMOVED_RPC_SETTINGS = [
+  "bulkUnit",
+  "chainExplorerIndex",
+  "blockIntervalMs",
+  "tryCount",
+];
+const SETTINGS_VERSION = Number(
+  fs
+    .readFileSync("/app/src/db/constants.ts", "utf8")
+    .match(/Settings:\s*(\d+)/)[1],
+);
 const log = [];
 const steps = [];
 let stepName = "start";
@@ -438,6 +451,57 @@ async function countTable(page, dbName, table) {
     table,
   );
 }
+async function readSettingsDb(page) {
+  return page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        const r = indexedDB.open("Digu_Settings");
+        r.onsuccess = () => {
+          const db = r.result;
+          const version = db.version;
+          if (![...db.objectStoreNames].includes("RpcSettings")) {
+            db.close();
+            resolve({ version, rows: null });
+            return;
+          }
+          const g = db
+            .transaction("RpcSettings")
+            .objectStore("RpcSettings")
+            .getAll();
+          g.onsuccess = () => {
+            db.close();
+            resolve({ version, rows: g.result });
+          };
+        };
+        r.onerror = () => resolve(null);
+      }),
+  );
+}
+function checkSettingsUpgrade(before, after) {
+  const ng = [];
+  // Dexie opens version n as IndexedDB version n * 10.
+  if (after?.version !== SETTINGS_VERSION * 10)
+    ng.push(`version ${after?.version}, expected ${SETTINGS_VERSION * 10}`);
+  if (!before?.rows?.length) ng.push("no RPC settings before the upgrade");
+  for (const b of before?.rows ?? []) {
+    const a = after?.rows?.find((r) => r.chainName === b.chainName);
+    if (!a) {
+      ng.push(`${b.chainName}: no row after the upgrade`);
+      continue;
+    }
+    const left = REMOVED_RPC_SETTINGS.filter((k) => k in a);
+    if (left.length) ng.push(`${b.chainName}: still has ${left.join(",")}`);
+    const changed = Object.keys(b).filter(
+      (k) =>
+        !REMOVED_RPC_SETTINGS.includes(k) &&
+        JSON.stringify(a[k]) !== JSON.stringify(b[k]),
+    );
+    if (changed.length) ng.push(`${b.chainName}: changed ${changed.join(",")}`);
+  }
+  log.push(
+    `[check] Settings DB upgrade: version ${before?.version} -> ${after?.version}; before ${JSON.stringify(before?.rows)}; after ${JSON.stringify(after?.rows)}${ng.length ? ` NG: ${ng.join("; ")}` : ""}`,
+  );
+}
 async function syncUntil(page, prefix, target) {
   await (await toggleButton(page)).click();
   await waitLabel(page, "stop sync", 20000).catch(() => {});
@@ -743,9 +807,14 @@ try {
     );
   } else {
     stepName = "new-00";
+    // The Settings DB before the new build opens it, from a file of the
+    // origin that does not run the app.
+    await page.goto(`${ORIGIN}/favicon.png`, { waitUntil: "load" });
+    const settingsBefore = await readSettingsDb(page);
     await page.goto(`${ORIGIN}/`, { waitUntil: "load" });
     await settle(page, 3000);
     await record(page, "new-00-home-first-open", { dump: true });
+    checkSettingsUpgrade(settingsBefore, await readSettingsDb(page));
     for (const [name, p] of [
       ["new-01-matic", "/matic"],
       ["new-02-eth", "/eth"],
@@ -775,14 +844,12 @@ try {
     const dialogValues = await page.evaluate(() => {
       const d = document.querySelector("dialog[open]");
       return {
-        numbers: [...d.querySelectorAll('input[type="number"]')].map((i) => ({
-          label: i.getAttribute("aria-label"),
-          value: i.value,
-        })),
-        selects: [...d.querySelectorAll("select")].map((s) => ({
-          value: s.value,
-          text: s.options[s.selectedIndex]?.text,
-        })),
+        checkboxes: [...d.querySelectorAll('input[type="checkbox"]')].map(
+          (i) => ({
+            label: i.getAttribute("aria-label"),
+            checked: i.checked,
+          }),
+        ),
         text: d.innerText.slice(0, 800),
       };
     });

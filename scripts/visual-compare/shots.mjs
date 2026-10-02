@@ -112,21 +112,6 @@ const STATES = [
     },
   ],
   [
-    "settings-range",
-    EVENTS,
-    async (page) => {
-      await clickByTooltip(page, "Settings");
-      await settle(page);
-      await page.$eval('dialog[open] input[type="range"]', (range) => {
-        range.value = range.max;
-        range.dispatchEvent(new Event("input", { bubbles: true }));
-        range.dispatchEvent(new Event("change", { bubbles: true }));
-      });
-    },
-  ],
-  ["settings-input", EVENTS, (page) => typeSetting(page, "250")],
-  ["settings-input-error", EVENTS, (page) => typeSetting(page, "0")],
-  [
     "hover-sidebar-item",
     EVENTS,
     async (page) => {
@@ -461,18 +446,6 @@ async function openThreeDots(page, itemText) {
     return Boolean(button);
   }, itemText);
   if (!clicked) throw new Error(`No "three dots" menu with "${itemText}"`);
-}
-
-// Types `text` into the first number input of the settings dialog.
-async function typeSetting(page, text) {
-  await clickByTooltip(page, "Settings");
-  await settle(page);
-  await page.focus('dialog[open] input[type="number"]');
-  await page.keyboard.down("Control");
-  await page.keyboard.press("a");
-  await page.keyboard.up("Control");
-  await page.keyboard.type(text);
-  await page.keyboard.press("Tab");
 }
 
 async function setTheme(page, theme) {

@@ -31,19 +31,13 @@ vi.mock("@stores/storeChainStatus", async () => {
   const { writable } = await import("svelte/store");
   return { storeChainStatus: writable({}) };
 });
-vi.mock("@stores/storeRpcSettings", async () => {
-  const { writable } = await import("svelte/store");
-  return { storeRpcSettings: writable({ eth: { chainExplorerIndex: 0 } }) };
-});
 vi.mock("@utils/utilsDb", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
-    chainExplorers: [
-      {
-        url: "https://explorer.example",
-        subdirectory: { address: "address", tx: "tx", block: "block" },
-      },
-    ],
+    chainExplorer: {
+      url: "https://explorer.example",
+      subdirectory: { address: "address", tx: "tx", block: "block" },
+    },
   }),
 }));
 

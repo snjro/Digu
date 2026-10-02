@@ -4,8 +4,10 @@ import type { JsonRpcPayload, JsonRpcResult } from "ethers";
 import {
   ERRORS_TO_HALVE_ANYWAY,
   fetchEventLogsContract,
+  INITIAL_BULK_UNIT,
   MAX_BULK_UNIT,
   SUCCESSES_TO_RAISE_LIMIT,
+  TRY_COUNT,
 } from "./eventLogsContract";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
@@ -17,7 +19,6 @@ import {
 import { customLogger } from "@utils/logger";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Chain, Contract } from "@constants/chains/types";
 import type { DbEventLogs } from "@db/dbEventLogs";
@@ -104,8 +105,7 @@ function providerFailingGetLogs(
 
 describe("fetchEventLogsContract", () => {
   const creationBlockNumber: number = targetContract.creation.blockNumber;
-  const bulkUnit: number = 100;
-  const tryCount: number = 2;
+  const bulkUnit: number = INITIAL_BULK_UNIT;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -117,12 +117,6 @@ describe("fetchEventLogsContract", () => {
         fetchedBlockNumber: creationBlockNumber,
       });
       return state;
-    });
-    // The smallest Block Interval, which is shorter than the cache of ethers.
-    storeRpcSettings.updateState(targetChain.name, {
-      bulkUnit,
-      tryCount,
-      blockIntervalMs: 1,
     });
     storeChainStatus.updateState(targetChain.name, {
       latestBlockNumber: creationBlockNumber + 10 * bulkUnit,
@@ -139,7 +133,7 @@ describe("fetchEventLogsContract", () => {
   });
 
   test("should request eth_getLogs again after an error and continue", async () => {
-    const { provider, getLogsCount } = providerFailingGetLogs(tryCount);
+    const { provider, getLogsCount } = providerFailingGetLogs(TRY_COUNT);
 
     const promise: Promise<void> = fetchEventLogsContract(
       dbEventLogs,
@@ -153,11 +147,11 @@ describe("fetchEventLogsContract", () => {
     expect(registerEventLogsAndBlockTimes).toHaveBeenCalledOnce();
     // One request for each range, not one for each event.
     expect(targetContract.events.names.length).toBeGreaterThan(1);
-    expect(getLogsCount()).toBe(tryCount + 1);
+    expect(getLogsCount()).toBe(TRY_COUNT + 1);
   });
 
   test("should abort the chain when the errors exceed Try Count", async () => {
-    const { provider, getLogsCount } = providerFailingGetLogs(tryCount + 1);
+    const { provider, getLogsCount } = providerFailingGetLogs(TRY_COUNT + 1);
 
     const promise: Promise<void> = fetchEventLogsContract(
       dbEventLogs,
@@ -171,7 +165,7 @@ describe("fetchEventLogsContract", () => {
       targetChain.name,
     );
     expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
-    expect(getLogsCount()).toBe(tryCount + 1);
+    expect(getLogsCount()).toBe(TRY_COUNT + 1);
   });
 
   test("should log an ethers error without the request URL, with the error that the RPC returned", async () => {
@@ -330,13 +324,17 @@ describe("fetchEventLogsContract", () => {
   });
 
   test("should double the range after each success up to MAX_BULK_UNIT", async () => {
-    const startBulkUnit: number = 30000;
-    storeRpcSettings.updateState(targetChain.name, { bulkUnit: startBulkUnit });
+    const expectedWidths: number[] = [];
+    for (let width = bulkUnit; width < MAX_BULK_UNIT; width *= 2) {
+      expectedWidths.push(width);
+    }
+    expectedWidths.push(MAX_BULK_UNIT, MAX_BULK_UNIT);
     storeChainStatus.updateState(targetChain.name, {
-      latestBlockNumber: creationBlockNumber + 10 * MAX_BULK_UNIT,
+      latestBlockNumber:
+        creationBlockNumber + expectedWidths.length * MAX_BULK_UNIT,
     });
     const { provider, getLogsRanges } = providerFailingGetLogs(0);
-    registerUntil(4);
+    registerUntil(expectedWidths.length);
 
     const promise: Promise<void> = fetchEventLogsContract(
       dbEventLogs,
@@ -348,7 +346,7 @@ describe("fetchEventLogsContract", () => {
 
     expect(
       getLogsRanges().map(([from, to]: number[]) => to - from + 1),
-    ).toEqual([startBulkUnit, 2 * startBulkUnit, MAX_BULK_UNIT, MAX_BULK_UNIT]);
+    ).toEqual(expectedWidths);
   });
 
   test("should not widen the range after a range cut at the latest block", async () => {
@@ -380,8 +378,13 @@ describe("fetchEventLogsContract", () => {
   });
 
   test("should keep at least 2 blocks from the creation block after halving", async () => {
-    storeRpcSettings.updateState(targetChain.name, { bulkUnit: 2 });
-    const { provider, getLogsRanges } = providerFailingGetLogs(2);
+    // Errors in a row halve the range from the second one, down to 1 block.
+    let errorCount: number = 1;
+    for (let width = bulkUnit; width > 1; width = Math.floor(width / 2)) {
+      errorCount++;
+    }
+    expect(errorCount).toBeLessThanOrEqual(TRY_COUNT);
+    const { provider, getLogsRanges } = providerFailingGetLogs(errorCount);
 
     const promise: Promise<void> = fetchEventLogsContract(
       dbEventLogs,
@@ -391,10 +394,12 @@ describe("fetchEventLogsContract", () => {
     await vi.runAllTimersAsync();
     await promise;
 
-    // The first two requests fail, and then one request for the range.
-    expect(getLogsRanges()).toEqual(
-      Array(3).fill([creationBlockNumber, creationBlockNumber + 1]),
-    );
+    // The request after the errors is for 2 blocks, not 1.
+    expect(getLogsRanges()).toHaveLength(errorCount + 1);
+    expect(getLogsRanges().at(-1)).toEqual([
+      creationBlockNumber,
+      creationBlockNumber + 1,
+    ]);
   });
 
   // Errors that do not depend on the width of the range.
@@ -458,14 +463,11 @@ describe("fetchEventLogsContract", () => {
         targetChain.name,
       );
       expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
-      expect(widthsOf(getLogsRanges())).toEqual(
-        Array(tryCount + 1).fill(bulkUnit),
-      );
+      expect(getLogsRanges()).toHaveLength(TRY_COUNT + 1);
     },
   );
 
   test("should halve the range after ERRORS_TO_HALVE_ANYWAY errors in a row that do not depend on the range", async () => {
-    storeRpcSettings.updateState(targetChain.name, { tryCount: 10 });
     const { provider, getLogsRanges } = providerAnsweringGetLogs(
       targetChain.chainId,
       (requestNumber: number) =>

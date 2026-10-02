@@ -356,59 +356,12 @@ async function typeInto(page, selector, text) {
   await page.keyboard.type(text);
   await page.keyboard.press("Tab");
 }
-async function clickByTooltip(page, text) {
-  const ok = await page.evaluate((text) => {
-    const labels = [...document.querySelectorAll("*")].filter(
-      (e) => e.children.length === 0 && e.textContent.trim() === text,
-    );
-    for (const label of labels) {
-      for (let e = label; e; e = e.parentElement) {
-        const b = e.querySelector("button");
-        if (b) {
-          if (!b.getClientRects().length) break;
-          b.click();
-          return true;
-        }
-      }
-    }
-    return false;
-  }, text);
-  if (!ok) throw new Error(`no button ${text}`);
-}
 
-// Fake RPC in the nav, then Bulk Unit / Retry Count / Block Interval.
+// Fake RPC in the nav.
 // The RPC input has no placeholder while focused (BaseInput.svelte); use its aria-label (#394).
-async function setupRpc(
-  page,
-  { bulkUnit = "50", tryCount = "10", interval = "500" } = {},
-) {
+async function setupRpc(page) {
   await typeInto(page, 'input[aria-label="RPC URL"]', FAKE_RPC);
   await settle(page);
-  await clickByTooltip(page, "Settings");
-  await settle(page);
-  await typeInto(
-    page,
-    'dialog[open] input[aria-label="Block Interval [ms]"]',
-    interval,
-  );
-  await settle(page);
-  await typeInto(page, 'dialog[open] input[aria-label="Bulk Unit"]', bulkUnit);
-  await settle(page);
-  await typeInto(
-    page,
-    'dialog[open] input[aria-label="Retry Count"]',
-    tryCount,
-  );
-  await settle(page);
-  const helper = await page.evaluate(() =>
-    [...document.querySelectorAll("dialog[open] *")]
-      .filter((e) => e.children.length === 0)
-      .map((e) => e.textContent.trim())
-      .filter((t) => /Error\.|Updated\.|Checking/.test(t)),
-  );
-  await page.keyboard.press("Escape");
-  await settle(page);
-  return helper;
 }
 
 async function dbDump(page, contractNames = null) {
@@ -630,7 +583,7 @@ if (want("S1")) {
   try {
     await gotoApp(page, "/eth/");
     note("locks", await page.evaluate(() => !!navigator.locks));
-    note("settingsHelper", await setupRpc(page));
+    await setupRpc(page);
     // 6-1: sync targets
     await snap(page, "S1-6-1-a-chain-initial", {
       checkboxes: await checkboxes(page),
@@ -679,7 +632,8 @@ if (want("S1")) {
     await snap(page, "S1-6-2-a-syncing-early", {
       checkboxes: await checkboxes(page),
     });
-    // 6-3 mid-sync event overview
+    // 6-3 mid-sync event overview. The first range ends below the Goal, and
+    // the sync waits the block interval of eth (20 s) before the last one.
     await page
       .waitForFunction(() => /MarketCreated/.test(document.body.innerText), {
         timeout: 5000,
@@ -705,7 +659,7 @@ if (want("S1")) {
         },
         { timeout: 60000, polling: 300 },
         V1,
-        V1_CREATION + 100,
+        V1_CREATION + 1,
       )
       .catch((e) => note("waitMid error", String(e)));
     await snap(page, "S1-6-3-a-event-overview-mid", {
@@ -882,16 +836,20 @@ if (want("S1")) {
 }
 
 // ---------- S3: 6-7 RPC errors ----------
+// [mode, how long to wait for the stop (ms)]. errorAll also fails the
+// eth_blockNumber at the start, so the sync has no Goal and sends no
+// eth_getLogs. It stops when the updates of the latest block, one per block
+// interval of eth (20 s), have failed more than the error limit (10): after
+// about 200 s.
 const S3_MODES = [
-  ["errorGetLogs", "2"],
-  ["errorGetLogs10", "10"],
-  ["errorOnce", "10"],
-  ["errorAll", "2"],
-  ["nullBlock", "2"],
+  ["errorGetLogs", 60000],
+  ["errorOnce", 60000],
+  ["errorAll", 240000],
+  ["nullBlock", 60000],
 ].filter(
   ([m]) => !process.env.S3_MODES || process.env.S3_MODES.split(",").includes(m),
 );
-for (const [mode, tryCount] of S3_MODES) {
+for (const [mode, stopTimeoutMs] of S3_MODES) {
   if (!want("S3")) break;
   scenario = `S3-${mode}`;
   rpcState = makeState({ latest: V1_CREATION + 250 + CONF });
@@ -899,7 +857,7 @@ for (const [mode, tryCount] of S3_MODES) {
   const page = await newPage(context, "A");
   try {
     await gotoApp(page, "/eth/");
-    note("settingsHelper", await setupRpc(page, { tryCount, interval: "500" }));
+    await setupRpc(page);
     await clickCheckbox(page, "Sync target: Augur version1");
     await clickCheckbox(page, "Sync target: Augur version2");
     await navIn(page, "/eth/Augur-version1/contracts/Augur/");
@@ -907,7 +865,6 @@ for (const [mode, tryCount] of S3_MODES) {
     rpcState.mode = mode;
     rpcState.calls.length = 0;
     await clickToggle(page);
-    // Retry Count 10 with a 1 s wait (RETRY_WAIT_MS, eventLogsContract.ts) takes more than 11 s.
     const tr = await watchTransitions(
       page,
       V1,
@@ -915,7 +872,7 @@ for (const [mode, tryCount] of S3_MODES) {
       (t, s) =>
         (t?.tooltip === "start sync" && s?.isSyncing === false) ||
         s?.fetched >= V1_CREATION + 250,
-      60000,
+      stopTimeoutMs,
     );
     note("transitions", tr);
     note("rpc", rpcSummary(rpcState));
@@ -960,7 +917,7 @@ if (want("S4")) {
   try {
     await (await front(a), gotoApp)(a, "/eth/");
     note("locks", await a.evaluate(() => !!navigator.locks));
-    note("settingsHelper", await (await front(a), setupRpc)(a));
+    await (await front(a), setupRpc)(a);
     await (await front(a), clickCheckbox)(a, "Sync target: Augur version1");
     await (await front(a), clickCheckbox)(a, "Sync target: Augur version2");
     await (await front(a), navIn)(a, "/eth/Augur-version1/contracts/Augur/");

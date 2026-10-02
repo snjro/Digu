@@ -4,7 +4,7 @@ import {
   stopSyncingInContract,
   startAbortingInChain,
 } from "@db/dbEventLogsDataHandlersSyncStatus";
-import type { ChainName, Contract } from "@constants/chains/types";
+import type { Chain, ChainName, Contract } from "@constants/chains/types";
 import {
   getEthersEventLogs,
   getLoggableError,
@@ -13,18 +13,17 @@ import {
 } from "@utils/utilsEthers";
 import { customLogger } from "@utils/logger";
 import { get } from "svelte/store";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { storeChainStatus } from "@stores/storeChainStatus";
 import { ethers } from "ethers";
 import type {
   ContractIdentifier,
   EthersEventLog,
-  RpcSetting,
   SyncStatusContract,
 } from "@db/dbTypes";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { assertIsDefined, sleep } from "@utils/utilsCommon";
+import { getTargetChain } from "@utils/utilsDb";
 type FetchingTargetInfo = ContractIdentifier & {
   blocks: { from: number; to: number; latest: number };
 };
@@ -32,14 +31,18 @@ type FetchingTargetInfo = ContractIdentifier & {
 // request, so that a retry sends the request again. Not much longer: a public
 // RPC may fail about a fifth of the requests.
 const RETRY_WAIT_MS: number = 300;
+// Errors in a row allowed before the sync of the chain is aborted.
+export const TRY_COUNT: number = 10;
+// The width of the first range. It is doubled or halved from there.
+export const INITIAL_BULK_UNIT: number = 100;
 // A public RPC of Polygon returned 100,000 blocks in a few seconds.
 export const MAX_BULK_UNIT: number = 100000;
 // An RPC may pass each request to a different node, with a different limit or
 // a transient error, so the limit learned from an error is raised again.
 export const SUCCESSES_TO_RAISE_LIMIT: number = 10;
 // Errors in a row, of any kind, after which the range is halved. A node may
-// answer a range that is too wide with HTTP 500. Below the default Try Count
-// (10), so that the range is halved several times before giving up.
+// answer a range that is too wide with HTTP 500. Below TRY_COUNT, so that the
+// range is halved several times before giving up.
 export const ERRORS_TO_HALVE_ANYWAY: number = 3;
 export async function fetchEventLogsContract(
   dbEventLogs: DbEventLogs,
@@ -55,9 +58,7 @@ export async function fetchEventLogsContract(
     ...dbEventLogs.versionIdentifier,
     contractName: targetContract.name,
   });
-  // Read once: the RPC settings cannot be changed in this tab while syncing.
-  const rpcSetting: RpcSetting = get(storeRpcSettings)[chainName];
-  const maxErrorCount: number = rpcSetting.tryCount;
+  const targetChain: Chain = getTargetChain({ chainName: chainName });
   let errorCount: number = 0;
   // Errors in a row that may come from a range that is too wide.
   let rangeErrorCount: number = 0;
@@ -66,7 +67,7 @@ export async function fetchEventLogsContract(
   // of any kind. After that, it is not doubled beyond the halved width until
   // SUCCESSES_TO_RAISE_LIMIT successes in a row, so that the same error does
   // not come each time.
-  let bulkUnit: number = rpcSetting.bulkUnit;
+  let bulkUnit: number = INITIAL_BULK_UNIT;
   let maxBulkUnit: number = MAX_BULK_UNIT;
   let successCount: number = 0;
 
@@ -132,7 +133,7 @@ export async function fetchEventLogsContract(
     if (toBlockNumber === latestBlockNumber) {
       // If "toBlockNumber" reaches the latest,
       // sleep for fetching events to be called in the next loop
-      await sleepUnlessAborted(contractIdentifier, rpcSetting.blockIntervalMs);
+      await sleepUnlessAborted(contractIdentifier, targetChain.blockIntervalMs);
       // Stopped while sleeping: stop at the top of the loop without fetching.
       if (syncStatusContract(contractIdentifier).isAbort) {
         continue;
@@ -189,7 +190,7 @@ export async function fetchEventLogsContract(
     } catch (error) {
       errorCount++;
       // Such an error does not show that the range is too wide, so the same
-      // range is tried again. It still counts toward Try Count.
+      // range is tried again. It still counts toward TRY_COUNT.
       if (!isErrorUnrelatedToRange(error)) {
         rangeErrorCount++;
       }
@@ -202,16 +203,16 @@ export async function fetchEventLogsContract(
       }
 
       customLogger.error("Fetch eventLogs. Error occurred:", {
-        errorCount: `${errorCount}/${maxErrorCount}`,
+        errorCount: `${errorCount}/${TRY_COUNT}`,
         fetchingTarget: fetchingTargetInfo,
         errorObject: getLoggableError(error),
       });
     }
-    if (errorCount > maxErrorCount) {
+    if (errorCount > TRY_COUNT) {
       customLogger.fatal(
         "Fetch EventLogs. Error count exceeded the limit. Start to abort:",
         {
-          errorCount: `${errorCount}/${maxErrorCount}`,
+          errorCount: `${errorCount}/${TRY_COUNT}`,
           fetchingTarget: fetchingTargetInfo,
         },
       );

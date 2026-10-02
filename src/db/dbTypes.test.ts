@@ -22,13 +22,16 @@ describe("initialDataRpcSetting", () => {
         symbol: "NTV",
       },
       faucets: [],
-      chainExplorers: [],
+      chainExplorer: {
+        name: "TestExplorer",
+        url: "http://explorer-url",
+        subdirectory: { address: "address", tx: "tx", block: "block" },
+      },
       infoURL: "http://info-url",
       projects: [],
       chain: "chainFoo",
       rpc: ["http://test-rpc"],
       blockIntervalMs: 3000,
-      tryCount: 3,
       confirmationBlocks: 5,
     };
 
@@ -37,10 +40,6 @@ describe("initialDataRpcSetting", () => {
     const expectedRpcSetting = {
       chainName: dummyChain.name,
       rpc: dummyChain.rpc![0],
-      bulkUnit: 100,
-      chainExplorerIndex: 0,
-      blockIntervalMs: dummyChain.blockIntervalMs,
-      tryCount: dummyChain.tryCount,
       inputType: "text",
       warpSync: true,
     };

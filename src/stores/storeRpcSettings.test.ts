@@ -32,10 +32,6 @@ describe("storeRpcSettings", () => {
     const rpcSetting: RpcSetting = {
       chainName: "chainName1",
       rpc: "rpc",
-      bulkUnit: 1,
-      chainExplorerIndex: 2,
-      blockIntervalMs: 3,
-      tryCount: 4,
       inputType: "password",
       warpSync: true,
     };
@@ -55,10 +51,6 @@ describe("storeRpcSettings", () => {
     const rpcSetting: RpcSetting = {
       chainName: chainNameEth,
       rpc: "rpcUpdated",
-      bulkUnit: 10,
-      chainExplorerIndex: 20,
-      blockIntervalMs: 30,
-      tryCount: 40,
       inputType: "text",
       warpSync: true,
     };
@@ -76,21 +68,17 @@ describe("storeRpcSettings", () => {
     const rpcSetting: RpcSetting = {
       chainName: chainNameEth,
       rpc: "rpcSet",
-      bulkUnit: 1,
-      chainExplorerIndex: 2,
-      blockIntervalMs: 3,
-      tryCount: 4,
       inputType: "password",
       warpSync: true,
     };
     const rpcSettings: StateRpcSettings = { [chainNameEth]: rpcSetting };
     storeRpcSettings.set(rpcSettings);
-    storeRpcSettings.updateState(chainNameEth, { bulkUnit: 10 });
+    storeRpcSettings.updateState(chainNameEth, { rpc: "rpcUpdated" });
 
     expect(get(storeRpcSettings)).toStrictEqual({
-      [chainNameEth]: { ...rpcSetting, bulkUnit: 10 },
+      [chainNameEth]: { ...rpcSetting, rpc: "rpcUpdated" },
     });
     // The object passed to `set` is not changed.
-    expect(rpcSetting.bulkUnit).toBe(1);
+    expect(rpcSetting.rpc).toBe("rpcSet");
   });
 });

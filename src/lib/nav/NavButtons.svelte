@@ -11,7 +11,6 @@
 
   let currentThemeColor: ThemeColor = $derived($storeUserSettings.themeColor);
 
-  let initializeValue: boolean = $state(false);
   let dialogElement = $state<HTMLDialogElement>();
 
   let buttonsDefinition: PageWrapperContentFunctionBarDefinition["buttonsDefinition"] =
@@ -33,7 +32,6 @@
           tooltipYPosition: "bottom",
           onClickEventFunction: () => {
             openDialog(dialogElement);
-            initializeValue = true;
           },
         },
       ],
@@ -41,7 +39,7 @@
 </script>
 
 <div>
-  <NavButtonsSettingsDialog bind:dialogElement bind:initializeValue />
+  <NavButtonsSettingsDialog bind:dialogElement />
   <PageWrapperContentFunctionBarButtons
     functionBarDefinition={{
       buttonsDefinition: buttonsDefinition,

@@ -83,10 +83,10 @@ describe("initialize", () => {
     // Written like another tab does: the DB only, not this tab's store.
     await dbSettings
       .table(DB_TABLE_NAMES.Settings.rpcSettings)
-      .update(chain.name, { bulkUnit: 321 });
+      .update(chain.name, { rpc: "https://other-tab" });
 
     await vi.waitFor(() => {
-      expect(get(storeRpcSettings)[chain.name].bulkUnit).toBe(321);
+      expect(get(storeRpcSettings)[chain.name].rpc).toBe("https://other-tab");
     });
   });
 

@@ -73,8 +73,7 @@ Light and dark theme of:
 - the pages: home, chain, version, contracts, contract, events, event,
   functions, function
 - the events page after an action:
-  - the settings dialog: opened, closed with its close button or Escape,
-    after moving a slider, after typing a valid and an invalid value
+  - the settings dialog: opened, closed with its close button or Escape
   - the "Export as CSV" dialog: opened, after choosing "No"
   - a quick search, and after clearing it
   - the sidebar: the accordion of "Augur version2" opened by a click or the
@@ -99,7 +98,7 @@ Light and dark theme of:
   tabs). The logs are made with ethers from the ABI of Augur, with fixed
   values, so every run shows the same rows. Nothing is fetched from an RPC
 
-That is 55 screens for each theme, 110 in all.
+That is 52 screens for each theme, 104 in all.
 
 Each action starts from a fresh browser profile, so what it saves in the
 browser (settings, the chain) does not change the next screen.

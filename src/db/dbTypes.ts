@@ -44,10 +44,6 @@ export type RpcInputType = Extract<HTMLInputTypeAttribute, "text" | "password">;
 export type RpcSetting = {
   chainName: ChainName;
   rpc: string;
-  bulkUnit: number;
-  chainExplorerIndex: number;
-  blockIntervalMs: number;
-  tryCount: number;
   inputType: RpcInputType;
   // Imports the warp sync snapshot of the chain, when it has one.
   warpSync: boolean;
@@ -57,10 +53,6 @@ export const initialDataRpcSetting = (targetChain: Chain): RpcSetting => {
     chainName: targetChain.name,
     rpc:
       targetChain.rpc && targetChain.rpc.length > 0 ? targetChain.rpc[0] : "",
-    bulkUnit: 100,
-    chainExplorerIndex: 0,
-    blockIntervalMs: targetChain.blockIntervalMs,
-    tryCount: targetChain.tryCount,
     inputType: "text",
     warpSync: true,
   };

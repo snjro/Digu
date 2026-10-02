@@ -1,15 +1,15 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { FetchRequest, makeError } from "ethers";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
+import { TRY_COUNT } from "./eventLogsContract";
 import {
   getAndUpdateLatestBlockNumber,
   type NodeProvider,
 } from "@utils/utilsEthers";
 import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { ChainName } from "@constants/chains/types";
+import type { Chain, ChainName } from "@constants/chains/types";
 import type { SyncStatusesChain } from "@db/dbTypes";
 
 vi.mock("@utils/utilsEthers", async (importOriginal) => {
@@ -18,9 +18,9 @@ vi.mock("@utils/utilsEthers", async (importOriginal) => {
 });
 vi.mock("@db/dbEventLogsDataHandlersSyncStatus");
 
-const chainName: ChainName = TARGET_CHAINS[0].name;
-const blockIntervalMs: number = 1000;
-const tryCount: number = 2;
+const targetChain: Chain = TARGET_CHAINS[0];
+const chainName: ChainName = targetChain.name;
+const blockIntervalMs: number = targetChain.blockIntervalMs;
 const nodeProvider = {} as NodeProvider;
 
 describe("startUpdateLatestBlockNumber", () => {
@@ -30,7 +30,6 @@ describe("startUpdateLatestBlockNumber", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     vi.mocked(getAndUpdateLatestBlockNumber).mockResolvedValue(1);
-    storeRpcSettings.updateState(chainName, { blockIntervalMs, tryCount });
     storeSyncStatus.update((state: SyncStatusesChain) => {
       state[chainName].isSyncing = true;
       return state;
@@ -70,26 +69,29 @@ describe("startUpdateLatestBlockNumber", () => {
     );
 
     await startUpdateLatestBlockNumber(chainName, nodeProvider);
-    await vi.advanceTimersByTimeAsync((tryCount + 3) * blockIntervalMs);
+    await vi.advanceTimersByTimeAsync((TRY_COUNT + 3) * blockIntervalMs);
 
-    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(tryCount + 1);
+    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(TRY_COUNT + 1);
     expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(chainName);
   });
 
   test("should not abort when a request fails after it is stopped", async () => {
-    storeRpcSettings.updateState(chainName, { tryCount: 0 });
     let failRequest: () => void = () => {};
-    vi.mocked(getAndUpdateLatestBlockNumber)
-      .mockResolvedValueOnce(1)
-      .mockImplementationOnce(
-        () =>
-          new Promise((_resolve, reject) => {
-            failRequest = () => reject(new Error("destroyed"));
-          }),
+    // Errors up to Try Count, so that one more error would abort.
+    for (let i = 0; i < TRY_COUNT; i++) {
+      vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValueOnce(
+        new Error("RPC error"),
       );
+    }
+    vi.mocked(getAndUpdateLatestBlockNumber).mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          failRequest = () => reject(new Error("destroyed"));
+        }),
+    );
 
     const stop = await startUpdateLatestBlockNumber(chainName, nodeProvider);
-    await vi.advanceTimersByTimeAsync(blockIntervalMs);
+    await vi.advanceTimersByTimeAsync(TRY_COUNT * blockIntervalMs);
     // Like destroying the provider while a request is in flight.
     stop();
     failRequest();
@@ -132,7 +134,7 @@ describe("startUpdateLatestBlockNumber", () => {
     await vi.advanceTimersByTimeAsync(blockIntervalMs);
 
     expect(spyWarn).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({ errorCount: `1/${tryCount}` }),
+      expect.objectContaining({ errorCount: `1/${TRY_COUNT}` }),
     );
   });
 
@@ -147,7 +149,7 @@ describe("startUpdateLatestBlockNumber", () => {
     const spyError = vi.spyOn(customLogger, "error");
 
     await startUpdateLatestBlockNumber(chainName, nodeProvider);
-    await vi.advanceTimersByTimeAsync((tryCount + 3) * blockIntervalMs);
+    await vi.advanceTimersByTimeAsync((TRY_COUNT + 3) * blockIntervalMs);
 
     expect(startAbortingInChain).toHaveBeenCalledOnce();
     expect(spyError).toHaveBeenCalledWith(

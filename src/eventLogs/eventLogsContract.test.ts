@@ -1,11 +1,15 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, onTestFinished, test, vi } from "vitest";
 import { get } from "svelte/store";
-import { fetchEventLogsContract } from "./eventLogsContract";
+import {
+  fetchEventLogsContract,
+  INITIAL_BULK_UNIT,
+  TRY_COUNT,
+} from "./eventLogsContract";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { getEthersEventLogs, type NodeProvider } from "@utils/utilsEthers";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
+import { customLogger } from "@utils/logger";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import { extractEventContracts } from "@utils/utilsEthers";
 import type { Chain, Contract } from "@constants/chains/types";
@@ -53,7 +57,7 @@ function contractInState(state: SyncStatusesChain): SyncStatusContract {
 
 describe("fetchEventLogsContract", () => {
   const creationBlockNumber: number = targetContract.creation.blockNumber;
-  const bulkUnit: number = 100;
+  const bulkUnit: number = INITIAL_BULK_UNIT;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -65,7 +69,6 @@ describe("fetchEventLogsContract", () => {
       });
       return state;
     });
-    storeRpcSettings.updateState(targetChain.name, { bulkUnit });
     storeChainStatus.updateState(targetChain.name, {
       latestBlockNumber: creationBlockNumber + 10 * bulkUnit,
     });
@@ -115,22 +118,37 @@ describe("fetchEventLogsContract", () => {
     ]);
   });
 
-  test("should move past the creation block when Bulk Unit is 1", async () => {
-    storeRpcSettings.updateState(targetChain.name, { bulkUnit: 1 });
+  test("should move past the creation block when Bulk Unit is halved to 1", async () => {
+    // Errors in a row halve Bulk Unit from the second one.
+    let errorCount: number = 1;
+    for (let width = bulkUnit; width > 1; width = Math.floor(width / 2)) {
+      errorCount++;
+    }
+    expect(errorCount).toBeLessThanOrEqual(TRY_COUNT);
+    for (let i = 0; i < errorCount; i++) {
+      vi.mocked(getEthersEventLogs).mockRejectedValueOnce(new Error("rpc"));
+    }
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    vi.useFakeTimers();
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
     registerAndAbortAfterThird();
 
-    await fetchEventLogsContract(
+    const promise: Promise<void> = fetchEventLogsContract(
       dbEventLogs,
       targetContract,
       null as unknown as NodeProvider,
     );
+    await vi.runAllTimersAsync();
+    await promise;
 
     // The creation block is not marked as fetched until a later block is.
-    // The first range is not doubled: it is wider than Bulk Unit.
-    expect(fetchedRanges()).toEqual([
+    // The range is not widened beyond the halved width.
+    expect(fetchedRanges().slice(errorCount)).toEqual([
       [creationBlockNumber, creationBlockNumber + 1],
       [creationBlockNumber + 2, creationBlockNumber + 2],
-      [creationBlockNumber + 3, creationBlockNumber + 4],
+      [creationBlockNumber + 3, creationBlockNumber + 3],
     ]);
   });
 });

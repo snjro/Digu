@@ -1,7 +1,7 @@
 // Checks the build with the public RPC of PublicNode (no key): connection,
 // latest block (Goal), the refused eth_getLogs of old blocks, and the stop.
 // Runs in the compose "test" service (see run.sh):
-//   node real-rpc-check.mjs <buildDir> <outDir> [--fake] [--only=eth-http,...] [--retry=2]
+//   node real-rpc-check.mjs <buildDir> <outDir> [--fake] [--only=eth-http,...]
 // - Without --fake, the page talks to the real PublicNode hosts over http(s)
 //   and wss. Every other host is blocked (DNS and request interception).
 // - With --fake, nothing leaves the container: the http requests to the same
@@ -13,7 +13,7 @@
 //   is a seen eth_blockNumber minus confirmationBlocks (#498).
 //   3. Sync one contract: eth_getLogs is refused with an error (any code;
 //   PublicNode used -32602 on eth and -32701 on matic), the sync stops
-//   after Retry Count + 1 tries, the toggle is off, the RPC URL is not in the
+//   after TRY_COUNT + 1 tries, the toggle is off, the RPC URL is not in the
 //   console (#483), and no contract is left isAbort/isSyncing (#515).
 //   4. Console errors and warnings, page errors, CSP violations (#504).
 //   5. The number of requests to the RPC, by method.
@@ -28,7 +28,7 @@ const puppeteer = require("puppeteer");
 const [buildDir, outDir] = process.argv.slice(2);
 if (!buildDir || !outDir) {
   console.error(
-    "Usage: node real-rpc-check.mjs <buildDir> <outDir> [--fake] [--only=eth-http,...] [--retry=2]",
+    "Usage: node real-rpc-check.mjs <buildDir> <outDir> [--fake] [--only=eth-http,...]",
   );
   process.exit(2);
 }
@@ -37,8 +37,6 @@ const ONLY = process.argv
   .find((a) => a.startsWith("--only="))
   ?.slice(7)
   .split(",");
-const RETRY =
-  process.argv.find((a) => a.startsWith("--retry="))?.slice(8) ?? "2";
 fs.mkdirSync(outDir, { recursive: true });
 
 const PORT = 4173;
@@ -56,6 +54,12 @@ const conf = (dir) =>
       .match(/confirmationBlocks:\s*(\d+)/)[1],
   );
 const CONFIRMATION = { eth: conf("ethereum-mainnet"), matic: conf("matic") };
+// The errors after which the sync stops (TRY_COUNT of the build).
+const TRY_COUNT = Number(
+  fs
+    .readFileSync("/app/src/eventLogs/eventLogsContract.ts", "utf8")
+    .match(/export const TRY_COUNT\b[^=]*=\s*(\d+)/)[1],
+);
 // One contract to sync. The versions are turned off first.
 const TARGET = {
   eth: {
@@ -86,7 +90,7 @@ function save() {
   fs.writeFileSync(
     path.join(outDir, "results.json"),
     JSON.stringify(
-      { fake: FAKE, retry: RETRY, confirmation: CONFIRMATION, results },
+      { fake: FAKE, tryCount: TRY_COUNT, confirmation: CONFIRMATION, results },
       null,
       2,
     ),
@@ -407,24 +411,6 @@ async function typeInto(page, selector, text) {
   await page.keyboard.type(text);
   await page.keyboard.press("Tab");
 }
-async function clickByTooltip(page, text) {
-  const ok = await page.evaluate((text) => {
-    for (const label of [...document.querySelectorAll("*")].filter(
-      (e) => e.children.length === 0 && e.textContent.trim() === text,
-    )) {
-      for (let e = label; e; e = e.parentElement) {
-        const b = e.querySelector("button");
-        if (b) {
-          if (!b.getClientRects().length) break;
-          b.click();
-          return true;
-        }
-      }
-    }
-    return false;
-  }, text);
-  if (!ok) throw new Error(`no button ${text}`);
-}
 const TOGGLE_TEXTS = [
   "start sync",
   "stop sync",
@@ -550,17 +536,10 @@ for (const [id, chain, rpc] of RUNS) {
     note("rpc", {
       url: rpc,
       fake: FAKE,
-      retryCount: RETRY,
+      tryCount: TRY_COUNT,
       confirmationBlocks: CONFIRMATION[chain],
     });
     await gotoApp(page, `/${chain}/`);
-    // Retry Count first, so that the refused eth_getLogs are few.
-    await clickByTooltip(page, "Settings");
-    await settle(page);
-    await typeInto(page, 'dialog[open] input[aria-label="Retry Count"]', RETRY);
-    await settle(page);
-    await page.keyboard.press("Escape");
-    await settle(page);
     // One contract as the sync target.
     const targets = {};
     for (const v of t.versions)
@@ -666,7 +645,7 @@ for (const [id, chain, rpc] of RUNS) {
       confirmationBlocks: CONFIRMATION[chain],
     });
 
-    // 3. Refused eth_getLogs, Retry Count + 1 tries, toggle off, #483, #515.
+    // 3. Refused eth_getLogs, TRY_COUNT + 1 tries, toggle off, #483, #515.
     const syncCalls = traffic.calls.slice(n0);
     const getLogs = syncCalls.filter((c) => c.method === "eth_getLogs");
     // Any error code: PublicNode refused with -32602 on eth and -32701 on matic.
@@ -685,7 +664,7 @@ for (const [id, chain, rpc] of RUNS) {
     note("3 sync", {
       ok:
         stopped &&
-        getLogs.length === Number(RETRY) + 1 &&
+        getLogs.length === TRY_COUNT + 1 &&
         refused.length === getLogs.length &&
         urlInConsole.length === 0 &&
         after.leftFlags.length === 0 &&
@@ -693,7 +672,7 @@ for (const [id, chain, rpc] of RUNS) {
         !!gridRow?.includes("stopped"),
       stopped,
       eth_getLogs: getLogs.length,
-      expected: Number(RETRY) + 1,
+      expected: TRY_COUNT + 1,
       refused: refused.length,
       refusedCodes,
       firstGetLogs: getLogs[0]?.params,
