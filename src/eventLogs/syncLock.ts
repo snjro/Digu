@@ -149,9 +149,6 @@ export function waitForSyncLockRelease(chainName: ChainName): void {
     ...state,
     [chainName]: true,
   }));
-  // The other tab syncs the chain: the reason of the last sync of this tab no
-  // longer holds.
-  storeSyncStoppedReason.clear(chainName);
   // Granted when the other tab releases the lock. Give it back right away.
   navigator.locks
     .request(getSyncLockName(chainName), async (): Promise<void> => {

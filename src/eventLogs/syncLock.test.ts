@@ -382,7 +382,9 @@ describe("sync with two tabs (issue #49)", () => {
     expect(rows).toBe(unique);
   }, 30_000);
 
-  test("clears the reason why the sync stopped when another tab holds the lock", async () => {
+  // The label hides the reason while another tab holds the lock
+  // (SyncListChainRpcInputHelperLabel.svelte.test.ts).
+  test("keeps the reason why the sync stopped when another tab holds the lock", async () => {
     const a = await openTab();
     tabs.push(a);
     const b = await openTab();
@@ -397,7 +399,7 @@ describe("sync with two tabs (issue #49)", () => {
 
     expect(await b.fetchEventLogs()).toBe(false);
     expect(b.isLockedByOtherTab()).toBe(true);
-    expect(b.syncStoppedReason()).toBeUndefined();
+    expect(b.syncStoppedReason()).toBe("RPC_ERRORS");
     await stopAndWait(a);
   }, 30_000);
 
