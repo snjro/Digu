@@ -14,12 +14,18 @@ import { customLogger } from "@utils/logger";
 import { extractEventContracts } from "@utils/utilsEthers";
 import { installFakeLockManager } from "../testUtils/fakeLockManager";
 import { forgetInitialization, initialize } from "./initialize";
+import { initializeStore } from "./initializeStore";
 import { watchRpcSettings } from "./watchRpcSettings";
 
 vi.mock("$app/env", async (importOriginal) => ({
   ...(await importOriginal<typeof import("$app/env")>()),
   browser: true,
 }));
+// Runs as it is, and can fail once in a test.
+vi.mock("./initializeStore", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./initializeStore")>();
+  return { initializeStore: vi.fn(actual.initializeStore) };
+});
 // Runs the Worker jobs in the page.
 vi.mock("@db/db.worker.portal", async () => {
   const { executeTargetFunction } =
@@ -124,12 +130,17 @@ describe("initialize", () => {
 
   test("runs again after a failure", async () => {
     installFakeLockManager();
-    vi.mocked(startDbWorker).mockClear();
-    vi.mocked(startDbWorker).mockRejectedValueOnce(new Error("test failure"));
+    vi.mocked(initializeStore).mockClear();
+    // initializeStore runs after the Worker jobs end, so the failed run leaves
+    // nothing running.
+    vi.mocked(initializeStore).mockRejectedValueOnce(new Error("test failure"));
 
-    await expect(initialize()).rejects.toThrow("test failure");
-    await expect(initialize()).resolves.toBeUndefined();
+    const failed = initialize();
+    await expect(failed).rejects.toThrow("test failure");
+    const retried = initialize();
+    await expect(retried).resolves.toBeUndefined();
 
-    expect(startDbWorker).toHaveBeenCalledTimes(4);
+    expect(retried).not.toBe(failed);
+    expect(initializeStore).toHaveBeenCalledTimes(2);
   });
 });

@@ -10,9 +10,10 @@ import { fileURLToPath } from "url";
 const loaded = await loadConfig(
   fileURLToPath(new URL("vite.config.ts", import.meta.url)),
 );
-if (!loaded || !("config" in loaded)) {
-  throw new Error("vite.config.ts could not be loaded", {
-    cause: loaded?.error,
+if (!loaded || !("config" in loaded) || loaded.configSource !== "vite") {
+  // Without Vite, load-config imports vite.config.ts as a Svelte config.
+  throw new Error("vite.config.ts could not be loaded through Vite", {
+    cause: loaded && "error" in loaded ? loaded.error : undefined,
   });
 }
 const svelteConfig = loaded.config;
