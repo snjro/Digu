@@ -137,11 +137,34 @@ describe("fetchLogs", () => {
     const tooMany = rpcError("query exceeds max results 20000");
     const answers = Array.from({ length: 12 }, () => tooMany);
     answers.push([log(1)], [log(3)]);
-    const { asked, stats } = await run(answers, 1, 4);
+    const { asked, stats } = await run(answers, 1, 9_999);
     // Twelve in a row would stop the script if they were failures.
     expect(stats.errors.results).toBe(12);
     // 9,999 halved twelve times.
     expect(asked[12]).toEqual([1, 2]);
+  });
+
+  test("halves the range that was asked, not the width", async () => {
+    const tooWide = rpcError("query exceeds max block range 1000");
+    const { asked } = await run([tooWide, tooWide, [log(1)]], 1, 3_000);
+    expect(asked.slice(0, 3)).toEqual([
+      [1, 3_000],
+      [1, 3_000],
+      [1, 1_500],
+    ]);
+  });
+
+  test("raises the limit after ten full ranges, with one part", async () => {
+    const tooWide = rpcError("query exceeds max block range 5000");
+    const answers = [tooWide, tooWide];
+    for (let i = 0; i < 11; i++) answers.push([log(1 + i * 4_999)]);
+    const { asked } = await run(answers, 1, 10 * 4_999 + 9_998);
+    expect(asked.map(([from, to]) => to - from + 1)).toEqual([
+      9_999,
+      9_999,
+      ...Array(10).fill(4_999),
+      9_998,
+    ]);
   });
 
   test("asks an empty range again, and keeps the logs of the second answer", async () => {
@@ -190,6 +213,132 @@ describe("fetchLogs", () => {
     const answers = Array.from({ length: 10 }, () => httpError(500));
     await expect(run(answers, 1, 9_999)).rejects.toThrow("HTTP 500");
   });
+});
+
+// A part in a dense range (below block 10,000) that fails above 1,249 blocks,
+// while another part of the same contract works and doubles the widths that
+// they share (#601).
+describe("fetchLogs with the widths of another part", () => {
+  // With afterWorks, the other part starts only after the first range of the
+  // dense part that works.
+  async function runDense(toBlock, { afterWorks = false } = {}) {
+    const widths = script.createWidths(9_999);
+    let otherFrom = 1_000_000;
+    let worked = false;
+    // Before each answer to the dense part, the other part fetches 20 ranges
+    // that work, which raises the shared widths back to 9,999.
+    const other = async () => {
+      if (afterWorks && !worked) return;
+      const from = otherFrom;
+      otherFrom += 20 * 9_999;
+      const works = async () => [log(0)];
+      await script.fetchLogs(works, contract, from, otherFrom - 1, { widths });
+    };
+    const asked = [];
+    const rpc = async (_method, [{ fromBlock, toBlock: to }]) => {
+      await other();
+      const width = Number(to) - Number(fromBlock) + 1;
+      asked.push(width);
+      if (Number(fromBlock) < 10_000 && width > 1_249) {
+        throw new TypeError("fetch failed");
+      }
+      worked = true;
+      return [log(Number(fromBlock))];
+    };
+    await script.fetchLogs(rpc, contract, 1, toBlock, { widths });
+    return { asked, widths };
+  }
+
+  test("keeps its own narrowed width while it fails", async () => {
+    const { asked } = await runDense(20_000);
+    expect(asked.slice(0, 5)).toEqual([9_999, 9_999, 4_999, 2_499, 1_249]);
+  });
+
+  test("widens from its own width after it works", async () => {
+    const { asked, widths } = await runDense(10 * 1_249 + 2 * 2_498);
+    // Ten full ranges of 1,249 blocks before it doubles, like after a
+    // halving of the shared widths, though they are 9,999 again.
+    expect(asked.slice(4)).toEqual([...Array(10).fill(1_249), 2_498, 2_498]);
+    expect(widths.width).toBe(9_999);
+  });
+
+  test("keeps its own width when it equals the shared one at the first range that works", async () => {
+    // The shared widths are halved with the own ones, to 1,249, and are
+    // raised only after that.
+    const { asked } = await runDense(10 * 1_249 + 2 * 2_498, {
+      afterWorks: true,
+    });
+    expect(asked.slice(0, 5)).toEqual([9_999, 9_999, 4_999, 2_499, 1_249]);
+    expect(asked.slice(4)).toEqual([...Array(10).fill(1_249), 2_498, 2_498]);
+  });
+
+  test("counts a range at the shared width, when it is the narrower, in the shared widths", async () => {
+    const tooWide = rpcError("query exceeds max block range 5000");
+    const widths = script.createWidths(9_999);
+    const answers = [tooWide, tooWide];
+    for (let i = 0; i < 11; i++) answers.push([log(1 + i * 1_000)]);
+    const asked = [];
+    const rpc = async (_method, [{ fromBlock, toBlock }]) => {
+      asked.push(Number(toBlock) - Number(fromBlock) + 1);
+      // Meanwhile, another part narrowed the shared widths to 2,000, which
+      // this halving narrows to 1,000. The own width is 4,999.
+      if (asked.length === 2) {
+        Object.assign(widths, { width: 2_000, maxWidth: 2_000, successes: 0 });
+      }
+      const answer = answers.shift() ?? [];
+      if (answer instanceof Error) throw answer;
+      return answer;
+    };
+    await script.fetchLogs(rpc, contract, 1, 10 * 1_000 + 2_000, { widths });
+    expect(asked).toEqual([9_999, 9_999, ...Array(10).fill(1_000), 2_000]);
+  });
+
+  test("uses the shared widths again when its own width is raised to them", async () => {
+    const tooWide = rpcError("query exceeds max block range 5000");
+    const widths = script.createWidths(9_999);
+    const answers = [tooWide, tooWide];
+    const asked = [];
+    const rpc = async (_method, [{ fromBlock, toBlock }]) => {
+      asked.push(Number(toBlock) - Number(fromBlock) + 1);
+      // Meanwhile, the other parts raised the shared widths to 8,000.
+      if (asked.length === 3) {
+        Object.assign(widths, { width: 8_000, maxWidth: 8_000, successes: 0 });
+      }
+      const answer = answers.shift() ?? [log(Number(fromBlock))];
+      if (answer instanceof Error) throw answer;
+      return answer;
+    };
+    await script.fetchLogs(rpc, contract, 1, 10 * 4_999 + 10 * 8_000 + 9_999, {
+      widths,
+    });
+    // Ten ranges raise the own width to 9,998, which is not narrower than the
+    // shared 8,000, and the part follows the shared widths up to 9,999.
+    expect(asked).toEqual([
+      9_999,
+      9_999,
+      ...Array(10).fill(4_999),
+      ...Array(10).fill(8_000),
+      9_999,
+    ]);
+  });
+
+  // Another part halves or raises the shared widths while the request waits.
+  test.each([
+    ["halved", { width: 9_999, maxWidth: 9_999 }, 4_999],
+    ["raised", { width: 4_999, maxWidth: 9_999 }, 9_999],
+  ])(
+    "does not count a range in shared widths %s while it waits",
+    async (_name, before, after) => {
+      const widths = script.createWidths(9_999);
+      Object.assign(widths, before);
+      const rpc = async () => {
+        Object.assign(widths, { width: after, maxWidth: after, successes: 0 });
+        return [log(1)];
+      };
+      await script.fetchLogs(rpc, contract, 1, before.width, { widths });
+      expect(widths).toMatchObject({ width: after, successes: 0 });
+    },
+  );
 });
 
 describe("withKey", () => {

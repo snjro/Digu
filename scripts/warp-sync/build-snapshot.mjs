@@ -211,7 +211,9 @@ const toHex = (value) => `0x${value.toString(16)}`;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // The widths of the ranges of one contract, shared by its parts, which are
-// fetched at the same time: what one part learns, the others use.
+// fetched at the same time: what one part learns, the others use. A part that
+// fails keeps its own narrowed widths too (#601), so that the others, which
+// work, do not raise them.
 export function createWidths(maxWidth = MAX_WIDTH) {
   return {
     cap: maxWidth,
@@ -224,6 +226,23 @@ function halve(widths) {
   widths.width = Math.max(1, Math.floor(widths.width / 2));
   widths.maxWidth = widths.width;
   widths.successes = 0;
+}
+// Halves the shared widths, and returns the own widths of a part whose range
+// of failedBlocks blocks failed: its half.
+function narrow(widths, failedBlocks) {
+  halve(widths);
+  const half = Math.max(1, Math.floor(failedBlocks / 2));
+  return { cap: widths.cap, width: half, maxWidth: half, successes: 0 };
+}
+// After a full range that works: the width is doubled, up to maxWidth, which
+// is doubled after SUCCESSES_TO_RAISE_LIMIT in a row, up to cap.
+function raise(widths) {
+  widths.successes++;
+  if (widths.successes >= SUCCESSES_TO_RAISE_LIMIT) {
+    widths.maxWidth = Math.min(widths.maxWidth * 2, widths.cap);
+    widths.successes = 0;
+  }
+  widths.width = Math.min(widths.width * 2, widths.maxWidth);
 }
 
 // What happened in a run, for the manifest.
@@ -247,6 +266,13 @@ export function createFetchStats() {
 //   range until SUCCESSES_TO_RAISE_LIMIT full ranges work in a row.
 // - Any kind: halved after ERRORS_TO_HALVE_ANYWAY in a row; the script stops
 //   after MAX_FAILURES in a row.
+// A halving halves the shared widths and gives the part its own widths, the
+// half of the range that failed (#601): its width is the narrower of the two,
+// so that the other parts may narrow it but not raise it. A full range that
+// works raises the own widths when it had their width, and the shared ones
+// when it has their width after the answer (another part may have changed
+// them meanwhile). When that raises the own width to the shared one, the part
+// uses the shared widths again.
 // An empty result is asked again until EMPTY_ANSWERS_TO_KEEP empty answers in
 // a row (#576): an RPC may return no logs for a range that has some. Each
 // range that works goes to onRange(from, to, logs), with its logs by block and
@@ -269,12 +295,15 @@ export async function fetchLogs(
   let from = fromBlock;
   let failures = 0;
   let rangeFailures = 0;
+  // The own widths of the part after a halving, until a range that works
+  // raises them to the shared width.
+  let own = undefined;
   // The end of an empty range that is asked again, and its empty answers.
   let askAgainTo = undefined;
   let emptyAnswers = 0;
   while (from <= toBlock) {
     signal?.throwIfAborted();
-    const width = widths.width;
+    const width = own ? Math.min(own.width, widths.width) : widths.width;
     const to = askAgainTo ?? Math.min(from + width - 1, toBlock);
     let result;
     try {
@@ -295,7 +324,7 @@ export async function fetchLogs(
         // Not the empty range any more: a narrower one.
         askAgainTo = undefined;
         emptyAnswers = 0;
-        halve(widths);
+        own = narrow(widths, to - from + 1);
         continue;
       }
       failures++;
@@ -304,7 +333,7 @@ export async function fetchLogs(
       if (rangeFailures >= 2 || failures >= ERRORS_TO_HALVE_ANYWAY) {
         askAgainTo = undefined;
         emptyAnswers = 0;
-        halve(widths);
+        own = narrow(widths, to - from + 1);
       }
       await sleep(RETRY_WAIT_MS);
       continue;
@@ -331,12 +360,14 @@ export async function fetchLogs(
     rangeFailures = 0;
     // A range cut at toBlock does not show that the width works.
     if (to - from + 1 === width) {
-      widths.successes++;
-      if (widths.successes >= SUCCESSES_TO_RAISE_LIMIT) {
-        widths.maxWidth = Math.min(widths.maxWidth * 2, widths.cap);
-        widths.successes = 0;
+      // The widths that have the width of the range count it: the shared
+      // ones by their width after the answer, since another part may have
+      // changed them meanwhile. Both when they are equal.
+      if (widths.width === width) raise(widths);
+      if (own?.width === width) {
+        raise(own);
+        if (own.width > width && own.width >= widths.width) own = undefined;
       }
-      widths.width = Math.min(widths.width * 2, widths.maxWidth);
     }
     from = to + 1;
   }
