@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/svelte";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
 import { RPC_GUIDE_URL } from "./rpcInputHelperLabel";
 
@@ -23,6 +24,7 @@ describe("SyncListChainRpcInputHelperLabel.svelte", () => {
   afterEach(() => {
     storeRpcSettings.set({ chain1: { rpc: "" } } as never);
     storeChainStatus.set({ chain1: { nodeStatus: undefined } } as never);
+    storeSyncStoppedReason.clear("chain1");
   });
 
   test.each([
@@ -53,6 +55,27 @@ describe("SyncListChainRpcInputHelperLabel.svelte", () => {
     storeChainStatus.set({ chain1: { nodeStatus: "SUCCESS" } } as never);
     render(SyncListChainRpcInputHelperLabel);
     expect(screen.getByText("Connected.")).toBeTruthy();
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
+  test("shows why the sync stopped, with the link to the guide after RPC errors", () => {
+    storeRpcSettings.set({ chain1: { rpc: "https://foo" } } as never);
+    storeChainStatus.set({ chain1: { nodeStatus: "SUCCESS" } } as never);
+    storeSyncStoppedReason.record("chain1", "RPC_ERRORS");
+    render(SyncListChainRpcInputHelperLabel);
+    const link = screen.getByRole("link", { name: "How to get one" });
+    expect(link.getAttribute("href")).toBe(RPC_GUIDE_URL);
+    expect(link.closest("label")?.firstChild?.textContent).toBe(
+      "Sync stopped: RPC errors. Try another RPC.",
+    );
+  });
+
+  test("shows why the sync stopped, without a link, after an unexpected error", () => {
+    storeRpcSettings.set({ chain1: { rpc: "https://foo" } } as never);
+    storeChainStatus.set({ chain1: { nodeStatus: "SUCCESS" } } as never);
+    storeSyncStoppedReason.record("chain1", "UNEXPECTED_ERROR");
+    render(SyncListChainRpcInputHelperLabel);
+    expect(screen.getByText("Sync stopped: unexpected error.")).toBeTruthy();
     expect(screen.queryByRole("link")).toBeNull();
   });
 });

@@ -102,12 +102,16 @@ describe("getRpcInputHelperLabelProps", () => {
     );
   });
 
-  test.each<[SyncStoppedReason, string]>([
-    ["RPC_ERRORS", "Sync stopped: RPC errors. Try another RPC."],
-    ["UNEXPECTED_ERROR", "Sync stopped: unexpected error."],
+  test.each<[SyncStoppedReason, string, { helpHref?: string }]>([
+    [
+      "RPC_ERRORS",
+      "Sync stopped: RPC errors. Try another RPC.",
+      { helpHref: RPC_GUIDE_URL },
+    ],
+    ["UNEXPECTED_ERROR", "Sync stopped: unexpected error.", {}],
   ])(
     "should show why the sync stopped instead of Connected. when the node status is SUCCESS (reason %j)",
-    (reason, text) => {
+    (reason, text, link) => {
       expect(getRpcInputHelperLabelProps("SUCCESS", rpc, reason)).toStrictEqual(
         {
           prefixIcon: {
@@ -119,6 +123,7 @@ describe("getRpcInputHelperLabelProps", () => {
           textSize: size,
           colorCategoryFront: "error",
           appendClass: "whitespace-pre-wrap",
+          ...link,
         },
       );
     },

@@ -37,6 +37,9 @@ export function getRpcInputHelperLabelProps(
           textSize: size,
           colorCategoryFront: "error",
         };
+        if (syncStoppedReason === "RPC_ERRORS") {
+          labelProps.helpHref = RPC_GUIDE_URL;
+        }
         break;
       }
       labelProps = {
