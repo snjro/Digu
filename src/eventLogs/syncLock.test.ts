@@ -48,9 +48,15 @@ vi.mock("@db/db.worker.portal", () => ({
   },
 }));
 
-// One log per block for the first event of each contract.
+// One log at the first block and at each of the last LOGS_AT_RANGE_END blocks
+// of each range, for the first event of each contract. Not one per block: the
+// sync doubles the range after each success, and the larger writes slowed a
+// stop under load (issue #583). A sync that starts again up to
+// LOGS_AT_RANGE_END blocks before the end of the last range still saves a log
+// twice.
 vi.mock("@utils/utilsEthers", async (importOriginal) => {
   const original = await importOriginal<typeof import("@utils/utilsEthers")>();
+  const LOGS_AT_RANGE_END = 50;
   return {
     ...original,
     getNodeProvider: async () => {
@@ -67,7 +73,15 @@ vi.mock("@utils/utilsEthers", async (importOriginal) => {
     ): Promise<EthersEventLog[]> => {
       await new Promise((resolve) => setTimeout(resolve, 5));
       const logs = [];
-      for (let blockNumber = from; blockNumber <= to; blockNumber++) {
+      const blockNumbers: Set<number> = new Set([from]);
+      for (
+        let blockNumber = Math.max(from, to - LOGS_AT_RANGE_END + 1);
+        blockNumber <= to;
+        blockNumber++
+      ) {
+        blockNumbers.add(blockNumber);
+      }
+      for (const blockNumber of blockNumbers) {
         const hex = "0x" + blockNumber.toString(16).padStart(64, "0");
         logs.push({
           eventName: eventNames[0],
@@ -192,8 +206,10 @@ async function openTab(beforeWatch?: () => Promise<void>) {
   const { updateDbItemChainStatus } =
     await import("@db/dbChainStatusDataHandlers");
   storeChainStatus.updateState(chain.name, { nodeStatus: "SUCCESS" });
-  // Above every contract, so that no loop waits for a new block. Also in the
-  // DB, because a tab reloads it when another tab stops syncing.
+  // Far above every contract, so that no loop catches up and waits for a new
+  // block during a test: with the small writes of the mock, a loop fetches
+  // millions of blocks per second. Also in the DB, because a tab reloads it
+  // when another tab stops syncing.
   await updateDbItemChainStatus(
     chain.name,
     "latestBlockNumber",
@@ -205,7 +221,7 @@ async function openTab(beforeWatch?: () => Promise<void>) {
           ),
         ),
       ),
-    ) + 1_000_000,
+    ) + 1_000_000_000,
   );
   const db = new DbEventLogs(versionIdentifier);
   return {
@@ -276,16 +292,27 @@ describe("sync with two tabs (issue #49)", () => {
     const { Dexie } = await import("dexie");
     for (const name of await Dexie.getDatabaseNames()) await Dexie.delete(name);
   });
+  // As long as a test: stopAndWait() alone can take more than the default
+  // 10 s under load, and a hook that times out leaves the sync running into
+  // the next test (issue #583).
   afterEach(async () => {
+    // Every tab, even after one fails: a tab left syncing would sync into the
+    // next test.
+    const errors: unknown[] = [];
     for (const tab of tabs) {
-      if (tab.storeStatus().isSyncing) await stopAndWait(tab);
+      try {
+        if (tab.storeStatus().isSyncing) await stopAndWait(tab);
+      } catch (error) {
+        errors.push(error);
+      }
     }
     tabs = [];
+    if (errors.length > 0) throw errors[0];
     // A sync left running would write into the next test's DB.
     expect(await isSyncLockHeld()).toBe(false);
     // Without navigator.locks, the sync may still be cleaning up.
     expect(await waitFor(() => isCleanedUp())).toBe(true);
-  });
+  }, 30_000);
   // Every sync stopped its timer and destroyed its provider.
   function isCleanedUp(): boolean {
     return (
