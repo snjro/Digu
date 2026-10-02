@@ -2,7 +2,6 @@
   import { page } from "$app/state";
   import BaseA from "$lib/base/BaseA.svelte";
   import type { BaseIconProps } from "$lib/base/BaseIcon";
-  import { storeRpcSettings } from "@stores/storeRpcSettings";
   import { storeUserSettings } from "@stores/storeUserSettings";
 
   import BaseLabel from "$lib/base/BaseLabel.svelte";
@@ -59,7 +58,6 @@
         page.params.chainName,
         $storeUserSettings.selectedChainName.toString(),
       ),
-      $storeRpcSettings,
     ),
   );
   const href = () => {

@@ -16,15 +16,12 @@ export const chain: Chain = {
   chainId: 137,
   networkId: 137,
   slip44: 966,
-  chainExplorers: [
-    {
-      name: "polygonscan",
-      url: "https://polygonscan.com",
-      subdirectory: { address: "address", tx: "tx", block: "block" },
-    },
-  ],
+  chainExplorer: {
+    name: "polygonscan",
+    url: "https://polygonscan.com",
+    subdirectory: { address: "address", tx: "tx", block: "block" },
+  },
   blockIntervalMs: 2000,
-  tryCount: 10,
   confirmationBlocks: 128,
   projects: [augur],
 };

@@ -14,30 +14,12 @@ export const chain: Chain = {
   networkId: 1,
   slip44: 60,
   ens: { registry: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" },
-  chainExplorers: [
-    {
-      name: "Etherscan",
-      url: "https://etherscan.io",
-      subdirectory: { address: "address", tx: "tx", block: "block" },
-    },
-    {
-      name: "Blockchair",
-      url: "https://blockchair.com/ethereum",
-      subdirectory: { address: "address", tx: "transaction", block: "block" },
-    },
-    {
-      name: "Blockscout",
-      url: "https://eth.blockscout.com",
-      subdirectory: { address: "address", tx: "tx", block: "block" },
-    },
-    {
-      name: "OKLink",
-      url: "https://www.oklink.com/ethereum",
-      subdirectory: { address: "address", tx: "tx", block: "block" },
-    },
-  ],
+  chainExplorer: {
+    name: "Etherscan",
+    url: "https://etherscan.io",
+    subdirectory: { address: "address", tx: "tx", block: "block" },
+  },
   blockIntervalMs: 20000,
-  tryCount: 10,
   confirmationBlocks: 96,
   projects: [augur],
 };

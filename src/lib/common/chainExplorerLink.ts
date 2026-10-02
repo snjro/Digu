@@ -1,6 +1,5 @@
 import type { BaseAProps } from "$lib/base/BaseA.svelte";
 import type { Chain, ChainExplorer, ChainName } from "@constants/chains/types";
-import type { StateRpcSettings } from "@stores/storeTypes";
 import { numberWithCommas } from "@utils/utilsCommon";
 import { getTargetChain } from "@utils/utilsDb";
 
@@ -16,14 +15,9 @@ export type CommonChainExplorerLinkProps = {
   justifyEnd: boolean;
 };
 
-export function getChainExplorer(
-  chainName: ChainName,
-  rpcSettings: StateRpcSettings,
-): ChainExplorer {
+export function getChainExplorer(chainName: ChainName): ChainExplorer {
   const targetChain: Chain = getTargetChain({ chainName: chainName });
-  return targetChain.chainExplorers[
-    rpcSettings[targetChain.name].chainExplorerIndex
-  ];
+  return targetChain.chainExplorer;
 }
 export function getChainExplorerHref(
   chainExplorer: ChainExplorer,

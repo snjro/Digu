@@ -1,7 +1,5 @@
 import { describe, expect, test } from "vitest";
 import { TARGET_CHAINS } from "@constants/chains/_index";
-import { initialDataRpcSetting } from "@db/dbTypes";
-import type { StateRpcSettings } from "@stores/storeTypes";
 import { TargetNotFoundError } from "@utils/utilsDb";
 import {
   getChainExplorer,
@@ -11,32 +9,16 @@ import {
 } from "./chainExplorerLink";
 import type { ChainExplorer } from "@constants/chains/types";
 
-function rpcSettings(chainExplorerIndex: number): StateRpcSettings {
-  const state: StateRpcSettings = {};
-  for (const targetChain of TARGET_CHAINS) {
-    state[targetChain.name] = {
-      ...initialDataRpcSetting(targetChain),
-      chainExplorerIndex: chainExplorerIndex,
-    };
-  }
-  return state;
-}
-
 describe("getChainExplorer", () => {
   test.each(
-    TARGET_CHAINS.flatMap((targetChain) =>
-      targetChain.chainExplorers.map(
-        (chainExplorer, index) =>
-          [targetChain.name, index, chainExplorer] as const,
-      ),
+    TARGET_CHAINS.map(
+      (targetChain) => [targetChain.name, targetChain.chainExplorer] as const,
     ),
-  )("chain %j with explorer %i", (chainName, index, expected) => {
-    expect(getChainExplorer(chainName, rpcSettings(index))).toBe(expected);
+  )("chain %j", (chainName, expected) => {
+    expect(getChainExplorer(chainName)).toBe(expected);
   });
   test("an unknown chain throws", () => {
-    expect(() => getChainExplorer("unknown", rpcSettings(0))).toThrow(
-      TargetNotFoundError,
-    );
+    expect(() => getChainExplorer("unknown")).toThrow(TargetNotFoundError);
   });
 });
 

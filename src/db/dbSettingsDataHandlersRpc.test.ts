@@ -47,10 +47,6 @@ describe("updateDbItemRpcSettings", () => {
   const updatedRpcSetting: RpcSetting = {
     chainName: dummyChainName,
     rpc: "dummyRpcUpdated",
-    bulkUnit: 10,
-    chainExplorerIndex: 20,
-    blockIntervalMs: 30,
-    tryCount: 40,
     inputType: "password",
     warpSync: true,
   };

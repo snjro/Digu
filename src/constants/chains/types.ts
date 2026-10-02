@@ -92,9 +92,8 @@ export type Chain = {
   readonly networkId: number;
   readonly slip44?: number;
   readonly ens?: { readonly registry: string };
-  readonly chainExplorers: ChainExplorer[];
+  readonly chainExplorer: ChainExplorer;
   readonly blockIntervalMs: number;
-  readonly tryCount: number;
   readonly confirmationBlocks: number;
   readonly projects: Project[];
 };

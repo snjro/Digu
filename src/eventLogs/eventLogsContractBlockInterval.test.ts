@@ -9,7 +9,6 @@ import {
 import { sleep } from "@utils/utilsCommon";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Chain, Contract } from "@constants/chains/types";
 import type { DbEventLogs } from "@db/dbEventLogs";
@@ -49,8 +48,7 @@ function contractInState(state: SyncStatusesChain): SyncStatusContract {
 
 describe("fetchEventLogsContract", () => {
   const creationBlockNumber: number = targetContract.creation.blockNumber;
-  // Differs from the chain constant, so that the test tells them apart.
-  const blockIntervalMs: number = targetChain.blockIntervalMs - 1;
+  const blockIntervalMs: number = targetChain.blockIntervalMs;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -61,10 +59,6 @@ describe("fetchEventLogsContract", () => {
         fetchedBlockNumber: creationBlockNumber,
       });
       return state;
-    });
-    storeRpcSettings.updateState(targetChain.name, {
-      bulkUnit: 100,
-      blockIntervalMs,
     });
     // The first blocks reach the latest block, so the loop sleeps.
     storeChainStatus.updateState(targetChain.name, {
@@ -79,7 +73,7 @@ describe("fetchEventLogsContract", () => {
     });
   });
 
-  test("should sleep for blockIntervalMs of the RPC settings at the latest block", async () => {
+  test("should sleep for blockIntervalMs of the chain at the latest block", async () => {
     await fetchEventLogsContract(
       dbEventLogs,
       targetContract,

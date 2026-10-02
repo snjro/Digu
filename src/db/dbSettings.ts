@@ -22,7 +22,19 @@ class DbSettings extends dbBase {
     const dbName = DB_NAME.secondNames.settings;
     super(dbName);
     const schemaDefinition: SchemaDefinition = this.getSchemaDefinition();
-    this.version(DB_VERSIONS.Settings).stores(schemaDefinition);
+    this.version(DB_VERSIONS.Settings)
+      .stores(schemaDefinition)
+      .upgrade(async (tx: Transaction) => {
+        await tx
+          .table(tableNameRpcSettings)
+          .toCollection()
+          .modify((rpcSetting: Record<string, unknown>) => {
+            delete rpcSetting.bulkUnit;
+            delete rpcSetting.chainExplorerIndex;
+            delete rpcSetting.blockIntervalMs;
+            delete rpcSetting.tryCount;
+          });
+      });
     this.on("populate", async (tx: Transaction) => {
       await this.addInitialData(tx);
     });

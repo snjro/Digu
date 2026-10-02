@@ -13,7 +13,6 @@ import {
 import { sleep } from "@utils/utilsCommon";
 import { storeSyncStatus } from "@stores/storeSyncStatus";
 import { storeChainStatus } from "@stores/storeChainStatus";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
 import { TARGET_CHAINS } from "@constants/chains/_index";
 import type { Chain, Contract } from "@constants/chains/types";
 import type { DbEventLogs } from "@db/dbEventLogs";
@@ -75,7 +74,6 @@ describe("fetchEventLogsContract with the latest block number from the RPC", () 
       });
       return state;
     });
-    storeRpcSettings.updateState(targetChain.name, { bulkUnit: 100 });
     vi.mocked(registerEventLogsAndBlockTimes).mockImplementation(
       async (_dbEventLogs, _targetContract, _nodeProvider, _logs, to) => {
         storeSyncStatus.update((state: SyncStatusesChain) => {
