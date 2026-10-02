@@ -137,11 +137,34 @@ describe("fetchLogs", () => {
     const tooMany = rpcError("query exceeds max results 20000");
     const answers = Array.from({ length: 12 }, () => tooMany);
     answers.push([log(1)], [log(3)]);
-    const { asked, stats } = await run(answers, 1, 4);
+    const { asked, stats } = await run(answers, 1, 9_999);
     // Twelve in a row would stop the script if they were failures.
     expect(stats.errors.results).toBe(12);
     // 9,999 halved twelve times.
     expect(asked[12]).toEqual([1, 2]);
+  });
+
+  test("halves the range that was asked, not the width", async () => {
+    const tooWide = rpcError("query exceeds max block range 1000");
+    const { asked } = await run([tooWide, tooWide, [log(1)]], 1, 3_000);
+    expect(asked.slice(0, 3)).toEqual([
+      [1, 3_000],
+      [1, 3_000],
+      [1, 1_500],
+    ]);
+  });
+
+  test("raises the limit after ten full ranges, with one part", async () => {
+    const tooWide = rpcError("query exceeds max block range 5000");
+    const answers = [tooWide, tooWide];
+    for (let i = 0; i < 11; i++) answers.push([log(1 + i * 4_999)]);
+    const { asked } = await run(answers, 1, 10 * 4_999 + 9_998);
+    expect(asked.map(([from, to]) => to - from + 1)).toEqual([
+      9_999,
+      9_999,
+      ...Array(10).fill(4_999),
+      9_998,
+    ]);
   });
 
   test("asks an empty range again, and keeps the logs of the second answer", async () => {
@@ -196,12 +219,16 @@ describe("fetchLogs", () => {
 // while another part of the same contract works and doubles the widths that
 // they share (#601).
 describe("fetchLogs with the widths of another part", () => {
-  async function runDense(toBlock) {
+  // With afterWorks, the other part starts only after the first range of the
+  // dense part that works.
+  async function runDense(toBlock, { afterWorks = false } = {}) {
     const widths = script.createWidths(9_999);
     let otherFrom = 1_000_000;
+    let worked = false;
     // Before each answer to the dense part, the other part fetches 20 ranges
     // that work, which raises the shared widths back to 9,999.
     const other = async () => {
+      if (afterWorks && !worked) return;
       const from = otherFrom;
       otherFrom += 20 * 9_999;
       const works = async () => [log(0)];
@@ -215,6 +242,7 @@ describe("fetchLogs with the widths of another part", () => {
       if (Number(fromBlock) < 10_000 && width > 1_249) {
         throw new TypeError("fetch failed");
       }
+      worked = true;
       return [log(Number(fromBlock))];
     };
     await script.fetchLogs(rpc, contract, 1, toBlock, { widths });
@@ -232,6 +260,37 @@ describe("fetchLogs with the widths of another part", () => {
     // halving of the shared widths, though they are 9,999 again.
     expect(asked.slice(4)).toEqual([...Array(10).fill(1_249), 2_498, 2_498]);
     expect(widths.width).toBe(9_999);
+  });
+
+  test("keeps its own width when it equals the shared one at the first range that works", async () => {
+    // The shared widths are halved with the own ones, to 1,249, and are
+    // raised only after that.
+    const { asked } = await runDense(10 * 1_249 + 2 * 2_498, {
+      afterWorks: true,
+    });
+    expect(asked.slice(0, 5)).toEqual([9_999, 9_999, 4_999, 2_499, 1_249]);
+    expect(asked.slice(4)).toEqual([...Array(10).fill(1_249), 2_498, 2_498]);
+  });
+
+  test("counts a range at the shared width, when it is the narrower, in the shared widths", async () => {
+    const tooWide = rpcError("query exceeds max block range 5000");
+    const widths = script.createWidths(9_999);
+    const answers = [tooWide, tooWide];
+    for (let i = 0; i < 11; i++) answers.push([log(1 + i * 1_000)]);
+    const asked = [];
+    const rpc = async (_method, [{ fromBlock, toBlock }]) => {
+      asked.push(Number(toBlock) - Number(fromBlock) + 1);
+      // Meanwhile, another part narrowed the shared widths to 2,000, which
+      // this halving narrows to 1,000. The own width is 4,999.
+      if (asked.length === 2) {
+        Object.assign(widths, { width: 2_000, maxWidth: 2_000, successes: 0 });
+      }
+      const answer = answers.shift() ?? [];
+      if (answer instanceof Error) throw answer;
+      return answer;
+    };
+    await script.fetchLogs(rpc, contract, 1, 10 * 1_000 + 2_000, { widths });
+    expect(asked).toEqual([9_999, 9_999, ...Array(10).fill(1_000), 2_000]);
   });
 });
 
