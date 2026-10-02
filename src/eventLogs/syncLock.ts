@@ -8,6 +8,7 @@ import { getSyncLockName, SYNC_LOCK_TIMEOUT_MS } from "#db/constants.js";
 import { getDbRecordChainStatus } from "#db/dbChainStatusDataHandlers.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { getTargetChain } from "#utils/utilsDb.js";
@@ -41,6 +42,7 @@ export async function requestSyncLock(
   // Without Web Locks (insecure context), work as a single tab.
   if (!navigator.locks) {
     chainsSyncedByThisTab.add(chainName);
+    storeSyncStoppedReason.clear(chainName);
     const started: boolean = await tryToStart(chainName, start);
     const syncing: Promise<void> = started ? sync() : Promise.resolve();
     void syncing
@@ -63,6 +65,8 @@ export async function requestSyncLock(
         async (): Promise<void> => {
           granted = true;
           chainsSyncedByThisTab.add(chainName);
+          // Only a sync that starts clears the reason of the last one.
+          storeSyncStoppedReason.clear(chainName);
           try {
             const started: boolean = await tryToStart(chainName, async () => {
               // The store may be stale: another tab may have synced since

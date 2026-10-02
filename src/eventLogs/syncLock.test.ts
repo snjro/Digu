@@ -382,6 +382,24 @@ describe("sync with two tabs (issue #49)", () => {
     expect(rows).toBe(unique);
   }, 30_000);
 
+  test("keeps the reason why the sync stopped when the lock is not granted", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    const b = await openTab();
+    tabs.push(b);
+    rpc.isConnectable = false;
+    expect(await b.fetchEventLogs()).toBe(true);
+    expect(await waitFor(async () => !(await isSyncLockHeld()))).toBe(true);
+    expect(b.syncStoppedReason()).toBe("RPC_ERRORS");
+    rpc.isConnectable = true;
+    expect(await a.fetchEventLogs()).toBe(true);
+    await waitForSavedLogs(a);
+
+    expect(await b.fetchEventLogs()).toBe(false);
+    expect(b.syncStoppedReason()).toBe("RPC_ERRORS");
+    await stopAndWait(a);
+  }, 30_000);
+
   test("tab B reloads the latest block number after tab A stops", async () => {
     const a = await openTab();
     tabs.push(a);

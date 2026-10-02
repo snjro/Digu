@@ -16,7 +16,6 @@ import {
 import { customLogger } from "#utils/logger.js";
 import { getUrlObject } from "#utils/utilsCommon.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
-import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { get } from "svelte/store";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
@@ -32,7 +31,6 @@ import {
 // another tab that holds the lock briefly. Imports the warp sync snapshot
 // first, so that the sync goes on from its end.
 export async function fetchEventLogs(targetChain: Chain): Promise<boolean> {
-  storeSyncStoppedReason.clear(targetChain.name);
   // The import of this tab holds the lock: wait for it instead.
   await waitForWarpSync(targetChain.name);
   return await requestSyncLock(
