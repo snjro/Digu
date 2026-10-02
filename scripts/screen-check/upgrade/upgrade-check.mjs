@@ -40,12 +40,13 @@ const LATEST =
     ? 5926479
     : Number(process.env.NEW_LATEST || 5926679 + CONFIRMATION_BLOCKS);
 // Settings DB version 2: the upgrade removes these from each RPC setting and
-// keeps the rest (v1.0.2 also has abortWatchIntervalMs, and no warpSync).
+// keeps the rest (v1.0.2 has no warpSync).
 const REMOVED_RPC_SETTINGS = [
   "bulkUnit",
   "chainExplorerIndex",
   "blockIntervalMs",
   "tryCount",
+  "abortWatchIntervalMs",
 ];
 const SETTINGS_VERSION = Number(
   fs

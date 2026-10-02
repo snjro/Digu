@@ -39,6 +39,7 @@ describe("the upgrade to version 2", () => {
       chainExplorerIndex: 1,
       blockIntervalMs: 3000,
       tryCount: 5,
+      abortWatchIntervalMs: 5000,
     });
     await oldDb.table(tableNameUserSettings).add(initialDataUserSettings);
     oldDb.close();
