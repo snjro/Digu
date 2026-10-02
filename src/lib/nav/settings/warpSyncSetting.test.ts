@@ -1,13 +1,16 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import type { Chain } from "@constants/chains/types";
-import { updateDbItemRpcSettings } from "@db/dbSettings";
+import type { Chain } from "#constants/chains/types.js";
+import { updateDbItemRpcSettings } from "#db/dbSettings.js";
 import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
-} from "@stores/storeNoDb";
-import { customLogger } from "@utils/logger";
-import { forgetWarpSyncConfirmation, startWarpSync } from "@warpSync/warpSync";
-import { setWarpSyncStopController } from "@warpSync/warpSyncState";
+} from "#stores/storeNoDb.js";
+import { customLogger } from "#utils/logger.js";
+import {
+  forgetWarpSyncConfirmation,
+  startWarpSync,
+} from "#warpSync/warpSync.js";
+import { setWarpSyncStopController } from "#warpSync/warpSyncState.js";
 import { get } from "svelte/store";
 import {
   canImportNow,
@@ -15,8 +18,8 @@ import {
   updateWarpSync,
 } from "./warpSyncSetting";
 
-vi.mock("@db/dbSettings", () => ({ updateDbItemRpcSettings: vi.fn() }));
-vi.mock("@warpSync/warpSync", () => ({
+vi.mock("#db/dbSettings.js", () => ({ updateDbItemRpcSettings: vi.fn() }));
+vi.mock("#warpSync/warpSync.js", () => ({
   startWarpSync: vi.fn(async () => {}),
   confirmWarpSync: vi.fn(async () => {}),
   forgetWarpSyncConfirmation: vi.fn(),

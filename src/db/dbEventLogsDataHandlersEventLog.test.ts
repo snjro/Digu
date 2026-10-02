@@ -18,21 +18,21 @@ import type {
   VersionIdentifier,
 } from "./dbTypes";
 import { DB_TABLE_NAMES } from "./constants";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { get } from "svelte/store";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import {
   addEventLogs_updateFetchedBlockNumber,
   getEventLogTableRecordCount,
   getEventLogTableRecords,
 } from "./dbEventLogsDataHandlersEventLog";
-import * as UtilDb from "@utils/utilsDb";
+import * as UtilDb from "#utils/utilsDb.js";
 import * as TargetModule from "./dbEventLogsDataHandlersEventLog";
 import * as DataHandlerSyncStatusGetters from "./dbEventLogsDataHandlersSyncStatusGetters";
 import * as GetUpdateTargetEventLogTables from "./dbEventLogsGetUpdateTargetEventLogTables";
-import type { Contract } from "@constants/chains/types";
+import type { Contract } from "#constants/chains/types.js";
 import Dexie from "dexie";
-import { extractEventContracts } from "@utils/utilsEthers";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 
 describe("addEventLogs_updateFetchedBlockNumber", () => {
   for (const targetChain of TARGET_CHAINS) {

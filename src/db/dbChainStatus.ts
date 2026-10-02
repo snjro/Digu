@@ -1,9 +1,9 @@
 import type { Transaction } from "dexie";
-import type { ChainName } from "@constants/chains/types";
+import type { ChainName } from "#constants/chains/types.js";
 import { dbBase } from "./dbBase";
-import type { ChainStatus, SchemaDefinition } from "@db/dbTypes";
-import { DB_NAME, DB_TABLE_NAMES, DB_VERSIONS } from "@db/constants";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import type { ChainStatus, SchemaDefinition } from "#db/dbTypes.js";
+import { DB_NAME, DB_TABLE_NAMES, DB_VERSIONS } from "#db/constants.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 
 class DbChainStatus extends dbBase {
   constructor() {

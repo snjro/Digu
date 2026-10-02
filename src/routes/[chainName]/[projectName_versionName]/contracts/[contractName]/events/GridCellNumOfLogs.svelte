@@ -4,10 +4,10 @@
   import BaseA from "#lib/base/BaseA.svelte";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import type { BaseSize } from "#lib/base/baseSizes.js";
-  import type { AbiFragmentName } from "@constants/chains/types";
-  import type { ContractIdentifier } from "@db/dbTypes";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { numberWithCommas } from "@utils/utilsCommon";
+  import type { AbiFragmentName } from "#constants/chains/types.js";
+  import type { ContractIdentifier } from "#db/dbTypes.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { numberWithCommas } from "#utils/utilsCommon.js";
 
   interface Props {
     contractIdentifier: ContractIdentifier;

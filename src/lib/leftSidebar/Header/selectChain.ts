@@ -1,5 +1,5 @@
-import type { ChainName } from "@constants/chains/types";
-import { updateDbItemUserSettings } from "@db/dbSettings";
+import type { ChainName } from "#constants/chains/types.js";
+import { updateDbItemUserSettings } from "#db/dbSettings.js";
 
 export async function saveSelectedChainName(
   chainName: ChainName,

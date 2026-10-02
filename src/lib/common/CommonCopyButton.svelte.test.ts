@@ -7,7 +7,7 @@ import { copyTextToClipboard } from "#lib/common/clipboard.js";
 import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
-} from "@stores/storeNoDb";
+} from "#stores/storeNoDb.js";
 
 vi.mock("#lib/common/clipboard.js", () => ({ copyTextToClipboard: vi.fn() }));
 

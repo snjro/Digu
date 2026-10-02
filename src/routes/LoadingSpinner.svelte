@@ -4,7 +4,7 @@
   import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import { zIndex } from "#lib/appearanceConfig/zIndex.js";
   import BaseSpinner from "#lib/base/BaseSpinner.svelte";
-  import { storeNodbShowLoader } from "@stores/storeNoDb";
+  import { storeNodbShowLoader } from "#stores/storeNoDb.js";
   import classNames from "classnames";
 
   let showLoader: boolean = $state(false);

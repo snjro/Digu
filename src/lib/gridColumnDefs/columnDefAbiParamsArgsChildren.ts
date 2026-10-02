@@ -4,10 +4,10 @@ import {
 } from "#lib/grid/cellRenderFactory.js";
 import type { ColumnDef } from "#lib/grid/types.js";
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
-import type { AbiFragmentParam } from "@constants/chains/types";
-import { NO_DATA } from "@utils/utilsConstants";
+import type { AbiFragmentParam } from "#constants/chains/types.js";
+import { NO_DATA } from "#utils/utilsConstants.js";
 import BaseLabel from "#lib/base/BaseLabel.svelte";
-import { capitalizeFirstLetter } from "@utils/utilsCommon";
+import { capitalizeFirstLetter } from "#utils/utilsCommon.js";
 import AbiParamComponentsDetailsButton from "#lib/contracts/abiParams/AbiParamComponentsDetailsButton.svelte";
 import { cellAlign } from "./cellStyles";
 import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";

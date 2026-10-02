@@ -5,25 +5,28 @@
   import BaseToggle from "#lib/base/BaseToggle.svelte";
   import { iconNameForSyncStateText } from "#lib/common/CommonSyncStateText.svelte";
   import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
-  import type { Chain, ChainName } from "@constants/chains/types";
-  import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
+  import type { Chain, ChainName } from "#constants/chains/types.js";
+  import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
   import type {
     ChainStatus,
     NodeStatus,
     SyncStateText,
     SyncStatus,
-  } from "@db/dbTypes";
-  import { fetchEventLogs } from "@eventLogs/eventLogs";
-  import { storeSyncLockedByOtherTab } from "@eventLogs/syncLock";
-  import { storeChainStatus } from "@stores/storeChainStatus";
-  import { storeNoDbSnackBar } from "@stores/storeNoDb";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { customLogger } from "@utils/logger";
-  import { getTargetChain } from "@utils/utilsDb";
+  } from "#db/dbTypes.js";
+  import { fetchEventLogs } from "#eventLogs/eventLogs.js";
+  import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+  import { storeChainStatus } from "#stores/storeChainStatus.js";
+  import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
+  import { customLogger } from "#utils/logger.js";
+  import { getTargetChain } from "#utils/utilsDb.js";
   import classNames from "classnames";
-  import { selectWarpSyncState, storeWarpSync } from "@warpSync/warpSyncState";
-  import { SYNC_WAITS_FOR_IMPORT } from "@warpSync/warpSyncTexts";
+  import {
+    selectWarpSyncState,
+    storeWarpSync,
+  } from "#warpSync/warpSyncState.js";
+  import { SYNC_WAITS_FOR_IMPORT } from "#warpSync/warpSyncTexts.js";
   import { isSyncToggleDisabled } from "./syncToggleDisabled";
 
   let toggleOn: boolean = $state(false);

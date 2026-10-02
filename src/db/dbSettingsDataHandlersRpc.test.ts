@@ -3,9 +3,9 @@ import { describe, expect, test, vi, type MockInstance } from "vitest";
 import { initialDataRpcSetting, type RpcSetting } from "./dbTypes";
 import { dbSettings } from "./dbSettings";
 import { getDbRecordRpcSettings, updateDbItemRpcSettings } from "./dbSettings";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
 import { DB_TABLE_NAMES } from "./constants";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 
 const tableName = DB_TABLE_NAMES.Settings.rpcSettings;
 const dummyChainName = "chainName";

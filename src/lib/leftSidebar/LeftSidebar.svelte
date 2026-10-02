@@ -4,10 +4,13 @@
   import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js";
   import { zIndex } from "#lib/appearanceConfig/zIndex.js";
   import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
-  import { updateDbItemUserSettings } from "@db/dbSettings";
-  import { storeNoDbCurrentWidth, storeNoDbSnackBar } from "@stores/storeNoDb";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { customLogger } from "@utils/logger";
+  import { updateDbItemUserSettings } from "#db/dbSettings.js";
+  import {
+    storeNoDbCurrentWidth,
+    storeNoDbSnackBar,
+  } from "#stores/storeNoDb.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
+  import { customLogger } from "#utils/logger.js";
   import classNames from "classnames";
   import type { ActionReturn } from "svelte/action";
   import Body from "./Body/Body.svelte";

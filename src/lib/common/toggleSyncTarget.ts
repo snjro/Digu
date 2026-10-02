@@ -3,12 +3,12 @@ import type {
   ContractName,
   ProjectName,
   VersionName,
-} from "@constants/chains/types";
-import { getDbEventLogs } from "@db/dbEventLogs";
-import { updateDbIsSyncTarget } from "@db/dbEventLogsDataHandlersSyncStatusUpdateDbIsSyncTarget";
-import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { assertIsDefined } from "@utils/utilsCommon";
+} from "#constants/chains/types.js";
+import { getDbEventLogs } from "#db/dbEventLogs.js";
+import { updateDbIsSyncTarget } from "#db/dbEventLogsDataHandlersSyncStatusUpdateDbIsSyncTarget.js";
+import type { SyncStatusContract, SyncStatusesChain } from "#db/dbTypes.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { assertIsDefined } from "#utils/utilsCommon.js";
 import { get } from "svelte/store";
 
 export async function toggleIsSyncTarget<

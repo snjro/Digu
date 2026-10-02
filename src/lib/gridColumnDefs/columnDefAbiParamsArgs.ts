@@ -1,5 +1,5 @@
 import type { ColumnDef } from "#lib/grid/types.js";
-import { capitalizeFirstLetter } from "@utils/utilsCommon";
+import { capitalizeFirstLetter } from "#utils/utilsCommon.js";
 import { columnDefAbiParamsArgsChildren } from "./columnDefAbiParamsArgsChildren";
 import type { AbiFragmentParamTypeName, AbiRow } from "./types";
 

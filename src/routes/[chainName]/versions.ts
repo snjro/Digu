@@ -1,8 +1,8 @@
-import type { Contract, Project, Version } from "@constants/chains/types";
-import type { trailingSlash } from "@routes/+layout";
+import type { Contract, Project, Version } from "#constants/chains/types.js";
+import type { trailingSlash } from "#routes/+layout.js";
 import { getProjectVersionNameForUrl } from "#lib/common/projectVersionNameHelper.js";
 import { getSubdirectoryHref } from "#lib/common/linkHref.js";
-import { hasSyncTargetEvents } from "@utils/utilsEthers";
+import { hasSyncTargetEvents } from "#utils/utilsEthers.js";
 
 export function getVersionHref(
   pageUrlPathname: string,

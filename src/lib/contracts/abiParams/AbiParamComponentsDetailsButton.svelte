@@ -6,8 +6,8 @@
   import { openDialog } from "#lib/base/BaseDialog/BaseDialogHandler.js";
   import BaseHighlight from "#lib/base/BaseHighlight.svelte";
   import type { BaseIconProps } from "#lib/base/BaseIcon.js";
-  import type { AbiFragmentParam } from "@constants/chains/types";
-  import { jsonStringifyFormatted } from "@utils/utilsCommon";
+  import type { AbiFragmentParam } from "#constants/chains/types.js";
+  import { jsonStringifyFormatted } from "#utils/utilsCommon.js";
 
   interface Props {
     dialogHeaderText: string;

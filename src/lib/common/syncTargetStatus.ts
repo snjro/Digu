@@ -3,13 +3,13 @@ import type {
   Contract,
   Project,
   Version,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 import type {
   SubSyncStatus,
   SubSyncStatuses,
   SyncStatus,
   SyncStatusesChain,
-} from "@db/dbTypes";
+} from "#db/dbTypes.js";
 
 export const isSyncTargetIndeterminate = (
   subSyncStatuses: SubSyncStatuses,

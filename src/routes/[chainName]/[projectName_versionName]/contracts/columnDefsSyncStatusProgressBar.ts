@@ -16,17 +16,17 @@ import type {
   ContractName,
   Project,
   Version,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 import GridCellSyncStatusProgressBar from "./GridCellSyncStatusProgressBar.svelte";
-import type { SyncStatusContract } from "@db/dbTypes";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { storeChainStatus } from "@stores/storeChainStatus";
+import type { SyncStatusContract } from "#db/dbTypes.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { get } from "svelte/store";
 import {
   getProgressRate,
   getProgressRateForLabel,
 } from "#lib/base/BaseProgressBarForBlockNumber/progressRate.js";
-import { NO_DATA } from "@utils/utilsConstants";
+import { NO_DATA } from "#utils/utilsConstants.js";
 import { compareSyncStatusValues } from "./columnDefsSyncStatusBlockNumber";
 
 export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(

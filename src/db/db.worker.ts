@@ -1,4 +1,4 @@
-import { customLogger } from "@utils/logger";
+import { customLogger } from "#utils/logger.js";
 import { executeTargetFunction } from "./db.worker.executeTargetFunction";
 import type {
   DbWorkerMessage,

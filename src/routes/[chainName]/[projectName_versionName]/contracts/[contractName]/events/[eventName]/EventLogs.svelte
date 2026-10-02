@@ -10,14 +10,17 @@
   import BaseGrid from "#lib/grid/BaseGrid.svelte";
   import type { ColumnDef } from "#lib/grid/types.js";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
-  import type { EventAbiFragment } from "@constants/chains/types";
-  import type { AbiFragmentIdentifier, ConvertedEventLog } from "@db/dbTypes";
+  import type { EventAbiFragment } from "#constants/chains/types.js";
+  import type {
+    AbiFragmentIdentifier,
+    ConvertedEventLog,
+  } from "#db/dbTypes.js";
   import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
   import type { EventLogType } from "#lib/contracts/eventLogType.js";
   import { gridRows } from "./gridRows";
   import { createThrottledLoad } from "./latestLoad";
   import { getEachArgsMaxLengths } from "../../../maxParamsLength";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 
   interface Props {
     targetEventIdentifier: AbiFragmentIdentifier;

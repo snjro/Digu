@@ -1,4 +1,4 @@
-import type { JsonFileContract } from "@constants/chains/jsonFileTypes";
+import type { JsonFileContract } from "#constants/chains/jsonFileTypes.js";
 import type { Readable } from "svelte/store";
 import { vi } from "vitest";
 import {

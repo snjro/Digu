@@ -1,9 +1,9 @@
 import "fake-indexeddb/auto";
 import Dexie from "dexie";
 import { describe, expect, test } from "vitest";
-import { DB_TABLE_NAMES } from "@db/constants";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain } from "@constants/chains/types";
+import { DB_TABLE_NAMES } from "#db/constants.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain } from "#constants/chains/types.js";
 import { dbSettings } from "./dbSettings";
 import {
   initialDataRpcSetting,

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { customLogger } from "@utils/logger";
+import { customLogger } from "#utils/logger.js";
 import {
   copyTextToClipboard,
   showSnackBarAsCopied,

@@ -1,9 +1,9 @@
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import * as InitializeDBSyncStatusForContract from "./db.worker.func.InitializeDBSyncStatusForContract";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import * as InitializeDBSyncStatus from "./db.worker.func.InitializeDBSyncStatus";
-import { extractEventContracts } from "@utils/utilsEthers";
-import type { Chain, Contract } from "@constants/chains/types";
+import { extractEventContracts } from "#utils/utilsEthers.js";
+import type { Chain, Contract } from "#constants/chains/types.js";
 import type { VersionIdentifier } from "./dbTypes";
 import { DbEventLogs, getDbEventLogs } from "./dbEventLogs";
 import { getSyncLockName } from "./constants";

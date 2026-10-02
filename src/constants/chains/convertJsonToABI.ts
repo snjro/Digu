@@ -10,7 +10,7 @@ import type {
   FallbackAbiFragment,
   FunctionAbiFragment,
 } from "./types";
-import { sortObjectArrayByProperty } from "@utils/utilsCommon";
+import { sortObjectArrayByProperty } from "#utils/utilsCommon.js";
 
 export function convertJsonFilesContractToContracts(
   jsonFileContracts: JsonFileContract[],

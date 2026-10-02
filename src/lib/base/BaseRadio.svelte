@@ -22,8 +22,8 @@
 <script lang="ts" generics="RadioValue">
   import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
   import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import type { ThemeColor } from "#db/dbTypes.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
   import classNames from "classnames";
   import BaseButton from "./BaseButton.svelte";
   import BaseIcon from "./BaseIcon.svelte";

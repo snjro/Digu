@@ -1,12 +1,15 @@
 import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
-import type { Chain } from "@constants/chains/types";
-import { updateDbItemRpcSettings } from "@db/dbSettings";
-import { storeNoDbSnackBar } from "@stores/storeNoDb";
-import { customLogger } from "@utils/logger";
-import { numberWithCommas } from "@utils/utilsCommon";
-import { forgetWarpSyncConfirmation, startWarpSync } from "@warpSync/warpSync";
-import { stopWarpSync, type WarpSyncState } from "@warpSync/warpSyncState";
-import { formatBytes } from "@warpSync/warpSyncTexts";
+import type { Chain } from "#constants/chains/types.js";
+import { updateDbItemRpcSettings } from "#db/dbSettings.js";
+import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
+import { customLogger } from "#utils/logger.js";
+import { numberWithCommas } from "#utils/utilsCommon.js";
+import {
+  forgetWarpSyncConfirmation,
+  startWarpSync,
+} from "#warpSync/warpSync.js";
+import { stopWarpSync, type WarpSyncState } from "#warpSync/warpSyncState.js";
+import { formatBytes } from "#warpSync/warpSyncTexts.js";
 
 /**
  * Returns false when the save fails. Turning it on imports the snapshot, or

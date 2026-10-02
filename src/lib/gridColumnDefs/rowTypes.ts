@@ -2,8 +2,8 @@ import type {
   Contract,
   EventAbiFragment,
   FunctionAbiFragment,
-} from "@constants/chains/types";
-import type { NO_DATA } from "@utils/utilsConstants";
+} from "#constants/chains/types.js";
+import type { NO_DATA } from "#utils/utilsConstants.js";
 
 export type ContractRow = {
   contract: Contract;

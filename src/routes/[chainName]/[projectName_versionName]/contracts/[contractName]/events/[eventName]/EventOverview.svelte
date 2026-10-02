@@ -7,7 +7,7 @@
     EventAbiFragment,
     Project,
     Version,
-  } from "@constants/chains/types";
+  } from "#constants/chains/types.js";
   import classNames from "classnames";
   import EventOverviewBasic from "./EventOverviewBasic.svelte";
   import EventOverviewContract from "./EventOverviewContract.svelte";

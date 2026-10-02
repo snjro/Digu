@@ -19,10 +19,10 @@
     Contract,
     EventAbiFragment,
     FunctionAbiFragment,
-  } from "@constants/chains/types";
-  import { trailingSlash } from "@routes/+layout";
+  } from "#constants/chains/types.js";
+  import { trailingSlash } from "#routes/+layout.js";
   import type { AbiFragmentsType } from "#lib/contracts/abiFragmentsType.js";
-  import { capitalizeFirstLetter } from "@utils/utilsCommon";
+  import { capitalizeFirstLetter } from "#utils/utilsCommon.js";
 
   interface Props {
     abiFragmentsType: AbiFragmentsType;

@@ -1,4 +1,4 @@
-import type { Chain } from "@constants/chains/types";
+import type { Chain } from "#constants/chains/types.js";
 import { describe, expect, test } from "vitest";
 import {
   initialDataRpcSetting,

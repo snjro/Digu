@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { Chain } from "@constants/chains/types";
-import { getSyncLockName } from "@db/constants";
-import { initialDataRpcSetting } from "@db/dbTypes";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
-import { customLogger } from "@utils/logger";
+import type { Chain } from "#constants/chains/types.js";
+import { getSyncLockName } from "#db/constants.js";
+import { initialDataRpcSetting } from "#db/dbTypes.js";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { customLogger } from "#utils/logger.js";
 import { get } from "svelte/store";
 import {
   installFakeLockManager,
@@ -24,7 +24,7 @@ import {
   isSyncedByThisTab,
   reloadSyncStatusInChain,
   waitForSyncLockRelease,
-} from "@eventLogs/syncLock";
+} from "#eventLogs/syncLock.js";
 import {
   selectWarpSyncState,
   setWarpSyncState,
@@ -39,7 +39,7 @@ vi.mock("./warpSyncImport", () => ({
   importWarpSync: vi.fn(),
   getWarpSyncPending: vi.fn(),
 }));
-vi.mock("@eventLogs/syncLock", () => ({
+vi.mock("#eventLogs/syncLock.js", () => ({
   isSyncedByThisTab: vi.fn(() => false),
   reloadSyncStatusInChain: vi.fn(async () => {}),
   waitForSyncLockRelease: vi.fn(),

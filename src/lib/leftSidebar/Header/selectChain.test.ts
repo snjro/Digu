@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { updateDbItemUserSettings } from "@db/dbSettings";
+import { updateDbItemUserSettings } from "#db/dbSettings.js";
 import { saveSelectedChainName } from "./selectChain";
 
-vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
+vi.mock("#db/dbSettings.js", () => ({ updateDbItemUserSettings: vi.fn() }));
 
 afterEach(() => {
   vi.clearAllMocks();

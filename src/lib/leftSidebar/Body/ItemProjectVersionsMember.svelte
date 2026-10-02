@@ -1,6 +1,6 @@
 <script lang="ts">
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
-  import type { Contract } from "@constants/chains/types";
+  import type { Contract } from "#constants/chains/types.js";
   import BaseAccordion from "./BaseAccordion.svelte";
   import ItemContracts from "./ItemContracts.svelte";
   interface Props {

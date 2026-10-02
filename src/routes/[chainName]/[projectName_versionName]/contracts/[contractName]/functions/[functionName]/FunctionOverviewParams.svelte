@@ -2,7 +2,7 @@
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import AbiParamsTable from "#lib/contracts/abiParams/AbiParamsTable.svelte";
-  import type { FunctionAbiFragment } from "@constants/chains/types";
+  import type { FunctionAbiFragment } from "#constants/chains/types.js";
 
   type ParamIdentifier = Extract<
     keyof FunctionAbiFragment,

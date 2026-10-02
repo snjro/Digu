@@ -1,4 +1,4 @@
-import type { ChainName } from "@constants/chains/types";
+import type { ChainName } from "#constants/chains/types.js";
 
 export function getChainRootUrl(
   basePath: string,

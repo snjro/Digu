@@ -1,7 +1,7 @@
 <script lang="ts">
   import PageWrapperContent from "#lib/PageWrapper/PageWrapperContent.svelte";
   import CommonItemGroup from "#lib/common/CommonItemGroup.svelte";
-  import type { Chain, Project, Version } from "@constants/chains/types";
+  import type { Chain, Project, Version } from "#constants/chains/types.js";
   import classNames from "classnames";
   import VersionOverviewContracts from "./VersionOverviewContracts.svelte";
   import VersionOverviewSyncStatus from "./VersionOverviewSyncStatus.svelte";

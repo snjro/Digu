@@ -5,9 +5,9 @@ import { columnDefsBasic } from "./columnDefsBasic";
 import { columnDefsConstructor } from "./columnDefsConstructor";
 import { columnDefsFallback } from "./columnDefsFallback";
 import { columnDefsEventsFunctions } from "./columnDefsEventsFunctions";
-import type { Chain, Project, Version } from "@constants/chains/types";
+import type { Chain, Project, Version } from "#constants/chains/types.js";
 import { columnDefsSyncStatus } from "./columnDefsSyncStatus";
-import { DIR_NAME_EVENTS, DIR_NAME_FUNCTIONS } from "@utils/utilsConstants";
+import { DIR_NAME_EVENTS, DIR_NAME_FUNCTIONS } from "#utils/utilsConstants.js";
 
 export const columnDefs = <T extends ContractRow>(
   targetChain: Chain,

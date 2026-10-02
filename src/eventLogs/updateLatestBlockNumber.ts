@@ -1,14 +1,14 @@
-import type { Chain, ChainName } from "@constants/chains/types";
-import { customLogger } from "@utils/logger";
+import type { Chain, ChainName } from "#constants/chains/types.js";
+import { customLogger } from "#utils/logger.js";
 import {
   getAndUpdateLatestBlockNumber,
   getLoggableError,
   type NodeProvider,
-} from "@utils/utilsEthers";
+} from "#utils/utilsEthers.js";
 import { get } from "svelte/store";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
-import { getTargetChain } from "@utils/utilsDb";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import { getTargetChain } from "#utils/utilsDb.js";
 import { TRY_COUNT } from "./eventLogsContract";
 
 const functionName: string = "updateLatestBlockNumber";

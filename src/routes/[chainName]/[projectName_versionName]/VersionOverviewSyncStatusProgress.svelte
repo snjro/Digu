@@ -4,10 +4,10 @@
   import BaseProgressCircle from "#lib/base/BaseProgressCircle/BaseProgressCircle.svelte";
   import { changeSize } from "#lib/base/baseSizes.js";
   import CommonItemMember from "#lib/common/CommonItemMember.svelte";
-  import type { Chain, Project, Version } from "@constants/chains/types";
-  import type { SyncStateText, SyncStatusVersion } from "@db/dbTypes";
-  import { storeChainStatus } from "@stores/storeChainStatus";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
+  import type { Chain, Project, Version } from "#constants/chains/types.js";
+  import type { SyncStateText, SyncStatusVersion } from "#db/dbTypes.js";
+  import { storeChainStatus } from "#stores/storeChainStatus.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 
   interface Props {
     targetChain: Chain;

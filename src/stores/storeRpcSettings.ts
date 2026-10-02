@@ -1,8 +1,8 @@
 import type { StateRpcSettings } from "./storeTypes";
-import type { ChainName } from "@constants/chains/types";
+import type { ChainName } from "#constants/chains/types.js";
 import { writable } from "svelte/store";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import { initialDataRpcSetting, type RpcSetting } from "@db/dbTypes";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import { initialDataRpcSetting, type RpcSetting } from "#db/dbTypes.js";
 
 function store() {
   const { subscribe, set, update } = writable(getInitialState());

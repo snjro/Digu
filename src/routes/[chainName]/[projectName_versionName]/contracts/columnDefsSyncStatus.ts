@@ -1,5 +1,5 @@
 import type { ColumnDef } from "#lib/grid/types.js";
-import type { Chain, Project, Version } from "@constants/chains/types";
+import type { Chain, Project, Version } from "#constants/chains/types.js";
 import { columnDefsSyncstatusProgressBar } from "./columnDefsSyncStatusProgressBar";
 import { columnDefsSyncStatusTarget } from "./columnDefsSyncStatusTarget";
 import { columnDefsSyncStatusBlockNumber } from "./columnDefsSyncStatusBlockNumber";

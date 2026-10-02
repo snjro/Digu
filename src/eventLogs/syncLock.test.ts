@@ -9,11 +9,14 @@ import {
   type Mock,
   type MockInstance,
 } from "vitest";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain, Contract } from "@constants/chains/types";
-import type { EthersEventLog, SyncStatusContract } from "@db/dbTypes";
-import { getSyncLockName } from "@db/constants";
-import type { DbWorkerMessage, TargetFunctionName } from "@db/db.worker.types";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain, Contract } from "#constants/chains/types.js";
+import type { EthersEventLog, SyncStatusContract } from "#db/dbTypes.js";
+import { getSyncLockName } from "#db/constants.js";
+import type {
+  DbWorkerMessage,
+  TargetFunctionName,
+} from "#db/db.worker.types.js";
 import {
   installFakeLockManager,
   removeLockManager,
@@ -37,10 +40,10 @@ vi.mock("$app/env", async (importOriginal) => ({
   browser: true,
 }));
 // Runs the Worker jobs in the page, with the modules of the tab being opened.
-vi.mock("@db/db.worker.portal", () => ({
+vi.mock("#db/db.worker.portal.js", () => ({
   startDbWorker: async (message: DbWorkerMessage<TargetFunctionName>) => {
     const { executeTargetFunction } =
-      await import("@db/db.worker.executeTargetFunction");
+      await import("#db/db.worker.executeTargetFunction.js");
     return await executeTargetFunction(
       message.targetFunctionName,
       message.params,
@@ -54,8 +57,9 @@ vi.mock("@db/db.worker.portal", () => ({
 // stop under load (issue #583). A sync that starts again up to
 // LOGS_AT_RANGE_END blocks before the end of the last range still saves a log
 // twice.
-vi.mock("@utils/utilsEthers", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@utils/utilsEthers")>();
+vi.mock("#utils/utilsEthers.js", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("#utils/utilsEthers.js")>();
   const LOGS_AT_RANGE_END = 50;
   return {
     ...original,
@@ -125,12 +129,12 @@ vi.mock("./updateLatestBlockNumber", () => ({
 }));
 // Shorter than the app's 1 s, so that a tab gives up on a held lock sooner.
 // Long enough for the reset that another tab does after it stops syncing.
-vi.mock("@db/constants", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@db/constants")>()),
+vi.mock("#db/constants.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("#db/constants.js")>()),
   SYNC_LOCK_TIMEOUT_MS: 200,
 }));
 // Quiet: the syncs log tens of thousands of lines, which bury real errors.
-vi.mock("@utils/logger", () => ({
+vi.mock("#utils/logger.js", () => ({
   customLogger: class {
     static info() {}
     static start() {}
@@ -193,18 +197,18 @@ async function openTab(beforeWatch?: () => Promise<void>) {
   }
   await initialize();
 
-  const { extractEventContracts } = await import("@utils/utilsEthers");
+  const { extractEventContracts } = await import("#utils/utilsEthers.js");
   const contract: Contract = extractEventContracts(version.contracts)[0];
-  const { DbEventLogs } = await import("@db/dbEventLogs");
+  const { DbEventLogs } = await import("#db/dbEventLogs.js");
   const { fetchEventLogs } = await import("./eventLogs");
   const { startAbortingInChain } =
-    await import("@db/dbEventLogsDataHandlersSyncStatus");
+    await import("#db/dbEventLogsDataHandlersSyncStatus.js");
   const { syncStatusContract } = await import("./eventLogsContract");
-  const { storeSyncStatus } = await import("@stores/storeSyncStatus");
-  const { storeChainStatus } = await import("@stores/storeChainStatus");
+  const { storeSyncStatus } = await import("#stores/storeSyncStatus.js");
+  const { storeChainStatus } = await import("#stores/storeChainStatus.js");
   const { get } = await import("svelte/store");
   const { updateDbItemChainStatus } =
-    await import("@db/dbChainStatusDataHandlers");
+    await import("#db/dbChainStatusDataHandlers.js");
   storeChainStatus.updateState(chain.name, { nodeStatus: "SUCCESS" });
   // Far above every contract, so that no loop catches up and waits for a new
   // block during a test: with the small writes of the mock, a loop fetches
@@ -432,7 +436,7 @@ describe("sync with two tabs (issue #49)", () => {
       updateLatestBlockNumber,
       "startUpdateLatestBlockNumber",
     ).mockRejectedValueOnce(new Error("DB error"));
-    const { customLogger } = await import("@utils/logger");
+    const { customLogger } = await import("#utils/logger.js");
     const spyError = vi.spyOn(customLogger, "error");
 
     expect(await a.fetchEventLogs()).toBe(true);
@@ -453,7 +457,7 @@ describe("sync with two tabs (issue #49)", () => {
     tabs.push(a);
     // Same module instance as tab A (openTab() resets modules only at start).
     const initializeDBSyncStatus =
-      await import("@db/db.worker.func.InitializeDBSyncStatus");
+      await import("#db/db.worker.func.InitializeDBSyncStatus.js");
     vi.spyOn(
       initializeDBSyncStatus,
       "initializeDBSyncStatusInChain",
@@ -528,7 +532,7 @@ describe("sync with two tabs (issue #49)", () => {
     const a = await openTab(async () => {
       // Same module instance as the tab being opened.
       const initializeDBSyncStatus =
-        await import("@db/db.worker.func.InitializeDBSyncStatus");
+        await import("#db/db.worker.func.InitializeDBSyncStatus.js");
       vi.spyOn(
         initializeDBSyncStatus,
         "initializeDBSyncStatusInChain",
@@ -550,12 +554,12 @@ describe("sync with two tabs (issue #49)", () => {
     expect(b.isLockedByOtherTab()).toBe(true);
     // Same module instances as tab B (openTab() resets modules only at start).
     const initializeDBSyncStatus =
-      await import("@db/db.worker.func.InitializeDBSyncStatus");
+      await import("#db/db.worker.func.InitializeDBSyncStatus.js");
     vi.spyOn(
       initializeDBSyncStatus,
       "initializeDBSyncStatusInChain",
     ).mockRejectedValueOnce(new Error("DB error"));
-    const { customLogger } = await import("@utils/logger");
+    const { customLogger } = await import("#utils/logger.js");
     const spyError = vi.spyOn(customLogger, "error");
 
     await stopAndWait(a);
@@ -584,7 +588,7 @@ describe("sync with two tabs (issue #49)", () => {
     // Not in `tabs`: B does not sync, so afterEach must not stop it.
     const b = await openTab(async () => {
       // Tab B's module instance: openTab() resets the modules first.
-      const { customLogger } = await import("@utils/logger");
+      const { customLogger } = await import("#utils/logger.js");
       spyError = vi.spyOn(customLogger, "error");
     });
     expect(
@@ -623,10 +627,10 @@ describe("sync with two tabs (issue #49)", () => {
     const a = await openTab();
     tabs.push(a);
     // Same module instances as tab A (openTab() resets modules only at start).
-    const { storeChainStatus } = await import("@stores/storeChainStatus");
+    const { storeChainStatus } = await import("#stores/storeChainStatus.js");
     // A newer check of the same RPC has not ended yet.
     storeChainStatus.updateState(chain.name, { nodeStatus: "CONNECTING" });
-    const syncStatus = await import("@db/dbEventLogsDataHandlersSyncStatus");
+    const syncStatus = await import("#db/dbEventLogsDataHandlersSyncStatus.js");
     const spyAbort = vi.spyOn(syncStatus, "startAbortingInChain");
 
     expect(await a.fetchEventLogs()).toBe(true);
@@ -670,7 +674,7 @@ describe("sync with two tabs (issue #49)", () => {
     expect(await a.fetchEventLogs()).toBe(true);
     await waitForSavedLogs(a);
     // Same module instance as tab A (openTab() resets modules only at start).
-    const syncStatus = await import("@db/dbEventLogsDataHandlersSyncStatus");
+    const syncStatus = await import("#db/dbEventLogsDataHandlersSyncStatus.js");
     vi.spyOn(syncStatus, "stopSyncingInContract").mockRejectedValueOnce(
       new Error("DB error"),
     );

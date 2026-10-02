@@ -15,9 +15,9 @@ import {
   type SubSyncStatus,
   syncStatusBaseNumberKeys,
   syncStatusBaseBooleanKeys,
-} from "@db/dbTypes";
-import { assertIsDefined } from "@utils/utilsCommon";
-import type { KeysMatching } from "@utils/utilsType";
+} from "#db/dbTypes.js";
+import { assertIsDefined } from "#utils/utilsCommon.js";
+import type { KeysMatching } from "#utils/utilsType.js";
 import { syncStateText } from "./storeSyncStatusGetInitialState";
 
 const storeSyncStatusChain = (

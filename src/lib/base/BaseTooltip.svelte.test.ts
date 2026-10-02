@@ -2,8 +2,8 @@ import { afterEach, describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/svelte";
 import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 import BaseTooltip from "./BaseTooltip.svelte";
 import { htmlSnippet, slotProps } from "../../testUtils/snippets";
 

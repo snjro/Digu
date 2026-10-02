@@ -1,4 +1,4 @@
-import type { Contract, Version } from "@constants/chains/types";
+import type { Contract, Version } from "#constants/chains/types.js";
 import Augur from "./Augur.json";
 import LegacyReputationToken from "./LegacyReputationToken.json";
 import BuyParticipationTokens from "./BuyParticipationTokens.json";
@@ -31,8 +31,8 @@ import OICash_Yes_1 from "./OICash_Yes_1.json";
 import Universe_No_1 from "./Universe_No_1.json";
 import REPv2_No_1 from "./REPv2_No_1.json";
 import OICash_No_1 from "./OICash_No_1.json";
-import type { JsonFileContract } from "@constants/chains/jsonFileTypes";
-import { convertJsonFilesContractToContracts } from "@constants/chains/convertJsonToABI";
+import type { JsonFileContract } from "#constants/chains/jsonFileTypes.js";
+import { convertJsonFilesContractToContracts } from "#constants/chains/convertJsonToABI.js";
 const contracts: Contract[] = convertJsonFilesContractToContracts([
   Augur,
   LegacyReputationToken,

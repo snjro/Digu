@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/svelte";
 import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { storeUserSettings } from "@stores/storeUserSettings";
-import { NO_DATA } from "@utils/utilsConstants";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
+import { NO_DATA } from "#utils/utilsConstants.js";
 import BaseLabel from "./BaseLabel.svelte";
 import { baseTextSizes } from "./baseSizes";
 import { htmlSnippet, slotProps } from "../../testUtils/snippets";

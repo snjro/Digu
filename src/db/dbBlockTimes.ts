@@ -1,6 +1,6 @@
 import type { SchemaDefinition } from "./dbTypes";
 import { DB_NAME, DB_VERSIONS } from "./constants";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import { dbBase } from "./dbBase";
 
 const TABLE_BLOCKTIMES_COLUMN_NAMES = {

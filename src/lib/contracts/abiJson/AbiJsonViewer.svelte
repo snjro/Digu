@@ -9,10 +9,10 @@
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import BaseHighlight from "#lib/base/BaseHighlight.svelte";
   import { copyTextToClipboard } from "#lib/common/clipboard.js";
-  import { storeNoDbSnackBar } from "@stores/storeNoDb";
-  import { ExportDataToFile, getExportFileName } from "@utils/utilsFile";
+  import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
+  import { ExportDataToFile, getExportFileName } from "#utils/utilsFile.js";
   import type { BaseIconProps } from "#lib/base/BaseIcon.js";
-  import type { AbiFormatType } from "@utils/utilsEthers";
+  import type { AbiFormatType } from "#utils/utilsEthers.js";
   import {
     getAbiExportTooltipText,
     getAbiFileExtension,

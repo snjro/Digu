@@ -1,4 +1,4 @@
-import type { NodeStatus, SyncStateText } from "@db/dbTypes";
+import type { NodeStatus, SyncStateText } from "#db/dbTypes.js";
 
 export type SyncToggleConditions = {
   nodeStatus: NodeStatus;

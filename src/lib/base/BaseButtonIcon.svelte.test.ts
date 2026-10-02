@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 import BaseButtonIcon from "./BaseButtonIcon.svelte";
 
 afterEach(() => {

@@ -3,7 +3,7 @@ import type { EventRow } from "#lib/gridColumnDefs/rowTypes.js";
 import { columnDefsBasic } from "./columnDefsBasic";
 import { columnDefsInputs } from "./columnDefsInputs";
 import { columnDefsNumOfLogs } from "./columnDefsNumOfLogs";
-import type { ContractIdentifier } from "@db/dbTypes";
+import type { ContractIdentifier } from "#db/dbTypes.js";
 
 export const columnDefs = <T extends EventRow>(
   urlPathName: string,

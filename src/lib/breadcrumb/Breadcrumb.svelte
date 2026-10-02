@@ -3,7 +3,7 @@
   import { page } from "$app/state";
   import { getPageChainName } from "#lib/common/pageChainName.js";
   import { trailingSlash } from "#lib/common/trailingSlash.js";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
   import classNames from "classnames";
   import BreadcrumbItems from "./BreadcrumbItems.svelte";
   import { getCrumbItems, type CrumbItem } from "./crumbs";

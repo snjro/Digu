@@ -1,4 +1,4 @@
-import type { Chain } from "@constants/chains/types";
+import type { Chain } from "#constants/chains/types.js";
 import { project as augur } from "./augur/_index";
 
 export const chain: Chain = {

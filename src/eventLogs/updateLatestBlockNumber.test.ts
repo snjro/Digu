@@ -5,18 +5,19 @@ import { TRY_COUNT } from "./eventLogsContract";
 import {
   getAndUpdateLatestBlockNumber,
   type NodeProvider,
-} from "@utils/utilsEthers";
-import { startAbortingInChain } from "@db/dbEventLogsDataHandlersSyncStatus";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain, ChainName } from "@constants/chains/types";
-import type { SyncStatusesChain } from "@db/dbTypes";
+} from "#utils/utilsEthers.js";
+import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain, ChainName } from "#constants/chains/types.js";
+import type { SyncStatusesChain } from "#db/dbTypes.js";
 
-vi.mock("@utils/utilsEthers", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@utils/utilsEthers")>();
+vi.mock("#utils/utilsEthers.js", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("#utils/utilsEthers.js")>();
   return { ...original, getAndUpdateLatestBlockNumber: vi.fn() };
 });
-vi.mock("@db/dbEventLogsDataHandlersSyncStatus");
+vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js");
 
 const targetChain: Chain = TARGET_CHAINS[0];
 const chainName: ChainName = targetChain.name;
@@ -111,7 +112,7 @@ describe("startUpdateLatestBlockNumber", () => {
               reject(new Error("provider destroyed; cancelled request"));
           }),
       );
-    const { customLogger } = await import("@utils/logger");
+    const { customLogger } = await import("#utils/logger.js");
     const spyWarn = vi.spyOn(customLogger, "warn");
 
     const stop = await startUpdateLatestBlockNumber(chainName, nodeProvider);
@@ -127,7 +128,7 @@ describe("startUpdateLatestBlockNumber", () => {
     vi.mocked(getAndUpdateLatestBlockNumber)
       .mockResolvedValueOnce(1)
       .mockRejectedValueOnce(new Error("RPC error"));
-    const { customLogger } = await import("@utils/logger");
+    const { customLogger } = await import("#utils/logger.js");
     const spyWarn = vi.spyOn(customLogger, "warn");
 
     stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
@@ -145,7 +146,7 @@ describe("startUpdateLatestBlockNumber", () => {
     vi.mocked(startAbortingInChain).mockRejectedValueOnce(
       new Error("DB error"),
     );
-    const { customLogger } = await import("@utils/logger");
+    const { customLogger } = await import("#utils/logger.js");
     const spyError = vi.spyOn(customLogger, "error");
 
     await startUpdateLatestBlockNumber(chainName, nodeProvider);
@@ -158,7 +159,7 @@ describe("startUpdateLatestBlockNumber", () => {
   });
 
   test("should not log the provider, which has the RPC URL", async () => {
-    const { customLogger } = await import("@utils/logger");
+    const { customLogger } = await import("#utils/logger.js");
     const spyStart = vi.spyOn(customLogger, "start");
 
     stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
@@ -175,7 +176,7 @@ describe("startUpdateLatestBlockNumber", () => {
         info: { requestUrl: "https://rpc.example/secret-key" },
       }),
     );
-    const { customLogger } = await import("@utils/logger");
+    const { customLogger } = await import("#utils/logger.js");
     const spyWarn = vi.spyOn(customLogger, "warn");
 
     stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);

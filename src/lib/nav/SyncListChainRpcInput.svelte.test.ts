@@ -5,18 +5,18 @@ import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
-} from "@stores/storeNoDb";
+} from "#stores/storeNoDb.js";
 import SyncListChainRpcInput from "./SyncListChainRpcInput.svelte";
 import { updateRpc } from "./rpcInput";
-import { customLogger } from "@utils/logger";
+import { customLogger } from "#utils/logger.js";
 
 // The real stores build their state from the chain data, which loads ethers.
 // ethers does not load in the client project, so the stores are plain ones.
-vi.mock("@stores/storeUserSettings", async () => {
+vi.mock("#stores/storeUserSettings.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeUserSettings: writable({ selectedChainName: "chain1" }) };
 });
-vi.mock("@stores/storeRpcSettings", async () => {
+vi.mock("#stores/storeRpcSettings.js", async () => {
   const { writable } = await import("svelte/store");
   return {
     storeRpcSettings: writable({
@@ -24,15 +24,15 @@ vi.mock("@stores/storeRpcSettings", async () => {
     }),
   };
 });
-vi.mock("@stores/storeChainStatus", async () => {
+vi.mock("#stores/storeChainStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeChainStatus: writable({ chain1: { nodeStatus: undefined } }) };
 });
-vi.mock("@stores/storeSyncStatus", async () => {
+vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncStatus: writable({ chain1: { isSyncing: false } }) };
 });
-vi.mock("@utils/utilsDb", () => ({
+vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: () => ({ name: "chain1" }),
 }));
 // The real module loads ethers through getNodeProvider.
@@ -42,7 +42,7 @@ vi.mock("./rpcInput", () => ({
   toggleRpcInputType: vi.fn(),
   updateRpc: vi.fn(),
 }));
-vi.mock("@utils/logger", () => ({ customLogger: { error: vi.fn() } }));
+vi.mock("#utils/logger.js", () => ({ customLogger: { error: vi.fn() } }));
 
 describe("SyncListChainRpcInput.svelte", () => {
   beforeEach(() => {

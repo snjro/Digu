@@ -5,16 +5,16 @@
   import BaseCheckbox from "#lib/base/BaseCheckbox.svelte";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import CommonItemMember from "#lib/common/CommonItemMember.svelte";
-  import { storeRpcSettings } from "@stores/storeRpcSettings";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { getTargetChain } from "@utils/utilsDb";
+  import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
+  import { getTargetChain } from "#utils/utilsDb.js";
   import {
     hasWarpSync,
     selectWarpSyncState,
     storeWarpSync,
-  } from "@warpSync/warpSyncState";
+  } from "#warpSync/warpSyncState.js";
   import classNames from "classnames";
-  import { confirmWarpSync } from "@warpSync/warpSync";
+  import { confirmWarpSync } from "#warpSync/warpSync.js";
   import {
     canImportNow,
     getWarpSyncHelperText,

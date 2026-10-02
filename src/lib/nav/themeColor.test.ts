@@ -4,12 +4,12 @@ import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
-} from "@stores/storeNoDb";
-import { customLogger } from "@utils/logger";
-import { updateDbItemUserSettings } from "@db/dbSettings";
+} from "#stores/storeNoDb.js";
+import { customLogger } from "#utils/logger.js";
+import { updateDbItemUserSettings } from "#db/dbSettings.js";
 import { getToggledThemeColor, toggleThemeColor } from "./themeColor";
 
-vi.mock("@db/dbSettings", () => ({ updateDbItemUserSettings: vi.fn() }));
+vi.mock("#db/dbSettings.js", () => ({ updateDbItemUserSettings: vi.fn() }));
 
 beforeEach(() => {
   vi.clearAllMocks();

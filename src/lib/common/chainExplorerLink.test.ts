@@ -1,13 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import { TargetNotFoundError } from "@utils/utilsDb";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import { TargetNotFoundError } from "#utils/utilsDb.js";
 import {
   getChainExplorer,
   getChainExplorerHref,
   getChainExplorerLinkText,
   type CommonChainExplorerLinkProps,
 } from "./chainExplorerLink";
-import type { ChainExplorer } from "@constants/chains/types";
+import type { ChainExplorer } from "#constants/chains/types.js";
 
 describe("getChainExplorer", () => {
   test.each(

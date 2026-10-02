@@ -1,7 +1,7 @@
 import type {
   ImportWarpSyncFileParams,
   ImportWarpSyncFileResult,
-} from "@warpSync/warpSyncImportFile";
+} from "#warpSync/warpSyncImportFile.js";
 import type { AbiFragmentIdentifier, ConvertedEventLog } from "./dbTypes";
 
 export type TargetFunctionName =

@@ -39,8 +39,11 @@
   import { copyTextToClipboard } from "#lib/common/clipboard.js";
   import CommonItemGroup from "#lib/common/CommonItemGroup.svelte";
   import CommonItemMember from "#lib/common/CommonItemMember.svelte";
-  import { storeNoDbSnackBar } from "@stores/storeNoDb";
-  import { getExportFileName, type ExportFilePrefix } from "@utils/utilsFile";
+  import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
+  import {
+    getExportFileName,
+    type ExportFilePrefix,
+  } from "#utils/utilsFile.js";
   import type { GridApi } from "ag-grid-community";
   import {
     downloadCsvFile,

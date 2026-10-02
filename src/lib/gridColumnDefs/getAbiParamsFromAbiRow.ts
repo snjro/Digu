@@ -1,5 +1,5 @@
 import type { ICellRendererParams, ValueGetterParams } from "ag-grid-community";
-import type { AbiFragmentParam } from "@constants/chains/types";
+import type { AbiFragmentParam } from "#constants/chains/types.js";
 import type { AbiRow } from "./types";
 
 export function getAbiParamsFromAbiRow<T extends AbiRow>(

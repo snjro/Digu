@@ -8,10 +8,10 @@
     Contract,
     Project,
     Version,
-  } from "@constants/chains/types";
-  import type { SyncStatusContract } from "@db/dbTypes";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { NO_DATA } from "@utils/utilsConstants";
+  } from "#constants/chains/types.js";
+  import type { SyncStatusContract } from "#db/dbTypes.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { NO_DATA } from "#utils/utilsConstants.js";
 
   interface Props {
     targetChain: Chain;

@@ -1,29 +1,29 @@
 import type { Contract as EthersContract } from "ethers";
-import type { DbEventLogs } from "@db/dbEventLogs";
+import type { DbEventLogs } from "#db/dbEventLogs.js";
 import {
   stopSyncingInContract,
   startAbortingInChain,
-} from "@db/dbEventLogsDataHandlersSyncStatus";
-import type { Chain, ChainName, Contract } from "@constants/chains/types";
+} from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import type { Chain, ChainName, Contract } from "#constants/chains/types.js";
 import {
   getEthersEventLogs,
   getLoggableError,
   isErrorUnrelatedToRange,
   type NodeProvider,
-} from "@utils/utilsEthers";
-import { customLogger } from "@utils/logger";
+} from "#utils/utilsEthers.js";
+import { customLogger } from "#utils/logger.js";
 import { get } from "svelte/store";
-import { storeChainStatus } from "@stores/storeChainStatus";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { ethers } from "ethers";
 import type {
   ContractIdentifier,
   EthersEventLog,
   SyncStatusContract,
-} from "@db/dbTypes";
+} from "#db/dbTypes.js";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { assertIsDefined, sleep } from "@utils/utilsCommon";
-import { getTargetChain } from "@utils/utilsDb";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { assertIsDefined, sleep } from "#utils/utilsCommon.js";
+import { getTargetChain } from "#utils/utilsDb.js";
 type FetchingTargetInfo = ContractIdentifier & {
   blocks: { from: number; to: number; latest: number };
 };

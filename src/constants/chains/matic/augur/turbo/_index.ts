@@ -4,9 +4,9 @@ import FeePot from "./FeePot.json";
 import MMALinkMarketFactory from "./MMALinkMarketFactory.json";
 import PlaceholderReputationToken from "./PlaceholderReputationToken.json";
 import SportsLinkMarketFactory from "./SportsLinkMarketFactory.json";
-import type { Contract, Version } from "@constants/chains/types";
-import type { JsonFileContract } from "@constants/chains/jsonFileTypes";
-import { convertJsonFilesContractToContracts } from "@constants/chains/convertJsonToABI";
+import type { Contract, Version } from "#constants/chains/types.js";
+import type { JsonFileContract } from "#constants/chains/jsonFileTypes.js";
+import { convertJsonFilesContractToContracts } from "#constants/chains/convertJsonToABI.js";
 
 const contracts: Contract[] = convertJsonFilesContractToContracts([
   AMMFactory,

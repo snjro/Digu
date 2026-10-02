@@ -5,7 +5,7 @@
   import {
     storeNoDbSnackBar,
     storeNoDbSnackBarInitialValue,
-  } from "@stores/storeNoDb";
+  } from "#stores/storeNoDb.js";
   import classNames from "classnames";
   import { expoInOut } from "svelte/easing";
   import { fly } from "svelte/transition";

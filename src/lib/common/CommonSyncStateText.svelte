@@ -22,7 +22,7 @@
   import type { BaseIconProps } from "#lib/base/BaseIcon.js";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import type { BaseSize } from "#lib/base/baseSizes.js";
-  import type { SyncStateText } from "@db/dbTypes";
+  import type { SyncStateText } from "#db/dbTypes.js";
   import classNames from "classnames";
 
   interface Props {

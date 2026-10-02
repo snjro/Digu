@@ -1,21 +1,21 @@
 // Imports one file of the snapshot. It runs in the DB worker, so that the
 // page does not stop while the logs are decoded and saved.
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Contract, ContractName } from "@constants/chains/types";
-import { getDbEventLogs, type DbEventLogs } from "@db/dbEventLogs";
-import { saveEventLogs_updateFetchedBlockNumber } from "@db/dbEventLogsDataHandlersEventLog";
-import { getDbItemSyncStatus } from "@db/dbEventLogsDataHandlersSyncStatusGetters";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Contract, ContractName } from "#constants/chains/types.js";
+import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
+import { saveEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
+import { getDbItemSyncStatus } from "#db/dbEventLogsDataHandlersSyncStatusGetters.js";
 import type {
   ConvertedEventLog,
   EthersEventLog,
   GroupedEventLogs,
   SyncStatusContract,
   VersionIdentifier,
-} from "@db/dbTypes";
+} from "#db/dbTypes.js";
 import {
   convertEthersEventToEventLog,
   groupEventLogsByEventName,
-} from "@eventLogs/eventLogsContractUpdateTables";
+} from "#eventLogs/eventLogsContractUpdateTables.js";
 import { getNumber } from "ethers";
 import { decodeWarpSyncLogs } from "./warpSyncDecode";
 import { readWarpSyncFile } from "./warpSyncFile";

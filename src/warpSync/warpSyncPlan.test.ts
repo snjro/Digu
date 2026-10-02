@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain, Contract } from "@constants/chains/types";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain, Contract } from "#constants/chains/types.js";
 import {
   getNextBlock,
   getRangeAction,

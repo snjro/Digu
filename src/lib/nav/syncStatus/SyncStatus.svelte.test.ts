@@ -3,34 +3,34 @@ import { tick } from "svelte";
 import type { Writable } from "svelte/store";
 import { render, screen } from "@testing-library/svelte";
 import SyncStatus from "./SyncStatus.svelte";
-import type { ChainStatus, SyncStatusesChain } from "@db/dbTypes";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { storeSyncLockedByOtherTab } from "@eventLogs/syncLock";
-import { storeChainStatus } from "@stores/storeChainStatus";
-import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import type { ChainStatus, SyncStatusesChain } from "#db/dbTypes.js";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
+import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 
 // The real stores build their state from the chain data, which loads ethers.
 // ethers does not load in the client project, so the stores are plain ones.
-vi.mock("@stores/storeSyncStatus", async () => {
+vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncStatus: writable({}) };
 });
-vi.mock("@stores/storeChainStatus", async () => {
+vi.mock("#stores/storeChainStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeChainStatus: writable({}) };
 });
 // SyncStatusToggle imports these, which load the chain data too.
-vi.mock("@eventLogs/syncLock", async () => {
+vi.mock("#eventLogs/syncLock.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncLockedByOtherTab: writable({}) };
 });
-vi.mock("@eventLogs/eventLogs", () => ({ fetchEventLogs: vi.fn() }));
-vi.mock("@db/dbEventLogsDataHandlersSyncStatus", () => ({
+vi.mock("#eventLogs/eventLogs.js", () => ({ fetchEventLogs: vi.fn() }));
+vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js", () => ({
   startAbortingInChain: vi.fn(),
 }));
-vi.mock("@utils/utilsDb", () => ({
+vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
   }),

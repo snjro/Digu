@@ -1,13 +1,13 @@
 import { describe, expect, test } from "vitest";
 import { extractEventContracts, hasSyncTargetEvents } from "./utilsEthers";
-import { convertJsonFilesContractToContracts } from "@constants/chains/convertJsonToABI";
-import type { JsonFileContract } from "@constants/chains/jsonFileTypes";
-import type { Contract } from "@constants/chains/types";
-import { gridRows } from "@routes/[chainName]/[projectName_versionName]/contracts/gridRows";
-import { columnDefsNumOfLogs } from "@routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/columnDefsNumOfLogs";
+import { convertJsonFilesContractToContracts } from "#constants/chains/convertJsonToABI.js";
+import type { JsonFileContract } from "#constants/chains/jsonFileTypes.js";
+import type { Contract } from "#constants/chains/types.js";
+import { gridRows } from "#routes/[chainName]/[projectName_versionName]/contracts/gridRows.js";
+import { columnDefsNumOfLogs } from "#routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/columnDefsNumOfLogs.js";
 import type { EventRow } from "#lib/gridColumnDefs/rowTypes.js";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { ContractIdentifier } from "@db/dbTypes";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { ContractIdentifier } from "#db/dbTypes.js";
 import type { ColDef, ValueGetterParams } from "ag-grid-community";
 import { jsonFileContracts } from "./testCommon";
 

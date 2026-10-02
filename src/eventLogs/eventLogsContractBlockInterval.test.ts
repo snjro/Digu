@@ -5,27 +5,29 @@ import {
   extractEventContracts,
   getEthersEventLogs,
   type NodeProvider,
-} from "@utils/utilsEthers";
-import { sleep } from "@utils/utilsCommon";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { storeChainStatus } from "@stores/storeChainStatus";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain, Contract } from "@constants/chains/types";
-import type { DbEventLogs } from "@db/dbEventLogs";
-import { stopSyncingInContract } from "@db/dbEventLogsDataHandlersSyncStatus";
-import { customLogger } from "@utils/logger";
-import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
+} from "#utils/utilsEthers.js";
+import { sleep } from "#utils/utilsCommon.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain, Contract } from "#constants/chains/types.js";
+import type { DbEventLogs } from "#db/dbEventLogs.js";
+import { stopSyncingInContract } from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import { customLogger } from "#utils/logger.js";
+import type { SyncStatusContract, SyncStatusesChain } from "#db/dbTypes.js";
 
-vi.mock("@utils/utilsEthers", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@utils/utilsEthers")>();
+vi.mock("#utils/utilsEthers.js", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("#utils/utilsEthers.js")>();
   return { ...original, getEthersEventLogs: vi.fn().mockResolvedValue([]) };
 });
-vi.mock("@utils/utilsCommon", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@utils/utilsCommon")>();
+vi.mock("#utils/utilsCommon.js", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("#utils/utilsCommon.js")>();
   return { ...original, sleep: vi.fn().mockResolvedValue(undefined) };
 });
 vi.mock("./eventLogsContractUpdateTables");
-vi.mock("@db/dbEventLogsDataHandlersSyncStatus");
+vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js");
 
 const targetChain: Chain = TARGET_CHAINS[0];
 const targetProject = targetChain.projects[0];

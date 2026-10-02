@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { get } from "svelte/store";
 import type { ColDef, ValueGetterParams } from "ag-grid-community";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain, Contract } from "@constants/chains/types";
-import type { ContractIdentifier } from "@db/dbTypes";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { extractEventContracts } from "@utils/utilsEthers";
-import { trackStoreSubscriptions } from "@utils/testCommon";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain, Contract } from "#constants/chains/types.js";
+import type { ContractIdentifier } from "#db/dbTypes.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
+import { trackStoreSubscriptions } from "#utils/testCommon.js";
 import { columnDefsNumOfLogs } from "./columnDefsNumOfLogs";
 import type { EventRow } from "#lib/gridColumnDefs/rowTypes.js";
 

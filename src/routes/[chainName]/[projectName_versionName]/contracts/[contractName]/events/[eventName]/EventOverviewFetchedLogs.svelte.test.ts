@@ -8,27 +8,27 @@ import type {
   EventAbiFragment,
   Project,
   Version,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 import type {
   ConvertedEventLog,
   SyncStatusContract,
   SyncStatusesChain,
-} from "@db/dbTypes";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { getEventLogEdges } from "@db/dbEventLogsGetEventLogEdges";
-import { customLogger } from "@utils/logger";
+} from "#db/dbTypes.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { getEventLogEdges } from "#db/dbEventLogsGetEventLogEdges.js";
+import { customLogger } from "#utils/logger.js";
 import EventOverviewFetchedLogs from "./EventOverviewFetchedLogs.svelte";
 
 // The real store and DB load the chain data, which loads ethers. ethers does
 // not load in the client project, so they are replaced.
-vi.mock("@stores/storeSyncStatus", async () => {
+vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncStatus: writable({}) };
 });
-vi.mock("@db/dbEventLogsGetEventLogEdges", () => ({
+vi.mock("#db/dbEventLogsGetEventLogEdges.js", () => ({
   getEventLogEdges: vi.fn(),
 }));
-vi.mock("@utils/logger", () => ({
+vi.mock("#utils/logger.js", () => ({
   customLogger: {
     error: vi.fn(),
   },

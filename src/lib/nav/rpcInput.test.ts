@@ -4,19 +4,19 @@ import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
-} from "@stores/storeNoDb";
-import { customLogger } from "@utils/logger";
-import type { Chain } from "@constants/chains/types";
-import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
-import { updateDbItemRpcSettings } from "@db/dbSettings";
-import type { NodeStatus } from "@db/dbTypes";
-import { storeChainStatus } from "@stores/storeChainStatus";
+} from "#stores/storeNoDb.js";
+import { customLogger } from "#utils/logger.js";
+import type { Chain } from "#constants/chains/types.js";
+import { updateDbItemChainStatus } from "#db/dbChainStatusDataHandlers.js";
+import { updateDbItemRpcSettings } from "#db/dbSettings.js";
+import type { NodeStatus } from "#db/dbTypes.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
 import {
   cancelNodeProviderCall,
   getNodeProvider,
   startNodeProviderCall,
   type NodeProvider,
-} from "@utils/utilsEthers";
+} from "#utils/utilsEthers.js";
 import {
   blurOnEnter,
   clearSucceededNodeStatus,
@@ -25,11 +25,11 @@ import {
   updateRpc,
 } from "./rpcInput";
 
-vi.mock("@db/dbSettings", () => ({ updateDbItemRpcSettings: vi.fn() }));
-vi.mock("@db/dbChainStatusDataHandlers", () => ({
+vi.mock("#db/dbSettings.js", () => ({ updateDbItemRpcSettings: vi.fn() }));
+vi.mock("#db/dbChainStatusDataHandlers.js", () => ({
   updateDbItemChainStatus: vi.fn(),
 }));
-vi.mock("@utils/utilsEthers", () => ({
+vi.mock("#utils/utilsEthers.js", () => ({
   cancelNodeProviderCall: vi.fn(),
   getNodeProvider: vi.fn(),
   startNodeProviderCall: vi.fn(),

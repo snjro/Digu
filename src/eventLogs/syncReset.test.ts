@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { Chain } from "@constants/chains/types";
-import { DB_NAME, getSyncLockName } from "@db/constants";
-import { resetDbSyncedData } from "@db/dbResetSyncedData";
-import { initialDataRpcSetting } from "@db/dbTypes";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
-import { customLogger } from "@utils/logger";
-import { startWarpSync } from "@warpSync/warpSync";
+import type { Chain } from "#constants/chains/types.js";
+import { DB_NAME, getSyncLockName } from "#db/constants.js";
+import { resetDbSyncedData } from "#db/dbResetSyncedData.js";
+import { initialDataRpcSetting } from "#db/dbTypes.js";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { customLogger } from "#utils/logger.js";
+import { startWarpSync } from "#warpSync/warpSync.js";
 import {
   selectWarpSyncState,
   setWarpSyncState,
   storeWarpSync,
-} from "@warpSync/warpSyncState";
+} from "#warpSync/warpSyncState.js";
 import { get } from "svelte/store";
 import {
   installFakeLockManager,
@@ -28,10 +28,10 @@ import {
   watchSyncResetsOfOtherTabs,
 } from "./syncReset";
 
-vi.mock("@db/dbResetSyncedData", () => ({
+vi.mock("#db/dbResetSyncedData.js", () => ({
   resetDbSyncedData: vi.fn(async () => {}),
 }));
-vi.mock("@warpSync/warpSync", () => ({
+vi.mock("#warpSync/warpSync.js", () => ({
   startWarpSync: vi.fn(async () => {}),
   forgetWarpSyncConfirmation: vi.fn(),
 }));

@@ -4,20 +4,20 @@ import { tick } from "svelte";
 import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 import type { Writable } from "svelte/store";
-import { customLogger } from "@utils/logger";
-import { updateDbItemRpcSettings } from "@db/dbSettings";
-import { storeUserSettings } from "@stores/storeUserSettings";
-import { startWarpSync } from "@warpSync/warpSync";
-import { setWarpSyncState } from "@warpSync/warpSyncState";
+import { customLogger } from "#utils/logger.js";
+import { updateDbItemRpcSettings } from "#db/dbSettings.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
+import { startWarpSync } from "#warpSync/warpSync.js";
+import { setWarpSyncState } from "#warpSync/warpSyncState.js";
 import WarpSyncConfig from "./WarpSyncConfig.svelte";
 
 // The real stores and chain data load ethers, which does not load in the
 // client project.
-vi.mock("@stores/storeUserSettings", async () => {
+vi.mock("#stores/storeUserSettings.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeUserSettings: writable({ selectedChainName: "matic" }) };
 });
-vi.mock("@stores/storeRpcSettings", async () => {
+vi.mock("#stores/storeRpcSettings.js", async () => {
   const { writable } = await import("svelte/store");
   return {
     storeRpcSettings: writable({
@@ -27,13 +27,13 @@ vi.mock("@stores/storeRpcSettings", async () => {
     }),
   };
 });
-vi.mock("@utils/utilsDb", () => ({
+vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
   }),
 }));
-vi.mock("@db/dbSettings", () => ({ updateDbItemRpcSettings: vi.fn() }));
-vi.mock("@warpSync/warpSync", () => ({
+vi.mock("#db/dbSettings.js", () => ({ updateDbItemRpcSettings: vi.fn() }));
+vi.mock("#warpSync/warpSync.js", () => ({
   startWarpSync: vi.fn(async () => {}),
   confirmWarpSync: vi.fn(async () => {}),
   forgetWarpSyncConfirmation: vi.fn(),

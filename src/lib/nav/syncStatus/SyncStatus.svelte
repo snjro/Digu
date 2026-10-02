@@ -3,8 +3,8 @@
     breakPointWidthThresholds,
     breakPointWidths,
   } from "#lib/appearanceConfig/size/sizeDefinitions.js";
-  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
   import classNames from "classnames";
   import SyncStatusProgress from "./SyncStatusProgress.svelte";
   import SyncStatusToggle from "./SyncStatusToggle.svelte";

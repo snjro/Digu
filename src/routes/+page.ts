@@ -1,10 +1,10 @@
 import { browser } from "$app/env";
-import type { ChainName } from "@constants/chains/types";
+import type { ChainName } from "#constants/chains/types.js";
 import { error, redirect } from "@sveltejs/kit";
 import { basePath } from "#lib/common/basePath.js";
 import { getChainRootUrl } from "#lib/common/chainRootUrl.js";
-import { getDbItemUserSettings } from "@db/dbSettings";
-import { initialDataUserSettings } from "@db/dbTypes";
+import { getDbItemUserSettings } from "#db/dbSettings.js";
+import { initialDataUserSettings } from "#db/dbTypes.js";
 
 export async function load() {
   if (browser) {

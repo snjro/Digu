@@ -1,6 +1,6 @@
 import { writable } from "svelte/store";
 import type { StateUserSettings } from "./storeTypes";
-import { initialDataUserSettings, type UserSetting } from "@db/dbTypes";
+import { initialDataUserSettings, type UserSetting } from "#db/dbTypes.js";
 
 function store() {
   const { subscribe, set, update } = writable(getInitialState());

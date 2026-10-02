@@ -2,11 +2,11 @@ import "fake-indexeddb/auto";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
 import type { Subscription } from "dexie";
-import { DB_TABLE_NAMES } from "@db/constants";
-import { addInitialDataOfDbSettings, dbSettings } from "@db/dbSettings";
-import { initialDataRpcSetting } from "@db/dbTypes";
-import { getTargetChain } from "@utils/utilsDb";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
+import { DB_TABLE_NAMES } from "#db/constants.js";
+import { addInitialDataOfDbSettings, dbSettings } from "#db/dbSettings.js";
+import { initialDataRpcSetting } from "#db/dbTypes.js";
+import { getTargetChain } from "#utils/utilsDb.js";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
 import { watchRpcSettings } from "./watchRpcSettings";
 
 const table = () => dbSettings.table(DB_TABLE_NAMES.Settings.rpcSettings);

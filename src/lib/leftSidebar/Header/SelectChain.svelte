@@ -5,14 +5,14 @@
   import BaseSelect, {
     type BaseSelectProps,
   } from "#lib/base/BaseSelect.svelte";
-  import { TARGET_CHAINS } from "@constants/chains/_index";
-  import type { Chain, ChainName } from "@constants/chains/types";
-  import { storeNoDbSnackBar, storeNodbShowLoader } from "@stores/storeNoDb";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { TARGET_CHAINS } from "#constants/chains/_index.js";
+  import type { Chain, ChainName } from "#constants/chains/types.js";
+  import { storeNoDbSnackBar, storeNodbShowLoader } from "#stores/storeNoDb.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
   import { basePath } from "#lib/common/basePath.js";
   import { getChainRootUrl } from "#lib/common/chainRootUrl.js";
   import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
-  import { customLogger } from "@utils/logger";
+  import { customLogger } from "#utils/logger.js";
   import { saveSelectedChainName } from "./selectChain";
   const items: BaseSelectProps["items"] = TARGET_CHAINS.map(
     (targetChain: Chain) => {

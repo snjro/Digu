@@ -1,15 +1,15 @@
 import "fake-indexeddb/auto";
 import { beforeEach, describe, expect, test } from "vitest";
 import { get } from "svelte/store";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { ContractName } from "@constants/chains/types";
-import { DB_TABLE_NAMES } from "@db/constants";
-import { DbEventLogs } from "@db/dbEventLogs";
-import { updateDbIsSyncTarget } from "@db/dbEventLogsDataHandlersSyncStatusUpdateDbIsSyncTarget";
-import type { SyncStatusContract, VersionIdentifier } from "@db/dbTypes";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { getInitialState } from "@stores/storeSyncStatusGetInitialState";
-import { extractEventContracts } from "@utils/utilsEthers";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { ContractName } from "#constants/chains/types.js";
+import { DB_TABLE_NAMES } from "#db/constants.js";
+import { DbEventLogs } from "#db/dbEventLogs.js";
+import { updateDbIsSyncTarget } from "#db/dbEventLogsDataHandlersSyncStatusUpdateDbIsSyncTarget.js";
+import type { SyncStatusContract, VersionIdentifier } from "#db/dbTypes.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { getInitialState } from "#stores/storeSyncStatusGetInitialState.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import { toggleIsSyncTarget } from "./toggleSyncTarget";
 
 type Target = {

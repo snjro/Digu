@@ -1,16 +1,16 @@
 import "fake-indexeddb/auto";
 import { describe, expect, test, vi } from "vitest";
 import Dexie from "dexie";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import { DB_NAME } from "@db/constants";
-import { dbWorkerFuncGetConvertedEventLogs } from "@db/db.worker.func.getConvertedEventLogs";
-import { initializeDBSyncStatusInChain } from "@db/db.worker.func.InitializeDBSyncStatus";
-import { updateSyncStatusInChain } from "@db/dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import { DB_NAME } from "#db/constants.js";
+import { dbWorkerFuncGetConvertedEventLogs } from "#db/db.worker.func.getConvertedEventLogs.js";
+import { initializeDBSyncStatusInChain } from "#db/db.worker.func.InitializeDBSyncStatus.js";
+import { updateSyncStatusInChain } from "#db/dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain.js";
 import { initializeStore } from "../initialization/initializeStore";
 import { toggleIsSyncTarget } from "#lib/common/toggleSyncTarget.js";
-import { extractEventContracts } from "@utils/utilsEthers";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 
-vi.mock("@utils/logger", () => ({
+vi.mock("#utils/logger.js", () => ({
   customLogger: class {
     static start() {}
     static finished() {}

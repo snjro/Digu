@@ -8,7 +8,7 @@ import {
 } from "vitest";
 import { dbBlockTimes } from "./dbBlockTimes";
 import Dexie from "dexie";
-import type { Chain } from "@constants/chains/types";
+import type { Chain } from "#constants/chains/types.js";
 import type { BlockTime } from "./dbTypes";
 import {
   getDbRecordBlockTime,

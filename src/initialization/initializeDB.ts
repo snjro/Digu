@@ -1,4 +1,4 @@
-import { startDbWorker } from "@db/db.worker.portal";
+import { startDbWorker } from "#db/db.worker.portal.js";
 
 export async function initializeDB(): Promise<void> {
   await Promise.all([

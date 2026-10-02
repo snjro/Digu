@@ -12,17 +12,17 @@
   import LeftSidebar from "#lib/leftSidebar/LeftSidebar.svelte";
   import Nav from "#lib/nav/Nav.svelte";
   import WarpSyncConfirmDialog from "#lib/nav/WarpSyncConfirmDialog.svelte";
-  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { getScreenWidth } from "@utils/utilsDom";
+  import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
+  import { getScreenWidth } from "#utils/utilsDom.js";
   import classNames from "classnames";
   import LoadingSpinner from "./LoadingSpinner.svelte";
-  import { capitalizeFirstLetter } from "@utils/utilsCommon";
-  import { customLogger } from "@utils/logger";
-  import { PROJECT_NAME } from "@utils/utilsConstants";
+  import { capitalizeFirstLetter } from "#utils/utilsCommon.js";
+  import { customLogger } from "#utils/logger.js";
+  import { PROJECT_NAME } from "#utils/utilsConstants.js";
   import { untrack, type Snippet } from "svelte";
-  import { TARGET_CHAINS } from "@constants/chains/_index";
-  import { startWarpSync } from "@warpSync/warpSync";
+  import { TARGET_CHAINS } from "#constants/chains/_index.js";
+  import { startWarpSync } from "#warpSync/warpSync.js";
 
   interface Props {
     children?: Snippet;

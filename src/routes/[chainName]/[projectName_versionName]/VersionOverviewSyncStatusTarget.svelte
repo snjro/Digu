@@ -2,7 +2,7 @@
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import CommonItemMember from "#lib/common/CommonItemMember.svelte";
   import CommonToggleSyncTarget from "#lib/common/CommonToggleSyncTarget.svelte";
-  import type { Chain, Project, Version } from "@constants/chains/types";
+  import type { Chain, Project, Version } from "#constants/chains/types.js";
 
   interface Props {
     targetChain: Chain;

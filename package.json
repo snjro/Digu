@@ -57,6 +57,13 @@
     "ethers": "^6.3.0"
   },
   "imports": {
-    "#lib/*": "./src/lib/*"
+    "#lib/*": "./src/lib/*",
+    "#db/*": "./src/db/*",
+    "#stores/*": "./src/stores/*",
+    "#constants/*": "./src/constants/*",
+    "#utils/*": "./src/utils/*",
+    "#routes/*": "./src/routes/*",
+    "#eventLogs/*": "./src/eventLogs/*",
+    "#warpSync/*": "./src/warpSync/*"
   }
 }

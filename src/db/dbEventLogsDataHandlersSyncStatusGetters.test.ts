@@ -1,4 +1,4 @@
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import "fake-indexeddb/auto";
 import {
   beforeEach,
@@ -18,8 +18,8 @@ import {
 } from "./dbEventLogsDataHandlersSyncStatusGetters";
 
 import { DB_TABLE_NAMES } from "./constants";
-import type { Contract } from "@constants/chains/types";
-import { extractEventContracts } from "@utils/utilsEthers";
+import type { Contract } from "#constants/chains/types.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 

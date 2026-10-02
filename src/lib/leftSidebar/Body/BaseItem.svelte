@@ -20,7 +20,7 @@
     leftSideBarItemHeight,
     type BaseSize,
   } from "#lib/base/baseSizes.js";
-  import { storeNoDbOpenLeftSidebarAccordion } from "@stores/storeNoDb";
+  import { storeNoDbOpenLeftSidebarAccordion } from "#stores/storeNoDb.js";
   import classNames from "classnames";
   import {
     isSelectedDirectory,

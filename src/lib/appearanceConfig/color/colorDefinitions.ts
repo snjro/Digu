@@ -1,4 +1,4 @@
-import type { ThemeColor } from "@db/dbTypes";
+import type { ThemeColor } from "#db/dbTypes.js";
 import { colorDefinitionsDark } from "./colorDefinitionsDark";
 import { colorDefinitionsLight } from "./colorDefinitionsLight";
 

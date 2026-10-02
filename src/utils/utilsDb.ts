@@ -7,15 +7,15 @@ import type {
   AbiFragmentName,
   EventAbiFragment,
   FunctionAbiFragment,
-} from "@constants/chains/types";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+} from "#constants/chains/types.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type {
   ChainIdentifier,
   ContractIdentifier,
   AbiFragmentIdentifier,
   ProjectIdentifier,
   VersionIdentifier,
-} from "@db/dbTypes";
+} from "#db/dbTypes.js";
 
 export class TargetNotFoundError extends Error {
   constructor(target: string, identifier: object) {

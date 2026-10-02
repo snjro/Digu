@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { customLogger } from "@utils/logger";
+import { customLogger } from "#utils/logger.js";
 import { applyLatestLoad, createThrottledLoad } from "./latestLoad";
 
-vi.mock("@utils/logger", () => ({
+vi.mock("#utils/logger.js", () => ({
   customLogger: {
     error: vi.fn(),
   },

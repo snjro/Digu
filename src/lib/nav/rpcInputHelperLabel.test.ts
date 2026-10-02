@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
-import type { NodeStatus } from "@db/dbTypes";
+import type { NodeStatus } from "#db/dbTypes.js";
 import { getRpcInputHelperLabelProps } from "./rpcInputHelperLabel";
 
 const size = sizeSettings.navInputHelperText;

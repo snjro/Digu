@@ -4,7 +4,7 @@
   import type { BaseButtonProps } from "#lib/base/BaseButton.svelte";
   import BaseButtonIcon from "#lib/base/BaseButtonIcon.svelte";
   import type { BaseIconProps } from "#lib/base/BaseIcon.js";
-  import { GITHUB_REPOSITORY_URL } from "@utils/utilsConstants";
+  import { GITHUB_REPOSITORY_URL } from "#utils/utilsConstants.js";
 
   const buttons: {
     iconName: BaseIconProps["name"];

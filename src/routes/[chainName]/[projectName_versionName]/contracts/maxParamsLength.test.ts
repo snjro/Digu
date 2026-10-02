@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { ConvertedEventLog } from "@db/dbTypes";
+import type { ConvertedEventLog } from "#db/dbTypes.js";
 import { getEachArgsMaxLengths, getMaxParamsLength } from "./maxParamsLength";
 
 type Row = { params: string[] };

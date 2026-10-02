@@ -11,13 +11,13 @@ import type {
   ProjectName,
   Version,
   VersionName,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 import type {
   ChainIdentifier,
   ContractIdentifier,
   AbiFragmentIdentifier,
   ProjectIdentifier,
-} from "@db/dbTypes";
+} from "#db/dbTypes.js";
 import { getSplitProjectVersionName } from "#lib/common/projectVersionNameHelper.js";
 import type { LoadEvent } from "@sveltejs/kit";
 import {
@@ -26,8 +26,8 @@ import {
   getTargetProject,
   getTargetVersion,
   getTargetFunctionAbiFragment,
-} from "@utils/utilsDb";
-import { throwNotFoundAs404 } from "@routes/targetNotFound";
+} from "#utils/utilsDb.js";
+import { throwNotFoundAs404 } from "#routes/targetNotFound.js";
 
 export type LoadFunction = {
   targetChain: Chain;

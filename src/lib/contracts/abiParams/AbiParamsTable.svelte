@@ -17,7 +17,7 @@
   import type {
     EventAbiFragment,
     FunctionAbiFragment,
-  } from "@constants/chains/types";
+  } from "#constants/chains/types.js";
   import AbiParamsTableRow from "./AbiParamsTableRow.svelte";
 
   interface Props {

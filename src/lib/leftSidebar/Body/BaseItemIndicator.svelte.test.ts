@@ -4,8 +4,8 @@ import { render } from "@testing-library/svelte";
 import BaseItemIndicator from "./BaseItemIndicator.svelte";
 import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 
 type Props = ComponentProps<typeof BaseItemIndicator>;
 const props: Props = {

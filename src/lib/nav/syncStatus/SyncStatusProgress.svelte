@@ -6,13 +6,13 @@
   import BaseProgressCircleSyncStatus from "#lib/base/BaseProgressCircle/BaseProgressCircleSyncStatus.svelte";
   import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
   import type { SyncStateTextLabelProps } from "#lib/common/CommonSyncStateText.svelte";
-  import type { Chain, ChainName } from "@constants/chains/types";
-  import type { SyncStateText } from "@db/dbTypes";
-  import { storeChainStatus } from "@stores/storeChainStatus";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { storeUserSettings } from "@stores/storeUserSettings";
-  import { NO_DATA } from "@utils/utilsConstants";
-  import { getTargetChain } from "@utils/utilsDb";
+  import type { Chain, ChainName } from "#constants/chains/types.js";
+  import type { SyncStateText } from "#db/dbTypes.js";
+  import { storeChainStatus } from "#stores/storeChainStatus.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
+  import { NO_DATA } from "#utils/utilsConstants.js";
+  import { getTargetChain } from "#utils/utilsDb.js";
   import classNames from "classnames";
 
   interface Props {

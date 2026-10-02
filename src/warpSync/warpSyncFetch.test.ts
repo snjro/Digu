@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import type { Chain } from "@constants/chains/types";
+import type { Chain } from "#constants/chains/types.js";
 import { fetchWarpSyncManifest, getWarpSyncFileUrl } from "./warpSyncFetch";
 
 vi.mock("#lib/common/basePath.js", () => ({ basePath: "/Digu" }));

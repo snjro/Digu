@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { SyncStatusContract } from "@db/dbTypes";
+import type { SyncStatusContract } from "#db/dbTypes.js";
 import {
   getBlockNumberByHeaderName,
   type HeaderName,

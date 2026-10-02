@@ -7,7 +7,7 @@ import type {
   FunctionAbiFragment,
   Project,
   Version,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 import Page from "./+page.svelte";
 import type { LoadFunction } from "./+page";
 

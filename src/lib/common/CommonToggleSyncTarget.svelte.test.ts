@@ -9,19 +9,19 @@ import type {
   Contract,
   Project,
   Version,
-} from "@constants/chains/types";
-import type { SyncStatusesChain } from "@db/dbTypes";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
+} from "#constants/chains/types.js";
+import type { SyncStatusesChain } from "#db/dbTypes.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
-} from "@stores/storeNoDb";
-import { customLogger } from "@utils/logger";
+} from "#stores/storeNoDb.js";
+import { customLogger } from "#utils/logger.js";
 
 // The real store builds its state from the chain data, which loads ethers.
 // ethers does not load in the client project, so the store is a plain one.
-vi.mock("@stores/storeSyncStatus", async () => {
+vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncStatus: writable({}) };
 });

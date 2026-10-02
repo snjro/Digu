@@ -2,7 +2,7 @@ import type {
   AbiFragmentName,
   ContractName,
   FunctionAbiFragment,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 import { describe, expect, test } from "vitest";
 import {
   getEventLogTableName,
@@ -21,10 +21,10 @@ import type {
   ContractIdentifier,
   ProjectIdentifier,
   VersionIdentifier,
-} from "@db/dbTypes";
-import { convertJsonFilesContractToContracts } from "@constants/chains/convertJsonToABI";
+} from "#db/dbTypes.js";
+import { convertJsonFilesContractToContracts } from "#constants/chains/convertJsonToABI.js";
 import { jsonFileContracts } from "./testCommon";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 const chainIdentifier: ChainIdentifier = { chainName: "eth" };
 const projectIdentifier: ProjectIdentifier = {
   ...chainIdentifier,

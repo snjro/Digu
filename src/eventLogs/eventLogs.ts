@@ -1,21 +1,28 @@
 import { fetchEventLogsContract } from "./eventLogsContract";
-import { getDbEventLogs, type DbEventLogs } from "@db/dbEventLogs";
-import type { VersionIdentifier } from "@db/dbTypes";
-import { extractEventContracts, getNodeProvider } from "@utils/utilsEthers";
-import type { NodeProvider } from "@utils/utilsEthers";
-import type { Chain, ChainName, ContractName } from "@constants/chains/types";
+import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
+import type { VersionIdentifier } from "#db/dbTypes.js";
+import { extractEventContracts, getNodeProvider } from "#utils/utilsEthers.js";
+import type { NodeProvider } from "#utils/utilsEthers.js";
+import type {
+  Chain,
+  ChainName,
+  ContractName,
+} from "#constants/chains/types.js";
 import {
   startAbortingInChain,
   startSyncingInChain,
   stopSyncingInChain,
-} from "@db/dbEventLogsDataHandlersSyncStatus";
-import { customLogger } from "@utils/logger";
-import { getUrlObject } from "@utils/utilsCommon";
-import { storeRpcSettings } from "@stores/storeRpcSettings";
+} from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import { customLogger } from "#utils/logger.js";
+import { getUrlObject } from "#utils/utilsCommon.js";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
 import { get } from "svelte/store";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { requestSyncLock } from "./syncLock";
-import { importWarpSyncBeforeSync, waitForWarpSync } from "@warpSync/warpSync";
+import {
+  importWarpSyncBeforeSync,
+  waitForWarpSync,
+} from "#warpSync/warpSync.js";
 
 // Resolves true once every sync target is marked as syncing, so that an abort
 // reaches all of them. Resolves false without syncing when the chain is

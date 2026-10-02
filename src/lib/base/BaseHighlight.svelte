@@ -2,8 +2,8 @@
   import { colorVar } from "#lib/appearanceConfig/color/colorVariables.js";
   import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
-  import type { ThemeColor } from "@db/dbTypes";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import type { ThemeColor } from "#db/dbTypes.js";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
   import classNames from "classnames";
   import Highlight from "svelte-highlight";
   import json from "svelte-highlight/languages/json";

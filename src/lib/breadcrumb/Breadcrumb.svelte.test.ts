@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { render } from "@testing-library/svelte";
 import Breadcrumb from "./Breadcrumb.svelte";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 
 vi.mock("$app/state", () => ({
   page: {

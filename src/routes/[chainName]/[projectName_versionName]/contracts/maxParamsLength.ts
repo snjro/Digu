@@ -1,4 +1,4 @@
-import type { ConvertedEventLog } from "@db/dbTypes";
+import type { ConvertedEventLog } from "#db/dbTypes.js";
 
 export function getMaxParamsLength<T>(
   rows: T[],

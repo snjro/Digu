@@ -13,7 +13,7 @@ import {
 import type { ColumnDef } from "#lib/grid/types.js";
 import { getColumnDefs } from "#lib/grid/GridBody/getColumnDefs.js";
 import { getCsvText } from "#lib/grid/ExportCsv/exportCsv.js";
-import type { ConvertedEventLog } from "@db/dbTypes";
+import type { ConvertedEventLog } from "#db/dbTypes.js";
 import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
 
 // An array, an indexed argument and integers, which ethers 6 decodes to bigint.

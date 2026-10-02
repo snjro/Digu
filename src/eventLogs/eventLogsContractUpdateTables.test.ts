@@ -2,18 +2,25 @@ import "fake-indexeddb/auto";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Block } from "ethers";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
-import { addEventLogs_updateFetchedBlockNumber } from "@db/dbEventLogsDataHandlersEventLog";
-import { dbBlockTimes } from "@db/dbBlockTimes";
-import { setDbBlockTime } from "@db/dbBlockTimesDataHandlers";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Chain, Contract } from "@constants/chains/types";
-import type { DbEventLogs } from "@db/dbEventLogs";
-import type { BlockTime, EthersEventLog, GroupedEventLogs } from "@db/dbTypes";
-import { extractEventContracts, type NodeProvider } from "@utils/utilsEthers";
-import { customLogger } from "@utils/logger";
-import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
+import { addEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
+import { dbBlockTimes } from "#db/dbBlockTimes.js";
+import { setDbBlockTime } from "#db/dbBlockTimesDataHandlers.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Chain, Contract } from "#constants/chains/types.js";
+import type { DbEventLogs } from "#db/dbEventLogs.js";
+import type {
+  BlockTime,
+  EthersEventLog,
+  GroupedEventLogs,
+} from "#db/dbTypes.js";
+import {
+  extractEventContracts,
+  type NodeProvider,
+} from "#utils/utilsEthers.js";
+import { customLogger } from "#utils/logger.js";
+import { convertTimestampSecToIso8601 } from "#utils/utilsTime.js";
 
-vi.mock("@db/dbEventLogsDataHandlersEventLog");
+vi.mock("#db/dbEventLogsDataHandlersEventLog.js");
 
 const targetChain: Chain = TARGET_CHAINS[0];
 const targetProject = targetChain.projects[0];

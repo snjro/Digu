@@ -1,16 +1,16 @@
 import type { Transaction } from "dexie";
-import type { Contract, Version } from "@constants/chains/types";
-import { getEventTableNames, getTargetVersion } from "@utils/utilsDb";
+import type { Contract, Version } from "#constants/chains/types.js";
+import { getEventTableNames, getTargetVersion } from "#utils/utilsDb.js";
 import { dbBase } from "./dbBase";
-import type { SchemaDefinition, VersionIdentifier } from "@db/dbTypes";
+import type { SchemaDefinition, VersionIdentifier } from "#db/dbTypes.js";
 import {
   DB_NAME,
   DB_TABLE_NAMES,
   DB_VERSIONS,
   PK_AUTO_INCREMENTED,
-} from "@db/constants";
-import type { SyncStatusContract } from "@db/dbTypes";
-import { extractEventContracts } from "@utils/utilsEthers";
+} from "#db/constants.js";
+import type { SyncStatusContract } from "#db/dbTypes.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import { getInitialDataOfSyncStatusContract } from "./dbEventLogsAddInitialData";
 
 export class DbEventLogs extends dbBase {

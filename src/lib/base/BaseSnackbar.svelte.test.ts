@@ -6,7 +6,7 @@ import BaseSnackbar from "./BaseSnackbar.svelte";
 import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
-} from "@stores/storeNoDb";
+} from "#stores/storeNoDb.js";
 
 // The fly transition is canceled when the test ends, which the browser reports
 // as an error. The timing of the snackbar does not depend on it.

@@ -1,4 +1,4 @@
-import type { ContractName } from "@constants/chains/types";
+import type { ContractName } from "#constants/chains/types.js";
 import { DbEventLogs } from "./dbEventLogs";
 import type { SyncStatusContract } from "./dbTypes";
 import { updateDbRecordSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbRecordSyncStatus";

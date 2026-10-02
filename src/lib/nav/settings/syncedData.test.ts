@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import type { SyncStatusChain } from "@db/dbTypes";
-import { NO_DATA } from "@utils/utilsConstants";
+import type { SyncStatusChain } from "#db/dbTypes.js";
+import { NO_DATA } from "#utils/utilsConstants.js";
 import {
   countSyncedLogs,
   getImportResultLine,

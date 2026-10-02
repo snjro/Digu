@@ -1,4 +1,4 @@
-import type { Chain, ChainName, Contract } from "@constants/chains/types";
+import type { Chain, ChainName, Contract } from "#constants/chains/types.js";
 import {
   afterAll,
   beforeAll,
@@ -22,10 +22,10 @@ import {
   startNodeProviderCall,
   type NodeProvider,
 } from "./utilsEthers";
-import { convertJsonFilesContractToContracts } from "@constants/chains/convertJsonToABI";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import * as dbChainStatusDataHandlers from "@db/dbChainStatusDataHandlers";
-import type { ChainStatus, EthersEventLog } from "@db/dbTypes";
+import { convertJsonFilesContractToContracts } from "#constants/chains/convertJsonToABI.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import * as dbChainStatusDataHandlers from "#db/dbChainStatusDataHandlers.js";
+import type { ChainStatus, EthersEventLog } from "#db/dbTypes.js";
 import {
   EventLog,
   FetchRequest,

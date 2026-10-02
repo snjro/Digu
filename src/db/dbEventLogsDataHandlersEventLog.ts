@@ -1,9 +1,9 @@
-import type { Contract, ContractName } from "@constants/chains/types";
+import type { Contract, ContractName } from "#constants/chains/types.js";
 import type { DbEventLogs } from "./dbEventLogs";
 import type { Table } from "dexie";
-import { getEventLogTableName } from "@utils/utilsDb";
-import { assertIsDefined } from "@utils/utilsCommon";
-import { customLogger } from "@utils/logger";
+import { getEventLogTableName } from "#utils/utilsDb.js";
+import { assertIsDefined } from "#utils/utilsCommon.js";
+import { customLogger } from "#utils/logger.js";
 import type {
   ConvertedEventLog,
   GroupedEventLogs,
@@ -13,7 +13,7 @@ import type {
   VersionIdentifier,
 } from "./dbTypes";
 import { DB_TABLE_NAMES } from "./constants";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import * as itSelf from "./dbEventLogsDataHandlersEventLog";
 import { getUpdateTargetEventLogTables } from "./dbEventLogsGetUpdateTargetEventLogTables";
 import { getDbItemSyncStatus } from "./dbEventLogsDataHandlersSyncStatusGetters";

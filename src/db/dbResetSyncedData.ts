@@ -1,6 +1,6 @@
-import type { Chain, Contract, Version } from "@constants/chains/types";
-import { getEventTableNames } from "@utils/utilsDb";
-import { extractEventContracts } from "@utils/utilsEthers";
+import type { Chain, Contract, Version } from "#constants/chains/types.js";
+import { getEventTableNames } from "#utils/utilsDb.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import type { Table } from "dexie";
 import { DB_TABLE_NAMES } from "./constants";
 import { dbBlockTimes } from "./dbBlockTimes";

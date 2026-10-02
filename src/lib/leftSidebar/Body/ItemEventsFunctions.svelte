@@ -3,9 +3,9 @@
   import type {
     EventAbiFragment,
     FunctionAbiFragment,
-  } from "@constants/chains/types";
+  } from "#constants/chains/types.js";
   import type { AbiFragmentsType } from "#lib/contracts/abiFragmentsType.js";
-  import { capitalizeFirstLetter } from "@utils/utilsCommon";
+  import { capitalizeFirstLetter } from "#utils/utilsCommon.js";
   import BaseAccordion from "./BaseAccordion.svelte";
   import ItemEventsFunctionsMember from "./ItemEventsFunctionsMember.svelte";
   import { getFunctionSelectorWithSplitter } from "./functionNameHandler";

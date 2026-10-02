@@ -4,8 +4,8 @@ import { render, screen } from "@testing-library/svelte";
 import BaseTableRow from "./BaseTableRow.svelte";
 import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 import { htmlSnippet, slotProps } from "../../../testUtils/snippets";
 
 // themeColors.css gives this class the bgHover color of each theme.

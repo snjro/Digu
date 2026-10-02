@@ -3,9 +3,9 @@ import type {
   ChainName,
   Contract,
   EventAbiFragment,
-} from "@constants/chains/types";
-import { updateDbItemChainStatus } from "@db/dbChainStatusDataHandlers";
-import type { EthersEventLog, NodeStatus } from "@db/dbTypes";
+} from "#constants/chains/types.js";
+import { updateDbItemChainStatus } from "#db/dbChainStatusDataHandlers.js";
+import type { EthersEventLog, NodeStatus } from "#db/dbTypes.js";
 import { customLogger } from "./logger";
 import { getUrlObject } from "./utilsCommon";
 import { getTargetChain } from "./utilsDb";

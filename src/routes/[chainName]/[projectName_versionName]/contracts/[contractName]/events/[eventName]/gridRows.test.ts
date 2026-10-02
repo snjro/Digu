@@ -1,11 +1,11 @@
 import { gridRows } from "./gridRows";
-import { startDbWorker } from "@db/db.worker.portal";
-import { customLogger } from "@utils/logger";
-import type { AbiFragmentIdentifier } from "@db/dbTypes";
+import { startDbWorker } from "#db/db.worker.portal.js";
+import { customLogger } from "#utils/logger.js";
+import type { AbiFragmentIdentifier } from "#db/dbTypes.js";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-vi.mock("@db/db.worker.portal");
-vi.mock("@utils/logger", () => ({
+vi.mock("#db/db.worker.portal.js");
+vi.mock("#utils/logger.js", () => ({
   customLogger: {
     error: vi.fn(),
   },

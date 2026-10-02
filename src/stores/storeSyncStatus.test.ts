@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
 import { getInitialState } from "./storeSyncStatusGetInitialState";
-import { NO_DATA } from "@utils/utilsConstants";
-import type { SyncStatusContract, SyncStatusesChain } from "@db/dbTypes";
+import { NO_DATA } from "#utils/utilsConstants.js";
+import type { SyncStatusContract, SyncStatusesChain } from "#db/dbTypes.js";
 
 export const dummyChainName = "chain1";
 export const dummyProjectName = "project1";
@@ -272,7 +272,7 @@ describe("storeSyncStatus", () => {
   });
   test("should ignore a contract that is not in the store", async () => {
     const storeSyncStatus = await importStoreSyncStatus();
-    const { customLogger } = await import("@utils/logger");
+    const { customLogger } = await import("#utils/logger.js");
     const spyError = vi
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});

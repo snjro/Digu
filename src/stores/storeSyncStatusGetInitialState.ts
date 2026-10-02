@@ -1,8 +1,8 @@
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { Contract } from "@constants/chains/types";
-import { getInitialDataOfSyncStatusesEvent } from "@db/dbEventLogsAddInitialData";
-import { extractEventContracts } from "@utils/utilsEthers";
-import { NO_DATA } from "@utils/utilsConstants";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { Contract } from "#constants/chains/types.js";
+import { getInitialDataOfSyncStatusesEvent } from "#db/dbEventLogsAddInitialData.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
+import { NO_DATA } from "#utils/utilsConstants.js";
 import type {
   IdentifierName,
   SubSyncStatuses,
@@ -13,7 +13,7 @@ import type {
   SyncStatusProject,
   SyncStatusVersion,
   SyncStatusesChain,
-} from "@db/dbTypes";
+} from "#db/dbTypes.js";
 
 export function getInitialState(): SyncStatusesChain {
   const state: SyncStatusesChain = {};

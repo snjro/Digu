@@ -6,11 +6,11 @@ import {
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
   storeNodbShowLoader,
-} from "@stores/storeNoDb";
+} from "#stores/storeNoDb.js";
 import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
-import { customLogger } from "@utils/logger";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import { customLogger } from "#utils/logger.js";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 import { selectAsUser } from "../../../testUtils/selectAsUser";
 import SelectChain from "./SelectChain.svelte";
 import { saveSelectedChainName } from "./selectChain";
@@ -23,7 +23,7 @@ vi.mock("$app/navigation", () => ({ goto: vi.fn() }));
 vi.mock("#lib/common/basePath.js", () => ({ basePath: "" }));
 vi.mock("./selectChain", () => ({ saveSelectedChainName: vi.fn() }));
 // The real chain data loads ethers, which does not load in the client project.
-vi.mock("@constants/chains/_index", () => ({
+vi.mock("#constants/chains/_index.js", () => ({
   TARGET_CHAINS: [
     { name: "eth", fullName: "Ethereum" },
     { name: "matic", fullName: "Polygon" },

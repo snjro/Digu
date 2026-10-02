@@ -2,14 +2,14 @@
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import BaseButton from "#lib/base/BaseButton.svelte";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
-  import { storeUserSettings } from "@stores/storeUserSettings";
+  import { storeUserSettings } from "#stores/storeUserSettings.js";
   import {
     selectWarpSyncState,
     stopWarpSync,
     storeWarpSync,
     type WarpSyncState,
-  } from "@warpSync/warpSyncState";
-  import { getImportProgressText } from "@warpSync/warpSyncTexts";
+  } from "#warpSync/warpSyncState.js";
+  import { getImportProgressText } from "#warpSync/warpSyncTexts.js";
   import classNames from "classnames";
 
   let chainName: string = $derived(

@@ -4,12 +4,12 @@ import type {
   EventAbiFragment,
   Project,
   Version,
-} from "@constants/chains/types";
-import type { AbiFragmentIdentifier } from "@db/dbTypes";
+} from "#constants/chains/types.js";
+import type { AbiFragmentIdentifier } from "#db/dbTypes.js";
 import type { LoadEvent } from "@sveltejs/kit";
-import { getTargetEventAbiFragment } from "@utils/utilsDb";
+import { getTargetEventAbiFragment } from "#utils/utilsDb.js";
 import { _LoadContractData, type LoadContractData } from "../../+page";
-import { throwNotFoundAs404 } from "@routes/targetNotFound";
+import { throwNotFoundAs404 } from "#routes/targetNotFound.js";
 
 export type LoadEventLogs = {
   targetChain: Chain;

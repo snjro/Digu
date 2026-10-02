@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import * as InitializeDBSyncStatusForContract from "./db.worker.func.InitializeDBSyncStatusForContract";
 import { DbEventLogs } from "./dbEventLogs";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { VersionIdentifier } from "./dbTypes";
 import * as DbEventLogsDataHandlersSyncStatusUpdatersDbRecordSyncStatus from "./dbEventLogsDataHandlersSyncStatusUpdateDbRecordSyncStatus";
 import * as DbEventLogsDataHandlersEventLog from "./dbEventLogsDataHandlersEventLog";
@@ -10,9 +10,9 @@ import type {
   Contract,
   Project,
   Version,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 
-import * as UtlisDb from "@utils/utilsDb";
+import * as UtlisDb from "#utils/utilsDb.js";
 
 vi.mock("./dbEventLogs");
 vi.mock("./dbEventLogsDataHandlersEventLog");

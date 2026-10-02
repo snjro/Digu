@@ -4,7 +4,7 @@
   import BaseButtonIcon from "#lib/base/BaseButtonIcon.svelte";
   import type { BaseSize } from "#lib/base/baseSizes.js";
   import { copyTextToClipboard } from "#lib/common/clipboard.js";
-  import { storeNoDbSnackBar } from "@stores/storeNoDb";
+  import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
 
   interface Props {
     copyTarget?: string | undefined;

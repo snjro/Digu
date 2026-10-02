@@ -7,12 +7,12 @@ import {
   vi,
   type MockInstance,
 } from "vitest";
-import * as UtilsDb from "@utils/utilsDb";
+import * as UtilsDb from "#utils/utilsDb.js";
 import { DbEventLogs } from "./dbEventLogs";
 import type { GroupedEventLogs, VersionIdentifier } from "./dbTypes";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import { getUpdateTargetEventLogTables } from "./dbEventLogsGetUpdateTargetEventLogTables";
-import type { EventAbiFragment } from "@constants/chains/types";
+import type { EventAbiFragment } from "#constants/chains/types.js";
 import type { Table } from "dexie";
 import { DB_TABLE_NAMES } from "./constants";
 

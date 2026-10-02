@@ -11,7 +11,7 @@ import {
 import type { DbWorkerMessage, TargetFunctionName } from "./db.worker.types";
 
 vi.mock("./db.worker.executeTargetFunction");
-vi.mock("@utils/logger", () => ({
+vi.mock("#utils/logger.js", () => ({
   customLogger: {
     start: vi.fn(),
   },
@@ -76,7 +76,7 @@ describe("db.worker", () => {
   });
 
   test("should post the error message when the logger throws", async () => {
-    const { customLogger } = await import("@utils/logger");
+    const { customLogger } = await import("#utils/logger.js");
     vi.mocked(customLogger.start).mockImplementationOnce(() => {
       throw new Error("logger error");
     });

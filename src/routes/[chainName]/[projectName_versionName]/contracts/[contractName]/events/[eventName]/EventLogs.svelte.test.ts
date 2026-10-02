@@ -2,20 +2,20 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick } from "svelte";
 import type { Writable } from "svelte/store";
 import { render, screen, waitFor } from "@testing-library/svelte";
-import type { EventAbiFragment } from "@constants/chains/types";
+import type { EventAbiFragment } from "#constants/chains/types.js";
 import type {
   AbiFragmentIdentifier,
   ConvertedEventLog,
   SyncStatusContract,
   SyncStatusesChain,
-} from "@db/dbTypes";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
+} from "#db/dbTypes.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { gridRows } from "./gridRows";
 import EventLogs, { EVENT_LOGS_RELOAD_INTERVAL } from "./EventLogs.svelte";
 
 // The real store and DB load the chain data, which loads ethers. ethers does
 // not load in the client project, so they are replaced.
-vi.mock("@stores/storeSyncStatus", async () => {
+vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncStatus: writable({}) };
 });

@@ -5,19 +5,19 @@ import {
   fetchBlockTimesForEventLogs,
   MAX_CONCURRENT_BLOCK_REQUESTS,
 } from "./eventLogsContractBlockTimes";
-import { dbBlockTimes } from "@db/dbBlockTimes";
-import { setDbBlockTime } from "@db/dbBlockTimesDataHandlers";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import type { ChainName } from "@constants/chains/types";
-import type { BlockTime, EthersEventLog } from "@db/dbTypes";
+import { dbBlockTimes } from "#db/dbBlockTimes.js";
+import { setDbBlockTime } from "#db/dbBlockTimesDataHandlers.js";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import type { ChainName } from "#constants/chains/types.js";
+import type { BlockTime, EthersEventLog } from "#db/dbTypes.js";
 import {
   getBlockTimestampFromLogs,
   type NodeProvider,
-} from "@utils/utilsEthers";
-import { convertTimestampSecToIso8601 } from "@utils/utilsTime";
+} from "#utils/utilsEthers.js";
+import { convertTimestampSecToIso8601 } from "#utils/utilsTime.js";
 
-vi.mock("@utils/utilsEthers", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@utils/utilsEthers")>()),
+vi.mock("#utils/utilsEthers.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("#utils/utilsEthers.js")>()),
   getBlockTimestampFromLogs: vi.fn(),
 }));
 

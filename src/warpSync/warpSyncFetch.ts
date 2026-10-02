@@ -1,5 +1,5 @@
 import { basePath } from "#lib/common/basePath.js";
-import type { Chain } from "@constants/chains/types";
+import type { Chain } from "#constants/chains/types.js";
 import { checkFormat } from "./warpSyncFile";
 import { WARP_SYNC_DIR, type WarpSyncManifest } from "./warpSyncTypes";
 

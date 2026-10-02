@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
-import type { EventAbiFragment } from "@constants/chains/types";
+import type { EventAbiFragment } from "#constants/chains/types.js";
 import * as AID from "./dbEventLogsAddInitialData";
-import { TARGET_CHAINS } from "@constants/chains/_index";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { SyncStatusContract, SyncStatusesEvent } from "./dbTypes";
-import { NO_DATA } from "@utils/utilsConstants";
+import { NO_DATA } from "#utils/utilsConstants.js";
 describe("getInitialDataOfSyncStatusContract", () => {
   test("should return correct initial data", () => {
     for (const targetChain of TARGET_CHAINS) {

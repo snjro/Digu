@@ -1,7 +1,7 @@
 <script lang="ts" generics="GridRow">
   import BaseGridFunctionBarQuickSearch from "./BaseGridFunctionBarQuickSearch.svelte";
 
-  import type { ExportFilePrefix } from "@utils/utilsFile";
+  import type { ExportFilePrefix } from "#utils/utilsFile.js";
 
   import { breakPointWidthThresholds } from "#lib/appearanceConfig/size/sizeDefinitions.js";
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";

@@ -1,4 +1,4 @@
-import { customLogger } from "@utils/logger";
+import { customLogger } from "#utils/logger.js";
 
 // Applies the result only while it is the latest load, so a slow earlier load
 // does not overwrite a later one. Returns the cleanup for $effect.

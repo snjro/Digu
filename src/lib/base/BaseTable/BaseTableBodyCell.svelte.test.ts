@@ -3,8 +3,8 @@ import { tick } from "svelte";
 import { render, screen } from "@testing-library/svelte";
 import BaseTableBodyCell from "./BaseTableBodyCell.svelte";
 import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
-import { initialDataUserSettings } from "@db/dbTypes";
-import { storeUserSettings } from "@stores/storeUserSettings";
+import { initialDataUserSettings } from "#db/dbTypes.js";
+import { storeUserSettings } from "#stores/storeUserSettings.js";
 import { htmlSnippet, slotProps } from "../../../testUtils/snippets";
 
 function getCell(container: HTMLElement): HTMLTableCellElement {

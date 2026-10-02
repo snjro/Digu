@@ -10,12 +10,12 @@
     Contract,
     Project,
     Version,
-  } from "@constants/chains/types";
-  import type { SyncStateText, SyncStatusContract } from "@db/dbTypes";
-  import { storeChainStatus } from "@stores/storeChainStatus";
-  import { storeNoDbCurrentWidth } from "@stores/storeNoDb";
-  import { storeSyncStatus } from "@stores/storeSyncStatus";
-  import { NO_DATA } from "@utils/utilsConstants";
+  } from "#constants/chains/types.js";
+  import type { SyncStateText, SyncStatusContract } from "#db/dbTypes.js";
+  import { storeChainStatus } from "#stores/storeChainStatus.js";
+  import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { NO_DATA } from "#utils/utilsConstants.js";
 
   interface Props {
     targetChain: Chain;

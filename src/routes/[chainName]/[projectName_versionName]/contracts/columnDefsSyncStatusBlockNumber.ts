@@ -16,14 +16,14 @@ import type {
   Contract,
   Project,
   Version,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 import GridCellSyncStatusBlockNumber from "./GridCellSyncStatusBlockNumber.svelte";
 import { getBlockNumberByHeaderName } from "./syncStatusBlockNumber";
-import type { SyncStatusContract } from "@db/dbTypes";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { storeChainStatus } from "@stores/storeChainStatus";
+import type { SyncStatusContract } from "#db/dbTypes.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { get } from "svelte/store";
-import { NO_DATA } from "@utils/utilsConstants";
+import { NO_DATA } from "#utils/utilsConstants.js";
 
 // The values are strings (NO_DATA or a number), so compare them as numbers.
 export function compareSyncStatusValues(

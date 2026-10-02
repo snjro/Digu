@@ -1,4 +1,4 @@
-import type { Chain, ChainName } from "@constants/chains/types";
+import type { Chain, ChainName } from "#constants/chains/types.js";
 import {
   afterAll,
   afterEach,
@@ -10,8 +10,8 @@ import {
   type MockInstance,
 } from "vitest";
 import { getNodeProvider } from "./utilsEthers";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import * as dbChainStatusDataHandlers from "@db/dbChainStatusDataHandlers";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import * as dbChainStatusDataHandlers from "#db/dbChainStatusDataHandlers.js";
 import {
   JsonRpcProvider,
   WebSocketProvider,

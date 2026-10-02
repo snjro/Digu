@@ -7,7 +7,7 @@
     Contract,
     Project,
     Version,
-  } from "@constants/chains/types";
+  } from "#constants/chains/types.js";
 
   interface Props {
     targetChain: Chain;

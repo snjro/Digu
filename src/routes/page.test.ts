@@ -2,7 +2,7 @@ import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { load } from "./+page";
 import { isHttpError, isRedirect, redirect } from "@sveltejs/kit";
 import { basePath } from "#lib/common/basePath.js";
-import * as dbSettingsDataHandlersUser from "@db/dbSettings";
+import * as dbSettingsDataHandlersUser from "#db/dbSettings.js";
 
 let mockBrowser: boolean; //Variable for changing the value of "browser" in each test
 

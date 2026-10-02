@@ -6,12 +6,12 @@ import {
 import type { BaseIconProps } from "#lib/base/BaseIcon.js";
 import { getChainRootUrl } from "#lib/common/chainRootUrl.js";
 import { getSplittedFunctionNameAndSelector } from "#lib/leftSidebar/Body/functionNameHandler.js";
-import { convertToKebabCase } from "@utils/utilsCommon";
+import { convertToKebabCase } from "#utils/utilsCommon.js";
 import {
   DIR_NAME_CONTRACTS,
   DIR_NAME_EVENTS,
   DIR_NAME_FUNCTIONS,
-} from "@utils/utilsConstants";
+} from "#utils/utilsConstants.js";
 
 export type CrumbItem = {
   href: string;

@@ -1,9 +1,9 @@
 import "fake-indexeddb/auto";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { TARGET_CHAINS } from "@constants/chains/_index";
-import { storeSyncStatus } from "@stores/storeSyncStatus";
-import { extractEventContracts } from "@utils/utilsEthers";
-import { getEventLogTableName } from "@utils/utilsDb";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
+import { getEventLogTableName } from "#utils/utilsDb.js";
 import type { AbiFragmentIdentifier, ConvertedEventLog } from "./dbTypes";
 import { getDbEventLogs } from "./dbEventLogs";
 import { dbWorkerFuncGetConvertedEventLogs } from "./db.worker.func.getConvertedEventLogs";

@@ -2,8 +2,8 @@
   import { page } from "$app/state";
   import PageWrapper from "#lib/PageWrapper/PageWrapper.svelte";
   import BaseGrid from "#lib/grid/BaseGrid.svelte";
-  import type { Contract } from "@constants/chains/types";
-  import { trailingSlash } from "@routes/+layout";
+  import type { Contract } from "#constants/chains/types.js";
+  import { trailingSlash } from "#routes/+layout.js";
   import type { LoadEventsData } from "./+page";
   import { columnDefs } from "./columnDefs";
   import { gridRows } from "./gridRows";

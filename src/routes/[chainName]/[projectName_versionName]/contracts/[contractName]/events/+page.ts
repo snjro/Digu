@@ -4,7 +4,7 @@ import type {
   EventAbiFragment,
   Project,
   Version,
-} from "@constants/chains/types";
+} from "#constants/chains/types.js";
 import type { LoadEvent } from "@sveltejs/kit";
 import { _LoadContractData, type LoadContractData } from "../+page";
 

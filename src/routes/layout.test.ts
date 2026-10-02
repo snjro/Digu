@@ -3,8 +3,8 @@ import { get } from "svelte/store";
 import { isHttpError } from "@sveltejs/kit";
 import { load } from "./+layout";
 import { initialize } from "../initialization/initialize";
-import { storeNodbShowLoader } from "@stores/storeNoDb";
-import { customLogger } from "@utils/logger";
+import { storeNodbShowLoader } from "#stores/storeNoDb.js";
+import { customLogger } from "#utils/logger.js";
 
 // storeNoDb reads "browser" when it is imported, before the tests run.
 const mockEnvironment = vi.hoisted(() => ({ browser: false }));
