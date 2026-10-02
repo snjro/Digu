@@ -1,4 +1,5 @@
 // Section 3: RPC input and the settings dialog (fake RPC: eth_chainId / eth_blockNumber only).
+import fs from "node:fs";
 import * as L from "./lib.mjs";
 await L.startServers();
 await L.launch();
@@ -153,9 +154,8 @@ async function openSettings() {
   await L.settle(page, 200);
 }
 
-// The settings dialog has no RPC settings and no "RPC configuration" group.
-// Warp sync is shown only on a chain with a snapshot (not eth), so its place
-// in "Synced data" is not checked here.
+// The settings dialog has no RPC settings and no "RPC configuration" group:
+// only "Synced data", with Warp sync and then Event logs.
 await L.step("3-6", page, async () => {
   await openSettings();
   const shots = [await L.shot(page, "3-6-dialog")];
@@ -192,13 +192,15 @@ await L.step("3-6", page, async () => {
   await L.settle(page);
   const ok =
     out.removedControls.length === 0 &&
-    !out.labels.includes("RPC configuration") &&
-    !out.labels.includes("Chain Explorer") &&
-    out.labels.includes("Synced data");
+    JSON.stringify(out.labels) ===
+      JSON.stringify(["Synced data", "Warp sync", "Event logs"]);
   L.rec("3-6", ok ? "OK" : "NG", JSON.stringify(out), shots);
 });
 
-// One explorer per chain: Etherscan on eth.
+// One explorer per chain: the chainExplorer of eth in the build.
+const ETH_EXPLORER_URL = fs
+  .readFileSync("/app/src/constants/chains/ethereum-mainnet/_index.ts", "utf8")
+  .match(/chainExplorer:\s*{[^}]*url:\s*"([^"]+)"/)[1];
 await L.step("3-7", page, async () => {
   const hrefs = await page.$$eval("main a[target=_blank]", (as) =>
     as.map((a) => a.getAttribute("href")).filter((h) => !/github\.com/.test(h)),
@@ -206,7 +208,7 @@ await L.step("3-7", page, async () => {
   const s = await L.shot(page, "3-7-contract-links");
   const ok =
     hrefs.length > 0 &&
-    hrefs.every((h) => h.startsWith("https://etherscan.io"));
+    hrefs.every((h) => h.startsWith(`${ETH_EXPLORER_URL}/`));
   L.rec(
     "3-7",
     ok ? "OK" : "NG",
