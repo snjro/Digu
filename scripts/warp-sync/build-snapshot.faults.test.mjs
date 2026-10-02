@@ -128,6 +128,8 @@ beforeAll(async () => {
 });
 afterAll(() => server.close());
 
+// 30 seconds, not the 5 of Vitest: with several runs at once, it waited for
+// the CPU for up to 21 seconds (#618).
 test("has every log despite the faults of the RPC", async () => {
   const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-faults-"));
   try {
@@ -176,4 +178,4 @@ test("has every log despite the faults of the RPC", async () => {
   } finally {
     fs.rmSync(outDir, { recursive: true, force: true });
   }
-});
+}, 30_000);

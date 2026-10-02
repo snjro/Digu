@@ -165,6 +165,8 @@ function expectedLogs(to) {
   return logs;
 }
 
+// The tests that fetch have 30 seconds, not the 5 of Vitest: with several
+// runs at once, they waited for the CPU for up to 13 seconds (#618).
 describe("buildSnapshot", () => {
   test("writes the files of formatVersion 2 and the manifest", async () => {
     await build({ toBlock: 16_000_000, chunkLogs: 500 });
@@ -204,7 +206,7 @@ describe("buildSnapshot", () => {
         0,
       ),
     );
-  });
+  }, 30_000);
 
   test("goes on after a stop, with the same files", async () => {
     await build({ toBlock: 16_000_000, chunkLogs: 500 });
@@ -224,7 +226,7 @@ describe("buildSnapshot", () => {
     await build({ chunkLogs: 500 });
     expect(readManifest().chunks).toEqual(straight);
     expect(fs.existsSync(partial)).toBe(false);
-  });
+  }, 30_000);
 
   test("a later run adds only the blocks after the last run", async () => {
     await build({ toBlock: 16_000_000 });
@@ -241,14 +243,14 @@ describe("buildSnapshot", () => {
     }
     expect(logsInFiles(manifest)).toEqual(expectedLogs(16_100_000));
     await expect(build({ toBlock: 16_100_000 })).resolves.toBeUndefined();
-  });
+  }, 30_000);
 
   test("gets blockTimestamp from the block when the RPC does not return it", async () => {
     withoutTimestamp = true;
     await build({ toBlock: 16_000_000 });
     expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
     expect(requests).toContain("eth_getBlockByNumber");
-  });
+  }, 30_000);
 
   test("stops at a .partial/ of the script before formatVersion 2", async () => {
     fs.mkdirSync(path.join(dir(), ".partial"), { recursive: true });
