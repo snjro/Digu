@@ -525,7 +525,7 @@ async function syncUntil(page, prefix, target) {
   await new Promise((r) => setTimeout(r, 4000));
   await (await toggleButton(page)).click();
   await waitLabel(page, "start sync", 60000).catch((e) =>
-    log.push(`[check] ${prefix} stop wait: ${e.message}`),
+    log.push(`[check] ${prefix} stop wait NG: ${e.message}`),
   );
   await record(page, `${prefix}-sync-stopped`);
 }
@@ -758,7 +758,7 @@ try {
             '.ag-header-cell[col-id="jsDate"] .ag-header-cell-label',
           );
           if (!label) {
-            log.push(`[check] ${name} datetime header not found`);
+            log.push(`[check] ${name} datetime header NG: not found`);
             break;
           }
           await label.click();
