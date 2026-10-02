@@ -165,7 +165,9 @@ function expectedLogs(to) {
   return logs;
 }
 
-describe("buildSnapshot", () => {
+// 30 seconds: several runs at once make these tests wait for the CPU for
+// longer than the 5 seconds of Vitest (#618).
+describe("buildSnapshot", { timeout: 30_000 }, () => {
   test("writes the files of formatVersion 2 and the manifest", async () => {
     await build({ toBlock: 16_000_000, chunkLogs: 500 });
     const manifest = readManifest();
