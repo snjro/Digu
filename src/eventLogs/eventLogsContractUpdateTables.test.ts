@@ -93,6 +93,7 @@ describe("registerEventLogsAndBlockTimes", () => {
       fakeProvider(),
       [eventLogAt(20), eventLogAt(30), eventLogAt(30, 1)],
       40,
+      () => false,
     );
 
     expect(await dbBlockTimes.table(targetChain.name).toArray()).toEqual([
@@ -117,6 +118,32 @@ describe("registerEventLogsAndBlockTimes", () => {
     ]);
   });
 
+  test("should save nothing when stopped while it fetches the block times", async () => {
+    let stopped: boolean = false;
+    const provider: NodeProvider = {
+      getBlock: async (blockNumber: number): Promise<Block> => {
+        stopped = true;
+        return {
+          number: blockNumber,
+          timestamp: timestampOf(blockNumber),
+        } as Block;
+      },
+    } as unknown as NodeProvider;
+
+    await registerEventLogsAndBlockTimes(
+      dbEventLogs,
+      targetContract,
+      provider,
+      [eventLogAt(30)],
+      40,
+      () => stopped,
+    );
+
+    expect(await dbBlockTimes.table(targetChain.name).toArray()).toEqual([]);
+    // fetchedBlockNumber is moved only with the logs.
+    expect(addEventLogs_updateFetchedBlockNumber).not.toHaveBeenCalled();
+  });
+
   test("should group the logs of mixed events by event name in block order", async () => {
     const otherEventName: string = targetContract.events.names[1];
     expect(otherEventName).toBeDefined();
@@ -134,6 +161,7 @@ describe("registerEventLogsAndBlockTimes", () => {
         eventLogAt(31, 0, otherEventName),
       ],
       40,
+      () => false,
     );
 
     const [, , groupedEventLogs] = vi.mocked(
@@ -167,6 +195,7 @@ describe("registerEventLogsAndBlockTimes", () => {
         fakeProvider((blockNumber) => blockNumber + 1),
         [eventLogAt(30)],
         40,
+        () => false,
       ),
     ).rejects.toMatchObject({
       message: "Failed to register event logs.",
@@ -183,6 +212,7 @@ describe("registerEventLogsAndBlockTimes", () => {
         fakeProvider(),
         [{ ...eventLogAt(30), data: "zz" } as EthersEventLog],
         40,
+        () => false,
       ),
     ).rejects.toMatchObject({
       message: "Failed to register event logs.",
@@ -205,6 +235,7 @@ describe("registerEventLogsAndBlockTimes", () => {
         fakeProvider((blockNumber) => blockNumber + 1),
         [eventLogAt(30), eventLogAt(31)],
         40,
+        () => false,
       ),
     ).rejects.toMatchObject({
       message: "Failed to register event logs.",

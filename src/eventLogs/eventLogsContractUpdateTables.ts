@@ -26,6 +26,7 @@ export async function registerEventLogsAndBlockTimes(
   nodeProvider: NodeProvider,
   ethersEventLogs: EthersEventLog[],
   lastFetchedBlockNumber: number,
+  isStopped: () => boolean,
 ) {
   const targetChainName: ChainName = dbEventLogs.versionIdentifier.chainName;
   try {
@@ -35,6 +36,11 @@ export async function registerEventLogsAndBlockTimes(
         targetChainName,
         ethersEventLogs,
       );
+    // Stopped while fetching the block times: save nothing, so that the range
+    // is fetched again on the next start.
+    if (isStopped()) {
+      return;
+    }
     const convertedEventLogs: ConvertedEventLog[] = getConvertedEventLogs(
       ethersEventLogs,
       blockTimesForEventLogs,
