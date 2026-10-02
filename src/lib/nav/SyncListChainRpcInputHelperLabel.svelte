@@ -3,6 +3,7 @@
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import { storeChainStatus } from "#stores/storeChainStatus.js";
   import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+  import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
   import { storeUserSettings } from "#stores/storeUserSettings.js";
   import classNames from "classnames";
   import { getRpcInputHelperLabelProps } from "./rpcInputHelperLabel";
@@ -12,9 +13,10 @@
   );
   let nodeStatus = $derived($storeChainStatus[targetChainName].nodeStatus);
   let rpc = $derived($storeRpcSettings[targetChainName].rpc);
+  let syncStoppedReason = $derived($storeSyncStoppedReason[targetChainName]);
 
   let { helpHref, ...helperLabelProps } = $derived(
-    getRpcInputHelperLabelProps(nodeStatus, rpc),
+    getRpcInputHelperLabelProps(nodeStatus, rpc, syncStoppedReason),
   );
 </script>
 

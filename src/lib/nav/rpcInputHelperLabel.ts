@@ -3,6 +3,7 @@ import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 import type { BaseLabelProps } from "#lib/base/BaseLabel.svelte";
 import type { BaseSize } from "#lib/base/baseSizes.js";
 import type { NodeStatus } from "#db/dbTypes.js";
+import type { SyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import classNames from "classnames";
 
 // The section of the guide on how to get an RPC URL.
@@ -12,14 +13,32 @@ export const RPC_GUIDE_URL: string =
 // helpHref: a link to the guide, shown after the text.
 export type RpcInputHelperLabelProps = BaseLabelProps & { helpHref?: string };
 
+const SYNC_STOPPED_TEXTS: Record<SyncStoppedReason, string> = {
+  RPC_ERRORS: "Sync stopped: RPC errors. Try another RPC.",
+  UNEXPECTED_ERROR: "Sync stopped: unexpected error.",
+};
+
 export function getRpcInputHelperLabelProps(
   nodeStatus: NodeStatus,
   rpc: string,
+  syncStoppedReason?: SyncStoppedReason,
 ): RpcInputHelperLabelProps {
   const size: BaseSize = sizeSettings.navInputHelperText;
   let labelProps: RpcInputHelperLabelProps;
   switch (nodeStatus) {
     case "SUCCESS": {
+      if (syncStoppedReason) {
+        labelProps = {
+          prefixIcon: {
+            name: "close",
+            colorCategory: "error",
+          },
+          text: SYNC_STOPPED_TEXTS[syncStoppedReason],
+          textSize: size,
+          colorCategoryFront: "error",
+        };
+        break;
+      }
       labelProps = {
         prefixIcon: {
           name: "checkBold",

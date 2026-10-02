@@ -18,11 +18,13 @@ import {
 } from "#utils/testCommon.js";
 import { customLogger } from "#utils/logger.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain, Contract } from "#constants/chains/types.js";
 import type { DbEventLogs } from "#db/dbEventLogs.js";
 import type { SyncStatusContract, SyncStatusesChain } from "#db/dbTypes.js";
+import { get } from "svelte/store";
 
 vi.mock("./eventLogsContractUpdateTables");
 vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js");
@@ -116,8 +118,10 @@ describe("fetchEventLogsContract", () => {
         isAbort: false,
         fetchedBlockNumber: creationBlockNumber,
       });
+      state[targetChain.name].isAbort = false;
       return state;
     });
+    storeSyncStoppedReason.clear(targetChain.name);
     storeChainStatus.updateState(targetChain.name, {
       latestBlockNumber: creationBlockNumber + 10 * bulkUnit,
     });
@@ -166,6 +170,31 @@ describe("fetchEventLogsContract", () => {
     );
     expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
     expect(getLogsCount()).toBe(TRY_COUNT + 1);
+    expect(get(storeSyncStoppedReason)[targetChain.name]).toBe("RPC_ERRORS");
+  });
+
+  test("should keep no reason when the user stops during the request that exceeds Try Count", async () => {
+    const { provider } = providerFailingGetLogs((requestNumber: number) => {
+      if (requestNumber === TRY_COUNT + 1) {
+        storeSyncStatus.update((state: SyncStatusesChain) => {
+          state[targetChain.name].isAbort = true;
+          return state;
+        });
+        abort();
+      }
+      return true;
+    });
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(startAbortingInChain).toHaveBeenCalledOnce();
+    expect(get(storeSyncStoppedReason)[targetChain.name]).toBeUndefined();
   });
 
   test("should log an ethers error without the request URL, with the error that the RPC returned", async () => {

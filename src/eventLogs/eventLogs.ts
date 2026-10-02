@@ -16,6 +16,8 @@ import {
 import { customLogger } from "#utils/logger.js";
 import { getUrlObject } from "#utils/utilsCommon.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
+import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { get } from "svelte/store";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { requestSyncLock } from "./syncLock";
@@ -30,6 +32,7 @@ import {
 // another tab that holds the lock briefly. Imports the warp sync snapshot
 // first, so that the sync goes on from its end.
 export async function fetchEventLogs(targetChain: Chain): Promise<boolean> {
+  storeSyncStoppedReason.clear(targetChain.name);
   // The import of this tab holds the lock: wait for it instead.
   await waitForWarpSync(targetChain.name);
   return await requestSyncLock(
@@ -56,6 +59,7 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
         // Only the host: the rest of the URL may hold an API key.
         rpcHost: getUrlObject(rpc)?.host,
       });
+      recordSyncStoppedReason(targetChain.name, "RPC_ERRORS");
       await startAbortingInChain(targetChain.name);
       return;
     }
@@ -126,6 +130,7 @@ async function abortOnError(
     contractName: contractName,
     errorObject: error,
   });
+  recordSyncStoppedReason(chainName, "UNEXPECTED_ERROR");
   await startAbortingInChain(chainName).catch((abortError: unknown) => {
     // allSettled would drop it silently.
     customLogger.error("Start aborting.", {

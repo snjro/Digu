@@ -8,6 +8,7 @@ import { getSyncLockName, SYNC_LOCK_TIMEOUT_MS } from "#db/constants.js";
 import { getDbRecordChainStatus } from "#db/dbChainStatusDataHandlers.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { customLogger } from "#utils/logger.js";
@@ -103,6 +104,7 @@ async function tryToStart(
       chainName: chainName,
       errorObject: error,
     });
+    recordSyncStoppedReason(chainName, "UNEXPECTED_ERROR");
     return false;
   }
 }

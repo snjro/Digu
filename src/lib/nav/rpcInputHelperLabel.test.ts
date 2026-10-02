@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
 import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 import type { NodeStatus } from "#db/dbTypes.js";
+import type { SyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import {
   getRpcInputHelperLabelProps,
   RPC_GUIDE_URL,
@@ -100,6 +101,45 @@ describe("getRpcInputHelperLabelProps", () => {
       "https://github.com/snjro/Digu/blob/develop/docs/getting-started-as-user/README.md#rpc-endpoint-url",
     );
   });
+
+  test.each<[SyncStoppedReason, string]>([
+    ["RPC_ERRORS", "Sync stopped: RPC errors. Try another RPC."],
+    ["UNEXPECTED_ERROR", "Sync stopped: unexpected error."],
+  ])(
+    "should show why the sync stopped instead of Connected. when the node status is SUCCESS (reason %j)",
+    (reason, text) => {
+      expect(getRpcInputHelperLabelProps("SUCCESS", rpc, reason)).toStrictEqual(
+        {
+          prefixIcon: {
+            name: "close",
+            colorCategory: "error",
+            size,
+          },
+          text,
+          textSize: size,
+          colorCategoryFront: "error",
+          appendClass: "whitespace-pre-wrap",
+        },
+      );
+    },
+  );
+
+  // The status of the RPC tells more than why the sync stopped.
+  test.each<NodeStatus>([
+    "CONNECTING",
+    "INVALID_PROTOCOL",
+    "INVALID_URL",
+    "WRONG_CHAIN",
+    "NETWORK_ERROR",
+    undefined,
+  ])(
+    "should not show why the sync stopped when the node status is %j",
+    (nodeStatus) => {
+      expect(
+        getRpcInputHelperLabelProps(nodeStatus, rpc, "RPC_ERRORS"),
+      ).toStrictEqual(getRpcInputHelperLabelProps(nodeStatus, rpc));
+    },
+  );
 
   test.each(["", rpc])(
     "should show no text and no icon when the node status is undefined (rpc %j)",
