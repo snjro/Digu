@@ -84,6 +84,12 @@ class WebSocketProviderKeepingBlockTimestamps extends WebSocketProvider {
 // The number of the latest call for each chain, so that an earlier call that
 // ends last does not overwrite the node status of a later one.
 const latestNodeProviderCalls: Record<ChainName, number> = {};
+// The status of the newest call that a later call kept from writing it, for
+// each chain. A cancel of that later call writes it.
+const skippedNodeStatuses: Record<
+  ChainName,
+  { callNumber: number; nodeStatus: NodeStatus }
+> = {};
 
 // A WebSocket that never opens makes getNetwork wait forever.
 const GET_NETWORK_TIMEOUT_MS: number = 10000;
@@ -100,7 +106,8 @@ export async function startNodeProviderCall(
 }
 
 // For a started call that does not connect. Giving the number back lets an
-// earlier call that is still running write its status.
+// earlier call that is still running write its status. When the earlier call
+// has already ended, its status is written instead of the previous one.
 export async function cancelNodeProviderCall(
   chainName: ChainName,
   callNumber: number,
@@ -108,7 +115,15 @@ export async function cancelNodeProviderCall(
 ): Promise<void> {
   if (latestNodeProviderCalls[chainName] === callNumber) {
     latestNodeProviderCalls[chainName] = callNumber - 1;
-    await updateDbItemChainStatus(chainName, "nodeStatus", previousNodeStatus);
+    const skipped = skippedNodeStatuses[chainName];
+    delete skippedNodeStatuses[chainName];
+    await updateDbItemChainStatus(
+      chainName,
+      "nodeStatus",
+      skipped?.callNumber === callNumber - 1
+        ? skipped.nodeStatus
+        : previousNodeStatus,
+    );
   }
 }
 
@@ -200,6 +215,10 @@ export async function getNodeProvider(
   }
   if (latestNodeProviderCalls[targetChain.name] === callNumber) {
     await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
+  } else if (
+    callNumber > (skippedNodeStatuses[targetChain.name]?.callNumber ?? 0)
+  ) {
+    skippedNodeStatuses[targetChain.name] = { callNumber, nodeStatus };
   }
   if (nodeStatus !== "SUCCESS") {
     await nodeProvider?.destroy();

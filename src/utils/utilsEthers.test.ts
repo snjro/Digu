@@ -409,6 +409,55 @@ describe("getNodeProvider destroys and orders", () => {
     spyGetNetwork.mockRestore();
   });
 
+  test("should write the status of an earlier call that ended before a cancel", async () => {
+    const earlier = deferredNetwork();
+    const spyGetNetwork = vi
+      .spyOn(JsonRpcProvider.prototype, "getNetwork")
+      .mockReturnValueOnce(earlier.promise);
+    spyUpdateDbItemChainStatus.mockClear();
+
+    const earlierCall = getNodeProvider(targetChain, "https://earlier");
+    const callNumber = await startNodeProviderCall(targetChainName);
+    earlier.resolve(new Network("", BigInt(999)));
+    await earlierCall;
+    await cancelNodeProviderCall(targetChainName, callNumber, "CONNECTING");
+
+    expect(spyUpdateDbItemChainStatus.mock.calls).toEqual([
+      [targetChainName, "nodeStatus", "CONNECTING"],
+      [targetChainName, "nodeStatus", "CONNECTING"],
+      [targetChainName, "nodeStatus", "WRONG_CHAIN"],
+    ]);
+    spyGetNetwork.mockRestore();
+  });
+
+  test("should write the status of the newest earlier call that ended before a cancel", async () => {
+    const oldest = deferredNetwork();
+    const earlier = deferredNetwork();
+    const spyGetNetwork = vi
+      .spyOn(JsonRpcProvider.prototype, "getNetwork")
+      .mockReturnValueOnce(oldest.promise)
+      .mockReturnValueOnce(earlier.promise);
+    spyUpdateDbItemChainStatus.mockClear();
+
+    const oldestCall = getNodeProvider(targetChain, "https://oldest");
+    const earlierCall = getNodeProvider(targetChain, "https://earlier");
+    const callNumber = await startNodeProviderCall(targetChainName);
+    earlier.resolve(new Network("", BigInt(999)));
+    await earlierCall;
+    // The oldest call ends last, but it was not the newest one.
+    oldest.resolve(targetNetwork());
+    const oldestProvider = await oldestCall;
+    await cancelNodeProviderCall(targetChainName, callNumber, "CONNECTING");
+
+    expect(spyUpdateDbItemChainStatus).toHaveBeenLastCalledWith(
+      targetChainName,
+      "nodeStatus",
+      "WRONG_CHAIN",
+    );
+    await oldestProvider?.destroy();
+    spyGetNetwork.mockRestore();
+  });
+
   test("should not write when a newer call started before the cancel", async () => {
     spyUpdateDbItemChainStatus.mockClear();
 
