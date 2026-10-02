@@ -107,7 +107,8 @@ one:
 - a step of `exit-codes.txt` that is not 0 (`skipped` is not a failure),
 - `NG` or `ERROR` in `ui/`; `CHECK` is left to a person,
 - an `ok` that is false, or an exception (`error`), in `sync/`,
-- `[script-error]` in a log of `upgrade/`; its records have no judgement,
+- `[script-error]` in a log of `upgrade/`, or a `[check]` line there that
+  has `NG:` (a failed check); its other records have no judgement,
 - `1 helper`, `2 goal` or `3 sync` not `ok`, or an exception, in the `http`
   runs of `real-rpc/ --fake`. The `wss` runs end in an error with `--fake`.
 
@@ -232,6 +233,9 @@ python3 scripts/screen-check/upgrade/diff_db.py <out-dir>/db-old-old-06-final.js
   and kept the rest. `grid` opens the Event Logs grids on the logs of both.
   `probe` only opens the new build and logs the stack if the page stops
   answering.
+- The checks are `[check]` lines in `log-<phase>.txt`. A failed one ends
+  with `NG: <reason>`, and `judge.py` counts it as a failure. The others
+  are records for a person.
 - `NEW_LATEST` sets the latest block of the fake RPC in the new phases. A
   value below what v1.0.2 fetched checks #498 with Current above the Goal.
 

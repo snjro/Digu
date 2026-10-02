@@ -55,12 +55,17 @@ if sync:
         if "error" in v:
             failures.append(f"sync {scenario}: {v['error'].splitlines()[0][:200]}")
 
-# upgrade: no judgement in the records; an exception is written to the log.
+# upgrade: an exception, and a [check] line with " NG:" (a failed check).
 for p in sorted(glob.glob(os.path.join(out, "upgrade*", "log-*.txt"))):
     with open(p) as f:
         for line in f:
             if line.startswith("[script-error]"):
                 failures.append(f"{os.path.relpath(p, out)}: {line.strip()[:200]}")
+            elif line.startswith("[check]") and " NG:" in line:
+                # The record before " NG:" can be long; keep the name and the reason.
+                i = line.index(" NG:")
+                name = line[:i].split(":", 1)[0]
+                failures.append(f"{os.path.relpath(p, out)}: {(name + line[i:]).strip()[:200]}")
 
 # real-rpc --fake: 1, 2 and 3 ok in the http runs. A WebSocket cannot be
 # faked, so the wss runs end at "1 helper" with an error.
