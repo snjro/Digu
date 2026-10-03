@@ -18,7 +18,8 @@ each push to develop (see [CI](#ci-screen-checkyml)).
 The checks of a local build answer the warp sync files of Ethereum
 (`/warp-sync/eth/`) with 404, so Ethereum has no snapshot and syncs from the
 RPC as before. Its import asks first, and that dialog would cover the page
-(#604). The snapshot of Polygon is still imported.
+(#604). The snapshot of Polygon is still imported, except in the matic runs
+of `real-rpc/`, which turn the warp sync off first (#635).
 
 ## Before you run
 
