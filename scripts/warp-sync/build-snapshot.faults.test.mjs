@@ -1,7 +1,9 @@
 // The script against a fake RPC on localhost that fails like the public RPC
 // of pocket: empty results for ranges that have logs (#576), nodes that
 // refuse more than 5,000 blocks, too many results, HTTP 500 and 504, and a
-// node without old blocks (#580). The snapshot must have every log.
+// node without old blocks (#580); and like Infura: HTTP 429, 15 times in a
+// row, mixed with HTTP 500, and for eth_blockNumber (#632). The snapshot must
+// have every log.
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import http from "node:http";
@@ -63,6 +65,9 @@ const faults = {
   http500: 0,
   http504: 0,
   noOldBlocks: 0,
+  http429: 0,
+  http429With500: 0,
+  blockNumber429: 0,
 };
 let server;
 let url;
@@ -72,13 +77,24 @@ beforeAll(async () => {
     req.on("data", (data) => (body += data));
     req.on("end", () => {
       const { id, method, params } = JSON.parse(body);
-      const send = (status, value) => {
-        res.writeHead(status, { "content-type": "application/json" });
+      const send = (status, value, headers = {}) => {
+        res.writeHead(status, {
+          "content-type": "application/json",
+          ...headers,
+        });
         res.end(JSON.stringify({ jsonrpc: "2.0", id, ...value }));
       };
+      // Retry-After: 0 is read but does not make the wait longer; the test
+      // does not wait because of WARP_SYNC_RETRY_WAIT_MS=0.
+      const tooManyRequests = () => send(429, {}, { "retry-after": "0" });
       if (method === "eth_chainId") return send(200, { result: toHex(137) });
-      if (method === "eth_blockNumber")
+      if (method === "eth_blockNumber") {
+        if (faults.blockNumber429 === 0) {
+          faults.blockNumber429++;
+          return tooManyRequests();
+        }
         return send(200, { result: toHex(TO + 1_000) });
+      }
       const [{ address, fromBlock, toBlock }] = params;
       const from = Number(fromBlock);
       const to = Number(toBlock);
@@ -92,6 +108,13 @@ beforeAll(async () => {
       const fault = hashOf(start) % 8;
       if (n === 1 && fault === 0) return (faults.http500++, send(500, {}));
       if (n === 1 && fault === 1) return (faults.http504++, send(504, {}));
+      // HTTP 429 15 times in a row, which are not failures.
+      if (n <= 15 && fault === 4) return (faults.http429++, tooManyRequests());
+      // HTTP 500 and 429 in turn: two failures in a row.
+      if (n <= 4 && fault === 5) {
+        if (n % 2 === 1) return (faults.http429With500++, tooManyRequests());
+        return (faults.http500++, send(500, {}));
+      }
       if (n === 1 && fault === 2) {
         faults.noOldBlocks++;
         return send(200, {
@@ -182,6 +205,7 @@ test("has every log despite the faults of the RPC", async () => {
     // range answered empty is asked again until its logs come.
     expect(checks.emptyRangesWithLogs).toBe(faults.empty);
     expect(checks.errors).toEqual({
+      rate: faults.http429 + faults.http429With500 + faults.blockNumber429,
       results: faults.tooMany,
       unrelated: faults.http500 + faults.http504 + faults.noOldBlocks,
       range: faults.tooWide,
