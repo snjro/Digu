@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/svelte";
 import { get } from "svelte/store";
+import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
@@ -59,6 +60,9 @@ describe("SyncListChainRpcInputHelperLabel.svelte", () => {
       expect(link.getAttribute("href")).toBe(RPC_GUIDE_URL);
       expect(link.getAttribute("target")).toBe("_blank");
       expect(link.getAttribute("rel")).toBe("noreferrer noopener");
+      // The darker color of the links, for the contrast on the nav (#639).
+      expect(link.classList).toContain(colorClasses.interactive.textEmphasis);
+      expect(link.classList).not.toContain(colorClasses.interactive.text);
       const label = link.closest("label");
       expect(label?.firstChild?.textContent).toBe(text);
       expect(label?.lastElementChild).toBe(link);

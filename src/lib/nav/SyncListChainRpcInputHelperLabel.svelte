@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
   import BaseA from "#lib/base/BaseA.svelte";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
@@ -37,7 +38,13 @@
       <BaseA
         href={helpHref}
         textSize={helperLabelProps.textSize}
-        appendClass={classNames("inline-flex", "ml-1", "underline")}
+        appendClass={classNames(
+          "inline-flex",
+          "ml-1",
+          "underline",
+          // The usual link color is too light on the nav (#639).
+          colorClasses.interactive.textEmphasis,
+        )}
         openNewTab
       >
         {#snippet anchorContent()}How to get one{/snippet}
