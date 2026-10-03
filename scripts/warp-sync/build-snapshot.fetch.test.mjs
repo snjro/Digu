@@ -350,6 +350,28 @@ describe("fetchLogs after HTTP 429", () => {
     await expect(run(answers, 1, 9_999)).rejects.toThrow("HTTP 500");
   });
 
+  test("stops at 30 in a row, not after 29", async () => {
+    const http429 = (n) => Array.from({ length: n }, () => tooManyRequests());
+    await expect(run(http429(30), 1, 9_999)).rejects.toThrow("HTTP 429");
+    const { ranges, stats } = await run([...http429(29), [log(5)]], 1, 9_999);
+    expect(ranges).toEqual([[1, 9_999, 1]]);
+    expect(stats.errors.rate).toBe(29);
+  });
+
+  test("stops in the wait when another part stops", async () => {
+    vi.useFakeTimers();
+    const { rpc, asked } = scripted([tooManyRequests(60), [log(5)]]);
+    const controller = new AbortController();
+    const done = script.fetchLogs(rpc, contract, 1, 9_999, {
+      widths: script.createWidths(9_999),
+      signal: controller.signal,
+    });
+    await vi.advanceTimersByTimeAsync(1_000);
+    controller.abort(new Error("another part stopped"));
+    await expect(done).rejects.toThrow("another part stopped");
+    expect(asked).toHaveLength(1);
+  });
+
   test("waits for Retry-After", async () => {
     vi.useFakeTimers();
     const { rpc, asked } = scripted([tooManyRequests(3), [log(5)]]);
@@ -381,9 +403,17 @@ describe("rateWaitMs", () => {
   ])("after %s in a row with Retry-After %s: %s ms", (n, retryAfter, ms) => {
     expect(script.rateWaitMs(n, retryAfter, 1_000)).toBe(ms);
   });
+
+  test("is a number after many in a row, with the wait 0 of the tests", () => {
+    expect(script.rateWaitMs(2_000, undefined, 0)).toBe(0);
+    expect(script.rateWaitMs(2_000, 5, 0)).toBe(5_000);
+    expect(script.rateWaitMs(2_000, undefined, 1_000)).toBe(30_000);
+  });
 });
 
 describe("retryRate", () => {
+  afterEach(() => vi.useRealTimers());
+
   test("asks again after HTTP 429, and throws any other error", async () => {
     const answers = [
       new script.RpcError("eth_blockNumber", { status: 429 }),
@@ -405,6 +435,47 @@ describe("retryRate", () => {
     expect(stats.errors.rate).toBe(2);
     await expect(ask("eth_blockNumber")).rejects.toThrow("HTTP 500");
     expect(stats.errors.rate).toBe(2);
+  });
+
+  test("stops at 30 in a row, not after 29", async () => {
+    const answers = (n) => [
+      ...Array.from(
+        { length: n },
+        () => new script.RpcError("eth_blockNumber", { status: 429 }),
+      ),
+      "0x10",
+    ];
+    const rpcOf = (list) => async () => {
+      const answer = list.shift();
+      if (answer instanceof Error) throw answer;
+      return answer;
+    };
+    await expect(
+      script.retryRate(rpcOf(answers(30)))("eth_blockNumber"),
+    ).rejects.toThrow("HTTP 429");
+    await expect(
+      script.retryRate(rpcOf(answers(29)))("eth_blockNumber"),
+    ).resolves.toBe("0x10");
+  });
+
+  test("stops in the wait when signal is aborted", async () => {
+    vi.useFakeTimers();
+    let asked = 0;
+    const rpc = async () => {
+      asked++;
+      throw new script.RpcError("eth_blockNumber", {
+        status: 429,
+        retryAfter: 60,
+      });
+    };
+    const controller = new AbortController();
+    const done = script.retryRate(rpc, { signal: controller.signal })(
+      "eth_blockNumber",
+    );
+    await vi.advanceTimersByTimeAsync(1_000);
+    controller.abort(new Error("stopped"));
+    await expect(done).rejects.toThrow("stopped");
+    expect(asked).toBe(1);
   });
 
   test("does not ask again over the limit of requests", async () => {

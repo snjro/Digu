@@ -52,6 +52,9 @@ const RETRY_WAIT_MS = Number(process.env.WARP_SYNC_RETRY_WAIT_MS ?? 1000);
 // when that is longer, up to RETRY_AFTER_MAX_MS.
 const RATE_WAIT_MAX_MS = 30_000;
 const RETRY_AFTER_MAX_MS = 60_000;
+// HTTP 429 in a row after which the script stops, so that it does not wait
+// for hours at a daily limit.
+const MAX_RATE_ERRORS = 30;
 
 // ---------- the constants of the app ----------
 
@@ -186,10 +189,9 @@ export function createRpc(url, maxRequests = Infinity) {
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
     if (!response.ok) {
-      throw new RpcError(method, {
-        status: response.status,
-        retryAfter: retryAfterOf(response),
-      });
+      const retryAfter = retryAfterOf(response);
+      await response.body?.cancel();
+      throw new RpcError(method, { status: response.status, retryAfter });
     }
     const body = await response.json();
     if (body.error) throw new RpcError(method, { rpcError: body.error });
@@ -227,18 +229,41 @@ export function classifyError(error) {
 }
 const toHex = (value) => `0x${value.toString(16)}`;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+// A sleep that ends early when signal is aborted; the caller then stops at
+// signal.throwIfAborted().
+const sleepUnlessAborted = (ms, signal) =>
+  new Promise((resolve) => {
+    if (signal?.aborted) return resolve();
+    const wake = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", wake);
+      resolve();
+    }, ms);
+    signal?.addEventListener("abort", wake, { once: true });
+  });
 
 // The wait after the rateErrors-th HTTP 429 in a row, with the Retry-After of
 // the last one (seconds, or undefined).
 export function rateWaitMs(rateErrors, retryAfter, base = RETRY_WAIT_MS) {
-  const doubled = Math.min(base * 2 ** (rateErrors - 1), RATE_WAIT_MAX_MS);
+  // The exponent is capped, so that base 0 does not give 0 * Infinity.
+  const doubled = Math.min(
+    base * 2 ** Math.min(rateErrors - 1, 30),
+    RATE_WAIT_MAX_MS,
+  );
   if (retryAfter === undefined) return doubled;
   return Math.min(Math.max(retryAfter * 1000, doubled), RETRY_AFTER_MAX_MS);
 }
 
 // The rpc for the requests other than eth_getLogs: asked again after HTTP 429
-// with the same waits; any other error is thrown, as before.
-export function retryRate(rpc, { log = () => {}, stats = createFetchStats() }) {
+// with the same waits, up to MAX_RATE_ERRORS in a row; any other error is
+// thrown, as before. It stops when signal is aborted.
+export function retryRate(
+  rpc,
+  { log = () => {}, stats = createFetchStats(), signal = undefined } = {},
+) {
   return async (method, params) => {
     for (let rateErrors = 1; ; rateErrors++) {
       try {
@@ -246,9 +271,11 @@ export function retryRate(rpc, { log = () => {}, stats = createFetchStats() }) {
       } catch (error) {
         if (classifyError(error) !== "rate") throw error;
         stats.errors.rate++;
+        if (rateErrors >= MAX_RATE_ERRORS) throw error;
         const wait = rateWaitMs(rateErrors, error.retryAfter);
         log(`${method} failed (rate): ${error.message}; waits ${wait} ms`);
-        await sleep(wait);
+        await sleepUnlessAborted(wait, signal);
+        signal?.throwIfAborted();
       }
     }
   };
@@ -304,8 +331,10 @@ export function createFetchStats() {
 // #554, #591). A full range that works doubles the next one, up to maxWidth.
 // A failure is tried again after a wait:
 // - "rate" (HTTP 429): the same range, after a wait doubled at each 429 in a
-//   row (rateWaitMs). Not a failure: it neither halves the range nor counts
-//   toward MAX_FAILURES, and the failures before it stay counted.
+//   row (rateWaitMs), which ends early when signal is aborted. Not a failure:
+//   it neither halves the range nor counts toward MAX_FAILURES, and the
+//   failures before it stay counted. The script stops after MAX_RATE_ERRORS
+//   in a row.
 // - "results" (too many logs): the range is halved at once, without a wait
 //   and without counting a failure.
 // - "unrelated" (HTTP 500, 504, a node without old blocks): the same range.
@@ -369,11 +398,12 @@ export async function fetchLogs(
       const kind = classifyError(error);
       stats.errors[kind]++;
       if (kind === "rate") {
-        const wait = rateWaitMs(++rateErrors, error.retryAfter);
+        if (++rateErrors >= MAX_RATE_ERRORS) throw error;
+        const wait = rateWaitMs(rateErrors, error.retryAfter);
         log(
           `${contract.name}: ${from}-${to} failed (rate): ${error.message}; waits ${wait} ms`,
         );
-        await sleep(wait);
+        await sleepUnlessAborted(wait, signal);
         continue;
       }
       rateErrors = 0;

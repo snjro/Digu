@@ -160,8 +160,9 @@ the topic 0 of the events that are not anonymous.
     of the answer (seconds) when that is longer, up to 60 seconds. Any other
     answer makes the wait a second again. A 429 is not a failure: it does not
     halve the range and does not count toward the 10 failures below, and the
-    failures before it stay counted. The script does not stop on 429s, but
-    `--max-requests` still limits the requests. The requests other than
+    failures before it stay counted. After 30 429s in a row (of one part, or
+    of one other request), the script stops, so that it does not wait for
+    hours at a daily limit. The requests other than
     `eth_getLogs` (`eth_chainId`, `eth_blockNumber`, `eth_getBlockByNumber`)
     are asked again after a 429 in the same way.
   - HTTP 500 or 504, and the errors of a node without old blocks

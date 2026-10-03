@@ -84,7 +84,8 @@ beforeAll(async () => {
         });
         res.end(JSON.stringify({ jsonrpc: "2.0", id, ...value }));
       };
-      // Retry-After: 0, so that the test does not wait.
+      // Retry-After: 0 is read but does not make the wait longer; the test
+      // does not wait because of WARP_SYNC_RETRY_WAIT_MS=0.
       const tooManyRequests = () => send(429, {}, { "retry-after": "0" });
       if (method === "eth_chainId") return send(200, { result: toHex(137) });
       if (method === "eth_blockNumber") {
