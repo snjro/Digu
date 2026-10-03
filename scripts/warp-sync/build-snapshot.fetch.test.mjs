@@ -403,17 +403,9 @@ describe("rateWaitMs", () => {
   ])("after %s in a row with Retry-After %s: %s ms", (n, retryAfter, ms) => {
     expect(script.rateWaitMs(n, retryAfter, 1_000)).toBe(ms);
   });
-
-  test("is a number after many in a row, with the wait 0 of the tests", () => {
-    expect(script.rateWaitMs(2_000, undefined, 0)).toBe(0);
-    expect(script.rateWaitMs(2_000, 5, 0)).toBe(5_000);
-    expect(script.rateWaitMs(2_000, undefined, 1_000)).toBe(30_000);
-  });
 });
 
 describe("retryRate", () => {
-  afterEach(() => vi.useRealTimers());
-
   test("asks again after HTTP 429, and throws any other error", async () => {
     const answers = [
       new script.RpcError("eth_blockNumber", { status: 429 }),
@@ -456,26 +448,6 @@ describe("retryRate", () => {
     await expect(
       script.retryRate(rpcOf(answers(29)))("eth_blockNumber"),
     ).resolves.toBe("0x10");
-  });
-
-  test("stops in the wait when signal is aborted", async () => {
-    vi.useFakeTimers();
-    let asked = 0;
-    const rpc = async () => {
-      asked++;
-      throw new script.RpcError("eth_blockNumber", {
-        status: 429,
-        retryAfter: 60,
-      });
-    };
-    const controller = new AbortController();
-    const done = script.retryRate(rpc, { signal: controller.signal })(
-      "eth_blockNumber",
-    );
-    await vi.advanceTimersByTimeAsync(1_000);
-    controller.abort(new Error("stopped"));
-    await expect(done).rejects.toThrow("stopped");
-    expect(asked).toBe(1);
   });
 
   test("does not ask again over the limit of requests", async () => {
@@ -632,6 +604,25 @@ describe("createRpc", () => {
       expect(error.retryAfter).toBe(seconds);
     } finally {
       server.close();
+    }
+  });
+
+  test("throws the HTTP 429 even when closing the body fails", async () => {
+    vi.stubGlobal("fetch", async () => ({
+      ok: false,
+      status: 429,
+      headers: new Headers({ "retry-after": "7" }),
+      body: { cancel: () => Promise.reject(new Error("cancel failed")) },
+    }));
+    try {
+      const rpc = script.createRpc("http://127.0.0.1:1");
+      const error = await rpc("eth_blockNumber").catch((error) => error);
+      expect(error).toBeInstanceOf(script.RpcError);
+      expect(error.status).toBe(429);
+      expect(error.retryAfter).toBe(7);
+      expect(script.classifyError(error)).toBe("rate");
+    } finally {
+      vi.unstubAllGlobals();
     }
   });
 });

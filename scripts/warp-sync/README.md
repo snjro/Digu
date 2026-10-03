@@ -188,7 +188,8 @@ the topic 0 of the events that are not anonymous.
   `--part-blocks`, which wait in a queue, the first part of each contract
   first. `--concurrency` workers take the next part when they finish one, so
   that the requests at a time stay the same until the end. When one part
-  stops, the others stop before their next request.
+  stops, the others stop before their next request, even in the middle of
+  a wait after HTTP 429. A part stops after 30 429s in a row too.
 
 The logs of each range are sorted by block and log index, and the parts of a
 contract are read in the order of the blocks. The run in the manifest has

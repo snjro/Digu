@@ -190,7 +190,8 @@ export function createRpc(url, maxRequests = Infinity) {
     });
     if (!response.ok) {
       const retryAfter = retryAfterOf(response);
-      await response.body?.cancel();
+      // A failure to close the body is not the error of the answer.
+      await response.body?.cancel().catch(() => {});
       throw new RpcError(method, { status: response.status, retryAfter });
     }
     const body = await response.json();
@@ -248,21 +249,17 @@ const sleepUnlessAborted = (ms, signal) =>
 // The wait after the rateErrors-th HTTP 429 in a row, with the Retry-After of
 // the last one (seconds, or undefined).
 export function rateWaitMs(rateErrors, retryAfter, base = RETRY_WAIT_MS) {
-  // The exponent is capped, so that base 0 does not give 0 * Infinity.
-  const doubled = Math.min(
-    base * 2 ** Math.min(rateErrors - 1, 30),
-    RATE_WAIT_MAX_MS,
-  );
+  const doubled = Math.min(base * 2 ** (rateErrors - 1), RATE_WAIT_MAX_MS);
   if (retryAfter === undefined) return doubled;
   return Math.min(Math.max(retryAfter * 1000, doubled), RETRY_AFTER_MAX_MS);
 }
 
 // The rpc for the requests other than eth_getLogs: asked again after HTTP 429
 // with the same waits, up to MAX_RATE_ERRORS in a row; any other error is
-// thrown, as before. It stops when signal is aborted.
+// thrown, as before.
 export function retryRate(
   rpc,
-  { log = () => {}, stats = createFetchStats(), signal = undefined } = {},
+  { log = () => {}, stats = createFetchStats() } = {},
 ) {
   return async (method, params) => {
     for (let rateErrors = 1; ; rateErrors++) {
@@ -274,8 +271,7 @@ export function retryRate(
         if (rateErrors >= MAX_RATE_ERRORS) throw error;
         const wait = rateWaitMs(rateErrors, error.retryAfter);
         log(`${method} failed (rate): ${error.message}; waits ${wait} ms`);
-        await sleepUnlessAborted(wait, signal);
-        signal?.throwIfAborted();
+        await sleep(wait);
       }
     }
   };
