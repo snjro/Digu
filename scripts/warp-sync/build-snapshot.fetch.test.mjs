@@ -1,9 +1,10 @@
 // fetchLogs with a scripted RPC: the widths after each kind of error, and an
 // empty result asked again (#576, #580).
 import fs from "node:fs";
+import http from "node:http";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 // No wait after a failure. Read when the script is imported.
 process.env.WARP_SYNC_RETRY_WAIT_MS = "0";
@@ -11,6 +12,8 @@ const script = await import("./build-snapshot.mjs");
 
 const contract = { name: "C", address: "0xc", topics: ["0x01"] };
 const httpError = (status) => new script.RpcError("eth_getLogs", { status });
+const tooManyRequests = (retryAfter) =>
+  new script.RpcError("eth_getLogs", { status: 429, retryAfter });
 const rpcError = (message) =>
   new script.RpcError("eth_getLogs", { rpcError: { code: -32000, message } });
 const log = (block) => ({
@@ -47,7 +50,7 @@ describe("classifyError", () => {
   test.each([
     [httpError(500), "unrelated"],
     [httpError(504), "unrelated"],
-    [httpError(429), "unrelated"],
+    [httpError(429), "rate"],
     [rpcError("historical state is not available"), "unrelated"],
     [
       rpcError("pruned history unavailable: requested 1, earliest available 2"),
@@ -101,7 +104,12 @@ describe("fetchLogs", () => {
       [1, 9_999],
     ]);
     expect(widths.width).toBe(9_999);
-    expect(stats.errors).toEqual({ results: 0, unrelated: 2, range: 0 });
+    expect(stats.errors).toEqual({
+      rate: 0,
+      results: 0,
+      unrelated: 2,
+      range: 0,
+    });
   });
 
   test("halves after three errors in a row of any kind", async () => {
@@ -244,7 +252,12 @@ describe("fetchLogs", () => {
       [1, 4_999],
     ]);
     expect(ranges[0]).toEqual([1, 4_999, 1]);
-    expect(stats.errors).toEqual({ results: 1, unrelated: 0, range: 0 });
+    expect(stats.errors).toEqual({
+      rate: 0,
+      results: 1,
+      unrelated: 0,
+      range: 0,
+    });
   });
 
   // Range errors halve after two in a row and errors of any kind after
@@ -269,6 +282,7 @@ describe("fetchLogs", () => {
     ).toEqual(widths);
     const range = errors.filter((error) => error === rangeError).length;
     expect(stats.errors).toEqual({
+      rate: 0,
       results: 0,
       unrelated: errors.length - range,
       range,
@@ -278,6 +292,127 @@ describe("fetchLogs", () => {
   test("stops after ten failures in a row", async () => {
     const answers = Array.from({ length: 10 }, () => httpError(500));
     await expect(run(answers, 1, 9_999)).rejects.toThrow("HTTP 500");
+  });
+});
+
+// HTTP 429 (#632).
+describe("fetchLogs after HTTP 429", () => {
+  afterEach(() => vi.useRealTimers());
+
+  test("tries the same range again after 15 in a row, without halving or stopping", async () => {
+    const answers = Array.from({ length: 15 }, () => tooManyRequests());
+    const { asked, ranges, stats, widths } = await run(
+      [...answers, [log(5)]],
+      1,
+      9_999,
+    );
+    expect(asked).toEqual(Array.from({ length: 16 }, () => [1, 9_999]));
+    expect(ranges).toEqual([[1, 9_999, 1]]);
+    expect(widths.width).toBe(9_999);
+    expect(stats.errors).toEqual({
+      rate: 15,
+      results: 0,
+      unrelated: 0,
+      range: 0,
+    });
+  });
+
+  test("does not reset the failures of HTTP 500 in between: halves at the third", async () => {
+    const { asked, stats } = await run(
+      [
+        httpError(500),
+        tooManyRequests(),
+        httpError(500),
+        tooManyRequests(),
+        httpError(500),
+        [log(5)],
+        [log(5_005)],
+      ],
+      1,
+      9_999,
+    );
+    expect(asked.slice(0, 6).map(([from, to]) => to - from + 1)).toEqual([
+      9_999, 9_999, 9_999, 9_999, 9_999, 4_999,
+    ]);
+    expect(stats.errors).toEqual({
+      rate: 2,
+      results: 0,
+      unrelated: 3,
+      range: 0,
+    });
+  });
+
+  test("stops after ten HTTP 500 in a row, with HTTP 429 in between", async () => {
+    const answers = Array.from({ length: 10 }, () => [
+      tooManyRequests(),
+      httpError(500),
+    ]).flat();
+    await expect(run(answers, 1, 9_999)).rejects.toThrow("HTTP 500");
+  });
+
+  test("waits for Retry-After", async () => {
+    vi.useFakeTimers();
+    const { rpc, asked } = scripted([tooManyRequests(3), [log(5)]]);
+    const done = script.fetchLogs(rpc, contract, 1, 9_999, {
+      widths: script.createWidths(9_999),
+    });
+    await vi.advanceTimersByTimeAsync(2_999);
+    expect(asked).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(asked).toHaveLength(2);
+    await expect(done).resolves.toBe(1);
+  });
+});
+
+describe("rateWaitMs", () => {
+  test.each([
+    // Doubled from the wait after a failure, up to 30 seconds.
+    [1, undefined, 1_000],
+    [2, undefined, 2_000],
+    [5, undefined, 16_000],
+    [6, undefined, 30_000],
+    [15, undefined, 30_000],
+    // Retry-After when it is longer, up to 60 seconds.
+    [1, 5, 5_000],
+    [5, 5, 16_000],
+    [1, 0, 1_000],
+    [15, 45, 45_000],
+    [1, 120, 60_000],
+  ])("after %s in a row with Retry-After %s: %s ms", (n, retryAfter, ms) => {
+    expect(script.rateWaitMs(n, retryAfter, 1_000)).toBe(ms);
+  });
+});
+
+describe("retryRate", () => {
+  test("asks again after HTTP 429, and throws any other error", async () => {
+    const answers = [
+      new script.RpcError("eth_blockNumber", { status: 429 }),
+      new script.RpcError("eth_blockNumber", { status: 429 }),
+      "0x10",
+      new script.RpcError("eth_blockNumber", { status: 500 }),
+    ];
+    const asked = [];
+    const rpc = async (method) => {
+      asked.push(method);
+      const answer = answers.shift();
+      if (answer instanceof Error) throw answer;
+      return answer;
+    };
+    const stats = script.createFetchStats();
+    const ask = script.retryRate(rpc, { stats });
+    await expect(ask("eth_blockNumber")).resolves.toBe("0x10");
+    expect(asked).toHaveLength(3);
+    expect(stats.errors.rate).toBe(2);
+    await expect(ask("eth_blockNumber")).rejects.toThrow("HTTP 500");
+    expect(stats.errors.rate).toBe(2);
+  });
+
+  test("does not ask again over the limit of requests", async () => {
+    const rpc = async () => {
+      throw new script.RequestLimitError("Stopped at the limit of 1 requests.");
+    };
+    const ask = script.retryRate(rpc, {});
+    await expect(ask("eth_chainId")).rejects.toThrow("limit");
   });
 });
 
@@ -405,6 +540,29 @@ describe("fetchLogs with the widths of another part", () => {
       expect(widths).toMatchObject({ width: after, successes: 0 });
     },
   );
+});
+
+describe("createRpc", () => {
+  test.each([
+    ["7", 7],
+    [undefined, undefined],
+    ["Wed, 21 Oct 2026 07:28:00 GMT", undefined],
+  ])("reads Retry-After %s of HTTP 429 as %s", async (header, seconds) => {
+    const server = http.createServer((_req, res) => {
+      res.writeHead(429, header === undefined ? {} : { "retry-after": header });
+      res.end();
+    });
+    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+    try {
+      const rpc = script.createRpc(`http://127.0.0.1:${server.address().port}`);
+      const error = await rpc("eth_blockNumber").catch((error) => error);
+      expect(error).toBeInstanceOf(script.RpcError);
+      expect(error.status).toBe(429);
+      expect(error.retryAfter).toBe(seconds);
+    } finally {
+      server.close();
+    }
+  });
 });
 
 describe("withKey", () => {

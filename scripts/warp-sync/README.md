@@ -154,16 +154,25 @@ the topic 0 of the events that are not anonymous.
   uses the shared widths again.
 - **Failures** (like #549, #554 and #591 in the sync: the RPC may pass each
   request to another node). The script waits a second and tries again:
-  - HTTP 429 (too many requests), 500 or 504, and the errors of a node without
-    old blocks
+  - HTTP 429 (too many requests, #632; Infura answers it for a while, even to
+    one request at a time): the same range, after a wait that is doubled at
+    each 429 in a row, from a second up to 30 seconds, or the `Retry-After`
+    of the answer (seconds) when that is longer, up to 60 seconds. Any other
+    answer makes the wait a second again. A 429 is not a failure: it does not
+    halve the range and does not count toward the 10 failures below, and the
+    failures before it stay counted. The script does not stop on 429s, but
+    `--max-requests` still limits the requests. The requests other than
+    `eth_getLogs` (`eth_chainId`, `eth_blockNumber`, `eth_getBlockByNumber`)
+    are asked again after a 429 in the same way.
+  - HTTP 500 or 504, and the errors of a node without old blocks
     ("historical state is not available", "pruned history unavailable", "old
     data not available due to pruning"): the same range, since they come for
     any width.
   - Any other error: the range is halved after two in a row, and the half
     becomes the widest range until 10 ranges in a row work; then it is
     doubled again.
-  - After three errors in a row of any kind, the range is halved too, in case
-    a node answers a range that is too wide with HTTP 500.
+  - After three errors in a row of any kind but 429, the range is halved
+    too, in case a node answers a range that is too wide with HTTP 500.
   - Too many logs for one answer ("max results", 20,000 with pocket; "more
     than 10000 results" with Infura): the range is halved at once, without a
     wait and without counting a failure.
@@ -183,7 +192,7 @@ the topic 0 of the events that are not anonymous.
 The logs of each range are sorted by block and log index, and the parts of a
 contract are read in the order of the blocks. The run in the manifest has
 `checks`: the empty ranges asked again, those that had logs the second time,
-and the errors of each kind.
+and the errors of each kind (`rate`: the HTTP 429s, of all the methods).
 
 ## Format (formatVersion 2)
 
@@ -219,7 +228,8 @@ and the errors of each kind.
       "checks": {
         "emptyRangesAskedAgain": 18000,
         "emptyRangesWithLogs": 3,
-        "errors": { "results": 40, "unrelated": 900, "range": 30 },
+        // rate: HTTP 429, of any method. Not in a run made before #632.
+        "errors": { "rate": 50, "results": 40, "unrelated": 900, "range": 30 },
       },
     },
   ],

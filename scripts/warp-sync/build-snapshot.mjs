@@ -29,8 +29,8 @@ const MAX_WIDTHS = { eth: 9_999 };
 // pass each request to another node with another limit, so a limit learned
 // from failures is doubled again after this many successes in a row.
 const SUCCESSES_TO_RAISE_LIMIT = 10;
-// Like the sync (ERRORS_TO_HALVE_ANYWAY): failures in a row, of any kind,
-// after which the range is halved.
+// Like the sync (ERRORS_TO_HALVE_ANYWAY): failures in a row, of any kind but
+// HTTP 429, after which the range is halved.
 const ERRORS_TO_HALVE_ANYWAY = 3;
 // The blocks of each contract are split into parts of this many blocks, and
 // DEFAULT_CONCURRENCY workers take the next part when they finish one (#586).
@@ -47,6 +47,11 @@ const REQUEST_TIMEOUT_MS = Number(
 );
 // The wait after a failure. Shorter only to check the script with a fake RPC.
 const RETRY_WAIT_MS = Number(process.env.WARP_SYNC_RETRY_WAIT_MS ?? 1000);
+// After HTTP 429 (too many requests, #632), the wait is doubled from
+// RETRY_WAIT_MS up to RATE_WAIT_MAX_MS, or is the Retry-After of the answer
+// when that is longer, up to RETRY_AFTER_MAX_MS.
+const RATE_WAIT_MAX_MS = 30_000;
+const RETRY_AFTER_MAX_MS = 60_000;
 
 // ---------- the constants of the app ----------
 
@@ -146,14 +151,21 @@ export class RequestLimitError extends Error {}
 
 // An error that the RPC returned: an HTTP status, or the error of the
 // JSON-RPC response.
+// retryAfter: the Retry-After header of the answer, in seconds.
 export class RpcError extends Error {
-  constructor(method, { status, rpcError }) {
+  constructor(method, { status, rpcError, retryAfter }) {
     super(
       `${method}: ${status !== undefined ? `HTTP ${status}` : JSON.stringify(rpcError)}`,
     );
     this.status = status;
     this.rpcError = rpcError;
+    this.retryAfter = retryAfter;
   }
+}
+// Retry-After in seconds. The form with a date is not read.
+function retryAfterOf(response) {
+  const value = response.headers.get("retry-after")?.trim();
+  return value && /^\d+$/.test(value) ? Number(value) : undefined;
 }
 
 // rpc.counts has the number of requests sent, by method.
@@ -173,7 +185,12 @@ export function createRpc(url, maxRequests = Infinity) {
       body: JSON.stringify({ jsonrpc: "2.0", id: ++id, method, params }),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
-    if (!response.ok) throw new RpcError(method, { status: response.status });
+    if (!response.ok) {
+      throw new RpcError(method, {
+        status: response.status,
+        retryAfter: retryAfterOf(response),
+      });
+    }
     const body = await response.json();
     if (body.error) throw new RpcError(method, { rpcError: body.error });
     return body.result;
@@ -189,15 +206,16 @@ const ERRORS_UNRELATED_TO_RANGE = [
   "pruned history unavailable",
   "old data not available due to pruning",
 ];
-// "results": the range has more logs than the RPC returns at once (pocket:
-// "query exceeds max results 20000"). "unrelated": an error that may not come
-// again for the same range, as in the sync: HTTP 429, 500 or 504, or a node
-// without old blocks. "range": any other error, which may come from a range
-// that is too wide.
+// "rate": HTTP 429, too many requests in a time (Infura), whatever the range
+// (#632). "results": the range has more logs than the RPC returns at once
+// (pocket: "query exceeds max results 20000"). "unrelated": an error that may
+// not come again for the same range, as in the sync: HTTP 500 or 504, or a
+// node without old blocks. "range": any other error, which may come from a
+// range that is too wide.
 export function classifyError(error) {
   if (!(error instanceof RpcError)) return "range";
-  // 429: too many requests at a time (Infura), whatever the range.
-  if ([429, 500, 504].includes(error.status)) return "unrelated";
+  if (error.status === 429) return "rate";
+  if ([500, 504].includes(error.status)) return "unrelated";
   const message = String(error.rpcError?.message ?? "");
   // pocket: "max results 20000"; Infura: "query returned more than 10000
   // results".
@@ -209,6 +227,32 @@ export function classifyError(error) {
 }
 const toHex = (value) => `0x${value.toString(16)}`;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// The wait after the rateErrors-th HTTP 429 in a row, with the Retry-After of
+// the last one (seconds, or undefined).
+export function rateWaitMs(rateErrors, retryAfter, base = RETRY_WAIT_MS) {
+  const doubled = Math.min(base * 2 ** (rateErrors - 1), RATE_WAIT_MAX_MS);
+  if (retryAfter === undefined) return doubled;
+  return Math.min(Math.max(retryAfter * 1000, doubled), RETRY_AFTER_MAX_MS);
+}
+
+// The rpc for the requests other than eth_getLogs: asked again after HTTP 429
+// with the same waits; any other error is thrown, as before.
+export function retryRate(rpc, { log = () => {}, stats = createFetchStats() }) {
+  return async (method, params) => {
+    for (let rateErrors = 1; ; rateErrors++) {
+      try {
+        return await rpc(method, params);
+      } catch (error) {
+        if (classifyError(error) !== "rate") throw error;
+        stats.errors.rate++;
+        const wait = rateWaitMs(rateErrors, error.retryAfter);
+        log(`${method} failed (rate): ${error.message}; waits ${wait} ms`);
+        await sleep(wait);
+      }
+    }
+  };
+}
 
 // The widths of the ranges of one contract, shared by its parts, which are
 // fetched at the same time: what one part learns, the others use. A part that
@@ -252,20 +296,23 @@ export function createFetchStats() {
     // answers in a row, or until an answer has logs.
     emptyRangesAskedAgain: 0,
     emptyRangesWithLogs: 0,
-    errors: { results: 0, unrelated: 0, range: 0 },
+    errors: { rate: 0, results: 0, unrelated: 0, range: 0 },
   };
 }
 
 // Fetches the logs of [fromBlock, toBlock] in ranges, like the sync (#549,
 // #554, #591). A full range that works doubles the next one, up to maxWidth.
 // A failure is tried again after a wait:
+// - "rate" (HTTP 429): the same range, after a wait doubled at each 429 in a
+//   row (rateWaitMs). Not a failure: it neither halves the range nor counts
+//   toward MAX_FAILURES, and the failures before it stay counted.
 // - "results" (too many logs): the range is halved at once, without a wait
 //   and without counting a failure.
 // - "unrelated" (HTTP 500, 504, a node without old blocks): the same range.
 // - "range": halved after two in a row, and the half becomes the widest
 //   range until SUCCESSES_TO_RAISE_LIMIT full ranges work in a row.
-// - Any kind: halved after ERRORS_TO_HALVE_ANYWAY in a row; the script stops
-//   after MAX_FAILURES in a row.
+// - Any kind but "rate": halved after ERRORS_TO_HALVE_ANYWAY in a row; the
+//   script stops after MAX_FAILURES in a row.
 // A halving halves the shared widths and gives the part its own widths, the
 // half of the range that failed (#601): its width is the narrower of the two,
 // so that the other parts may narrow it but not raise it. A full range that
@@ -295,6 +342,8 @@ export async function fetchLogs(
   let from = fromBlock;
   let failures = 0;
   let rangeFailures = 0;
+  // HTTP 429 in a row.
+  let rateErrors = 0;
   // The own widths of the part after a halving, until a range that works
   // raises them to the shared width.
   let own = undefined;
@@ -319,6 +368,15 @@ export async function fetchLogs(
       if (error instanceof RequestLimitError || signal?.aborted) throw error;
       const kind = classifyError(error);
       stats.errors[kind]++;
+      if (kind === "rate") {
+        const wait = rateWaitMs(++rateErrors, error.retryAfter);
+        log(
+          `${contract.name}: ${from}-${to} failed (rate): ${error.message}; waits ${wait} ms`,
+        );
+        await sleep(wait);
+        continue;
+      }
+      rateErrors = 0;
       log(`${contract.name}: ${from}-${to} failed (${kind}): ${error.message}`);
       if (kind === "results") {
         // Not the empty range any more: a narrower one.
@@ -338,6 +396,7 @@ export async function fetchLogs(
       await sleep(RETRY_WAIT_MS);
       continue;
     }
+    rateErrors = 0;
     if (result.length === 0 && ++emptyAnswers < EMPTY_ANSWERS_TO_KEEP) {
       if (askAgainTo === undefined) stats.emptyRangesAskedAgain++;
       askAgainTo = to;
@@ -536,11 +595,14 @@ export async function buildSnapshot({
 
 async function build(chain, rpc, outDir, toBlock, options) {
   const { concurrency, partBlocks, maxWidth, chunkLogs, log } = options;
-  const chainId = Number(await rpc("eth_chainId"));
+  const stats = createFetchStats();
+  // The requests other than eth_getLogs (#632: eth_blockNumber got HTTP 429).
+  const ask = retryRate(rpc, { log, stats });
+  const chainId = Number(await ask("eth_chainId"));
   if (chainId !== chain.chainId) {
     throw new Error(`The RPC is for chainId ${chainId}, not ${chain.chainId}.`);
   }
-  const latest = Number(await rpc("eth_blockNumber"));
+  const latest = Number(await ask("eth_blockNumber"));
   const goal = latest - chain.confirmationBlocks;
 
   const dir = path.join(outDir, chain.name);
@@ -614,7 +676,6 @@ async function build(chain, rpc, outDir, toBlock, options) {
   // their next request, and all keep what they fetched in .partial/.
   fs.mkdirSync(partialDir, { recursive: true });
   const controller = new AbortController();
-  const stats = createFetchStats();
   const queue = [];
   const most = Math.max(...plans.map((plan) => plan.parts.length));
   for (let i = 0; i < most; i++) {
@@ -688,7 +749,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
         contract,
         fromBlock: from,
         toBlock: end,
-        logs: toSnapshotLogs(rpc, contract, readParts(files)),
+        logs: toSnapshotLogs(ask, contract, readParts(files)),
         outDir: tmpDir,
         maxLogs: chunkLogs,
       })),
