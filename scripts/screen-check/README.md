@@ -18,7 +18,8 @@ each push to develop (see [CI](#ci-screen-checkyml)).
 The checks of a local build answer the warp sync files of Ethereum
 (`/warp-sync/eth/`) with 404, so Ethereum has no snapshot and syncs from the
 RPC as before. Its import asks first, and that dialog would cover the page
-(#604). The snapshot of Polygon is still imported.
+(#604). The snapshot of Polygon is still imported, except in the matic runs
+of `real-rpc/`, which turn the warp sync off first (#635).
 
 ## Before you run
 
@@ -264,6 +265,9 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
   on eth, AMMFactory of Augur turbo on matic), types the RPC URL, waits for
   "Connected." (30 s), starts the sync and waits until it stops by itself
   (120 s).
+- The matic runs first turn off "Warp sync" in the sync panel (its files get
+  404 until then), so that the sync starts at old blocks and PublicNode
+  refuses it (#635); `warpSync` records it. Eth has no snapshot here.
 - It records:
   - `1 helper`: "Connected." was shown.
   - `2 goal`: the Goal is a latest block the RPC returned, less the
@@ -304,9 +308,11 @@ scripts/screen-check/public-site/run.sh <build-dir> <out-dir> <version>   # such
 ```
 
 It only reads `https://snjro.github.io/Digu` after the release: it opens
-pages, clicks the theme switch and reads the page. It does not type an RPC
-URL or submit anything. Requests to other hosts are not blocked. The
-build folder gives only the `node_modules` with puppeteer.
+pages, clicks the theme switch and reads the page. It closes the import
+dialog of Ethereum with "Not now" on each page, and `1b import dialog`
+records it. It does not type an RPC URL or submit anything. Requests to
+other hosts are not blocked. The build folder gives only the `node_modules`
+with puppeteer.
 
 It checks that `/Digu/` goes to `/Digu/eth/`, the footer shows `v<version>`
 and links to its release, the links stay under `/Digu/`, the IndexedDB

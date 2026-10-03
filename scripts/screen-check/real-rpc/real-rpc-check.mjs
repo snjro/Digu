@@ -8,7 +8,9 @@
 //   URLs are answered by the request interceptor like PublicNode answered in
 //   September 2026 on eth (chainId, a latest block, -32602 for eth_getLogs). wss is not
 //   answered (a WebSocket cannot be intercepted), so it ends in an error.
-// One run per chain and protocol, each in a new browser profile:
+// One run per chain and protocol, each in a new browser profile. The matic
+// runs turn off the warp sync first, so that the sync starts at old blocks
+// (#635); eth has no snapshot here (see the request interception).
 //   1. "Connected." for the RPC. 2. The Goal (ChainStatus.latestBlockNumber)
 //   is a seen eth_blockNumber minus confirmationBlocks (#498).
 //   3. Sync one contract: eth_getLogs is refused with an error (any code;
@@ -75,6 +77,12 @@ const TARGET = {
     db: "Digu_EventLog_matic_Augur_turbo",
   },
 };
+// The chains whose warp sync is turned off in the sync panel before the sync.
+// The import starts when the chain is opened, so its files are answered with
+// 404 until then.
+const WARP_SYNC_OFF = new Set(["matic"]);
+let holdWarpSync = null;
+let warpSyncRequests = 0;
 const RUNS = [
   ["eth-http", "eth", `https://${HOSTS.eth}`],
   ["eth-wss", "eth", `wss://${HOSTS.eth}`],
@@ -285,6 +293,16 @@ async function newPage(context) {
       req.respond({ status: 404, body: "" });
       return;
     }
+    if (url.pathname.includes("/warp-sync/")) {
+      warpSyncRequests += 1;
+      if (
+        holdWarpSync &&
+        url.pathname.includes(`/warp-sync/${holdWarpSync}/`)
+      ) {
+        req.respond({ status: 404, body: "" });
+        return;
+      }
+    }
     const chain = Object.keys(HOSTS).find((c) => HOSTS[c] === url.hostname);
     if (chain && url.protocol === "https:") {
       let body = null;
@@ -486,6 +504,43 @@ async function clickCheckbox(page, label) {
   await settle(page);
   return visible.at(-1).evaluate((e) => e.checked);
 }
+// Unchecks "Warp sync" in the sync panel, and reads the saved setting.
+async function turnOffWarpSync(page, chain) {
+  await page.click('nav button[aria-controls="sync-panel"]');
+  await page.waitForSelector("#sync-panel:not(.hidden)", { timeout: 5000 });
+  await settle(page);
+  const checkedAfterClick = await clickCheckbox(page, "Warp sync");
+  const OFF = "Off: the logs are fetched only from your RPC.";
+  const helperShown = await page
+    .waitForFunction(
+      (t) => document.getElementById("sync-panel")?.innerText.includes(t),
+      { timeout: 5000, polling: 100 },
+      OFF,
+    )
+    .then(() => true)
+    .catch(() => false);
+  const saved = await page.evaluate(
+    (chain) =>
+      new Promise((res, rej) => {
+        const o = indexedDB.open("Digu_Settings");
+        o.onerror = () => rej(o.error);
+        o.onsuccess = () => {
+          const q = o.result
+            .transaction("RpcSettings")
+            .objectStore("RpcSettings")
+            .get(chain);
+          q.onsuccess = () => {
+            o.result.close();
+            res(q.result?.warpSync);
+          };
+        };
+      }),
+    chain,
+  );
+  await page.keyboard.press("Escape");
+  await settle(page);
+  return { warpSync: saved, checkedAfterClick, helperShown };
+}
 async function readDb(page, chain, db, contract) {
   return page.evaluate(
     async (chain, db, contract) => {
@@ -556,7 +611,21 @@ for (const [id, chain, rpc] of RUNS) {
       tryCount: TRY_COUNT,
       confirmationBlocks: CONFIRMATION[chain],
     });
+    holdWarpSync = WARP_SYNC_OFF.has(chain) ? chain : null;
+    warpSyncRequests = 0;
     await gotoApp(page, `/${chain}/`);
+    if (holdWarpSync) {
+      const off = await turnOffWarpSync(page, chain);
+      note("warpSync", {
+        ...off,
+        ok: off.warpSync === false && off.checkedAfterClick === false,
+        requestsWhileHeld: warpSyncRequests,
+      });
+      holdWarpSync = null;
+      warpSyncRequests = 0;
+      if (off.warpSync !== false)
+        throw new Error("the warp sync is not off; the sync is not started");
+    }
     // One contract as the sync target.
     const targets = {};
     for (const v of t.versions)
@@ -693,6 +762,9 @@ for (const [id, chain, rpc] of RUNS) {
       refused: refused.length,
       refusedCodes,
       firstGetLogs: getLogs[0]?.params,
+      warpSyncRequestsAfterOff: WARP_SYNC_OFF.has(chain)
+        ? warpSyncRequests
+        : undefined,
       rpcUrlInConsole: urlInConsole,
       leftFlags: after.leftFlags,
       row: after.row,
