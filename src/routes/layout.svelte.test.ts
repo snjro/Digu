@@ -6,11 +6,13 @@ import { storeUserSettings } from "#stores/storeUserSettings.js";
 import { saveSelectedChainName } from "#lib/leftSidebar/Header/selectChain.js";
 import { customLogger } from "#utils/logger.js";
 import {
+  storeNoDbCurrentWidth,
   storeNoDbSnackBar,
   storeNoDbSnackBarInitialValue,
 } from "#stores/storeNoDb.js";
 import { get } from "svelte/store";
 import { startWarpSync } from "#warpSync/warpSync.js";
+import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js";
 
 vi.mock("$app/state", () => ({
   page: {
@@ -40,9 +42,12 @@ vi.mock("#warpSync/warpSync.js", () => ({
   startWarpSync: vi.fn(async () => {}),
 }));
 
+const initialWidth: number = get(storeNoDbCurrentWidth);
+
 describe("+layout.svelte", () => {
   afterEach(() => {
     storeUserSettings.set({ ...initialDataUserSettings });
+    storeNoDbCurrentWidth.set(initialWidth);
     vi.mocked(saveSelectedChainName).mockClear();
     vi.restoreAllMocks();
     storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
@@ -79,5 +84,17 @@ describe("+layout.svelte", () => {
       ),
     );
     expect(get(storeNoDbSnackBar).visible).toBe(false);
+  });
+
+  // The main area is blocked on a narrow screen with the sidebar open,
+  // but the warp sync confirmation can open then without a click.
+  test("keeps the warp sync confirmation out of the blocked main area", () => {
+    storeNoDbCurrentWidth.set(breakPointWidths.sm);
+    storeUserSettings.updateState({ isOpenSidebar: true });
+    const { container } = render(Layout);
+    expect(container.querySelector(".pointer-events-none")).not.toBeNull();
+    const dialog = container.querySelector("dialog");
+    expect(dialog).not.toBeNull();
+    expect(dialog?.closest(".pointer-events-none")).toBeNull();
   });
 });

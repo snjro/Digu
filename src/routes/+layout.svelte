@@ -111,6 +111,9 @@
 >
   <LoadingSpinner />
   <LeftSidebar />
+  <!-- Out of the main area, which is blocked on a narrow screen with the
+       sidebar open: this dialog opens without a click. -->
+  <WarpSyncConfirmDialog />
   <div
     class={classNames(
       "min-w-0 flex-auto",
@@ -121,7 +124,6 @@
     )}
   >
     <Nav />
-    <WarpSyncConfirmDialog />
     <main
       class={classNames(
         "min-h-0 flex-auto",
