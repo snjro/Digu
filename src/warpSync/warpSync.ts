@@ -1,12 +1,10 @@
 import type { Chain, ChainName } from "#constants/chains/types.js";
-import { getSyncLockName, SYNC_LOCK_TIMEOUT_MS } from "#db/constants.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
 import { customLogger } from "#utils/logger.js";
 import { get } from "svelte/store";
 import {
-  isSyncedByThisTab,
   reloadSyncStatusInChain,
-  waitForSyncLockRelease,
+  runWithSyncLock,
 } from "#eventLogs/syncLock.js";
 import { fetchWarpSyncManifest } from "./warpSyncFetch";
 import { getWarpSyncPending, importWarpSync } from "./warpSyncImport";
@@ -34,8 +32,8 @@ function isDone(chainName: ChainName): boolean {
 }
 
 // The imports that run in this tab, shared by the callers. ran is true once
-// the import ran, and false when this tab synced the chain or another tab
-// held the lock.
+// the import ran, and false when this tab held or waited for the lock,
+// another tab held it past the timeout, or the import threw in the lock.
 type RunningImport = { ran: Promise<boolean>; done: Promise<void> };
 const runningImports: Map<ChainName, RunningImport> = new Map();
 // Only in this tab: the chains whose large import the user confirmed, and
@@ -257,26 +255,19 @@ async function getPendingOrUndefined(
   }
 }
 
-// Returns false when this tab syncs the chain, or another tab held the lock,
-// and nothing ran.
+// Returns false when this tab or another tab held the lock, and nothing ran.
+// The import is tried again next time.
 async function withSyncLock(
   chainName: ChainName,
   run: () => Promise<void>,
 ): Promise<boolean> {
-  // Do not import while this tab syncs the chain. With Web Locks, the request
-  // would wait for this tab's own lock, time out, and be taken for another tab.
-  if (isSyncedByThisTab(chainName)) return false;
-  // Without Web Locks (insecure context), work as a single tab, as the sync.
-  if (!navigator.locks) {
-    await run();
-    return true;
-  }
   try {
-    await navigator.locks.request(
-      getSyncLockName(chainName),
-      { signal: AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS) },
+    const ran: boolean = await runWithSyncLock(
+      chainName,
       async (): Promise<void> => {
         await run();
+        // Without Web Locks (insecure context), work as a single tab.
+        if (!navigator.locks) return;
         // Another tab may have imported or synced since this tab read the
         // DB, and then this import skips everything.
         await reloadSyncStatusInChain(chainName).catch((error: unknown) => {
@@ -287,15 +278,17 @@ async function withSyncLock(
         });
       },
     );
-    return true;
+    if (!ran) {
+      customLogger.info("Skip the warp sync: the chain is synced now.", {
+        chainName,
+      });
+    }
+    return ran;
   } catch (error) {
-    // A TimeoutError when another tab holds the lock: read the DB when it
-    // releases it, as the sync does, and try again next time.
-    customLogger.info("Skip the warp sync: the chain is synced now.", {
+    customLogger.error("Import the warp sync snapshot in the sync lock.", {
       chainName,
       errorObject: error,
     });
-    waitForSyncLockRelease(chainName);
     return false;
   }
 }

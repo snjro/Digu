@@ -5,7 +5,10 @@ import { resetDbSyncedData } from "#db/dbResetSyncedData.js";
 import { initialDataRpcSetting } from "#db/dbTypes.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
 import { customLogger } from "#utils/logger.js";
-import { startWarpSync } from "#warpSync/warpSync.js";
+import {
+  forgetWarpSyncConfirmation,
+  startWarpSync,
+} from "#warpSync/warpSync.js";
 import {
   selectWarpSyncState,
   setWarpSyncState,
@@ -18,8 +21,9 @@ import {
   type FakeLockManager,
 } from "../testUtils/fakeLockManager";
 import {
-  isSyncedByThisTab,
   reloadSyncStatusInChain,
+  runWithSyncLock,
+  storeSyncLockedByOtherTab,
   waitForSyncLockRelease,
 } from "./syncLock";
 import {
@@ -35,8 +39,20 @@ vi.mock("#warpSync/warpSync.js", () => ({
   startWarpSync: vi.fn(async () => {}),
   forgetWarpSyncConfirmation: vi.fn(),
 }));
-vi.mock("./syncLock", () => ({
-  isSyncedByThisTab: vi.fn(() => false),
+// What the real waitForSyncLockRelease() reads once the lock is released.
+vi.mock("#db/db.worker.func.InitializeDBSyncStatus.js", () => ({
+  initializeDBSyncStatusInChain: vi.fn(async () => {}),
+}));
+vi.mock("#db/dbEventLogsDataHandlersSyncStatusGetters.js", () => ({
+  getDbRecordSyncStatusContract: vi.fn(async () => ({})),
+}));
+vi.mock("#db/dbChainStatusDataHandlers.js", () => ({
+  getDbRecordChainStatus: vi.fn(async () => ({ latestBlockNumber: 0 })),
+}));
+// The lock is real. runWithSyncLock() calls the real waitForSyncLockRelease();
+// the mock is what syncReset.ts calls for the other tabs' resets.
+vi.mock("./syncLock", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./syncLock")>()),
   reloadSyncStatusInChain: vi.fn(async () => {}),
   waitForSyncLockRelease: vi.fn(),
 }));
@@ -57,6 +73,7 @@ describe("resetSyncedData", () => {
     vi.mocked(startWarpSync).mockClear();
     vi.mocked(reloadSyncStatusInChain).mockClear();
     vi.mocked(waitForSyncLockRelease).mockClear();
+    storeSyncLockedByOtherTab.update((state) => ({ ...state, matic: false }));
   });
   afterEach(() => {
     stopWatchingSyncResets();
@@ -121,7 +138,7 @@ describe("resetSyncedData", () => {
   });
 
   test("deletes nothing while another tab holds the lock", async () => {
-    vi.spyOn(customLogger, "info").mockImplementation(() => {});
+    const spyInfo = vi.spyOn(customLogger, "info").mockImplementation(() => {});
     let release: () => void = () => {};
     void lockManager.request(
       getSyncLockName("matic"),
@@ -129,22 +146,54 @@ describe("resetSyncedData", () => {
     );
     // Waits SYNC_LOCK_TIMEOUT_MS (1 s), as the sync does.
     expect((await resetSyncedData(matic)).result).toBe("busy");
+    expect(spyInfo).toHaveBeenCalledWith("The sync lock was not granted.", {
+      chainName: "matic",
+      errorObject: expect.objectContaining({ name: "TimeoutError" }),
+    });
     expect(resetDbSyncedData).not.toHaveBeenCalled();
     expect(startWarpSync).not.toHaveBeenCalled();
     expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
       "imported",
     );
     // The stores are read again when the other tab releases the lock.
-    expect(waitForSyncLockRelease).toHaveBeenCalledExactlyOnceWith("matic");
+    expect(get(storeSyncLockedByOtherTab).matic).toBe(true);
     release();
+    await vi.waitFor(() =>
+      expect(get(storeSyncLockedByOtherTab).matic).toBe(false),
+    );
   });
 
   test("deletes nothing while this tab syncs or imports the chain", async () => {
-    vi.mocked(isSyncedByThisTab).mockReturnValueOnce(true);
+    let finish: () => void = () => {};
+    // As this tab's sync does.
+    const holding: Promise<boolean> = runWithSyncLock(
+      "matic",
+      () => new Promise<void>((resolve) => (finish = resolve)),
+    );
+    // No request, so no wait for SYNC_LOCK_TIMEOUT_MS.
+    const request = vi.spyOn(lockManager, "request");
     expect((await resetSyncedData(matic)).result).toBe("busy");
+    expect(request).not.toHaveBeenCalled();
+    // Not read as another tab, which disables the sync toggle.
+    expect(get(storeSyncLockedByOtherTab).matic).toBe(false);
+    finish();
+    expect(await holding).toBe(true);
     setWarpSyncState("matic", { status: "importing" });
     expect((await resetSyncedData(matic)).result).toBe("busy");
     expect(resetDbSyncedData).not.toHaveBeenCalled();
+  });
+
+  test("deletes nothing without Web Locks while this tab syncs the chain", async () => {
+    removeLockManager();
+    let finish: () => void = () => {};
+    const holding: Promise<boolean> = runWithSyncLock(
+      "matic",
+      () => new Promise<void>((resolve) => (finish = resolve)),
+    );
+    expect((await resetSyncedData(matic)).result).toBe("busy");
+    expect(resetDbSyncedData).not.toHaveBeenCalled();
+    finish();
+    expect(await holding).toBe(true);
   });
 
   test("still reads the chain again after a failure, since some versions may be reset", async () => {
@@ -166,6 +215,35 @@ describe("resetSyncedData", () => {
     expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
       "idle",
     );
+  });
+
+  test("goes on to read the chain again when forgetting the import throws", async () => {
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    const error = new Error("forget error");
+    vi.mocked(forgetWarpSyncConfirmation).mockImplementationOnce(() => {
+      throw error;
+    });
+    const received: unknown[] = [];
+    const other = new BroadcastChannel(`${DB_NAME.firstName}_syncReset`);
+    other.addEventListener("message", (event: MessageEvent) =>
+      received.push(event.data),
+    );
+
+    expect(await resetSyncedData(matic)).toMatchObject({
+      result: "reset",
+      deletedLogCount: 7,
+    });
+    expect(spyError).toHaveBeenCalledWith(
+      "Forget the warp sync import after the reset.",
+      { chainName: "matic", errorObject: error },
+    );
+    expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("matic");
+    expect(startWarpSync).toHaveBeenCalledExactlyOnceWith(matic);
+    await vi.waitFor(() => expect(received).toEqual([{ chainName: "matic" }]));
+    other.close();
+    expect((await lockManager.query()).held).toEqual([]);
   });
 
   test("works without Web Locks (insecure context)", async () => {
