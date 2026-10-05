@@ -17,6 +17,7 @@
   import { storeSyncStatus } from "#stores/storeSyncStatus.js";
   import { DIR_NAME_CONTRACTS, NO_DATA } from "#utils/utilsConstants.js";
   import BaseProgressBarForBlockNumber from "#lib/base/BaseProgressBarForBlockNumber/BaseProgressBarForBlockNumber.svelte";
+  import { getSummedProgressRange } from "#lib/base/BaseProgressBarForBlockNumber/syncStatusProgress.js";
   import { storeChainStatus } from "#stores/storeChainStatus.js";
   import type { SyncStatusProject } from "#db/dbTypes.js";
   import {
@@ -146,19 +147,16 @@
               {textSize}
             >
               {#if hasVersionSyncTargetEvents(targetVersion)}
+                {@const range = getSummedProgressRange(
+                  targetProjectSyncStatus.subSyncStatuses[targetVersion.name],
+                  $storeChainStatus[targetChain.name].latestBlockNumber,
+                )}
                 <BaseProgressBarForBlockNumber
-                  startBlockNumber={targetProjectSyncStatus.subSyncStatuses[
-                    targetVersion.name
-                  ].creationBlockNumber}
+                  startBlockNumber={range.start}
                   colorCategoryFront={colorSettings.gridContainer}
                   colorCategoryBg={colorSettings.gridContainer}
-                  fetchedBlockNumber={targetProjectSyncStatus.subSyncStatuses[
-                    targetVersion.name
-                  ].fetchedBlockNumber}
-                  endBlockNumber={$storeChainStatus[targetChain.name]
-                    .latestBlockNumber *
-                    targetProjectSyncStatus.subSyncStatuses[targetVersion.name]
-                      .numOfSyncTargetContract}
+                  fetchedBlockNumber={range.current}
+                  endBlockNumber={range.goal}
                   size={changeSize(textSize, -1)}
                   showBlockNumber={false}
                   shadowBar={false}
