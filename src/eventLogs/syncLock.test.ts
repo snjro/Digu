@@ -201,6 +201,7 @@ async function openTab(beforeWatch?: () => Promise<void>) {
   const contract: Contract = extractEventContracts(version.contracts)[0];
   const { DbEventLogs } = await import("#db/dbEventLogs.js");
   const { fetchEventLogs } = await import("./eventLogs");
+  const { resetSyncedData } = await import("./syncReset");
   const { startAbortingInChain } =
     await import("#db/dbEventLogsDataHandlersSyncStatus.js");
   const { syncStatusContract } = await import("./eventLogsContract");
@@ -234,6 +235,7 @@ async function openTab(beforeWatch?: () => Promise<void>) {
     contract,
     db,
     fetchEventLogs: () => fetchEventLogs(chain),
+    resetSyncedData: () => resetSyncedData(chain),
     stop: () => startAbortingInChain(chain.name),
     storeStatus: (): SyncStatusContract =>
       syncStatusContract({ ...versionIdentifier, contractName: contract.name }),
@@ -768,6 +770,145 @@ describe("sync with two tabs (issue #49)", () => {
     expect(a.isLockedByOtherTab()).toBe(false);
     await stopAndWait(a);
   }, 30_000);
+
+  test("does not take the lock of this tab's reset for another tab's", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    // Same module instance as tab A (openTab() resets modules only at start).
+    const dbResetSyncedData = await import("#db/dbResetSyncedData.js");
+    let finishReset: () => void = () => {};
+    vi.spyOn(dbResetSyncedData, "resetDbSyncedData").mockImplementationOnce(
+      () => new Promise<number>((resolve) => (finishReset = () => resolve(0))),
+    );
+    const resetting = a.resetSyncedData();
+    expect(await waitFor(isSyncLockHeld)).toBe(true);
+
+    expect(await a.fetchEventLogs()).toBe(false);
+    expect(a.isLockedByOtherTab()).toBe(false);
+    finishReset();
+    const outcome = await resetting;
+    expect(outcome.result).toBe("reset");
+    await outcome.warpSyncImport;
+  }, 30_000);
+
+  test("does not reset while this tab syncs, and does not wait for the lock", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    expect(await a.fetchEventLogs()).toBe(true);
+    await waitForSavedLogs(a);
+    const request = vi.spyOn(lockManager, "request");
+
+    expect((await a.resetSyncedData()).result).toBe("busy");
+    expect(request).not.toHaveBeenCalled();
+    expect(a.isLockedByOtherTab()).toBe(false);
+    await stopAndWait(a);
+  }, 30_000);
+
+  test("does not wait for the lock that the same tab is waiting for", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    let release: () => void = () => {};
+    const heldLock = lockManager.request(
+      getSyncLockName(chain.name),
+      () => new Promise<void>((resolve) => (release = resolve)),
+    );
+    const startedA = a.fetchEventLogs();
+    expect(
+      await waitFor(async () => !!(await lockManager.query()).pending?.length),
+    ).toBe(true);
+    const request = vi.spyOn(lockManager, "request");
+
+    expect(await a.fetchEventLogs()).toBe(false);
+    expect(request).not.toHaveBeenCalled();
+    expect(a.isLockedByOtherTab()).toBe(false);
+    release();
+    await heldLock;
+    expect(await startedA).toBe(true);
+    await stopAndWait(a);
+  }, 30_000);
+
+  describe("runWithSyncLock", () => {
+    // Opens a tab, and returns runWithSyncLock() of that tab.
+    async function openTabForLock() {
+      const a = await openTab();
+      tabs.push(a);
+      // Same module instance as tab A (openTab() resets modules only at start).
+      const { runWithSyncLock } = await import("./syncLock");
+      return {
+        a,
+        runWithSyncLock: (run: () => Promise<void>) =>
+          runWithSyncLock(chain.name, run),
+      };
+    }
+
+    test("returns false at once while this tab holds the lock", async () => {
+      const { a, runWithSyncLock } = await openTabForLock();
+      let finish: () => void = () => {};
+      const holding = runWithSyncLock(
+        () => new Promise<void>((resolve) => (finish = resolve)),
+      );
+      const request = vi.spyOn(lockManager, "request");
+      const run = vi.fn(async () => {});
+
+      expect(await runWithSyncLock(run)).toBe(false);
+      expect(run).not.toHaveBeenCalled();
+      expect(request).not.toHaveBeenCalled();
+      expect(a.isLockedByOtherTab()).toBe(false);
+      finish();
+      expect(await holding).toBe(true);
+      expect(await runWithSyncLock(run)).toBe(true);
+      expect(run).toHaveBeenCalledOnce();
+    }, 30_000);
+
+    test("returns false and waits for another holder that keeps the lock", async () => {
+      const { a, runWithSyncLock } = await openTabForLock();
+      let release: () => void = () => {};
+      const heldLock = lockManager.request(
+        getSyncLockName(chain.name),
+        () => new Promise<void>((resolve) => (release = resolve)),
+      );
+      const run = vi.fn(async () => {});
+
+      expect(await runWithSyncLock(run)).toBe(false);
+      expect(run).not.toHaveBeenCalled();
+      expect(a.isLockedByOtherTab()).toBe(true);
+      release();
+      await heldLock;
+      expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
+    }, 30_000);
+
+    test("rejects when the run throws, and is not taken for another tab", async () => {
+      const { a, runWithSyncLock } = await openTabForLock();
+      const error = new Error("run error");
+
+      await expect(
+        runWithSyncLock(async () => {
+          throw error;
+        }),
+      ).rejects.toBe(error);
+      expect(a.isLockedByOtherTab()).toBe(false);
+      expect(await isSyncLockHeld()).toBe(false);
+      expect(await runWithSyncLock(async () => {})).toBe(true);
+    }, 30_000);
+
+    test("works without navigator.locks, and still refuses a second run", async () => {
+      removeLockManager();
+      const { a, runWithSyncLock } = await openTabForLock();
+      let finish: () => void = () => {};
+      const holding = runWithSyncLock(
+        () => new Promise<void>((resolve) => (finish = resolve)),
+      );
+      const run = vi.fn(async () => {});
+
+      expect(await runWithSyncLock(run)).toBe(false);
+      expect(run).not.toHaveBeenCalled();
+      expect(a.isLockedByOtherTab()).toBe(false);
+      finish();
+      expect(await holding).toBe(true);
+      expect(await runWithSyncLock(run)).toBe(true);
+      expect(run).toHaveBeenCalledOnce();
+    }, 30_000);
+  });
 
   // Only the startup in the Worker counts the records. The syncing tab adds
   // to the counts in the DB, so they still match the rows.

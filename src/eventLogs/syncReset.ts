@@ -1,9 +1,5 @@
 import type { Chain, ChainName } from "#constants/chains/types.js";
-import {
-  DB_NAME,
-  getSyncLockName,
-  SYNC_LOCK_TIMEOUT_MS,
-} from "#db/constants.js";
+import { DB_NAME } from "#db/constants.js";
 import { resetDbSyncedData } from "#db/dbResetSyncedData.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
 import { customLogger } from "#utils/logger.js";
@@ -19,8 +15,8 @@ import {
 } from "#warpSync/warpSyncState.js";
 import { get } from "svelte/store";
 import {
-  isSyncedByThisTab,
   reloadSyncStatusInChain,
+  runWithSyncLock,
   waitForSyncLockRelease,
 } from "./syncLock";
 
@@ -44,27 +40,16 @@ export async function resetSyncedData(
 ): Promise<SyncResetOutcome> {
   const chainName: ChainName = targetChain.name;
   const busy: SyncResetOutcome = { result: "busy", deletedLogCount: 0 };
-  if (isSyncedByThisTab(chainName) || isImporting(chainName)) return busy;
-  let outcome: SyncResetOutcome;
-  // Without Web Locks (insecure context), work as a single tab, as the sync.
-  if (!navigator.locks) {
+  if (isImporting(chainName)) return busy;
+  let outcome: SyncResetOutcome = busy;
+  const ran: boolean = await runWithSyncLock(chainName, async () => {
     outcome = await resetInLock(targetChain);
-  } else {
-    try {
-      outcome = await navigator.locks.request(
-        getSyncLockName(chainName),
-        { signal: AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS) },
-        () => resetInLock(targetChain),
-      );
-    } catch (error) {
-      // A TimeoutError when another tab holds the lock.
-      customLogger.info("Skip the reset: the chain is synced now.", {
-        chainName,
-        errorObject: error,
-      });
-      waitForSyncLockRelease(chainName);
-      return busy;
-    }
+  });
+  if (!ran) {
+    customLogger.info("Skip the reset: the chain is synced now.", {
+      chainName,
+    });
+    return busy;
   }
   if (hasWarpSync(chainName) && get(storeRpcSettings)[chainName].warpSync) {
     outcome.warpSyncImport = startWarpSync(targetChain);

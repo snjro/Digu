@@ -15,76 +15,83 @@ import { getTargetChain } from "#utils/utilsDb.js";
 import { customLogger } from "#utils/logger.js";
 import { get, writable, type Writable } from "svelte/store";
 
-// true while another tab holds the sync lock of the chain.
+// true while another tab holds the sync lock of the chain (its sync, import or
+// reset).
 export const storeSyncLockedByOtherTab: Writable<Record<ChainName, boolean>> =
   writable(
     Object.fromEntries(TARGET_CHAINS.map((chain) => [chain.name, false])),
   );
 
-// Only one tab syncs a chain at a time. The tab holds the sync lock while it
-// syncs, and the browser releases it when the tab is closed.
+// Only one sync, import or reset of a chain runs at a time, in all tabs. It
+// holds the sync lock of the chain, and the browser releases it when the tab
+// is closed.
 
-// Chains whose sync lock this tab holds.
-const chainsSyncedByThisTab: Set<ChainName> = new Set();
-export function isSyncedByThisTab(chainName: ChainName): boolean {
-  return chainsSyncedByThisTab.has(chainName);
+// Chains whose sync lock this tab holds or waits for. A request for a lock
+// that this tab holds would wait for it, time out, and be taken for another
+// tab.
+const chainsLockedByThisTab: Set<ChainName> = new Set();
+
+// Runs `run` while holding the sync lock of the chain. Resolves true once
+// `run` has finished, or false without running it when this tab holds or
+// waits for the lock, or another tab holds it for SYNC_LOCK_TIMEOUT_MS.
+// Rejects when `run` throws.
+export async function runWithSyncLock(
+  chainName: ChainName,
+  run: () => Promise<void>,
+): Promise<boolean> {
+  if (chainsLockedByThisTab.has(chainName)) return false;
+  chainsLockedByThisTab.add(chainName);
+  try {
+    // Without Web Locks (insecure context), work as a single tab.
+    if (!navigator.locks) {
+      await run();
+      return true;
+    }
+    let granted: boolean = false;
+    try {
+      await navigator.locks.request(
+        getSyncLockName(chainName),
+        { signal: AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS) },
+        async (): Promise<void> => {
+          granted = true;
+          await run();
+        },
+      );
+      return true;
+    } catch (error) {
+      if (granted) throw error;
+      // A TimeoutError: another tab holds the lock.
+      waitForSyncLockRelease(chainName);
+      return false;
+    }
+  } finally {
+    chainsLockedByThisTab.delete(chainName);
+  }
 }
 
 // Runs `start` and then `sync` while holding the lock. Resolves true once
-// `start` has finished, or false when the lock is held (by another tab for
-// SYNC_LOCK_TIMEOUT_MS, or by this tab) or the sync could not be started.
+// `start` has finished, or false when runWithSyncLock() does not run it or the
+// sync could not be started.
 export async function requestSyncLock(
   chainName: ChainName,
   start: () => Promise<void>,
   sync: () => Promise<void>,
 ): Promise<boolean> {
-  if (chainsSyncedByThisTab.has(chainName)) return false;
-  // Without Web Locks (insecure context), work as a single tab.
-  if (!navigator.locks) {
-    chainsSyncedByThisTab.add(chainName);
-    const started: boolean = await tryToStart(chainName, start);
-    const syncing: Promise<void> = started ? sync() : Promise.resolve();
-    void syncing
-      .catch((error: unknown) => {
-        customLogger.error("Sync event logs.", {
-          chainName: chainName,
-          errorObject: error,
-        });
-      })
-      .finally(() => chainsSyncedByThisTab.delete(chainName));
-    return started;
-  }
-  const signal: AbortSignal = AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS);
-  let granted: boolean = false;
   return await new Promise((resolve) => {
-    navigator.locks
-      .request(
-        getSyncLockName(chainName),
-        { signal: signal },
-        async (): Promise<void> => {
-          granted = true;
-          chainsSyncedByThisTab.add(chainName);
-          try {
-            const started: boolean = await tryToStart(chainName, async () => {
-              // The store may be stale: another tab may have synced since
-              // this tab was opened, or left flags behind when it was closed.
-              await resetSyncStatusInChain(chainName);
-              await start();
-            });
-            resolve(started);
-            if (started) await sync();
-          } finally {
-            chainsSyncedByThisTab.delete(chainName);
-          }
-        },
-      )
+    runWithSyncLock(chainName, async (): Promise<void> => {
+      const started: boolean = await tryToStart(chainName, async () => {
+        // The store may be stale: another tab may have synced since this tab
+        // was opened, or left flags behind when it was closed.
+        if (navigator.locks) await resetSyncStatusInChain(chainName);
+        await start();
+      });
+      resolve(started);
+      if (started) await sync();
+    })
+      .then((ran: boolean) => {
+        if (!ran) resolve(false);
+      })
       .catch((error: unknown) => {
-        // Rejected with a TimeoutError when the lock was not granted in time.
-        if (!granted) {
-          resolve(false);
-          waitForSyncLockRelease(chainName);
-          return;
-        }
         customLogger.error("Sync event logs.", {
           chainName: chainName,
           errorObject: error,
