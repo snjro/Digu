@@ -4,8 +4,8 @@ Usage: python3 scripts/warp-sync/check-snapshot.py [--at <ISO time>]
   --at: the time of the release (default: now).
   WARP_SYNC_SNAPSHOT_CHECK=off: warn instead of failing.
 Fails (exit 1) when the last run of a manifest.json (the last chunk in
-formatVersion 1) was made on another day or a manifest cannot be read. A chain
-without a snapshot is not checked.
+formatVersion 1) was made on another day, a manifest cannot be read, or no
+chain is found. A chain without a snapshot is not checked.
 Writes a table to $GITHUB_STEP_SUMMARY (or to stdout without it). It only
 reads the files of the repository.
 """
@@ -47,6 +47,8 @@ for index in sorted(glob.glob(os.path.join(root, "src/constants/chains/*/_index.
         match = re.search(r'^\s*name:\s*"([^"]+)"', f.read(), re.M)
     if match:
         chains.append(match.group(1))
+if not chains:
+    problem("No chain found in src/constants/chains/*/_index.ts.")
 
 at = args.at or datetime.datetime.now(UTC)
 release_day = at.astimezone(UTC).date()
