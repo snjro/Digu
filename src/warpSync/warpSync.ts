@@ -34,7 +34,8 @@ function isDone(chainName: ChainName): boolean {
 }
 
 // The imports that run in this tab, shared by the callers. ran is true once
-// the import ran, and false when another tab held the lock.
+// the import ran, and false when this tab synced the chain or another tab
+// held the lock.
 type RunningImport = { ran: Promise<boolean>; done: Promise<void> };
 const runningImports: Map<ChainName, RunningImport> = new Map();
 // Only in this tab: the chains whose large import the user confirmed, and
@@ -44,8 +45,9 @@ const heldChains: Set<ChainName> = new Set();
 
 // When a chain is opened, or the warp sync is turned on: imports the
 // snapshot while holding the sync lock. A large import waits for the user
-// ("confirm"). Skips it when another tab holds the lock for longer than the
-// sync waits, so that it is tried again the next time.
+// ("confirm"). Skips it while this tab syncs the chain, or when another tab
+// holds the lock for longer than the sync waits, so that it is tried again
+// the next time.
 export function startWarpSync(targetChain: Chain): Promise<void> {
   return startImport(targetChain).done;
 }
@@ -255,15 +257,17 @@ async function getPendingOrUndefined(
   }
 }
 
-// Returns false when another tab held the lock and nothing ran.
+// Returns false when this tab syncs the chain, or another tab held the lock,
+// and nothing ran.
 async function withSyncLock(
   chainName: ChainName,
   run: () => Promise<void>,
 ): Promise<boolean> {
-  // Without Web Locks (insecure context), work as a single tab, as the sync:
-  // do not import while this tab syncs the chain.
+  // Do not import while this tab syncs the chain. With Web Locks, the request
+  // would wait for this tab's own lock, time out, and be taken for another tab.
+  if (isSyncedByThisTab(chainName)) return false;
+  // Without Web Locks (insecure context), work as a single tab, as the sync.
   if (!navigator.locks) {
-    if (isSyncedByThisTab(chainName)) return false;
     await run();
     return true;
   }
