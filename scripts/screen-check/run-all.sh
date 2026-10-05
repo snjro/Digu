@@ -73,7 +73,7 @@ fi
 lanes_readme=(ui-sec1-root ui-sec1-digu ui-sec2 ui-sec3 ui-sec4 ui-sec58 ui-extra sync upgrade-a upgrade-b real-rpc-fake)
 # The longest first, by the times of a run before v1.2.0.
 lanes_longest=(ui-sec58 sync ui-sec4 upgrade-a real-rpc-fake ui-sec1-digu ui-sec1-root upgrade-b ui-sec3 ui-sec2 ui-extra)
-if [[ $(printf '%s\n' "${lanes_readme[@]}" | sort) != $(printf '%s\n' "${lanes_longest[@]}" | sort) ]]; then
+if [[ $(printf '%s\n' "${lanes_readme[@]}" | sort) != "$(printf '%s\n' "${lanes_longest[@]}" | sort)" ]]; then
   echo "The two lanes lists of run-all.sh do not have the same names" >&2
   exit 2
 fi
