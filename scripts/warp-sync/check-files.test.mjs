@@ -126,6 +126,15 @@ describe("checkSnapshotFiles", () => {
     expect(check()).toEqual([`matic: ${file} does not match its sha256.`]);
   });
 
+  test("two chunks with the same file", () => {
+    const { chunks } = readManifest(manifestFile, chain);
+    change((m) => (m.chunks[1].file = chunks[0].file));
+    expect(check()).toEqual([
+      `matic: Augur/v/A 3-10: ${chunks[0].file} is the file of another chunk.`,
+      `matic: ${path.join(chainDir, chunks[1].file)} is not in the manifest.`,
+    ]);
+  });
+
   test("a file for a range without logs, and no file for logs", () => {
     change((m) => {
       m.chunks[1].logCount = 0;

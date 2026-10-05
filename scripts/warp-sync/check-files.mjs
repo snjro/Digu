@@ -1,12 +1,9 @@
 // Checks the files of the warp sync snapshot against their manifest.json, for
 // check-files.test.mjs: it runs on every PR and in the release. See README.md.
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { loadChain } from "./build-snapshot.mjs";
-import { keyOf, readManifest, totalsOf } from "./snapshot-format.mjs";
-
-const sha256 = (data) => crypto.createHash("sha256").update(data).digest("hex");
+import { keyOf, readManifest, sha256, totalsOf } from "./snapshot-format.mjs";
 
 // Reads WARP_SYNC_CHAIN_NAMES like build-snapshot.mjs reads the _index.ts
 // files. Returns [] when the line is not found.
@@ -44,6 +41,10 @@ function checkChain(dir, name) {
       problem(`${label} has ${chunk.logCount} logs and file ${chunk.file}.`);
     }
     if (chunk.file === null) continue;
+    if (listed.has(chunk.file)) {
+      problem(`${label}: ${chunk.file} is the file of another chunk.`);
+      continue;
+    }
     listed.add(chunk.file);
     const chunkFile = path.join(dir, chunk.file);
     if (!fs.existsSync(chunkFile)) {
