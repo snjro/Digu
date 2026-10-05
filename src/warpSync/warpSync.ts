@@ -45,8 +45,9 @@ const heldChains: Set<ChainName> = new Set();
 
 // When a chain is opened, or the warp sync is turned on: imports the
 // snapshot while holding the sync lock. A large import waits for the user
-// ("confirm"). Skips it when another tab holds the lock for longer than the
-// sync waits, so that it is tried again the next time.
+// ("confirm"). Skips it while this tab syncs the chain, or when another tab
+// holds the lock for longer than the sync waits, so that it is tried again
+// the next time.
 export function startWarpSync(targetChain: Chain): Promise<void> {
   return startImport(targetChain).done;
 }
