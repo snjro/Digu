@@ -21,6 +21,7 @@ function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
       (params.node?.rowIndex ?? 0) + 1,
     // The position on the screen, which the earlier searches change.
     getQuickFilterText: (): string => "",
+    filter: false,
     cellClass: classNames(
       "tabular-nums",
       "grid",
