@@ -67,4 +67,21 @@ describe("getColumnDefs", () => {
     expect(shownNames()).toEqual(["c3"]);
     gridApi.destroy();
   });
+
+  // Same reason as the quick search. GridBody.svelte turns the filter on for
+  // every column with defaultColDef.
+  test("the row number column has no column filter", () => {
+    ModuleRegistry.registerModules([AllCommunityModule]);
+    const element = document.createElement("div");
+    document.body.append(element);
+    const gridApi = createGrid(element, {
+      columnDefs: getColumnDefs([{ field: "name" }]),
+      defaultColDef: { filter: true },
+    });
+    expect(gridApi.getColumn(ColIdRowSequenceNumber)?.isFilterAllowed()).toBe(
+      false,
+    );
+    expect(gridApi.getColumn("name")?.isFilterAllowed()).toBe(true);
+    gridApi.destroy();
+  });
 });
