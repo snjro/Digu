@@ -183,7 +183,8 @@ try {
   const manifest = (await fetch(`${BASE}/warp-sync/eth/manifest.json`)).status;
   record(
     "1b import dialog",
-    (manifest === 404 || dialogs.length > 0) &&
+    manifest === 200 &&
+      dialogs.length > 0 &&
       dialogs.every((d) => d.clicked && d.closed),
     {
       manifest,

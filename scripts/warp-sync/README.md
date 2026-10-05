@@ -29,7 +29,13 @@ for each chain, the last run of `manifest.json` (the last chunk in
 formatVersion 1), when it was made (`createdAt`), its `toBlock` and its age in
 days, in the summary of the run. It stops the release when the last run was
 not made on the day of the release, by the date in UTC, and when it cannot
-read a manifest. A chain without a snapshot is not checked.
+read a manifest or finds no chain. A chain without a snapshot is not checked.
+
+vitest (`check-files.test.mjs`) checks the files of each chain of
+`WARP_SYNC_CHAIN_NAMES` against its `manifest.json` on every PR and in the
+release: sizes, sha256, the ranges of each contract without gaps, `totals`,
+and no file outside the manifest. `WARP_SYNC_SNAPSHOT_CHECK=off` does not turn
+this check off.
 
 ```sh
 python3 scripts/warp-sync/check-snapshot.py [--at <ISO time>]   # the default is now

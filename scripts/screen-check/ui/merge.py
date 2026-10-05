@@ -1,16 +1,12 @@
 # Usage: python3 merge.py <outDir> <commit>
 # Merges the results-*.json that the sec*.mjs wrote into <outDir>/results.json.
-import json, collections, os, sys
+import json, collections, glob, os, sys
 os.chdir(sys.argv[1])
 out = {"commit": sys.argv[2], "files": {}}
 allres = []
 logs = []
 blocked = set()
-for f in ["results-sec1-root.json", "results-sec1-digu.json", "results-sec3.json", "results-sec4.json",
-          "results-sec2.json", "results-sec58.json", "results-extra.json"]:
-    if not os.path.exists(f):
-        print("missing", f)
-        continue
+for f in sorted(glob.glob("results-*.json")):
     d = json.load(open(f))
     out["files"][f] = d
     for r in d["results"]:

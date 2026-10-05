@@ -14,7 +14,9 @@
 #     upgrade B is skipped.
 # Each check goes on after a failure. Every step writes log-<step>.txt; at the
 # end, exit-codes.txt and times.txt list the steps. Exits 1 when a step failed.
-# See README.md in this folder.
+# A new lane needs a branch in lane(), its name in both lanes lists and its
+# steps in steps; a missing one fails the run. A new kind of check also needs a
+# reader in judge.py, or an ok. See README.md in this folder.
 set -uo pipefail
 
 # wait -n needs bash 4.3.
@@ -65,6 +67,19 @@ fi
 if [[ -n $upgrade_b && ! -d $upgrade_b ]]; then
   echo "$upgrade_b is not a folder" >&2
   exit 2
+fi
+
+# In the order of README.md, for --jobs=1.
+lanes_readme=(ui-sec1-root ui-sec1-digu ui-sec2 ui-sec3 ui-sec4 ui-sec58 ui-extra sync upgrade-a upgrade-b real-rpc-fake)
+# The longest first, by the times of a run before v1.2.0.
+lanes_longest=(ui-sec58 sync ui-sec4 upgrade-a real-rpc-fake ui-sec1-digu ui-sec1-root upgrade-b ui-sec3 ui-sec2 ui-extra)
+if [[ $(printf '%s\n' "${lanes_readme[@]}" | sort) != "$(printf '%s\n' "${lanes_longest[@]}" | sort)" ]]; then
+  echo "The two lanes lists of run-all.sh do not have the same names" >&2
+  exit 2
+fi
+lanes=("${lanes_readme[@]}")
+if [[ $jobs -gt 1 ]]; then
+  lanes=("${lanes_longest[@]}")
 fi
 
 # One run at a time: two runs at once load the machine twice.
@@ -121,14 +136,9 @@ lane() {
     real-rpc-fake)
       step "$1" env PROJECT="$prefix-real-rpc" "$here/real-rpc/run.sh" "$build" "$out/real-rpc-fake" --fake
       ;;
+    *) step "$1" sh -c 'echo "unknown lane" >&2; exit 2' ;;
   esac
 }
-
-lanes=(ui-sec1-root ui-sec1-digu ui-sec2 ui-sec3 ui-sec4 ui-sec58 ui-extra sync upgrade-a upgrade-b real-rpc-fake)
-if [[ $jobs -gt 1 ]]; then
-  # The longest first, by the times of a run before v1.2.0.
-  lanes=(ui-sec58 sync ui-sec4 upgrade-a real-rpc-fake ui-sec1-digu ui-sec1-root upgrade-b ui-sec3 ui-sec2 ui-extra)
-fi
 
 begin=$(date +%s)
 running=0
@@ -166,6 +176,14 @@ for s in "${steps[@]}"; do
   echo "$n $code" >>"$out/exit-codes.txt"
   echo "$n $code $start $stop $((stop - start))" >>"$out/times.txt"
   [[ $code -eq 0 ]] || failed=1
+done
+# A step that ran but is not in steps.
+for f in "$status"/*; do
+  s=${f##*/}
+  if [[ " ${steps[*]} " != *" $s "* ]]; then
+    echo "$s not-in-steps" >>"$out/exit-codes.txt"
+    failed=1
+  fi
 done
 echo "all $failed $begin $end $((end - begin)) jobs=$jobs" >>"$out/times.txt"
 cat "$out/exit-codes.txt"
