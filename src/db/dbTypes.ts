@@ -102,11 +102,13 @@ export type SubSyncStatuses =
 export type SyncStatusesChain = {
   [key in ChainName]: SyncStatusChain;
 };
+// Its numbers are sums over its sync target contracts (see getSummedProgressRange).
 export type SyncStatusChain = SyncStatusBase<ChainName, SyncStatusesProject>;
 //=====project=====
 export type SyncStatusesProject = {
   [key in ProjectName]: SyncStatusProject;
 };
+// Its numbers are sums over its sync target contracts (see getSummedProgressRange).
 export type SyncStatusProject = SyncStatusBase<
   ProjectName,
   SyncStatusesVersion
@@ -115,6 +117,7 @@ export type SyncStatusProject = SyncStatusBase<
 export type SyncStatusesVersion = {
   [key in VersionName]: SyncStatusVersion;
 };
+// Its numbers are sums over its sync target contracts (see getSummedProgressRange).
 export type SyncStatusVersion = SyncStatusBase<
   VersionName,
   SyncStatusesContract
