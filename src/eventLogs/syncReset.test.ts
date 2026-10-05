@@ -5,7 +5,10 @@ import { resetDbSyncedData } from "#db/dbResetSyncedData.js";
 import { initialDataRpcSetting } from "#db/dbTypes.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
 import { customLogger } from "#utils/logger.js";
-import { startWarpSync } from "#warpSync/warpSync.js";
+import {
+  forgetWarpSyncConfirmation,
+  startWarpSync,
+} from "#warpSync/warpSync.js";
 import {
   selectWarpSyncState,
   setWarpSyncState,
@@ -135,7 +138,7 @@ describe("resetSyncedData", () => {
   });
 
   test("deletes nothing while another tab holds the lock", async () => {
-    vi.spyOn(customLogger, "info").mockImplementation(() => {});
+    const spyInfo = vi.spyOn(customLogger, "info").mockImplementation(() => {});
     let release: () => void = () => {};
     void lockManager.request(
       getSyncLockName("matic"),
@@ -143,6 +146,10 @@ describe("resetSyncedData", () => {
     );
     // Waits SYNC_LOCK_TIMEOUT_MS (1 s), as the sync does.
     expect((await resetSyncedData(matic)).result).toBe("busy");
+    expect(spyInfo).toHaveBeenCalledWith("The sync lock was not granted.", {
+      chainName: "matic",
+      errorObject: expect.objectContaining({ name: "TimeoutError" }),
+    });
     expect(resetDbSyncedData).not.toHaveBeenCalled();
     expect(startWarpSync).not.toHaveBeenCalled();
     expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
@@ -208,6 +215,30 @@ describe("resetSyncedData", () => {
     expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
       "idle",
     );
+  });
+
+  test("resolves failed when the reset throws in the lock", async () => {
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    const error = new Error("forget error");
+    vi.mocked(forgetWarpSyncConfirmation).mockImplementationOnce(() => {
+      throw error;
+    });
+
+    expect(await resetSyncedData(matic)).toEqual({
+      result: "failed",
+      deletedLogCount: 0,
+    });
+    expect(spyError).toHaveBeenCalledWith(
+      "Reset the synced data in the sync lock.",
+      { chainName: "matic", errorObject: error },
+    );
+    expect(startWarpSync).not.toHaveBeenCalled();
+    expect((await lockManager.query()).held).toEqual([]);
+    expect(get(storeSyncLockedByOtherTab).matic).toBe(false);
+    // Not left as held by this tab.
+    expect((await resetSyncedData(matic)).result).toBe("reset");
   });
 
   test("works without Web Locks (insecure context)", async () => {

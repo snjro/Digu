@@ -42,9 +42,18 @@ export async function resetSyncedData(
   const busy: SyncResetOutcome = { result: "busy", deletedLogCount: 0 };
   if (isImporting(chainName)) return busy;
   let outcome: SyncResetOutcome = busy;
-  const ran: boolean = await runWithSyncLock(chainName, async () => {
-    outcome = await resetInLock(targetChain);
-  });
+  let ran: boolean;
+  try {
+    ran = await runWithSyncLock(chainName, async () => {
+      outcome = await resetInLock(targetChain);
+    });
+  } catch (error) {
+    customLogger.error("Reset the synced data in the sync lock.", {
+      chainName,
+      errorObject: error,
+    });
+    return { result: "failed", deletedLogCount: 0 };
+  }
   if (!ran) {
     customLogger.info("Skip the reset: the chain is synced now.", {
       chainName,

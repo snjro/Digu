@@ -61,6 +61,10 @@ export async function runWithSyncLock(
     } catch (error) {
       if (granted) throw error;
       // A TimeoutError: another tab holds the lock.
+      customLogger.info("The sync lock was not granted.", {
+        chainName,
+        errorObject: error,
+      });
       waitForSyncLockRelease(chainName);
       return false;
     }
