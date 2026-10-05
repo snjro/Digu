@@ -9,12 +9,13 @@ import {
   vi,
   type MockInstance,
 } from "vitest";
-import { getNodeProvider } from "./utilsEthers";
+import { getNodeProvider, type NodeProvider } from "./utilsEthers";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import * as dbChainStatusDataHandlers from "#db/dbChainStatusDataHandlers.js";
 import {
   JsonRpcProvider,
   WebSocketProvider,
+  isError,
   toQuantity,
   type JsonRpcApiProviderOptions,
   type JsonRpcPayload,
@@ -28,7 +29,10 @@ const fakeNode = vi.hoisted(() => ({
   chainId: 0,
   socketOpens: true,
   socketThrows: false,
+  answers: true,
   methods: [] as string[],
+  // The socket of the last WebSocketProvider, to close it in the tests.
+  lastSocket: null as { onclose: (() => void) | null } | null,
 }));
 function answer(payload: JsonRpcPayload): JsonRpcResult {
   fakeNode.methods.push(payload.method);
@@ -55,12 +59,16 @@ vi.mock("ethers", async (importOriginal) => {
           if (fakeNode.socketThrows) {
             throw new Error("The socket cannot be made.");
           }
-          const socket: WebSocketLike = {
+          const socket: WebSocketLike & { onclose: (() => void) | null } = {
             onopen: null,
             onmessage: null,
             onerror: null,
+            onclose: null,
             readyState: 0,
             send: (message: string) => {
+              if (!fakeNode.answers) {
+                return;
+              }
               const result = answer(JSON.parse(message));
               queueMicrotask(() =>
                 socket.onmessage?.({
@@ -73,6 +81,7 @@ vi.mock("ethers", async (importOriginal) => {
           if (fakeNode.socketOpens) {
             queueMicrotask(() => socket.onopen?.());
           }
+          fakeNode.lastSocket = socket;
           return socket;
         },
         network,
@@ -104,6 +113,7 @@ beforeAll(() => {
 afterEach(() => {
   vi.useRealTimers();
   fakeNode.socketThrows = false;
+  fakeNode.answers = true;
 });
 afterAll(() => {
   vi.restoreAllMocks();
@@ -193,5 +203,88 @@ describe("getNodeProvider with an http RPC", () => {
     expect(countChainIdRequests()).toBe(countAfterFirstGetLogs);
     expect(fakeNode.methods.filter((m) => m === "eth_getLogs")).toHaveLength(3);
     await nodeProvider?.destroy();
+  });
+});
+
+describe("getNodeProvider with a WebSocket RPC", () => {
+  // With fake timers from the start, because ethers starts the provider on
+  // timers too.
+  async function getWebSocketProvider(): Promise<NodeProvider> {
+    vi.useFakeTimers();
+    fakeNode.chainId = targetChain.chainId;
+    fakeNode.socketOpens = true;
+    fakeNode.methods = [];
+    const call = getNodeProvider(targetChain, "ws://127.0.0.1:9");
+    await vi.advanceTimersByTimeAsync(1000);
+    const nodeProvider = await call;
+    expect(nodeProvider).toBeInstanceOf(WebSocketProvider);
+    expect(vi.getTimerCount()).toBe(0);
+    return nodeProvider!;
+  }
+  // Keeps how a request ended, so that a test can check it without waiting.
+  function watch(request: Promise<unknown>): {
+    settled: boolean;
+    error: unknown;
+  } {
+    const state = { settled: false, error: undefined as unknown };
+    request.then(
+      () => {
+        state.settled = true;
+      },
+      (error: unknown) => {
+        state.settled = true;
+        state.error = error;
+      },
+    );
+    return state;
+  }
+
+  test("should reject a request with TIMEOUT when the node does not answer in 60 seconds", async () => {
+    const nodeProvider = await getWebSocketProvider();
+    fakeNode.answers = false;
+    const request = watch(nodeProvider.getBlockNumber());
+    // ethers sends the request on a timer.
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(59999);
+    expect(request.settled).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(request.settled).toBe(true);
+    expect(isError(request.error, "TIMEOUT")).toBe(true);
+    await nodeProvider.destroy();
+  });
+
+  test("should leave no timer after a request answered in time", async () => {
+    const nodeProvider = await getWebSocketProvider();
+    const request = watch(nodeProvider.getBlockNumber());
+    // Past the cache of ethers for a request (250 ms).
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(request.settled).toBe(true);
+    expect(request.error).toBeUndefined();
+    expect(vi.getTimerCount()).toBe(0);
+    await nodeProvider.destroy();
+  });
+
+  test("should reject a waiting request with NETWORK_ERROR when the socket closes", async () => {
+    const nodeProvider = await getWebSocketProvider();
+    fakeNode.answers = false;
+    const request = watch(nodeProvider.getBlockNumber());
+    await vi.advanceTimersByTimeAsync(0);
+    expect(request.settled).toBe(false);
+    fakeNode.lastSocket?.onclose?.();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(request.settled).toBe(true);
+    expect(isError(request.error, "NETWORK_ERROR")).toBe(true);
+    await nodeProvider.destroy();
+  });
+
+  test("should reject a request sent after the socket closes with NETWORK_ERROR", async () => {
+    const nodeProvider = await getWebSocketProvider();
+    fakeNode.answers = false;
+    fakeNode.lastSocket?.onclose?.();
+    const request = watch(nodeProvider.getBlockNumber());
+    await vi.advanceTimersByTimeAsync(0);
+    expect(request.settled).toBe(true);
+    expect(isError(request.error, "NETWORK_ERROR")).toBe(true);
+    await nodeProvider.destroy();
   });
 });

@@ -17,10 +17,14 @@ import {
   getNumber,
   isError,
   isHexString,
+  makeError,
   type Contract as EthersContract,
   type Log,
   type LogParams,
   type JsonRpcApiProviderOptions,
+  type JsonRpcError,
+  type JsonRpcPayload,
+  type JsonRpcResult,
 } from "ethers";
 export type AbiFormatType = "json" | "full" | "minimal";
 
@@ -75,6 +79,44 @@ class JsonRpcProviderKeepingBlockTimestamps extends JsonRpcProvider {
   }
 }
 class WebSocketProviderKeepingBlockTimestamps extends WebSocketProvider {
+  // Rejects when the socket closes. ethers 6.17.0 does not set onclose, and
+  // a request on a closed socket waits forever.
+  readonly #closed: Promise<never>;
+  constructor(url: string) {
+    super(url);
+    this.#closed = new Promise<never>((_, reject) => {
+      (this.websocket as WebSocket).onclose = () => {
+        reject(makeError("WebSocket closed.", "NETWORK_ERROR"));
+      };
+    });
+    // A close with no request waiting is not an error.
+    this.#closed.catch(() => {});
+  }
+  override async _send(
+    payload: JsonRpcPayload | JsonRpcPayload[],
+  ): Promise<(JsonRpcResult | JsonRpcError)[]> {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
+    try {
+      return await Promise.race([
+        super._send(payload),
+        this.#closed,
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(
+              makeError("RPC request timed out.", "TIMEOUT", {
+                operation: Array.isArray(payload)
+                  ? payload.map((p: JsonRpcPayload) => p.method).join(",")
+                  : payload.method,
+                reason: "timeout",
+              }),
+            );
+          }, RPC_REQUEST_TIMEOUT_MS);
+        }),
+      ]);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
   override _wrapLog(value: LogParams, network: Network): Log {
     keepBlockTimestamp(this, value);
     return super._wrapLog(value, network);
@@ -93,6 +135,8 @@ const skippedNodeStatuses: Record<
 
 // A WebSocket that never opens makes getNetwork wait forever.
 const GET_NETWORK_TIMEOUT_MS: number = 10000;
+// A WebSocket that stays open but does not answer makes a request wait forever.
+const RPC_REQUEST_TIMEOUT_MS: number = 60000;
 
 // Shows CONNECTING. The number is taken before the write, so that an earlier
 // call cannot write its status after it.
