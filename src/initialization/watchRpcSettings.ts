@@ -1,9 +1,14 @@
 import { liveQuery, type Subscription } from "dexie";
+import { get } from "svelte/store";
+import type { Chain, ChainName } from "#constants/chains/types.js";
 import { DB_TABLE_NAMES } from "#db/constants.js";
 import { dbSettings } from "#db/dbSettings.js";
 import type { RpcSetting } from "#db/dbTypes.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { customLogger } from "#utils/logger.js";
+import { getTargetChain } from "#utils/utilsDb.js";
+import { getNodeProvider, type NodeProvider } from "#utils/utilsEthers.js";
 
 let subscription: Subscription | undefined;
 
@@ -17,7 +22,19 @@ export function watchRpcSettings(): Subscription {
   ).subscribe({
     next: (rpcSettings: RpcSetting[]): void => {
       for (const rpcSetting of rpcSettings) {
-        storeRpcSettings.updateState(rpcSetting.chainName, rpcSetting);
+        const chainName: ChainName = rpcSetting.chainName;
+        const isRpcChanged: boolean =
+          get(storeRpcSettings)[chainName].rpc !== rpcSetting.rpc;
+        if (isRpcChanged) storeSyncStoppedReason.clear(chainName);
+        storeRpcSettings.updateState(chainName, rpcSetting);
+        if (isRpcChanged) {
+          checkRpc(chainName, rpcSetting.rpc).catch((error: unknown) => {
+            customLogger.error("Check the RPC changed in another tab.", {
+              chainName,
+              errorObject: error,
+            });
+          });
+        }
       }
     },
     error: (error: unknown): void => {
@@ -25,4 +42,15 @@ export function watchRpcSettings(): Subscription {
     },
   });
   return subscription;
+}
+
+// Updates the node status for the new RPC, as a change in this tab does.
+async function checkRpc(chainName: ChainName, rpc: string): Promise<void> {
+  const targetChain: Chain = getTargetChain({ chainName });
+  const nodeProvider: NodeProvider | undefined = await getNodeProvider(
+    targetChain,
+    rpc,
+  );
+  // The provider is used only to check the node here.
+  await nodeProvider?.destroy();
 }
