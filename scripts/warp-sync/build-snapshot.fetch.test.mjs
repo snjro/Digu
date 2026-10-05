@@ -668,6 +668,7 @@ describe("withKey", () => {
         "https://rpc.example",
         "https://rpc.example:",
         "ftp://rpc.example/",
+        "https://rpc.example/v3",
         "https://rpc.example/v3/#/",
         "https://user@rpc.example/v3/",
         "https://user:pw-zq7x@rpc.example/v3/",

@@ -817,12 +817,14 @@ export function withKey(url, keyFile) {
   if (keyFile === undefined) return url;
   // Checked with a placeholder before the key is read: if the key would go
   // into the host or the port, or the URL has a user name or a password, Node
-  // prints the key in an error. The message leaves out url, which may have a
-  // password.
+  // prints the key in an error. url must also end with "/" or "=", so that the
+  // key is a path segment or a query value. The message leaves out url, which
+  // may have a password.
   const placeholder = "KEYPLACEHOLDER";
   const base = URL.parse(url);
   const probe = URL.parse(`${url}${placeholder}`);
   if (
+    !(url.endsWith("/") || url.endsWith("=")) ||
     base === null ||
     probe === null ||
     !["http:", "https:"].includes(probe.protocol) ||
@@ -833,7 +835,7 @@ export function withKey(url, keyFile) {
     !`${probe.pathname}${probe.search}`.endsWith(placeholder)
   ) {
     throw new Error(
-      "--rpc must be an http(s) URL without a user name or password, to which the key can be added at the end of the path or the query, with --rpc-key-file.",
+      '--rpc must be an http(s) URL without a user name or password that ends with "/" or "=", so that the key is added at the end of the path or the query, with --rpc-key-file.',
     );
   }
   const key = fs.readFileSync(keyFile, "utf8").trim();

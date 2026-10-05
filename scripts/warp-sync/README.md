@@ -61,8 +61,9 @@ docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
 - `--rpc`: a JSON-RPC URL of the chain. The script sends its requests there.
 - `--rpc-key-file`: a file with the key of the RPC, which is added to the end
   of `--rpc`, so that the key is not in the command line. With it, `--rpc`
-  must be an http(s) URL without a user name or password, and the key must go
-  at the end of its path or query (for example `https://mainnet.infura.io/v3/`).
+  must be an http(s) URL without a user name or password that ends with `/` or
+  `=`, so that the key goes at the end of its path or query (for example
+  `https://mainnet.infura.io/v3/` or `https://host/?apikey=`).
 - `--to`: the last block of the snapshot. Without it, the latest block minus
   the `confirmationBlocks` of the chain, which is the highest block allowed.
 - `--out`: where to write. The default is `static/warp-sync`.
