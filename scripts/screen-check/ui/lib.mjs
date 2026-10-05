@@ -2,9 +2,13 @@
 // Serves _build at / (port 4173) and at /Digu/ (port 4174, nothing at the root,
 // like GitHub Pages). Only localhost and the fake RPC are answered.
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
 import { createRequire } from "node:module";
+import {
+  handleRequests,
+  logPageProblems,
+  serveBuild,
+} from "../../check-lib/browser.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
 export const puppeteer = require("puppeteer");
@@ -23,46 +27,10 @@ export const QUICK_SEARCH = 'main input[aria-label="Quick search"]';
 export const SYNC_PANEL_BUTTON = 'nav button[aria-controls="sync-panel"]';
 fs.mkdirSync(path.join(OUT, "shots"), { recursive: true });
 
-const TYPES = {
-  ".html": "text/html",
-  ".js": "text/javascript",
-  ".css": "text/css",
-  ".svg": "image/svg+xml",
-  ".png": "image/png",
-  ".json": "application/json",
-  ".woff2": "font/woff2",
-  ".ico": "image/x-icon",
-  ".webmanifest": "application/manifest+json",
-  ".txt": "text/plain",
-};
-function serve(prefix) {
-  return http.createServer((req, res) => {
-    let p = decodeURIComponent(req.url.split("?")[0]);
-    if (prefix) {
-      if (!p.startsWith(prefix + "/")) {
-        res.writeHead(404).end("not found (outside prefix)");
-        return;
-      }
-      p = p.slice(prefix.length);
-    }
-    let file = path.join(BUILD, p);
-    if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
-      file = path.join(file, "index.html");
-    }
-    if (!fs.existsSync(file)) {
-      res.writeHead(404).end("not found");
-      return;
-    }
-    res.writeHead(200, {
-      "content-type": TYPES[path.extname(file)] ?? "application/octet-stream",
-    });
-    fs.createReadStream(file).pipe(res);
-  });
-}
 const servers = [];
 export async function startServers() {
-  const a = serve("");
-  const b = serve("/Digu");
+  const a = serveBuild(BUILD);
+  const b = serveBuild(BUILD, { prefix: "/Digu" });
   await new Promise((r) => a.listen(4173, "127.0.0.1", r));
   await new Promise((r) => b.listen(4174, "127.0.0.1", r));
   servers.push(a, b);
@@ -141,42 +109,18 @@ export function setStep(s) {
   currentStep = s;
 }
 export async function setupPage(page, tag = "") {
-  page.on("console", (m) => {
-    if (m.type() === "error" || m.type() === "warn" || m.type() === "warning") {
-      log.push({
-        step: currentStep,
-        tag,
-        type: m.type(),
-        text: m.text().slice(0, 400),
-        loc: m.location()?.url?.replace(/^https?:\/\/localhost:\d+/, ""),
-      });
-    }
-  });
-  page.on("pageerror", (e) =>
+  // Console errors and warnings, page errors and CSP violations (#504).
+  await logPageProblems(page, ({ type, text, message }) =>
     log.push({
       step: currentStep,
       tag,
-      type: "pageerror",
-      text: String(e.message ?? e).slice(0, 400),
+      type,
+      text: text.slice(0, 400),
+      ...(message && {
+        loc: message.location()?.url?.replace(/^https?:\/\/localhost:\d+/, ""),
+      }),
     }),
   );
-  // CSP violations (#504), as in scripts/visual-compare/shots.mjs. On window,
-  // because a blocked fetch or WebSocket has no element to fire at.
-  await page.exposeFunction("__logCspViolation", (text) =>
-    log.push({
-      step: currentStep,
-      tag,
-      type: "csp",
-      text: String(text).slice(0, 400),
-    }),
-  );
-  await page.evaluateOnNewDocument(() => {
-    window.addEventListener("securitypolicyviolation", (e) => {
-      window.__logCspViolation(
-        `${e.effectiveDirective} ${e.blockedURI} at ${e.sourceFile}:${e.lineNumber}`,
-      );
-    });
-  });
   page.on("response", (res) => {
     if (res.status() === 404) {
       const u = new URL(res.url());
@@ -188,22 +132,14 @@ export async function setupPage(page, tag = "") {
       });
     }
   });
-  await page.setRequestInterception(true);
-  page.on("request", (req) => {
-    if (req.isInterceptResolutionHandled()) return;
-    const u = new URL(req.url());
-    // The import of the warp sync snapshot of eth asks first (it is large), and
-    // its dialog covers the page (#604). Without the snapshot, eth syncs as before.
-    if (u.pathname.includes("/warp-sync/eth/")) {
-      req.respond({ status: 404, body: "" });
-    } else if (u.hostname.endsWith(".invalid")) {
+  await handleRequests(page, {
+    isLocal: (u) => u.hostname === "localhost",
+    answer: (req, u) => {
+      if (!u.hostname.endsWith(".invalid")) return false;
       answerRpc(req);
-    } else if (u.protocol.startsWith("http") && u.hostname !== "localhost") {
-      blocked.add(req.url());
-      req.abort();
-    } else {
-      req.continue();
-    }
+      return true;
+    },
+    onBlocked: (url) => blocked.add(url),
   });
   return page;
 }

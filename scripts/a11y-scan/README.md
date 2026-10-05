@@ -61,7 +61,7 @@ problems by source line and by file:
 ```sh
 out=$(realpath <out-dir>)   # after run.sh, so that node_modules is installed
 docker compose -p "$(basename "$PWD" | tr "[:upper:]" "[:lower:]")-a11y" \
-  run --rm -T -v "$PWD/scripts/a11y-scan:/scripts:ro" -v "$out:/out" test sh -c '
+  run --rm -T -v "$PWD/scripts:/scripts:ro" -v "$out:/out" test sh -c '
     mkdir -p /out/dev /tmp/axe && cd /tmp/axe && echo {} > package.json
     npm i --no-audit --no-fund axe-core@4.13.0 && cd /app
     npx vite dev --host 127.0.0.1 --port 4322 --strictPort > /tmp/vite.log 2>&1 &
@@ -69,7 +69,7 @@ docker compose -p "$(basename "$PWD" | tr "[:upper:]" "[:lower:]")-a11y" \
       node -e "fetch(\"http://127.0.0.1:4322/\").then(()=>process.exit(0),()=>process.exit(1))" && break
       sleep 1
     done
-    node /scripts/axe-scan.mjs - /tmp/axe/node_modules/axe-core/axe.min.js /out/dev/axe-dev.json http://127.0.0.1:4322'
+    node /scripts/a11y-scan/axe-scan.mjs - /tmp/axe/node_modules/axe-core/axe.min.js /out/dev/axe-dev.json http://127.0.0.1:4322'
 docker compose -p "$(basename "$PWD" | tr "[:upper:]" "[:lower:]")-a11y" down
 python3 scripts/a11y-scan/summarize.py "$out/axe-build.json" "$out/dev/axe-dev.json"
 ```

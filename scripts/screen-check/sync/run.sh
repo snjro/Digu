@@ -31,4 +31,4 @@ if [[ $script == sync-check.mjs ]]; then
   args=(/app/_build /out "$@")
 fi
 "${compose[@]}" run --rm -T "${env[@]}" \
-  -v "$here:/scripts:ro" -v "$out:/out" test node "/scripts/$script" "${args[@]}"
+  -v "$repo/scripts:/scripts:ro" -v "$out:/out" test node "/scripts/screen-check/sync/$script" "${args[@]}"

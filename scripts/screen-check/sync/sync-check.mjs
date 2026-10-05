@@ -3,9 +3,13 @@
 // Only localhost and the fake RPC URL are answered; the fake RPC is answered
 // by the request interceptor (fake-rpc.mjs) and never reaches the network.
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
 import { createRequire } from "node:module";
+import {
+  handleRequests,
+  logPageProblems,
+  serveBuild,
+} from "../../check-lib/browser.mjs";
 import {
   handle,
   makeState,
@@ -69,29 +73,7 @@ function check(key, ok, value = {}) {
   note(key, { ok, ...value });
 }
 
-const TYPES = {
-  ".html": "text/html",
-  ".js": "text/javascript",
-  ".css": "text/css",
-  ".svg": "image/svg+xml",
-  ".png": "image/png",
-  ".json": "application/json",
-  ".woff2": "font/woff2",
-};
-const server = http.createServer((req, res) => {
-  let file = path.join(buildDir, decodeURIComponent(req.url.split("?")[0]));
-  if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
-    file = path.join(file, "index.html");
-  }
-  if (!fs.existsSync(file)) {
-    res.writeHead(404).end();
-    return;
-  }
-  res.writeHead(200, {
-    "content-type": TYPES[path.extname(file)] ?? "application/octet-stream",
-  });
-  fs.createReadStream(file).pipe(res);
-});
+const server = serveBuild(buildDir);
 
 async function answerRpc(req) {
   if (req.method() === "OPTIONS") {
@@ -135,86 +117,54 @@ const browser = await puppeteer.launch({
 async function newPage(context, name) {
   const page = await context.newPage();
   await page.setViewport({ width: 1400, height: 900 });
-  page.on("console", async (m) => {
-    if (["error", "warn", "warning"].includes(m.type())) {
-      const entry = {
-        scenario,
-        lastAction,
-        page: name,
-        type: m.type(),
-        text: m.text().slice(0, 500),
-      };
-      consoleLog.push(entry);
-      // customLogger passes objects, which text() shows as [object Object].
-      // Keep them as JSON, with the message and cause of an Error.
-      if (entry.text.includes("[object Object]")) {
-        const parts = await Promise.all(
-          m.args().map((a) =>
-            a
-              .evaluate((v) => {
-                try {
-                  return JSON.stringify(v, (k, x) =>
-                    x instanceof Error
-                      ? { name: x.name, message: x.message, cause: x.cause }
-                      : typeof x === "bigint"
-                        ? String(x)
-                        : x,
-                  );
-                } catch {
-                  return String(v);
-                }
-              })
-              .catch(() => null),
-          ),
-        );
-        entry.detail = parts
-          .filter((x) => x && x !== '""')
-          .join(" ")
-          .slice(0, 2000);
-      }
-    }
-  });
-  page.on("pageerror", (e) =>
-    consoleLog.push({
+  // Console errors and warnings, page errors and CSP violations (#504).
+  await logPageProblems(page, async ({ type, text, message }) => {
+    const entry = {
       scenario,
       lastAction,
       page: name,
-      type: "pageerror",
-      text: String(e.message).slice(0, 500),
-    }),
-  );
-  // CSP violations (#504), as in scripts/visual-compare/shots.mjs.
-  await page.exposeFunction("__logCspViolation", (text) =>
-    consoleLog.push({
-      scenario,
-      lastAction,
-      page: name,
-      type: "csp",
-      text: String(text).slice(0, 500),
-    }),
-  );
-  await page.evaluateOnNewDocument(() => {
-    window.addEventListener("securitypolicyviolation", (e) => {
-      window.__logCspViolation(
-        `${e.effectiveDirective} ${e.blockedURI} at ${e.sourceFile}:${e.lineNumber}`,
+      type,
+      text: text.slice(0, 500),
+    };
+    consoleLog.push(entry);
+    // customLogger passes objects, which text() shows as [object Object].
+    // Keep them as JSON, with the message and cause of an Error.
+    if (message && entry.text.includes("[object Object]")) {
+      const parts = await Promise.all(
+        message.args().map((a) =>
+          a
+            .evaluate((v) => {
+              try {
+                return JSON.stringify(v, (k, x) =>
+                  x instanceof Error
+                    ? { name: x.name, message: x.message, cause: x.cause }
+                    : typeof x === "bigint"
+                      ? String(x)
+                      : x,
+                );
+              } catch {
+                return String(v);
+              }
+            })
+            .catch(() => null),
+        ),
       );
-    });
-  });
-  await page.setRequestInterception(true);
-  page.on("request", (req) => {
-    const url = new URL(req.url());
-    // The import of the warp sync snapshot of eth asks first (it is large), and
-    // its dialog covers the page (#604). Without the snapshot, eth syncs as before.
-    if (url.pathname.includes("/warp-sync/eth/")) {
-      req.respond({ status: 404, body: "" });
-    } else if (url.origin === new URL(FAKE_RPC).origin) {
-      answerRpc(req);
-    } else if (url.protocol.startsWith("http") && url.origin !== ORIGIN) {
-      blocked.push({ scenario, url: req.url() });
-      req.abort();
-    } else {
-      req.continue();
+      entry.detail = parts
+        .filter((x) => x && x !== '""')
+        .join(" ")
+        .slice(0, 2000);
     }
+  });
+  await handleRequests(page, {
+    isLocal: (url) => url.origin === ORIGIN,
+    // answerRpc is async; it is started here, so that the request counts as
+    // answered at once.
+    answer: (req, url) => {
+      if (url.origin !== new URL(FAKE_RPC).origin) return false;
+      answerRpc(req);
+      return true;
+    },
+    onBlocked: (url) => blocked.push({ scenario, url }),
   });
   return page;
 }

@@ -22,4 +22,4 @@ trap '"${compose[@]}" down >/dev/null 2>&1 || true' EXIT
 
 mkdir -p "$out/shots"
 "${compose[@]}" run --rm -T \
-  -v "$here:/scripts:ro" -v "$out:/out" test node "/scripts/$1" "${@:2}"
+  -v "$repo/scripts:/scripts:ro" -v "$out:/out" test node "/scripts/screen-check/ui/$1" "${@:2}"

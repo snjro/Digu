@@ -36,5 +36,5 @@ else
   app=/app/_build
 fi
 "${compose[@]}" run --rm -T \
-  -v "$here:/scripts:ro" -v "$old/_build:/old:ro" -v "$out:/out" -e NEW_LATEST="${NEW_LATEST:-}" \
-  test node /scripts/upgrade-check.mjs "$phase" "$app" /out
+  -v "$repo/scripts:/scripts:ro" -v "$old/_build:/old:ro" -v "$out:/out" -e NEW_LATEST="${NEW_LATEST:-}" \
+  test node /scripts/screen-check/upgrade/upgrade-check.mjs "$phase" "$app" /out

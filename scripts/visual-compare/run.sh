@@ -110,7 +110,7 @@ touch "$out_dir/$marker"
 # working tree, the base build at /base and <out-dir> at /out.
 run_test() {
   docker compose -f "$head_dir/compose.yaml" -p "$head_project" run --rm -T \
-    -v "$scripts_dir:/scripts:ro" \
+    -v "$repo/scripts:/scripts:ro" \
     -v "$base_dir/_build:/base:ro" \
     -v "$out_dir:/out" \
     test "$@"
@@ -123,9 +123,9 @@ if ! flock -n "$lock"; then
   echo "Waiting for another visual-compare to finish its screenshots" >&2
   flock "$lock"
 fi
-run_test node /scripts/shots.mjs /base /out/base &
+run_test node /scripts/visual-compare/shots.mjs /base /out/base &
 base_pid=$!
-run_test node /scripts/shots.mjs _build /out/head &
+run_test node /scripts/visual-compare/shots.mjs _build /out/head &
 head_pid=$!
 shots_status=0
 wait "$base_pid" || shots_status=$?
@@ -134,4 +134,4 @@ flock -u "$lock"
 if [[ $shots_status -ne 0 ]]; then
   exit "$shots_status"
 fi
-run_test node /scripts/compare.mjs /out/base /out/head /out
+run_test node /scripts/visual-compare/compare.mjs /out/base /out/head /out

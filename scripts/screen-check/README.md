@@ -57,7 +57,9 @@ HTML files in `_build`.
 Every check runs in the `test` service (image `ghcr.io/puppeteer/puppeteer`)
 of `<build-dir>/compose.yaml`, with `/app` as `<build-dir>`, so it uses the
 `node_modules` and the source of the build, not of this working tree. The
-scripts of this folder are mounted at `/scripts` and `<out-dir>` at `/out`.
+`scripts` folder of this working tree is mounted at `/scripts` (a check runs
+as, for example, `/scripts/screen-check/ui/sec1.mjs`, and imports
+`scripts/check-lib/browser.mjs`) and `<out-dir>` at `/out`.
 The Docker Compose project is `<repo>-sc-<check>`, or `PROJECT`; each `run.sh`
 removes it when it ends.
 

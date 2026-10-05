@@ -2,9 +2,13 @@
 // Usage (in the test service): node shots.mjs <buildDir> <outDir>
 // See README.md in this folder.
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
 import { createRequire } from "node:module";
+import {
+  handleRequests,
+  logPageProblems,
+  serveBuild,
+} from "../check-lib/browser.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
 const puppeteer = require("puppeteer");
@@ -300,31 +304,7 @@ const DATA_PAGES = [
   ["event-logs-hex", `${EVENT}#event-logs-hex`, "Event Logs (hex)"],
 ];
 
-const TYPES = {
-  ".html": "text/html",
-  ".js": "text/javascript",
-  ".css": "text/css",
-  ".svg": "image/svg+xml",
-  ".png": "image/png",
-  ".json": "application/json",
-  ".woff2": "font/woff2",
-};
-
-// Serves the build like GitHub Pages.
-const server = http.createServer((req, res) => {
-  let file = path.join(buildDir, decodeURIComponent(req.url.split("?")[0]));
-  if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
-    file = path.join(file, "index.html");
-  }
-  if (!fs.existsSync(file)) {
-    res.writeHead(404).end();
-    return;
-  }
-  res.writeHead(200, {
-    "content-type": TYPES[path.extname(file)] ?? "application/octet-stream",
-  });
-  fs.createReadStream(file).pipe(res);
-});
+const server = serveBuild(buildDir);
 
 const NO_MOTION_CSS = `*, *::before, *::after {
   animation: none !important;
@@ -614,24 +594,11 @@ async function newPage(browsers, log, { hover = false } = {}) {
   const { browser, hoverBrowser } = browsers;
   const context = await (hover ? hoverBrowser : browser).createBrowserContext();
   const page = await context.newPage();
-  page.on("console", (m) => {
-    if (m.type() === "error" || m.type() === "warn") {
-      log.push(`[${m.type()}] ${m.text()}`);
-    }
-  });
-  page.on("pageerror", (e) => log.push(`[pageerror] ${e.message}`));
-  // Content Security Policy violations. On window, because a blocked fetch or
-  // WebSocket has no element to fire at.
-  await page.exposeFunction("__logCspViolation", (text) =>
-    log.push(`[csp] ${text}`),
+  // Console errors and warnings, page errors and Content Security Policy
+  // violations.
+  await logPageProblems(page, ({ type, text }) =>
+    log.push(`[${type}] ${text}`),
   );
-  await page.evaluateOnNewDocument(() => {
-    window.addEventListener("securitypolicyviolation", (e) => {
-      window.__logCspViolation(
-        `${e.effectiveDirective} ${e.blockedURI} at ${e.sourceFile}:${e.lineNumber}`,
-      );
-    });
-  });
   page.on("response", (res) => {
     if (res.status() === 404) {
       const url = new URL(res.url());
@@ -639,19 +606,9 @@ async function newPage(browsers, log, { hover = false } = {}) {
     }
   });
   // No request leaves the container (for example, to an RPC).
-  await page.setRequestInterception(true);
-  page.on("request", (req) => {
-    const url = new URL(req.url());
-    // The import of the warp sync snapshot of eth asks first (it is large), and
-    // its dialog covers the page (#604). Without the snapshot, eth syncs as before.
-    if (url.pathname.includes("/warp-sync/eth/")) {
-      req.respond({ status: 404, body: "" });
-    } else if (url.protocol.startsWith("http") && url.origin !== ORIGIN) {
-      log.push(`[blocked] ${req.url()}`);
-      req.abort();
-    } else {
-      req.continue();
-    }
+  await handleRequests(page, {
+    isLocal: (url) => url.origin === ORIGIN,
+    onBlocked: (url) => log.push(`[blocked] ${url}`),
   });
   return { page, close: () => context.close() };
 }

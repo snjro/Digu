@@ -28,11 +28,11 @@ mkdir -p "$out_dir"
 "${compose[@]}" run --rm -T app \
   sh -c "npm ci --no-audit --no-fund && npm run build"
 "${compose[@]}" run --rm -T \
-  -v "$scripts_dir:/scripts:ro" \
+  -v "$repo/scripts:/scripts:ro" \
   -v "$out_dir:/out" \
   test sh -c "mkdir -p /tmp/axe && cd /tmp/axe && echo {} > package.json \
     && npm i --no-audit --no-fund axe-core@$axe_version \
     && cd /app \
-    && node /scripts/axe-scan.mjs _build /tmp/axe/node_modules/axe-core/axe.min.js /out/axe-build.json"
+    && node /scripts/a11y-scan/axe-scan.mjs _build /tmp/axe/node_modules/axe-core/axe.min.js /out/axe-build.json"
 python3 "$scripts_dir/summarize.py" "$out_dir/axe-build.json" >"$out_dir/summary.md"
 echo "Wrote $out_dir/summary.md"
