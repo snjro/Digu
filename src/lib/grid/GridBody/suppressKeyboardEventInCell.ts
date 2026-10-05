@@ -26,6 +26,10 @@ export function suppressKeyboardEventInCell({
   if (!cell) {
     return false;
   }
+  // A dialog opened from the cell is in the cell's DOM: leave its keys to it.
+  if (cell.contains(event.target.closest("dialog"))) {
+    return true;
+  }
   if (event.key === "Enter") {
     return event.target !== cell;
   }

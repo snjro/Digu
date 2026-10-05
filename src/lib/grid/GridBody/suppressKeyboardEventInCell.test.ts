@@ -67,4 +67,25 @@ describe("suppressKeyboardEventInCell", () => {
     expect(press(plain, "Enter").suppressed).toBe(false);
     expect(press(button, "ArrowRight").suppressed).toBe(false);
   });
+
+  test("keys in a dialog in the cell are left to the browser", () => {
+    document.body.innerHTML =
+      '<div class="ag-cell" tabindex="-1"><button id="outside">Open</button>' +
+      '<dialog open><button id="inside">Close</button></dialog></div>';
+    const inside = document.getElementById("inside")!;
+    const outside = document.getElementById("outside")!;
+    for (const key of ["ArrowDown", "PageDown", "Home"]) {
+      expect(press(inside, key).suppressed).toBe(true);
+      expect(press(outside, key).suppressed).toBe(false);
+    }
+  });
+
+  test("keys in a cell of a grid in a dialog are left to ag-grid", () => {
+    document.body.innerHTML =
+      '<dialog open><div class="ag-cell" tabindex="-1"><button>Copy</button></div></dialog>';
+    const inCell = document.querySelector("button")!;
+    for (const key of ["ArrowDown", "PageDown", "Home"]) {
+      expect(press(inCell, key).suppressed).toBe(false);
+    }
+  });
 });
