@@ -3,6 +3,10 @@
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import BaseProgressCircle from "#lib/base/BaseProgressCircle/BaseProgressCircle.svelte";
   import { changeSize } from "#lib/base/baseSizes.js";
+  import {
+    getSummedProgressRange,
+    type ProgressRange,
+  } from "#lib/base/BaseProgressBarForBlockNumber/syncStatusProgress.js";
   import CommonItemMember from "#lib/common/CommonItemMember.svelte";
   import type { Chain, Project, Version } from "#constants/chains/types.js";
   import type { SyncStateText, SyncStatusVersion } from "#db/dbTypes.js";
@@ -22,12 +26,11 @@
       .subSyncStatuses[targetVersion.name],
   );
 
-  let latestBlockNumber: number = $derived(
-    $storeChainStatus[targetChain.name].latestBlockNumber,
-  );
-
-  let fetchedBlockNumber: number = $derived(
-    targetVersionSyncStatus.fetchedBlockNumber,
+  let range: ProgressRange = $derived(
+    getSummedProgressRange(
+      targetVersionSyncStatus,
+      $storeChainStatus[targetChain.name].latestBlockNumber,
+    ),
   );
 
   let syncStateText: SyncStateText = $derived(
@@ -37,10 +40,9 @@
 
 <CommonItemMember text="Progress">
   <BaseProgressCircle
-    startValue={targetVersionSyncStatus.creationBlockNumber}
-    currentValue={fetchedBlockNumber}
-    goalValue={latestBlockNumber *
-      targetVersionSyncStatus.numOfSyncTargetContract}
+    startValue={range.start}
+    currentValue={range.current}
+    goalValue={range.goal}
     detailsPosition="none"
     circleSize={changeSize(sizeSettings.itemMember, 1)}
     syncStateTextLabelProps={{

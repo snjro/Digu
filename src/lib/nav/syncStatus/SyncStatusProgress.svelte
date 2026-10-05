@@ -5,6 +5,10 @@
     getProgressRate,
     getProgressRateForLabel,
   } from "#lib/base/BaseProgressBarForBlockNumber/progressRate.js";
+  import {
+    getSummedProgressRange,
+    type ProgressRange,
+  } from "#lib/base/BaseProgressBarForBlockNumber/syncStatusProgress.js";
   import BaseProgressCircle from "#lib/base/BaseProgressCircle/BaseProgressCircle.svelte";
   import BaseProgressCircleSyncStatus from "#lib/base/BaseProgressCircle/BaseProgressCircleSyncStatus.svelte";
   import { changeSize, type BaseSize } from "#lib/base/baseSizes.js";
@@ -45,16 +49,11 @@
     $storeChainStatus[targetChainName].latestBlockNumber,
   );
 
-  let creationBlockNumber: number = $derived(
-    $storeSyncStatus[targetChainName].creationBlockNumber,
-  );
-
-  let numOfSyncTargetContract: number = $derived(
-    $storeSyncStatus[targetChainName].numOfSyncTargetContract,
-  );
-
-  let fetchedBlockNumber: number = $derived(
-    $storeSyncStatus[targetChainName].fetchedBlockNumber,
+  let range: ProgressRange = $derived(
+    getSummedProgressRange(
+      $storeSyncStatus[targetChainName],
+      latestBlockNumber,
+    ),
   );
 
   let syncStateText: SyncStateText = $derived(
@@ -64,11 +63,7 @@
   let isStopping: boolean = $derived(syncStateText === "stopping");
 
   let progressRate: number = $derived(
-    getProgressRate(
-      creationBlockNumber,
-      latestBlockNumber * numOfSyncTargetContract,
-      fetchedBlockNumber,
-    ),
+    getProgressRate(range.start, range.goal, range.current),
   );
   let ariaLabel: string = $derived(
     `Sync of ${targetChain.fullName}: ${getProgressRateForLabel(progressRate)}%, ${syncStateText}`,
@@ -113,9 +108,9 @@
   {:else}
     <BaseProgressCircle
       circleSize={progressCircleSize}
-      startValue={creationBlockNumber}
-      goalValue={latestBlockNumber * numOfSyncTargetContract}
-      currentValue={fetchedBlockNumber}
+      startValue={range.start}
+      goalValue={range.goal}
+      currentValue={range.current}
       detailsPosition="none"
       colorCategoryCircleBg={colorSettings.navBg}
       {syncStateTextLabelProps}
