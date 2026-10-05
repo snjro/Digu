@@ -9,7 +9,9 @@
 
   let showLoader: boolean = $state(false);
 
-  beforeNavigate(() => {
+  beforeNavigate((navigation) => {
+    // Otherwise the page can come back from the bfcache with the overlay on.
+    if (navigation.willUnload) return;
     showLoader = true;
   });
 
