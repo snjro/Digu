@@ -20,9 +20,13 @@
 //   4. Console errors and warnings, page errors, CSP violations (#504).
 //   5. The number of requests to the RPC, by method.
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
 import { createRequire } from "node:module";
+import {
+  handleRequests,
+  logPageProblems,
+  serveBuild,
+} from "../../check-lib/browser.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
 const puppeteer = require("puppeteer");
@@ -119,28 +123,7 @@ function note(key, value) {
 }
 
 // ---- the build, served like GitHub Pages ----
-const TYPES = {
-  ".html": "text/html",
-  ".js": "text/javascript",
-  ".css": "text/css",
-  ".svg": "image/svg+xml",
-  ".png": "image/png",
-  ".json": "application/json",
-  ".woff2": "font/woff2",
-};
-const server = http.createServer((req, res) => {
-  let file = path.join(buildDir, decodeURIComponent(req.url.split("?")[0]));
-  if (fs.existsSync(file) && fs.statSync(file).isDirectory())
-    file = path.join(file, "index.html");
-  if (!fs.existsSync(file)) {
-    res.writeHead(404).end();
-    return;
-  }
-  res.writeHead(200, {
-    "content-type": TYPES[path.extname(file)] ?? "application/octet-stream",
-  });
-  fs.createReadStream(file).pipe(res);
-});
+const server = serveBuild(buildDir);
 
 // ---- the RPC traffic of one run ----
 // calls: every JSON-RPC call sent, {transport, method, id}. answers: the
@@ -234,14 +217,14 @@ function fakeAnswer(chain, p) {
 async function newPage(context) {
   const page = await context.newPage();
   await page.setViewport({ width: 1400, height: 900 });
-  page.on("console", async (m) => {
-    if (!["error", "warn", "warning"].includes(m.type())) return;
-    const entry = { run, type: m.type(), text: m.text().slice(0, 500) };
+  // Console errors and warnings, page errors and CSP violations (#504).
+  await logPageProblems(page, async ({ type, text, message }) => {
+    const entry = { run, type, text: text.slice(0, 500) };
     consoleLog.push(entry);
     // customLogger passes objects; keep them as JSON (with Error message and cause).
-    if (entry.text.includes("[object Object]")) {
+    if (message && entry.text.includes("[object Object]")) {
       const parts = await Promise.all(
-        m.args().map((a) =>
+        message.args().map((a) =>
           a
             .evaluate((v) => {
               try {
@@ -265,46 +248,22 @@ async function newPage(context) {
         .slice(0, 2000);
     }
   });
-  page.on("pageerror", (e) =>
-    consoleLog.push({
-      run,
-      type: "pageerror",
-      text: String(e.message).slice(0, 500),
-    }),
-  );
-  // CSP violations (#504), as in scripts/visual-compare/shots.mjs.
-  await page.exposeFunction("__logCspViolation", (text) =>
-    consoleLog.push({ run, type: "csp", text: String(text).slice(0, 500) }),
-  );
-  await page.evaluateOnNewDocument(() => {
-    window.addEventListener("securitypolicyviolation", (e) => {
-      window.__logCspViolation(
-        `${e.effectiveDirective} ${e.blockedURI} at ${e.sourceFile}:${e.lineNumber}`,
-      );
-    });
-  });
   // http: request interception. Only localhost and the PublicNode hosts.
-  await page.setRequestInterception(true);
-  page.on("request", (req) => {
-    const url = new URL(req.url());
-    // The import of the warp sync snapshot of eth asks first (it is large), and
-    // its dialog covers the page (#604). Without the snapshot, eth syncs as before.
-    if (url.pathname.includes("/warp-sync/eth/")) {
-      req.respond({ status: 404, body: "" });
-      return;
-    }
-    if (url.pathname.includes("/warp-sync/")) {
-      warpSyncRequests += 1;
-      if (
-        holdWarpSync &&
-        url.pathname.includes(`/warp-sync/${holdWarpSync}/`)
-      ) {
-        req.respond({ status: 404, body: "" });
-        return;
+  await handleRequests(page, {
+    isLocal: (url) => url.origin === ORIGIN,
+    answer: (req, url) => {
+      if (url.pathname.includes("/warp-sync/")) {
+        warpSyncRequests += 1;
+        if (
+          holdWarpSync &&
+          url.pathname.includes(`/warp-sync/${holdWarpSync}/`)
+        ) {
+          req.respond({ status: 404, body: "" });
+          return true;
+        }
       }
-    }
-    const chain = Object.keys(HOSTS).find((c) => HOSTS[c] === url.hostname);
-    if (chain && url.protocol === "https:") {
+      const chain = Object.keys(HOSTS).find((c) => HOSTS[c] === url.hostname);
+      if (!chain || url.protocol !== "https:") return false;
       let body = null;
       try {
         body = JSON.parse(req.postData() ?? "null");
@@ -340,12 +299,9 @@ async function newPage(context) {
           body: JSON.stringify(payload),
         });
       }
-    } else if (url.protocol.startsWith("http") && url.origin !== ORIGIN) {
-      blocked.push({ run, url: req.url() });
-      req.abort();
-    } else {
-      req.continue();
-    }
+      return true;
+    },
+    onBlocked: (url) => blocked.push({ run, url }),
   });
   page.on("response", async (res) => {
     const url = new URL(res.url());

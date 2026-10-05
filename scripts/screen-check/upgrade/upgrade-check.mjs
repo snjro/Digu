@@ -5,9 +5,13 @@
 // all phases. Only localhost and the fake RPC are answered; every other
 // request is aborted.
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
 import { createRequire } from "node:module";
+import {
+  handleRequests,
+  logPageProblems,
+  serveBuild,
+} from "../../check-lib/browser.mjs";
 
 const require = createRequire("/app/package.json");
 const puppeteer = require("puppeteer");
@@ -57,29 +61,8 @@ const log = [];
 const steps = [];
 let stepName = "start";
 
-const TYPES = {
-  ".html": "text/html",
-  ".js": "text/javascript",
-  ".css": "text/css",
-  ".svg": "image/svg+xml",
-  ".png": "image/png",
-  ".json": "application/json",
-  ".woff2": "font/woff2",
-};
-const server = http.createServer((req, res) => {
-  let file = path.join(buildDir, decodeURIComponent(req.url.split("?")[0]));
-  if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
-    file = path.join(file, "index.html");
-  }
-  if (!fs.existsSync(file)) {
-    res.writeHead(404).end();
-    return;
-  }
-  res.writeHead(200, {
-    "content-type": TYPES[path.extname(file)] ?? "application/octet-stream",
-    "cache-control": "no-store",
-  });
-  fs.createReadStream(file).pipe(res);
+const server = serveBuild(buildDir, {
+  headers: { "cache-control": "no-store" },
 });
 
 // Fake logs: Augur.TimestampSet at 5926300 and Augur.UniverseForked at 5926350
@@ -544,38 +527,19 @@ const page = (await browser.pages())[0] ?? (await browser.newPage());
 await page.bringToFront();
 await page.setViewport({ width: 1400, height: 900 });
 await page.setCacheEnabled(false);
-page.on("console", (m) => {
-  if (m.type() === "error" || m.type() === "warn" || m.type() === "warning") {
-    log.push(`[${m.type()}] ${stepName}: ${m.text().slice(0, 500)}`);
-  }
-});
-page.on("pageerror", (e) => log.push(`[pageerror] ${stepName}: ${e.message}`));
-// CSP violations (#504), as in scripts/visual-compare/shots.mjs. v1.0.2 has no CSP.
-await page.exposeFunction("__logCspViolation", (text) =>
-  log.push(`[csp] ${stepName}: ${text}`),
+// Console errors and warnings, page errors and CSP violations (#504). v1.0.2
+// has no CSP.
+await logPageProblems(page, ({ type, text, message }) =>
+  log.push(`[${type}] ${stepName}: ${message ? text.slice(0, 500) : text}`),
 );
-await page.evaluateOnNewDocument(() => {
-  window.addEventListener("securitypolicyviolation", (e) => {
-    window.__logCspViolation(
-      `${e.effectiveDirective} ${e.blockedURI} at ${e.sourceFile}:${e.lineNumber}`,
-    );
-  });
-});
-await page.setRequestInterception(true);
-page.on("request", (req) => {
-  const url = new URL(req.url());
-  // The import of the warp sync snapshot of eth asks first (it is large), and
-  // its dialog covers the page (#604). Without the snapshot, eth syncs as before.
-  if (url.pathname.includes("/warp-sync/eth/")) {
-    req.respond({ status: 404, body: "" });
-  } else if (url.origin === new URL(FAKE_RPC).origin) {
+await handleRequests(page, {
+  isLocal: (url) => url.origin === ORIGIN,
+  answer: (req, url) => {
+    if (url.origin !== new URL(FAKE_RPC).origin) return false;
     answerRpc(req);
-  } else if (url.protocol.startsWith("http") && url.origin !== ORIGIN) {
-    log.push(`[blocked] ${stepName}: ${req.url()}`);
-    req.abort();
-  } else {
-    req.continue();
-  }
+    return true;
+  },
+  onBlocked: (url) => log.push(`[blocked] ${stepName}: ${url}`),
 });
 
 try {

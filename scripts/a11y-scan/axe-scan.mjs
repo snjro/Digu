@@ -2,10 +2,10 @@
 // Usage (in the test service): node axe-scan.mjs <buildDir> <axe.min.js> <outJson> [baseUrl]
 // If baseUrl is given, no server is started (e.g. a vite dev server).
 // See README.md in this folder.
-import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { handleRequests, serveBuild } from "../check-lib/browser.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
 const puppeteer = require("puppeteer");
@@ -19,35 +19,9 @@ if (!buildDir || !axePath || !outJson) {
 }
 const PORT = 4321;
 
-const types = {
-  ".html": "text/html",
-  ".js": "text/javascript",
-  ".css": "text/css",
-  ".json": "application/json",
-  ".svg": "image/svg+xml",
-  ".png": "image/png",
-  ".ico": "image/x-icon",
-  ".woff2": "font/woff2",
-  ".wasm": "application/wasm",
-};
 let server;
 if (!baseUrlArg) {
-  server = http.createServer((req, res) => {
-    let p = decodeURIComponent(new URL(req.url, "http://x").pathname);
-    let file = path.join(buildDir, p);
-    if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
-      file = path.join(file, "index.html");
-    }
-    if (!fs.existsSync(file)) {
-      res.writeHead(404);
-      res.end();
-      return;
-    }
-    res.writeHead(200, {
-      "content-type": types[path.extname(file)] ?? "application/octet-stream",
-    });
-    fs.createReadStream(file).pipe(res);
-  });
+  server = serveBuild(buildDir);
   await new Promise((r) => server.listen(PORT, "127.0.0.1", r));
 }
 const base = baseUrlArg ?? `http://127.0.0.1:${PORT}`;
@@ -71,25 +45,21 @@ await page.setViewport({ width: 1400, height: 900 });
 // With a dev server, interception stalls the module worker, so only record.
 const blocked = new Set();
 const intercept = !baseUrlArg;
-await page.setRequestInterception(intercept);
-page.on("request", (req) => {
-  const url = req.url();
-  const local =
-    url.startsWith(origin) ||
-    url.startsWith("data:") ||
-    url.startsWith("blob:");
-  if (!local) blocked.add(new URL(url).origin);
-  if (!intercept) return;
-  // The import of the warp sync snapshot of eth asks first (it is large), and
-  // its dialog covers the page (#604). Without the snapshot, eth syncs as before.
-  if (new URL(url).pathname.includes("/warp-sync/eth/")) {
-    req.respond({ status: 404, body: "" });
-  } else if (local) {
-    req.continue();
-  } else {
-    req.abort();
-  }
-});
+const isLocal = (url) =>
+  url.href.startsWith(origin) ||
+  url.protocol === "data:" ||
+  url.protocol === "blob:";
+if (!intercept) {
+  page.on("request", (req) => {
+    const url = new URL(req.url());
+    if (!isLocal(url)) blocked.add(url.origin);
+  });
+} else {
+  await handleRequests(page, {
+    isLocal,
+    onBlocked: (url) => blocked.add(new URL(url).origin),
+  });
+}
 const consoleErrors = [];
 page.on("pageerror", (e) => consoleErrors.push(String(e).slice(0, 200)));
 

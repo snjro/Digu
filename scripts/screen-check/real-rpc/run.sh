@@ -21,4 +21,4 @@ compose=(docker compose -f "$build/compose.yaml" -p "${PROJECT:-$name-sc-real-rp
 trap '"${compose[@]}" down >/dev/null 2>&1 || true' EXIT
 
 "${compose[@]}" run --rm -T \
-  -v "$here:/scripts:ro" -v "$out:/out" test node /scripts/real-rpc-check.mjs /app/_build /out "$@"
+  -v "$repo/scripts:/scripts:ro" -v "$out:/out" test node /scripts/screen-check/real-rpc/real-rpc-check.mjs /app/_build /out "$@"
