@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { get } from "svelte/store";
 import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
@@ -68,6 +69,42 @@ describe("SyncListChainRpcInputHelperLabel.svelte", () => {
       expect(label?.lastElementChild).toBe(link);
     },
   );
+
+  // The blur of the RPC input starts a check (#650). The link stays while the
+  // input loses focus to it, so the click on it opens the guide.
+  test.each([
+    ["INVALID_URL", ""],
+    ["NETWORK_ERROR", "https://foo"],
+  ])(
+    "keeps the same link while the status goes from %s to CONNECTING, and removes it on SUCCESS",
+    async (nodeStatus, rpc) => {
+      storeRpcSettings.set({ chain1: { rpc } } as never);
+      storeChainStatus.set({ chain1: { nodeStatus } } as never);
+      render(SyncListChainRpcInputHelperLabel);
+      const link = screen.getByRole("link", { name: "How to get one" });
+      storeChainStatus.set({ chain1: { nodeStatus: "CONNECTING" } } as never);
+      await tick();
+      expect(screen.getByRole("link", { name: "How to get one" })).toBe(link);
+      expect(link.isConnected).toBe(true);
+      expect(link.closest("label")?.firstChild?.textContent).toBe(
+        "Connecting...",
+      );
+      storeChainStatus.set({ chain1: { nodeStatus: "SUCCESS" } } as never);
+      await tick();
+      expect(screen.getByText("Connected.")).toBeTruthy();
+      expect(screen.queryByRole("link")).toBeNull();
+    },
+  );
+
+  test("shows no link while the status goes from SUCCESS to CONNECTING", async () => {
+    storeRpcSettings.set({ chain1: { rpc: "https://foo" } } as never);
+    storeChainStatus.set({ chain1: { nodeStatus: "SUCCESS" } } as never);
+    render(SyncListChainRpcInputHelperLabel);
+    storeChainStatus.set({ chain1: { nodeStatus: "CONNECTING" } } as never);
+    await tick();
+    expect(screen.getByText("Connecting...")).toBeTruthy();
+    expect(screen.queryByRole("link")).toBeNull();
+  });
 
   test("shows no link when the node status is SUCCESS", () => {
     storeRpcSettings.set({ chain1: { rpc: "https://foo" } } as never);
