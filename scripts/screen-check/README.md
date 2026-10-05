@@ -107,11 +107,20 @@ one:
 
 - a step of `exit-codes.txt` that is not 0 (`skipped` is not a failure),
 - `NG` or `ERROR` in `ui/`; `CHECK` is left to a person,
-- an `ok` that is false, or an exception (`error`), in `sync/`,
+- an `ok` that is false, or an exception (`error`), in `sync/`. These
+  records have an `ok`: `6-2 reached latest` and `6-2 goal (#498)` in S1,
+  `calls in 3 s after stop` in S3 (`reached latest` in `errorOnce`, where the
+  sync does not stop), `real contract link`, `real event link` and
+  `real version link` in S5 (a link is found and no page error), and
+  `fakeKeyInConsole (#483)` in `summary`,
 - `[script-error]` in a log of `upgrade/`, or a `[check]` line there that
   has `NG:` (a failed check); its other records have no judgement,
 - `1 helper`, `2 goal` or `3 sync` not `ok`, or an exception, in the `http`
   runs of `real-rpc/ --fake`. The `wss` runs end in an error with `--fake`.
+
+A new kind of check (a new folder, or a new kind of record in a script)
+needs a reader in `judge.py`, or in `sync/` an `ok` (write it with `check()`).
+Without one, it passes.
 
 ## CI (`screen-check.yml`)
 

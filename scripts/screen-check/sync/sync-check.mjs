@@ -63,6 +63,11 @@ function note(key, value) {
   console.log(`[${scenario}] ${key}:`, JSON.stringify(value).slice(0, 400));
   saveResults();
 }
+// `judge.py` judges only `ok`. A record written with `note()` alone is not
+// judged. Write pass or fail with `check()`.
+function check(key, ok, value = {}) {
+  note(key, { ok, ...value });
+}
 
 const TYPES = {
   ".html": "text/html",
@@ -669,7 +674,8 @@ if (want("S1")) {
     await snap(page, "S1-6-3-a-event-overview-mid", {
       sinceStartMs: Date.now() - t1,
     });
-    await page
+    let latestError;
+    const reachedLatest = await page
       .waitForFunction(
         async (db, target) => {
           const o = await new Promise((res) => {
@@ -690,7 +696,14 @@ if (want("S1")) {
         V1,
         V1_CREATION + 250,
       )
-      .catch((e) => note("waitLatest error", String(e)));
+      .then(
+        () => true,
+        (e) => {
+          latestError = String(e);
+          return false;
+        },
+      );
+    check("6-2 reached latest", reachedLatest, { error: latestError });
     note("rpc until latest", rpcSummary(rpcState));
     note("6-2 goal (#498)", await goalCheck(page));
     await snap(page, "S1-6-3-b-event-overview-latest");
@@ -884,10 +897,27 @@ for (const [mode, stopTimeoutMs] of S3_MODES) {
     // wait a bit more: does anything keep calling the RPC?
     const n0 = rpcState.calls.length;
     await new Promise((res) => setTimeout(res, 3000));
-    note(
-      "calls in 3 s after stop",
-      rpcState.calls.slice(n0).map((c) => c.method),
-    );
+    const calls = rpcState.calls.slice(n0).map((c) => c.method);
+    const t = await toggleInfo(page);
+    const s = await syncStateOf(page, V1, "Augur");
+    const end = {
+      tooltip: t?.tooltip,
+      isSyncing: s?.isSyncing,
+      fetched: s?.fetched,
+      callsBeforeWait: n0,
+    };
+    if (mode === "errorOnce") {
+      // The sync does not stop in this mode.
+      note("calls in 3 s after stop", { calls });
+      check("reached latest", s?.fetched >= V1_CREATION + 250, end);
+    } else {
+      const stopped = t?.tooltip === "start sync" && s?.isSyncing === false;
+      check(
+        "calls in 3 s after stop",
+        n0 > 0 && stopped && calls.length === 0,
+        { calls, ...end },
+      );
+    }
     // #519/#520: one failure log with "returned no block".
     if (mode === "nullBlock") {
       note(
@@ -1065,7 +1095,7 @@ if (want("S5")) {
       const n1 = consoleLog.filter(
         (x) => x.scenario === "S5" && x.type === "pageerror",
       ).length;
-      note(`real ${label}`, {
+      check(`real ${label}`, hrefs.length > 0 && n1 - n0 === 0, {
         hrefs: hrefs.slice(0, 3),
         url: page.url(),
         newPageErrors: n1 - n0,
@@ -1079,12 +1109,10 @@ if (want("S5")) {
 
 // #483: the key-like path of the RPC URL must not be in the console.
 scenario = "summary";
-note(
-  "fakeKeyInConsole (#483)",
-  consoleLog
-    .filter((x) => `${x.text} ${x.detail ?? ""}`.includes(FAKE_KEY))
-    .map((x) => `${x.scenario} ${x.type} ${x.text.slice(0, 120)}`),
-);
+const leaks = consoleLog
+  .filter((x) => `${x.text} ${x.detail ?? ""}`.includes(FAKE_KEY))
+  .map((x) => `${x.scenario} ${x.type} ${x.text.slice(0, 120)}`);
+check("fakeKeyInConsole (#483)", leaks.length === 0, { leaks });
 const byType = {};
 for (const x of consoleLog) byType[x.type] = (byType[x.type] ?? 0) + 1;
 note("console by type", byType);
