@@ -14,7 +14,8 @@ const FOCUSABLE = [
  * buttons and links in a cell renderer are never focused. Let Tab walk through
  * them first, and leave the key to ag-grid on the cell's last (Shift+Tab: first)
  * one. Enter on them is left to the browser: ag-grid's Enter re-creates the
- * cell renderer before the click.
+ * cell renderer before the click. Keys in a dialog opened from the cell are
+ * left to the browser.
  */
 export function suppressKeyboardEventInCell({
   event,
