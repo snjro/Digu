@@ -21,10 +21,24 @@ export function decodeWarpSyncLogs(
   warpSyncLogs: WarpSyncLog[],
 ): EthersEventLog[] {
   const contractInterface = targetContract.contractInterface;
+  // getEvent hashes every event signature again for each log, so look the
+  // events up by topic0 in a table made once.
+  const fragments = new Map<string, EventFragment>();
+  contractInterface.forEachEvent((fragment: EventFragment) => {
+    fragments.set(fragment.topicHash, fragment);
+  });
+  const checksumAddresses = new Map<string, string>();
   const logs: Array<EventLog | Log> = warpSyncLogs.map(
     (warpSyncLog: WarpSyncLog) => {
+      let address: string | undefined = checksumAddresses.get(
+        warpSyncLog.address,
+      );
+      if (address === undefined) {
+        address = getAddress(warpSyncLog.address);
+        checksumAddresses.set(warpSyncLog.address, address);
+      }
       const logParams: LogParams = {
-        address: getAddress(warpSyncLog.address),
+        address,
         blockHash: warpSyncLog.blockHash,
         blockNumber: getNumber(warpSyncLog.blockNumber),
         data: warpSyncLog.data,
@@ -36,12 +50,10 @@ export function decodeWarpSyncLogs(
       };
       // No provider: nothing more is fetched for these logs.
       const log: Log = new Log(logParams, null as unknown as Provider);
-      let fragment: EventFragment | null = null;
-      try {
-        fragment = contractInterface.getEvent(warpSyncLog.topics[0]);
-      } catch {
-        // Like queryFilter: a log of an unknown event stays a Log.
-      }
+      // Like queryFilter: a log of an unknown event stays a Log.
+      const fragment: EventFragment | undefined = fragments.get(
+        warpSyncLog.topics[0]?.toLowerCase(),
+      );
       if (fragment) {
         try {
           return new EventLog(log, contractInterface, fragment);
