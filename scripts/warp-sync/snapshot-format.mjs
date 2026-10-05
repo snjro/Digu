@@ -16,7 +16,8 @@ export const keyOf = (contract) =>
 export const chunkFileName = (contract, toBlock) =>
   `${contract.project}-${contract.version}-${contract.name}-${toBlock}.json.gz`;
 
-const sha256 = (data) => crypto.createHash("sha256").update(data).digest("hex");
+export const sha256 = (data) =>
+  crypto.createHash("sha256").update(data).digest("hex");
 
 // Writes the logs of one contract from fromBlock to toBlock into files of at
 // most maxLogs logs, cut between blocks, under outDir. logs is an iterable
