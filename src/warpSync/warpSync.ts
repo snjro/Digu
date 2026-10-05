@@ -32,8 +32,8 @@ function isDone(chainName: ChainName): boolean {
 }
 
 // The imports that run in this tab, shared by the callers. ran is true once
-// the import ran, and false when this tab or another tab held or waited for
-// the lock, or the import threw in the lock.
+// the import ran, and false when this tab held or waited for the lock,
+// another tab held it past the timeout, or the import threw in the lock.
 type RunningImport = { ran: Promise<boolean>; done: Promise<void> };
 const runningImports: Map<ChainName, RunningImport> = new Map();
 // Only in this tab: the chains whose large import the user confirmed, and

@@ -178,6 +178,11 @@ async function waitFor(
   return false;
 }
 
+// Stops each opened tab from watching the resets of other tabs. Otherwise the
+// tabs of the earlier tests read the DB in the lock after a reset, and the
+// lock is still held when the test ends.
+const stopWatchingSyncResetsOfTabs: (() => void)[] = [];
+
 // Opens a tab with initialize(). `beforeWatch` runs just before the tab
 // watches the locks.
 async function openTab(beforeWatch?: () => Promise<void>) {
@@ -201,7 +206,9 @@ async function openTab(beforeWatch?: () => Promise<void>) {
   const contract: Contract = extractEventContracts(version.contracts)[0];
   const { DbEventLogs } = await import("#db/dbEventLogs.js");
   const { fetchEventLogs } = await import("./eventLogs");
-  const { resetSyncedData } = await import("./syncReset");
+  const { resetSyncedData, stopWatchingSyncResets } =
+    await import("./syncReset");
+  stopWatchingSyncResetsOfTabs.push(stopWatchingSyncResets);
   const { startAbortingInChain } =
     await import("#db/dbEventLogsDataHandlersSyncStatus.js");
   const { syncStatusContract } = await import("./eventLogsContract");
@@ -305,6 +312,7 @@ describe("sync with two tabs (issue #49)", () => {
   // 10 s under load, and a hook that times out leaves the sync running into
   // the next test (issue #583).
   afterEach(async () => {
+    for (const stop of stopWatchingSyncResetsOfTabs.splice(0)) stop();
     // Every tab, even after one fails: a tab left syncing would sync into the
     // next test.
     const errors: unknown[] = [];
@@ -889,6 +897,30 @@ describe("sync with two tabs (issue #49)", () => {
       expect(a.isLockedByOtherTab()).toBe(false);
       expect(await isSyncLockHeld()).toBe(false);
       expect(await runWithSyncLock(async () => {})).toBe(true);
+    }, 30_000);
+
+    test("logs a failed request that is not a timeout as an error", async () => {
+      const { a, runWithSyncLock } = await openTabForLock();
+      // Tab A's module instance (openTab() resets modules only at start).
+      const { customLogger } = await import("#utils/logger.js");
+      const spyInfo = vi.spyOn(customLogger, "info");
+      const spyError = vi.spyOn(customLogger, "error");
+      const error = new Error("lock error");
+      vi.spyOn(lockManager, "request").mockRejectedValueOnce(error);
+      const run = vi.fn(async () => {});
+
+      expect(await runWithSyncLock(run)).toBe(false);
+      expect(run).not.toHaveBeenCalled();
+      expect(spyError).toHaveBeenCalledWith("The sync lock was not granted.", {
+        chainName: chain.name,
+        errorObject: error,
+      });
+      expect(spyInfo).not.toHaveBeenCalledWith(
+        "The sync lock was not granted.",
+        expect.anything(),
+      );
+      // As for a timeout: the stores are read again once the lock is free.
+      expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
     }, 30_000);
 
     test("works without navigator.locks, and still refuses a second run", async () => {

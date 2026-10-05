@@ -86,8 +86,22 @@ async function resetInLock(targetChain: Chain): Promise<SyncResetOutcome> {
     outcome = { result: "failed", deletedLogCount: 0 };
   }
   // Even after a failure: some versions may have been reset.
-  forgetWarpSyncImport(chainName);
-  postSyncReset(chainName);
+  try {
+    forgetWarpSyncImport(chainName);
+  } catch (error) {
+    customLogger.error("Forget the warp sync import after the reset.", {
+      chainName,
+      errorObject: error,
+    });
+  }
+  try {
+    postSyncReset(chainName);
+  } catch (error) {
+    customLogger.error("Tell the other tabs about the reset.", {
+      chainName,
+      errorObject: error,
+    });
+  }
   await reloadSyncStatusInChain(chainName).catch((error: unknown) => {
     customLogger.error("Reload the sync status after the reset.", {
       chainName,

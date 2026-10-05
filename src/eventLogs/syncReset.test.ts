@@ -217,7 +217,7 @@ describe("resetSyncedData", () => {
     );
   });
 
-  test("resolves failed when the reset throws in the lock", async () => {
+  test("goes on to read the chain again when forgetting the import throws", async () => {
     const spyError = vi
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});
@@ -225,20 +225,25 @@ describe("resetSyncedData", () => {
     vi.mocked(forgetWarpSyncConfirmation).mockImplementationOnce(() => {
       throw error;
     });
+    const received: unknown[] = [];
+    const other = new BroadcastChannel(`${DB_NAME.firstName}_syncReset`);
+    other.addEventListener("message", (event: MessageEvent) =>
+      received.push(event.data),
+    );
 
-    expect(await resetSyncedData(matic)).toEqual({
-      result: "failed",
-      deletedLogCount: 0,
+    expect(await resetSyncedData(matic)).toMatchObject({
+      result: "reset",
+      deletedLogCount: 7,
     });
     expect(spyError).toHaveBeenCalledWith(
-      "Reset the synced data in the sync lock.",
+      "Forget the warp sync import after the reset.",
       { chainName: "matic", errorObject: error },
     );
-    expect(startWarpSync).not.toHaveBeenCalled();
+    expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("matic");
+    expect(startWarpSync).toHaveBeenCalledExactlyOnceWith(matic);
+    await vi.waitFor(() => expect(received).toEqual([{ chainName: "matic" }]));
+    other.close();
     expect((await lockManager.query()).held).toEqual([]);
-    expect(get(storeSyncLockedByOtherTab).matic).toBe(false);
-    // Not left as held by this tab.
-    expect((await resetSyncedData(matic)).result).toBe("reset");
   });
 
   test("works without Web Locks (insecure context)", async () => {
