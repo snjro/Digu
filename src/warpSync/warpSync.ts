@@ -260,10 +260,11 @@ async function withSyncLock(
   chainName: ChainName,
   run: () => Promise<void>,
 ): Promise<boolean> {
-  // Without Web Locks (insecure context), work as a single tab, as the sync:
-  // do not import while this tab syncs the chain.
+  // Do not import while this tab syncs the chain. With Web Locks, the request
+  // would wait for this tab's own lock, time out, and be taken for another tab.
+  if (isSyncedByThisTab(chainName)) return false;
+  // Without Web Locks (insecure context), work as a single tab, as the sync.
   if (!navigator.locks) {
-    if (isSyncedByThisTab(chainName)) return false;
     await run();
     return true;
   }

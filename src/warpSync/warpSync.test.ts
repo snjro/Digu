@@ -81,6 +81,7 @@ describe("warpSync", () => {
     vi.mocked(importWarpSync).mockReset().mockResolvedValue(30_000_000);
     vi.mocked(getWarpSyncPending).mockReset().mockResolvedValue(small);
     forgetWarpSyncConfirmation("matic");
+    vi.mocked(isSyncedByThisTab).mockReset();
     vi.mocked(reloadSyncStatusInChain).mockClear();
     vi.mocked(waitForSyncLockRelease).mockClear();
   });
@@ -241,6 +242,22 @@ describe("warpSync", () => {
     vi.mocked(isSyncedByThisTab).mockReturnValueOnce(true);
     await startWarpSync(matic);
     expect(importWarpSync).not.toHaveBeenCalled();
+  });
+
+  test("does not take the lock of this tab's sync of the chain", async () => {
+    void lockManager.request(
+      getSyncLockName("matic"),
+      () => new Promise(() => {}),
+    );
+    vi.mocked(isSyncedByThisTab).mockReturnValue(true);
+    const request = vi.spyOn(lockManager, "request");
+    await startWarpSync(matic);
+    expect(request).not.toHaveBeenCalled();
+    expect(importWarpSync).not.toHaveBeenCalled();
+    expect(waitForSyncLockRelease).not.toHaveBeenCalled();
+    expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
+      "idle",
+    );
   });
 
   test("lets the sync wait for the import of this tab", async () => {
@@ -424,6 +441,28 @@ describe("warpSync", () => {
       expect(selectWarpSyncState(get(storeWarpSync), "matic").busy).toBe(
         undefined,
       );
+    });
+
+    test("says so when Import is chosen while this tab syncs the chain", async () => {
+      await startWarpSync(matic);
+      declineWarpSync("matic");
+      void lockManager.request(
+        getSyncLockName("matic"),
+        () => new Promise<void>(() => {}),
+      );
+      vi.mocked(isSyncedByThisTab).mockReturnValue(true);
+      // No request, so no wait for SYNC_LOCK_TIMEOUT_MS.
+      const request = vi.spyOn(lockManager, "request");
+      await confirmWarpSync(matic);
+      expect(request).not.toHaveBeenCalled();
+      expect(importWarpSync).not.toHaveBeenCalled();
+      // Not read as another tab, which disables the sync toggle.
+      expect(waitForSyncLockRelease).not.toHaveBeenCalled();
+      expect(selectWarpSyncState(get(storeWarpSync), "matic")).toMatchObject({
+        status: "declined",
+        busy: true,
+        pending: large,
+      });
     });
 
     test("stops before it imports when it is turned off meanwhile", async () => {
