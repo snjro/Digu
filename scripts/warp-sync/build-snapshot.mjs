@@ -815,16 +815,25 @@ async function build(chain, rpc, outDir, toBlock, options) {
 // url, so that it is not in the command line.
 export function withKey(url, keyFile) {
   if (keyFile === undefined) return url;
-  // Checked before the key is read: a URL without a scheme or without the last
-  // "/" puts the key in an error that Node prints. The "/" is checked on url,
-  // not on the pathname, which is "/" for "https://host".
+  // Checked with a placeholder before the key is read: if the key would go
+  // into the host or the port, or the URL has a user name or a password, Node
+  // prints the key in an error. The message leaves out url, which may have a
+  // password.
+  const placeholder = "KEYPLACEHOLDER";
+  const base = URL.parse(url);
+  const probe = URL.parse(`${url}${placeholder}`);
   if (
-    !URL.canParse(url) ||
-    !["http:", "https:"].includes(new URL(url).protocol) ||
-    !url.endsWith("/")
+    base === null ||
+    probe === null ||
+    !["http:", "https:"].includes(probe.protocol) ||
+    probe.username !== "" ||
+    probe.password !== "" ||
+    probe.host !== base.host ||
+    probe.hash !== "" ||
+    !`${probe.pathname}${probe.search}`.endsWith(placeholder)
   ) {
     throw new Error(
-      `--rpc must be an http(s) URL that ends with "/" with --rpc-key-file: ${url}`,
+      "--rpc must be an http(s) URL without a user name or password, to which the key can be added at the end of the path or the query, with --rpc-key-file.",
     );
   }
   const key = fs.readFileSync(keyFile, "utf8").trim();

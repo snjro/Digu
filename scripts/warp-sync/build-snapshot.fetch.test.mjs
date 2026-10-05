@@ -668,6 +668,9 @@ describe("withKey", () => {
         "https://rpc.example",
         "https://rpc.example:",
         "ftp://rpc.example/",
+        "https://rpc.example/v3/#/",
+        "https://user@rpc.example/v3/",
+        "https://user:pw-zq7x@rpc.example/v3/",
       ]) {
         let error;
         try {
@@ -678,7 +681,21 @@ describe("withKey", () => {
         expect(error, url).toBeInstanceOf(Error);
         expect(error.message, url).toContain("--rpc");
         expect(error.message, url).not.toContain("abc123");
+        expect(error.message, url).not.toContain("pw-zq7x");
       }
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("adds the key to the end of the query", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-key-"));
+    try {
+      const file = path.join(dir, "key");
+      fs.writeFileSync(file, "abc123\n");
+      expect(script.withKey("https://rpc.example/?apikey=", file)).toBe(
+        "https://rpc.example/?apikey=abc123",
+      );
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }
