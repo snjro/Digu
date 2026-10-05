@@ -34,7 +34,8 @@ function isDone(chainName: ChainName): boolean {
 }
 
 // The imports that run in this tab, shared by the callers. ran is true once
-// the import ran, and false when another tab held the lock.
+// the import ran, and false when this tab synced the chain or another tab
+// held the lock.
 type RunningImport = { ran: Promise<boolean>; done: Promise<void> };
 const runningImports: Map<ChainName, RunningImport> = new Map();
 // Only in this tab: the chains whose large import the user confirmed, and
@@ -255,7 +256,8 @@ async function getPendingOrUndefined(
   }
 }
 
-// Returns false when another tab held the lock and nothing ran.
+// Returns false when this tab syncs the chain, or another tab held the lock,
+// and nothing ran.
 async function withSyncLock(
   chainName: ChainName,
   run: () => Promise<void>,
