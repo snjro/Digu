@@ -93,6 +93,11 @@ and does not run `public-site/`.
   the exit code of each step and `times.txt` its start, end and seconds, made
   from the files in `status/`; the output of each step is in
   `log-<step>.txt`. It exits 1 when a step failed.
+- A new lane needs a branch in `lane()`, its name in both `lanes` lists and
+  its steps in `steps` of `run-all.sh`; a new kind of check also needs a
+  reader in `judge.py` (see [Judge](#judge-judgepy)). When the two `lanes`
+  lists differ, it stops at the start (exit 2); a step that runs but is not
+  in `steps` gets `not-in-steps` in `exit-codes.txt` and fails.
 
 ## Judge (`judge.py`)
 
