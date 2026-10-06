@@ -32,7 +32,7 @@ export const WAIT_UNTIL_THE_SYNC_STOPS = "Wait until the sync stops.";
 export type ResetConditions = {
   syncStateText: SyncStateText;
   isSyncingInOtherTab: boolean;
-  isImporting: boolean;
+  isWarpSyncRunning: boolean;
   isResetting: boolean;
 };
 
@@ -49,7 +49,7 @@ export function getResetDisabledReason(
   // "stop sync" was pressed: the contracts end what they are doing first.
   if (conditions.syncStateText === "stopping") return WAIT_UNTIL_THE_SYNC_STOPS;
   // The nav has "Stop" for a large import.
-  if (conditions.isImporting) {
+  if (conditions.isWarpSyncRunning) {
     return "Wait until the logs published with this site are imported, or stop the import.";
   }
   return undefined;

@@ -78,6 +78,7 @@ describe("getWarpSyncHelperText", () => {
     );
   });
   test.each([
+    ["checking", "Checking the event logs published with this site…"],
     ["importing", "Importing the event logs published with this site…"],
     [
       "failed",
@@ -136,6 +137,7 @@ describe("after Not now or a stop", () => {
   });
   test("cannot import now in the other states", () => {
     expect(canImportNow(true, { status: "confirm" })).toBe(false);
+    expect(canImportNow(true, { status: "checking" })).toBe(false);
     expect(canImportNow(true, { status: "importing" })).toBe(false);
   });
 });

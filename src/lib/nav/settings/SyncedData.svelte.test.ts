@@ -118,9 +118,11 @@ describe("SyncedData.svelte", () => {
     expect(resetButton().disabled).toBe(true);
 
     storeSyncLockedByOtherTab.set({ matic: false });
-    setWarpSyncState("matic", { status: "importing" });
-    await tick();
-    expect(resetButton().disabled).toBe(true);
+    for (const status of ["checking", "importing"] as const) {
+      setWarpSyncState("matic", { status });
+      await tick();
+      expect(resetButton().disabled).toBe(true);
+    }
 
     setWarpSyncState("matic", { status: "imported" });
     await tick();

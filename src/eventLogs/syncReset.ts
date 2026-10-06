@@ -9,6 +9,7 @@ import {
 } from "#warpSync/warpSync.js";
 import {
   hasWarpSync,
+  isWarpSyncRunning,
   selectWarpSyncState,
   setWarpSyncState,
   storeWarpSync,
@@ -40,7 +41,9 @@ export async function resetSyncedData(
 ): Promise<SyncResetOutcome> {
   const chainName: ChainName = targetChain.name;
   const busy: SyncResetOutcome = { result: "busy", deletedLogCount: 0 };
-  if (isImporting(chainName)) return busy;
+  if (isWarpSyncRunning(selectWarpSyncState(get(storeWarpSync), chainName))) {
+    return busy;
+  }
   let outcome: SyncResetOutcome = busy;
   let ran: boolean;
   try {
@@ -64,12 +67,6 @@ export async function resetSyncedData(
     outcome.warpSyncImport = startWarpSync(targetChain);
   }
   return outcome;
-}
-
-function isImporting(chainName: ChainName): boolean {
-  return (
-    selectWarpSyncState(get(storeWarpSync), chainName).status === "importing"
-  );
 }
 
 async function resetInLock(targetChain: Chain): Promise<SyncResetOutcome> {

@@ -1,5 +1,5 @@
 <script lang="ts" generics="GridRow">
-  import BaseSpinner from "#lib/base/BaseSpinner.svelte";
+  import GridLoadingOverlay from "./GridLoadingOverlay.svelte";
   import { setAutoColumnWidth } from "../gridColumns";
   import {
     AbstractOverlayRenderer,
@@ -9,6 +9,7 @@
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import {
     type GridOptions,
+    type ILoadingOverlayParams,
     type GridApi,
     type SortChangedEvent,
     type FilterChangedEvent,
@@ -44,11 +45,20 @@
     gridApi: GridApi<GridRow> | undefined;
     paramColumnDefs?: ColumnDef[];
     rows: GridRow[] | undefined;
+    loadingText?: string;
   }
 
-  let { gridApi = $bindable(), paramColumnDefs = [], rows }: Props = $props();
+  let {
+    gridApi = $bindable(),
+    paramColumnDefs = [],
+    rows,
+    loadingText,
+  }: Props = $props();
 
   const gridTextSize: BaseSize = sizeSettings.grid;
+
+  // ag-grid adds loadingOverlayComponentParams to the params of the overlay.
+  type LoadingTextParams = { loadingText?: string };
 
   const colorDefs = getColorDefinitionsForGrid(
     colorSettings.gridHeader,
@@ -110,10 +120,10 @@
       setAutoColumnWidth(firstDataRenderedEvent.api);
     },
     loadingOverlayComponent: loadingOverlayRendererFactory(
-      (overLay: AbstractOverlayRenderer) => {
-        overLay.mount(BaseSpinner, {
+      (overLay: AbstractOverlayRenderer, params: ILoadingOverlayParams) => {
+        overLay.mount(GridLoadingOverlay, {
           target: overLay.eGui,
-          props: { size: "xl", trackColor: "primary" },
+          props: { text: (params as LoadingTextParams).loadingText },
         });
       },
     ),
@@ -155,6 +165,21 @@
       const columnDefs: ColumnDef[] = paramColumnDefs;
       untrack(() => {
         api.setGridOption("columnDefs", getColumnDefs(columnDefs));
+      });
+    }
+  });
+  // Before the rows, so the loading overlay shows the text at once. ag-grid
+  // mounts the overlay again when it changes, so only then.
+  let passedLoadingText: string | undefined = undefined;
+  $effect.pre(() => {
+    if (gridApi) {
+      const api: GridApi<GridRow> = gridApi;
+      const text: string | undefined = loadingText;
+      if (text === passedLoadingText) return;
+      passedLoadingText = text;
+      const params: LoadingTextParams = { loadingText: text };
+      untrack(() => {
+        api.setGridOption("loadingOverlayComponentParams", params);
       });
     }
   });

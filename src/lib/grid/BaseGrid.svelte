@@ -10,6 +10,8 @@
     isFullScreen?: boolean;
     paramColumnDefs: ColumnDef[];
     rows: GridRow[] | undefined;
+    // Shown with the spinner while the rows are loaded.
+    loadingText?: string;
     exportFilePrefix: ExportFilePrefix;
     hasMultipleTabs: boolean;
   }
@@ -18,6 +20,7 @@
     isFullScreen = $bindable(false),
     paramColumnDefs,
     rows,
+    loadingText,
     exportFilePrefix,
     hasMultipleTabs,
   }: Props = $props();
@@ -37,7 +40,7 @@
 
   {#snippet PageWrapperContentBody()}
     <div class="flex flex-col h-full">
-      <GridBody bind:gridApi {paramColumnDefs} {rows} />
+      <GridBody bind:gridApi {paramColumnDefs} {rows} {loadingText} />
     </div>
   {/snippet}
 </PageWrapperContent>

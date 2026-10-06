@@ -178,8 +178,10 @@ describe("resetSyncedData", () => {
     expect(get(storeSyncLockedByOtherTab).matic).toBe(false);
     finish();
     expect(await holding).toBe(true);
-    setWarpSyncState("matic", { status: "importing" });
-    expect((await resetSyncedData(matic)).result).toBe("busy");
+    for (const status of ["checking", "importing"] as const) {
+      setWarpSyncState("matic", { status });
+      expect((await resetSyncedData(matic)).result).toBe("busy");
+    }
     expect(resetDbSyncedData).not.toHaveBeenCalled();
   });
 

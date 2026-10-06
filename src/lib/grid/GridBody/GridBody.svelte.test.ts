@@ -90,4 +90,21 @@ describe("GridBody.svelte", () => {
     expect(lastLoading()).toBe(false);
     expect(gridApi.showNoRowsOverlay).not.toHaveBeenCalled();
   });
+
+  test("passes the loading text to the overlay only when it changes", async () => {
+    const paramsCalls = () =>
+      gridApi.setGridOption.mock.calls
+        .filter((call) => call[0] === "loadingOverlayComponentParams")
+        .map((call) => call[1]);
+    // Without it, the overlay is not mounted again.
+    const { rerender } = renderGridBody(undefined);
+    expect(paramsCalls()).toEqual([]);
+    await rerender({ loadingText: "Waiting" });
+    await rerender({ loadingText: "Waiting", rows: [] });
+    await rerender({ loadingText: undefined });
+    expect(paramsCalls()).toEqual([
+      { loadingText: "Waiting" },
+      { loadingText: undefined },
+    ]);
+  });
 });

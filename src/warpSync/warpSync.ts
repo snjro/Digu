@@ -151,7 +151,7 @@ async function runImport(targetChain: Chain, ask: boolean): Promise<void> {
   const before: WarpSyncState = getState(chainName);
   // Turned off while waiting for the lock.
   if (!isWarpSyncOn(chainName)) return;
-  setWarpSyncState(chainName, { status: "importing" });
+  setWarpSyncState(chainName, { status: "checking" });
   const controller = new AbortController();
   setWarpSyncStopController(chainName, controller);
   let manifest: WarpSyncManifest | undefined = undefined;
@@ -187,7 +187,8 @@ async function runImport(targetChain: Chain, ask: boolean): Promise<void> {
       ...about,
       progress: isLarge ? { doneLogCount, startedAt } : undefined,
     });
-    setWarpSyncState(chainName, importing());
+    // With no logs left, it only moves the blocks on while "checking".
+    if (pending.logCount > 0) setWarpSyncState(chainName, importing());
     const toBlock: number | undefined = await importWarpSync(
       targetChain,
       manifest,
@@ -239,7 +240,7 @@ async function runImport(targetChain: Chain, ask: boolean): Promise<void> {
 }
 
 // What is left after a stop; undefined when it cannot be read, so that the
-// state still leaves "importing".
+// state still leaves "checking" or "importing".
 async function getPendingOrUndefined(
   targetChain: Chain,
   manifest: WarpSyncManifest,
