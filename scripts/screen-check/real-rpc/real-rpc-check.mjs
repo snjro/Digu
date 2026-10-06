@@ -18,10 +18,11 @@
 //   - eth: eth_getLogs is refused with an error (any code; PublicNode used
 //   -32602), and the sync stops after TRY_COUNT + 1 tries.
 //   - matic: PublicNode returns old logs but refuses a range over its limit
-//   (#694). The sync moves on, each refusal is followed by a range from the
-//   same block that is not wider, and the refused range is then fetched in
-//   narrower ranges. The script stops the sync after that, and nothing is
-//   called after the stop.
+//   (#694). The sync moves on, each refusal for the range is followed by a
+//   range from the same block that is not wider, and the refused range is
+//   then fetched in narrower ranges. Other errors are only recorded. The
+//   script stops the sync after that, and no eth_getLogs is sent after the
+//   stop.
 //   - Both: the toggle is off, the RPC URL is not in the console (#483), and
 //   no contract is left isAbort/isSyncing (#515).
 //   4. Console errors and warnings, page errors, CSP violations (#504).
@@ -93,8 +94,8 @@ const TARGET = {
 // 404 until then.
 const WARP_SYNC_OFF = new Set(["matic"]);
 // The chains on which PublicNode returns old logs, so the sync does not stop
-// by itself (#694). The script stops it after the first refused range is
-// fetched in narrower ranges, or after SCRIPT_STOP_MS.
+// by itself (#694). The script stops it after the first range refused for its
+// width is fetched in narrower ranges, or after SCRIPT_STOP_MS.
 const SCRIPT_STOP = new Set(["matic"]);
 const SCRIPT_STOP_MS = 60000;
 let holdWarpSync = null;
@@ -138,7 +139,7 @@ function note(key, value) {
 const server = serveBuild(buildDir);
 
 // ---- the RPC traffic of one run ----
-// calls: every JSON-RPC call sent, {transport, method, id}. answers: the
+// calls: every JSON-RPC call sent, {transport, method, id, seq}. answers: the
 // results and errors that came back, by method.
 let traffic;
 function newTraffic() {
@@ -150,29 +151,37 @@ function newTraffic() {
     pendingWs: new Map(),
   };
 }
+// Returns the calls, so that the http answers can find theirs.
 function recordSent(transport, body) {
   const list = Array.isArray(body) ? body : body ? [body] : [];
-  for (const p of list) {
-    traffic.calls.push({
+  return list.map((p) => {
+    const call = {
       transport,
       method: p.method,
       id: p.id,
       params: p.method === "eth_getLogs" ? p.params : undefined,
-    });
-    if (transport === "ws") traffic.pendingWs.set(p.id, p);
-  }
+      // The order in which the calls were sent.
+      seq: traffic.calls.length,
+    };
+    traffic.calls.push(call);
+    if (transport === "ws") traffic.pendingWs.set(p.id, call);
+    return call;
+  });
 }
-// sent: the request of the answer, if found.
-function recordAnswer(sent, a) {
-  const method = sent?.method ?? "?";
+// The calls of each http request, for its answer.
+const httpCalls = new WeakMap();
+// call: the call of the answer, if found.
+function recordAnswer(call, a) {
+  const method = call?.method ?? "?";
   traffic.answers.push({
     method,
+    seq: call?.seq,
     // The range of eth_getLogs, to see what comes after a refusal (#694).
     range:
-      method === "eth_getLogs" && sent.params?.[0]
+      method === "eth_getLogs" && call.params?.[0]
         ? [
-            Number(BigInt(sent.params[0].fromBlock)),
-            Number(BigInt(sent.params[0].toBlock)),
+            Number(BigInt(call.params[0].fromBlock)),
+            Number(BigInt(call.params[0].toBlock)),
           ]
         : undefined,
     result: a.error
@@ -203,14 +212,21 @@ function summary() {
     errors,
   };
 }
-// Each refused eth_getLogs and what came after it (#694). The next request is
-// from the same block and not wider, and the successes up to the end of the
-// refused range are narrower. complete: that end was reached.
+// A refusal of a range over the limit of the RPC, as PublicNode answered on
+// matic (#694). Other errors may not come again for the same range.
+const isRangeRefusal = (e) =>
+  e?.code === -32701 || /exceed maximum block range/i.test(e?.message ?? "");
+// Each eth_getLogs refused for its range, and what was sent after it (#694).
+// The next request is from the same block and not wider, and the successes up
+// to the end of the refused range are narrower. complete: that end was
+// reached.
 function refusalsOf(answers) {
-  const logs = answers.filter((a) => a.method === "eth_getLogs" && a.range);
+  const logs = answers
+    .filter((a) => a.method === "eth_getLogs" && a.range)
+    .sort((a, b) => a.seq - b.seq);
   const width = (a) => a.range[1] - a.range[0] + 1;
   return logs.flatMap((r, i) => {
-    if (!r.error) return [];
+    if (!isRangeRefusal(r.error)) return [];
     const after = logs.slice(i + 1);
     const next = after[0];
     const end = after.findIndex((b) => !b.error && b.range[1] >= r.range[1]);
@@ -342,7 +358,7 @@ async function newPage(context) {
       }
       if (req.method() === "POST") {
         traffic.httpRequests += 1;
-        recordSent("http", body);
+        httpCalls.set(req, recordSent("http", body));
       }
       if (!FAKE) {
         req.continue();
@@ -380,18 +396,12 @@ async function newPage(context) {
       res.request().method() !== "POST"
     )
       return;
-    let sent = null;
-    try {
-      sent = JSON.parse(res.request().postData() ?? "null");
-    } catch {
-      // not JSON
-    }
+    const calls = httpCalls.get(res.request()) ?? [];
     const body = await res.json().catch(() => null);
-    const sentList = Array.isArray(sent) ? sent : sent ? [sent] : [];
     const got = Array.isArray(body) ? body : body ? [body] : [];
     for (const a of got)
       recordAnswer(
-        sentList.find((p) => p.id === a.id),
+        calls.find((c) => c.id === a.id),
         a,
       );
   });
@@ -416,6 +426,8 @@ async function newPage(context) {
     for (const x of Array.isArray(a) ? a : [a]) {
       if (x.id === undefined) continue;
       recordAnswer(traffic.pendingWs.get(x.id), x);
+      // An id may be used again after a reconnect.
+      traffic.pendingWs.delete(x.id);
     }
   });
   return page;
@@ -493,6 +505,26 @@ async function toggleButton(page, texts) {
     }
     return null;
   }, texts);
+}
+// Clicks "stop sync" in the page, so that the label is the one at the click:
+// a sync that stopped by itself in between is not started again. Returns
+// whether it clicked.
+async function clickStopSync(page) {
+  return page.evaluate(() => {
+    for (const label of [...document.querySelectorAll("*")].filter(
+      (e) => e.children.length === 0 && e.textContent.trim() === "stop sync",
+    )) {
+      for (let e = label; e; e = e.parentElement) {
+        const b = e.querySelector("button");
+        if (b && b.getClientRects().length) {
+          if (b.disabled) return false;
+          b.click();
+          return true;
+        }
+      }
+    }
+    return false;
+  });
 }
 async function toggleInfo(page) {
   const h = await toggleButton(page, TOGGLE_TEXTS);
@@ -701,7 +733,8 @@ for (const [id, chain, rpc] of RUNS) {
     note("traffic after connect", summary());
     if (!connected) throw new Error("not connected; the sync is not started");
 
-    // 2 and 3. Start the sync and wait until it stops by itself.
+    // 2 and 3. Start the sync. Wait until it stops by itself (eth), or stop it
+    // from the script and wait for the stop (matic, #694).
     const before = await readDb(page, chain, t.db, t.contract);
     const n0 = traffic.calls.length;
     const a0 = traffic.answers.length;
@@ -734,10 +767,9 @@ for (const [id, chain, rpc] of RUNS) {
         (Date.now() - t1 >= SCRIPT_STOP_MS ||
           refusalsOf(traffic.answers.slice(a0)).some((r) => r.complete))
       ) {
-        const b = (await toggleButton(page, ["stop sync"])).asElement();
-        if (b) {
-          stopClickedMs = Date.now() - t1;
-          await b.click();
+        const ms = Date.now() - t1;
+        if (await clickStopSync(page)) {
+          stopClickedMs = ms;
           continue;
         }
       }
@@ -754,6 +786,10 @@ for (const [id, chain, rpc] of RUNS) {
       .slice(n1)
       .map((c) => `${c.transport} ${c.method}`);
     note("calls in 3 s after the stop", callsAfterStop);
+    // The sync itself: eth_getLogs. Other calls stay in the note above.
+    const getLogsAfterStop = traffic.calls
+      .slice(n1)
+      .filter((c) => c.method === "eth_getLogs").length;
     const after = await readDb(page, chain, t.db, t.contract);
     const nav = await navText(page);
     await page.screenshot({ path: path.join(outDir, `${id}-3-stopped.png`) });
@@ -816,7 +852,7 @@ for (const [id, chain, rpc] of RUNS) {
     const synced = scriptStop
       ? stopped &&
         !stoppedByItself &&
-        callsAfterStop.length === 0 &&
+        getLogsAfterStop === 0 &&
         fetched.after > fetched.before &&
         refusals.some((r) => r.complete) &&
         refusals.every((r) => r.nextOk && r.narrower)
@@ -835,7 +871,7 @@ for (const [id, chain, rpc] of RUNS) {
         ? {
             stoppedByItself,
             stopClickedMs,
-            callsAfterStop: callsAfterStop.length,
+            getLogsAfterStop,
             fetchedBlockNumber: fetched,
             refusals: refusals.slice(0, 10),
           }

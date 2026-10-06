@@ -281,7 +281,8 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
   on eth, AMMFactory of Augur turbo on matic), types the RPC URL, waits for
   "Connected." (30 s) and starts the sync. On eth, it waits until the sync
   stops by itself (120 s). On matic, it clicks "stop sync" when the first
-  refused range has been fetched in narrower ranges, or after 60 s, and
+  range refused for its width has been fetched in narrower ranges, or after
+  60 s, and
   waits for the stop (#694).
 - The matic runs first turn off "Warp sync" in the sync panel (its files get
   404 until then), so that the sync starts at old blocks (#635); `warpSync`
@@ -294,11 +295,13 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
     `TRY_COUNT` of `src/eventLogs/eventLogsContract.ts` in the build) and
     each was refused with an error (any code), and the sync stopped by
     itself. On matic, the sync did not stop by itself, `fetchedBlockNumber`
-    moved on, at least one refused range was fetched again in narrower
-    ranges (`refusals`: after each refusal, the next request is from the same
-    block and not wider, and the successes up to the end of the refused range
-    are narrower), the sync stopped after the click, and nothing was called
-    in 3 s after the stop. On both: the toggle is off, the nav says
+    moved on, at least one range refused for its width (`-32701` or "exceed
+    maximum block range") was fetched again in narrower ranges (`refusals`:
+    after each such refusal, the next request sent is from the same block
+    and not wider, and the successes up to the end of the refused range are
+    narrower; other errors are only counted in `refusedCodes`), the sync
+    stopped after the click, and no `eth_getLogs` was sent in 3 s after the
+    stop. On both: the toggle is off, the nav says
     "stopped", the RPC host is not in the console (#483), no contract is left
     syncing or aborting, and the contracts grid shows "stopped" (#515).
   - `4 console by type`, `4 csp`: console errors and warnings, page errors,
