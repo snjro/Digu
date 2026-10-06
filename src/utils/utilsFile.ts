@@ -1,13 +1,7 @@
-import type { EventLogType } from "#lib/contracts/eventLogType.js";
 import { convertTimestampSecToIso8601 } from "./utilsTime";
 
 export type ExportFilePrefix =
-  | "contracts"
-  | "events"
-  | "functions"
-  | `eventLogs(${EventLogType})`
-  | "ABI"
-  | "ABIfragment";
+  "contracts" | "events" | "functions" | "eventLogs" | "ABI" | "ABIfragment";
 
 type MimeType = "text/csv" | "application/json" | "text/plain";
 type ExportDataType = { mimeType: MimeType };

@@ -128,11 +128,10 @@ async function saveLogs(transfer: number): Promise<void> {
   await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
 }
 
-function renderGrid(eventLogType: "text" | "hex") {
+function renderGrid() {
   return render(EventLogs, {
     targetEventIdentifier,
     targetEventAbiFragment,
-    eventLogType,
     isFullScreen: false,
   });
 }
@@ -156,7 +155,7 @@ describe("EventLogs.svelte", () => {
 
   test("reloads the rows when the record count of the event changes", async () => {
     load.mockResolvedValueOnce([]);
-    renderGrid("text");
+    renderGrid();
     await waitFor(() => expect(shown().rows).toBe(0));
     expect(load).toHaveBeenCalledTimes(1);
     expect(load).toHaveBeenCalledWith(
@@ -187,22 +186,9 @@ describe("EventLogs.svelte", () => {
     expect(load).toHaveBeenCalledTimes(4);
   });
 
-  test("reloads the rows of the hex grid without new column definitions", async () => {
-    load.mockResolvedValueOnce([]);
-    renderGrid("hex");
-    await waitFor(() => expect(shown().rows).toBe(0));
-    const columns: number = shown().columns;
-
-    load.mockResolvedValueOnce([log(10, 1), log(20, 2)]);
-    await saveLogs(2);
-    await waitFor(() => expect(shown().rows).toBe(2));
-    expect(shown().columns).toBe(columns);
-    expect(load).toHaveBeenCalledTimes(2);
-  });
-
   test("does not reload when only other values change", async () => {
     load.mockResolvedValue([]);
-    renderGrid("text");
+    renderGrid();
     await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
 
     setContract({ fetchedBlockNumber: 200, isSyncing: true });
@@ -214,7 +200,7 @@ describe("EventLogs.svelte", () => {
 
   test("reloads once or twice for saves in a short time, and after the last save", async () => {
     load.mockResolvedValueOnce([]);
-    renderGrid("text");
+    renderGrid();
     await waitFor(() => expect(shown().rows).toBe(0));
 
     // A load reads the logs saved by then.
@@ -234,7 +220,7 @@ describe("EventLogs.svelte", () => {
 
   test("stops the running load when the grid closes", async () => {
     load.mockReturnValueOnce(new Promise(() => {}));
-    const { unmount } = renderGrid("text");
+    const { unmount } = renderGrid();
     expect(load).toHaveBeenCalledTimes(1);
     const signal: AbortSignal = load.mock.calls[0][1]!;
     expect(signal.aborted).toBe(false);
@@ -245,7 +231,7 @@ describe("EventLogs.svelte", () => {
 
   test("loads another event at once and stops the load of the previous one", async () => {
     load.mockReturnValueOnce(new Promise(() => {}));
-    const { rerender } = renderGrid("text");
+    const { rerender } = renderGrid();
     const signal: AbortSignal = load.mock.calls[0][1]!;
 
     load.mockResolvedValueOnce([log(10, 1)]);

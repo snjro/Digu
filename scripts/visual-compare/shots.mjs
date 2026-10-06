@@ -300,8 +300,7 @@ const DATA_PAGES = [
   ["contract", CONTRACT],
   ["events", EVENTS],
   ["event", EVENT],
-  ["event-logs-text", `${EVENT}#event-logs-text`, "Event Logs (text)"],
-  ["event-logs-hex", `${EVENT}#event-logs-hex`, "Event Logs (hex)"],
+  ["event-logs", `${EVENT}#event-logs`, "Event Logs"],
 ];
 
 const server = serveBuild(buildDir);

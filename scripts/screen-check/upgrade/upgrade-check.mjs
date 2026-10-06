@@ -689,9 +689,8 @@ try {
   } else if (phase === "grid") {
     // Event log grids of the new build, on logs saved by v1.0.2 and by the new build.
     for (const [ev, tab] of [
-      ["TimestampSet", "Event Logs (text)"],
-      ["TimestampSet", "Event Logs (hex)"],
-      ["UniverseForked", "Event Logs (text)"],
+      ["TimestampSet", "Event Logs"],
+      ["UniverseForked", "Event Logs"],
     ]) {
       await page.goto(
         `${ORIGIN}/eth/Augur-version1/contracts/Augur/events/${ev}`,
@@ -705,7 +704,7 @@ try {
         (l.closest("a,button") ?? l).click();
       }, tab);
       await settle(page, 3000);
-      const name = `grid-${ev}-${tab.includes("hex") ? "hex" : "text"}`;
+      const name = `grid-${ev}`;
       await record(page, name);
       const rows = await page.evaluate(() =>
         [...document.querySelectorAll(".ag-row")].map((r) =>
@@ -716,7 +715,7 @@ try {
         `[check] ${name} ag-row count=${rows.length}: ${JSON.stringify(rows)}`,
       );
       // #509: sort by the datetime column (the Date), ascending then descending.
-      if (name === "grid-TimestampSet-text") {
+      if (name === "grid-TimestampSet") {
         for (const n of [1, 2]) {
           const label = await page.$(
             '.ag-header-cell[col-id="jsDate"] .ag-header-cell-label',

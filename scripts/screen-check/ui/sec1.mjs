@@ -99,8 +99,7 @@ await L.step(`${P}-4`, page, async () => {
   const shots = [];
   for (const [tab, hash] of [
     ["ABI", "#abi"],
-    ["Event Logs (text)", "#event-logs-text"],
-    ["Event Logs (hex)", "#event-logs-hex"],
+    ["Event Logs", "#event-logs"],
     ["Overview", "#overview"],
   ]) {
     await L.click(page, tab, { scope: "main" }).catch(() => L.click(page, tab));

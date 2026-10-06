@@ -29,10 +29,7 @@ const G = {
   contracts: "/eth/Augur-version2/contracts/",
   events: "/eth/Augur-version2/contracts/Augur/events/",
   functions: "/eth/Augur-version1/contracts/Augur/functions/",
-  logsText:
-    "/eth/Augur-version1/contracts/Augur/events/MarketCreated/#event-logs-text",
-  logsHex:
-    "/eth/Augur-version1/contracts/Augur/events/MarketCreated/#event-logs-hex",
+  logs: "/eth/Augur-version1/contracts/Augur/events/MarketCreated/#event-logs",
 };
 const firstCol = {
   contracts: "Contract Name",
@@ -668,16 +665,16 @@ await L.step("4-logs", page, async () => {
   await page.waitForSelector(".ag-row", { timeout: 20000 }).catch(() => {});
   await L.settle(page, 500);
   const s0 = await gs();
-  const sh1 = await L.shot(page, "4-logs-text");
+  const sh1 = await L.shot(page, "4-logs");
   L.rec(
     "1-5-viewAllLogs",
-    u === "#event-logs-text" ? "OK" : "NG",
+    u === "#event-logs" ? "OK" : "NG",
     `seed=${JSON.stringify(rep)} overview="${ov?.slice(0, 200)}" → hash ${u}`,
     [sh0],
   );
   await btn("Show all columns");
   const sAll = await gs();
-  const sh1b = await L.shot(page, "4-logs-text-all-columns");
+  const sh1b = await L.shot(page, "4-logs-all-columns");
   await headerClick(
     sAll.headers.find((h) => /blockNumber|blocknumber/i.test(h)) ??
       sAll.headers[1],
@@ -690,9 +687,9 @@ await L.step("4-logs", page, async () => {
   await page.click(`.ag-paging-button[aria-label="Next Page"]`);
   await L.settle(page, 300);
   const s2 = await gs();
-  const sh2 = await L.shot(page, "4-logs-text-desc-page2");
+  const sh2 = await L.shot(page, "4-logs-desc-page2");
   L.rec(
-    "4-logs-text",
+    "4-logs",
     "CHECK",
     JSON.stringify({
       initial: [s0.paging, s0.headers, s0.rows.slice(0, 2)],
@@ -702,26 +699,11 @@ await L.step("4-logs", page, async () => {
     }),
     [sh1, sh1b, sh2],
   );
-  await page.goto(L.ROOT + G.logsHex, { waitUntil: "load" });
-  await L.settle(page, 1500);
-  await page.waitForSelector(".ag-row", { timeout: 20000 }).catch(() => {});
-  const h = await gs();
-  const sh3 = await L.shot(page, "4-logs-hex");
-  await btn("Export as CSV");
-  await page.waitForSelector("dialog[open]");
-  const ex = await exportCsv("hex-defaults");
-  await page.keyboard.press("Escape");
-  L.rec(
-    "4-logs-hex",
-    "CHECK",
-    JSON.stringify({ hex: [h.paging, h.headers, h.rows.slice(0, 2)], csv: ex }),
-    [sh3],
-  );
   // events grid Num of Logs link
   await open("/eth/Augur-version1/contracts/Augur/events/");
   const nl = await page.$$eval(".ag-row a", (as) =>
     as
-      .filter((a) => /event-logs-text/.test(a.getAttribute("href")))
+      .filter((a) => /#event-logs$/.test(a.getAttribute("href")))
       .map((a) => [a.innerText, a.getAttribute("href")]),
   );
   if (nl[0]) {
@@ -730,8 +712,7 @@ await L.step("4-logs", page, async () => {
   }
   L.rec(
     "1-5-numOfLogsLink",
-    nl.length &&
-      (await page.evaluate(() => location.hash)) === "#event-logs-text"
+    nl.length && (await page.evaluate(() => location.hash)) === "#event-logs"
       ? "OK"
       : "NG",
     JSON.stringify({
