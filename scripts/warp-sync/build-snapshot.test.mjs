@@ -52,8 +52,9 @@ function logsOf(address, from, to) {
         transactionIndex: "0x0",
         logIndex: toHex(index),
         address: address.toLowerCase(),
-        data: block === brokenBlock ? "0x" : data,
-        topics,
+        data,
+        // A topic0 of no event of the ABI.
+        topics: block === brokenBlock ? [`0x${"ab".repeat(32)}`] : topics,
         removed: false,
       });
     }
@@ -257,12 +258,24 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(requests).toContain("eth_getBlockByNumber");
   });
 
-  test("stops at a log that cannot be decoded, and writes no file", async () => {
+  test("stops at a log that cannot be decoded when its range is fetched", async () => {
     brokenBlock = 15_000_000;
     await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
-      /: cannot decode the log of \w+ at block 15000000, log index 0: /,
+      /: cannot decode the log of topic0 0x(ab){32} at block 15000000, log index 0: /,
     );
     expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
+    // The ranges fetched before are kept, but not the range of the log.
+    const partial = path.join(dir(), ".partial");
+    const lines = fs
+      .readdirSync(partial)
+      .filter((file) => file.endsWith(".jsonl"))
+      .flatMap((file) =>
+        fs.readFileSync(path.join(partial, file), "utf8").split("\n"),
+      )
+      .filter(Boolean)
+      .map((line) => Number(JSON.parse(line).blockNumber));
+    expect(lines.length).toBeGreaterThan(0);
+    expect(lines).not.toContain(15_000_000);
   });
 
   test("stops at a .partial/ of the script before formatVersion 2", async () => {

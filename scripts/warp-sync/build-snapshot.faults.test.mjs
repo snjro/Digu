@@ -32,12 +32,12 @@ function blocksWithLogs(from, to) {
   }
   return blocks;
 }
+const rpcFields = ({ data, topics }) => ({ data, topics });
 function logsOf(contract, from, to) {
   return blocksWithLogs(Math.max(from, contract.creationBlock), to).flatMap(
     (block) =>
       [0, 1].map((index) => ({
-        data: fakeEventLog(contract, block * 10 + index).data,
-        topics: fakeEventLog(contract, block * 10 + index).topics,
+        ...rpcFields(fakeEventLog(contract, block * 10 + index)),
         blockNumber: toHex(block),
         blockHash: `0x${block.toString(16).padStart(64, "0")}`,
         blockTimestamp: toHex(block * 2),

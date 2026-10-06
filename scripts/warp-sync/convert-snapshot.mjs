@@ -56,14 +56,25 @@ export async function convertSnapshot({ dir, log }) {
     if (!contract) {
       throw new Error(`${keyOf(chunk)} of ${chunk.file} is not in the chain.`);
     }
+    // Like toSnapshotLogs of build-snapshot.mjs: the logs are of the address
+    // of the contract.
+    const address = contract.address.toLowerCase();
+    if (data.address.toLowerCase() !== address) {
+      throw new Error(`${chunk.file} is for another address: ${data.address}`);
+    }
     const rows = await writeContractChunks({
       chainId: old.chainId,
       contract: { ...contract, address: data.address },
       fromBlock: chunk.fromBlock,
       toBlock: chunk.toBlock,
-      logs: data.logs.map((raw) =>
-        toSnapshotLog(contract, raw, raw.blockTimestamp),
-      ),
+      logs: data.logs.map((raw) => {
+        if (raw.address.toLowerCase() !== address) {
+          throw new Error(
+            `${chunk.file}: a log of another address: ${raw.address}`,
+          );
+        }
+        return toSnapshotLog(contract, raw, raw.blockTimestamp);
+      }),
       outDir: tmpDir,
       // One file, as before.
       maxLogs: Infinity,

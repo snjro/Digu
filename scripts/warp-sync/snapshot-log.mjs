@@ -12,6 +12,21 @@
  */
 
 /**
+ * The events of an ABI by topic0. Like convertJsonToABI.ts: anonymous events
+ * are not synced.
+ * @param {import("ethers").Interface} iface
+ * @returns {Map<string, import("ethers").EventFragment>}
+ */
+export function eventsByTopic0(iface) {
+  /** @type {Map<string, import("ethers").EventFragment>} */
+  const events = new Map();
+  iface.forEachEvent((fragment) => {
+    if (!fragment.anonymous) events.set(fragment.topicHash, fragment);
+  });
+  return events;
+}
+
+/**
  * A log of the snapshot from a log as the RPC returned it, with the event and
  * its args decoded as the sync decodes them (ethers' EventLog). Throws at a
  * log that cannot be decoded.

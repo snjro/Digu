@@ -17,7 +17,7 @@ import {
   writeContractChunks,
   writeManifest,
 } from "./snapshot-format.mjs";
-import { toSnapshotLog } from "./snapshot-log.mjs";
+import { eventsByTopic0, toSnapshotLog } from "./snapshot-log.mjs";
 
 const CHAINS_DIR = "src/constants/chains";
 // The widths of the eth_getLogs ranges, in blocks. pocket returned 500,000
@@ -128,12 +128,8 @@ function loadContracts(chainDir, chainIndex) {
         /import \w+ from "\.\/([^"]+\.json)";/g,
       )) {
         const json = JSON.parse(read(path.join(vDir, file)));
-        // Like convertJsonToABI.ts: anonymous events are not synced.
         const iface = new Interface(json.abi);
-        const events = new Map();
-        iface.forEachEvent((fragment) => {
-          if (!fragment.anonymous) events.set(fragment.topicHash, fragment);
-        });
+        const events = eventsByTopic0(iface);
         if (events.size === 0) continue;
         contracts.push({
           project,
@@ -728,6 +724,11 @@ async function build(chain, rpc, outDir, toBlock, options) {
     await fetchLogs(rpc, contract, nextBlock, partTo, {
       log,
       onRange: (_from, to, logs) => {
+        // Stops at once at a log that cannot be decoded. .partial/ keeps the
+        // logs as the RPC returned them; they are decoded again when the
+        // files are written.
+        for (const raw of logs)
+          toSnapshotLog(contract, raw, raw.blockTimestamp);
         fs.appendFileSync(
           files.logs,
           logs.map((raw) => `${JSON.stringify(raw)}\n`).join(""),

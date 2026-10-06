@@ -1,7 +1,10 @@
 import type { Contract } from "#constants/chains/types.js";
 import type { WarpSyncLog } from "#warpSync/warpSyncTypes.js";
-import { toBeHex, type EventFragment } from "ethers";
-import { toSnapshotLog } from "../../scripts/warp-sync/snapshot-log.mjs";
+import { toBeHex } from "ethers";
+import {
+  eventsByTopic0,
+  toSnapshotLog,
+} from "../../scripts/warp-sync/snapshot-log.mjs";
 
 const hex = (value: number): `0x${string}` =>
   `0x${value.toString(16)}` as `0x${string}`;
@@ -45,17 +48,13 @@ export function makeWarpSyncLog(
   logIndex: number = 0,
 ): WarpSyncLog {
   const rpcLog = makeRpcLog(contract, eventName, values, blockNumber, logIndex);
-  const events: Map<string, EventFragment> = new Map();
-  contract.contractInterface.forEachEvent((fragment: EventFragment) => {
-    if (!fragment.anonymous) events.set(fragment.topicHash, fragment);
-  });
   return toSnapshotLog(
     {
       project: "",
       version: "",
       name: contract.name,
       iface: contract.contractInterface,
-      events,
+      events: eventsByTopic0(contract.contractInterface),
     },
     rpcLog,
     rpcLog.blockTimestamp,

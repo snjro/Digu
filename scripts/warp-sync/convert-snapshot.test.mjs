@@ -207,6 +207,42 @@ test("stops at a log that cannot be decoded, and leaves the files as they were",
   expect(after).toEqual(before);
 });
 
+test("stops at a log of another address, and leaves the files as they were", async () => {
+  const other = {
+    ...rawLog(26_000_000, 1, 1n),
+    address: `0x${"9".repeat(40)}`,
+  };
+  writeV2([
+    {
+      contract: feePot,
+      fromBlock: feePot.creationBlock,
+      toBlock: 30_000_000,
+      logs: [rawLog(26_000_000, 0, 1n), other],
+    },
+  ]);
+  const before = snapshotFiles();
+  await expect(convertSnapshot({ dir, log: () => {} })).rejects.toThrow(
+    `Augur-turbo-FeePot-30000000.json.gz: a log of another address: 0x${"9".repeat(40)}`,
+  );
+  const after = snapshotFiles();
+  delete after[".convert"];
+  expect(after).toEqual(before);
+});
+
+test("stops at a file of another address", async () => {
+  writeV2([
+    {
+      contract: { ...feePot, address: `0x${"9".repeat(40)}` },
+      fromBlock: feePot.creationBlock,
+      toBlock: 30_000_000,
+      logs: [rawLog(26_000_000, 0, 1n)],
+    },
+  ]);
+  await expect(convertSnapshot({ dir, log: () => {} })).rejects.toThrow(
+    `Augur-turbo-FeePot-30000000.json.gz is for another address: 0x${"9".repeat(40)}`,
+  );
+});
+
 test("stops at a log of an unknown topic0", async () => {
   const unknown = rawLog(26_000_000, 0, 1n);
   unknown.topics = [`0x${"ab".repeat(32)}`, ...unknown.topics.slice(1)];
