@@ -7,6 +7,7 @@
  * @property {string} project
  * @property {string} version
  * @property {string} name
+ * @property {string} address
  * @property {import("ethers").Interface} iface The Interface of its ABI.
  * @property {Map<string, import("ethers").EventFragment>} events By topic0.
  */
@@ -29,12 +30,18 @@ export function eventsByTopic0(iface) {
 /**
  * A log of the snapshot from a log as the RPC returned it, with the event and
  * its args decoded as the sync decodes them (ethers' EventLog). Throws at a
- * log that cannot be decoded.
+ * removed log, a log of another address, and a log that cannot be decoded.
  * @param {DecodingContract} contract
- * @param {{ blockNumber: string, transactionHash: string, transactionIndex: string, logIndex: string, data: string, topics: string[] }} raw
+ * @param {{ blockNumber: string, transactionHash: string, transactionIndex: string, logIndex: string, address: string, data: string, topics: string[], removed?: boolean }} raw
  * @param {string} blockTimestamp
  */
 export function toSnapshotLog(contract, raw, blockTimestamp) {
+  const at = `at block ${Number(raw.blockNumber)}, log index ${Number(raw.logIndex)}`;
+  const key = `${contract.project}/${contract.version}/${contract.name}`;
+  if (raw.removed) throw new Error(`${key}: a removed log ${at}.`);
+  if (raw.address.toLowerCase() !== contract.address.toLowerCase()) {
+    throw new Error(`${key}: a log of another address ${raw.address} ${at}.`);
+  }
   const fragment = contract.events.get(raw.topics[0]?.toLowerCase());
   let args;
   try {
@@ -44,7 +51,7 @@ export function toSnapshotLog(contract, raw, blockTimestamp) {
     );
   } catch (error) {
     throw new Error(
-      `${contract.project}/${contract.version}/${contract.name}: cannot decode the log of ${fragment?.name ?? `topic0 ${raw.topics[0]}`} at block ${Number(raw.blockNumber)}, log index ${Number(raw.logIndex)}: ${error instanceof Error ? error.message : error}`,
+      `${key}: cannot decode the log of ${fragment?.name ?? `topic0 ${raw.topics[0]}`} ${at}: ${error instanceof Error ? error.message : error}`,
       { cause: error },
     );
   }

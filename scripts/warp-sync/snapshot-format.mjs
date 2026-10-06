@@ -8,7 +8,8 @@ import zlib from "node:zlib";
 export const FORMAT_VERSION = 3;
 // The most logs in one file, unless one block has more. The app imports one
 // file at a time, so a file stays small enough to read and save at once.
-export const CHUNK_LOGS = 20_000;
+// Smaller only to check the scripts with few logs.
+export const CHUNK_LOGS = Number(process.env.WARP_SYNC_CHUNK_LOGS ?? 20_000);
 
 export const keyOf = (contract) =>
   `${contract.project}/${contract.version}/${contract.name}`;

@@ -20,15 +20,16 @@ const { fakeEventLog } = await import("./fake-logs.mjs");
 const chain = loadChain("matic");
 const TO = 15_600_000;
 const toHex = (value) => `0x${value.toString(16)}`;
-const MAX_RESULTS = 200;
-// Logs: 2 in every block that is a multiple of 1,000, and a dense part (2 in
-// every 10th block) where a range of 5,000 blocks has 1,000 logs.
-const DENSE = [15_400_000, 15_410_000];
+const MAX_RESULTS = 40;
+// Logs: 2 in every block that is a multiple of 10,000, and a dense part (2 in
+// every 40th block) of 102 logs in 2,000 blocks. Few logs, since decoding them
+// is slow with the coverage of CI.
+const DENSE = [15_400_000, 15_402_000];
 function blocksWithLogs(from, to) {
   const blocks = [];
-  for (let block = Math.ceil(from / 10) * 10; block <= to; block += 10) {
+  for (let block = Math.ceil(from / 40) * 40; block <= to; block += 40) {
     const dense = block >= DENSE[0] && block <= DENSE[1];
-    if (dense || block % 1000 === 0) blocks.push(block);
+    if (dense || block % 10_000 === 0) blocks.push(block);
   }
   return blocks;
 }

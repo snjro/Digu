@@ -3,9 +3,13 @@ import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
 import { afterEach, beforeEach, expect, test } from "vitest";
-import { loadChain } from "./build-snapshot.mjs";
-import { convertSnapshot } from "./convert-snapshot.mjs";
-import { sha256 } from "./snapshot-format.mjs";
+
+// A file of more logs than CHUNK_LOGS without decoding 20,000 logs, which is
+// slow with the coverage of CI. Read when the scripts are imported.
+process.env.WARP_SYNC_CHUNK_LOGS = "10";
+const { loadChain } = await import("./build-snapshot.mjs");
+const { convertSnapshot } = await import("./convert-snapshot.mjs");
+const { CHUNK_LOGS, sha256 } = await import("./snapshot-format.mjs");
 
 const chain = loadChain("matic");
 const feePot = chain.contracts.find((c) => c.name === "FeePot");
@@ -114,78 +118,72 @@ const snapshotFiles = () =>
       .map((file) => [file, sha256(fs.readFileSync(path.join(dir, file)))]),
   );
 
-// 30 seconds, like build-snapshot.test.mjs (#618).
-test(
-  "replaces each file with a file of formatVersion 3 with the same name and logs",
-  { timeout: 30_000 },
-  async () => {
-    // More logs than CHUNK_LOGS: the file stays one file.
-    const raws = Array.from({ length: 20_005 }, (_, i) =>
-      rawLog(20_000_000 + Math.floor(i / 2), i % 2, BigInt(i) * 10n ** 18n),
-    );
-    const old = writeV2([
-      {
-        contract: feePot,
-        fromBlock: feePot.creationBlock,
-        toBlock: 25_000_000,
-        logs: raws,
-      },
-      {
-        contract: ammFactory,
-        fromBlock: ammFactory.creationBlock,
-        toBlock: 25_000_000,
-        logs: [],
-      },
-      {
-        contract: feePot,
-        fromBlock: 25_000_001,
-        toBlock: 30_000_000,
-        logs: [rawLog(26_000_000, 0, 7n)],
-      },
-    ]);
-
-    await convertSnapshot({ dir, log: () => {} });
-
-    const manifest = JSON.parse(
-      fs.readFileSync(path.join(dir, "manifest.json"), "utf8"),
-    );
-    expect(manifest.formatVersion).toBe(3);
-    expect(manifest.contracts).toEqual(old.contracts);
-    expect(manifest.runs).toEqual(old.runs);
-    expect(manifest.totals.logCount).toBe(20_006);
-    // Only the size and the hashes of the files change.
-    const keep = (chunk) => ({
-      ...chunk,
-      bytes: undefined,
-      rawBytes: undefined,
-      sha256: undefined,
-      rawSha256: undefined,
-    });
-    expect(manifest.chunks.map(keep)).toEqual(old.chunks.map(keep));
-    for (const chunk of manifest.chunks.filter((c) => c.file !== null)) {
-      const gzip = fs.readFileSync(path.join(dir, chunk.file));
-      expect(chunk.bytes).toBe(gzip.length);
-      expect(chunk.sha256).toBe(sha256(gzip));
-      expect(chunk.rawSha256).toBe(sha256(zlib.gunzipSync(gzip)));
-    }
-    const [first, , last] = manifest.chunks;
-    expect(read(first.file)).toEqual({
-      formatVersion: 3,
-      chainId: 137,
-      ...keyOf(feePot),
-      address: feePot.address,
+test("replaces each file with a file of formatVersion 3 with the same name and logs", async () => {
+  // More logs than CHUNK_LOGS: the file stays one file.
+  expect(CHUNK_LOGS).toBe(10);
+  const raws = Array.from({ length: CHUNK_LOGS + 5 }, (_, i) =>
+    rawLog(20_000_000 + Math.floor(i / 2), i % 2, BigInt(i) * 10n ** 18n),
+  );
+  const old = writeV2([
+    {
+      contract: feePot,
       fromBlock: feePot.creationBlock,
       toBlock: 25_000_000,
-      logs: raws.map((raw, i) => v3Log(raw, BigInt(i) * 10n ** 18n)),
-    });
-    expect(read(last.file).logs).toEqual([
-      v3Log(rawLog(26_000_000, 0, 7n), 7n),
-    ]);
-    expect(fs.readdirSync(dir).sort()).toEqual(
-      [first.file, last.file, "manifest.json"].sort(),
-    );
-  },
-);
+      logs: raws,
+    },
+    {
+      contract: ammFactory,
+      fromBlock: ammFactory.creationBlock,
+      toBlock: 25_000_000,
+      logs: [],
+    },
+    {
+      contract: feePot,
+      fromBlock: 25_000_001,
+      toBlock: 30_000_000,
+      logs: [rawLog(26_000_000, 0, 7n)],
+    },
+  ]);
+
+  await convertSnapshot({ dir, log: () => {} });
+
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(dir, "manifest.json"), "utf8"),
+  );
+  expect(manifest.formatVersion).toBe(3);
+  expect(manifest.contracts).toEqual(old.contracts);
+  expect(manifest.runs).toEqual(old.runs);
+  expect(manifest.totals.logCount).toBe(CHUNK_LOGS + 6);
+  // Only the size and the hashes of the files change.
+  const keep = (chunk) => ({
+    ...chunk,
+    bytes: undefined,
+    rawBytes: undefined,
+    sha256: undefined,
+    rawSha256: undefined,
+  });
+  expect(manifest.chunks.map(keep)).toEqual(old.chunks.map(keep));
+  for (const chunk of manifest.chunks.filter((c) => c.file !== null)) {
+    const gzip = fs.readFileSync(path.join(dir, chunk.file));
+    expect(chunk.bytes).toBe(gzip.length);
+    expect(chunk.sha256).toBe(sha256(gzip));
+    expect(chunk.rawSha256).toBe(sha256(zlib.gunzipSync(gzip)));
+  }
+  const [first, , last] = manifest.chunks;
+  expect(read(first.file)).toEqual({
+    formatVersion: 3,
+    chainId: 137,
+    ...keyOf(feePot),
+    address: feePot.address,
+    fromBlock: feePot.creationBlock,
+    toBlock: 25_000_000,
+    logs: raws.map((raw, i) => v3Log(raw, BigInt(i) * 10n ** 18n)),
+  });
+  expect(read(last.file).logs).toEqual([v3Log(rawLog(26_000_000, 0, 7n), 7n)]);
+  expect(fs.readdirSync(dir).sort()).toEqual(
+    [first.file, last.file, "manifest.json"].sort(),
+  );
+});
 
 test("stops at a log that cannot be decoded, and leaves the files as they were", async () => {
   const broken = { ...rawLog(26_000_000, 1, 1n), data: "0x" };
@@ -222,11 +220,25 @@ test("stops at a log of another address, and leaves the files as they were", asy
   ]);
   const before = snapshotFiles();
   await expect(convertSnapshot({ dir, log: () => {} })).rejects.toThrow(
-    `Augur-turbo-FeePot-30000000.json.gz: a log of another address: 0x${"9".repeat(40)}`,
+    `Augur/turbo/FeePot: a log of another address 0x${"9".repeat(40)} at block 26000000, log index 1.`,
   );
   const after = snapshotFiles();
   delete after[".convert"];
   expect(after).toEqual(before);
+});
+
+test("stops at a removed log", async () => {
+  writeV2([
+    {
+      contract: feePot,
+      fromBlock: feePot.creationBlock,
+      toBlock: 30_000_000,
+      logs: [{ ...rawLog(26_000_000, 0, 1n), removed: true }],
+    },
+  ]);
+  await expect(convertSnapshot({ dir, log: () => {} })).rejects.toThrow(
+    "Augur/turbo/FeePot: a removed log at block 26000000, log index 0.",
+  );
 });
 
 test("stops at a file of another address", async () => {

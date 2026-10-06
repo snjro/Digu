@@ -472,10 +472,6 @@ const sortLogs = (logs) =>
 export async function* toSnapshotLogs(rpc, contract, rawLogs) {
   let timestamp = undefined; // [blockNumber, blockTimestamp] of the last block asked
   for await (const raw of rawLogs) {
-    if (raw.removed) throw new Error(`A removed log: ${JSON.stringify(raw)}`);
-    if (raw.address.toLowerCase() !== contract.address.toLowerCase()) {
-      throw new Error(`A log of another address: ${raw.address}`);
-    }
     let blockTimestamp = raw.blockTimestamp;
     if (!blockTimestamp) {
       if (timestamp?.[0] !== raw.blockNumber) {
@@ -724,9 +720,9 @@ async function build(chain, rpc, outDir, toBlock, options) {
     await fetchLogs(rpc, contract, nextBlock, partTo, {
       log,
       onRange: (_from, to, logs) => {
-        // Stops at once at a log that cannot be decoded. .partial/ keeps the
-        // logs as the RPC returned them; they are decoded again when the
-        // files are written.
+        // Stops at once at a log that toSnapshotLog does not take. .partial/
+        // keeps the logs as the RPC returned them; they are checked and
+        // decoded again when the files are written.
         for (const raw of logs)
           toSnapshotLog(contract, raw, raw.blockTimestamp);
         fs.appendFileSync(

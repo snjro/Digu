@@ -53,6 +53,7 @@ export function makeWarpSyncLog(
       project: "",
       version: "",
       name: contract.name,
+      address: contract.address,
       iface: contract.contractInterface,
       events: eventsByTopic0(contract.contractInterface),
     },

@@ -147,18 +147,19 @@ name, range and logs in its place. `manifest.json` keeps its contracts, runs
 and ranges; only `formatVersion` and the `bytes`, `rawBytes`, `sha256` and
 `rawSha256` of the files change. It writes the new files in `<chain>/.convert/`
 and moves them over the old ones only after every file is converted. It
-stops at a log that cannot be decoded, at a file or a log of another address
-than the contract in `src/constants/chains`, and when a contract of a file is
-not there. If it stops, `git checkout -- static/warp-sync/<chain>`
+checks each log as this script does (below), and stops at a file of another
+address than the contract in `src/constants/chains`, and when a contract of a
+file is not there. If it stops, `git checkout -- static/warp-sync/<chain>`
 gives back the files, and `<chain>/.convert/` can be deleted.
 
 It fetches like the sync: one `eth_getLogs` per range with the address and
 the topic 0 of the events that are not anonymous. It decodes each log with
 the ABI of its contract in `src/constants/chains`, as the sync decodes it
 (ethers' `EventLog`), when its range is fetched, before it is added to
-`.partial/`. A log that cannot be decoded stops the run at once, with the
-contract, the event (or the topic 0) and the block of the log: the ABI does
-not fit the log. The snapshot has only the args decoded with the ABI of the
+`.partial/`, and checks that it is not removed and is of the address of the
+contract. A log that fails stops the run at once, with the contract and the
+block of the log. A log that cannot be decoded also shows the event (or the
+topic 0): the ABI does not fit the log. The snapshot has only the args decoded with the ABI of the
 time it was made, so after a fix to the ABI of a contract that has events,
 fetch that contract's snapshot again from an RPC.
 

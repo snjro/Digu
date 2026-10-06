@@ -25,11 +25,14 @@ import { fakeEventLog } from "./fake-logs.mjs";
 const chain = loadChain("matic");
 const LATEST = 16_200_000;
 const toHex = (value) => `0x${value.toString(16)}`;
-// Two logs in every block that is a multiple of 1,000.
-const STEP = 1000;
+// Two logs in every block that is a multiple of 20,000. Few logs, since
+// decoding them is slow with the coverage of CI.
+const STEP = 20_000;
 let withoutTimestamp = false;
-// A block whose logs cannot be decoded.
-let brokenBlock = undefined;
+// The logs of a block that cannot be decoded: { block, topic0 } gives them a
+// topic0 of no event of the ABI; { block, name, data } gives the logs of the
+// contract of that name a data that does not fit its event.
+let broken = undefined;
 const requests = [];
 
 function logsOf(address, from, to) {
@@ -52,9 +55,12 @@ function logsOf(address, from, to) {
         transactionIndex: "0x0",
         logIndex: toHex(index),
         address: address.toLowerCase(),
-        data,
-        // A topic0 of no event of the ABI.
-        topics: block === brokenBlock ? [`0x${"ab".repeat(32)}`] : topics,
+        data:
+          block === broken?.block && contract.name === broken.name
+            ? broken.data
+            : data,
+        topics:
+          block === broken?.block && broken.topic0 ? [broken.topic0] : topics,
         removed: false,
       });
     }
@@ -94,7 +100,7 @@ let outDir;
 beforeEach(() => {
   outDir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-build-"));
   withoutTimestamp = false;
-  brokenBlock = undefined;
+  broken = undefined;
   requests.length = 0;
 });
 afterEach(() => fs.rmSync(outDir, { recursive: true, force: true }));
@@ -175,7 +181,7 @@ function expectedLogs(to) {
 // longer than the 5 seconds of Vitest (#618).
 describe("buildSnapshot", { timeout: 30_000 }, () => {
   test("writes the files of formatVersion 3 and the manifest", async () => {
-    await build({ toBlock: 16_000_000, chunkLogs: 500 });
+    await build({ toBlock: 16_000_000, chunkLogs: 50 });
     const manifest = readManifest();
     expect(manifest).toMatchObject({
       formatVersion: 3,
@@ -197,7 +203,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       expect(rows.at(-1).toBlock).toBe(16_000_000);
       for (let i = 1; i < rows.length; i++)
         expect(rows[i].fromBlock).toBe(rows[i - 1].toBlock + 1);
-      for (const row of rows) expect(row.logCount).toBeLessThanOrEqual(500);
+      for (const row of rows) expect(row.logCount).toBeLessThanOrEqual(50);
     }
     const files = manifest.chunks
       .filter((row) => row.file)
@@ -215,12 +221,12 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
   });
 
   test("goes on after a stop, with the same files", async () => {
-    await build({ toBlock: 16_000_000, chunkLogs: 500 });
+    await build({ toBlock: 16_000_000, chunkLogs: 50 });
     const straight = readManifest().chunks;
     fs.rmSync(dir(), { recursive: true });
 
     await expect(
-      build({ toBlock: 16_000_000, chunkLogs: 500, maxRequests: 12 }),
+      build({ toBlock: 16_000_000, chunkLogs: 50, maxRequests: 12 }),
     ).rejects.toThrow(RequestLimitError);
     const partial = path.join(dir(), ".partial");
     const jsonl = fs
@@ -229,7 +235,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(jsonl.length).toBeGreaterThan(0);
     // A line half written when it stopped, and a log after the next block.
     fs.appendFileSync(path.join(partial, jsonl[0]), '{"blockNumber":"0xf4');
-    await build({ chunkLogs: 500 });
+    await build({ chunkLogs: 50 });
     expect(readManifest().chunks).toEqual(straight);
     expect(fs.existsSync(partial)).toBe(false);
   });
@@ -258,24 +264,42 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(requests).toContain("eth_getBlockByNumber");
   });
 
-  test("stops at a log that cannot be decoded when its range is fetched", async () => {
-    brokenBlock = 15_000_000;
-    await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
-      /: cannot decode the log of topic0 0x(ab){32} at block 15000000, log index 0: /,
-    );
-    expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
-    // The ranges fetched before are kept, but not the range of the log.
+  // The blocks of the logs kept in .partial/ (of the contracts whose name
+  // starts with name).
+  const partialBlocks = (name = "") => {
     const partial = path.join(dir(), ".partial");
-    const lines = fs
+    return fs
       .readdirSync(partial)
-      .filter((file) => file.endsWith(".jsonl"))
+      .filter(
+        (file) =>
+          file.endsWith(".jsonl") && file.startsWith(`Augur__turbo__${name}`),
+      )
       .flatMap((file) =>
         fs.readFileSync(path.join(partial, file), "utf8").split("\n"),
       )
       .filter(Boolean)
       .map((line) => Number(JSON.parse(line).blockNumber));
-    expect(lines.length).toBeGreaterThan(0);
-    expect(lines).not.toContain(15_000_000);
+  };
+
+  test("stops at a log of an unknown topic0 when its range is fetched", async () => {
+    broken = { block: 15_000_000, topic0: `0x${"ab".repeat(32)}` };
+    await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
+      /: cannot decode the log of topic0 0x(ab){32} at block 15000000, log index 0: /,
+    );
+    expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
+    // The range of the log is not added to .partial/.
+    expect(partialBlocks()).not.toContain(15_000_000);
+  });
+
+  test("stops at a log whose data does not fit its event when its range is fetched", async () => {
+    // Approval(address indexed, address indexed, uint256): the uint256 is
+    // in the data.
+    broken = { block: 15_000_000, name: "FeePot", data: "0x" };
+    await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
+      "Augur/turbo/FeePot: cannot decode the log of Approval at block 15000000, log index 0: ",
+    );
+    expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
+    expect(partialBlocks("FeePot__")).not.toContain(15_000_000);
   });
 
   test("stops at a .partial/ of the script before formatVersion 2", async () => {
