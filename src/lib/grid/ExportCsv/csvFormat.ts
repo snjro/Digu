@@ -33,9 +33,12 @@ export type CsvResult = {
 };
 export type CsvMaker = (request: CsvRequest) => Promise<CsvResult>;
 
+function quote(text: string): string {
+  return '"' + text.replace(/"/g, '""') + '"';
+}
 // ag-grid puts every value in quotes unless suppressQuotes is set.
 export function putInQuotes(text: string, suppressQuotes: boolean): string {
-  return suppressQuotes ? text : '"' + text.replace(/"/g, '""') + '"';
+  return suppressQuotes ? text : quote(text);
 }
 // Without the quotes of ag-grid, a value that breaks the row still needs them.
 export function quoteIfItBreaksTheRow(
@@ -43,7 +46,7 @@ export function quoteIfItBreaksTheRow(
   columnSeparator: CsvColumnSeparator,
 ): string {
   return text.includes(columnSeparator) || /["\r\n]/.test(text)
-    ? '"' + text.replace(/"/g, '""') + '"'
+    ? quote(text)
     : text;
 }
 

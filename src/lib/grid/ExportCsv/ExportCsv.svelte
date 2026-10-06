@@ -199,12 +199,26 @@
     Object.keys(exportCsvRadioProps ?? {}) as (keyof ExportCsvRadioProps)[],
   );
 
-  // The rows of the selected one of All and Filtered & Sorted.
+  // The dialog is opened and closed outside, by showModal() and close().
+  let isDialogOpen: boolean = $state(false);
+  $effect(() => {
+    const element: HTMLDialogElement | undefined = dialogElement;
+    if (!element) return;
+    isDialogOpen = element.open;
+    const observer: MutationObserver = new MutationObserver(() => {
+      isDialogOpen = element.open;
+    });
+    observer.observe(element, { attributes: true, attributeFilter: ["open"] });
+    return () => observer.disconnect();
+  });
+
+  // The rows of the selected one of All and Filtered & Sorted, counted only
+  // while the dialog is open: the count walks all the rows.
   let rowCount: number | undefined = $state();
   $effect(() => {
     const filteredSorted: CsvSelectedValues["filteredSorted"]["selectedValue"] =
       selectedValues.filteredSorted.selectedValue;
-    if (!gridApi) {
+    if (!gridApi || !isDialogOpen) {
       rowCount = undefined;
       return;
     }
@@ -268,9 +282,10 @@
       return;
     }
     isMaking = true;
+    let result: Promise<CsvResult> | undefined;
     try {
       // The clipboard is asked in the click, before the worker ends.
-      const result: Promise<CsvResult> = makeCsv(
+      result = makeCsv(
         getCsvRequest(gridApi, selectedValues, CSV_COPY_MAX_ROWS),
       );
       // It fails when the worker fails.
@@ -282,6 +297,8 @@
           ? copiedSnackbar(snackbar, await result)
           : snackbar;
     } finally {
+      // Until the worker ends, also when the copy has failed first.
+      await result?.catch(() => undefined);
       isMaking = false;
     }
   }

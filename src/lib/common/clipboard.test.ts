@@ -77,6 +77,36 @@ describe("copyBlobToClipboard", () => {
     expect(await copied).toBe(showSnackBarAsCopied);
   });
 
+  test("should wait for the text without ClipboardItem", async () => {
+    const write = vi.fn();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { clipboard: { write, writeText } });
+    vi.stubGlobal("ClipboardItem", undefined);
+
+    expect(await copyBlobToClipboard(Promise.resolve(new Blob(["abc"])))).toBe(
+      showSnackBarAsCopied,
+    );
+    expect(writeText).toHaveBeenCalledWith("abc");
+    expect(write).not.toHaveBeenCalled();
+  });
+
+  test("should handle a text that fails after the copy has failed", async () => {
+    vi.stubGlobal("navigator", {
+      clipboard: { write: vi.fn().mockRejectedValue(new Error("denied")) },
+    });
+    vi.stubGlobal("ClipboardItem", FakeClipboardItem);
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    let fail: (error: Error) => void = () => {};
+    const blob = new Promise<Blob>((_, reject) => {
+      fail = reject;
+    });
+
+    expect(await copyBlobToClipboard(blob)).toBe(showSnackBarAsCopyFailed);
+    // Vitest reports an unhandled rejection as an error of the run.
+    fail(new Error("worker failed"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
   test("should return the failed snackbar when the text cannot be made", async () => {
     vi.stubGlobal("navigator", {
       clipboard: {

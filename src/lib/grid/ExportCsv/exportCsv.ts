@@ -44,19 +44,6 @@ export function downloadCsvFile(
     fileName,
   );
 }
-export function getCsvText(
-  gridApi: GridApi,
-  selectedValues: CsvSelectedValues,
-): string {
-  return exportCsvFile(
-    gridApi,
-    selectedValues.skipRowNumber.selectedValue,
-    selectedValues.columnSeparator.selectedValue,
-    selectedValues.suppressDoubleQuotes.selectedValue,
-    selectedValues.filteredSorted.selectedValue,
-    selectedValues.skipColumnHeaders.selectedValue,
-  ) as string;
-}
 
 // The copy takes only the first rows (#644).
 export const CSV_COPY_MAX_ROWS: number = 5_000;
@@ -87,7 +74,7 @@ export type CsvTextUpTo = {
 export function getCsvTextUpTo(
   gridApi: GridApi,
   selectedValues: CsvSelectedValues,
-  maxRows: number,
+  maxRows: number = Infinity,
 ): CsvTextUpTo {
   let totalRowCount: number = 0;
   const text: string | undefined = gridApi.getDataAsCsv({

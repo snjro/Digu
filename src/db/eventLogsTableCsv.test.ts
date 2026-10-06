@@ -9,7 +9,7 @@ import {
 import { getColumnDefs } from "#lib/grid/GridBody/getColumnDefs.js";
 import {
   getCsvRequest,
-  getCsvText,
+  getCsvTextUpTo,
   type CsvColumnSeparator,
   type CsvSelectedValues,
 } from "#lib/grid/ExportCsv/exportCsv.js";
@@ -147,7 +147,7 @@ describe("eventLogsCsv and ag-grid", () => {
       api.setColumnGroupOpened("time", false);
       const selectedValues = selectedValuesOf(...options);
 
-      const expected: string = getCsvText(api, selectedValues);
+      const expected: string = getCsvTextUpTo(api, selectedValues).text;
       expect(await workerCsvText(getCsvRequest(api, selectedValues))).toBe(
         expected,
       );
@@ -184,7 +184,7 @@ describe("eventLogsCsv and ag-grid", () => {
       request,
     );
     const text: string = await blob.text();
-    expect(text).toBe(getCsvText(api, selectedValues));
+    expect(text).toBe(getCsvTextUpTo(api, selectedValues).text);
     expect([rowCount, totalRowCount]).toEqual([
       manyRows.length,
       manyRows.length,

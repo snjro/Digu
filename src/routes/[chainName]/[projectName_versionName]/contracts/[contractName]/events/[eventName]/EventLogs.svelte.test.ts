@@ -239,6 +239,32 @@ describe("EventLogs.svelte", () => {
     );
   });
 
+  test("leaves the CSV to the grid while the rows load or are imported", async () => {
+    let resolveLoad: (rows: ConvertedEventLog[]) => void = () => {};
+    load.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveLoad = resolve;
+      }),
+    );
+    load.mockResolvedValue([]);
+    renderGrid();
+    await tick();
+    expect(shown().rows).toBeUndefined();
+    expect(gridProps?.csvOfAllRows).toBeUndefined();
+
+    resolveLoad([]);
+    await waitFor(() => expect(shown().rows).toBe(0));
+    expect(gridProps?.csvOfAllRows).toBeTypeOf("function");
+
+    setWarpSync("importing");
+    await waitFor(() => expect(shown().rows).toBeUndefined());
+    expect(gridProps?.csvOfAllRows).toBeUndefined();
+
+    setWarpSync("imported");
+    await waitFor(() => expect(shown().rows).toBe(0));
+    expect(gridProps?.csvOfAllRows).toBeTypeOf("function");
+  });
+
   test("does not reload when only other values change", async () => {
     load.mockResolvedValue([]);
     renderGrid();

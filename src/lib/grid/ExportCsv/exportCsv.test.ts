@@ -17,7 +17,6 @@ import {
   exportCsvFile,
   getCsvRequest,
   getCsvRowCount,
-  getCsvText,
   getCsvTextUpTo,
   type CsvColumnSeparator,
   type CsvFilteredSorted,
@@ -171,14 +170,14 @@ describe("downloadCsvFile", () => {
   });
 });
 
-describe("getCsvText", () => {
+describe("getCsvTextUpTo", () => {
   test("passes the selected values and returns the CSV text", () => {
     const gridApi = createGridApi(COL_IDS);
-    const result: string = getCsvText(gridApi, {
+    const result: string = getCsvTextUpTo(gridApi, {
       ...SELECTED_VALUES,
       skipRowNumber: { selectedValue: false },
       skipColumnHeaders: { selectedValue: true },
-    });
+    }).text;
     expect(result).toBe("csv text");
     expect(gridApi.exportDataAsCsv).not.toHaveBeenCalled();
     expect(gridApi.getDataAsCsv).toHaveBeenCalledWith({
@@ -190,6 +189,7 @@ describe("getCsvText", () => {
       skipColumnGroupHeaders: true,
       fileName: undefined,
       processCellCallback: expect.any(Function),
+      shouldRowBeSkipped: expect.any(Function),
     });
   });
 });
@@ -324,7 +324,7 @@ describe("with ag-grid", () => {
     const gridApi = createRealGrid();
     gridApi.applyColumnState({ state: [{ colId: "name", sort: "desc" }] });
     gridApi.setGridOption("quickFilterText", "a");
-    expect(getCsvText(gridApi, selectedValues("all"))).toBe(
+    expect(getCsvTextUpTo(gridApi, selectedValues("all")).text).toBe(
       ['"1","b","1234","x,y"', '"2","a","5",""', `"3","'=c","67890","z"`].join(
         "\r\n",
       ),
@@ -335,19 +335,19 @@ describe("with ag-grid", () => {
     const gridApi = createRealGrid();
     gridApi.applyColumnState({ state: [{ colId: "name", sort: "desc" }] });
     gridApi.setGridOption("quickFilterText", "b");
-    expect(getCsvText(gridApi, selectedValues("filteredAndSorted"))).toBe(
-      '"1","b","1234","x,y"',
-    );
+    expect(
+      getCsvTextUpTo(gridApi, selectedValues("filteredAndSorted")).text,
+    ).toBe('"1","b","1234","x,y"');
     gridApi.destroy();
   });
   test("moved and hidden columns: only Filtered & Sorted follows the screen", () => {
     const gridApi = createRealGrid();
     gridApi.moveColumns(["tags"], 1);
     gridApi.setColumnsVisible(["amount"], false);
-    expect(getCsvText(gridApi, selectedValues("filteredAndSorted"))).toBe(
-      ['"1","x,y","b"', '"2","","a"', `"3","z","'=c"`].join("\r\n"),
-    );
-    expect(getCsvText(gridApi, selectedValues("all"))).toBe(
+    expect(
+      getCsvTextUpTo(gridApi, selectedValues("filteredAndSorted")).text,
+    ).toBe(['"1","x,y","b"', '"2","","a"', `"3","z","'=c"`].join("\r\n"));
+    expect(getCsvTextUpTo(gridApi, selectedValues("all")).text).toBe(
       ['"1","b","1234","x,y"', '"2","a","5",""', `"3","'=c","67890","z"`].join(
         "\r\n",
       ),

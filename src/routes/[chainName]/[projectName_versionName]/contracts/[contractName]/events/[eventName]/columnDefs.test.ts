@@ -12,7 +12,7 @@ import {
 } from "ag-grid-community";
 import type { ColumnDef } from "#lib/grid/types.js";
 import { getColumnDefs } from "#lib/grid/GridBody/getColumnDefs.js";
-import { getCsvText } from "#lib/grid/ExportCsv/exportCsv.js";
+import { getCsvTextUpTo } from "#lib/grid/ExportCsv/exportCsv.js";
 import type { ConvertedEventLog } from "#db/dbTypes.js";
 import { columnDefs } from "./columnDefs";
 
@@ -168,13 +168,13 @@ describe("the datetime column in ag-grid", () => {
   test("exports the datetime to CSV in ISO 8601", () => {
     const gridApi = createRealGrid();
     expect(
-      getCsvText(gridApi, {
+      getCsvTextUpTo(gridApi, {
         skipRowNumber: { selectedValue: true },
         columnSeparator: { selectedValue: "," },
         suppressDoubleQuotes: { selectedValue: false },
         skipColumnHeaders: { selectedValue: false },
         filteredSorted: { selectedValue: "all" },
-      }),
+      }).text,
     ).toBe(
       [
         '"","time"',
@@ -290,13 +290,13 @@ describe("the args columns in ag-grid", () => {
   test("exports each value as text, and nothing for a missing one", () => {
     const gridApi = createRealGrid();
     expect(
-      getCsvText(gridApi, {
+      getCsvTextUpTo(gridApi, {
         skipRowNumber: { selectedValue: true },
         columnSeparator: { selectedValue: "," },
         suppressDoubleQuotes: { selectedValue: false },
         skipColumnHeaders: { selectedValue: true },
         filteredSorted: { selectedValue: "all" },
-      }),
+      }).text,
     ).toBe(
       ['"0xa1","true","abc","1234","5"', '"0xb1","false","","6",""'].join(
         "\r\n",

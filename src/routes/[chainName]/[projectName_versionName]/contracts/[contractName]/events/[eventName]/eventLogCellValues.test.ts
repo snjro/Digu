@@ -11,7 +11,7 @@ import {
 } from "ag-grid-community";
 import { getColumnDefs } from "#lib/grid/GridBody/getColumnDefs.js";
 import {
-  getCsvText,
+  getCsvTextUpTo,
   type CsvSelectedValues,
 } from "#lib/grid/ExportCsv/exportCsv.js";
 import type { ConvertedEventLog } from "#db/dbTypes.js";
@@ -431,7 +431,7 @@ describe("eventLogCellValues and ag-grid", () => {
   }
   test("exports the CSV text of the values in quotes", () => {
     const gridApi = createRealGrid();
-    expect(getCsvText(gridApi, csvSelectedValues(false, "all"))).toBe(
+    expect(getCsvTextUpTo(gridApi, csvSelectedValues(false, "all")).text).toBe(
       csv(allRows(), (text) => '"' + text.replace(/"/g, '""') + '"'),
     );
   });
@@ -440,7 +440,8 @@ describe("eventLogCellValues and ag-grid", () => {
     const gridApi = createRealGrid();
     gridApi.applyColumnState({ state: [{ colId: "args.2.0", sort: "desc" }] });
     expect(
-      getCsvText(gridApi, csvSelectedValues(true, "filteredAndSorted")),
+      getCsvTextUpTo(gridApi, csvSelectedValues(true, "filteredAndSorted"))
+        .text,
     ).toBe(
       csv(sorted(valuesOf("args.2.0"), "desc"), (text) =>
         /[,"\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text,
