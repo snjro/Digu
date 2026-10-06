@@ -3,12 +3,13 @@
 import { numberWithCommas } from "#utils/utilsCommon.js";
 import type { WarpSyncState } from "./warpSyncState";
 
-// Measured with the DB worker on a desktop computer (2,641,099 logs of
-// formatVersion 3 in 61-71 s, #686).
-const IMPORTED_LOGS_PER_SECOND = 37_000;
-// Stored in IndexedDB for each log: measured with headless Chrome on a
-// desktop computer (#686).
-const STORED_BYTES_PER_LOG = 442;
+// Measured in Chrome 154 on Windows, on a desktop computer with 20 cores, from
+// the public site (2,641,924 logs in 159 s with the download, #695), and
+// rounded down.
+const IMPORTED_LOGS_PER_SECOND = 16_000;
+// Stored in IndexedDB for each log: navigator.storage.estimate() before and
+// after the same import (#695).
+const STORED_BYTES_PER_LOG = 223;
 
 export function formatBytes(bytes: number): string {
   if (bytes < 1_000_000) return `${Math.max(1, Math.round(bytes / 1_000))} KB`;

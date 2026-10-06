@@ -208,7 +208,7 @@ export function anySignal(
   return controller.signal;
 }
 // A file has at most 20,000 logs (up to about 2 MB as gzip); the worker
-// imports about 37,000 logs a second on a desktop computer.
+// imports about 16,000 logs a second on a desktop computer.
 export const FILE_TIMEOUT_MS = 120_000;
 
 // Without an RPC, the latest block is 0 and the progress stays at 0%. The end
