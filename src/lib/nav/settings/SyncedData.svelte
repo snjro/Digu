@@ -59,7 +59,7 @@
     getResetDisabledReason({
       syncStateText: $storeSyncStatus[targetChainName].syncStateText,
       isSyncingInOtherTab: $storeSyncLockedByOtherTab[targetChainName],
-      isImporting: isWarpSyncRunning(
+      isWarpSyncRunning: isWarpSyncRunning(
         selectWarpSyncState($storeWarpSync, targetChainName),
       ),
       isResetting,

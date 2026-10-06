@@ -5,7 +5,11 @@ import GridBody from "./GridBody.svelte";
 
 const gridApi = vi.hoisted(() => {
   // ag-grid ignores hideOverlay and showNoRowsOverlay while loading is true.
-  const state = { loading: false, overlayCallsWhileLoading: 0 };
+  const state = {
+    loading: false,
+    overlayCallsWhileLoading: 0,
+    loadingOverlayComponentParams: undefined as unknown,
+  };
   const onOverlayCall = () => {
     if (state.loading) state.overlayCallsWhileLoading++;
   };
@@ -13,9 +17,15 @@ const gridApi = vi.hoisted(() => {
     state,
     setGridOption: vi.fn((key: string, value: unknown) => {
       if (key === "loading") state.loading = value as boolean;
+      if (key === "loadingOverlayComponentParams")
+        state.loadingOverlayComponentParams = value;
     }),
     getGridOption: vi.fn((key: string) =>
-      key === "loading" ? state.loading : undefined,
+      key === "loading"
+        ? state.loading
+        : key === "loadingOverlayComponentParams"
+          ? state.loadingOverlayComponentParams
+          : undefined,
     ),
     hideOverlay: vi.fn(onOverlayCall),
     showNoRowsOverlay: vi.fn(onOverlayCall),
@@ -37,6 +47,7 @@ afterEach(() => {
   vi.clearAllMocks();
   gridApi.state.loading = false;
   gridApi.state.overlayCallsWhileLoading = 0;
+  gridApi.state.loadingOverlayComponentParams = undefined;
   expect(overlayCallsWhileLoading).toBe(0);
 });
 
@@ -91,14 +102,20 @@ describe("GridBody.svelte", () => {
     expect(gridApi.showNoRowsOverlay).not.toHaveBeenCalled();
   });
 
-  test("passes the loading text to the overlay, and again when it changes", async () => {
-    const lastParams = () =>
+  test("passes the loading text to the overlay only when it changes", async () => {
+    const paramsCalls = () =>
       gridApi.setGridOption.mock.calls
         .filter((call) => call[0] === "loadingOverlayComponentParams")
-        .at(-1)?.[1];
+        .map((call) => call[1]);
+    // Without it, the overlay is not mounted again.
     const { rerender } = renderGridBody(undefined);
-    expect(lastParams()).toEqual({ loadingText: undefined });
+    expect(paramsCalls()).toEqual([]);
     await rerender({ loadingText: "Waiting" });
-    expect(lastParams()).toEqual({ loadingText: "Waiting" });
+    await rerender({ loadingText: "Waiting", rows: [] });
+    await rerender({ loadingText: undefined });
+    expect(paramsCalls()).toEqual([
+      { loadingText: "Waiting" },
+      { loadingText: undefined },
+    ]);
   });
 });

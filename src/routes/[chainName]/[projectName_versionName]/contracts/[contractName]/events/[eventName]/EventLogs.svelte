@@ -48,8 +48,8 @@
     ]?.events[targetEventIdentifier.abiFragmentName]?.recordCount,
   );
 
-  // The rows are read once the warp sync import of the chain ends, not after
-  // each of its files.
+  // While the warp sync imports the logs of the chain, the table has no rows
+  // and reads them once the import ends, not after each of its files.
   let isImporting: boolean = $derived(
     selectWarpSyncState($storeWarpSync, targetEventIdentifier.chainName)
       .status === "importing",
@@ -62,8 +62,9 @@
       rows = [];
       return;
     }
-    // Not the rows of the previous event while this one waits.
+    // Not the rows of the previous event, or of before the import.
     rows = undefined;
+    if (isImporting) return;
     const eventIdentifier: AbiFragmentIdentifier = targetEventIdentifier;
     const throttledLoad = createThrottledLoad(
       (signal: AbortSignal) => gridRows(eventIdentifier, signal),
@@ -75,7 +76,6 @@
     // Reload when new logs are saved.
     $effect.pre(() => {
       void recordCount;
-      if (isImporting) return;
       throttledLoad.request();
     });
     return throttledLoad.dispose;

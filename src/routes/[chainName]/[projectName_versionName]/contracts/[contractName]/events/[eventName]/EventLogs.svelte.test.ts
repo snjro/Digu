@@ -313,20 +313,47 @@ describe("EventLogs.svelte", () => {
       },
     );
 
-    test("keeps the rows of the open table, and reloads them once when it ends", async () => {
+    test("an open table drops its rows and waits, and loads once when it ends", async () => {
       load.mockResolvedValue([log(10, 1)]);
       renderGrid();
       await waitFor(() => expect(shown().rows).toBe(1));
 
       setWarpSync("importing");
+      await tick();
+      expect(shown()).toMatchObject({
+        rows: undefined,
+        loadingText: MESSAGE_WAITING_FOR_IMPORT,
+      });
       await saveLogs(1);
       await saveLogs(2);
       expect(load).toHaveBeenCalledTimes(1);
-      expect(shown().rows).toBe(1);
 
       setWarpSync("imported");
-      await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL * 2);
+      await waitFor(() => expect(shown().rows).toBe(1));
       expect(load).toHaveBeenCalledTimes(2);
+    });
+
+    test("stops a load that was waiting or running when it starts", async () => {
+      load.mockResolvedValueOnce([]);
+      renderGrid();
+      await waitFor(() => expect(shown().rows).toBe(0));
+      // Within the interval after the first load: this load waits.
+      setRecordCount(1);
+      await tick();
+      setWarpSync("importing");
+      await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL * 2);
+      expect(load).toHaveBeenCalledTimes(1);
+
+      // A load that runs when the next import starts.
+      load.mockReturnValueOnce(new Promise(() => {}));
+      setWarpSync("imported");
+      await tick();
+      expect(load).toHaveBeenCalledTimes(2);
+      const signal: AbortSignal = load.mock.calls[1][1]!;
+      setWarpSync("importing");
+      await tick();
+      expect(signal.aborted).toBe(true);
+      expect(shown().rows).toBeUndefined();
     });
 
     test("loads as usual while it only checks what is left, and not again after it", async () => {

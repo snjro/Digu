@@ -38,7 +38,7 @@ describe("getResetDisabledReason", () => {
   const free: ResetConditions = {
     syncStateText: "stopped",
     isSyncingInOtherTab: false,
-    isImporting: false,
+    isWarpSyncRunning: false,
     isResetting: false,
   };
 
@@ -59,7 +59,7 @@ describe("getResetDisabledReason", () => {
     expect(getResetDisabledReason({ ...free, isSyncingInOtherTab: true })).toBe(
       "Stop the sync in the other tab first.",
     );
-    expect(getResetDisabledReason({ ...free, isImporting: true })).toBe(
+    expect(getResetDisabledReason({ ...free, isWarpSyncRunning: true })).toBe(
       "Wait until the logs published with this site are imported, or stop the import.",
     );
     expect(getResetDisabledReason({ ...free, isResetting: true })).toBe(

@@ -169,12 +169,17 @@
     }
   });
   // Before the rows, so the loading overlay shows the text at once. ag-grid
-  // refreshes the overlay when it changes.
+  // mounts the overlay again when it changes, so only then.
   $effect.pre(() => {
     if (gridApi) {
       const api: GridApi<GridRow> = gridApi;
-      const params: LoadingTextParams = { loadingText };
+      const text: string | undefined = loadingText;
       untrack(() => {
+        const current: LoadingTextParams | undefined = api.getGridOption(
+          "loadingOverlayComponentParams",
+        );
+        if (current?.loadingText === text) return;
+        const params: LoadingTextParams = { loadingText: text };
         api.setGridOption("loadingOverlayComponentParams", params);
       });
     }
