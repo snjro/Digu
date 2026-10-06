@@ -1,8 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { tick } from "svelte";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import type { GridApi } from "ag-grid-community";
 import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
+import type { IDatasource } from "ag-grid-community";
 import BaseGridFunctionBar from "./BaseGridFunctionBar.svelte";
+import type { InfiniteRows } from "./infiniteRows";
 import { quickSearchWaitMs } from "./BaseGridFunctionBarQuickSearch.svelte";
 
 function createGridApi() {
@@ -27,6 +30,8 @@ function createGridApi() {
     resetColumnGroupState: vi.fn(),
     resetColumnState: vi.fn(),
     refreshCells: vi.fn(),
+    onFilterChanged: vi.fn(),
+    purgeInfiniteCache: vi.fn(),
     sizeColumnsToFit: vi.fn(),
     autoSizeAllColumns: vi.fn(),
     getGridId: vi.fn(() => "grid"),
@@ -221,5 +226,87 @@ describe("BaseGridFunctionBar.svelte", () => {
       await fireEvent.click(screen.getByRole("button", { name }));
     }
     vi.advanceTimersByTime(500);
+  });
+
+  describe("with the Infinite Row Model", () => {
+    function infiniteRowsOf(
+      datasource: IDatasource | undefined,
+    ): InfiniteRows<unknown> {
+      return {
+        datasource,
+        getRowId: () => "",
+        quickSearch: { text: "" },
+        csv: undefined,
+        rowCounts: { all: undefined, filteredAndSorted: undefined },
+      };
+    }
+    function renderInfiniteBar(infiniteRows: InfiniteRows<unknown>) {
+      const gridApi = createGridApi();
+      render(BaseGridFunctionBar, {
+        gridApi,
+        infiniteRows,
+        isFullScreen: false,
+        exportFilePrefix: "eventLogs",
+      });
+      return gridApi;
+    }
+
+    test("the quick search goes to the datasource, and ag-grid reads the rows again", async () => {
+      vi.useFakeTimers();
+      const infiniteRows = infiniteRowsOf({ getRows: vi.fn() });
+      const gridApi = renderInfiniteBar(infiniteRows);
+      gridApi.onFilterChanged.mockClear();
+
+      await typeQuickSearch("abc");
+      expect(infiniteRows.quickSearch.text).toBe("");
+      vi.advanceTimersByTime(quickSearchWaitMs);
+      expect(infiniteRows.quickSearch.text).toBe("abc");
+      expect(gridApi.onFilterChanged).toHaveBeenCalledTimes(1);
+      // ag-grid does not search the rows of the Infinite Row Model.
+      expect(quickFilterTexts(gridApi)).toEqual([]);
+
+      await typeQuickSearch("");
+      expect(infiniteRows.quickSearch.text).toBe("");
+      expect(gridApi.onFilterChanged).toHaveBeenCalledTimes(2);
+    });
+
+    test("Reload resets the grid and reads the rows again", async () => {
+      vi.useFakeTimers();
+      const infiniteRows = infiniteRowsOf({ getRows: vi.fn() });
+      const gridApi = renderInfiniteBar(infiniteRows);
+      await typeQuickSearch("abc");
+      vi.advanceTimersByTime(quickSearchWaitMs);
+
+      await fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+      expect(lastLoading(gridApi)).toBe(true);
+      vi.advanceTimersByTime(500);
+      await tick();
+      expect(gridApi.setFilterModel).toHaveBeenCalledWith(null);
+      expect(gridApi.applyColumnState).toHaveBeenCalledWith({
+        defaultState: { sort: null },
+      });
+      expect(gridApi.resetColumnState).toHaveBeenCalled();
+      expect(infiniteRows.quickSearch.text).toBe("");
+      expect(gridApi.purgeInfiniteCache).toHaveBeenCalledTimes(1);
+      expect(lastLoading(gridApi)).toBe(false);
+      expect(gridApi.setGridOption).not.toHaveBeenCalledWith(
+        "rowData",
+        expect.anything(),
+      );
+      expect(gridApi.state.overlayCallsWhileLoading).toBe(0);
+    });
+
+    test("Reload while the rows load keeps the loading overlay", async () => {
+      vi.useFakeTimers();
+      const gridApi = renderInfiniteBar(infiniteRowsOf(undefined));
+      // GridBody shows the loading overlay while there is no datasource.
+      gridApi.setGridOption("loading", true);
+      gridApi.setGridOption.mockClear();
+      await fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+      vi.advanceTimersByTime(500);
+      expect(lastLoading(gridApi)).toBe(true);
+      expect(gridApi.setGridOption).not.toHaveBeenCalledWith("loading", false);
+      expect(gridApi.purgeInfiniteCache).not.toHaveBeenCalled();
+    });
   });
 });

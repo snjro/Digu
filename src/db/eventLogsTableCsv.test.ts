@@ -5,6 +5,7 @@ import {
   createGrid,
   ModuleRegistry,
   type GridApi,
+  type SortModelItem,
 } from "ag-grid-community";
 import { getColumnDefs } from "#lib/grid/GridBody/getColumnDefs.js";
 import {
@@ -15,9 +16,16 @@ import {
 } from "#lib/grid/ExportCsv/exportCsv.js";
 import type { CsvRequest } from "#lib/grid/ExportCsv/csvFormat.js";
 import { columnDefs } from "#routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/columnDefs.js";
-import { eventLogCellValues } from "#routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/eventLogCellValues.js";
+import {
+  eventLogCellValues,
+  eventLogColIds,
+} from "#routes/[chainName]/[projectName_versionName]/contracts/[contractName]/events/[eventName]/eventLogCellValues.js";
 import type { ConvertedEventLog } from "./dbTypes";
 import { EVENT_LOGS_CSV_CHUNK_SIZE, eventLogsCsv } from "./eventLogsTableCsv";
+import {
+  queryEventLogRows,
+  type EventLogsTableQueryModel,
+} from "./eventLogsTableQuery";
 
 // An argument without a name, arrays, bigints and texts.
 const fragment: EventFragment = EventFragment.from(
@@ -105,14 +113,40 @@ function selectedValuesOf(
   columnSeparator: CsvColumnSeparator,
   suppressDoubleQuotes: boolean,
   skipColumnHeaders: boolean,
+  filteredSorted: CsvSelectedValues["filteredSorted"]["selectedValue"] = "all",
 ): CsvSelectedValues {
   return {
     skipRowNumber: { selectedValue: skipRowNumber },
     columnSeparator: { selectedValue: columnSeparator },
     suppressDoubleQuotes: { selectedValue: suppressDoubleQuotes },
     skipColumnHeaders: { selectedValue: skipColumnHeaders },
-    filteredSorted: { selectedValue: "all" },
+    filteredSorted: { selectedValue: filteredSorted },
   };
+}
+// The query that the Infinite Row Model would give the table worker for the
+// sort and the filters of the grid.
+function queryOf(
+  api: GridApi<ConvertedEventLog>,
+  quickSearch: string,
+): EventLogsTableQueryModel {
+  const sortModel: SortModelItem[] = api
+    .getColumnState()
+    .filter((state) => state.sort)
+    .sort((a, b) => (a.sortIndex ?? 0) - (b.sortIndex ?? 0))
+    .map((state) => ({ colId: state.colId, sort: state.sort! }));
+  return { sortModel, filterModel: api.getFilterModel(), quickSearch };
+}
+// As EventLogsTable.csv with a query.
+async function workerCsvTextOfQuery(
+  request: CsvRequest,
+  query: EventLogsTableQueryModel,
+): Promise<string> {
+  const queriedRows: ConvertedEventLog[] = queryEventLogRows(
+    rows,
+    cellValues,
+    query,
+  ).map((rowIndex) => rows[rowIndex]);
+  return await eventLogsCsv(queriedRows, cellValues, request).blob.text();
 }
 async function workerCsvText(request: CsvRequest): Promise<string> {
   return await eventLogsCsv(rows, cellValues, request).blob.text();
@@ -152,6 +186,90 @@ describe("eventLogsCsv and ag-grid", () => {
         expected,
       );
       expect(expected.split("\r\n").length).toBeGreaterThan(rows.length);
+    },
+  );
+
+  test.each(
+    booleans.flatMap((skipRowNumber) =>
+      separators.flatMap((columnSeparator) =>
+        booleans.flatMap((suppressDoubleQuotes) =>
+          booleans.map(
+            (skipColumnHeaders) =>
+              [
+                skipRowNumber,
+                columnSeparator,
+                suppressDoubleQuotes,
+                skipColumnHeaders,
+              ] as const,
+          ),
+        ),
+      ),
+    ),
+  )(
+    "makes the text of getDataAsCsv for Filtered & Sorted: skip row number %s, separator %j, no quotes %s, skip headers %s",
+    async (...options) => {
+      const api = createRealGrid(rows);
+      api.applyColumnState({
+        state: [
+          { colId: "args.5.0", sort: "desc", sortIndex: 0 },
+          { colId: "args.2.0", sort: "asc", sortIndex: 1 },
+        ],
+      });
+      api.setFilterModel({
+        logIndex: { filterType: "number", type: "greaterThan", filter: 4 },
+      });
+      api.setGridOption("quickFilterText", "0xaaa");
+      api.setColumnsVisible([eventLogColIds.jsDate], false);
+      const selectedValues = selectedValuesOf(...options, "filteredAndSorted");
+
+      const expected: string = getCsvTextUpTo(api, selectedValues).text;
+      expect(
+        await workerCsvTextOfQuery(
+          getCsvRequest(api, selectedValues),
+          queryOf(api, "0xaaa"),
+        ),
+      ).toBe(expected);
+      // The rows 0, 2 and 4, and not the hidden column.
+      const lines: string[] = expected.split("\r\n");
+      expect(lines.length).toBe(options[3] ? 3 : 6);
+      expect(expected).not.toContain("2020-01-02");
+    },
+  );
+
+  test.each([
+    [
+      "a text filter",
+      { "args.7.0": { filterType: "text", type: "contains", filter: "a" } },
+      "",
+    ],
+    ["no filter", {}, "0xabc"],
+    ["two words of the quick search", {}, "0xabc 1"],
+    [
+      "a filter of no rows",
+      { blockNumber: { filterType: "text", type: "equals", filter: "1" } },
+      "",
+    ],
+  ])(
+    "makes the text of getDataAsCsv for Filtered & Sorted with %s",
+    async (_, filterModel, quickSearch) => {
+      const api = createRealGrid(rows);
+      api.applyColumnState({ state: [{ colId: "blockNumber", sort: "asc" }] });
+      api.setFilterModel(filterModel);
+      api.setGridOption("quickFilterText", quickSearch);
+      const selectedValues = selectedValuesOf(
+        false,
+        ",",
+        false,
+        false,
+        "filteredAndSorted",
+      );
+
+      expect(
+        await workerCsvTextOfQuery(
+          getCsvRequest(api, selectedValues),
+          queryOf(api, quickSearch),
+        ),
+      ).toBe(getCsvTextUpTo(api, selectedValues).text);
     },
   );
 

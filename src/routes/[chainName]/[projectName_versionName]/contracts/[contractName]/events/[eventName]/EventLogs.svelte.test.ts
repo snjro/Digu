@@ -234,8 +234,7 @@ function getRowsParams(
     filterModel: {},
     successCallback: vi.fn(),
     failCallback: vi.fn(),
-    context: undefined,
-  };
+  } as unknown as ReturnType<typeof getRowsParams>;
 }
 
 describe("EventLogs.svelte", () => {
