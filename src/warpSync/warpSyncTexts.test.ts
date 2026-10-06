@@ -52,8 +52,8 @@ describe("getConfirmationTexts", () => {
       header: "Import the event logs published with this site?",
       lines: [
         "Ethereum Mainnet: 2,328,259 logs up to block 26,073,896 (2026-10-01).",
-        "Download: 194 MB. Stored in this browser: about 1.0 GB.",
-        "Time: about 1 minute on a desktop computer; slower on a phone.",
+        "Download: 194 MB. Stored in this browser: about 698 MB.",
+        "Time: about 2 minutes on a desktop computer; slower on a phone.",
         "You can use Digu while it imports, stop it at any time, and go on later.",
         "Free space for this site: 38.0 GB.",
       ],
@@ -76,12 +76,23 @@ describe("getConfirmationTexts", () => {
     expect(texts.lines).toHaveLength(4);
   });
 
-  test("warns when the browser may not have the space", () => {
+  test("warns only when the free space is below the space it needs", () => {
     expect(
-      getConfirmationTexts("Ethereum Mainnet", state, 900_000_000).warning,
+      getConfirmationTexts("Ethereum Mainnet", state, 690_000_000).warning,
     ).toBe(
-      "This browser may not have enough space for this site: about 1.0 GB is needed, 900 MB is free.",
+      "This browser may not have enough space for this site: about 698 MB is needed, 690 MB is free.",
     );
+    expect(
+      getConfirmationTexts("Ethereum Mainnet", state, 750_000_000).warning,
+    ).toBeUndefined();
+    // 2,328,259 logs of 300 B.
+    const storedBytes: number = 698_477_700;
+    expect(
+      getConfirmationTexts("Ethereum Mainnet", state, storedBytes - 1).warning,
+    ).toBeDefined();
+    expect(
+      getConfirmationTexts("Ethereum Mainnet", state, storedBytes).warning,
+    ).toBeUndefined();
   });
 });
 
