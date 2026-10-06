@@ -400,7 +400,15 @@ const TOGGLE_TEXTS = [
   // SYNC_WAITS_FOR_IMPORT of src/warpSync/warpSyncTexts.ts.
   "Importing the published logs. Stop it to sync from your RPC now.",
 ];
-async function toggleButton(page) {
+// Only the texts in which the toggle can be clicked. While it stops or waits
+// for the import, a click does nothing, so the click fails to find it.
+const CLICK_TEXTS = [
+  "start sync",
+  "stop sync",
+  "starting sync",
+  "syncing in another tab",
+];
+async function toggleButton(page, texts) {
   return page.evaluateHandle((texts) => {
     for (const label of [...document.querySelectorAll("*")].filter(
       (e) => e.children.length === 0 && texts.includes(e.textContent.trim()),
@@ -411,10 +419,10 @@ async function toggleButton(page) {
       }
     }
     return null;
-  }, TOGGLE_TEXTS);
+  }, texts);
 }
 async function toggleInfo(page) {
-  const h = await toggleButton(page);
+  const h = await toggleButton(page, TOGGLE_TEXTS);
   const el = h.asElement();
   if (!el) return null;
   return el.evaluate((b, texts) => {
@@ -623,7 +631,7 @@ for (const [id, chain, rpc] of RUNS) {
     // 2 and 3. Start the sync and wait until it stops by itself.
     const before = await readDb(page, chain, t.db, t.contract);
     const n0 = traffic.calls.length;
-    await (await toggleButton(page)).click();
+    await (await toggleButton(page, CLICK_TEXTS)).click();
     const transitions = [];
     const t1 = Date.now();
     let stopped = false;

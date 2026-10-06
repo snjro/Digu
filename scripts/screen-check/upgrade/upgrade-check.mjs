@@ -386,18 +386,14 @@ async function typeInto(page, el, text) {
 
 async function toggleButton(page) {
   return page.evaluateHandle(() => {
+    // Only the texts in which the toggle can be clicked. While it stops or waits
+    // for the import, a click does nothing, so the click fails to find it.
     const labels = [...document.querySelectorAll("*")].filter(
       (e) =>
         e.children.length === 0 &&
-        [
-          "start sync",
-          "stop sync",
-          "starting sync",
-          "stopping sync",
-          "syncing in another tab",
-          // SYNC_WAITS_FOR_IMPORT of src/warpSync/warpSyncTexts.ts.
-          "Importing the published logs. Stop it to sync from your RPC now.",
-        ].includes(e.textContent.trim()),
+        ["start sync", "stop sync", "starting sync"].includes(
+          e.textContent.trim(),
+        ),
     );
     for (const label of labels) {
       for (let e = label; e; e = e.parentElement) {
