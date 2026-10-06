@@ -1,5 +1,5 @@
 {
-  "formatVersion": 2,
+  "formatVersion": 3,
   "chainName": "matic",
   "chainId": 137,
   "contracts": [
@@ -89,10 +89,10 @@
       "toBlock": 24000000,
       "logCount": 361,
       "file": "Augur-turbo-AMMFactory-24000000.json.gz",
-      "bytes": 44458,
-      "rawBytes": 334418,
-      "sha256": "34a4d0598459a0bd2617fb085b403ae00829636f8908277db7b57652a965245d",
-      "rawSha256": "9af7bcde19cbd7947240ecb2216e0e3f1c816b98ec824828a5a9395f357a4161"
+      "bytes": 29945,
+      "rawBytes": 141560,
+      "sha256": "cb0caca61b10df4ac4cd11a837ea1acad8e340fc700be4506af3b926296abaa4",
+      "rawSha256": "20cb5848dbea487327ccf585bf7ad565830f9f73b8fb19dd1077ed3b2e255be1"
     },
     {
       "project": "Augur",
@@ -102,10 +102,10 @@
       "toBlock": 24000000,
       "logCount": 913,
       "file": "Augur-turbo-BalancerFactory-24000000.json.gz",
-      "bytes": 102813,
-      "rawBytes": 507026,
-      "sha256": "9531fac5c41b0bf3d014da18c50fa70faa3bbb008853a5ab4f5abd2298358aac",
-      "rawSha256": "6d8f78727c4c27bda45e9791928af910dad0469a901557d3cfb5ff865484c1b6"
+      "bytes": 73220,
+      "rawBytes": 284254,
+      "sha256": "279587a328975f1329f9bde5b9273c570ded062139a69cf31cc04250d5e8a74b",
+      "rawSha256": "242d131e32df13392e562191b6edc0d7d054439e3ea5e3e4a92e9f9a0e045510"
     },
     {
       "project": "Augur",
@@ -142,10 +142,10 @@
       "toBlock": 24000000,
       "logCount": 2790,
       "file": "Augur-turbo-SportsLinkMarketFactory-24000000.json.gz",
-      "bytes": 279516,
-      "rawBytes": 2098034,
-      "sha256": "4cd5ba9108780dfa32ba1aacf28825cbf7066703dc88e77eb5ee8747ca22afe6",
-      "rawSha256": "dbafa7e9e26544a279c42a1bfa2ee0f051b55045f36e9f6c30b65fb869132317"
+      "bytes": 214441,
+      "rawBytes": 877731,
+      "sha256": "a87476a051153087a87f961979dc104cc4d5979c0bbef5ccd21fff4ad5ba2681",
+      "rawSha256": "da1c0c3c30e6861fa6ebd41ab55421bc008122f5a5a5d0c75c6e5ea8444b02c3"
     },
     {
       "project": "Augur",
@@ -200,10 +200,10 @@
       "toBlock": 94575065,
       "logCount": 76,
       "file": "Augur-turbo-SportsLinkMarketFactory-94575065.json.gz",
-      "bytes": 914,
-      "rawBytes": 46424,
-      "sha256": "8d880f0f46fe146f5f836e8153ae0ef219bb63af8937daae9cfd09d801d24a1b",
-      "rawSha256": "c29d03cc62aac78709e67c458817f459c77507803c7d0b2c6ed7b9015a130a61"
+      "bytes": 660,
+      "rawBytes": 22028,
+      "sha256": "edebd212292566470f74396a680f184be2b972a9d50c222a8c111209de43dd1d",
+      "rawSha256": "a151dbf814aa9dbd54fd64c81a4e07fdbd0a62a08d65fd8d11d712e416cc6907"
     },
     {
       "project": "Augur",
@@ -262,7 +262,7 @@
   ],
   "totals": {
     "logCount": 4140,
-    "bytes": 427701,
-    "rawBytes": 2985902
+    "bytes": 318266,
+    "rawBytes": 1325573
   }
 }
