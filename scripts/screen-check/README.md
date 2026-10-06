@@ -310,7 +310,7 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
   or `-32701` for a range over 10,000 blocks. A WebSocket cannot be
   intercepted, so the `wss` runs end in an error with `--fake`.
 
-Limits of PublicNode without a key (seen in October 2026):
+Limits of PublicNode without a key:
 
 - On eth, it does not return the logs or blocks of old blocks, so this check
   cannot see a real sync of event logs there. It checks the connection, the
@@ -319,10 +319,10 @@ Limits of PublicNode without a key (seen in October 2026):
   `eth_getLogs` of old blocks with no logs and refused `eth_getBlockByNumber`
   instead, so `3 sync` of `eth-wss` is not `ok` although the sync stopped
   and left nothing behind. Read the record of that run.
-- On matic, it returns the logs of old blocks, but refuses a range over
-  10,000 blocks with `-32701 exceed maximum block range: 10000` (#694). The
-  sync does not stop by itself, so the script stops it. The run does not
-  check the saved logs.
+- On matic, since October 2026, it returns the logs of old blocks, but
+  refuses a range over 10,000 blocks with
+  `-32701 exceed maximum block range: 10000` (#694). The sync does not stop
+  by itself, so the script stops it. The run does not check the saved logs.
 
 Result in `<out-dir>`: `results.json` (each run), `console.json`,
 `blocked.json`, and `<run>-1-connected.png`, `<run>-3-stopped.png`,
