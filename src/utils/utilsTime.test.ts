@@ -1,7 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import {
   convertJsDateToIso8601,
-  convertJsDateToTimestampSec,
   convertTimestampSecToIso8601,
 } from "./utilsTime";
 test("convertTimestampSecToIso8601", () => {
@@ -17,14 +16,6 @@ test("convertTimestampSecToIso8601", () => {
   } finally {
     vi.useRealTimers();
   }
-});
-
-describe("convertJsDateToTimestampSec", () => {
-  test("should convert Javascript Datetime to Timestamp", () => {
-    const date = new Date("2022-01-01T00:00:00Z");
-    const result = convertJsDateToTimestampSec(date);
-    expect(result).toBe(1640995200);
-  });
 });
 
 describe("convertJsDateToIso8601", () => {

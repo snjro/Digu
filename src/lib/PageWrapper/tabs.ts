@@ -26,8 +26,7 @@ export function convertTabValueForHref<
   TabsDefinition extends
     TabsDefinitionContract | TabsDefinitionEvent | TabsDefinitionFunction,
 >(tabValue: TabsDefinition["values"][number]): `#${string}` {
-  let convertedTabValue: string = convertToKebabCase(tabValue as string);
-  convertedTabValue = convertedTabValue.replace("(", "").replace(")", "");
+  const convertedTabValue: string = convertToKebabCase(tabValue as string);
   return `#${convertedTabValue}`;
 }
 

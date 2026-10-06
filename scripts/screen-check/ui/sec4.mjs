@@ -29,7 +29,6 @@ const G = {
   contracts: "/eth/Augur-version2/contracts/",
   events: "/eth/Augur-version2/contracts/Augur/events/",
   functions: "/eth/Augur-version1/contracts/Augur/functions/",
-  logs: "/eth/Augur-version1/contracts/Augur/events/MarketCreated/#event-logs",
 };
 const firstCol = {
   contracts: "Contract Name",
@@ -698,6 +697,18 @@ await L.step("4-logs", page, async () => {
       page2: [s2.paging, nums(s2)],
     }),
     [sh1, sh1b, sh2],
+  );
+  await btn("Export as CSV");
+  await page.waitForSelector("dialog[open]");
+  const ex = await exportCsv("event-logs-defaults");
+  await page.keyboard.press("Escape");
+  L.rec(
+    "4-logs-csv",
+    "CHECK",
+    JSON.stringify({
+      nameStartsWithEventLogs: /^eventLogs-/.test(ex.suggested ?? ""),
+      csv: ex,
+    }),
   );
   // events grid Num of Logs link
   await open("/eth/Augur-version1/contracts/Augur/events/");

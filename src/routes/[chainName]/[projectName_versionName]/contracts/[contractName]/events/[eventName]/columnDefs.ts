@@ -32,7 +32,7 @@ export const columnDefs = <T extends ConvertedEventLog>(
     {
       headerName: "time",
       children: [
-        blocknumberColumnDef<T>(undefined),
+        blocknumberColumnDef<T>(),
         {
           field: "jsDate",
           headerName: "datetime",
@@ -57,15 +57,8 @@ export const columnDefs = <T extends ConvertedEventLog>(
   ];
   return columnDefs;
 };
-const blocknumberColumnDef = <T extends ConvertedEventLog>(
-  columnGroupShow: "open" | "closed" | undefined,
-): ColumnDef =>
-  columnDefChainExplorerLinkByKeyName<T>(
-    "blocknumber",
-    "blockNumber",
-    "block",
-    columnGroupShow,
-  );
+const blocknumberColumnDef = <T extends ConvertedEventLog>(): ColumnDef =>
+  columnDefChainExplorerLinkByKeyName<T>("blocknumber", "blockNumber", "block");
 const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
   return [
     {
