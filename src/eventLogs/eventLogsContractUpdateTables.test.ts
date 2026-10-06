@@ -55,15 +55,10 @@ function eventLogAt(
   const hex: string = "0x" + blockNumber.toString(16).padStart(64, "0");
   return {
     eventName: name,
-    eventSignature: "Test()",
     args: [],
     blockNumber,
-    blockHash: hex,
-    data: "0x",
     index,
     removed: false,
-    topics: [hex],
-    address: "0x" + "1".repeat(40),
     transactionHash: hex,
     transactionIndex: 0,
   } as unknown as EthersEventLog;
@@ -112,6 +107,16 @@ describe("registerEventLogsAndBlockTimes", () => {
       addEventLogs_updateFetchedBlockNumber,
     ).mock.calls[0];
     expect(toBlockNumber).toBe(40);
+    // The row keeps only these fields.
+    expect((groupedEventLogs as GroupedEventLogs)[eventName][0]).toStrictEqual({
+      args: [],
+      blockNumber: 20,
+      jsDate: new Date(timestampOf(20) * 1000),
+      logIndex: 0,
+      removed: false,
+      transactionHash: "0x" + (20).toString(16).padStart(64, "0"),
+      transactionIndex: 0,
+    });
     expect(
       (groupedEventLogs as GroupedEventLogs)[eventName].map((eventLog) => [
         eventLog.blockNumber,
@@ -217,14 +222,16 @@ describe("registerEventLogsAndBlockTimes", () => {
         dbEventLogs,
         targetContract,
         fakeProvider(),
-        [{ ...eventLogAt(30), data: "zz" } as EthersEventLog],
+        [{ ...eventLogAt(30), transactionHash: "zz" } as EthersEventLog],
         40,
         () => false,
       ),
     ).rejects.toMatchObject({
       message: "Failed to register event logs.",
       cause: {
-        message: expect.stringContaining("not a valid hex string: data."),
+        message: expect.stringContaining(
+          "not a valid hex string: transactionHash.",
+        ),
       },
     });
     expect(addEventLogs_updateFetchedBlockNumber).not.toHaveBeenCalled();

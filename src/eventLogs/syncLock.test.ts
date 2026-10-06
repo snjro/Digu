@@ -89,15 +89,10 @@ vi.mock("#utils/utilsEthers.js", async (importOriginal) => {
         const hex = "0x" + blockNumber.toString(16).padStart(64, "0");
         logs.push({
           eventName: eventNames[0],
-          eventSignature: "Test()",
           args: [],
           blockNumber: blockNumber,
-          blockHash: hex,
-          data: "0x",
           index: 0,
           removed: false,
-          topics: [hex],
-          address: "0x" + "1".repeat(40),
           transactionHash: hex,
           transactionIndex: 0,
         });

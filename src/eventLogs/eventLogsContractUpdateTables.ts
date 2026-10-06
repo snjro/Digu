@@ -1,15 +1,12 @@
 import type { DbEventLogs } from "#db/dbEventLogs.js";
-import {
-  isHexStrings,
-  type ChainName,
-  type Contract,
-} from "#constants/chains/types.js";
+import type { ChainName, Contract } from "#constants/chains/types.js";
 import { addEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
 import type {
   BlockTime,
   ConvertedEventLog,
   EthersEventLog,
   GroupedEventLogs,
+  NamedEventLog,
 } from "#db/dbTypes.js";
 import { setDbBlockTime } from "#db/dbBlockTimesDataHandlers.js";
 import Dexie from "dexie";
@@ -41,13 +38,13 @@ export async function registerEventLogsAndBlockTimes(
     if (isStopped()) {
       return;
     }
-    const convertedEventLogs: ConvertedEventLog[] = getConvertedEventLogs(
+    const namedEventLogs: NamedEventLog[] = getConvertedEventLogs(
       ethersEventLogs,
       blockTimesForEventLogs,
     );
 
     const groupedEventLogs: GroupedEventLogs =
-      groupEventLogsByEventName(convertedEventLogs);
+      groupEventLogsByEventName(namedEventLogs);
 
     const unregisteredBlockTimes: BlockTime[] = getUnregisterdBlockTimes(
       blockTimesForEventLogs,
@@ -81,8 +78,8 @@ function getUnregisterdBlockTimes(
 function getConvertedEventLogs(
   ethersEventLogs: EthersEventLog[],
   blockTimesForEventLogs: BlockTimeForEventLog[],
-): ConvertedEventLog[] {
-  const convertedEventLogs: ConvertedEventLog[] = [];
+): NamedEventLog[] {
+  const namedEventLogs: NamedEventLog[] = [];
   const blockTimes: Map<number, BlockTime> = new Map();
   for (const { fetchedBlockTime } of blockTimesForEventLogs) {
     // Keep the first one for a block number, as find() did.
@@ -102,7 +99,10 @@ function getConvertedEventLogs(
         targetBlockTime.timestamp,
       );
 
-      convertedEventLogs.push(convertedEventLog);
+      namedEventLogs.push({
+        eventName: ethersEventLog.eventName,
+        eventLog: convertedEventLog,
+      });
     } else {
       throw new Error(
         `Error! cannot find blocktime. blocknumber is ${ethersEventLog.blockNumber}`,
@@ -110,70 +110,38 @@ function getConvertedEventLogs(
     }
   }
 
-  return convertedEventLogs;
+  return namedEventLogs;
 }
 // Also used by the warp sync, so that its rows are the same as the sync's.
 export function convertEthersEventToEventLog(
   ethersEventLog: EthersEventLog,
   timestamp: number,
 ): ConvertedEventLog {
-  if (
-    isHexString(ethersEventLog.blockHash) &&
-    isHexString(ethersEventLog.data) &&
-    isHexStrings(ethersEventLog.topics) &&
-    isHexString(ethersEventLog.address) &&
-    isHexString(ethersEventLog.transactionHash)
-  ) {
+  if (isHexString(ethersEventLog.transactionHash)) {
     return {
-      eventName: ethersEventLog.eventName,
-      eventSignature: ethersEventLog.eventSignature,
       args: Dexie.deepClone(ethersEventLog.args),
       blockNumber: ethersEventLog.blockNumber,
       jsDate: new Date(timestamp * 1000),
-      blockHash: ethersEventLog.blockHash,
-      data: ethersEventLog.data,
       logIndex: ethersEventLog.index,
       removed: ethersEventLog.removed,
-      topics: ethersEventLog.topics,
-      address: ethersEventLog.address,
       transactionHash: ethersEventLog.transactionHash,
       transactionIndex: ethersEventLog.transactionIndex,
     };
   } else {
-    const invalidProps = [];
-    if (!isHexString(ethersEventLog.blockHash)) {
-      invalidProps.push("blockHash");
-    }
-    if (!isHexString(ethersEventLog.data)) {
-      invalidProps.push("data");
-    }
-    if (!isHexStrings(ethersEventLog.topics)) {
-      invalidProps.push("topics");
-    }
-    if (!isHexString(ethersEventLog.address)) {
-      invalidProps.push("address");
-    }
-    if (!isHexString(ethersEventLog.transactionHash)) {
-      invalidProps.push("transactionHash");
-    }
-    const errorMessage = `Invalid EthersEventLog object. The following properties are not a valid hex string: ${invalidProps.join(
-      ", ",
-    )}.`;
-    throw new Error(errorMessage);
+    throw new Error(
+      "Invalid EthersEventLog object. The following properties are not a valid hex string: transactionHash.",
+    );
   }
 }
 export function groupEventLogsByEventName(
-  convertedEventLogs: ConvertedEventLog[],
+  namedEventLogs: NamedEventLog[],
 ): GroupedEventLogs {
   const groupedEventLogs: GroupedEventLogs = {};
-  for (const convertedEventLog of convertedEventLogs) {
-    const eventName: ConvertedEventLog["eventName"] =
-      convertedEventLog.eventName;
-
+  for (const { eventName, eventLog } of namedEventLogs) {
     if (!(eventName in groupedEventLogs)) {
       groupedEventLogs[eventName] = [];
     }
-    groupedEventLogs[eventName].push(convertedEventLog);
+    groupedEventLogs[eventName].push(eventLog);
   }
   return groupedEventLogs;
 }

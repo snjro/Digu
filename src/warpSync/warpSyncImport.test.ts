@@ -19,6 +19,7 @@ import type {
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import Dexie from "dexie";
+import { toBeHex } from "ethers";
 import { get } from "svelte/store";
 import { makeWarpSyncLog } from "../testUtils/warpSyncLogs";
 import {
@@ -179,10 +180,17 @@ describe("importWarpSync", () => {
       [FROM, TO, 3n],
       [FROM, TO, 4n],
     ]);
-    expect(transfers[0].jsDate).toEqual(
-      new Date((1_600_000_000 + CREATION + 10) * 1000),
-    );
-    expect(transfers[0].address).toBe(feePot.address);
+    // The row keeps only these fields, and the id of the table.
+    expect(transfers[0]).toStrictEqual({
+      id: expect.any(Number),
+      args: [FROM, TO, 1n],
+      blockNumber: CREATION + 10,
+      jsDate: new Date((1_600_000_000 + CREATION + 10) * 1000),
+      logIndex: 0,
+      removed: false,
+      transactionHash: toBeHex((CREATION + 10) * 1000, 32),
+      transactionIndex: 0,
+    });
     expect((await rows("Approval")).map((row) => row.logIndex)).toEqual([1]);
 
     const status = await syncStatus();

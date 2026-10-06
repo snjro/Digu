@@ -6,9 +6,9 @@ import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
 import { saveEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
 import { getDbItemSyncStatus } from "#db/dbEventLogsDataHandlersSyncStatusGetters.js";
 import type {
-  ConvertedEventLog,
   EthersEventLog,
   GroupedEventLogs,
+  NamedEventLog,
   SyncStatusContract,
   VersionIdentifier,
 } from "#db/dbTypes.js";
@@ -91,15 +91,17 @@ export async function importWarpSyncFile(
     ]),
   );
   const ethersEventLogs: EthersEventLog[] = decodeWarpSyncLogs(contract, logs);
-  const convertedEventLogs: ConvertedEventLog[] = ethersEventLogs.map(
-    (ethersEventLog: EthersEventLog) =>
-      convertEthersEventToEventLog(
+  const namedEventLogs: NamedEventLog[] = ethersEventLogs.map(
+    (ethersEventLog: EthersEventLog) => ({
+      eventName: ethersEventLog.eventName,
+      eventLog: convertEthersEventToEventLog(
         ethersEventLog,
         timestamps.get(ethersEventLog.blockNumber)!,
       ),
+    }),
   );
   const groupedEventLogs: GroupedEventLogs =
-    groupEventLogsByEventName(convertedEventLogs);
+    groupEventLogsByEventName(namedEventLogs);
   const syncStatusContract: Partial<SyncStatusContract> =
     await saveEventLogs_updateFetchedBlockNumber(
       dbEventLogs,
@@ -107,5 +109,5 @@ export async function importWarpSyncFile(
       groupedEventLogs,
       file.toBlock,
     );
-  return { syncStatusContract, logCount: convertedEventLogs.length };
+  return { syncStatusContract, logCount: namedEventLogs.length };
 }
