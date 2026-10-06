@@ -597,6 +597,53 @@ test("puts the rows of '-' where ag-grid does, which depends on the order of the
   );
 });
 
+// Array.prototype.sort takes other steps for a long array than for a short one.
+describe("queryEventLogRows and ag-grid on many rows", () => {
+  // The same rows on each run: many same values and many rows of "-".
+  let seed: number = 7;
+  const random = (count: number): number => {
+    seed = (seed * 1103515245 + 12345) % 2 ** 31;
+    return seed % count;
+  };
+  const manyRows: ConvertedEventLog[] = Array.from({ length: 300 }, () =>
+    eventLog({
+      blockNumber: random(8) === 0 ? 0 : 100 + random(20),
+      transactionIndex: random(5),
+      logIndex: random(4),
+      args: [
+        `0x${random(6)}`,
+        [],
+        BigInt(random(10)),
+        BigInt(random(3) - 1),
+        [],
+        random(2) === 0,
+        "0x",
+        "",
+      ],
+    }),
+  );
+
+  test.each([
+    [[["blockNumber", "asc"]]],
+    [[["blockNumber", "desc"]]],
+    [
+      [
+        ["args.2.0", "desc"],
+        ["blockNumber", "asc"],
+      ],
+    ],
+    [
+      [
+        ["logIndex", "asc"],
+        ["blockNumber", "desc"],
+        ["args.0.0", "asc"],
+      ],
+    ],
+  ] as [string, "asc" | "desc"][][][])("sorts by %j", async (sorts) => {
+    await expectSameRows(manyRows, (gridApi) => sortBy(gridApi, sorts));
+  });
+});
+
 test("ignores a column that the table does not have", () => {
   const model: EventLogsTableQueryModel = {
     sortModel: [{ colId: "noSuchColumn", sort: "desc" }],
