@@ -23,10 +23,12 @@
     ColumnAutoSizeModule,
     CsvExportModule,
     DateFilterModule,
+    EventApiModule,
     NumberFilterModule,
     PaginationModule,
     QuickFilterModule,
     RenderApiModule,
+    RowApiModule,
     RowSelectionModule,
     TextFilterModule,
     enableDevValidations,
@@ -134,7 +136,8 @@
       enableDevValidations();
     }
     // Only the features the grids use. The date filter is for the ISO 8601
-    // strings, which ag-grid infers as dateTimeString.
+    // strings, which ag-grid infers as dateTimeString. The event and row APIs
+    // are for the row count of the CSV dialog.
     ModuleRegistry.registerModules([
       CellStyleModule,
       ClientSideRowModelModule,
@@ -142,10 +145,12 @@
       ColumnAutoSizeModule,
       CsvExportModule,
       DateFilterModule,
+      EventApiModule,
       NumberFilterModule,
       PaginationModule,
       QuickFilterModule,
       RenderApiModule,
+      RowApiModule,
       RowSelectionModule,
       TextFilterModule,
     ]);

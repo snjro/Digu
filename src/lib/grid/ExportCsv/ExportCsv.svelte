@@ -243,7 +243,10 @@
     try {
       const { blob } = await makeCsv(getCsvRequest(gridApi, selectedValues));
       // With the byte order mark, as ag-grid's export.
-      exportBlobToFile(new Blob(["﻿", blob], { type: "text/plain" }), fileName);
+      exportBlobToFile(
+        new Blob(["\uFEFF", blob], { type: "text/plain" }),
+        fileName,
+      );
     } catch (error) {
       customLogger.error("ExportCsv: make the CSV in the worker.", error);
       $storeNoDbSnackBar = showSnackBarAsExportFailed;
