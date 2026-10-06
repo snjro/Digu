@@ -28,7 +28,7 @@ function manifestContract(contract: Contract): WarpSyncManifestContract {
 }
 function manifest(contracts: WarpSyncManifestContract[]): WarpSyncManifest {
   return {
-    formatVersion: 2,
+    formatVersion: 3,
     chainName: "matic",
     chainId: 137,
     contracts,

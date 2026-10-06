@@ -154,7 +154,7 @@ describe("the manifest", () => {
 
   test("an empty one when there is none", () => {
     expect(readManifest(path.join(dir, "manifest.json"), chain)).toEqual({
-      formatVersion: 2,
+      formatVersion: 3,
       chainName: "eth",
       chainId: 1,
       contracts: [],
@@ -164,15 +164,15 @@ describe("the manifest", () => {
     });
   });
 
-  test("formatVersion 1 is to be converted first", () => {
+  test("formatVersion 2 is to be converted first", () => {
     const file = path.join(dir, "manifest.json");
-    fs.writeFileSync(file, JSON.stringify({ formatVersion: 1, chainId: 1 }));
+    fs.writeFileSync(file, JSON.stringify({ formatVersion: 2, chainId: 1 }));
     expect(() => readManifest(file, chain)).toThrow("convert-snapshot.mjs");
   });
 
   test("another chain stops it", () => {
     const file = path.join(dir, "manifest.json");
-    fs.writeFileSync(file, JSON.stringify({ formatVersion: 2, chainId: 137 }));
+    fs.writeFileSync(file, JSON.stringify({ formatVersion: 3, chainId: 137 }));
     expect(() => readManifest(file, chain)).toThrow("chainId 137");
   });
 

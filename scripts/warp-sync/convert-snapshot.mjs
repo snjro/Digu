@@ -1,88 +1,98 @@
-// Converts the warp sync snapshot of a chain from formatVersion 1 to 2, in
-// place: the same logs, in the files of formatVersion 2. It sends nothing.
-// See README.md.
-import crypto from "node:crypto";
+// Converts the warp sync snapshot of a chain from formatVersion 2 to 3, in
+// place: each file is replaced by a file of formatVersion 3 with the same
+// name and logs, decoded with the ABIs of src/constants/chains. It sends
+// nothing. See README.md.
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import zlib from "node:zlib";
+import { loadChain } from "./build-snapshot.mjs";
 import {
   FORMAT_VERSION,
   keyOf,
-  moveChunkFiles,
+  sha256,
   writeContractChunks,
   writeManifest,
 } from "./snapshot-format.mjs";
+import { toSnapshotLog } from "./snapshot-log.mjs";
 
 export async function convertSnapshot({ dir, log }) {
   const manifestFile = path.join(dir, "manifest.json");
   const old = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
-  if (old.formatVersion !== 1) {
+  if (old.formatVersion !== 2) {
     throw new Error(`${manifestFile} has formatVersion ${old.formatVersion}.`);
   }
-  const addresses = new Map(old.contracts.map((c) => [keyOf(c), c.address]));
-  const manifest = {
-    formatVersion: FORMAT_VERSION,
-    chainName: old.chainName,
-    chainId: old.chainId,
-    contracts: old.contracts,
-    runs: [],
-    chunks: [],
-  };
+  const chain = loadChain(old.chainName);
+  if (chain.chainId !== old.chainId) {
+    throw new Error(`${manifestFile} is for chainId ${old.chainId}.`);
+  }
+  const contracts = new Map(chain.contracts.map((c) => [keyOf(c), c]));
+  const manifest = { ...old, formatVersion: FORMAT_VERSION, chunks: [] };
+  // The new files are written here and moved over the old ones only after
+  // every file is converted.
   const tmpDir = path.join(dir, ".convert");
   fs.rmSync(tmpDir, { recursive: true, force: true });
   for (const chunk of old.chunks) {
-    const text = fs.readFileSync(path.join(dir, chunk.file), "utf8");
-    const sha256 = crypto.createHash("sha256").update(text).digest("hex");
-    if (sha256 !== chunk.sha256) {
+    if (chunk.file === null) {
+      manifest.chunks.push(chunk);
+      continue;
+    }
+    const gzip = fs.readFileSync(path.join(dir, chunk.file));
+    if (sha256(gzip) !== chunk.sha256) {
       throw new Error(`The sha256 of ${chunk.file} does not match.`);
     }
-    const data = JSON.parse(text);
-    if (data.formatVersion !== 1 || data.chainId !== old.chainId) {
-      throw new Error(`${chunk.file} is not of formatVersion 1 of this chain.`);
+    const data = JSON.parse(zlib.gunzipSync(gzip).toString());
+    if (
+      data.formatVersion !== 2 ||
+      data.chainId !== old.chainId ||
+      keyOf(data) !== keyOf(chunk) ||
+      data.fromBlock !== chunk.fromBlock ||
+      data.toBlock !== chunk.toBlock ||
+      data.logs.length !== chunk.logCount
+    ) {
+      throw new Error(`${chunk.file} does not match the manifest.`);
     }
-    for (const range of chunk.contracts) {
-      const contract = data.contracts.find((c) => keyOf(c) === keyOf(range));
-      if (!contract || contract.logs.length !== range.logCount) {
-        throw new Error(
-          `${chunk.file} does not have the logs of ${keyOf(range)}.`,
-        );
-      }
-      const address = addresses.get(keyOf(range));
-      if (!address) {
-        throw new Error(
-          `${keyOf(range)} of ${chunk.file} is not in the contracts of the manifest.`,
-        );
-      }
-      manifest.chunks.push(
-        ...(await writeContractChunks({
-          chainId: old.chainId,
-          contract: { ...range, address },
-          fromBlock: range.fromBlock,
-          toBlock: range.toBlock,
-          logs: contract.logs,
-          outDir: tmpDir,
-        })),
-      );
+    const contract = contracts.get(keyOf(chunk));
+    if (!contract) {
+      throw new Error(`${keyOf(chunk)} of ${chunk.file} is not in the chain.`);
     }
-    manifest.runs.push({
-      createdAt: chunk.createdAt,
-      latestBlockNumber: chunk.latestBlockNumber,
-      toBlock: Math.max(...chunk.contracts.map((c) => c.toBlock)),
-      logCount: chunk.logCount,
+    const rows = await writeContractChunks({
+      chainId: old.chainId,
+      contract: { ...contract, address: data.address },
+      fromBlock: chunk.fromBlock,
+      toBlock: chunk.toBlock,
+      logs: data.logs.map((raw) =>
+        toSnapshotLog(contract, raw, raw.blockTimestamp),
+      ),
+      outDir: tmpDir,
+      // One file, as before.
+      maxLogs: Infinity,
+    });
+    if (
+      rows.length !== 1 ||
+      rows[0].file !== chunk.file ||
+      rows[0].logCount !== chunk.logCount
+    ) {
+      throw new Error(`${chunk.file} did not become one file of its logs.`);
+    }
+    const { bytes, rawBytes, sha256: gzipSha256, rawSha256 } = rows[0];
+    manifest.chunks.push({
+      ...chunk,
+      bytes,
+      rawBytes,
+      sha256: gzipSha256,
+      rawSha256,
     });
   }
-  const before = old.chunks.reduce((sum, chunk) => sum + chunk.logCount, 0);
-  const after = manifest.chunks.reduce((sum, chunk) => sum + chunk.logCount, 0);
-  if (before !== after) {
-    throw new Error(`${after} logs after the conversion, not ${before}.`);
+  for (const chunk of manifest.chunks) {
+    if (chunk.file === null) continue;
+    fs.renameSync(path.join(tmpDir, chunk.file), path.join(dir, chunk.file));
   }
-  moveChunkFiles(manifest.chunks, tmpDir, dir, { chunks: [] });
   fs.rmSync(tmpDir, { recursive: true, force: true });
   writeManifest(manifestFile, manifest);
-  for (const chunk of old.chunks) fs.rmSync(path.join(dir, chunk.file));
   const written = manifest.chunks.filter((chunk) => chunk.file !== null);
   log(
-    `Converted ${after} logs of ${old.chunks.length} files into ${written.length} files in ${dir}.`,
+    `Converted ${manifest.totals.logCount} logs in ${written.length} files in ${dir}.`,
   );
   return manifest;
 }

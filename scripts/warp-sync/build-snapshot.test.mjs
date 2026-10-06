@@ -20,6 +20,7 @@ import {
   loadChain,
   RequestLimitError,
 } from "./build-snapshot.mjs";
+import { fakeEventLog } from "./fake-logs.mjs";
 
 const chain = loadChain("matic");
 const LATEST = 16_200_000;
@@ -27,6 +28,8 @@ const toHex = (value) => `0x${value.toString(16)}`;
 // Two logs in every block that is a multiple of 1,000.
 const STEP = 1000;
 let withoutTimestamp = false;
+// A block whose logs cannot be decoded.
+let brokenBlock = undefined;
 const requests = [];
 
 function logsOf(address, from, to) {
@@ -37,6 +40,7 @@ function logsOf(address, from, to) {
   for (let block = Math.ceil(from / STEP) * STEP; block <= to; block += STEP) {
     if (block < contract.creationBlock) continue;
     for (const index of [1, 0]) {
+      const { data, topics } = fakeEventLog(contract, block * 10 + index);
       // Out of order, so that the script sorts them.
       logs.push({
         blockNumber: toHex(block),
@@ -48,8 +52,8 @@ function logsOf(address, from, to) {
         transactionIndex: "0x0",
         logIndex: toHex(index),
         address: address.toLowerCase(),
-        data: "0x",
-        topics: [contract.topics[0]],
+        data: block === brokenBlock ? "0x" : data,
+        topics,
         removed: false,
       });
     }
@@ -89,6 +93,7 @@ let outDir;
 beforeEach(() => {
   outDir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-build-"));
   withoutTimestamp = false;
+  brokenBlock = undefined;
   requests.length = 0;
 });
 afterEach(() => fs.rmSync(outDir, { recursive: true, force: true }));
@@ -140,25 +145,25 @@ function expectedLogs(to) {
       list.map(
         ({
           blockNumber,
-          blockHash,
           blockTimestamp,
           transactionHash,
           transactionIndex,
           logIndex,
-          address,
-          data,
-          topics,
-        }) => ({
-          blockNumber,
-          blockHash,
-          blockTimestamp,
-          transactionHash,
-          transactionIndex,
-          logIndex,
-          address,
-          data,
-          topics,
-        }),
+        }) => {
+          const { event, args } = fakeEventLog(
+            contract,
+            Number(transactionHash),
+          );
+          return {
+            blockNumber,
+            blockTimestamp,
+            transactionHash,
+            transactionIndex,
+            logIndex,
+            event,
+            args,
+          };
+        },
       ),
     );
   }
@@ -168,11 +173,11 @@ function expectedLogs(to) {
 // 30 seconds: several runs at once make these tests wait for the CPU for
 // longer than the 5 seconds of Vitest (#618).
 describe("buildSnapshot", { timeout: 30_000 }, () => {
-  test("writes the files of formatVersion 2 and the manifest", async () => {
+  test("writes the files of formatVersion 3 and the manifest", async () => {
     await build({ toBlock: 16_000_000, chunkLogs: 500 });
     const manifest = readManifest();
     expect(manifest).toMatchObject({
-      formatVersion: 2,
+      formatVersion: 3,
       chainName: "matic",
       chainId: 137,
     });
@@ -250,6 +255,14 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     await build({ toBlock: 16_000_000 });
     expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
     expect(requests).toContain("eth_getBlockByNumber");
+  });
+
+  test("stops at a log that cannot be decoded, and writes no file", async () => {
+    brokenBlock = 15_000_000;
+    await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
+      /: cannot decode the log of \w+ at block 15000000, log index 0: /,
+    );
+    expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
   });
 
   test("stops at a .partial/ of the script before formatVersion 2", async () => {

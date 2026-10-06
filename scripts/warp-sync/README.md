@@ -1,7 +1,8 @@
 # Warp sync snapshot
 
-`build-snapshot.mjs` fetches the event logs of the contracts of a chain and
-writes them as a snapshot under `static/warp-sync/<chain>/`. The app imports
+`build-snapshot.mjs` fetches the event logs of the contracts of a chain,
+decodes them with the ABIs of the contracts, and writes them as a snapshot
+under `static/warp-sync/<chain>/`. The app imports
 the snapshot, so that the logs can be seen without an RPC, and the sync goes
 on from the end of the snapshot.
 
@@ -11,9 +12,9 @@ users of the app do not run it.
 ## The snapshots
 
 - `matic`: made by this script with the public RPC of pocket.
-- `eth`: 2,640,510 logs of 16 contracts to block 26,075,462, in 140 files
-  (218 MB of gzip, 2.0 GB of JSON). Its first run was not made by this
-  script: pocket dropped logs (#576), so the logs were fetched from Infura
+- `eth`: 2,641,099 logs of 16 contracts to block 26,104,938, in 146 files
+  (156 MB of gzip, 1.1 GB of JSON). Its first run (2,640,510 logs to block
+  26,075,462) was not made by this script: pocket dropped logs (#576), so the logs were fetched from Infura
   with all the contracts in one `eth_getLogs` for each range of 10,000 blocks
   (2,293 requests, the `requests` of the run), and written with
   `writeContractChunks` of `snapshot-format.mjs`. They were checked against
@@ -25,9 +26,8 @@ users of the app do not run it.
 
 Update the snapshot on the day of a release: it reaches the users only with a
 release. `release.yml` runs `check-snapshot.py` before it deploys. It shows,
-for each chain, the last run of `manifest.json` (the last chunk in
-formatVersion 1), when it was made (`createdAt`), its `toBlock` and its age in
-days, in the summary of the run. It stops the release when the last run was
+for each chain, the last run of `manifest.json`, when it was made
+(`createdAt`), its `toBlock` and its age in days, in the summary of the run. It stops the release when the last run was
 not made on the day of the release, by the date in UTC, and when it cannot
 read a manifest or finds no chain. A chain without a snapshot is not checked.
 
@@ -112,10 +112,11 @@ so far are in `<chain>/.partial/` (not committed): for each part, a
 and a `.state.json` file with the next block to fetch. Run it again without
 `--to`, with the same `--part-blocks`: it goes on to the same block, from
 where each part stopped, and drops the lines of the blocks that the state does
-not count yet (such as a line half written when it stopped). A `.partial/`
-of the script before formatVersion 2 stops it: delete the folder and run it
-again. The logs are not all kept in memory, so a chain with millions of logs
-fits.
+not count yet (such as a line half written when it stopped). The lines are
+the logs as the RPC returned them; they are decoded when the files are
+written. A `.partial/` of the script before formatVersion 2 stops it: delete
+the folder and run it again. The logs are not all kept in memory, so a chain
+with millions of logs fits.
 
 The files of the snapshot are written only at the end, one contract at a
 time, and then `.partial/` is deleted. The block times fetched for the logs
@@ -132,7 +133,7 @@ next to the manifest and before it wrote the manifest leaves files that the
 manifest does not list, and the next run stops at them: delete the files that
 are not in `manifest.json` (`git status` shows them), and run it again.
 
-A snapshot of formatVersion 1 is converted once, without sending anything,
+A snapshot of formatVersion 2 is converted once, without sending anything,
 before the first run of this script on it:
 
 ```sh
@@ -140,15 +141,24 @@ docker compose run --rm app node scripts/warp-sync/convert-snapshot.mjs \
   --chain matic [--out static/warp-sync]
 ```
 
-It checks the `sha256` of each file of formatVersion 1, writes the same logs
-into the files of formatVersion 2 (one run of formatVersion 1 becomes one
-run), writes `manifest.json` and deletes the files of formatVersion 1. It
-stops when a contract of a file is not in the contracts of the manifest. If it
-stops after it moved the new files, delete them (`git status`) and run it
-again.
+It checks the `sha256` of each file of formatVersion 2, decodes its logs as
+this script does (below), and writes a file of formatVersion 3 with the same
+name, range and logs in its place. `manifest.json` keeps its contracts, runs
+and ranges; only `formatVersion` and the `bytes`, `rawBytes`, `sha256` and
+`rawSha256` of the files change. It writes the new files in `<chain>/.convert/`
+and moves them over the old ones only after every file is converted. It
+stops at a log that cannot be decoded and when a contract of a file is not in
+`src/constants/chains`. If it stops, `git checkout -- static/warp-sync/<chain>`
+gives back the files, and `<chain>/.convert/` can be deleted.
 
 It fetches like the sync: one `eth_getLogs` per range with the address and
-the topic 0 of the events that are not anonymous.
+the topic 0 of the events that are not anonymous. It decodes each log with
+the ABI of its contract in `src/constants/chains`, as the sync decodes it
+(ethers' `EventLog`). A log that cannot be decoded stops the run, with the
+contract, the event (or the topic 0) and the block of the log: the ABI does
+not fit the log. The snapshot has only the args decoded with the ABI of the
+time it was made, so after a fix to the ABI of a contract that has events,
+fetch that contract's snapshot again from an RPC.
 
 - **Widths:** the ranges start at 100,000 blocks (or `--max-width`, if
   narrower) and are doubled after each full range that works, up to
@@ -205,13 +215,13 @@ contract are read in the order of the blocks. The run in the manifest has
 `checks`: the empty ranges asked again, those that had logs the second time,
 and the errors of each kind (`rate`: the HTTP 429s, of all the methods).
 
-## Format (formatVersion 2)
+## Format (formatVersion 3)
 
 `<chain>/manifest.json`:
 
 ```jsonc
 {
-  "formatVersion": 2,
+  "formatVersion": 3,
   "chainName": "eth",
   "chainId": 1,
   // The contracts that the snapshot has. The app imports a contract only when
@@ -274,7 +284,7 @@ spaces:
 
 ```jsonc
 {
-  "formatVersion": 2,
+  "formatVersion": 3,
   "chainId": 1,
   "project": "Augur",
   "version": "version2",
@@ -282,36 +292,38 @@ spaces:
   "address": "0x…",
   "fromBlock": 10543755,
   "toBlock": 10890000,
-  // Sorted by blockNumber and logIndex. The fields are as the RPC returned
-  // them (hex strings). blockTimestamp comes from the block when the RPC did
-  // not return it.
+  // Sorted by blockNumber and logIndex. The numbers and transactionHash are
+  // as the RPC returned them (hex strings). blockTimestamp comes from the
+  // block when the RPC did not return it.
   "logs": [
     {
       "blockNumber": "0x…",
-      "blockHash": "0x…",
       "blockTimestamp": "0x…",
       "transactionHash": "0x…",
       "transactionIndex": "0x…",
       "logIndex": "0x…",
-      "address": "0x…",
-      "data": "0x…",
-      "topics": ["0x…"],
+      // The name of the event, and its args decoded with the ABI.
+      "event": "TokensTransferred",
+      "args": [
+        "0xE991…",
+        "0x2219…",
+        "0x8f2B…",
+        "0x4A1c…",
+        "1500000000000000000",
+        "0",
+        "0x0000…",
+      ],
     },
   ],
 }
 ```
 
+`args` has the values by position, without names, as the sync saves them.
+An integer (also `uint8`) is a decimal string, an address is checksummed, a `bytes32` is a hex
+string, and an array or a tuple is an array. The app gives back a `bigint` for
+each integer by the types of the ABI, so that the rows of the import and of
+the sync are the same.
+
 A row has all the logs of its contract from `fromBlock` to `toBlock`. The
 `fromBlock` of a row is the `toBlock` of the row before it of the same
 contract + 1, or the creation block in the first row.
-
-## Format (formatVersion 1)
-
-The app until formatVersion 2 reads this format, and `check-snapshot.py`
-still reads it. A manifest has one chunk for each run, with `file`,
-`sha256` (of the file), `createdAt`, `latestBlockNumber`, `logCount` and
-the range and `logCount` of each contract. `logs-<toBlock>.json` has the logs
-of all the contracts of one run, in one JSON file:
-`{ "formatVersion": 1, "chainId", "contracts": [{ "project", "version",
-"name", "address", "fromBlock", "toBlock", "logs" }] }`.
-`convert-snapshot.mjs` converts it to formatVersion 2.

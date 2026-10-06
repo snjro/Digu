@@ -1,13 +1,13 @@
-// The files of the warp sync snapshot (formatVersion 2), shared by
+// The files of the warp sync snapshot (formatVersion 3), shared by
 // build-snapshot.mjs and convert-snapshot.mjs. See README.md.
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
 
-export const FORMAT_VERSION = 2;
+export const FORMAT_VERSION = 3;
 // The most logs in one file, unless one block has more. The app imports one
-// file at a time, so a file stays small enough to decode and save at once.
+// file at a time, so a file stays small enough to read and save at once.
 export const CHUNK_LOGS = 20_000;
 
 export const keyOf = (contract) =>
@@ -130,9 +130,9 @@ export function emptyManifest(chain) {
 export function readManifest(file, chain) {
   if (!fs.existsSync(file)) return emptyManifest(chain);
   const manifest = JSON.parse(fs.readFileSync(file, "utf8"));
-  if (manifest.formatVersion === 1) {
+  if (manifest.formatVersion === 2) {
     throw new Error(
-      `${file} has formatVersion 1. Convert it first with scripts/warp-sync/convert-snapshot.mjs.`,
+      `${file} has formatVersion 2. Convert it first with scripts/warp-sync/convert-snapshot.mjs.`,
     );
   }
   if (manifest.formatVersion !== FORMAT_VERSION) {

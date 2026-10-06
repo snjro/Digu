@@ -14,7 +14,7 @@ function reply(status: number, body: unknown): Response {
   });
 }
 const manifest = {
-  formatVersion: 2,
+  formatVersion: 3,
   chainName: "matic",
   chainId: 137,
   contracts: [],
@@ -44,7 +44,7 @@ describe("fetchWarpSyncManifest", () => {
     await expect(fetchWarpSyncManifest(chain)).rejects.toThrow("HTTP 500");
   });
   test.each([
-    ["formatVersion 1", { formatVersion: 1 }, "format version: 1"],
+    ["formatVersion 2", { formatVersion: 2 }, "format version: 2"],
     ["another chain", { chainId: 1 }, "chainId 1"],
   ])("throws for %s", async (_, change, message) => {
     fetchMock.mockResolvedValueOnce(reply(200, { ...manifest, ...change }));

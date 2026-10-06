@@ -15,6 +15,7 @@ import { afterAll, beforeAll, expect, test } from "vitest";
 // No wait after a failure. Read when the script is imported.
 process.env.WARP_SYNC_RETRY_WAIT_MS = "0";
 const { buildSnapshot, loadChain } = await import("./build-snapshot.mjs");
+const { fakeEventLog } = await import("./fake-logs.mjs");
 
 const chain = loadChain("matic");
 const TO = 15_600_000;
@@ -35,6 +36,8 @@ function logsOf(contract, from, to) {
   return blocksWithLogs(Math.max(from, contract.creationBlock), to).flatMap(
     (block) =>
       [0, 1].map((index) => ({
+        data: fakeEventLog(contract, block * 10 + index).data,
+        topics: fakeEventLog(contract, block * 10 + index).topics,
         blockNumber: toHex(block),
         blockHash: `0x${block.toString(16).padStart(64, "0")}`,
         blockTimestamp: toHex(block * 2),
@@ -42,8 +45,6 @@ function logsOf(contract, from, to) {
         transactionIndex: "0x0",
         logIndex: toHex(index),
         address: contract.address.toLowerCase(),
-        data: "0x",
-        topics: [contract.topics[0]],
         removed: false,
       })),
   );
@@ -190,11 +191,22 @@ test("has every log despite the faults of the RPC", async () => {
               ),
             ).logs,
         );
-      // The snapshot does not keep "removed".
-      const expected = logsOf(contract, contract.creationBlock, TO).map((log) =>
-        Object.fromEntries(
-          Object.entries(log).filter(([field]) => field !== "removed"),
-        ),
+      const expected = logsOf(contract, contract.creationBlock, TO).map(
+        (log) => {
+          const { event, args } = fakeEventLog(
+            contract,
+            Number(log.transactionHash),
+          );
+          return {
+            blockNumber: log.blockNumber,
+            blockTimestamp: log.blockTimestamp,
+            transactionHash: log.transactionHash,
+            transactionIndex: log.transactionIndex,
+            logIndex: log.logIndex,
+            event,
+            args,
+          };
+        },
       );
       expect(logs).toEqual(expected);
     }

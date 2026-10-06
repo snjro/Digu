@@ -7,7 +7,7 @@ import type { HexString } from "#constants/chains/types.js";
 
 // The snapshot that scripts/warp-sync/build-snapshot.mjs writes. See
 // scripts/warp-sync/README.md.
-export const WARP_SYNC_FORMAT_VERSION = 2;
+export const WARP_SYNC_FORMAT_VERSION = 3;
 // Under static/.
 export const WARP_SYNC_DIR = "warp-sync";
 
@@ -58,17 +58,18 @@ export type WarpSyncManifest = {
   totals: { logCount: number; bytes: number; rawBytes: number };
 };
 
-// As the RPC returned it: hex strings.
+// The numbers and the hash as the RPC returned them (hex strings), and the
+// event and its args, decoded by build-snapshot.mjs.
 export type WarpSyncLog = {
   blockNumber: HexString;
-  blockHash: HexString;
   blockTimestamp: HexString;
   transactionHash: HexString;
   transactionIndex: HexString;
   logIndex: HexString;
-  address: HexString;
-  data: HexString;
-  topics: HexString[];
+  event: string;
+  // By position. An integer is a decimal string, an address is checksummed,
+  // and an array or a tuple is an array.
+  args: unknown[];
 };
 // The JSON of a file of the snapshot (gzip).
 export type WarpSyncFile = ContractKey & {
