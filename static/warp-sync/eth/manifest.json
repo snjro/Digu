@@ -1,5 +1,5 @@
 {
-  "formatVersion": 2,
+  "formatVersion": 3,
   "chainName": "eth",
   "chainId": 1,
   "contracts": [
@@ -156,10 +156,10 @@
       "toBlock": 5935088,
       "logCount": 20001,
       "file": "Augur-version1-Augur-5935088.json.gz",
-      "bytes": 793340,
-      "rawBytes": 16291791,
-      "sha256": "2be7957571a955837d468c03e060215b5149feca5ad6fb4586a7e45031b48739",
-      "rawSha256": "c5259ed6801c9c4f566440768a27a31046f5e3f13c28538ebba9908a5c0022a1"
+      "bytes": 709451,
+      "rawBytes": 8440619,
+      "sha256": "00f5b769f738d2a9bb9659ce056e9ada7921acdc9ad1c44fd78237117620f9ac",
+      "rawSha256": "1f7184e982eb4e351e7c1f4e884c068b0a6ef13b6162708a3dd124e432b00871"
     },
     {
       "project": "Augur",
@@ -169,10 +169,10 @@
       "toBlock": 5935483,
       "logCount": 20000,
       "file": "Augur-version1-Augur-5935483.json.gz",
-      "bytes": 788361,
-      "rawBytes": 16292110,
-      "sha256": "b91de02b1534503f28cfda9bd54a1de313ded2c75ef1be67ef45f1572961666e",
-      "rawSha256": "48a4b675221112ba2b7f8f475502051d5e0c45b78d5b551cc09bffcf9cf1bbe3"
+      "bytes": 702366,
+      "rawBytes": 8445460,
+      "sha256": "04a60811fb0dab46e30aede1125f9f4fbe3a06e3d6b01b1b5f53d2d6c7303ff5",
+      "rawSha256": "124da68499f8251e2fa6ca6a3ba8af93e77c58d8af4ad22077a584a25d3daf34"
     },
     {
       "project": "Augur",
@@ -182,10 +182,10 @@
       "toBlock": 5946709,
       "logCount": 20021,
       "file": "Augur-version1-Augur-5946709.json.gz",
-      "bytes": 1030159,
-      "rawBytes": 16857935,
-      "sha256": "02818110981972ed6fd4a130b986d13f72d9e0001b638230a0ae91cafba04355",
-      "rawSha256": "bd58abd65b06dc9ca80f1169a40d83b8d564f05a32b1c78a1e89f8f904225f84"
+      "bytes": 850664,
+      "rawBytes": 8748340,
+      "sha256": "808458643d9c1d3bb907e3a0b4b1e336504534acc28fb35c1152331fe4831ade",
+      "rawSha256": "0081d0d5e63d0bb10770ed30d42971e83843be6b33248ecfe022ce56ce7dafa8"
     },
     {
       "project": "Augur",
@@ -195,10 +195,10 @@
       "toBlock": 6040733,
       "logCount": 20000,
       "file": "Augur-version1-Augur-6040733.json.gz",
-      "bytes": 2249273,
-      "rawBytes": 18935657,
-      "sha256": "117ca427945c0b92919512d5199386d94bd6ad93c404da8a530682974d80e7c9",
-      "rawSha256": "5c1e08e2920e067cfb4a80e3d77e18a64bacf9acc0496402c772abfeb1ca7375"
+      "bytes": 1679727,
+      "rawBytes": 9838374,
+      "sha256": "aaca5527cea8029852bee7d80ea2d5de1ab374d579a6c92e239e7abed2796ffa",
+      "rawSha256": "2e91daf490205dabc3f2d6e76423ec770b66be6e096865ae254007a695b02480"
     },
     {
       "project": "Augur",
@@ -208,10 +208,10 @@
       "toBlock": 6162543,
       "logCount": 20000,
       "file": "Augur-version1-Augur-6162543.json.gz",
-      "bytes": 2193794,
-      "rawBytes": 18594721,
-      "sha256": "9175e54bdc89bfba57dd308b7778d214701b3c234964c33207cf5497a8450fdb",
-      "rawSha256": "4251592be09664c544bd6cd90b3dc6bae206e5c1bf1fa7ec896f3557f8cb7634"
+      "bytes": 1661869,
+      "rawBytes": 9704699,
+      "sha256": "4895a892520dee857866f921e8c2aac1d2ff845076d614c811f8761518547f30",
+      "rawSha256": "05b7371f272462c01d437dbf71560eb67f6bd0168709c033aa5103ce7742e64f"
     },
     {
       "project": "Augur",
@@ -221,10 +221,10 @@
       "toBlock": 6343217,
       "logCount": 20002,
       "file": "Augur-version1-Augur-6343217.json.gz",
-      "bytes": 2124436,
-      "rawBytes": 18197675,
-      "sha256": "60ad4d93a351548d8e830b4303bc402e174a9c1c79d59fa029d880074849d675",
-      "rawSha256": "a6bee2ae805f7c40eeca88d66cf9f19bd494aaab5650c5839eb6461b57bdb378"
+      "bytes": 1591119,
+      "rawBytes": 9539773,
+      "sha256": "b267b6956742ee1f9ea15ad668d1ab58f18ade19ea0cc088c9cc3bffdc1d34b5",
+      "rawSha256": "f9c1bfe63a9a345b73ad2416309620c6c03c620deae566da2cf84b3930517db4"
     },
     {
       "project": "Augur",
@@ -234,10 +234,10 @@
       "toBlock": 6538467,
       "logCount": 20001,
       "file": "Augur-version1-Augur-6538467.json.gz",
-      "bytes": 2072807,
-      "rawBytes": 18118734,
-      "sha256": "1e069a2b60aaf46007758ae5fee5b3d79d3ddc53cc4bc82d6b487c304e7dec02",
-      "rawSha256": "8608d383ed77a5b36e6d091cfdf63d95d3cde503e7c5cd5d33f6a7f40c59824a"
+      "bytes": 1560467,
+      "rawBytes": 9490133,
+      "sha256": "e65cd80f10f29a8a62fdaa5448c6eb83d8ba673ad798c875c38b8f1fb13fa369",
+      "rawSha256": "425a93fdd0fd32540fb4dabe5473deee92718f921f5eb1397c7782a7bbb0a2fd"
     },
     {
       "project": "Augur",
@@ -247,10 +247,10 @@
       "toBlock": 6682231,
       "logCount": 20010,
       "file": "Augur-version1-Augur-6682231.json.gz",
-      "bytes": 1915333,
-      "rawBytes": 18225877,
-      "sha256": "f8ba1aea805d5bd97f3093dca4fb7124975bec8a503564c20eedb0b63b325846",
-      "rawSha256": "3f1789b5375238b0ff7d9563183647c9fe242d77d52415b725f2ed7b92e95e3e"
+      "bytes": 1432042,
+      "rawBytes": 9513475,
+      "sha256": "7dfb37fcbea1e5c83dbe51d7b694b6e15a2f32bcac52fff01d0a6e9847f47ddb",
+      "rawSha256": "b1862015253e04f4f22d1aba2c61446343719bd27eb35ace48fcfe17315e5560"
     },
     {
       "project": "Augur",
@@ -260,10 +260,10 @@
       "toBlock": 6880618,
       "logCount": 20000,
       "file": "Augur-version1-Augur-6880618.json.gz",
-      "bytes": 2062710,
-      "rawBytes": 18175666,
-      "sha256": "c73afbe72cd2a7331a6604b6d94b5a7adfc630083600399e1f7872cb882501c9",
-      "rawSha256": "10d49a784a9b5c8c253dd2f42acdc1fa1a12e345277eaab4f5794835ef2f7daf"
+      "bytes": 1537367,
+      "rawBytes": 9525585,
+      "sha256": "7c450eba3989d7e99de5661c98434cb3088f2fbc1b1bb1529a67d8d3a1bf467b",
+      "rawSha256": "1d60e0344ac2eacb72599b4a316a43aa741d1f518abd61910dd674b7afb24bca"
     },
     {
       "project": "Augur",
@@ -273,10 +273,10 @@
       "toBlock": 7071089,
       "logCount": 20000,
       "file": "Augur-version1-Augur-7071089.json.gz",
-      "bytes": 1973300,
-      "rawBytes": 17990900,
-      "sha256": "2f17f85509be5b0d0c7cea77abf6f55a34435628d64d82fc511bce002834daf8",
-      "rawSha256": "3329a71169c0767688af23e4fda5f837e3ccf4f1a3c132cf374a9ee8ccf9723f"
+      "bytes": 1466075,
+      "rawBytes": 9414241,
+      "sha256": "3af2dc5980262616a199738a93629130b378fd25452bac4a8ef37159fed73335",
+      "rawSha256": "443c57fd56db6d0e7a29108d0f9e3439dbe6d6b5ad9de46c69f9a04fe5c5cd18"
     },
     {
       "project": "Augur",
@@ -286,10 +286,10 @@
       "toBlock": 7131142,
       "logCount": 20009,
       "file": "Augur-version1-Augur-7131142.json.gz",
-      "bytes": 1941808,
-      "rawBytes": 17686807,
-      "sha256": "af30db85b5138f043d0e7181386b214462a2cbebacebfc8ba2425a5de3cdb379",
-      "rawSha256": "29260f8ad47b47b7fda2eaf07a8ffc27bf92a5fc9aee6eed437733b2c27b421d"
+      "bytes": 1440577,
+      "rawBytes": 9414321,
+      "sha256": "87624fd921d54a1c6262df3b7ced45ba380e97b97df104e09cf7e5ec9a16c23d",
+      "rawSha256": "a083bac0314e5f0ab7f57fc7288d8caf75468a22a4669b8eabce4860a06f5242"
     },
     {
       "project": "Augur",
@@ -299,10 +299,10 @@
       "toBlock": 7232507,
       "logCount": 20000,
       "file": "Augur-version1-Augur-7232507.json.gz",
-      "bytes": 1930187,
-      "rawBytes": 17898902,
-      "sha256": "e9cdea7da05c8c8f259c5878d8ebbc8d40e6f042b5c6cdb9a4e3fa8fac02d898",
-      "rawSha256": "480a0c039a7503302888163358b73d2e3befb17cb53d970a0548d1dbdd2b7d7c"
+      "bytes": 1425499,
+      "rawBytes": 9434268,
+      "sha256": "d81935a03bd2145b4e7895eb60c115ba80b65e728b937745ec692c6f7f3dc639",
+      "rawSha256": "795ef8af2e7baa979b45eb7e3c2fc708b48738b3692d574ee30569087d9244de"
     },
     {
       "project": "Augur",
@@ -312,10 +312,10 @@
       "toBlock": 7374849,
       "logCount": 20000,
       "file": "Augur-version1-Augur-7374849.json.gz",
-      "bytes": 1859055,
-      "rawBytes": 17802329,
-      "sha256": "8de3d2cb5d3cf05f3866d1b3dd3e2d73faae73ff1525a3192459ef72504a33cd",
-      "rawSha256": "ebc01f6c0a3815410d77c7ef8b8084110c71d2af56ef9d076b009ce37a71bf7a"
+      "bytes": 1368618,
+      "rawBytes": 9368116,
+      "sha256": "6a4199a768ac8c372a4d889d6383e7573b189ba8348fa8250eae45c5e95937e4",
+      "rawSha256": "a20009e64a2b2c8a41130e4da497d3766bb4d031cef437897efb73e204702edb"
     },
     {
       "project": "Augur",
@@ -325,10 +325,10 @@
       "toBlock": 7500840,
       "logCount": 20000,
       "file": "Augur-version1-Augur-7500840.json.gz",
-      "bytes": 1902791,
-      "rawBytes": 18031862,
-      "sha256": "c6ef2b6ac545830faa78895379dd47268f02843ce313e59f5db926b5eb1f9706",
-      "rawSha256": "91134fda895ef67dadc12a1cf194f200e0cc5725b256361ad3f5d47c83418a1f"
+      "bytes": 1380119,
+      "rawBytes": 9502912,
+      "sha256": "ea33a79194ebf805a2e963704bcb5b98d430fc5e755dcbb4e5e3e81353c58183",
+      "rawSha256": "ab9a4d39a41a1f446882c31609bd2adbfa1c46a1159e1cbc791f4ae557aaa6d5"
     },
     {
       "project": "Augur",
@@ -338,10 +338,10 @@
       "toBlock": 7625931,
       "logCount": 20000,
       "file": "Augur-version1-Augur-7625931.json.gz",
-      "bytes": 1945079,
-      "rawBytes": 17863458,
-      "sha256": "c202f2a3c1b98f4feac985be69b6b1118dde32fcc77687b9f83ef56785801b6f",
-      "rawSha256": "cb430d61140d5f936ac0ad5b0f0cb39f1a02e2b7949c684b5f74cb03f6b0b80a"
+      "bytes": 1397853,
+      "rawBytes": 9466676,
+      "sha256": "e9426ee700a5d0345851229327e93f324821db990dbd8706dcd3f0196aa51313",
+      "rawSha256": "e5cc28177ec14fae60a3c428f10164499e89e95d1e8340b532e1e6da783168f7"
     },
     {
       "project": "Augur",
@@ -351,10 +351,10 @@
       "toBlock": 7791982,
       "logCount": 20000,
       "file": "Augur-version1-Augur-7791982.json.gz",
-      "bytes": 2035645,
-      "rawBytes": 17897285,
-      "sha256": "a800a78857de986fd3e4100f3e313773eb4d4b40648dee99429e10a72770727c",
-      "rawSha256": "d48513ca5daceca1b670a9a4b315e75f8b5a695940aaae62d0920807d7e313b4"
+      "bytes": 1481308,
+      "rawBytes": 9445753,
+      "sha256": "c262518327b68053a114d8500d18d243cb679773415e8de788194438346ff4a0",
+      "rawSha256": "978c72058138c175e5dd51c749687dc2d8c608c598cb1f0c25a24521dd382128"
     },
     {
       "project": "Augur",
@@ -364,10 +364,10 @@
       "toBlock": 7953116,
       "logCount": 20005,
       "file": "Augur-version1-Augur-7953116.json.gz",
-      "bytes": 2144201,
-      "rawBytes": 17866924,
-      "sha256": "f392a11ae73642b3c6eac02a791dd353fead24395a42077ce3c665191877964e",
-      "rawSha256": "669104a90b0f16d821ba2b609e1da86705a9b8a5d189c34f762c18d4ca0af582"
+      "bytes": 1543515,
+      "rawBytes": 9467817,
+      "sha256": "5c379ad0d56cc84172030fe4cb0bd7b0164c04a841fa230151e54dfbab7fc8ce",
+      "rawSha256": "4dd3eb14f708b1318e698215a9ad81343b23e1d1c4f33488508c23c28ec4f6a9"
     },
     {
       "project": "Augur",
@@ -377,10 +377,10 @@
       "toBlock": 8130991,
       "logCount": 20000,
       "file": "Augur-version1-Augur-8130991.json.gz",
-      "bytes": 2067221,
-      "rawBytes": 17858863,
-      "sha256": "21e7116674f5dc1885fea6d003a300030c365adfc87d8478179c2a3ea05dafec",
-      "rawSha256": "897599c8a80b0ecbf671499bd2cba17b55a4447d434269fc641fc65c066c8859"
+      "bytes": 1491292,
+      "rawBytes": 9453305,
+      "sha256": "9d9824b8adc6f82ec729ac4226d3ebbf6a633f8410eb6dddf5a1b4b30e531bdf",
+      "rawSha256": "df3ad039f2f55c768f36e1b54acb621a3de4aa1f0966cd600014bf6c8c15e0f1"
     },
     {
       "project": "Augur",
@@ -390,10 +390,10 @@
       "toBlock": 8373644,
       "logCount": 20002,
       "file": "Augur-version1-Augur-8373644.json.gz",
-      "bytes": 2011014,
-      "rawBytes": 18064330,
-      "sha256": "fe6b8be1e4c181d481932ab3a7f6adc92b659666c13ffe5b250282feffb06b3e",
-      "rawSha256": "6ea2b26b96f914cd28bc32bae45b095305cae6f34973ed979791ea24f9747fc1"
+      "bytes": 1459425,
+      "rawBytes": 9497004,
+      "sha256": "d8bf1c073eaf83ca7f330bf065c699a5ed9ac9e015a367aa3ed7853c125b3201",
+      "rawSha256": "600608eba77a8f04c01843ef6a11c2e0757c27815524c3fc02515021dbd0caa1"
     },
     {
       "project": "Augur",
@@ -403,10 +403,10 @@
       "toBlock": 8602745,
       "logCount": 20001,
       "file": "Augur-version1-Augur-8602745.json.gz",
-      "bytes": 2026166,
-      "rawBytes": 18041772,
-      "sha256": "d0ff84efadbd882a39daf250c3165f4635f2c0adaa2502e93e8f59e1e73b4db1",
-      "rawSha256": "2e6053a32418dbcc66fa02decafa05e5a7359fdcd89f66e011c068dbc33e7836"
+      "bytes": 1452209,
+      "rawBytes": 9480855,
+      "sha256": "1978100bf99be6cfaa082ccea0767a2545a92d2e2ad5a253710b21fe55b79e09",
+      "rawSha256": "ef7b56b1f391f3ba2f5141aee6a21ae491d2acb3089d3e6d935c7796b175ace0"
     },
     {
       "project": "Augur",
@@ -416,10 +416,10 @@
       "toBlock": 8754957,
       "logCount": 20000,
       "file": "Augur-version1-Augur-8754957.json.gz",
-      "bytes": 1911646,
-      "rawBytes": 17815908,
-      "sha256": "84ae56c4d264877473f8963ef07f72e4de990c9844d4e49a14fd58023356efb6",
-      "rawSha256": "b2e81f32f240928fa7194fef71c3bad8d0a195ba11b9d3add52ae4ccab838716"
+      "bytes": 1317940,
+      "rawBytes": 9544140,
+      "sha256": "7da73a31f1a5030615e35b7e6c1ba745a62f258e2905e197424c750238405825",
+      "rawSha256": "ed355b37c8db549f89563eb7c360e4f7e103d6066dbf0c83a25447948ef8c171"
     },
     {
       "project": "Augur",
@@ -429,10 +429,10 @@
       "toBlock": 8951108,
       "logCount": 20001,
       "file": "Augur-version1-Augur-8951108.json.gz",
-      "bytes": 2022806,
-      "rawBytes": 17854241,
-      "sha256": "18f6bd7b55088f90cf42327d236f42eac18585be5d689771389e110fa20a1be3",
-      "rawSha256": "f929b14a764f6238aaca1740c61398e8e512849ab3f0cc94d6d57a665b85c878"
+      "bytes": 1407768,
+      "rawBytes": 9505211,
+      "sha256": "1047a4a094d30e7188ed85a7cdde010ecfe8a24cd19b470e666cf8edb35001b8",
+      "rawSha256": "584534565279e2ab6dfe3effb32e44f5ce6b230bf4afb442355a62a135496f93"
     },
     {
       "project": "Augur",
@@ -442,10 +442,10 @@
       "toBlock": 9144885,
       "logCount": 20001,
       "file": "Augur-version1-Augur-9144885.json.gz",
-      "bytes": 1970049,
-      "rawBytes": 17801778,
-      "sha256": "5c85eba51416b000e99131bcbc50d282ef9fe5a476841303ab6a4e9485a9ebc2",
-      "rawSha256": "40030699c80d029b5466901d1bcba4e48860b612dfa7fa88937e5a316f1b0672"
+      "bytes": 1373603,
+      "rawBytes": 9501715,
+      "sha256": "f9a77bdb1d51786fad5958254386565c03181d0c71cfae1b6ecdb8dda4308e02",
+      "rawSha256": "49a0d4d12ca463b75aa315518898ad52157769d4ec397bc24bfd32348b7ef3d6"
     },
     {
       "project": "Augur",
@@ -455,10 +455,10 @@
       "toBlock": 9301631,
       "logCount": 20000,
       "file": "Augur-version1-Augur-9301631.json.gz",
-      "bytes": 1834759,
-      "rawBytes": 17662293,
-      "sha256": "dc8132b710e2396f2d3cd538a0a44033321b4cfeffab46232267eeb866c55deb",
-      "rawSha256": "0f4f0088f38121d9046f200873682cd20ec8943598c35b0758128738dd6db817"
+      "bytes": 1284133,
+      "rawBytes": 9480016,
+      "sha256": "2d1153ee21d58346406fa0c93b40b0fd777767e8801159d91465aaf38f46791b",
+      "rawSha256": "23d7bd5ed2d5e42a23d7486f650faaa2e4766d8cf07bac1963305601e3c21efd"
     },
     {
       "project": "Augur",
@@ -468,10 +468,10 @@
       "toBlock": 9417013,
       "logCount": 20000,
       "file": "Augur-version1-Augur-9417013.json.gz",
-      "bytes": 1660036,
-      "rawBytes": 17635045,
-      "sha256": "b548d32dac8b9ee2aa4287e4066a46cd699598d9376fa10117d242f508b4b050",
-      "rawSha256": "51c77dc924887fcec14ff2ebbdfcb0c6ab75cf84a9df672c2ce521835885c278"
+      "bytes": 1134713,
+      "rawBytes": 9481619,
+      "sha256": "1ac05a48a8ca534e3f7506d720723b116cc1d40aa722d3c9f3e5fb379116c53b",
+      "rawSha256": "ac2e02f003b89992e0e58a883406604757177a5be0a7d929640f62eb897e8b74"
     },
     {
       "project": "Augur",
@@ -481,10 +481,10 @@
       "toBlock": 9559606,
       "logCount": 20000,
       "file": "Augur-version1-Augur-9559606.json.gz",
-      "bytes": 1931481,
-      "rawBytes": 17604573,
-      "sha256": "f1757cc8ce15ac6b5a8ad814e30c209cc6c9d13cb09916f11bea3a8fdda3fc9b",
-      "rawSha256": "adf9327204114b94518f2c75bf63de51d3149c68e3dbd978330138984b63d297"
+      "bytes": 1305064,
+      "rawBytes": 9477488,
+      "sha256": "292f8391c7ba73d54908c366bbad4b63f0a81e09334e1462a996672baedb16d8",
+      "rawSha256": "c2c4c039fc149c2044443e6eaaac65d6b2202c54ad024969cb7366ac86b2fb5e"
     },
     {
       "project": "Augur",
@@ -494,10 +494,10 @@
       "toBlock": 9710827,
       "logCount": 20000,
       "file": "Augur-version1-Augur-9710827.json.gz",
-      "bytes": 1959632,
-      "rawBytes": 17599645,
-      "sha256": "03b8f8df63e9926e5ba36fc823bcf068a6ba06cc070702e28f4e2f77894ab032",
-      "rawSha256": "0403a35ae031fe63f0e251b7e62f8c80f0f7ce5c57edac39bb1ed5bcc593d640"
+      "bytes": 1321865,
+      "rawBytes": 9530422,
+      "sha256": "358b2105ab6e93fc4b8c8f30382df0ca2a55c76d646d8f12c7e4516e7400ab7a",
+      "rawSha256": "409701b4cd8c00c3a787b60508012bda053d2a34830ab7df3c557d58fe972119"
     },
     {
       "project": "Augur",
@@ -507,10 +507,10 @@
       "toBlock": 9973284,
       "logCount": 20000,
       "file": "Augur-version1-Augur-9973284.json.gz",
-      "bytes": 2093130,
-      "rawBytes": 17572833,
-      "sha256": "69a5d6dbdd91971c9ff25a9c2e7b2081d4ff73f6b782e41c457731e768415846",
-      "rawSha256": "271116aed01d0e73258a4d60fca637e11bc1677c4a9f68d8646f66ca8d0fcc5c"
+      "bytes": 1404382,
+      "rawBytes": 9528190,
+      "sha256": "14493a63db32d58260af24cd13a910d49c887172923afaf2f00bb5ec7a732b13",
+      "rawSha256": "743b92c399d724e5628a8609be0dbf6491f6568bcaf972d1a2be3ba511d0eadd"
     },
     {
       "project": "Augur",
@@ -520,10 +520,10 @@
       "toBlock": 10136785,
       "logCount": 20000,
       "file": "Augur-version1-Augur-10136785.json.gz",
-      "bytes": 2000502,
-      "rawBytes": 17572213,
-      "sha256": "716793b0e0d4c26f23d9b7dc4a7d8ae1ee4cd36459fd7c3a902c16e370297ea0",
-      "rawSha256": "3f35e9ba7765dbe54409468ed0bcdb7621eabea1e643652f7c4f1026401a89f1"
+      "bytes": 1372706,
+      "rawBytes": 9535296,
+      "sha256": "cb09b24b633bf56de902b3036a6dbe53b0c334da31215a55c3c49d0b3546ab8e",
+      "rawSha256": "4e43ad76bcfec713753e8929c23ff350111612582136e341b3453473f3c15ca7"
     },
     {
       "project": "Augur",
@@ -533,10 +533,10 @@
       "toBlock": 10308542,
       "logCount": 20000,
       "file": "Augur-version1-Augur-10308542.json.gz",
-      "bytes": 2107726,
-      "rawBytes": 17573725,
-      "sha256": "664db3f00d2fabb00eaf8f7054f7474e8a7b0f12b186ae221b2879ffb7b556a2",
-      "rawSha256": "bb91cff35b8adf6e06e5e06bc0d01067b8f01e0d47c9cf64da608d5a9e3c632b"
+      "bytes": 1426175,
+      "rawBytes": 9538624,
+      "sha256": "492bcba43c613bf7aa30c5e25320baafafbbb5e69ca8e997b9c64a4eb3927d3f",
+      "rawSha256": "d733fa977101f311c08496b3afdd732131f995846c0ab0e68c503456f2d0ea06"
     },
     {
       "project": "Augur",
@@ -546,10 +546,10 @@
       "toBlock": 10429882,
       "logCount": 20001,
       "file": "Augur-version1-Augur-10429882.json.gz",
-      "bytes": 1958251,
-      "rawBytes": 17579631,
-      "sha256": "1b4bd5da39f8f1aba5b01e92ab39276655629e3d6669748a89a8f7d4a83facc7",
-      "rawSha256": "8b3cb6083be4f26ef11344cbf8f7c1ae0fe6bf3f889a2440257bc95fd6de5ef0"
+      "bytes": 1345089,
+      "rawBytes": 9537990,
+      "sha256": "ef74d838587ac4884ce70fc44a7512e9f62caafbdf8ef4ea938b81698a2f645e",
+      "rawSha256": "5a135a1c985d2138fb29fc48a7b2ca2d34e1bc22eb799b958992c043d9fb8f2b"
     },
     {
       "project": "Augur",
@@ -559,10 +559,10 @@
       "toBlock": 10538465,
       "logCount": 20004,
       "file": "Augur-version1-Augur-10538465.json.gz",
-      "bytes": 1935498,
-      "rawBytes": 17578832,
-      "sha256": "3fda11458454ae948951a4f5743d3419a5204ce632a5dbf7a0caefa90bb7a0dc",
-      "rawSha256": "b4a544fc33e50f06e2e726c9082f3499a26dbd5db6a6893815a9ba2ba8d17b56"
+      "bytes": 1348104,
+      "rawBytes": 9535934,
+      "sha256": "a6d771bff1eed97eece69881d4b3fc835baca33be2c01934259adeb5a98c2b56",
+      "rawSha256": "1bf5b33bc43ed21515a9e76b84e72890c8d975f1b131fa508daa4512b5fe45c7"
     },
     {
       "project": "Augur",
@@ -572,10 +572,10 @@
       "toBlock": 10708079,
       "logCount": 20001,
       "file": "Augur-version1-Augur-10708079.json.gz",
-      "bytes": 2012652,
-      "rawBytes": 17576838,
-      "sha256": "3f8a7289099630d027f002b2122bc217bd3f5d30cec6f9fbdb938009fee85db9",
-      "rawSha256": "4514182c27d6bff64f39f32b91c8f009ee4226fae6a240c1caff93979afc37f4"
+      "bytes": 1440908,
+      "rawBytes": 9532473,
+      "sha256": "7e03a8e8132b53ae8b2ba1960075791557361ddaec6568d1fc72891ee626d848",
+      "rawSha256": "347cb0de7913f585b810d2b5f48255a49dbba528d2ea9ff1653a7f1a7a229a87"
     },
     {
       "project": "Augur",
@@ -585,10 +585,10 @@
       "toBlock": 11519086,
       "logCount": 20001,
       "file": "Augur-version1-Augur-11519086.json.gz",
-      "bytes": 2282906,
-      "rawBytes": 17574896,
-      "sha256": "5dc7aeab09bb29b940476073a363c50410af4a40444c3a076e5e1801624aa837",
-      "rawSha256": "8ba2b03a036fbf5c9b0c4dcee25f2827a51242401593d6cda521e601001de1c4"
+      "bytes": 1572901,
+      "rawBytes": 9521953,
+      "sha256": "5358b4c6791b8dce345ba8d33b10af14f6ae1d30eac8c9f028abd80157418db9",
+      "rawSha256": "cf9519b8a608efc6040bd38c2065d172e318bbf0705eea479803d4c1197801de"
     },
     {
       "project": "Augur",
@@ -598,10 +598,10 @@
       "toBlock": 12330737,
       "logCount": 20004,
       "file": "Augur-version1-Augur-12330737.json.gz",
-      "bytes": 2376483,
-      "rawBytes": 17582005,
-      "sha256": "ef2ae136b281874f1089c59c7cb5359874be62cf350c365bdc488f5b124e2bfd",
-      "rawSha256": "323becfa692422a8ffaf690570fe372b29c6d20f540ea4cbef8ae478d3598c78"
+      "bytes": 1705892,
+      "rawBytes": 9525960,
+      "sha256": "507d03c8acedf1979aba8c2c3dea7315614ed449ae2bd8fc8a11a27c397207ca",
+      "rawSha256": "263b34f3f3a2b70160acf08460e8f7a18d2fe22b05feb039fa72855a478f0d22"
     },
     {
       "project": "Augur",
@@ -611,10 +611,10 @@
       "toBlock": 16968799,
       "logCount": 20000,
       "file": "Augur-version1-Augur-16968799.json.gz",
-      "bytes": 2184518,
-      "rawBytes": 17571358,
-      "sha256": "47818ea5851eed38ce772bf6d07a5b448d48ccb26ead7ed15162b643d40a2986",
-      "rawSha256": "ac4051636d76851e5732a69f908e5505eea73580fd38e8af42814cc7f4b9c8ee"
+      "bytes": 1549295,
+      "rawBytes": 9514678,
+      "sha256": "8ad0e37ccc68ff853024ba5744b49e49acae5446535965be48a563845142c241",
+      "rawSha256": "7f43f50502d10789719bae750b676b0a6452cee8ba57a86332e5ec7b7c79d3fd"
     },
     {
       "project": "Augur",
@@ -624,10 +624,10 @@
       "toBlock": 24100373,
       "logCount": 20005,
       "file": "Augur-version1-Augur-24100373.json.gz",
-      "bytes": 1777666,
-      "rawBytes": 17595038,
-      "sha256": "74be7fa58110ec01f44cbf305dd98fd2ecf14e0ac99a73a1e84de0b64233a715",
-      "rawSha256": "2f77d3678dff17b007454d79f03632a8dbb5401a942b4d4c7a0ab0ee51aeb082"
+      "bytes": 1226499,
+      "rawBytes": 9528513,
+      "sha256": "ec2b4c10ca2087469d5c72958287fe3242157942862d71028cca8770e66d956e",
+      "rawSha256": "d1532ec1f506efbe34b71001760896e56d1c3ffc47d86b905de02384eaabf402"
     },
     {
       "project": "Augur",
@@ -637,10 +637,10 @@
       "toBlock": 26075462,
       "logCount": 6188,
       "file": "Augur-version1-Augur-26075462.json.gz",
-      "bytes": 494197,
-      "rawBytes": 5442228,
-      "sha256": "49b97ba8cd41bb209aac96d2dd1027b5249fc16ab106cd0e5851cc27aecfcb87",
-      "rawSha256": "4e0ee7fc3086704b2db506b5311dc92221a4b4bc6537a338955cb525800aef08"
+      "bytes": 339738,
+      "rawBytes": 2948815,
+      "sha256": "7c1cd3fe3164c1dddc9f705c7ca04987c30c9465640c83cc4e1523a803bb96b9",
+      "rawSha256": "bf3b75d4aa7a6167908cead3eb8320724b8876c297fe9c1b95f8ddcb0d101882"
     },
     {
       "project": "Augur",
@@ -650,10 +650,10 @@
       "toBlock": 4086812,
       "logCount": 20026,
       "file": "Augur-version1-LegacyReputationToken-4086812.json.gz",
-      "bytes": 768910,
-      "rawBytes": 10984516,
-      "sha256": "7e48848210f841ffffa997115b288a985cb3acbde51ab7a1c9f4ccd968296bb7",
-      "rawSha256": "9305e474a96d5418cc7f2d2265c22a795efe06d05c538f1a867a0a5494ae4660"
+      "bytes": 722880,
+      "rawBytes": 5606338,
+      "sha256": "14fbe5122a8f186d191cc25a6586027adda0ae84440be4f91c352da690425772",
+      "rawSha256": "92f002460cab7243702ffae3b02890103f435d5e070c337938e94a77721fc0ac"
     },
     {
       "project": "Augur",
@@ -663,10 +663,10 @@
       "toBlock": 4165021,
       "logCount": 20000,
       "file": "Augur-version1-LegacyReputationToken-4165021.json.gz",
-      "bytes": 1671456,
-      "rawBytes": 11865752,
-      "sha256": "dd585e5d8e0ac9bc18ca47ae7a35546d86cd05aaba1f3dca2fbb3a023f386c9b",
-      "rawSha256": "d19830addca2cdddce885ea8b8cc160088c4566c323d0c75c3fed104a68ebfe7"
+      "bytes": 1264351,
+      "rawBytes": 6256339,
+      "sha256": "d5a5de4c2878a725eb4a12ecb82f549aaafb07d94a0f89ca8607b6591cee2ad1",
+      "rawSha256": "ebd11a6a3136b1b776c87f1d33f5de02cc60a74d9a9c5954dea71fb2b41841d1"
     },
     {
       "project": "Augur",
@@ -676,10 +676,10 @@
       "toBlock": 4250290,
       "logCount": 20000,
       "file": "Augur-version1-LegacyReputationToken-4250290.json.gz",
-      "bytes": 2184383,
-      "rawBytes": 12348056,
-      "sha256": "66f8acccd54fc5ffd69e251c57dafc33280f74af21f26001e0953513153237a4",
-      "rawSha256": "95ce5884bc2696a1ba3f8156efebeed7c01a1fba1067003398cf147c025de7f5"
+      "bytes": 1587463,
+      "rawBytes": 6554587,
+      "sha256": "25eb024667638c7d30811588e1c1ea890b49b8796d9729d6ff9adcb06b7b2ffa",
+      "rawSha256": "6fb85b82f2893926144980b4843af797c252826462c4957a3f0d8675c6c2b932"
     },
     {
       "project": "Augur",
@@ -689,10 +689,10 @@
       "toBlock": 4373255,
       "logCount": 20002,
       "file": "Augur-version1-LegacyReputationToken-4373255.json.gz",
-      "bytes": 2160037,
-      "rawBytes": 12350281,
-      "sha256": "b7738e9189397c893b537f55644223584e978b916d789db4542d4abe00fb7622",
-      "rawSha256": "5fe2146d27ccca19b6ff58e1c60dbee30adcec04389512d2b73b6eeb53e9f040"
+      "bytes": 1592870,
+      "rawBytes": 6544297,
+      "sha256": "7da8cce31e54e003cc6448eeda69c5bcd84c67caf714376aabddb0dd1e9315c1",
+      "rawSha256": "a906e416e662981a1e696865e93d613c01b0f2e79ac554767ef579e7389c8c00"
     },
     {
       "project": "Augur",
@@ -702,10 +702,10 @@
       "toBlock": 4600616,
       "logCount": 20001,
       "file": "Augur-version1-LegacyReputationToken-4600616.json.gz",
-      "bytes": 2223422,
-      "rawBytes": 12344847,
-      "sha256": "5db9edfc59a4e53c2dfb2c22d5c8ba2bae93a68b2ba5e24031de1add58b6f906",
-      "rawSha256": "0300bd281dce05ed37ab4df0082171321392a671f2115a3cc639365c4a3d5642"
+      "bytes": 1594434,
+      "rawBytes": 6546553,
+      "sha256": "0d1acb52e0976481d459b0651e0b121af644abe52c1ec2374c326cb054f0389b",
+      "rawSha256": "5b8328565d6d0b1c6ca45faaa3ab0d3232c6a23c6a6d84bc75042f9542875141"
     },
     {
       "project": "Augur",
@@ -715,10 +715,10 @@
       "toBlock": 4706198,
       "logCount": 20002,
       "file": "Augur-version1-LegacyReputationToken-4706198.json.gz",
-      "bytes": 2202468,
-      "rawBytes": 12346986,
-      "sha256": "5ae509334be33d1c49e30f02b1174c5c429d9b53df241ae2c1d67e630495778e",
-      "rawSha256": "9f09ea46115e3f71019e23526baaf336f30580010bfbdb5d242cf4a4d2e3174f"
+      "bytes": 1607846,
+      "rawBytes": 6549348,
+      "sha256": "53bb07f2a070052d80911bb64be437dc42bf49f6987f1754bc9a248296dd19d8",
+      "rawSha256": "a9ee78e31f3e97037bf01e0e0d18e485fd0d3abdf2b0d605a2506f57c1ba173f"
     },
     {
       "project": "Augur",
@@ -728,10 +728,10 @@
       "toBlock": 4778064,
       "logCount": 20000,
       "file": "Augur-version1-LegacyReputationToken-4778064.json.gz",
-      "bytes": 2173657,
-      "rawBytes": 12355022,
-      "sha256": "f44210052d0e21d7ab51d6c46293e13f744d620e40f2bfa79346e6b609ed4506",
-      "rawSha256": "a6d97198f5672d92c269b72dbc0bbc19ef55940c20c7f1e45fcb0d6ae1d914f6"
+      "bytes": 1618922,
+      "rawBytes": 6560428,
+      "sha256": "8b38154129cacbafa16f0b7d292e1ecd1e3c2713c55c269486ded8000690456b",
+      "rawSha256": "08c2014c3df8946fd590806ccce07ba2da78d081d48ddc0f411cb728f75ccdcb"
     },
     {
       "project": "Augur",
@@ -741,10 +741,10 @@
       "toBlock": 4882595,
       "logCount": 20000,
       "file": "Augur-version1-LegacyReputationToken-4882595.json.gz",
-      "bytes": 2273895,
-      "rawBytes": 12352678,
-      "sha256": "445c30fe7c115595c361bc7199947211cfd4a5cc5d6b619e21ce1471d3c81031",
-      "rawSha256": "7f77f3d32a8c872c9005e19cce6d82bbe1fa9bc7f575f3d2ac5137cb9f4f1541"
+      "bytes": 1642470,
+      "rawBytes": 6551755,
+      "sha256": "e3c9ed47caf1af6971329eef85675006e261edbf602120432b7cfd749dab7b47",
+      "rawSha256": "13136a960b039002816810cd1489d2df4a9fa6c3059f02ba3fd0a941ee970473"
     },
     {
       "project": "Augur",
@@ -754,10 +754,10 @@
       "toBlock": 5004853,
       "logCount": 20000,
       "file": "Augur-version1-LegacyReputationToken-5004853.json.gz",
-      "bytes": 2250330,
-      "rawBytes": 12351094,
-      "sha256": "b6a7689aa73ee8b51aee5968aa94bc1829b43320de78ce69d2f7dd761a26cdd6",
-      "rawSha256": "f2845c8290789ecb024b78e68a1eb52c7c812a1d794329ffb99e2168116d7625"
+      "bytes": 1611627,
+      "rawBytes": 6558555,
+      "sha256": "f24d91b6884df15ba3ac3995a23c8cdc4b89c6cd7151894dad63f87fc285e157",
+      "rawSha256": "4e24c76ffa8c918a987accdd4a58dee744018d887907a5e28e1668388c625aa2"
     },
     {
       "project": "Augur",
@@ -767,10 +767,10 @@
       "toBlock": 5155743,
       "logCount": 20000,
       "file": "Augur-version1-LegacyReputationToken-5155743.json.gz",
-      "bytes": 2038187,
-      "rawBytes": 12350472,
-      "sha256": "3e6295fd0e4f4b15206be0e08903668b8d540d595db910e4d97645ae0d9cf4e5",
-      "rawSha256": "30afb93af06a07d864bfc25b361d69be57d9c7a6393b9513dd36d3231136ff6b"
+      "bytes": 1430959,
+      "rawBytes": 6552749,
+      "sha256": "59ea89fd3c9744362fc29f1f8a7caa74afd8f1bd0d57574698fa9fafb139616b",
+      "rawSha256": "846f6a50b9ef13cfc4e3d1e97ed601d706f7066c9c912171b96c128afaf71bd7"
     },
     {
       "project": "Augur",
@@ -780,10 +780,10 @@
       "toBlock": 5551639,
       "logCount": 20000,
       "file": "Augur-version1-LegacyReputationToken-5551639.json.gz",
-      "bytes": 2210331,
-      "rawBytes": 12348883,
-      "sha256": "2d50412e0c28c880e3e4cc1e229a661260c22b51e34bdb9d0eb815b875a1946e",
-      "rawSha256": "9ee28f9bcb80590d71fa165eec0adf5d700360b495c825a421a3a62aaad7fbb9"
+      "bytes": 1534098,
+      "rawBytes": 6561982,
+      "sha256": "d2af3d10ffd892036a6069eea886c123171bc57e163c00d595439fe8eca409a2",
+      "rawSha256": "10ecbb16b300dcb2fe3d62e11348d87fc3d03982f331d4a90e1a7aa568a4f86d"
     },
     {
       "project": "Augur",
@@ -793,10 +793,10 @@
       "toBlock": 5703170,
       "logCount": 20000,
       "file": "Augur-version1-LegacyReputationToken-5703170.json.gz",
-      "bytes": 2128111,
-      "rawBytes": 12350705,
-      "sha256": "f55340f2022ca7d8835304ecd7babbb710b4516d41a2d9693509e455277980c2",
-      "rawSha256": "b1ca907d27eaf867919c1ba7c02337abdd3a1a3c4e5b42e955aa17f187ec1dbd"
+      "bytes": 1585332,
+      "rawBytes": 6561134,
+      "sha256": "5ec7a0cae04d3c25643cdd042afd8e0479ab99ddcc076cfb78324472522f2fef",
+      "rawSha256": "c58effec08cf9cd30eb34f7adf65a1de026165480fe6a00d6b1087305d8ae931"
     },
     {
       "project": "Augur",
@@ -806,10 +806,10 @@
       "toBlock": 26075462,
       "logCount": 15820,
       "file": "Augur-version1-LegacyReputationToken-26075462.json.gz",
-      "bytes": 1731375,
-      "rawBytes": 9768761,
-      "sha256": "b7d39064b59d74544988d66b967eaaf46c74410e7e4cefcd9499be05d2085cdc",
-      "rawSha256": "2e2605ee6f8fb44fc6b69b1ed325769554c715912a3b5a8877090cc1d0a95766"
+      "bytes": 1251516,
+      "rawBytes": 5187001,
+      "sha256": "ea36eb83585e994fcf1be4741545800c5bbec86c7f3d8e14ab18d0b498c3dfc9",
+      "rawSha256": "363419449e896e8d9507c80b8bc3f2ab9d898a6792a9dd144801272008f7a30c"
     },
     {
       "project": "Augur",
@@ -828,10 +828,10 @@
       "toBlock": 10706168,
       "logCount": 20006,
       "file": "Augur-version2-Augur-10706168.json.gz",
-      "bytes": 1190310,
-      "rawBytes": 17610766,
-      "sha256": "47b1d0b39abe03e8fd1cbd9f8919edce07d4a48eb297547f5dec9f08c600f991",
-      "rawSha256": "187421e17fe8f4573c8e23ae38266b1b0bf3fae6ca930f8d9a3a2552bf9c7d2a"
+      "bytes": 859406,
+      "rawBytes": 8998384,
+      "sha256": "8bd76f588f40d67124e91948cb87f5b29a57c00f2c7989944f6fb532a75243a9",
+      "rawSha256": "35162abaf659585d497363fc2534e90fbc5a57dd1f82423d45c85f922d24ebd2"
     },
     {
       "project": "Augur",
@@ -841,10 +841,10 @@
       "toBlock": 10895469,
       "logCount": 20005,
       "file": "Augur-version2-Augur-10895469.json.gz",
-      "bytes": 1069794,
-      "rawBytes": 17509128,
-      "sha256": "ad6989da5d4dfcaa9dd02f1954de49c7dca26c04efc9a4e9531e2d5d8098d069",
-      "rawSha256": "b91949a532d5fa6bb59926981bd229ff89828d67fd889337fe213e705faf67d4"
+      "bytes": 774520,
+      "rawBytes": 8974062,
+      "sha256": "d8e0d3c75a056d13cb8fc7ed6fb3029715e2430f3ab83d2e943ab2254615d4ad",
+      "rawSha256": "f44268ebd0802fac77eda36f438506c4072e2ec779a2d0052d5cf07b4de3f632"
     },
     {
       "project": "Augur",
@@ -854,10 +854,10 @@
       "toBlock": 11108248,
       "logCount": 20001,
       "file": "Augur-version2-Augur-11108248.json.gz",
-      "bytes": 997969,
-      "rawBytes": 17255478,
-      "sha256": "baee4ccec780a143ca4bcceebf6b6959e9a534bf906fe60d0b4985250f58e492",
-      "rawSha256": "d71cf8731b21e39fedb1b22ffda2b4f958a4df9f4fe90d2175edb4206a13ddd6"
+      "bytes": 719881,
+      "rawBytes": 8861202,
+      "sha256": "3547aa2e998917c49cb3f9439980650558e50e088b0d8a391a9d9444b718c02d",
+      "rawSha256": "a4fe9c29a928031061fb54ef697003e5fb4a5494cb5a2ea5ce956a910eb15fe8"
     },
     {
       "project": "Augur",
@@ -867,10 +867,10 @@
       "toBlock": 11231176,
       "logCount": 20001,
       "file": "Augur-version2-Augur-11231176.json.gz",
-      "bytes": 961798,
-      "rawBytes": 16627012,
-      "sha256": "0a70622497d753648d34440a0cca2b92d6491ba3d9752e0236269db5fedbefc7",
-      "rawSha256": "9c1bc9073727f8add7f3729738bb1828ab843fda0b2ff23fa0951acfc57e5662"
+      "bytes": 686219,
+      "rawBytes": 8567626,
+      "sha256": "05561ba860a760eafa8c87f0414979ecb04b960a08f7eb8d18f71d990674d6d9",
+      "rawSha256": "6d98fdd2e933474aac0af3584cce93ab659c2439836702fe97d0332ec360ca6d"
     },
     {
       "project": "Augur",
@@ -880,10 +880,10 @@
       "toBlock": 11343748,
       "logCount": 20000,
       "file": "Augur-version2-Augur-11343748.json.gz",
-      "bytes": 973144,
-      "rawBytes": 17268359,
-      "sha256": "4913f0fb1e14be87b34c6eafef357b37ef4b73b461934be8b18a9a61629c9e1d",
-      "rawSha256": "945cc8444143797ad70275728acb9b84bd26ad11809970dc8d6193886ac6fc85"
+      "bytes": 707475,
+      "rawBytes": 8870302,
+      "sha256": "c4608e56be61b82c392cefce367a768049ab684c9ef2f982e9d9b328e93fb615",
+      "rawSha256": "b07368c7395764edbe7f812be585d0722d8737527807ab779e8ccf83d6f9c9b1"
     },
     {
       "project": "Augur",
@@ -893,10 +893,10 @@
       "toBlock": 11458650,
       "logCount": 20000,
       "file": "Augur-version2-Augur-11458650.json.gz",
-      "bytes": 990263,
-      "rawBytes": 17267983,
-      "sha256": "c3e5738fc97d90d45971840017e0c016966c8d1ccd804303c1fe1e659bc27965",
-      "rawSha256": "a22d50f5aee2fbc4fee20b64f76303b4a0882a9ab31310c3ab9794d2ae4008c1"
+      "bytes": 721178,
+      "rawBytes": 8871490,
+      "sha256": "cb3a1573db20f899796452414390d4ae89367348fbd4b5637b4f4559cf9461e4",
+      "rawSha256": "f591f4fc500c1ed64c4ffe34b3ff4bd6b0ca0d4f9fd6896219389913c3e960ba"
     },
     {
       "project": "Augur",
@@ -906,10 +906,10 @@
       "toBlock": 11530709,
       "logCount": 20002,
       "file": "Augur-version2-Augur-11530709.json.gz",
-      "bytes": 1000874,
-      "rawBytes": 17437766,
-      "sha256": "6b34d6bd06644869dc98b48782689d0c5e07f69caa307c2aaed4ca51cb80938a",
-      "rawSha256": "2446065dd906e70d9be3241d858a8ab91e28ed860b3a81292dcb5848f295450c"
+      "bytes": 756826,
+      "rawBytes": 8948869,
+      "sha256": "5727fd0f08022c041217ebd4404a3c7f35b0f9b0b682037d993105c6bdfd57e9",
+      "rawSha256": "54ba3dc66bee553d2dcde9bdc5c923e507207d32f42e2132e3f637d3705de13a"
     },
     {
       "project": "Augur",
@@ -919,10 +919,10 @@
       "toBlock": 11649581,
       "logCount": 20001,
       "file": "Augur-version2-Augur-11649581.json.gz",
-      "bytes": 1077239,
-      "rawBytes": 17405107,
-      "sha256": "7d2494b1bf1ed142e45e18db05860790726d4eef0df3e199487120714546cc74",
-      "rawSha256": "1b5619e62c3ba662607832cc54d27886086453f825e3d305f5c287822bc0afac"
+      "bytes": 775044,
+      "rawBytes": 8930406,
+      "sha256": "f98fc3679e8ccdee247c64447a2df1e36643554e80d8837ad3bebbb6622c679b",
+      "rawSha256": "112075a548d0071c3fd19db7aee2fb28c8d872d16602e4851e48e3e77a4186b7"
     },
     {
       "project": "Augur",
@@ -932,10 +932,10 @@
       "toBlock": 11791945,
       "logCount": 20002,
       "file": "Augur-version2-Augur-11791945.json.gz",
-      "bytes": 1083258,
-      "rawBytes": 17447009,
-      "sha256": "e21c503b4dbf6ce9608b82074de28729c0aa5c79326aad124e996ae42df3b72c",
-      "rawSha256": "c5da7aa130804f242a95dc6e341ef550eeb29c63f1a53d655a8d15c9c62f2a32"
+      "bytes": 780852,
+      "rawBytes": 8942553,
+      "sha256": "b319630f6c240098f801f384630b11fd5967d51f78380875f330145027d061b8",
+      "rawSha256": "5ff9de0d1af123971949072d57a2dc77a8f10381198dfc763760301a2141168a"
     },
     {
       "project": "Augur",
@@ -945,10 +945,10 @@
       "toBlock": 11890568,
       "logCount": 20000,
       "file": "Augur-version2-Augur-11890568.json.gz",
-      "bytes": 1075560,
-      "rawBytes": 17413918,
-      "sha256": "be82ed74778e98983908e61f89ee5c13be5c35fdf36157416d036eed035c961c",
-      "rawSha256": "8b562190df68f729d2c20d4f9baa90fddd189cb0641317c4110d29f685b527d1"
+      "bytes": 780395,
+      "rawBytes": 8932471,
+      "sha256": "faa9386dacb5263aae49853ee9ef5eb295a4e25ea4da4e77337719ae249d4301",
+      "rawSha256": "6dfa22c3b10b6984879c3d28c6042ae6b56202e8eae34f7cb03ddd9bb2202faf"
     },
     {
       "project": "Augur",
@@ -958,10 +958,10 @@
       "toBlock": 12012413,
       "logCount": 20002,
       "file": "Augur-version2-Augur-12012413.json.gz",
-      "bytes": 1056478,
-      "rawBytes": 17511467,
-      "sha256": "cb7f4f4c26c03c9e26302a81525f4ecded3a7d31065b474dca522c6776f3eec4",
-      "rawSha256": "62a449886a033664cc2b4012f19e09460029b0f0bcdfa2d2f6ee6ea7a1443f8e"
+      "bytes": 772274,
+      "rawBytes": 8981928,
+      "sha256": "217a1f8ecf3bfe5bea8686bd2e9e4d856e32722669a1c85ed445947fd32196a8",
+      "rawSha256": "21e0495b2d35ffb39bebd16aa6d5445144a0e0ab4c39305758cfb595b978b956"
     },
     {
       "project": "Augur",
@@ -971,10 +971,10 @@
       "toBlock": 12125873,
       "logCount": 20000,
       "file": "Augur-version2-Augur-12125873.json.gz",
-      "bytes": 1065101,
-      "rawBytes": 17508420,
-      "sha256": "118588d8c8c51f5ec71fd3f1b855a3d9c9708db2504bb4b33a664c5af22a4100",
-      "rawSha256": "8537f1fc6a2acbcca31710e3d40d99d8edb3d562bc8f6c0be87f8510183f7abb"
+      "bytes": 776719,
+      "rawBytes": 8984780,
+      "sha256": "a28d2c673283278bd10c9a143a3e29d2969f567d2be87545ca3926a5745e7060",
+      "rawSha256": "5046bfd892f132c0ec78b2213934b2781022f73c6a2773de7444291e2395f7ee"
     },
     {
       "project": "Augur",
@@ -984,10 +984,10 @@
       "toBlock": 12233945,
       "logCount": 20004,
       "file": "Augur-version2-Augur-12233945.json.gz",
-      "bytes": 1095695,
-      "rawBytes": 17512827,
-      "sha256": "44f12e093d2b74f2f460a76dca7b09dfcfcc3560a6d9dadeee19d5cce9825afb",
-      "rawSha256": "34181bcf2a8acce9ddfda21e463dd81f7eaf4d7eded84454b6684b3768c90ab3"
+      "bytes": 790031,
+      "rawBytes": 8985055,
+      "sha256": "25ef38cae5f15111dec9a71e8f93eeaac600b942c167d0a0046371a8bd2b0595",
+      "rawSha256": "aea56f861be44db25ec5d4d4fa758799119b03d0cc9a62fd0a3ade1f9b433d1d"
     },
     {
       "project": "Augur",
@@ -997,10 +997,10 @@
       "toBlock": 12330863,
       "logCount": 20004,
       "file": "Augur-version2-Augur-12330863.json.gz",
-      "bytes": 1001052,
-      "rawBytes": 17516469,
-      "sha256": "44e7f29199aeeb4eac631a05044892605b251f96142b4c579790ac1ee72ffb1b",
-      "rawSha256": "1c80d14cd39c215cffab87c4949320de29e767c2761ebcca3414ff6dacceb04c"
+      "bytes": 752328,
+      "rawBytes": 8959778,
+      "sha256": "ebda05f06c73985c007bec8243c1afb5b5da66868eeb6d9192e1365f24a428d0",
+      "rawSha256": "ab9fa2727575ccd0d5ce08a81ea486e6d86e4446bbce8c6b19c74ee128ac159c"
     },
     {
       "project": "Augur",
@@ -1010,10 +1010,10 @@
       "toBlock": 12487453,
       "logCount": 20000,
       "file": "Augur-version2-Augur-12487453.json.gz",
-      "bytes": 1055461,
-      "rawBytes": 17513333,
-      "sha256": "e8d4c2545176e5370d877296cdd430411e15c11e96f584524d2b69e27799ec76",
-      "rawSha256": "53ffb072e047318ad24ac7fde13bcc73bbc10a1b5d2f20c2e7110d3a9b246acb"
+      "bytes": 756608,
+      "rawBytes": 8989171,
+      "sha256": "44face9d04148d995368ed1266b6090de23bbf7c092ebab457fca0549cb7386f",
+      "rawSha256": "89f0c04fafb85b14ea39a09c0683cc0a097be00793104ad9756e840e7fe69410"
     },
     {
       "project": "Augur",
@@ -1023,10 +1023,10 @@
       "toBlock": 12714373,
       "logCount": 20005,
       "file": "Augur-version2-Augur-12714373.json.gz",
-      "bytes": 1073392,
-      "rawBytes": 17515590,
-      "sha256": "2fc1a59c20f4c4f2a9ee9fa020292ceeffe3d98200613cf9b4abce35b7c9f3c3",
-      "rawSha256": "1f7b3a0881e2b2abdef8f085687ca5d0f6ecaae0c08df55d3b9d114a15e7b744"
+      "bytes": 774445,
+      "rawBytes": 8990062,
+      "sha256": "1799979f9c7af9d0cd03d9d23cf758d199c9635c5a11e11e5d608d5c451ae48e",
+      "rawSha256": "ebf35e72effad374f4b32cb58935f9411683a5703f41932ae38e27ef488e6885"
     },
     {
       "project": "Augur",
@@ -1036,10 +1036,10 @@
       "toBlock": 12874284,
       "logCount": 20002,
       "file": "Augur-version2-Augur-12874284.json.gz",
-      "bytes": 1057263,
-      "rawBytes": 17507486,
-      "sha256": "2aee106564373b8ef9069eff4429af5ca60be4b164cc5c96db8f65aabd7d46c8",
-      "rawSha256": "98ff618f1b88a4eac00b91a25735497ad6bb83a8df3ed61fa206dbe84e309323"
+      "bytes": 764346,
+      "rawBytes": 8993658,
+      "sha256": "8ea50c380cfb8f5599f8fc1300b7ac573a6d15f4bdc584ce7a7f349f95816d3c",
+      "rawSha256": "e22192bcdf1db0ad75fbef959692df73ae008f1755c87ca09a6643d9b76818f8"
     },
     {
       "project": "Augur",
@@ -1049,10 +1049,10 @@
       "toBlock": 13040152,
       "logCount": 20000,
       "file": "Augur-version2-Augur-13040152.json.gz",
-      "bytes": 1047202,
-      "rawBytes": 17506873,
-      "sha256": "027eefa5bcd87f3ae59de498021d86743505e932248e1718fbe516d621626d5d",
-      "rawSha256": "555b771989ab6baa10efd197d0776d2b2d4373f25e20dd52509bee18f77a1c5d"
+      "bytes": 770006,
+      "rawBytes": 8990560,
+      "sha256": "e024e2037242552f6ac5d12334f3a477fb3388235f3f7cb853c17298711e09d7",
+      "rawSha256": "e670d57eda0949c2ab0c615f14ec5a30007b2bad3e40dda4ace40b3205a1bb45"
     },
     {
       "project": "Augur",
@@ -1062,10 +1062,10 @@
       "toBlock": 13443483,
       "logCount": 20004,
       "file": "Augur-version2-Augur-13443483.json.gz",
-      "bytes": 1083643,
-      "rawBytes": 17512034,
-      "sha256": "5b03e3a6d0c67f353015d88857bb00b238233cd85f2867c04d38dc5cf9b247d2",
-      "rawSha256": "c5175fb4367070df39e76a6f3fd926850d07b4cc3a793b9618fd805d8618d8c3"
+      "bytes": 775509,
+      "rawBytes": 8983164,
+      "sha256": "268061410c9e5342237a06258dd02f432f50398631fd13e0b0b67160a3cb046c",
+      "rawSha256": "7b824b2c7e7600398a3a610c26eef13bb516fe2689c2155a06bad86044b8b8c1"
     },
     {
       "project": "Augur",
@@ -1075,10 +1075,10 @@
       "toBlock": 14163873,
       "logCount": 20003,
       "file": "Augur-version2-Augur-14163873.json.gz",
-      "bytes": 1101124,
-      "rawBytes": 17512539,
-      "sha256": "c34e6f88c8a37b1234089f8ddbee66fe8fc77057e71a53edf92ad9e9c7dbdf61",
-      "rawSha256": "96a687c293b6c2deb8295fe62252624ea7971911429602df59858dcc676adfab"
+      "bytes": 784424,
+      "rawBytes": 8988425,
+      "sha256": "e2b2a990a1422a1babd4a8423dadd2fa4b13dd26103838b6c0495f99889c0629",
+      "rawSha256": "8051bae37b805a51214c212621f95753917bfe17d3b6bb77f558e2dae022905c"
     },
     {
       "project": "Augur",
@@ -1088,10 +1088,10 @@
       "toBlock": 14882205,
       "logCount": 20000,
       "file": "Augur-version2-Augur-14882205.json.gz",
-      "bytes": 1063004,
-      "rawBytes": 17507473,
-      "sha256": "c00ab797f638e00d49f4639f4ca5d1900b13be68eb1bd215832a18ac88ce5d6b",
-      "rawSha256": "5000568c0e13cb8041e30cab37867db85d726a567cfc770f68bc1b52406df4d2"
+      "bytes": 761431,
+      "rawBytes": 8989663,
+      "sha256": "0e6f3dd40fab78dc509d0f21d2bb7ef709bee87649416c8bb294e5eced9b7efa",
+      "rawSha256": "5328d1667a58a481fab902bb6789ab058788f7ce504139dbfa79b7058f4f283c"
     },
     {
       "project": "Augur",
@@ -1101,10 +1101,10 @@
       "toBlock": 15515817,
       "logCount": 20008,
       "file": "Augur-version2-Augur-15515817.json.gz",
-      "bytes": 1057004,
-      "rawBytes": 17520135,
-      "sha256": "71d55dadbd228a542b26d7fd42ab65af2241b18a7608d29551372c7d029f2a03",
-      "rawSha256": "309753934ef3383e718f2220d56b78c79ce4b806cbf4c79d2685f045aa29e742"
+      "bytes": 754062,
+      "rawBytes": 9008986,
+      "sha256": "b5c46c6bc7a26ec9461f1147ffe23bccbf9cd13c56a464df680a27536d83f305",
+      "rawSha256": "c5d11b2692af96421b4a07dfc24c8d08c4c94e87d7fd0d87c5ecaae31d126c5e"
     },
     {
       "project": "Augur",
@@ -1114,10 +1114,10 @@
       "toBlock": 16207403,
       "logCount": 20002,
       "file": "Augur-version2-Augur-16207403.json.gz",
-      "bytes": 1037279,
-      "rawBytes": 17511118,
-      "sha256": "52a55e99d57b7aa86ecaa2bca5fb95c019ac0a3e410860da27faeae4da9ccec6",
-      "rawSha256": "ab39369e3ad9d1c412775666dcf0f045936cc3e333be74d1fbb6189a2046f1db"
+      "bytes": 749332,
+      "rawBytes": 8996680,
+      "sha256": "0443968142ed675de230d0ed2b7f55d9509ac46cc2ae727e8181b0527cc3cfc4",
+      "rawSha256": "40b6bced2b5b86ad53306f21f49cb92200354b7f930eedfe38219473c02cb0e2"
     },
     {
       "project": "Augur",
@@ -1127,10 +1127,10 @@
       "toBlock": 16561712,
       "logCount": 20000,
       "file": "Augur-version2-Augur-16561712.json.gz",
-      "bytes": 1050727,
-      "rawBytes": 17509224,
-      "sha256": "5095cdbff49d21f3643d86910828f7d1a1b093805e3160ecfdf679779deba79e",
-      "rawSha256": "9a865e7c21d963712d40eaef6d982104f7d3bcc0636a8053b427390b8812d232"
+      "bytes": 745405,
+      "rawBytes": 8993998,
+      "sha256": "5e0ba099f9ae461bcd3556330876c10cc40b3d788d52a8ea7410afcc5272675f",
+      "rawSha256": "423627d589f8d62bab5658031e414467d0f3bde9a155f14e90396cc90d7e8455"
     },
     {
       "project": "Augur",
@@ -1140,10 +1140,10 @@
       "toBlock": 16709524,
       "logCount": 20002,
       "file": "Augur-version2-Augur-16709524.json.gz",
-      "bytes": 990727,
-      "rawBytes": 17512195,
-      "sha256": "6131c894c317a74f24533e0053b32ede43251a9d98c7b69be9a9bf00d5bb43f9",
-      "rawSha256": "c21b0a06bd32b6a252f3c7d45f6aa8ada70f9cb446fa91631f3afd258e0f1b58"
+      "bytes": 724422,
+      "rawBytes": 8992944,
+      "sha256": "25b4a9e4002e17c12ac8c11752e57f8f985348b9959d1c15c34d8fe1932c6ceb",
+      "rawSha256": "d20b26250432a5d8e7303baf2c9fc6b077bb9284df4e019fe1502c68b71b9b4c"
     },
     {
       "project": "Augur",
@@ -1153,10 +1153,10 @@
       "toBlock": 17458274,
       "logCount": 20038,
       "file": "Augur-version2-Augur-17458274.json.gz",
-      "bytes": 1021916,
-      "rawBytes": 17559989,
-      "sha256": "e244fca8b65e0dff30e4c5363845ec94a0067ba94cd677a64ace127852527314",
-      "rawSha256": "d8733e513dc6bcae9a3463318af35d8424c67a5f8b4f9ad7b7a603e439c70db9"
+      "bytes": 737466,
+      "rawBytes": 9018275,
+      "sha256": "7eb07a1f9b4aeffb3565ba128a9c2ef09296d5358fb749f2e1eca545f6bcb554",
+      "rawSha256": "62453b4951a7a80712d9b5044ba97fee50e77a519888960705bd6012dfc734ee"
     },
     {
       "project": "Augur",
@@ -1166,10 +1166,10 @@
       "toBlock": 17683698,
       "logCount": 20008,
       "file": "Augur-version2-Augur-17683698.json.gz",
-      "bytes": 980253,
-      "rawBytes": 17539039,
-      "sha256": "78e7cebda21cb4686808af6acb78c7c7809a36846fd36265af6e2a98a715c659",
-      "rawSha256": "7a1f38c19220af308685703f264c47b90c22d60280bf53492b5d5079d981d176"
+      "bytes": 717209,
+      "rawBytes": 9020249,
+      "sha256": "8909e71ec47057d9e245cc04ec695281e31c1f27eb6568fd03d130dabbe23f8b",
+      "rawSha256": "6619fe1d3efede67a47fb938a711d72757536a6d30bfc3060a3acf22d78ee297"
     },
     {
       "project": "Augur",
@@ -1179,10 +1179,10 @@
       "toBlock": 17802640,
       "logCount": 20002,
       "file": "Augur-version2-Augur-17802640.json.gz",
-      "bytes": 1019810,
-      "rawBytes": 17532205,
-      "sha256": "1eda4106bfc2e6fc6b7f901900e8bbf28f2c0ff2194fea67f128f164ad8b11ad",
-      "rawSha256": "26596c99c1122f2792616884573be72c24a0d306811c0b2dff17baabcf8aa60b"
+      "bytes": 747184,
+      "rawBytes": 9022793,
+      "sha256": "dbf87723cb57548a46414b58e2b55c39d0cac6b57cdf1ffcc2fe235aeab2c1f2",
+      "rawSha256": "ba2571de1779175484cd3e7633cb2c5d1472ce23d37cd91dd1261faed55d3531"
     },
     {
       "project": "Augur",
@@ -1192,10 +1192,10 @@
       "toBlock": 18481532,
       "logCount": 20010,
       "file": "Augur-version2-Augur-18481532.json.gz",
-      "bytes": 1017484,
-      "rawBytes": 17540414,
-      "sha256": "862b9d08bfc7e1313d6a6ef49a98ed3816fe80646f1bcb49dfe8024303fd3e3e",
-      "rawSha256": "3b66490fe5b33af355959f4adf04b51bae40c38164f845f467bf083a33867a45"
+      "bytes": 739140,
+      "rawBytes": 9022516,
+      "sha256": "6f2ec5b4bc74d7f9ed9ebb0ab9ef3bb257c6877db61f7ccbb0244b1c72850352",
+      "rawSha256": "ee83caa6d54fd7404b6daf932be2ee38a6fc1abc650d98ec6176f6224840dcd7"
     },
     {
       "project": "Augur",
@@ -1205,10 +1205,10 @@
       "toBlock": 19566049,
       "logCount": 20000,
       "file": "Augur-version2-Augur-19566049.json.gz",
-      "bytes": 1026729,
-      "rawBytes": 17530928,
-      "sha256": "41379de152663d06cf6e2202edaabd5662c6431d73318c465093cf562b2dce14",
-      "rawSha256": "3c986ee40c25a8c704389d74f736e25ee3841127fcd148d3aff0f82bf859d0c2"
+      "bytes": 749321,
+      "rawBytes": 9022145,
+      "sha256": "eee026b3dfb1ed8f24c94834e5c744464f96b8e6b7d6768dae9696ffad83e2e6",
+      "rawSha256": "417d5356babe28974647152b02e05dfbd076b2bf529d3ea06b5b2d0394005ccf"
     },
     {
       "project": "Augur",
@@ -1218,10 +1218,10 @@
       "toBlock": 20563384,
       "logCount": 20002,
       "file": "Augur-version2-Augur-20563384.json.gz",
-      "bytes": 973386,
-      "rawBytes": 17537420,
-      "sha256": "10e09663ee0332537c1868a4439b118d24b0919ef6f838f3bdd7dbb7486401c8",
-      "rawSha256": "924700e78e9ac1fb535aa9826dea389fe09dc837eec7cb1182798e1158d71289"
+      "bytes": 719259,
+      "rawBytes": 9019439,
+      "sha256": "f5b97ac4e440c25a05c2f0a822597a348c897370f73ea4692a6256b6e280830a",
+      "rawSha256": "c2c98401d936c99c3a4259709598db08d10bd2ea2ab1a3a923c5e8bc7fe7ed1e"
     },
     {
       "project": "Augur",
@@ -1231,10 +1231,10 @@
       "toBlock": 21778152,
       "logCount": 20013,
       "file": "Augur-version2-Augur-21778152.json.gz",
-      "bytes": 914011,
-      "rawBytes": 17544848,
-      "sha256": "46213c64a164e09414c103841f758ac4a1574e46bd29e462ae20adae5671fd5b",
-      "rawSha256": "ece7169ab50eae3c8dce1a312b42c93c0991ac965aa5f0d86485baf4f00d1fe5"
+      "bytes": 709828,
+      "rawBytes": 9027513,
+      "sha256": "31c00966eded193f81c8810823c6eef4c3614f261db69698b8094ac4a087c077",
+      "rawSha256": "2aac323651b1c1098ada686e303de1fb3ef31dc09a63c64ddeb41108f38903e1"
     },
     {
       "project": "Augur",
@@ -1244,10 +1244,10 @@
       "toBlock": 22433902,
       "logCount": 20010,
       "file": "Augur-version2-Augur-22433902.json.gz",
-      "bytes": 794370,
-      "rawBytes": 17538048,
-      "sha256": "208de04962b81a1f421107023cc088b5cb2ae5839f8818405663eab20a02acd1",
-      "rawSha256": "ff3e1f6570a82a09ec719632d1e0c1b10993868209d57f28d13b51f393f507c9"
+      "bytes": 632654,
+      "rawBytes": 9030943,
+      "sha256": "35833d348c380cfa83e1b303eca5e15eba27e6671088189929dc16c84205075c",
+      "rawSha256": "27a3d2a145c66f1481a55b041ca117f7ec0e3659a921643dc769beb6c4217061"
     },
     {
       "project": "Augur",
@@ -1257,10 +1257,10 @@
       "toBlock": 23494485,
       "logCount": 20003,
       "file": "Augur-version2-Augur-23494485.json.gz",
-      "bytes": 865934,
-      "rawBytes": 17539583,
-      "sha256": "c67aa474372bccfe0c7c5a7f3be7f895f1a684b801db0694e627228b8021177d",
-      "rawSha256": "ba07df58b930981d16e153273a94680632fe46eb87d3f0fcb8b6f439ce7e1f47"
+      "bytes": 659496,
+      "rawBytes": 9026178,
+      "sha256": "9b6eb4f115f1fb4cf4cc38483d0d8f1a9dcc533e3afa93829e631da72f84ade9",
+      "rawSha256": "12c3d2985c86be3d470b851af3d074b5e6c2d5286830a20c58c305a4efd59c1a"
     },
     {
       "project": "Augur",
@@ -1270,10 +1270,10 @@
       "toBlock": 23657614,
       "logCount": 20001,
       "file": "Augur-version2-Augur-23657614.json.gz",
-      "bytes": 770056,
-      "rawBytes": 17536188,
-      "sha256": "c49128503976688e71a743cc6020a320927abc92c6078567532c92c6b7b0154e",
-      "rawSha256": "fb5f83b162090618f49d10c96b645bf13d6eb960518ea954810286bc1a63e101"
+      "bytes": 611103,
+      "rawBytes": 9019480,
+      "sha256": "3120f3f29229cfe5b794807257201eabf171e5a9c85a94662a2a475eac884f12",
+      "rawSha256": "bf7718375c65b8dba06f577f9d7d7c13a5a972838e2c0949d8cdcbe6a52bf3c5"
     },
     {
       "project": "Augur",
@@ -1283,10 +1283,10 @@
       "toBlock": 23891624,
       "logCount": 20012,
       "file": "Augur-version2-Augur-23891624.json.gz",
-      "bytes": 788245,
-      "rawBytes": 17565521,
-      "sha256": "d90b644b1b3ef7ce1acc6b50d0bef8a762477daeff898936ef295957f82e708a",
-      "rawSha256": "98147412a7307b73fe4c2fa90effed3396ea48d3808dd384f85176b6d79e6916"
+      "bytes": 618019,
+      "rawBytes": 9017669,
+      "sha256": "95401ad71baf47bc01b3f713f0be96b269d04cb8ae187f0734260b3ca0d5bdba",
+      "rawSha256": "74b41f2abfd5ccba5a0f8a8a3b2f65cc1f5625ef4d06b3bbefa48914502e72bb"
     },
     {
       "project": "Augur",
@@ -1296,10 +1296,10 @@
       "toBlock": 24535770,
       "logCount": 20002,
       "file": "Augur-version2-Augur-24535770.json.gz",
-      "bytes": 817098,
-      "rawBytes": 17538079,
-      "sha256": "b5d0054ff9fa61749bda4a4629725e76dfc109d7f7b9291b0efb47a1a6b5fd14",
-      "rawSha256": "4be6c59b003de5e738623c71736409e80bf7f76b3a7da7a0099da1d214099340"
+      "bytes": 633408,
+      "rawBytes": 9024039,
+      "sha256": "2973e0cc8c78c3d6fe5bad906718a05a0f5e3b7bbfae95c65ed04a005f6a3576",
+      "rawSha256": "524237b32beb5f783927b109724ca8c7618f0ef393dab0f294bb230bc4d760b0"
     },
     {
       "project": "Augur",
@@ -1309,10 +1309,10 @@
       "toBlock": 25475297,
       "logCount": 20005,
       "file": "Augur-version2-Augur-25475297.json.gz",
-      "bytes": 826609,
-      "rawBytes": 17587263,
-      "sha256": "0544b09831de0c837d9e80f44c1a313ce065f909350b99742b059afc9b0a41fe",
-      "rawSha256": "2a2cb9b0822dc4ef26dc11a8ff937c8acfcea5f4230a9ceed670bf0ad5216f95"
+      "bytes": 640621,
+      "rawBytes": 9014909,
+      "sha256": "e38b102eb80f41531462593a1cd86386bba419e3606e34398cc612f9edc26c30",
+      "rawSha256": "6f22335908751f0b1b39d7346d9f36b3b08a051f0d3345f703e4526a0c4def8c"
     },
     {
       "project": "Augur",
@@ -1322,10 +1322,10 @@
       "toBlock": 26075462,
       "logCount": 17394,
       "file": "Augur-version2-Augur-26075462.json.gz",
-      "bytes": 695764,
-      "rawBytes": 15237621,
-      "sha256": "2919bf20b3c04de775b5c8fb36f679a5d191c458773f6211c37d75e30c6d3c7d",
-      "rawSha256": "5abfc47bfd6ca127b016d56948cd2429ea6aa0220d269593cff37728e6b22a1e"
+      "bytes": 531468,
+      "rawBytes": 7800991,
+      "sha256": "8099c69cb5549501bcc50f7412d4bce325165e49c7f10f33846e8f71c7b3f5aa",
+      "rawSha256": "4696a4a8beda888ec0f1c2d18171f7093f0878b78a7e4dacfcf880f21398085e"
     },
     {
       "project": "Augur",
@@ -1335,10 +1335,10 @@
       "toBlock": 6133401,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-6133401.json.gz",
-      "bytes": 1882654,
-      "rawBytes": 12347626,
-      "sha256": "9360f1512be9f162904ca43aeb4f68a93f1d1cb06dd143e5f7b0fd210acfc8a5",
-      "rawSha256": "7e7e7dde3b4287ba92be2314929ae3455e59cacd45b8852f0f8614f64314716a"
+      "bytes": 1380858,
+      "rawBytes": 6624485,
+      "sha256": "8225b4d86defb8007a45ba1c8c031a095b373467f6bc6623e9bfbaab59b7efb2",
+      "rawSha256": "0133c06a849913390dec1872f1a9a6349bd3a3512032a0e75eaf7f684e861896"
     },
     {
       "project": "Augur",
@@ -1348,10 +1348,10 @@
       "toBlock": 6472791,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-6472791.json.gz",
-      "bytes": 2112125,
-      "rawBytes": 12349008,
-      "sha256": "5f45a14cbd966ad2df8330410e08e75845d764cae4f08467659179a0b4b7a1b9",
-      "rawSha256": "cdc9141c924350ea5ca2280c951e1ac0172fc172b5b87c820b573c65f6570180"
+      "bytes": 1558943,
+      "rawBytes": 6566702,
+      "sha256": "6d24921446f5cf3db6284f4f26a0d3c39d470bfc2d30d4d347782029f7b3f1a3",
+      "rawSha256": "c935e5ce36bb7374e1738df866d7b1614e479e2eb620de640712d8c6e8971612"
     },
     {
       "project": "Augur",
@@ -1361,10 +1361,10 @@
       "toBlock": 6838949,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-6838949.json.gz",
-      "bytes": 2054875,
-      "rawBytes": 12349847,
-      "sha256": "39bfa90d68639598d6808e4a47391a03efd53bb533b52013fab1401c16e358e6",
-      "rawSha256": "1b96a3caee14286b047b52df58077e92e8c4d25c67c80541d675a93950430f5c"
+      "bytes": 1518280,
+      "rawBytes": 6578792,
+      "sha256": "2bbeb2f85238795e3b1502905681fe7d750918474d980065555ed6aac8ed93ec",
+      "rawSha256": "56201eeb01c34ad0fa732b1e2931802891aca4fe6577a904e8cb6629fc2f8c53"
     },
     {
       "project": "Augur",
@@ -1374,10 +1374,10 @@
       "toBlock": 7086970,
       "logCount": 20013,
       "file": "Augur-version2-LegacyReputationToken-7086970.json.gz",
-      "bytes": 2002278,
-      "rawBytes": 12355263,
-      "sha256": "fe2576414a3fd9546dff5a0cace22032554a4ccc209bd2a2107f0c0b3e842881",
-      "rawSha256": "bf20da7ed152ff1d1138ac2d102cdb2918da9987294cc277ef6d78ca0250fd4e"
+      "bytes": 1502524,
+      "rawBytes": 6580824,
+      "sha256": "ab81bdaa24985abb8dcc2f2cbd8e9f85bb5b6609e3886ec3d45559eee34e925c",
+      "rawSha256": "e2fdaa3b8e5b8cfff114f29c7c91e0e26857e90138ac370203453950af1cc82c"
     },
     {
       "project": "Augur",
@@ -1387,10 +1387,10 @@
       "toBlock": 7255114,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-7255114.json.gz",
-      "bytes": 2011229,
-      "rawBytes": 12346509,
-      "sha256": "36bc427d52690ee69ca8a8f413336fb23863fef9f69a594b7ef48f39e56bb30a",
-      "rawSha256": "452bbb932c1bd9f65f2451ff1a9e0018c4c92038901d292c42193991b62782da"
+      "bytes": 1463242,
+      "rawBytes": 6576094,
+      "sha256": "93718584b1b1e494533bba1e5127b884de04bee908ff5d062021a93102052041",
+      "rawSha256": "68f0c7364be00166d66c7b666f549ca3d7c54d8e3ca0d68d02d8350e9e5dafe4"
     },
     {
       "project": "Augur",
@@ -1400,10 +1400,10 @@
       "toBlock": 7507496,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-7507496.json.gz",
-      "bytes": 1941499,
-      "rawBytes": 12349988,
-      "sha256": "aa382d1e95e30b8bddc2a3b7ed2a5875b595a0a153021e13e2b022928bfe9a82",
-      "rawSha256": "e8f29593143c2024163d4499351ec2f9210abc846c139e1eed8984556ffa6434"
+      "bytes": 1395455,
+      "rawBytes": 6577861,
+      "sha256": "4c71dd131f6806f206a1dc679a6af54b8b52443c54d24232189a1cd933ff5376",
+      "rawSha256": "d8cfde923afd840074f38c4756b428f7bbbdd019139784faf4f006054ba32710"
     },
     {
       "project": "Augur",
@@ -1413,10 +1413,10 @@
       "toBlock": 7754920,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-7754920.json.gz",
-      "bytes": 2022295,
-      "rawBytes": 12351268,
-      "sha256": "0d5ca55f7ca30e4b1ed70816fe0a05aa4a53a0bbacc1cb30594c8207dc371c4d",
-      "rawSha256": "19abe9340efa45146fae7926863e7d59b97e997dddd3e1e3073cd5e112492c4a"
+      "bytes": 1443475,
+      "rawBytes": 6574718,
+      "sha256": "23f9dbfca9b557c3aea9b4d3ed7e94b44f20fe5d53e4073274935bce00a38c74",
+      "rawSha256": "26f3a6b88286a390a43b8a241ee5500fdd78e6d11e6c9cbf24ef628f46b99ab0"
     },
     {
       "project": "Augur",
@@ -1426,10 +1426,10 @@
       "toBlock": 8009195,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-8009195.json.gz",
-      "bytes": 2177262,
-      "rawBytes": 12352090,
-      "sha256": "809c8181fe9e179f20abca765f908d96b84547bc0511b8940f3ff5ae8af0fc89",
-      "rawSha256": "f0f7470340b87753c1cf379d0269fdcfd989f8bd9ff6273dbf2c32f119831d1d"
+      "bytes": 1548809,
+      "rawBytes": 6583236,
+      "sha256": "0521b3ca0d72e6d15eb46503e56e14d91d366eb4676fd1b0feb11772f6f73979",
+      "rawSha256": "0f31d4740d83dae9bad620db1a24b6b0139a6aba7d6043edcea10e9586803c36"
     },
     {
       "project": "Augur",
@@ -1439,10 +1439,10 @@
       "toBlock": 8362803,
       "logCount": 20001,
       "file": "Augur-version2-LegacyReputationToken-8362803.json.gz",
-      "bytes": 2088136,
-      "rawBytes": 12353231,
-      "sha256": "89983382399cda9cf8fd28407d630f108180c9447e08c41765f64daecad7eeb5",
-      "rawSha256": "f859a38895112dacd8da22f0d587399c1ec30cdbc920de8cb006223c0eb7db34"
+      "bytes": 1491476,
+      "rawBytes": 6592783,
+      "sha256": "f516099ff4cd78bc6059d17b226fe1fef3c581fc93de8ead8f244b8c3b19b381",
+      "rawSha256": "ef5538ad830dc4823f1bff5d5402c3bacd6aada6e616172e733320a1c9a330de"
     },
     {
       "project": "Augur",
@@ -1452,10 +1452,10 @@
       "toBlock": 8672680,
       "logCount": 20001,
       "file": "Augur-version2-LegacyReputationToken-8672680.json.gz",
-      "bytes": 1950497,
-      "rawBytes": 12351782,
-      "sha256": "207155adb969892ad0d44da2392c067c3b5135778caf5fae19f35a104ba3ffed",
-      "rawSha256": "9920a713c1f952270b2ca3e98ab834c50a8ea10332a18a1bebc95519954649a9"
+      "bytes": 1383991,
+      "rawBytes": 6586013,
+      "sha256": "2239bbfe6402da9c115048752722f198706492fcf459b68b570c3e7f080efb0e",
+      "rawSha256": "25187bc2184cfaf86b30c2b32b7c3b3bbcb617fb87dec44fc536d30b3099614b"
     },
     {
       "project": "Augur",
@@ -1465,10 +1465,10 @@
       "toBlock": 8873481,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-8873481.json.gz",
-      "bytes": 1816342,
-      "rawBytes": 12354381,
-      "sha256": "7cbcb0a10167b0c1473a5871d122732112c9d11682ca6bfbca19455b85afce44",
-      "rawSha256": "6e0e6d01fe7789c6eb323fb8a10a5b4b4375b9292b153a49b182e185c7010e90"
+      "bytes": 1248764,
+      "rawBytes": 6592226,
+      "sha256": "b6a2007720ec700b976e193df060db36761a8813bf764a9de711b43d0c8234f3",
+      "rawSha256": "eebfd077ec1e521c9b1d1f8b60be0077a856a42c99a72ac9a8bf1b5bdf3fdaac"
     },
     {
       "project": "Augur",
@@ -1478,10 +1478,10 @@
       "toBlock": 9121480,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-9121480.json.gz",
-      "bytes": 1906800,
-      "rawBytes": 12352320,
-      "sha256": "8f0738acb4a4e2cf2e7019c9d520b93c36a6143220dd94965fff2220bffa1ab6",
-      "rawSha256": "9ecbd2c2b6d4ad5487691329ce05ea4d3ade164a449dfeb5750a5b9996a97794"
+      "bytes": 1324972,
+      "rawBytes": 6593756,
+      "sha256": "a4c8f8c1db9920981f03f54acce601f4a9d1a832ba96ac8068ac88072bd01a5c",
+      "rawSha256": "98de37b00115002ff2a92d52a80513e4006fc59fa6cb95c23e286a761d24321e"
     },
     {
       "project": "Augur",
@@ -1491,10 +1491,10 @@
       "toBlock": 9305874,
       "logCount": 20002,
       "file": "Augur-version2-LegacyReputationToken-9305874.json.gz",
-      "bytes": 1762256,
-      "rawBytes": 12352097,
-      "sha256": "38f7ccab2fa91ffe2888d3f7e3c2359940d77e1ec3c3233ff4439a9a2155fe5c",
-      "rawSha256": "7418503ab03489c5ab81321c8c8b81e60a1c2b800105a31489ff1520a626e708"
+      "bytes": 1249190,
+      "rawBytes": 6585712,
+      "sha256": "8e7db202a3e750ff01f29a319efd1108655b7020423ce0b235fe0db469e310ee",
+      "rawSha256": "4f7a57d22638d777767e632eed252059775a454658f02254104c6ef7344e9d48"
     },
     {
       "project": "Augur",
@@ -1504,10 +1504,10 @@
       "toBlock": 9457353,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-9457353.json.gz",
-      "bytes": 1660439,
-      "rawBytes": 12350061,
-      "sha256": "bc9b00c29898c1da6d8f792caaf38eda7345e75991b27f63ffc96e79f4962bd6",
-      "rawSha256": "977c4d6b7920c5c6da112f89b3bdce1b5d8110127f7e06e5ebdc7f4218bf9b3c"
+      "bytes": 1152862,
+      "rawBytes": 6582792,
+      "sha256": "5ab5f953c60bc7bdcc16608db3a869edd1c395444515fcecf6739c2ce27245de",
+      "rawSha256": "3638ebd820088f1d2dbbf23f6041f794e22a89f6f4b717920523a70cfbe0c997"
     },
     {
       "project": "Augur",
@@ -1517,10 +1517,10 @@
       "toBlock": 9594318,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-9594318.json.gz",
-      "bytes": 1811200,
-      "rawBytes": 12351763,
-      "sha256": "047f5392aee3654b697f8b31883d1ca98299c6adcfd20774ede3e1a03ccdde3d",
-      "rawSha256": "c633e8b908440855eadf528bdbf03a6bc2c595eea9953983dbe377a8d8c65c92"
+      "bytes": 1250536,
+      "rawBytes": 6556284,
+      "sha256": "e044ce70fc33d747c31c9cd2878d4e08b849f65b1122f447337257dd73d6290f",
+      "rawSha256": "9e7ae4ee4f10b7dc29859cfeb78850ae82c2d853a28eff86ec8df4aba2108fad"
     },
     {
       "project": "Augur",
@@ -1530,10 +1530,10 @@
       "toBlock": 9754821,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-9754821.json.gz",
-      "bytes": 1898285,
-      "rawBytes": 12352635,
-      "sha256": "0026062c876ccd60b22e3f51ef02878c7aa2b06e3650114db34b707d2fca5713",
-      "rawSha256": "1852e28ff348a4c998f849efd025e797d136afb8df9ecd47110fe4e174ad091e"
+      "bytes": 1310774,
+      "rawBytes": 6594597,
+      "sha256": "75d2c004325b573fe9bfc0c37b63e4355ab23a34a34b5e152dc301c487b78b65",
+      "rawSha256": "7b874b9f027d73ee0e259c3e378c2dc3fc5f46cdbf2cc1e8716e3c2d289af2ab"
     },
     {
       "project": "Augur",
@@ -1543,10 +1543,10 @@
       "toBlock": 10026399,
       "logCount": 20005,
       "file": "Augur-version2-LegacyReputationToken-10026399.json.gz",
-      "bytes": 1960877,
-      "rawBytes": 12357064,
-      "sha256": "651c50801f7965b95149022b97146a62357b0952c3b625abbad0ece1b21fc0a0",
-      "rawSha256": "0951636ddb678b0473e60d6913c928c04360a1ab6bd27b06d031f82eb69dbcfd"
+      "bytes": 1346036,
+      "rawBytes": 6600382,
+      "sha256": "60d4568cfc19f349c183c6d6185ce1a388b959967a4cb5f416cc5458de41a2eb",
+      "rawSha256": "121140d46edbc6beafdc9c9fbb7c83962693b0c1d2eff9306bf131ecf374b5cd"
     },
     {
       "project": "Augur",
@@ -1556,10 +1556,10 @@
       "toBlock": 10193089,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-10193089.json.gz",
-      "bytes": 1916495,
-      "rawBytes": 12353419,
-      "sha256": "a722a9d025a03c4cb8d78de6780c2ce6902b5d294e4bcaf5d9541ad9ac625f0c",
-      "rawSha256": "efa6eb10c67fd342068423b8acc3e5baccffce8563deac8951cfe7924ea53194"
+      "bytes": 1340202,
+      "rawBytes": 6596045,
+      "sha256": "e27eb99b47bfac0d719f1ad07162e7563660e0588b2b3a7f9e4a0f4d632f58eb",
+      "rawSha256": "1a96268a721962db5303b569f53cb9c20e753016effe97451b0dda5a7e0d3992"
     },
     {
       "project": "Augur",
@@ -1569,10 +1569,10 @@
       "toBlock": 10325451,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-10325451.json.gz",
-      "bytes": 1947074,
-      "rawBytes": 12353399,
-      "sha256": "f6c2aff0b08806ada54023795ef85df5e7eac95cedfb82327472a6f4a60f0b52",
-      "rawSha256": "e2f1fb91dde5cbddde747d0b8f1dad17bb3fd71b501516d9dffd6cc657fb0693"
+      "bytes": 1353771,
+      "rawBytes": 6612896,
+      "sha256": "43b457ebb7f04aa640a8c3b0b39c01f03794dcda88fc67915c3852023fccd8c0",
+      "rawSha256": "bb51bd86aa494ed804ba33b86b0fd38fa6c51ab1e8ffb9dee9a656422423d664"
     },
     {
       "project": "Augur",
@@ -1582,10 +1582,10 @@
       "toBlock": 10447907,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-10447907.json.gz",
-      "bytes": 1809777,
-      "rawBytes": 12354447,
-      "sha256": "44ace9cc00cd1c989d021eeaff144b21dfb5f9741a10895856cfc1e403388a89",
-      "rawSha256": "26ad95752e174af253fdcd8850df52e9ddb96d0cc4e43148cec172f4211b5529"
+      "bytes": 1267965,
+      "rawBytes": 6615453,
+      "sha256": "524bd378ac1d3df8388600fb52ecabaaa52bc21d0a6281a4732934f3889a1ae0",
+      "rawSha256": "4cfe5225eb909d92e08d988714feea6b5f46891037c9d3e033c5c8c6042632d5"
     },
     {
       "project": "Augur",
@@ -1595,10 +1595,10 @@
       "toBlock": 10540442,
       "logCount": 20001,
       "file": "Augur-version2-LegacyReputationToken-10540442.json.gz",
-      "bytes": 1784960,
-      "rawBytes": 12356264,
-      "sha256": "cd968eecfc7403438618147eb1b708c2ce26261302a6c90c03b4a7b5ddb42e6b",
-      "rawSha256": "bb901d7052eb89c182f841dc5e02d54cafa6ea2c86dfffdf9a9105b5224a6d8b"
+      "bytes": 1273042,
+      "rawBytes": 6599213,
+      "sha256": "6309dd2e1b29e5127d8f74b706bab10c75d74fdbbaff4029c913e339583ff37a",
+      "rawSha256": "7488c603767e4d2b32a718d004b9fd32384544f4f515b460ea0b38fddd2a47a8"
     },
     {
       "project": "Augur",
@@ -1608,10 +1608,10 @@
       "toBlock": 10702233,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-10702233.json.gz",
-      "bytes": 1997728,
-      "rawBytes": 12356646,
-      "sha256": "b09579dc0acb9e621a4fa25a296873a2d785af3eb5163df0280c6080edd8583e",
-      "rawSha256": "c4ef62a0186e933fd5eabc25ba6d94fca796dfb706b8acbbd53008bcb139dd06"
+      "bytes": 1426020,
+      "rawBytes": 6607714,
+      "sha256": "58d3d4402f171576d0b01502caac8a06b9f721b0ecc3faf0da8d93d787bc6a82",
+      "rawSha256": "2cee6b00ad58364719194e21bf52b8fdd41370d5dbe5bdc6cbcbe922c11b21cc"
     },
     {
       "project": "Augur",
@@ -1621,10 +1621,10 @@
       "toBlock": 11284343,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-11284343.json.gz",
-      "bytes": 2051898,
-      "rawBytes": 12357127,
-      "sha256": "461c1dcdeab028a2235895cbd33ea1058699fd2649d42410261d6b16122bc812",
-      "rawSha256": "93e0f3452a56d3428d1a46a11edbc2a9b09aa3aeced74564ae17d9c28dfc3493"
+      "bytes": 1424395,
+      "rawBytes": 6624202,
+      "sha256": "909195c48b65603b3edd12a00b26a167a715499760c98cb5ed474d62a350b615",
+      "rawSha256": "591d7f3bbbaa1295ceb3fd712ce4584e569b0c192a31317dcb2b84a8214a4d55"
     },
     {
       "project": "Augur",
@@ -1634,10 +1634,10 @@
       "toBlock": 12000911,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-12000911.json.gz",
-      "bytes": 2261826,
-      "rawBytes": 12359207,
-      "sha256": "5a7b9429b4a30253228227e4967050bd345a47459722037906d8edcda335ae9e",
-      "rawSha256": "45d540c0e5b3043566cc1b302bc7f700760f3b226e6031727141dcf37bd2141b"
+      "bytes": 1568109,
+      "rawBytes": 6616675,
+      "sha256": "871d45512767cbc039ed2742c933ae5bb98dcd7c63581c623ac106ca060d50c4",
+      "rawSha256": "cf7762cfe72af0010f8f7da2ed798621fb220badf0fa2e0842481c9ae57466d6"
     },
     {
       "project": "Augur",
@@ -1647,10 +1647,10 @@
       "toBlock": 13283633,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-13283633.json.gz",
-      "bytes": 2161452,
-      "rawBytes": 12362265,
-      "sha256": "e9abd5e06c68225771ca8929cfd436643be064b967f4dba974133fbd07ab875a",
-      "rawSha256": "187f2ecb0c0bc9bfdf0f2cfbb933201331eeef2572531f21d245a9dadcd98b0d"
+      "bytes": 1586206,
+      "rawBytes": 6605804,
+      "sha256": "4f11a9a8204e6d6b53e7bc3b6e13d1eb4f37cf7f89ff9c1c72e9d2e2a56823b2",
+      "rawSha256": "185f570683a6db98177db85381ba4f162747b411cd3932f22f67129eb784a788"
     },
     {
       "project": "Augur",
@@ -1660,10 +1660,10 @@
       "toBlock": 19080050,
       "logCount": 20000,
       "file": "Augur-version2-LegacyReputationToken-19080050.json.gz",
-      "bytes": 2006014,
-      "rawBytes": 12371121,
-      "sha256": "cb550ac39baa06a5602e1b50b26559068e36794679995940a8b7daa7bb0f18f1",
-      "rawSha256": "8aabf2e945b29fe8cc041b36099a22cca0c68d433217ee3c2ad990543d6e1f03"
+      "bytes": 1432406,
+      "rawBytes": 6656303,
+      "sha256": "54ce028644a01bc1c77499e36b8dba378f3307cb8985a6fdbb8504771c781f6b",
+      "rawSha256": "3b5f179f2861d0efe703705f2b6b38c6b91d21d92444128270ce78cf6e896c39"
     },
     {
       "project": "Augur",
@@ -1673,10 +1673,10 @@
       "toBlock": 25215017,
       "logCount": 20006,
       "file": "Augur-version2-LegacyReputationToken-25215017.json.gz",
-      "bytes": 1553839,
-      "rawBytes": 12389307,
-      "sha256": "6acf5dbf9d55b836fb01ef49960e23f117a22278cbe5c081267db14a1bed49d5",
-      "rawSha256": "529b3184d6fcdaf94803a8838a59e262e114513661d0cb1f58fbd862a3a23741"
+      "bytes": 1100681,
+      "rawBytes": 6635926,
+      "sha256": "0a3efc66e0fa91886ae7b2a8dd67f5843aa7725918bd83f5eae80410d2deda32",
+      "rawSha256": "9234371d69b13fe47d41cd355083fd6568df97cba9a4a10eebce1e74327fe185"
     },
     {
       "project": "Augur",
@@ -1686,10 +1686,10 @@
       "toBlock": 26075462,
       "logCount": 3091,
       "file": "Augur-version2-LegacyReputationToken-26075462.json.gz",
-      "bytes": 247067,
-      "rawBytes": 1914731,
-      "sha256": "8765bfc086ec7b22989978d41280c3837801a042d18c6b0a86d1b2cb618ec995",
-      "rawSha256": "c72339a26084fba46681266616feb759a7077801db3b707af946940ed38595f4"
+      "bytes": 170872,
+      "rawBytes": 1026065,
+      "sha256": "4aca48edc97b7a9bdc725afafd374a79ff77b20b781b92ae31092164a43663ca",
+      "rawSha256": "12ef76ed19a3e856f5b909e192bce1cf1bdb7c21bdfbfdc99bb7463c82e739c4"
     },
     {
       "project": "Augur",
@@ -1699,10 +1699,10 @@
       "toBlock": 26075462,
       "logCount": 8720,
       "file": "Augur-version2-ShareToken-26075462.json.gz",
-      "bytes": 718000,
-      "rawBytes": 7291186,
-      "sha256": "f7f453d08a8d8255750601a73cbc54fce834322dc69df77f46d207c89e5377b7",
-      "rawSha256": "9a978ef667e0e0457a476b8d09036748bcbe182386fda316492946296e90edd0"
+      "bytes": 488322,
+      "rawBytes": 4095431,
+      "sha256": "c9dc05a2d0ae7ef8636ad7640360d66f844a3f4fa8b1c5f2300dc2699dc1c381",
+      "rawSha256": "667c62c6545e47781abb2e6ab2c6f043c89f3db9056c8007c6d054301c32c3ce"
     },
     {
       "project": "Augur",
@@ -1712,10 +1712,10 @@
       "toBlock": 26075462,
       "logCount": 5450,
       "file": "Augur-version2-AugurTrading-26075462.json.gz",
-      "bytes": 517981,
-      "rawBytes": 6648767,
-      "sha256": "05077160dbdcc8b3b9a7b36430d62c7d30b8ecd782fc639328965f5722d76f42",
-      "rawSha256": "527108eb58616d009a1211c388bb99bd033e245ed5af3f81426505be1eb91a23"
+      "bytes": 332606,
+      "rawBytes": 2748536,
+      "sha256": "4da921ac3e336b045f77034d42d0558f04ffc7229accc509fcbbcbe617c35aeb",
+      "rawSha256": "4a3b30021db7e262c84872b728907774c24c37fe9f99244791df7d682c24f78f"
     },
     {
       "project": "Augur",
@@ -1725,10 +1725,10 @@
       "toBlock": 11010618,
       "logCount": 20002,
       "file": "Augur-version2-REPv2-11010618.json.gz",
-      "bytes": 1972959,
-      "rawBytes": 12358605,
-      "sha256": "93121dd114ab6eaea1921150918e0de74e4fcdbea53a562e063d6f39aaae67a9",
-      "rawSha256": "12b150845430c8a78a7bf98f5f424e31cc7a49702a101b1902be9694ed60a75f"
+      "bytes": 1363282,
+      "rawBytes": 6702336,
+      "sha256": "7d7df8c5819d858120ef68a98c30ef896e7f9d189b3c643549cfa76292a990bc",
+      "rawSha256": "66f5a23f9f8e23f4ee51d9e2a0864d3bbeb0d021b266d7a4c52a9b6059bf79b6"
     },
     {
       "project": "Augur",
@@ -1738,10 +1738,10 @@
       "toBlock": 11371992,
       "logCount": 20005,
       "file": "Augur-version2-REPv2-11371992.json.gz",
-      "bytes": 1537924,
-      "rawBytes": 12360957,
-      "sha256": "b44addf728acaccb22bcb17ba8cef7d3c8a14c76edb8852d7f8ae8048429d0c4",
-      "rawSha256": "d261fdaa67fceb1f36d84508bebdd11ed3d6a127bcf7d417356e792256463447"
+      "bytes": 1087510,
+      "rawBytes": 6740602,
+      "sha256": "b617f23ecd9daf9846798d03be0920ba5031a04959d29267197d3ee3cc87d9a9",
+      "rawSha256": "e3010534b1d6bbb733372e7cb20354b269064f8528b0d7698c76ec9b9c95ff30"
     },
     {
       "project": "Augur",
@@ -1751,10 +1751,10 @@
       "toBlock": 11642955,
       "logCount": 20000,
       "file": "Augur-version2-REPv2-11642955.json.gz",
-      "bytes": 1847181,
-      "rawBytes": 12356086,
-      "sha256": "17fe49715c286cb1cb843035a5ca22b9cb8ab642d92237804e4bebc64693f44a",
-      "rawSha256": "4b3fea05897d0dce71e12d1404a21e140a62bd84927a435d1c63b0499c6f5b46"
+      "bytes": 1308956,
+      "rawBytes": 6663078,
+      "sha256": "a4cb1dcae62409217a5933994a1ba1d165d3df320e909607940290435ea0beb9",
+      "rawSha256": "1afc70f15a481849b5778547b160e5be197cfe58ab2a5628f0a69abc86e4034f"
     },
     {
       "project": "Augur",
@@ -1764,10 +1764,10 @@
       "toBlock": 11957853,
       "logCount": 20000,
       "file": "Augur-version2-REPv2-11957853.json.gz",
-      "bytes": 2005284,
-      "rawBytes": 12357374,
-      "sha256": "8b781a6e5a537bdf1caca4a8b0949475bbd5d1025f25a870da456b2c0b82196e",
-      "rawSha256": "16abcc56afbe6380fea720a6cbf8249441508ff633d6f88fc269f26313f9c4af"
+      "bytes": 1392696,
+      "rawBytes": 6658437,
+      "sha256": "299344ffbb556b9acb0c91091ffa043f7d38deff2b6db617bd8e63a6d7651ab5",
+      "rawSha256": "3fc9a5c19021b3f2980d7577a54d40304e9959b19262079208ed7c5024a9b2ab"
     },
     {
       "project": "Augur",
@@ -1777,10 +1777,10 @@
       "toBlock": 12291391,
       "logCount": 20000,
       "file": "Augur-version2-REPv2-12291391.json.gz",
-      "bytes": 2124527,
-      "rawBytes": 12356617,
-      "sha256": "140d15e50e4a6f771c667bcb01367a59025e866324e44bdee770273e2543a9f1",
-      "rawSha256": "64d4aee838d0c016173ecd03669c04131eeaa7547614046f18a5d3caa60f6431"
+      "bytes": 1457821,
+      "rawBytes": 6646914,
+      "sha256": "a2f5fa214d36b1f20af65dae1396facfdd48fda46a1cb8b6144a26fbafcf3d59",
+      "rawSha256": "53dbc006ecc53d057f2deb781d9c653d7d819e8e3d14fcdd1bf8ae6b23fa7be9"
     },
     {
       "project": "Augur",
@@ -1790,10 +1790,10 @@
       "toBlock": 12777216,
       "logCount": 20000,
       "file": "Augur-version2-REPv2-12777216.json.gz",
-      "bytes": 2055321,
-      "rawBytes": 12359320,
-      "sha256": "62444e247755665155a26f74873918594032ddcad70bdecd86597eecec1b0a7d",
-      "rawSha256": "134802bde97a02445dfa49b35b61a05c745d19e7e45b48b991760459b595fcf7"
+      "bytes": 1432864,
+      "rawBytes": 6651590,
+      "sha256": "5c102a33b1b27659405ef0dc92ec7e471f9b1922eed3741ccf28ccf1196f5631",
+      "rawSha256": "00b94f549463e7291877d3f738567c54ac34ee98436a75a29b2899eff386ca66"
     },
     {
       "project": "Augur",
@@ -1803,10 +1803,10 @@
       "toBlock": 13401436,
       "logCount": 20000,
       "file": "Augur-version2-REPv2-13401436.json.gz",
-      "bytes": 2028737,
-      "rawBytes": 12355025,
-      "sha256": "52f14ba5c8348a171a4267aecb4a69b79c6d88307f5a134a1d199829d49f9edd",
-      "rawSha256": "b0322be0c0f0f45e9a5f7a1e570031e463eead07c9520a9f5616f449d7378180"
+      "bytes": 1380639,
+      "rawBytes": 6668947,
+      "sha256": "5b34485e1a516deadfadb618f3de5781d9eb3734386df9c5db2a416396ee9ed7",
+      "rawSha256": "080cfa15b52e145989641decdeeb550599591f5d39e8c1e145fcb24fa1d9e581"
     },
     {
       "project": "Augur",
@@ -1816,10 +1816,10 @@
       "toBlock": 15240922,
       "logCount": 20002,
       "file": "Augur-version2-REPv2-15240922.json.gz",
-      "bytes": 2081305,
-      "rawBytes": 12357648,
-      "sha256": "cf11591bbfd305af19e4c3401c910aca6e385e8fa9ad26bfbe1833a1bd0796ed",
-      "rawSha256": "01057209350703bb6b3e9dde4af9b7f81d5e887f44ffe6128dcfc654fece64ff"
+      "bytes": 1393337,
+      "rawBytes": 6683766,
+      "sha256": "7fa88e77a193d74c91a75312f8d112ca314e14f1c7bb6953ff9e688d40843edd",
+      "rawSha256": "f3f641e0e3de0b26244e91612240f78d0e9b5b02e9386554caed36e32c2147aa"
     },
     {
       "project": "Augur",
@@ -1829,10 +1829,10 @@
       "toBlock": 16565787,
       "logCount": 20000,
       "file": "Augur-version2-REPv2-16565787.json.gz",
-      "bytes": 1994717,
-      "rawBytes": 12356123,
-      "sha256": "983718ff9ca18b8ee627ea7ccefc20e7e3e4e19b9b0c0bb6757622eceb8ae928",
-      "rawSha256": "60c2fc1b00c97bb58ce46efd6b37f5aeec0c7e41e617bb4bb0cf410250252171"
+      "bytes": 1357574,
+      "rawBytes": 6659459,
+      "sha256": "a92feee64ff5e4f31d3f4ee620aaadf5dd124de66f306642c5d2ea4a095bda30",
+      "rawSha256": "5059287870eb3148083c1189298e8b6633801f183515557f08a668330951c96a"
     },
     {
       "project": "Augur",
@@ -1842,10 +1842,10 @@
       "toBlock": 17683942,
       "logCount": 20000,
       "file": "Augur-version2-REPv2-17683942.json.gz",
-      "bytes": 1907265,
-      "rawBytes": 12371045,
-      "sha256": "136f97b4df9e7238a86e4df3da3925458baaf0f05c3e4579cb18e765a8d053e8",
-      "rawSha256": "5bb5a9215ff4b331278e0bd109d8cb47d4802f2eec15202b46bbf224943c1ad6"
+      "bytes": 1300611,
+      "rawBytes": 6672941,
+      "sha256": "4ac77434c06f2cbd6d37e62da9867f97b1611c818cc57ebc72d754530f6a0ba8",
+      "rawSha256": "29cbbea0316db6bcbf56184bc422b68595995c9c4497f8c7e54037d42e48c1a8"
     },
     {
       "project": "Augur",
@@ -1855,10 +1855,10 @@
       "toBlock": 19065309,
       "logCount": 20000,
       "file": "Augur-version2-REPv2-19065309.json.gz",
-      "bytes": 1955052,
-      "rawBytes": 12377455,
-      "sha256": "0a0c2ccee5aa54f620d23f56a928922520d5b9780d756521e60d999de1de446b",
-      "rawSha256": "b97d977608c80ce0d22bbc30a351508658d0699ab70983d48776fa617cd96a15"
+      "bytes": 1335863,
+      "rawBytes": 6719415,
+      "sha256": "21cbbb266416812bd5fea9ce5e501c129fae8834c2133354e4ea02e268097917",
+      "rawSha256": "e7fcb6663acb72136dbe917789ffec055d53b802e96f563471d93dd785cd9a81"
     },
     {
       "project": "Augur",
@@ -1868,10 +1868,10 @@
       "toBlock": 21778257,
       "logCount": 20000,
       "file": "Augur-version2-REPv2-21778257.json.gz",
-      "bytes": 1717475,
-      "rawBytes": 12379593,
-      "sha256": "9ce05124ab7defad5a4a914170f66a0b3e841e5494b39a98c63e8a37fa13f046",
-      "rawSha256": "41435e69f0eb78340263a9356e158dab9cb4617bd2401b74e412ce19c0d6839b"
+      "bytes": 1219951,
+      "rawBytes": 6761079,
+      "sha256": "d8e15bf12335641cbcf3b7a8d80dd7bdeb3746731bdd16c1aa0e0665ff1fa112",
+      "rawSha256": "bda96db5dae48de2c746a6c73fa3d284306d71b038b595171b940df5c12189c7"
     },
     {
       "project": "Augur",
@@ -1881,10 +1881,10 @@
       "toBlock": 23618288,
       "logCount": 20000,
       "file": "Augur-version2-REPv2-23618288.json.gz",
-      "bytes": 1371736,
-      "rawBytes": 12380909,
-      "sha256": "fe213373b4d6e3499ecc37cd5fdaaea0469102653ec30c5567714beac05f7d94",
-      "rawSha256": "d7d8fa2b11256a4c8e71f3993ef4ceacbc7e0aa625f8265f5ef25e92897de24e"
+      "bytes": 1007922,
+      "rawBytes": 6784553,
+      "sha256": "956f58e43229c2eec374ea0f19f8446919c6882548250d152bd5aed34bd2d75a",
+      "rawSha256": "2d90b80e9665783254f00bbe5ea12174b9d894124d1f1d1c3f06101da2d0ef89"
     },
     {
       "project": "Augur",
@@ -1894,10 +1894,10 @@
       "toBlock": 24329367,
       "logCount": 20002,
       "file": "Augur-version2-REPv2-24329367.json.gz",
-      "bytes": 1244685,
-      "rawBytes": 12382754,
-      "sha256": "b87b5ce05f7e11ed8fc537e92c3604dd3deeca0184d23cd6c245c2442c3ee164",
-      "rawSha256": "2040edecb62ecf042aa078b244743cc3c64327d3c28dc7627deb29422322a9e9"
+      "bytes": 933566,
+      "rawBytes": 6773105,
+      "sha256": "10c1fc8b2ca545667e572e4eb983bb2b6da1d00b04c475b47921111ae69eaf72",
+      "rawSha256": "bf62ee1afd7f593c799053810627fdd09cc1daa7ac21dbe7d6af15839cf7d17b"
     },
     {
       "project": "Augur",
@@ -1907,10 +1907,10 @@
       "toBlock": 26075462,
       "logCount": 16239,
       "file": "Augur-version2-REPv2-26075462.json.gz",
-      "bytes": 1074288,
-      "rawBytes": 10056570,
-      "sha256": "3f7ac7fe38d0b1d92e8f8f5305d09c9f539f45c137c83325cb13a6c1e287552d",
-      "rawSha256": "c80dd7b4184dc7d995e3bee0ace791090fc65a5f4591124095690fa802374c17"
+      "bytes": 798139,
+      "rawBytes": 5481667,
+      "sha256": "75fb9c84711bf11112a507d808795f834c7e70ae8e526595a0ebe6bcefd5ed5d",
+      "rawSha256": "a00231a011f48ffda1d69ef1a84a36c9cae0b3b288d35f20a284adabc813784b"
     },
     {
       "project": "Augur",
@@ -1920,10 +1920,10 @@
       "toBlock": 26075462,
       "logCount": 3654,
       "file": "Augur-version2-ZeroXTrade-26075462.json.gz",
-      "bytes": 210246,
-      "rawBytes": 3446125,
-      "sha256": "48e1c7e1cc7a71ab14f643bfa0abd6c2c125bf1d16b82967d60f6155f8d62986",
-      "rawSha256": "0d25144379718176bcdc49f41beec5f41b4f07a37a5d1cca7c0358d4f9d507f2"
+      "bytes": 135761,
+      "rawBytes": 1505019,
+      "sha256": "f5f6ff231093dbacff96078a2fc97cf7ec5714f6e6192d170294499504dd1527",
+      "rawSha256": "200740be2f2aeecac24b83e1f9541e990d618ae6218a940306da5d4fe309a12e"
     },
     {
       "project": "Augur",
@@ -1942,10 +1942,10 @@
       "toBlock": 26075462,
       "logCount": 545,
       "file": "Augur-version2-AugurWalletRegistry-26075462.json.gz",
-      "bytes": 49536,
-      "rawBytes": 296721,
-      "sha256": "f0fa26195724363045874c29081fcaf20bf541e1df3dbb85e3df1e5d6d0fb40e",
-      "rawSha256": "c8f342d8314d86c3aadbaefd788fafb0d6fff061c62ded47355daa40bc956261"
+      "bytes": 29195,
+      "rawBytes": 132169,
+      "sha256": "4f74b83df960b5d65b69924cd0f59fd2e7a1478aa755059c71fcd890a75259a8",
+      "rawSha256": "de5d1a9c761668aca02989138bbb96627d2510991ad4669b0e4515f898fc74a4"
     },
     {
       "project": "Augur",
@@ -1955,10 +1955,10 @@
       "toBlock": 26075462,
       "logCount": 1,
       "file": "Augur-version2-AugurWalletRegistryV2-26075462.json.gz",
-      "bytes": 533,
-      "rawBytes": 1009,
-      "sha256": "414f18ef5453b3c5b7471d23affbfaf67b94ab1e305eca24c8f7c07d1f906fa1",
-      "rawSha256": "e00de5959d1fd22e3fb49127c754f0f6c6f7d9d490aa5e3ebfe18118bb7ceabe"
+      "bytes": 405,
+      "rawBytes": 595,
+      "sha256": "c5d6a1ee8869f096e333e7b28e9aad1632af97c3815088c2aedfff47c18909bb",
+      "rawSha256": "23cd50b0847bc956913efb38d2482629b52f5e6eaacd372255b4cee8d9bd8786"
     },
     {
       "project": "Augur",
@@ -1968,10 +1968,10 @@
       "toBlock": 26075462,
       "logCount": 3101,
       "file": "Augur-version2-REPv2_Yes_1-26075462.json.gz",
-      "bytes": 208123,
-      "rawBytes": 1920551,
-      "sha256": "a5e643c60d7784abeeb4dd8ba56b8946a8432925ab137da6733c4a5678dd0f08",
-      "rawSha256": "3d20a6415e9a36f9665486c38b6681855731f32badbcd9c4086a61ab3c8cb9c5"
+      "bytes": 147822,
+      "rawBytes": 1045107,
+      "sha256": "c6c3535d6fdbc04c95d92312ba8b44662364e51e6bed6869e23a6720af4863ab",
+      "rawSha256": "bacc21e5a29e9ffca551c771cb904ea1872eb7b12168d3c064fb1f23aae21206"
     },
     {
       "project": "Augur",
@@ -1990,10 +1990,10 @@
       "toBlock": 26075462,
       "logCount": 6,
       "file": "Augur-version2-REPv2_No_1-26075462.json.gz",
-      "bytes": 1072,
-      "rawBytes": 3909,
-      "sha256": "d0a944a86a7cb71ca071f6f777e6d2a05c671671008eba092fc5398146c12d4a",
-      "rawSha256": "010aaf7a01f07c639b82a2ba4c1f9fa52be1b6705f6b69bbfc37eaaddeae3685"
+      "bytes": 784,
+      "rawBytes": 2176,
+      "sha256": "db2633db567f884a0060e2af6a4cf2251c19f5ff4a07171f0cf03d02f10a77cc",
+      "rawSha256": "50327d56106bfa79c5d780bff9fdaae0f5db3b5806affe60cd9836d1dbb8ee4f"
     },
     {
       "project": "Augur",
@@ -2012,10 +2012,10 @@
       "toBlock": 26104938,
       "logCount": 45,
       "file": "Augur-version1-Augur-26104938.json.gz",
-      "bytes": 3559,
-      "rawBytes": 39805,
-      "sha256": "011bcd12ea37d50f4c3229bbcfe147027cba5ea26e8746a1c4dbc3593d4b14e0",
-      "rawSha256": "c1408c56b9765bb8cc1a608a9a91ca68666e8016861c5559214a2fb4280a3152"
+      "bytes": 2796,
+      "rawBytes": 21645,
+      "sha256": "e1ba3350c66ddb53fc54bbb200debd1ae925797bf6d65c1224c701468c5855ae",
+      "rawSha256": "126891ec11591ef801b64c0b57e7c2ce457908061b6b7ad2dd1711e7b6d0452f"
     },
     {
       "project": "Augur",
@@ -2043,10 +2043,10 @@
       "toBlock": 26104938,
       "logCount": 321,
       "file": "Augur-version2-Augur-26104938.json.gz",
-      "bytes": 15500,
-      "rawBytes": 281303,
-      "sha256": "02afd3ca94424769b95955d7081904f4d8f7adc31bf61ae9cdc89d147130618d",
-      "rawSha256": "cff024f2ac803566dbdac974ef5ae94799c8d03f2e60c801f6de3bc84a2d3dc0"
+      "bytes": 11755,
+      "rawBytes": 144490,
+      "sha256": "edb166e8e180dba10f6f6c9dc55d97447f5f595992f95ac748b04124a38bd8ba",
+      "rawSha256": "a0e263360d3f12b8b6ac3f313c6e1003861c2523422cda71c8caa3533ed47750"
     },
     {
       "project": "Augur",
@@ -2056,10 +2056,10 @@
       "toBlock": 26104938,
       "logCount": 53,
       "file": "Augur-version2-LegacyReputationToken-26104938.json.gz",
-      "bytes": 3870,
-      "rawBytes": 33033,
-      "sha256": "4d73cc3e5610552a5ba8b4cf29c071c69c202811128183da1b15650eb557533c",
-      "rawSha256": "46ce1d26bedd6384e074c78bec8753f5eb11adeb0141b42cf358edba63b38ae2"
+      "bytes": 3099,
+      "rawBytes": 17705,
+      "sha256": "8f9e2ce4aa3ee6b62d47e93fc6156ad61939af2f69f254e5de7881749bdc126b",
+      "rawSha256": "be8f9b424317da4592c178d191e348dda09b448232f5925c1c76fdcf78e9da08"
     },
     {
       "project": "Augur",
@@ -2069,10 +2069,10 @@
       "toBlock": 26104938,
       "logCount": 1,
       "file": "Augur-version2-ShareToken-26104938.json.gz",
-      "bytes": 458,
-      "rawBytes": 945,
-      "sha256": "3edfcc7879ac2cba3ee2ec02c76c5779a3316bbe786569eb49983f3f95bf0da1",
-      "rawSha256": "1a0b5c6f9513d08f48cc7209d4ddd6bef2519ab459a451580bbb713b81bf0434"
+      "bytes": 388,
+      "rawBytes": 652,
+      "sha256": "fd9dfca656f376b38c9bcd9a426d6864693cd895d669c3bc925bfe2990ce5223",
+      "rawSha256": "4170588441726775078ae9a3da41e01f6a6ae99d6f5bc06be738228f593e5829"
     },
     {
       "project": "Augur",
@@ -2091,10 +2091,10 @@
       "toBlock": 26104938,
       "logCount": 59,
       "file": "Augur-version2-REPv2-26104938.json.gz",
-      "bytes": 4539,
-      "rawBytes": 36748,
-      "sha256": "431c349912bd2eeba71baa3cc4b86d1b5cd08e5a6d2324f2b77154aff0a3a009",
-      "rawSha256": "72c2d16878c0a5997bae780662bd4afe1112634fef858d1dedb1f3a11a722410"
+      "bytes": 3503,
+      "rawBytes": 20262,
+      "sha256": "323af95294cae3c72ab1ac2a18f5906998fe9d09f287fb88d82ff2cb09545a8b",
+      "rawSha256": "c72e425d73f6e573a2688ee5d7fc24295109dd55df85ba4c41f812946b0f71d4"
     },
     {
       "project": "Augur",
@@ -2140,10 +2140,10 @@
       "toBlock": 26104938,
       "logCount": 110,
       "file": "Augur-version2-REPv2_Yes_1-26104938.json.gz",
-      "bytes": 7800,
-      "rawBytes": 68334,
-      "sha256": "c05934c8afbf02b0e4d8c6dd9eb0de6a182ca27a20319986fe2d20ae4fbcfa0f",
-      "rawSha256": "0d5c75b87d11a9e73d2f85a8be7f0c863e7d01315e3c8a08dee7d87e3ca74e03"
+      "bytes": 5653,
+      "rawBytes": 37822,
+      "sha256": "3c8ef70032584623395df0c9e4c85d90cf910b1904195480c5de6f52040fa46a",
+      "rawSha256": "11b3be3a69c987ac80b5b5ed2a67cfafcb1f3cbcd80a4fbee61cad855fae5561"
     },
     {
       "project": "Augur",
@@ -2175,7 +2175,7 @@
   ],
   "totals": {
     "logCount": 2641099,
-    "bytes": 217821058,
-    "rawBytes": 2035990969
+    "bytes": 156459095,
+    "rawBytes": 1071548236
   }
 }

@@ -20,13 +20,18 @@ import {
   loadChain,
   RequestLimitError,
 } from "./build-snapshot.mjs";
+import { fakeEventLog } from "./fake-logs.mjs";
 
 const chain = loadChain("matic");
 const LATEST = 16_200_000;
 const toHex = (value) => `0x${value.toString(16)}`;
-// Two logs in every block that is a multiple of 1,000.
-const STEP = 1000;
+// Two logs in every block that is a multiple of 20,000. Few logs, since
+// decoding them is slow with the coverage of CI.
+const STEP = 20_000;
 let withoutTimestamp = false;
+// { block, name, ...fields }: the logs of that block of the contract of that
+// name get these fields, so that the script does not take them.
+let broken = undefined;
 const requests = [];
 
 function logsOf(address, from, to) {
@@ -37,6 +42,7 @@ function logsOf(address, from, to) {
   for (let block = Math.ceil(from / STEP) * STEP; block <= to; block += STEP) {
     if (block < contract.creationBlock) continue;
     for (const index of [1, 0]) {
+      const { data, topics } = fakeEventLog(contract, block * 10 + index);
       // Out of order, so that the script sorts them.
       logs.push({
         blockNumber: toHex(block),
@@ -48,9 +54,12 @@ function logsOf(address, from, to) {
         transactionIndex: "0x0",
         logIndex: toHex(index),
         address: address.toLowerCase(),
-        data: "0x",
-        topics: [contract.topics[0]],
+        data,
+        topics,
         removed: false,
+        ...(block === broken?.block && contract.name === broken.name
+          ? broken.fields
+          : {}),
       });
     }
   }
@@ -89,6 +98,7 @@ let outDir;
 beforeEach(() => {
   outDir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-build-"));
   withoutTimestamp = false;
+  broken = undefined;
   requests.length = 0;
 });
 afterEach(() => fs.rmSync(outDir, { recursive: true, force: true }));
@@ -140,25 +150,25 @@ function expectedLogs(to) {
       list.map(
         ({
           blockNumber,
-          blockHash,
           blockTimestamp,
           transactionHash,
           transactionIndex,
           logIndex,
-          address,
-          data,
-          topics,
-        }) => ({
-          blockNumber,
-          blockHash,
-          blockTimestamp,
-          transactionHash,
-          transactionIndex,
-          logIndex,
-          address,
-          data,
-          topics,
-        }),
+        }) => {
+          const { event, args } = fakeEventLog(
+            contract,
+            Number(transactionHash),
+          );
+          return {
+            blockNumber,
+            blockTimestamp,
+            transactionHash,
+            transactionIndex,
+            logIndex,
+            event,
+            args,
+          };
+        },
       ),
     );
   }
@@ -168,11 +178,11 @@ function expectedLogs(to) {
 // 30 seconds: several runs at once make these tests wait for the CPU for
 // longer than the 5 seconds of Vitest (#618).
 describe("buildSnapshot", { timeout: 30_000 }, () => {
-  test("writes the files of formatVersion 2 and the manifest", async () => {
-    await build({ toBlock: 16_000_000, chunkLogs: 500 });
+  test("writes the files of formatVersion 3 and the manifest", async () => {
+    await build({ toBlock: 16_000_000, chunkLogs: 50 });
     const manifest = readManifest();
     expect(manifest).toMatchObject({
-      formatVersion: 2,
+      formatVersion: 3,
       chainName: "matic",
       chainId: 137,
     });
@@ -191,7 +201,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       expect(rows.at(-1).toBlock).toBe(16_000_000);
       for (let i = 1; i < rows.length; i++)
         expect(rows[i].fromBlock).toBe(rows[i - 1].toBlock + 1);
-      for (const row of rows) expect(row.logCount).toBeLessThanOrEqual(500);
+      for (const row of rows) expect(row.logCount).toBeLessThanOrEqual(50);
     }
     const files = manifest.chunks
       .filter((row) => row.file)
@@ -209,12 +219,12 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
   });
 
   test("goes on after a stop, with the same files", async () => {
-    await build({ toBlock: 16_000_000, chunkLogs: 500 });
+    await build({ toBlock: 16_000_000, chunkLogs: 50 });
     const straight = readManifest().chunks;
     fs.rmSync(dir(), { recursive: true });
 
     await expect(
-      build({ toBlock: 16_000_000, chunkLogs: 500, maxRequests: 12 }),
+      build({ toBlock: 16_000_000, chunkLogs: 50, maxRequests: 12 }),
     ).rejects.toThrow(RequestLimitError);
     const partial = path.join(dir(), ".partial");
     const jsonl = fs
@@ -223,7 +233,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(jsonl.length).toBeGreaterThan(0);
     // A line half written when it stopped, and a log after the next block.
     fs.appendFileSync(path.join(partial, jsonl[0]), '{"blockNumber":"0xf4');
-    await build({ chunkLogs: 500 });
+    await build({ chunkLogs: 50 });
     expect(readManifest().chunks).toEqual(straight);
     expect(fs.existsSync(partial)).toBe(false);
   });
@@ -250,6 +260,63 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     await build({ toBlock: 16_000_000 });
     expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
     expect(requests).toContain("eth_getBlockByNumber");
+  });
+
+  // The blocks of the logs of FeePot kept in .partial/.
+  const partialBlocksOfFeePot = () => {
+    const partial = path.join(dir(), ".partial");
+    return fs
+      .readdirSync(partial)
+      .filter(
+        (file) =>
+          file.startsWith("Augur__turbo__FeePot__") && file.endsWith(".jsonl"),
+      )
+      .flatMap((file) =>
+        fs.readFileSync(path.join(partial, file), "utf8").split("\n"),
+      )
+      .filter(Boolean)
+      .map((line) => Number(JSON.parse(line).blockNumber));
+  };
+
+  // 15,300,000 is in the first part of FeePot (500,000 blocks from its
+  // creation block 14,853,221). The ranges of a part are fetched one after
+  // another, in the order of the blocks, and maxWidth keeps every range at
+  // most 100,000 blocks, whatever the other parts do to the shared widths: no
+  // range has both 14,860,000 and 15,300,000, so the range of 14,860,000 is
+  // always in .partial/ before the range of the log.
+  test.each([
+    [
+      "a log of an unknown topic0",
+      { topics: [`0x${"ab".repeat(32)}`] },
+      `cannot decode the log of topic0 0x${"ab".repeat(32)} at block 15300000, log index 0: `,
+    ],
+    [
+      // Approval(address indexed, address indexed, uint256): the uint256 is
+      // in the data.
+      "a log whose data does not fit its event",
+      { data: "0x" },
+      "cannot decode the log of Approval at block 15300000, log index 0: ",
+    ],
+    [
+      "a removed log",
+      { removed: true },
+      "a removed log at block 15300000, log index 0.",
+    ],
+    [
+      "a log of another address",
+      { address: `0x${"9".repeat(40)}` },
+      `a log of another address 0x${"9".repeat(40)} at block 15300000, log index 0.`,
+    ],
+  ])("stops at %s when its range is fetched", async (_, fields, message) => {
+    broken = { block: 15_300_000, name: "FeePot", fields };
+    await expect(
+      build({ toBlock: 16_000_000, maxWidth: 100_000 }),
+    ).rejects.toThrow(`Augur/turbo/FeePot: ${message}`);
+    expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
+    // A range before the log is kept, and the range of the log is not.
+    const blocks = partialBlocksOfFeePot();
+    expect(blocks).toContain(14_860_000);
+    expect(blocks).not.toContain(15_300_000);
   });
 
   test("stops at a .partial/ of the script before formatVersion 2", async () => {

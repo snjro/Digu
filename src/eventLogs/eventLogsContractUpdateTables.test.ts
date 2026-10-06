@@ -235,7 +235,7 @@ describe("registerEventLogsAndBlockTimes", () => {
       message: "Failed to register event logs.",
       cause: {
         message:
-          "Invalid EthersEventLog object. transactionHash is not a valid hex string: zz (block 30, log index 0).",
+          "Invalid event log. transactionHash is not a valid hex string: zz (block 30, log index 0).",
       },
     });
     expect(addEventLogs_updateFetchedBlockNumber).not.toHaveBeenCalled();

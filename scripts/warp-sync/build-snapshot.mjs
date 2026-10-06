@@ -1,6 +1,7 @@
-// Builds the warp sync snapshot of a chain: the raw event logs of its
-// contracts, fetched with eth_getLogs under the same conditions as the sync.
-// Run it again to add the logs after the last snapshot. See README.md.
+// Builds the warp sync snapshot of a chain: the event logs of its contracts,
+// fetched with eth_getLogs under the same conditions as the sync and decoded
+// with their ABIs. Run it again to add the logs after the last snapshot. See
+// README.md.
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
@@ -16,6 +17,7 @@ import {
   writeContractChunks,
   writeManifest,
 } from "./snapshot-format.mjs";
+import { eventsByTopic0, toSnapshotLog } from "./snapshot-log.mjs";
 
 const CHAINS_DIR = "src/constants/chains";
 // The widths of the eth_getLogs ranges, in blocks. pocket returned 500,000
@@ -126,20 +128,19 @@ function loadContracts(chainDir, chainIndex) {
         /import \w+ from "\.\/([^"]+\.json)";/g,
       )) {
         const json = JSON.parse(read(path.join(vDir, file)));
-        // Like convertJsonToABI.ts: anonymous events are not synced.
         const iface = new Interface(json.abi);
-        const topics = [];
-        iface.forEachEvent((fragment) => {
-          if (!fragment.anonymous) topics.push(fragment.topicHash);
-        });
-        if (topics.length === 0) continue;
+        const events = eventsByTopic0(iface);
+        if (events.size === 0) continue;
         contracts.push({
           project,
           version,
           name: json.name,
           address: json.address,
           creationBlock: json.creation.blockNumber,
-          topics,
+          topics: [...events.keys()],
+          // To decode the logs.
+          iface,
+          events,
         });
       }
     }
@@ -466,15 +467,11 @@ const sortLogs = (logs) =>
       Number(a.logIndex) - Number(b.logIndex),
   );
 
-// Keeps the fields that the app reads, as the RPC returned them, for logs by
-// block and log index. A log without blockTimestamp gets it from its block.
+// Decodes the logs, by block and log index, into the logs of the snapshot. A
+// log without blockTimestamp gets it from its block.
 export async function* toSnapshotLogs(rpc, contract, rawLogs) {
   let timestamp = undefined; // [blockNumber, blockTimestamp] of the last block asked
   for await (const raw of rawLogs) {
-    if (raw.removed) throw new Error(`A removed log: ${JSON.stringify(raw)}`);
-    if (raw.address.toLowerCase() !== contract.address.toLowerCase()) {
-      throw new Error(`A log of another address: ${raw.address}`);
-    }
     let blockTimestamp = raw.blockTimestamp;
     if (!blockTimestamp) {
       if (timestamp?.[0] !== raw.blockNumber) {
@@ -486,17 +483,7 @@ export async function* toSnapshotLogs(rpc, contract, rawLogs) {
       }
       blockTimestamp = timestamp[1];
     }
-    yield {
-      blockNumber: raw.blockNumber,
-      blockHash: raw.blockHash,
-      blockTimestamp,
-      transactionHash: raw.transactionHash,
-      transactionIndex: raw.transactionIndex,
-      logIndex: raw.logIndex,
-      address: raw.address,
-      data: raw.data,
-      topics: raw.topics,
-    };
+    yield toSnapshotLog(contract, raw, blockTimestamp);
   }
 }
 
@@ -733,6 +720,11 @@ async function build(chain, rpc, outDir, toBlock, options) {
     await fetchLogs(rpc, contract, nextBlock, partTo, {
       log,
       onRange: (_from, to, logs) => {
+        // Stops at once at a log that toSnapshotLog does not take. .partial/
+        // keeps the logs as the RPC returned them; they are checked and
+        // decoded again when the files are written.
+        for (const raw of logs)
+          toSnapshotLog(contract, raw, raw.blockTimestamp);
         fs.appendFileSync(
           files.logs,
           logs.map((raw) => `${JSON.stringify(raw)}\n`).join(""),

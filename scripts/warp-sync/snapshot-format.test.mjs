@@ -5,6 +5,7 @@ import path from "node:path";
 import zlib from "node:zlib";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
+  chunkLogsOf,
   FORMAT_VERSION,
   lastBlocks,
   moveChunkFiles,
@@ -149,12 +150,22 @@ describe("writeContractChunks", () => {
   });
 });
 
+test("WARP_SYNC_CHUNK_LOGS is a positive integer", () => {
+  expect(chunkLogsOf(undefined)).toBe(20_000);
+  expect(chunkLogsOf("10")).toBe(10);
+  for (const value of ["", "0", "abc", "-5", "1.5", " 10"]) {
+    expect(() => chunkLogsOf(value)).toThrow(
+      `WARP_SYNC_CHUNK_LOGS must be a positive integer, not "${value}".`,
+    );
+  }
+});
+
 describe("the manifest", () => {
   const chain = { name: "eth", chainId: 1 };
 
   test("an empty one when there is none", () => {
     expect(readManifest(path.join(dir, "manifest.json"), chain)).toEqual({
-      formatVersion: 2,
+      formatVersion: 3,
       chainName: "eth",
       chainId: 1,
       contracts: [],
@@ -164,15 +175,15 @@ describe("the manifest", () => {
     });
   });
 
-  test("formatVersion 1 is to be converted first", () => {
+  test("formatVersion 2 is to be converted first", () => {
     const file = path.join(dir, "manifest.json");
-    fs.writeFileSync(file, JSON.stringify({ formatVersion: 1, chainId: 1 }));
+    fs.writeFileSync(file, JSON.stringify({ formatVersion: 2, chainId: 1 }));
     expect(() => readManifest(file, chain)).toThrow("convert-snapshot.mjs");
   });
 
   test("another chain stops it", () => {
     const file = path.join(dir, "manifest.json");
-    fs.writeFileSync(file, JSON.stringify({ formatVersion: 2, chainId: 137 }));
+    fs.writeFileSync(file, JSON.stringify({ formatVersion: 3, chainId: 137 }));
     expect(() => readManifest(file, chain)).toThrow("chainId 137");
   });
 
