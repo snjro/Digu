@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
+import { customLogger } from "#utils/logger.js";
 import type { AbiFragmentIdentifier } from "./dbTypes";
 import type {
   EventLogsTableQuery,
@@ -100,6 +101,31 @@ describe("createEventLogsTableRequestHandler", () => {
       { id: 1, error: "refresh failed" },
       { id: 2, value: queryResult },
     ]);
+  });
+
+  test("goes on with the next request when post() throws", async () => {
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    const table = fakeTable();
+    table.open.mockResolvedValue(state);
+    table.query.mockReturnValue(queryResult);
+    const posted: EventLogsTableWorkerResult[] = [];
+    let failsToPost: number = 2;
+    const handle = createEventLogsTableRequestHandler(
+      (result) => {
+        // The response and then the error of the first request.
+        if (failsToPost-- > 0) throw new Error("could not clone");
+        posted.push(result);
+      },
+      () => table,
+    );
+
+    handle({ id: 0, type: "open", params: { eventIdentifier } });
+    handle({ id: 1, type: "query", params: query });
+    await settle();
+
+    expect(posted).toEqual([{ id: 1, value: queryResult }]);
+    expect(customLogger.error).toHaveBeenCalledTimes(1);
+    vi.restoreAllMocks();
   });
 
   test("answers a query before open with an error", async () => {

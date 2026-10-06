@@ -101,4 +101,35 @@ describe("EventLogsTableClient", () => {
     expect(FakeWorker.last.terminate).toHaveBeenCalledTimes(1);
     await expect(opened).rejects.toThrow("EventLogsTableWorker: terminated");
   });
+
+  test("rejects a request after terminate() without sending it", async () => {
+    const client = new EventLogsTableClient();
+    client.terminate();
+
+    await expect(client.query(query)).rejects.toThrow(
+      "EventLogsTableWorker: terminated",
+    );
+    expect(FakeWorker.last.postMessage).not.toHaveBeenCalled();
+  });
+
+  test("rejects a request after an error of the worker without sending it", async () => {
+    const client = new EventLogsTableClient();
+    FakeWorker.last.emit("error", { message: "worker failed" });
+
+    await expect(client.refresh()).rejects.toThrow(
+      "EventLogsTableWorker: worker failed",
+    );
+    expect(FakeWorker.last.postMessage).not.toHaveBeenCalled();
+  });
+
+  test("goes on after a message that cannot be read", async () => {
+    const client = new EventLogsTableClient();
+    FakeWorker.last.emit("messageerror", {});
+    const queried = client.query(query);
+
+    FakeWorker.last.emit("message", {
+      data: { id: 0, value: { rows: [], lastRow: 0 } },
+    });
+    await expect(queried).resolves.toEqual({ rows: [], lastRow: 0 });
+  });
 });

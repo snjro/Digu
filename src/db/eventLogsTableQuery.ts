@@ -176,14 +176,20 @@ function quickSearchFilter(
   }
   const words: string[] = quickSearch.toUpperCase().split(" ");
   return (row) => {
-    const texts: string[] = [];
-    for (const values of cellValues) {
-      const text: string | null = values.getFilterText(row);
-      if (text != null && text !== "") {
-        texts.push(text.toUpperCase());
-      }
-    }
-    return words.every((word) => texts.some((text) => text.includes(word)));
+    // The text of a column is made when a word first needs it, and kept for
+    // the next words. null when the column has no text.
+    const texts: (string | null | undefined)[] = new Array(cellValues.length);
+    return words.every((word) =>
+      cellValues.some((values, index) => {
+        let text: string | null | undefined = texts[index];
+        if (text === undefined) {
+          const filterText: string | null = values.getFilterText(row);
+          text = filterText ? filterText.toUpperCase() : null;
+          texts[index] = text;
+        }
+        return text !== null && text.includes(word);
+      }),
+    );
   };
 }
 

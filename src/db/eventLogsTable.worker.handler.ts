@@ -1,3 +1,4 @@
+import { customLogger } from "#utils/logger.js";
 import type { AbiFragmentIdentifier } from "./dbTypes";
 import { EventLogsTable } from "./eventLogsTable";
 import type {
@@ -50,16 +51,24 @@ export function createEventLogsTableRequestHandler(
   }
 
   return (message) => {
-    queue = queue.then(async () => {
-      try {
-        post({ id: message.id, value: await execute(message) });
-      } catch (error) {
-        // An error thrown in the worker does not reach the page.
-        post({
+    queue = queue
+      .then(async () => {
+        try {
+          post({ id: message.id, value: await execute(message) });
+        } catch (error) {
+          // An error thrown in the worker does not reach the page.
+          post({
+            id: message.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      })
+      // When post() throws, the next requests still run.
+      .catch((error: unknown) => {
+        customLogger.error("EventLogsTable: post the response.", {
           id: message.id,
-          error: error instanceof Error ? error.message : String(error),
+          errorObject: error,
         });
-      }
-    });
+      });
   };
 }

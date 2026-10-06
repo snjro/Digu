@@ -23,6 +23,8 @@ export class EventLogsTableClient {
   private readonly worker: Worker = new EventLogsTableWorker();
   private nextId: number = 0;
   private readonly pending: Map<number, Pending> = new Map();
+  // Set after terminate() or an error of the worker, which answers no more.
+  private closedMessage: string | undefined;
 
   constructor() {
     this.worker.addEventListener(
@@ -41,7 +43,7 @@ export class EventLogsTableClient {
       },
     );
     this.worker.addEventListener("error", (event: ErrorEvent) => {
-      this.rejectAll(`EventLogsTableWorker: ${event.message}`);
+      this.close(`EventLogsTableWorker: ${event.message}`);
     });
     this.worker.addEventListener("messageerror", () => {
       this.rejectAll("EventLogsTableWorker: could not read the message");
@@ -57,21 +59,28 @@ export class EventLogsTableClient {
   refresh(): Promise<EventLogsTableRefreshResult> {
     return this.request("refresh", undefined);
   }
-  // Drops the rows, and rejects the requests that wait.
+  // Drops the rows, and rejects the requests that wait and the later ones.
   terminate(): void {
     this.worker.terminate();
-    this.rejectAll("EventLogsTableWorker: terminated");
+    this.close("EventLogsTableWorker: terminated");
   }
 
   private request<T extends EventLogsTableRequestType>(
     type: T,
     params: EventLogsTableRequestParams<T>,
   ): Promise<EventLogsTableResponseValue<T>> {
+    if (this.closedMessage !== undefined) {
+      return Promise.reject(new Error(this.closedMessage));
+    }
     const id: number = this.nextId++;
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
       this.worker.postMessage({ id, type, params });
     });
+  }
+  private close(message: string): void {
+    this.closedMessage ??= message;
+    this.rejectAll(message);
   }
   private rejectAll(message: string): void {
     for (const pending of this.pending.values()) {
