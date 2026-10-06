@@ -30,6 +30,12 @@ function createGridApi() {
     sizeColumnsToFit: vi.fn(),
     autoSizeAllColumns: vi.fn(),
     getGridId: vi.fn(() => "grid"),
+    // The row count of the CSV dialog.
+    forEachNode: vi.fn(),
+    getDisplayedRowCount: vi.fn(() => 0),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    isDestroyed: vi.fn(() => false),
   };
   return gridApi as typeof gridApi & GridApi;
 }

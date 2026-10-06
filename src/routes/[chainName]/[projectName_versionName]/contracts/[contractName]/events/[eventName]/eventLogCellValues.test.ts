@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { EventFragment } from "ethers";
 import {
   AllCommunityModule,
@@ -11,7 +11,7 @@ import {
 } from "ag-grid-community";
 import { getColumnDefs } from "#lib/grid/GridBody/getColumnDefs.js";
 import {
-  getCsvText,
+  getCsvTextUpTo,
   type CsvSelectedValues,
 } from "#lib/grid/ExportCsv/exportCsv.js";
 import type { ConvertedEventLog } from "#db/dbTypes.js";
@@ -182,6 +182,20 @@ describe("eventLogCellValues", () => {
       expect(value.getCsvText(rows[rowIndex])).toBe(csvText);
     },
   );
+
+  test("should not group the digits of a bigint for the CSV", () => {
+    // The grouping is slow, and the CSV does not have it.
+    const toLocaleString = vi.spyOn(BigInt.prototype, "toLocaleString");
+    try {
+      expect(valuesOf("args.2.0").getCsvText(rows[0])).toBe(
+        "1152921504606846977",
+      );
+      expect(valuesOf("args.4.1").getCsvText(rows[0])).toBe("5");
+      expect(toLocaleString).not.toHaveBeenCalled();
+    } finally {
+      toLocaleString.mockRestore();
+    }
+  });
 
   test("should sort the datetime by the date and match it in ISO 8601", () => {
     const datetime: EventLogCellValues = valuesOf("jsDate");
@@ -417,7 +431,7 @@ describe("eventLogCellValues and ag-grid", () => {
   }
   test("exports the CSV text of the values in quotes", () => {
     const gridApi = createRealGrid();
-    expect(getCsvText(gridApi, csvSelectedValues(false, "all"))).toBe(
+    expect(getCsvTextUpTo(gridApi, csvSelectedValues(false, "all")).text).toBe(
       csv(allRows(), (text) => '"' + text.replace(/"/g, '""') + '"'),
     );
   });
@@ -426,7 +440,8 @@ describe("eventLogCellValues and ag-grid", () => {
     const gridApi = createRealGrid();
     gridApi.applyColumnState({ state: [{ colId: "args.2.0", sort: "desc" }] });
     expect(
-      getCsvText(gridApi, csvSelectedValues(true, "filteredAndSorted")),
+      getCsvTextUpTo(gridApi, csvSelectedValues(true, "filteredAndSorted"))
+        .text,
     ).toBe(
       csv(sorted(valuesOf("args.2.0"), "desc"), (text) =>
         /[,"\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text,

@@ -3,6 +3,7 @@
   import type { ExportFilePrefix } from "#utils/utilsFile.js";
   import type { GridApi } from "ag-grid-community";
   import BaseGridFunctionBar from "./BaseGridFunctionBar.svelte";
+  import type { CsvMaker } from "./ExportCsv/csvFormat";
   import GridBody from "./GridBody/GridBody.svelte";
   import type { ColumnDef } from "./types";
 
@@ -14,6 +15,8 @@
     loadingText?: string;
     exportFilePrefix: ExportFilePrefix;
     hasMultipleTabs: boolean;
+    // Makes the CSV of All in a worker instead of ag-grid.
+    csvOfAllRows?: CsvMaker;
   }
 
   let {
@@ -23,6 +26,7 @@
     loadingText,
     exportFilePrefix,
     hasMultipleTabs,
+    csvOfAllRows,
   }: Props = $props();
 
   let gridApi: GridApi<GridRow> | undefined = $state.raw();
@@ -35,6 +39,7 @@
       {rows}
       bind:isFullScreen
       {exportFilePrefix}
+      {csvOfAllRows}
     />
   {/snippet}
 

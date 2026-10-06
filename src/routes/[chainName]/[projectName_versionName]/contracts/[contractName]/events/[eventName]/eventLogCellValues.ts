@@ -2,6 +2,7 @@
 // so that a worker can sort, filter and export the rows as the grid does.
 import type { EventAbiFragment } from "#constants/chains/types.js";
 import type { ConvertedEventLog } from "#db/dbTypes.js";
+import { FORMULA_START } from "#lib/grid/ExportCsv/csvFormat.js";
 import { NO_DATA } from "#utils/utilsConstants.js";
 import { convertJsDateToIso8601 } from "#utils/utilsTime.js";
 
@@ -66,14 +67,14 @@ export function formatArgChildValue(argChildValue: unknown): string {
 function toFilterText(value: unknown): string | null {
   return value == null ? null : String(value);
 }
-// A spreadsheet reads a cell that starts with one of these as a formula.
-const FORMULA_START = /^[=+\-@\t\r]/;
 // As exportCsv.ts: a bigint without the digit grouping, and a quote before a
-// text that a spreadsheet would read as a formula.
-function toCsvText(value: unknown, formattedText: string): string {
+// text that a spreadsheet would read as a formula. A bigint is not formatted:
+// its digit grouping is slow, and the CSV does not have it.
+function toCsvText(value: unknown, format: () => string): string {
   if (typeof value === "bigint") {
     return value.toString();
   }
+  const formattedText: string = format();
   if (typeof value === "string" && FORMULA_START.test(formattedText)) {
     return "'" + formattedText;
   }
@@ -97,7 +98,7 @@ function cellValuesOf(
     getFilterText: (row) => toFilterText(getValue(row)),
     getCsvText: (row) => {
       const value: unknown = getValue(row);
-      return toCsvText(value, formatValue(value));
+      return toCsvText(value, () => formatValue(value));
     },
   };
 }
@@ -112,7 +113,8 @@ export function eventLogCellValues(
     filterType: "text",
     getSortValue: getDatetimeValue,
     getFilterText: getDatetimeText,
-    getCsvText: (row) => toCsvText(getDatetimeValue(row), getDatetimeText(row)),
+    getCsvText: (row) =>
+      toCsvText(getDatetimeValue(row), () => getDatetimeText(row)),
   };
   const args: EventLogCellValues[] = [];
   const abiFragmentInputs: EventAbiFragment["inputs"] =

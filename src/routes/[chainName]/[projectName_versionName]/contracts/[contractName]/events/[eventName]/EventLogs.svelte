@@ -17,6 +17,8 @@
     AbiFragmentIdentifier,
     ConvertedEventLog,
   } from "#db/dbTypes.js";
+  import type { CsvMaker, CsvRequest } from "#lib/grid/ExportCsv/csvFormat.js";
+  import { eventLogsCsvInWorker } from "#db/eventLogsTable.worker.portal.js";
   import { columnDefs } from "./columnDefs";
   import { gridRows } from "./gridRows";
   import { createThrottledLoad } from "./latestLoad";
@@ -93,6 +95,15 @@
     }
     return previousArgsMaxLengths;
   });
+  // The worker reads the table as it is now, so it is used only while the
+  // grid shows the rows: not while they load or the warp sync imports them.
+  let isShowingRows: boolean = $derived(rows !== undefined);
+  let csvOfAllRows: CsvMaker | undefined = $derived.by(() => {
+    if (!isShowingRows) return undefined;
+    const eventIdentifier: AbiFragmentIdentifier = targetEventIdentifier;
+    return (request: CsvRequest) =>
+      eventLogsCsvInWorker(eventIdentifier, request);
+  });
   let eventLogColumnDefs: ColumnDef[] = $derived(
     columnDefs(targetEventAbiFragment, eachArgsMaxLengths),
   );
@@ -112,5 +123,6 @@
     exportFilePrefix="eventLogs"
     hasMultipleTabs={true}
     bind:isFullScreen
+    {csvOfAllRows}
   />
 {/if}

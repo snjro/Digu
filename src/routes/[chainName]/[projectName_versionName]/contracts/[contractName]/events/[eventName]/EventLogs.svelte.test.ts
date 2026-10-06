@@ -15,6 +15,12 @@ import {
   storeWarpSync,
   type WarpSyncState,
 } from "#warpSync/warpSyncState.js";
+import { eventLogsCsvInWorker } from "#db/eventLogsTable.worker.portal.js";
+import type {
+  CsvMaker,
+  CsvRequest,
+  CsvResult,
+} from "#lib/grid/ExportCsv/csvFormat.js";
 import { gridRows } from "./gridRows";
 import EventLogs, {
   EVENT_LOGS_RELOAD_INTERVAL,
@@ -45,20 +51,24 @@ function columnDefsId(columnDefs: object): number {
   }
   return columnDefsIds.get(columnDefs)!;
 }
+vi.mock("#db/eventLogsTable.worker.portal.js", () => ({
+  eventLogsCsvInWorker: vi.fn(),
+}));
+type GridProps = {
+  rows: unknown[] | undefined;
+  paramColumnDefs: object;
+  loadingText?: string;
+  csvOfAllRows?: CsvMaker;
+};
+let gridProps: GridProps | undefined;
 vi.mock("#lib/grid/BaseGrid.svelte", async () => {
   const { default: Stub } =
     await import("../../functions/[functionName]/pageTabs.testStub.svelte");
   return {
-    default: (
-      anchor: unknown,
-      props: {
-        rows: unknown[] | undefined;
-        paramColumnDefs: object;
-        loadingText?: string;
-      },
-    ) =>
+    default: (anchor: unknown, props: GridProps) =>
       Stub(anchor as never, {
         get stubName() {
+          gridProps = props;
           return `rows=${props.rows?.length} columns=${columnDefsId(props.paramColumnDefs)} loading=${props.loadingText ?? ""}`;
         },
       }),
@@ -212,6 +222,47 @@ describe("EventLogs.svelte", () => {
     await waitFor(() => expect(shown().rows).toBe(3));
     expect(shown().columns).not.toBe(columnsOfOneItem);
     expect(load).toHaveBeenCalledTimes(4);
+  });
+
+  test("makes the CSV of All in the table worker of the event", async () => {
+    load.mockResolvedValue([]);
+    const csvResult = { rowCount: 0 } as CsvResult;
+    vi.mocked(eventLogsCsvInWorker).mockResolvedValue(csvResult);
+    renderGrid();
+    await waitFor(() => expect(shown().rows).toBe(0));
+
+    const request = { maxRows: 1 } as CsvRequest;
+    await expect(gridProps?.csvOfAllRows?.(request)).resolves.toBe(csvResult);
+    expect(eventLogsCsvInWorker).toHaveBeenCalledWith(
+      targetEventIdentifier,
+      request,
+    );
+  });
+
+  test("leaves the CSV to the grid while the rows load or are imported", async () => {
+    let resolveLoad: (rows: ConvertedEventLog[]) => void = () => {};
+    load.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveLoad = resolve;
+      }),
+    );
+    load.mockResolvedValue([]);
+    renderGrid();
+    await tick();
+    expect(shown().rows).toBeUndefined();
+    expect(gridProps?.csvOfAllRows).toBeUndefined();
+
+    resolveLoad([]);
+    await waitFor(() => expect(shown().rows).toBe(0));
+    expect(gridProps?.csvOfAllRows).toBeTypeOf("function");
+
+    setWarpSync("importing");
+    await waitFor(() => expect(shown().rows).toBeUndefined());
+    expect(gridProps?.csvOfAllRows).toBeUndefined();
+
+    setWarpSync("imported");
+    await waitFor(() => expect(shown().rows).toBe(0));
+    expect(gridProps?.csvOfAllRows).toBeTypeOf("function");
   });
 
   test("does not reload when only other values change", async () => {

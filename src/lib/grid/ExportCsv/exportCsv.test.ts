@@ -12,9 +12,12 @@ import {
   getColumnDefs,
 } from "../GridBody/getColumnDefs";
 import {
+  CSV_COPY_MAX_ROWS,
   downloadCsvFile,
   exportCsvFile,
-  getCsvText,
+  getCsvRequest,
+  getCsvRowCount,
+  getCsvTextUpTo,
   type CsvColumnSeparator,
   type CsvFilteredSorted,
   type CsvSelectedValues,
@@ -167,14 +170,14 @@ describe("downloadCsvFile", () => {
   });
 });
 
-describe("getCsvText", () => {
+describe("getCsvTextUpTo", () => {
   test("passes the selected values and returns the CSV text", () => {
     const gridApi = createGridApi(COL_IDS);
-    const result: string = getCsvText(gridApi, {
+    const result: string = getCsvTextUpTo(gridApi, {
       ...SELECTED_VALUES,
       skipRowNumber: { selectedValue: false },
       skipColumnHeaders: { selectedValue: true },
-    });
+    }).text;
     expect(result).toBe("csv text");
     expect(gridApi.exportDataAsCsv).not.toHaveBeenCalled();
     expect(gridApi.getDataAsCsv).toHaveBeenCalledWith({
@@ -186,6 +189,7 @@ describe("getCsvText", () => {
       skipColumnGroupHeaders: true,
       fileName: undefined,
       processCellCallback: expect.any(Function),
+      shouldRowBeSkipped: expect.any(Function),
     });
   });
 });
@@ -320,7 +324,7 @@ describe("with ag-grid", () => {
     const gridApi = createRealGrid();
     gridApi.applyColumnState({ state: [{ colId: "name", sort: "desc" }] });
     gridApi.setGridOption("quickFilterText", "a");
-    expect(getCsvText(gridApi, selectedValues("all"))).toBe(
+    expect(getCsvTextUpTo(gridApi, selectedValues("all")).text).toBe(
       ['"1","b","1234","x,y"', '"2","a","5",""', `"3","'=c","67890","z"`].join(
         "\r\n",
       ),
@@ -331,23 +335,138 @@ describe("with ag-grid", () => {
     const gridApi = createRealGrid();
     gridApi.applyColumnState({ state: [{ colId: "name", sort: "desc" }] });
     gridApi.setGridOption("quickFilterText", "b");
-    expect(getCsvText(gridApi, selectedValues("filteredAndSorted"))).toBe(
-      '"1","b","1234","x,y"',
-    );
+    expect(
+      getCsvTextUpTo(gridApi, selectedValues("filteredAndSorted")).text,
+    ).toBe('"1","b","1234","x,y"');
     gridApi.destroy();
   });
   test("moved and hidden columns: only Filtered & Sorted follows the screen", () => {
     const gridApi = createRealGrid();
     gridApi.moveColumns(["tags"], 1);
     gridApi.setColumnsVisible(["amount"], false);
-    expect(getCsvText(gridApi, selectedValues("filteredAndSorted"))).toBe(
-      ['"1","x,y","b"', '"2","","a"', `"3","z","'=c"`].join("\r\n"),
-    );
-    expect(getCsvText(gridApi, selectedValues("all"))).toBe(
+    expect(
+      getCsvTextUpTo(gridApi, selectedValues("filteredAndSorted")).text,
+    ).toBe(['"1","x,y","b"', '"2","","a"', `"3","z","'=c"`].join("\r\n"));
+    expect(getCsvTextUpTo(gridApi, selectedValues("all")).text).toBe(
       ['"1","b","1234","x,y"', '"2","a","5",""', `"3","'=c","67890","z"`].join(
         "\r\n",
       ),
     );
     gridApi.destroy();
+  });
+});
+
+describe("the copy and the worker", () => {
+  type NumberRow = { n: number; even: string };
+  function createNumberGrid(length: number) {
+    ModuleRegistry.registerModules([AllCommunityModule]);
+    const element = document.createElement("div");
+    document.body.append(element);
+    return createGrid<NumberRow>(element, {
+      columnDefs: getColumnDefs([
+        {
+          headerName: "group",
+          children: [{ field: "n" }, { field: "even", headerName: "is even" }],
+        },
+      ]),
+      rowData: Array.from({ length }, (_, n) => ({
+        n,
+        even: n % 2 === 0 ? "yes" : "no",
+      })),
+    });
+  }
+  const selectedValues = (
+    filteredSorted: CsvFilteredSorted,
+  ): CsvSelectedValues => ({
+    skipRowNumber: { selectedValue: false },
+    columnSeparator: { selectedValue: "," },
+    suppressDoubleQuotes: { selectedValue: true },
+    skipColumnHeaders: { selectedValue: true },
+    filteredSorted: { selectedValue: filteredSorted },
+  });
+
+  // Filtered & Sorted has the even rows, from the last one.
+  test.each([
+    CSV_COPY_MAX_ROWS * 2 + 2,
+    CSV_COPY_MAX_ROWS * 2,
+    CSV_COPY_MAX_ROWS + 1,
+    CSV_COPY_MAX_ROWS,
+    CSV_COPY_MAX_ROWS - 1,
+  ])("getCsvTextUpTo takes the first rows of the copy: %i rows", (length) => {
+    const gridApi = createNumberGrid(length);
+    gridApi.applyColumnState({ state: [{ colId: "n", sort: "desc" }] });
+    gridApi.setGridOption("quickFilterText", "yes");
+    const lastEven: number = (length - 1) % 2 === 0 ? length - 1 : length - 2;
+    for (const [filteredSorted, totalRowCount, firstN] of [
+      ["all", length, 0],
+      ["filteredAndSorted", Math.ceil(length / 2), lastEven],
+    ] as const) {
+      const result = getCsvTextUpTo(
+        gridApi,
+        selectedValues(filteredSorted),
+        CSV_COPY_MAX_ROWS,
+      );
+      const rowCount: number = Math.min(totalRowCount, CSV_COPY_MAX_ROWS);
+      const lines: string[] = result.text.split("\r\n");
+      expect([result.rowCount, result.totalRowCount, lines.length]).toEqual([
+        rowCount,
+        totalRowCount,
+        rowCount,
+      ]);
+      // The rows are the first ones, and the row numbers stay in order.
+      expect(lines[0]).toBe(`1,${firstN},${firstN % 2 ? "no" : "yes"}`);
+      expect(lines.at(-1)).toMatch(new RegExp(`^${rowCount},`));
+      expect(getCsvRowCount(gridApi, filteredSorted)).toBe(totalRowCount);
+    }
+    gridApi.destroy();
+  });
+
+  test("getCsvRequest gives the columns with their headers and groups", () => {
+    const gridApi = createNumberGrid(1);
+    const request = getCsvRequest(
+      gridApi,
+      {
+        ...selectedValues("all"),
+        columnSeparator: { selectedValue: "|" },
+        skipRowNumber: { selectedValue: true },
+      },
+      CSV_COPY_MAX_ROWS,
+    );
+    const groupId: string = gridApi
+      .getColumn("n")!
+      .getOriginalParent()!
+      .getGroupId();
+    expect(request).toEqual({
+      columns: [
+        {
+          colId: "n",
+          headerName: "N",
+          groups: [{ groupId, headerName: "group" }],
+        },
+        {
+          colId: "even",
+          headerName: "is even",
+          groups: [{ groupId, headerName: "group" }],
+        },
+      ],
+      columnSeparator: "|",
+      suppressQuotes: true,
+      skipColumnHeaders: true,
+      maxRows: CSV_COPY_MAX_ROWS,
+    });
+    // The row number has a padding group, without a header.
+    const withRowNumber = getCsvRequest(gridApi, selectedValues("all"));
+    expect(withRowNumber.columns[0]).toEqual({
+      colId: ColIdRowSequenceNumber,
+      headerName: "#",
+      groups: [{ groupId: expect.any(String), headerName: "" }],
+    });
+    expect(withRowNumber.maxRows).toBeUndefined();
+    gridApi.destroy();
+  });
+
+  test("getCsvRequest without columns gives none", () => {
+    const gridApi = createGridApi(undefined);
+    expect(getCsvRequest(gridApi, selectedValues("all")).columns).toEqual([]);
   });
 });

@@ -1,3 +1,4 @@
+import type { CsvRequest, CsvResult } from "#lib/grid/ExportCsv/csvFormat.js";
 import type { AbiFragmentIdentifier } from "./dbTypes";
 import type {
   EventLogsTableQuery,
@@ -6,19 +7,23 @@ import type {
   EventLogsTableState,
 } from "./eventLogsTable";
 
-export type EventLogsTableRequestType = "open" | "query" | "refresh";
+export type EventLogsTableRequestType = "open" | "query" | "refresh" | "csv";
 export type EventLogsTableRequestParams<T extends EventLogsTableRequestType> =
   T extends "open"
     ? { eventIdentifier: AbiFragmentIdentifier }
     : T extends "query"
       ? EventLogsTableQuery
-      : undefined;
+      : T extends "csv"
+        ? CsvRequest
+        : undefined;
 export type EventLogsTableResponseValue<T extends EventLogsTableRequestType> =
   T extends "open"
     ? EventLogsTableState
     : T extends "query"
       ? EventLogsTableQueryResult
-      : EventLogsTableRefreshResult;
+      : T extends "csv"
+        ? CsvResult
+        : EventLogsTableRefreshResult;
 
 // The id pairs the response with its request.
 export type EventLogsTableWorkerMessage<

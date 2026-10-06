@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { customLogger } from "#utils/logger.js";
+import type { CsvRequest, CsvResult } from "#lib/grid/ExportCsv/csvFormat.js";
 import type { AbiFragmentIdentifier } from "./dbTypes";
 import type {
   EventLogsTableQuery,
@@ -42,6 +43,7 @@ function fakeTable() {
     open: vi.fn<() => Promise<EventLogsTableState>>(),
     query: vi.fn<(query: EventLogsTableQuery) => EventLogsTableQueryResult>(),
     refresh: vi.fn<() => Promise<EventLogsTableRefreshResult>>(),
+    csv: vi.fn<(request: CsvRequest) => CsvResult>(),
   };
 }
 // Waits until the handler has done all the requests it can.
@@ -148,6 +150,42 @@ describe("createEventLogsTableRequestHandler", () => {
     await settle();
 
     expect(posted).toEqual([{ id: 0, error: "could not clone" }]);
+  });
+
+  test("makes the CSV of the open table", async () => {
+    const table = fakeTable();
+    table.open.mockResolvedValue(state);
+    const csvRequest: CsvRequest = {
+      columns: [],
+      columnSeparator: ",",
+      suppressQuotes: false,
+      skipColumnHeaders: true,
+      maxRows: 1,
+    };
+    const csvResult: CsvResult = {
+      blob: new Blob(["a"]),
+      rowCount: 1,
+      totalRowCount: 2,
+    };
+    table.csv.mockReturnValue(csvResult);
+    const posted: EventLogsTableWorkerResult[] = [];
+    const handle = createEventLogsTableRequestHandler(
+      (result) => posted.push(result),
+      () => table,
+    );
+
+    handle({ id: 0, type: "csv", params: csvRequest });
+    handle({ id: 1, type: "open", params: { eventIdentifier } });
+    handle({ id: 2, type: "csv", params: csvRequest });
+    await settle();
+
+    expect(table.csv).toHaveBeenCalledTimes(1);
+    expect(table.csv).toHaveBeenCalledWith(csvRequest);
+    expect(posted).toEqual([
+      { id: 0, error: "EventLogsTable: no table is open" },
+      { id: 1, value: state },
+      { id: 2, value: csvResult },
+    ]);
   });
 
   test("answers a query before open with an error", async () => {

@@ -17,6 +17,8 @@ import {
   queryEventLogRows,
   type EventLogsTableQueryModel,
 } from "./eventLogsTableQuery";
+import { eventLogsCsv } from "./eventLogsTableCsv";
+import type { CsvRequest, CsvResult } from "#lib/grid/ExportCsv/csvFormat.js";
 
 // A row as the DB keeps it: the key is auto-incremented.
 export type StoredEventLog = ConvertedEventLog & { id: number };
@@ -123,6 +125,11 @@ export class EventLogsTable {
         .map((rowIndex) => this.rows[rowIndex]),
       lastRow: rowIndexes.length,
     };
+  }
+
+  // All the rows, in the order of the blocks.
+  csv(request: CsvRequest): CsvResult {
+    return eventLogsCsv(this.rows, this.cellValues, request);
   }
 
   private state(): EventLogsTableState {

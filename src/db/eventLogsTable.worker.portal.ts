@@ -1,4 +1,5 @@
 import EventLogsTableWorker from "#db/eventLogsTable.worker.js?worker";
+import type { CsvRequest, CsvResult } from "#lib/grid/ExportCsv/csvFormat.js";
 import type { AbiFragmentIdentifier } from "./dbTypes";
 import type {
   EventLogsTableQuery,
@@ -65,6 +66,9 @@ export class EventLogsTableClient {
   refresh(): Promise<EventLogsTableRefreshResult> {
     return this.request("refresh", undefined);
   }
+  csv(request: CsvRequest): Promise<CsvResult> {
+    return this.request("csv", request);
+  }
   // Drops the rows, and rejects the requests that wait and the later ones.
   terminate(): void {
     this.close("EventLogsTableWorker: terminated");
@@ -94,5 +98,20 @@ export class EventLogsTableClient {
       pending.reject(new Error(message));
     }
     this.pending.clear();
+  }
+}
+
+// Makes the CSV in a new table worker, which is stopped after it, even when
+// it fails: the table keeps its rows on the page for now (#644).
+export async function eventLogsCsvInWorker(
+  eventIdentifier: AbiFragmentIdentifier,
+  request: CsvRequest,
+): Promise<CsvResult> {
+  const client: EventLogsTableClient = new EventLogsTableClient();
+  try {
+    await client.open(eventIdentifier);
+    return await client.csv(request);
+  } finally {
+    client.terminate();
   }
 }
