@@ -30,6 +30,12 @@ vi.mock("#eventLogs/eventLogs.js", () => ({ fetchEventLogs: vi.fn() }));
 vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js", () => ({
   startAbortingInChain: vi.fn(),
 }));
+// WarpSyncStatus imports these, which load the chain data too.
+vi.mock("#stores/storeRpcSettings.js", async () => {
+  const { writable } = await import("svelte/store");
+  return { storeRpcSettings: writable({ eth: { warpSync: true } }) };
+});
+vi.mock("#warpSync/warpSync.js", () => ({ retryWarpSync: vi.fn() }));
 vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
