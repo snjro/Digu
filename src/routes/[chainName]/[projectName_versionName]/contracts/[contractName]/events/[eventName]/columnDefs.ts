@@ -13,17 +13,22 @@ import type {
 import classNames from "classnames";
 import type { AbiFragmentParam } from "#constants/chains/types.js";
 import type { ConvertedEventLog } from "#db/dbTypes.js";
-import { convertJsDateToIso8601 } from "#utils/utilsTime.js";
 import { columnDefChainExplorerLinkByKeyName } from "#lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName.js";
 import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
+import {
+  argChildColId,
+  eventLogColIds,
+  formatArgChildValue,
+  getArgChildValue,
+  getBlockNumberValue,
+  getDatetimeText,
+  getDatetimeValue,
+  getTransactionHashValue,
+} from "./eventLogCellValues";
+import { NO_DATA } from "#utils/utilsConstants.js";
 const cellClass: string = classNames("");
 const sortable = true;
 const editable = false;
-function getDatetimeText(
-  params: ValueFormatterParams | ValueGetterParams,
-): string {
-  return convertJsDateToIso8601(params.data.jsDate);
-}
 export const columnDefs = <T extends ConvertedEventLog>(
   targetEventAbiFragment: EventAbiFragment,
   eachArgsMaxLengths: number[],
@@ -35,6 +40,7 @@ export const columnDefs = <T extends ConvertedEventLog>(
         blocknumberColumnDef<T>(),
         {
           field: "jsDate",
+          colId: eventLogColIds.jsDate,
           headerName: "datetime",
           sortable: sortable,
           editable: editable,
@@ -44,11 +50,13 @@ export const columnDefs = <T extends ConvertedEventLog>(
           // Keep this valueGetter: without it, ag-grid infers the type from
           // the Date and gives the column another filter.
           valueGetter: (valueGetterParams: ValueGetterParams) => {
-            return valueGetterParams.data.jsDate;
+            return getDatetimeValue(valueGetterParams.data);
           },
-          valueFormatter: getDatetimeText,
+          valueFormatter: (valueFormatterParams: ValueFormatterParams) =>
+            getDatetimeText(valueFormatterParams.data),
           // The column filter and the quick search match the shown text.
-          filterValueGetter: getDatetimeText,
+          filterValueGetter: (valueGetterParams: ValueGetterParams) =>
+            getDatetimeText(valueGetterParams.data),
         },
       ],
     },
@@ -57,8 +65,18 @@ export const columnDefs = <T extends ConvertedEventLog>(
   ];
   return columnDefs;
 };
-const blocknumberColumnDef = <T extends ConvertedEventLog>(): ColumnDef =>
-  columnDefChainExplorerLinkByKeyName<T>("blocknumber", "blockNumber", "block");
+const blocknumberColumnDef = <T extends ConvertedEventLog>(): ColumnDef => ({
+  ...columnDefChainExplorerLinkByKeyName<T>(
+    "blocknumber",
+    "blockNumber",
+    "block",
+  ),
+  colId: eventLogColIds.blockNumber,
+  valueGetter: (valueGetterParams: ValueGetterParams<T>) =>
+    valueGetterParams.data
+      ? getBlockNumberValue(valueGetterParams.data)
+      : NO_DATA,
+});
 const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
   return [
     {
@@ -66,18 +84,30 @@ const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
       children: [
         {
           field: "transactionIndex",
+          colId: eventLogColIds.transactionIndex,
           headerName: "transaction index",
           sortable: sortable,
           editable: editable,
           cellClass: "text-right",
           columnGroupShow: undefined,
+          // ag-grid infers the type only from the rows given at once.
+          cellDataType: "number",
         },
-        columnDefChainExplorerLinkByKeyName(
-          "transaction hash",
-          "transactionHash",
-          "tx",
-          "open",
-        ),
+        {
+          ...columnDefChainExplorerLinkByKeyName(
+            "transaction hash",
+            "transactionHash",
+            "tx",
+            "open",
+          ),
+          colId: eventLogColIds.transactionHash,
+          valueGetter: (
+            valueGetterParams: ValueGetterParams<ConvertedEventLog>,
+          ) =>
+            valueGetterParams.data
+              ? getTransactionHashValue(valueGetterParams.data)
+              : NO_DATA,
+        },
       ],
     },
     {
@@ -85,14 +115,17 @@ const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
       children: [
         {
           field: "logIndex",
+          colId: eventLogColIds.logIndex,
           headerName: "log index",
           sortable: sortable,
           editable: editable,
           cellClass: "text-right",
           columnGroupShow: undefined,
+          cellDataType: "number",
         },
         {
           field: "removed",
+          colId: eventLogColIds.removed,
           headerName: "removed",
           sortable: sortable,
           editable: editable,
@@ -106,15 +139,6 @@ const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
     },
   ];
 };
-function getArgChildValue(
-  argChildValue: unknown,
-  indexArgChild: number,
-): unknown {
-  if (Array.isArray(argChildValue)) {
-    argChildValue = argChildValue[indexArgChild];
-  }
-  return argChildValue;
-}
 const argsColumnDef = (
   targetEventAbiFragment: EventAbiFragment,
   eachArgsMaxLengths: number[],
@@ -175,16 +199,19 @@ const argChildColumnDef = (
   const headerName: string = abiFragmentInput.isArray()
     ? abiFragmentInput.name + "[" + indexOfArgChild + "]"
     : abiFragmentInput.name;
+  const colId: string = argChildColId(indexOfInputs, indexOfArgChild);
 
   if (abiFragmentInput.type.startsWith("address")) {
     argChildColumnDef = {
+      colId: colId,
       headerName: headerName,
       sortable: sortable,
       editable: editable,
       cellClass: cellClass,
       valueGetter: (valueGetterParams: ValueGetterParams) => {
         return getArgChildValue(
-          valueGetterParams.data.args[indexOfInputs],
+          valueGetterParams.data,
+          indexOfInputs,
           indexOfArgChild,
         );
       },
@@ -194,7 +221,8 @@ const argChildColumnDef = (
           cellRendererParams: ICellRendererParams,
         ) => {
           const address: unknown = getArgChildValue(
-            cellRendererParams.data.args[indexOfInputs],
+            cellRendererParams.data,
+            indexOfInputs,
             indexOfArgChild,
           );
           cell.mount(CommonChainExplorerLink, {
@@ -211,6 +239,7 @@ const argChildColumnDef = (
     };
   } else {
     argChildColumnDef = {
+      colId: colId,
       headerName: headerName,
       sortable: sortable,
       editable: editable,
@@ -220,18 +249,18 @@ const argChildColumnDef = (
           ? "text-right"
           : cellClass,
       valueFormatter: (valueFormatterParams: ValueFormatterParams) => {
-        const argChildValue = getArgChildValue(
-          valueFormatterParams.data.args[indexOfInputs],
-          indexOfArgChild,
+        return formatArgChildValue(
+          getArgChildValue(
+            valueFormatterParams.data,
+            indexOfInputs,
+            indexOfArgChild,
+          ),
         );
-        if (typeof argChildValue === "bigint") {
-          return argChildValue.toLocaleString();
-        }
-        return argChildValue == null ? "" : String(argChildValue);
       },
       valueGetter: (valueGetterParams: ValueGetterParams) => {
         return getArgChildValue(
-          valueGetterParams.data.args[indexOfInputs],
+          valueGetterParams.data,
+          indexOfInputs,
           indexOfArgChild,
         );
       },
