@@ -395,7 +395,10 @@ const TOGGLE_TEXTS = [
   "start sync",
   "stop sync",
   "starting sync",
+  "stopping sync",
   "syncing in another tab",
+  // SYNC_WAITS_FOR_IMPORT of src/warpSync/warpSyncTexts.ts.
+  "Importing the published logs. Stop it to sync from your RPC now.",
 ];
 async function toggleButton(page) {
   return page.evaluateHandle((texts) => {

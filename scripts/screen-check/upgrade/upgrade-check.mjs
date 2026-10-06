@@ -273,11 +273,12 @@ async function pageInfo(page) {
           );
         return i ? { value: i.value, disabled: i.disabled } : null;
       })(),
+      // The last text is SYNC_WAITS_FOR_IMPORT of src/warpSync/warpSyncTexts.ts.
       toggleLabels: [...document.querySelectorAll("*")]
         .filter(
           (e) =>
             e.children.length === 0 &&
-            /^(start sync|stop sync|starting sync|stopping sync|syncing in another tab)$/.test(
+            /^(start sync|stop sync|starting sync|stopping sync|syncing in another tab|Importing the published logs\. Stop it to sync from your RPC now\.)$/.test(
               e.textContent.trim(),
             ),
         )
@@ -388,9 +389,15 @@ async function toggleButton(page) {
     const labels = [...document.querySelectorAll("*")].filter(
       (e) =>
         e.children.length === 0 &&
-        ["start sync", "stop sync", "starting sync"].includes(
-          e.textContent.trim(),
-        ),
+        [
+          "start sync",
+          "stop sync",
+          "starting sync",
+          "stopping sync",
+          "syncing in another tab",
+          // SYNC_WAITS_FOR_IMPORT of src/warpSync/warpSyncTexts.ts.
+          "Importing the published logs. Stop it to sync from your RPC now.",
+        ].includes(e.textContent.trim()),
     );
     for (const label of labels) {
       for (let e = label; e; e = e.parentElement) {
