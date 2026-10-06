@@ -12,6 +12,7 @@
   } from "#lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
   import type { GridApi } from "ag-grid-community";
   import ExportCsv, { openDialogExportCsv } from "./ExportCsv/ExportCsv.svelte";
+  import type { CsvMaker } from "./ExportCsv/csvFormat";
   import { setAllColumnGroupState, setAutoColumnWidth } from "./gridColumns";
 
   interface Props {
@@ -19,6 +20,7 @@
     rows: GridRow[] | undefined;
     isFullScreen: boolean;
     exportFilePrefix: ExportFilePrefix;
+    csvOfAllRows?: CsvMaker;
   }
 
   let {
@@ -26,6 +28,7 @@
     rows,
     isFullScreen = $bindable(),
     exportFilePrefix,
+    csvOfAllRows,
   }: Props = $props();
 
   let quickSearchText: string = $state("");
@@ -164,7 +167,7 @@
   let dialogElement: HTMLDialogElement | undefined = $state();
 </script>
 
-<ExportCsv {gridApi} bind:dialogElement {exportFilePrefix} />
+<ExportCsv {gridApi} bind:dialogElement {exportFilePrefix} {csvOfAllRows} />
 <PageWrapperContentFunctionBar
   functionBarDefinition={{
     buttonsDefinition: buttonsDefinition,

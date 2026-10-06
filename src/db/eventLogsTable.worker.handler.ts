@@ -10,7 +10,7 @@ import type {
 
 type TableOf = (
   eventIdentifier: AbiFragmentIdentifier,
-) => Pick<EventLogsTable, "open" | "query" | "refresh">;
+) => Pick<EventLogsTable, "open" | "query" | "refresh" | "csv">;
 
 // Handles the requests one at a time, in the order they came, and posts the
 // response of each with the id of its request.
@@ -47,6 +47,10 @@ export function createEventLogsTableRequestHandler(
         );
       case "refresh":
         return await openedTable().refresh();
+      case "csv":
+        return openedTable().csv(
+          message.params as EventLogsTableRequestParams<"csv">,
+        );
     }
   }
 

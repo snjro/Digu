@@ -1,6 +1,8 @@
 <script lang="ts" module>
   import { openDialog } from "#lib/base/BaseDialog/BaseDialogHandler.js";
 
+  export const MESSAGE_MAKING_CSV: string = "Making the CSV…";
+
   export function openDialogExportCsv(
     dialogElement: HTMLDialogElement | undefined,
   ) {
@@ -36,18 +38,32 @@
   import BaseRadio, {
     type RadioLabelAndValues,
   } from "#lib/base/BaseRadio.svelte";
-  import { copyTextToClipboard } from "#lib/common/clipboard.js";
+  import {
+    copyBlobToClipboard,
+    copyTextToClipboard,
+    showSnackBarAsCopied,
+  } from "#lib/common/clipboard.js";
   import CommonItemGroup from "#lib/common/CommonItemGroup.svelte";
   import CommonItemMember from "#lib/common/CommonItemMember.svelte";
+  import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
   import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
+  import { customLogger } from "#utils/logger.js";
+  import { numberWithCommas } from "#utils/utilsCommon.js";
   import {
+    exportBlobToFile,
     getExportFileName,
     type ExportFilePrefix,
   } from "#utils/utilsFile.js";
   import type { GridApi } from "ag-grid-community";
+  import type { CsvMaker, CsvResult } from "./csvFormat";
   import {
+    CSV_COPY_MAX_ROWS,
     downloadCsvFile,
-    getCsvText,
+    getCsvRequest,
+    getCsvRowCount,
+    getCsvTextUpTo,
+    showSnackBarAsCopiedFirstRows,
+    showSnackBarAsExportFailed,
     type CsvSelectedValues,
   } from "./exportCsv";
 
@@ -55,12 +71,15 @@
     gridApi: GridApi<GridRow> | undefined;
     dialogElement?: HTMLDialogElement;
     exportFilePrefix: ExportFilePrefix;
+    // Makes the CSV of All in a worker instead of ag-grid.
+    csvOfAllRows?: CsvMaker;
   }
 
   let {
     gridApi,
     dialogElement = $bindable(),
     exportFilePrefix,
+    csvOfAllRows,
   }: Props = $props();
 
   const colorCategory: ColorCategory = colorSettings.dialogHeader;
@@ -180,21 +199,99 @@
     Object.keys(exportCsvRadioProps ?? {}) as (keyof ExportCsvRadioProps)[],
   );
 
-  function downloadCsv(): void {
-    if (!gridApi) return;
-    downloadCsvFile(
-      gridApi,
-      selectedValues,
-      getExportFileName(exportFilePrefix, page.params, "csv"),
-    );
-  }
-  async function copyToClipboard(): Promise<void> {
-    if (!gridApi) return;
-    const csvData: string = getCsvText(gridApi, selectedValues);
-    $storeNoDbSnackBar = await copyTextToClipboard(csvData);
+  // The rows of the selected one of All and Filtered & Sorted.
+  let rowCount: number | undefined = $state();
+  $effect(() => {
+    const filteredSorted: CsvSelectedValues["filteredSorted"]["selectedValue"] =
+      selectedValues.filteredSorted.selectedValue;
+    if (!gridApi) {
+      rowCount = undefined;
+      return;
+    }
+    const api: GridApi<GridRow> = gridApi;
+    const updateRowCount = (): void => {
+      rowCount = getCsvRowCount(api, filteredSorted);
+    };
+    updateRowCount();
+    // New rows, the filters and the quick search change it.
+    api.addEventListener("modelUpdated", updateRowCount);
+    return () => {
+      if (!api.isDestroyed()) {
+        api.removeEventListener("modelUpdated", updateRowCount);
+      }
+    };
+  });
+
+  // While the worker makes the CSV.
+  let isMaking: boolean = $state(false);
+
+  function getWorkerCsvMaker(): CsvMaker | undefined {
+    return selectedValues.filteredSorted.selectedValue === "all"
+      ? csvOfAllRows
+      : undefined;
   }
 
-  let footerDefinition: PageWrapperContentFooterDefinition = {
+  async function downloadCsv(): Promise<void> {
+    if (!gridApi || isMaking) return;
+    const fileName = getExportFileName(exportFilePrefix, page.params, "csv");
+    const makeCsv: CsvMaker | undefined = getWorkerCsvMaker();
+    if (!makeCsv) {
+      downloadCsvFile(gridApi, selectedValues, fileName);
+      return;
+    }
+    isMaking = true;
+    try {
+      const { blob } = await makeCsv(getCsvRequest(gridApi, selectedValues));
+      // With the byte order mark, as ag-grid's export.
+      exportBlobToFile(new Blob(["﻿", blob], { type: "text/plain" }), fileName);
+    } catch (error) {
+      customLogger.error("ExportCsv: make the CSV in the worker.", error);
+      $storeNoDbSnackBar = showSnackBarAsExportFailed;
+    } finally {
+      isMaking = false;
+    }
+  }
+  async function copyToClipboard(): Promise<void> {
+    if (!gridApi || isMaking) return;
+    const makeCsv: CsvMaker | undefined = getWorkerCsvMaker();
+    if (!makeCsv) {
+      const csvText = getCsvTextUpTo(
+        gridApi,
+        selectedValues,
+        CSV_COPY_MAX_ROWS,
+      );
+      const snackbar = await copyTextToClipboard(csvText.text);
+      $storeNoDbSnackBar = copiedSnackbar(snackbar, csvText);
+      return;
+    }
+    isMaking = true;
+    try {
+      // The clipboard is asked in the click, before the worker ends.
+      const result: Promise<CsvResult> = makeCsv(
+        getCsvRequest(gridApi, selectedValues, CSV_COPY_MAX_ROWS),
+      );
+      // It fails when the worker fails.
+      const snackbar = await copyBlobToClipboard(
+        result.then(({ blob }) => blob),
+      );
+      $storeNoDbSnackBar =
+        snackbar === showSnackBarAsCopied
+          ? copiedSnackbar(snackbar, await result)
+          : snackbar;
+    } finally {
+      isMaking = false;
+    }
+  }
+  function copiedSnackbar(
+    snackbar: BaseSnackbarProps,
+    { rowCount, totalRowCount }: Pick<CsvResult, "rowCount" | "totalRowCount">,
+  ): BaseSnackbarProps {
+    return snackbar === showSnackBarAsCopied && rowCount < totalRowCount
+      ? showSnackBarAsCopiedFirstRows
+      : snackbar;
+  }
+
+  let footerDefinition: PageWrapperContentFooterDefinition = $derived({
     buttonsDefinition: [
       {
         iconName: "download",
@@ -202,6 +299,7 @@
         tooltipXPosition: "left",
         tooltipYPosition: "top",
         onClickEventFunction: downloadCsv,
+        disabled: isMaking,
       },
       {
         iconName: "contentCopy",
@@ -209,11 +307,12 @@
         tooltipXPosition: "left",
         tooltipYPosition: "top",
         onClickEventFunction: copyToClipboard,
+        disabled: isMaking,
       },
     ],
     buttonSize: sizeSettings.dialogFooter,
-    horizontalAlignment: "end",
-  };
+    horizontalAlignment: "between",
+  });
 </script>
 
 <BaseDialog bind:dialogElement headerText="Export CSV File">
@@ -241,7 +340,17 @@
         </CommonItemGroup>
       {/snippet}
       {#snippet PageWrapperContentFooter()}
-        <PageWrapperContentFooterComponent {footerDefinition} />
+        <PageWrapperContentFooterComponent {footerDefinition}>
+          <BaseLabel
+            textSize={sizeSettings.dialogBodyContent}
+            text={isMaking
+              ? MESSAGE_MAKING_CSV
+              : rowCount === undefined
+                ? ""
+                : `${numberWithCommas(rowCount)} rows`}
+            colorCategoryFront={colorCategory}
+          />
+        </PageWrapperContentFooterComponent>
       {/snippet}
     </PageWrapperContent>
   {/snippet}

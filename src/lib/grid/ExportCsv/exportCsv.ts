@@ -3,10 +3,21 @@ import type {
   CsvExportParams,
   GridApi,
   ProcessCellForExportParams,
+  ProvidedColumnGroup,
 } from "ag-grid-community";
+import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
+import { numberWithCommas } from "#utils/utilsCommon.js";
 import { ColIdRowSequenceNumber } from "../GridBody/getColumnDefs";
+import {
+  FORMULA_START,
+  quoteIfItBreaksTheRow,
+  type CsvColumn,
+  type CsvColumnGroup,
+  type CsvColumnSeparator,
+  type CsvRequest,
+} from "./csvFormat";
 
-export type CsvColumnSeparator = "," | `\t` | "|";
+export type { CsvColumnSeparator } from "./csvFormat";
 export type CsvFilteredSorted = "all" | "filteredAndSorted";
 
 // The radio props of the dialog (ExportCsvRadioProps) are built from this.
@@ -47,6 +58,134 @@ export function getCsvText(
   ) as string;
 }
 
+// The copy takes only the first rows (#644).
+export const CSV_COPY_MAX_ROWS: number = 5_000;
+
+export const showSnackBarAsCopiedFirstRows: BaseSnackbarProps = {
+  visible: true,
+  iconProps: {
+    name: "checkBold",
+    colorCategory: "success",
+  },
+  text: `Copied the first ${numberWithCommas(CSV_COPY_MAX_ROWS)} rows. Export has all.`,
+  displayTimeInMilliseconds: 4000,
+};
+export const showSnackBarAsExportFailed: BaseSnackbarProps = {
+  visible: true,
+  iconProps: {
+    name: "close",
+    colorCategory: "error",
+  },
+  text: "Export failed",
+};
+
+export type CsvTextUpTo = {
+  text: string;
+  rowCount: number;
+  totalRowCount: number;
+};
+export function getCsvTextUpTo(
+  gridApi: GridApi,
+  selectedValues: CsvSelectedValues,
+  maxRows: number,
+): CsvTextUpTo {
+  let totalRowCount: number = 0;
+  const text: string | undefined = gridApi.getDataAsCsv({
+    ...getParamsForCsv(
+      gridApi,
+      selectedValues.skipRowNumber.selectedValue,
+      selectedValues.columnSeparator.selectedValue,
+      selectedValues.suppressDoubleQuotes.selectedValue,
+      selectedValues.filteredSorted.selectedValue,
+      selectedValues.skipColumnHeaders.selectedValue,
+    ),
+    // ag-grid asks for each row in the exported order, so this also counts
+    // the rows after the first ones.
+    shouldRowBeSkipped: (): boolean => ++totalRowCount > maxRows,
+  });
+  return {
+    text: text ?? "",
+    rowCount: Math.min(totalRowCount, maxRows),
+    totalRowCount,
+  };
+}
+
+// The rows that the selected one of All and Filtered & Sorted exports.
+export function getCsvRowCount(
+  gridApi: GridApi,
+  filteredAndSorted: CsvFilteredSorted,
+): number {
+  if (filteredAndSorted === "filteredAndSorted") {
+    return gridApi.getDisplayedRowCount();
+  }
+  let rowCount: number = 0;
+  gridApi.forEachNode(() => {
+    rowCount++;
+  });
+  return rowCount;
+}
+
+// For a worker that makes the CSV of the selected values as ag-grid does.
+export function getCsvRequest(
+  gridApi: GridApi,
+  selectedValues: CsvSelectedValues,
+  maxRows?: number,
+): CsvRequest {
+  const columns: Column[] =
+    getCsvTargetColumns(
+      gridApi,
+      selectedValues.skipRowNumber.selectedValue,
+      selectedValues.filteredSorted.selectedValue,
+    ) ?? [];
+  return {
+    columns: columns.map((column: Column): CsvColumn => ({
+      colId: column.getColId(),
+      headerName: gridApi.getDisplayNameForColumn(column, "csv"),
+      groups: getCsvColumnGroups(column),
+    })),
+    columnSeparator: selectedValues.columnSeparator.selectedValue,
+    suppressQuotes: selectedValues.suppressDoubleQuotes.selectedValue,
+    skipColumnHeaders: selectedValues.skipColumnHeaders.selectedValue,
+    maxRows,
+  };
+}
+// As the header of a group in ag-grid's CSV, which has no headerValueGetter.
+function getCsvColumnGroups(column: Column): CsvColumnGroup[] {
+  const groups: CsvColumnGroup[] = [];
+  for (
+    let group: ProvidedColumnGroup | null = column.getOriginalParent();
+    group;
+    group = group.getOriginalParent()
+  ) {
+    groups[group.getLevel()] = {
+      groupId: group.getGroupId(),
+      headerName: group.getColGroupDef()?.headerName ?? "",
+    };
+  }
+  return groups;
+}
+
+// Filtered & Sorted follows the screen: the shown columns in the shown order.
+function getCsvTargetColumns(
+  gridApi: GridApi,
+  skipRowNumber: boolean,
+  filteredAndSorted: CsvFilteredSorted,
+): Column[] | undefined {
+  const columns: Column[] | null | undefined =
+    filteredAndSorted === "filteredAndSorted"
+      ? gridApi?.getAllDisplayedColumns()
+      : gridApi?.getColumns();
+  if (!columns) {
+    return undefined;
+  }
+  // The shown columns may not have the row number.
+  return skipRowNumber
+    ? columns.filter(
+        (column: Column) => column.getColId() !== ColIdRowSequenceNumber,
+      )
+    : columns;
+}
+
 export function exportCsvFile(
   gridApi: GridApi,
   skipRowNumber: boolean,
@@ -80,24 +219,13 @@ function getParamsForCsv(
   skipColumnHeaders: boolean,
   fileName: string | undefined = undefined,
 ): CsvExportParams {
-  // Filtered & Sorted follows the screen: the shown columns in the shown order.
-  const columns: Column[] | null | undefined =
-    filteredAndSorted === "filteredAndSorted"
-      ? gridApi?.getAllDisplayedColumns()
-      : gridApi?.getColumns();
-  const targetColIds: string[] | undefined = columns?.map((column: Column) => {
+  const targetColIds: string[] | undefined = getCsvTargetColumns(
+    gridApi,
+    skipRowNumber,
+    filteredAndSorted,
+  )?.map((column: Column) => {
     return column.getColId();
   });
-
-  if (skipRowNumber && targetColIds) {
-    const indexOfRowNumber: number = targetColIds.indexOf(
-      ColIdRowSequenceNumber,
-    );
-    // The shown columns may not have it.
-    if (indexOfRowNumber !== -1) {
-      targetColIds.splice(indexOfRowNumber, 1);
-    }
-  }
   const csvExportParams: CsvExportParams = {
     columnKeys: targetColIds,
     columnSeparator: columnSeparator,
@@ -113,9 +241,6 @@ function getParamsForCsv(
   };
   return csvExportParams;
 }
-
-// A spreadsheet reads a cell that starts with one of these as a formula.
-const FORMULA_START = /^[=+\-@\t\r]/;
 
 // With this callback, ag-grid no longer formats the values, so it calls formatValue.
 function getProcessCellCallback(
@@ -139,11 +264,8 @@ function getProcessCellCallback(
     if (typeof params.value === "string" && FORMULA_START.test(text)) {
       text = "'" + text;
     }
-    if (
-      suppressQuotes &&
-      (text.includes(columnSeparator) || /["\r\n]/.test(text))
-    ) {
-      text = '"' + text.replace(/"/g, '""') + '"';
+    if (suppressQuotes) {
+      text = quoteIfItBreaksTheRow(text, columnSeparator);
     }
     return text;
   };

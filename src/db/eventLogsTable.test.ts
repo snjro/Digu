@@ -110,6 +110,28 @@ describe("EventLogsTable", () => {
     ]);
   }, 60_000);
 
+  test("makes the CSV of all the rows in the order of the key", async () => {
+    await table().bulkAdd([log(3), log(1, 2), log(2)]);
+    const eventLogsTable = new EventLogsTable(eventIdentifier, 2);
+    await eventLogsTable.open();
+
+    const { blob, rowCount, totalRowCount } = eventLogsTable.csv({
+      columns: ["blockNumber", "args.2.1"].map((colId) => ({
+        colId,
+        headerName: colId,
+        groups: [],
+      })),
+      columnSeparator: ",",
+      suppressQuotes: true,
+      skipColumnHeaders: true,
+    });
+    expect([await blob.text(), rowCount, totalRowCount]).toEqual([
+      ["3,", "1,1", "2,"].join("\r\n"),
+      3,
+      3,
+    ]);
+  });
+
   test("opens an empty table", async () => {
     const eventLogsTable = new EventLogsTable(eventIdentifier);
 

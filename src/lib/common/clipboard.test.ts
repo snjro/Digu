@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { customLogger } from "#utils/logger.js";
 import {
+  copyBlobToClipboard,
   copyTextToClipboard,
   showSnackBarAsCopied,
   showSnackBarAsCopyFailed,
@@ -49,5 +50,49 @@ describe("copyTextToClipboard", () => {
     finish();
     await copy;
     expect(result).toBe(showSnackBarAsCopied);
+  });
+});
+
+describe("copyBlobToClipboard", () => {
+  class FakeClipboardItem {
+    constructor(readonly items: Record<string, Promise<Blob>>) {}
+  }
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  test("should give the clipboard the promise of the text at once", async () => {
+    const write = vi.fn(async (items: FakeClipboardItem[]) => {
+      await items[0].items["text/plain"];
+    });
+    vi.stubGlobal("navigator", { clipboard: { write } });
+    vi.stubGlobal("ClipboardItem", FakeClipboardItem);
+    const blob: Promise<Blob> = Promise.resolve(new Blob(["abc"]));
+
+    const copied = copyBlobToClipboard(blob);
+    expect(write).toHaveBeenCalledWith([
+      new FakeClipboardItem({ "text/plain": blob }),
+    ]);
+    expect(await copied).toBe(showSnackBarAsCopied);
+  });
+
+  test("should return the failed snackbar when the text cannot be made", async () => {
+    vi.stubGlobal("navigator", {
+      clipboard: {
+        write: async (items: FakeClipboardItem[]) => {
+          await items[0].items["text/plain"];
+        },
+      },
+    });
+    vi.stubGlobal("ClipboardItem", FakeClipboardItem);
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+
+    expect(
+      await copyBlobToClipboard(Promise.reject(new Error("worker failed"))),
+    ).toBe(showSnackBarAsCopyFailed);
+    expect(spyError).toHaveBeenCalledTimes(1);
   });
 });

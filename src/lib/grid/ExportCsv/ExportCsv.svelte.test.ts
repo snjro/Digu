@@ -1,25 +1,122 @@
-import { describe, expect, test, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/svelte";
-import type { GridApi } from "ag-grid-community";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { get } from "svelte/store";
+import { fireEvent, render, screen, waitFor } from "@testing-library/svelte";
+import type { CsvExportParams, GridApi } from "ag-grid-community";
+import {
+  showSnackBarAsCopied,
+  showSnackBarAsCopyFailed,
+} from "#lib/common/clipboard.js";
+import {
+  storeNoDbSnackBar,
+  storeNoDbSnackBarInitialValue,
+} from "#stores/storeNoDb.js";
+import { customLogger } from "#utils/logger.js";
+import { exportBlobToFile } from "#utils/utilsFile.js";
 import { ColIdRowSequenceNumber } from "../GridBody/getColumnDefs";
-import ExportCsv from "./ExportCsv.svelte";
+import type { CsvMaker, CsvResult } from "./csvFormat";
+import ExportCsv, { MESSAGE_MAKING_CSV } from "./ExportCsv.svelte";
+import {
+  CSV_COPY_MAX_ROWS,
+  showSnackBarAsCopiedFirstRows,
+  showSnackBarAsExportFailed,
+} from "./exportCsv";
 
 vi.mock("$app/state", () => ({ page: { params: {} } }));
+// The snackbar of the dialog flies in, and the test ends before it stops,
+// which the browser reports as an error (as BaseSnackbar.svelte.test.ts).
+vi.mock("svelte/transition", () => ({ fly: () => ({}) }));
+vi.mock("#utils/utilsFile.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("#utils/utilsFile.js")>()),
+  exportBlobToFile: vi.fn(),
+}));
 
-function createGridApi(gridId: string) {
+function createGridApi(gridId: string, rowCount: number = 3) {
   const columns = [ColIdRowSequenceNumber, "name"].map((colId) => ({
     getColId: () => colId,
+    getOriginalParent: () => null,
   }));
+  const listeners: (() => void)[] = [];
   const gridApi = {
+    rowCount,
     getGridId: vi.fn(() => gridId),
     getColumns: vi.fn(() => columns),
     getAllDisplayedColumns: vi.fn(() => columns),
+    getDisplayNameForColumn: vi.fn((column: (typeof columns)[number]) =>
+      column.getColId(),
+    ),
     exportDataAsCsv: vi.fn(),
+    // Asks for each row as ag-grid does.
+    getDataAsCsv: vi.fn((params: CsvExportParams) => {
+      const lines: string[] = [];
+      for (let index: number = 0; index < gridApi.rowCount; index++) {
+        if (!params.shouldRowBeSkipped?.({} as never)) lines.push("row");
+      }
+      return lines.join("\r\n");
+    }),
+    forEachNode: vi.fn((callback: () => void) => {
+      for (let index: number = 0; index < gridApi.rowCount; index++) {
+        callback();
+      }
+    }),
+    getDisplayedRowCount: vi.fn(() => 1),
+    addEventListener: vi.fn((_: string, listener: () => void) => {
+      listeners.push(listener);
+    }),
+    removeEventListener: vi.fn(),
+    isDestroyed: vi.fn(() => false),
+    // As ag-grid after new rows.
+    updateRows(count: number) {
+      gridApi.rowCount = count;
+      for (const listener of listeners) listener();
+    },
   };
   return gridApi as typeof gridApi & GridApi;
 }
 
+function button(name: "Export" | "Copy"): HTMLButtonElement {
+  return screen.getByRole("button", { name, hidden: true });
+}
+async function selectFilteredAndSorted(gridId: string): Promise<void> {
+  await fireEvent.click(
+    document.getElementById(`filteredAndSortedYes${gridId}`)!,
+  );
+}
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason: Error) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+function csvResult(rowCount: number, totalRowCount: number): CsvResult {
+  return { blob: new Blob(["a,b"]), rowCount, totalRowCount };
+}
+class FakeClipboardItem {
+  constructor(readonly items: Record<string, Promise<Blob>>) {}
+}
+function stubClipboard() {
+  const clipboard = {
+    // Reads the text, as the browser does.
+    write: vi.fn(async (items: FakeClipboardItem[]) => {
+      await items[0].items["text/plain"];
+    }),
+    writeText: vi.fn(async () => {}),
+  };
+  vi.stubGlobal("navigator", { clipboard });
+  vi.stubGlobal("ClipboardItem", FakeClipboardItem);
+  return clipboard;
+}
+
 describe("ExportCsv.svelte", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    vi.mocked(exportBlobToFile).mockReset();
+    storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
+  });
+
   test("keeps the selected values when the grid id changes", async () => {
     const { rerender } = render(ExportCsv, {
       gridApi: createGridApi("1"),
@@ -29,9 +126,7 @@ describe("ExportCsv.svelte", () => {
 
     const gridApi = createGridApi("2");
     await rerender({ gridApi });
-    await fireEvent.click(
-      screen.getByRole("button", { name: "Export", hidden: true }),
-    );
+    await fireEvent.click(button("Export"));
     expect(gridApi.exportDataAsCsv).toHaveBeenCalledWith(
       expect.objectContaining({ columnKeys: ["name"] }),
     );
@@ -39,8 +134,174 @@ describe("ExportCsv.svelte", () => {
 
   test("Export and Copy do nothing before the grid is created", async () => {
     render(ExportCsv, { gridApi: undefined, exportFilePrefix: "contracts" });
-    for (const name of ["Export", "Copy"]) {
-      await fireEvent.click(screen.getByRole("button", { name, hidden: true }));
+    for (const name of ["Export", "Copy"] as const) {
+      await fireEvent.click(button(name));
     }
+  });
+
+  test("shows the rows of the selected one, and their changes", async () => {
+    const gridApi = createGridApi("1", 1234);
+    render(ExportCsv, { gridApi, exportFilePrefix: "contracts" });
+    expect(screen.getByText("1,234 rows")).toBeTruthy();
+
+    gridApi.updateRows(5);
+    await waitFor(() => expect(screen.getByText("5 rows")).toBeTruthy());
+
+    await selectFilteredAndSorted("1");
+    expect(screen.getByText("1 rows")).toBeTruthy();
+  });
+
+  describe("the table with a worker", () => {
+    test("Export of All: the worker makes the file", async () => {
+      const gridApi = createGridApi("1");
+      const made = deferred<CsvResult>();
+      const csvOfAllRows = vi.fn<CsvMaker>(() => made.promise);
+      render(ExportCsv, {
+        gridApi,
+        exportFilePrefix: "eventLogs",
+        csvOfAllRows,
+      });
+
+      await fireEvent.click(button("Export"));
+      expect(csvOfAllRows).toHaveBeenCalledWith({
+        columns: [
+          {
+            colId: ColIdRowSequenceNumber,
+            headerName: ColIdRowSequenceNumber,
+            groups: [],
+          },
+          { colId: "name", headerName: "name", groups: [] },
+        ],
+        columnSeparator: ",",
+        suppressQuotes: false,
+        skipColumnHeaders: false,
+        maxRows: undefined,
+      });
+      expect(gridApi.exportDataAsCsv).not.toHaveBeenCalled();
+      // While it makes the file.
+      expect(screen.getByText(MESSAGE_MAKING_CSV)).toBeTruthy();
+      expect(button("Export").disabled).toBe(true);
+      expect(button("Copy").disabled).toBe(true);
+
+      made.resolve(csvResult(3, 3));
+      await waitFor(() => expect(exportBlobToFile).toHaveBeenCalledTimes(1));
+      const [blob, fileName] = vi.mocked(exportBlobToFile).mock.calls[0];
+      expect(await blob.text()).toBe("﻿a,b");
+      expect(fileName).toMatch(/^eventLogs-.+\.csv$/);
+      expect(button("Export").disabled).toBe(false);
+      expect(screen.getByText("3 rows")).toBeTruthy();
+    });
+
+    test("Export of All: tells the failure of the worker", async () => {
+      vi.spyOn(customLogger, "error").mockImplementation(() => {});
+      const csvOfAllRows = vi.fn(() =>
+        Promise.reject(new Error("EventLogsTableWorker: could not load")),
+      );
+      render(ExportCsv, {
+        gridApi: createGridApi("1"),
+        exportFilePrefix: "eventLogs",
+        csvOfAllRows,
+      });
+
+      await fireEvent.click(button("Export"));
+      await waitFor(() =>
+        expect(get(storeNoDbSnackBar)).toBe(showSnackBarAsExportFailed),
+      );
+      expect(exportBlobToFile).not.toHaveBeenCalled();
+      expect(button("Export").disabled).toBe(false);
+    });
+
+    test("Filtered & Sorted stays with ag-grid", async () => {
+      const clipboard = stubClipboard();
+      const gridApi = createGridApi("1");
+      const csvOfAllRows = vi.fn();
+      render(ExportCsv, {
+        gridApi,
+        exportFilePrefix: "eventLogs",
+        csvOfAllRows,
+      });
+      await selectFilteredAndSorted("1");
+
+      await fireEvent.click(button("Export"));
+      await fireEvent.click(button("Copy"));
+      await waitFor(() => expect(clipboard.writeText).toHaveBeenCalled());
+      expect(gridApi.exportDataAsCsv).toHaveBeenCalledTimes(1);
+      expect(csvOfAllRows).not.toHaveBeenCalled();
+    });
+
+    test.each([
+      // [rows of the CSV, rows before the limit, snackbar]
+      [CSV_COPY_MAX_ROWS, CSV_COPY_MAX_ROWS + 1, showSnackBarAsCopiedFirstRows],
+      [CSV_COPY_MAX_ROWS, CSV_COPY_MAX_ROWS, showSnackBarAsCopied],
+      [2, 2, showSnackBarAsCopied],
+    ])(
+      "Copy of All: the worker makes the first rows (%i of %i)",
+      async (rowCount, totalRowCount, snackbar) => {
+        const clipboard = stubClipboard();
+        const made = deferred<CsvResult>();
+        const csvOfAllRows = vi.fn<CsvMaker>(() => made.promise);
+        render(ExportCsv, {
+          gridApi: createGridApi("1"),
+          exportFilePrefix: "eventLogs",
+          csvOfAllRows,
+        });
+
+        await fireEvent.click(button("Copy"));
+        expect(csvOfAllRows.mock.calls[0][0].maxRows).toBe(CSV_COPY_MAX_ROWS);
+        // The clipboard is asked before the worker ends.
+        expect(clipboard.write).toHaveBeenCalledTimes(1);
+        expect(button("Copy").disabled).toBe(true);
+
+        made.resolve(csvResult(rowCount, totalRowCount));
+        await waitFor(() => expect(get(storeNoDbSnackBar)).toBe(snackbar));
+        expect(clipboard.writeText).not.toHaveBeenCalled();
+        expect(button("Copy").disabled).toBe(false);
+      },
+    );
+
+    test("Copy of All: tells the failure of the worker", async () => {
+      vi.spyOn(customLogger, "error").mockImplementation(() => {});
+      stubClipboard();
+      render(ExportCsv, {
+        gridApi: createGridApi("1"),
+        exportFilePrefix: "eventLogs",
+        csvOfAllRows: () => Promise.reject(new Error("worker failed")),
+      });
+
+      await fireEvent.click(button("Copy"));
+      await waitFor(() =>
+        expect(get(storeNoDbSnackBar)).toBe(showSnackBarAsCopyFailed),
+      );
+      expect(button("Copy").disabled).toBe(false);
+    });
+  });
+
+  describe("the tables without a worker", () => {
+    test.each([
+      [CSV_COPY_MAX_ROWS + 1, showSnackBarAsCopiedFirstRows],
+      [CSV_COPY_MAX_ROWS, showSnackBarAsCopied],
+      [CSV_COPY_MAX_ROWS - 1, showSnackBarAsCopied],
+    ])("Copy takes the first rows: %i rows", async (rowCount, snackbar) => {
+      const clipboard = stubClipboard();
+      const gridApi = createGridApi("1", rowCount);
+      render(ExportCsv, { gridApi, exportFilePrefix: "contracts" });
+
+      await fireEvent.click(button("Copy"));
+      await waitFor(() => expect(get(storeNoDbSnackBar)).toBe(snackbar));
+      const [text] = clipboard.writeText.mock.calls[0] as unknown as [string];
+      expect(text.split("\r\n").length).toBe(
+        Math.min(rowCount, CSV_COPY_MAX_ROWS),
+      );
+    });
+
+    test("Export has all the rows", async () => {
+      const gridApi = createGridApi("1", CSV_COPY_MAX_ROWS + 1);
+      render(ExportCsv, { gridApi, exportFilePrefix: "contracts" });
+
+      await fireEvent.click(button("Export"));
+      expect(gridApi.exportDataAsCsv).toHaveBeenCalledWith(
+        expect.not.objectContaining({ shouldRowBeSkipped: expect.anything() }),
+      );
+    });
   });
 });

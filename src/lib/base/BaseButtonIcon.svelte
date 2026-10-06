@@ -5,6 +5,7 @@
     onClickEventFunction: () => void | Promise<void>;
     tooltipXPosition: BaseButtonProps["tooltipXPosition"];
     tooltipYPosition: BaseButtonProps["tooltipYPosition"];
+    disabled?: boolean;
   };
 </script>
 

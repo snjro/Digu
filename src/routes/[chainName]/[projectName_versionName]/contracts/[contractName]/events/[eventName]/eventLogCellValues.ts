@@ -2,6 +2,7 @@
 // so that a worker can sort, filter and export the rows as the grid does.
 import type { EventAbiFragment } from "#constants/chains/types.js";
 import type { ConvertedEventLog } from "#db/dbTypes.js";
+import { FORMULA_START } from "#lib/grid/ExportCsv/csvFormat.js";
 import { NO_DATA } from "#utils/utilsConstants.js";
 import { convertJsDateToIso8601 } from "#utils/utilsTime.js";
 
@@ -66,8 +67,6 @@ export function formatArgChildValue(argChildValue: unknown): string {
 function toFilterText(value: unknown): string | null {
   return value == null ? null : String(value);
 }
-// A spreadsheet reads a cell that starts with one of these as a formula.
-const FORMULA_START = /^[=+\-@\t\r]/;
 // As exportCsv.ts: a bigint without the digit grouping, and a quote before a
 // text that a spreadsheet would read as a formula.
 function toCsvText(value: unknown, formattedText: string): string {

@@ -29,6 +29,12 @@ export function ExportDataToFile(
   const fileLikeObject: Blob = new Blob([targetData], {
     type: dataTypes[extension].mimeType,
   });
+  exportBlobToFile(fileLikeObject, exportFileName);
+}
+export function exportBlobToFile(
+  fileLikeObject: Blob,
+  exportFileName: ExportFileName,
+): void {
   const anchorElement: HTMLAnchorElement = document.createElement("a");
   const url: string = URL.createObjectURL(fileLikeObject);
   anchorElement.href = url;

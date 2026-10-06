@@ -29,7 +29,7 @@
   )}
 >
   <div class={classNames("flex", "flex-row", "items-center", "space-x-3", "")}>
-    {#each footerDefinition.buttonsDefinition as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition } (iconName)}
+    {#each footerDefinition.buttonsDefinition as { iconName, tooltipText, onClickEventFunction, tooltipXPosition, tooltipYPosition, disabled } (iconName)}
       <BaseButtonIcon
         size={footerDefinition.buttonSize}
         label={tooltipText}
@@ -41,6 +41,7 @@
         colorCategoryFront="white"
         appendClassButton={buttonHeight[footerDefinition.buttonSize]}
         onclick={onClickEventFunction}
+        {disabled}
       />
     {/each}
   </div>

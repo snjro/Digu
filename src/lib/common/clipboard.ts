@@ -31,3 +31,19 @@ export async function copyTextToClipboard(
     return showSnackBarAsCopyFailed;
   }
 }
+
+// The clipboard takes the promise at once, so that a text that is made later
+// is still copied by the click.
+export async function copyBlobToClipboard(
+  blob: Promise<Blob>,
+): Promise<BaseSnackbarProps> {
+  try {
+    await navigator.clipboard.write([
+      new ClipboardItem({ "text/plain": blob }),
+    ]);
+    return showSnackBarAsCopied;
+  } catch (error) {
+    customLogger.error("navigator.clipboard.write().", error);
+    return showSnackBarAsCopyFailed;
+  }
+}

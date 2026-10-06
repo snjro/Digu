@@ -17,6 +17,8 @@
     AbiFragmentIdentifier,
     ConvertedEventLog,
   } from "#db/dbTypes.js";
+  import type { CsvRequest } from "#lib/grid/ExportCsv/csvFormat.js";
+  import { eventLogsCsvInWorker } from "#db/eventLogsTable.worker.portal.js";
   import { columnDefs } from "./columnDefs";
   import { gridRows } from "./gridRows";
   import { createThrottledLoad } from "./latestLoad";
@@ -112,5 +114,7 @@
     exportFilePrefix="eventLogs"
     hasMultipleTabs={true}
     bind:isFullScreen
+    csvOfAllRows={(request: CsvRequest) =>
+      eventLogsCsvInWorker(targetEventIdentifier, request)}
   />
 {/if}
