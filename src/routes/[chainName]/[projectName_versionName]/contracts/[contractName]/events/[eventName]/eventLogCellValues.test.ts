@@ -5,7 +5,9 @@ import {
   createGrid,
   ModuleRegistry,
   type ColDef,
+  type ColGroupDef,
   type GridApi,
+  type ValueGetterParams,
 } from "ag-grid-community";
 import { getColumnDefs } from "#lib/grid/GridBody/getColumnDefs.js";
 import {
@@ -186,6 +188,16 @@ describe("eventLogCellValues", () => {
     expect(datetime.getSortValue(rows[2])).toBe(rows[2].jsDate);
     expect(datetime.getFilterText(rows[2])).toBe("2019-12-31T23:59:59Z");
     expect(datetime.getCsvText(rows[2])).toBe("2019-12-31T23:59:59Z");
+  });
+
+  test("should give a row without data no block number and no hash", () => {
+    const defs = columnDefs(fragment, eachArgsMaxLengths) as ColGroupDef[];
+    for (const columnDef of [defs[0].children[0], defs[2].children[1]]) {
+      const valueGetter = (columnDef as ColDef).valueGetter as (
+        params: ValueGetterParams,
+      ) => unknown;
+      expect(valueGetter({ data: undefined } as ValueGetterParams)).toBe("-");
+    }
   });
 });
 

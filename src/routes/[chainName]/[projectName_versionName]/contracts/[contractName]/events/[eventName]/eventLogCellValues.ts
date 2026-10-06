@@ -40,6 +40,10 @@ export function getBlockNumberValue(row: ConvertedEventLog): number | string {
 export function getTransactionHashValue(row: ConvertedEventLog): string {
   return row.transactionHash ? row.transactionHash : NO_DATA;
 }
+// Sorts by the Date: building the text on each comparison is slow.
+export function getDatetimeValue(row: ConvertedEventLog): Date {
+  return row.jsDate;
+}
 export function getDatetimeText(row: ConvertedEventLog): string {
   return convertJsDateToIso8601(row.jsDate);
 }
@@ -83,6 +87,8 @@ function cellValuesOf(
   colId: string,
   filterType: EventLogCellValues["filterType"],
   getValue: (row: ConvertedEventLog) => unknown,
+  // The valueFormatter of the column.
+  formatValue: (value: unknown) => string = valueToText,
 ): EventLogCellValues {
   return {
     colId,
@@ -91,7 +97,7 @@ function cellValuesOf(
     getFilterText: (row) => toFilterText(getValue(row)),
     getCsvText: (row) => {
       const value: unknown = getValue(row);
-      return toCsvText(value, valueToText(value));
+      return toCsvText(value, formatValue(value));
     },
   };
 }
@@ -104,26 +110,32 @@ export function eventLogCellValues(
   const datetime: EventLogCellValues = {
     colId: eventLogColIds.jsDate,
     filterType: "text",
-    getSortValue: (row) => row.jsDate,
+    getSortValue: getDatetimeValue,
     getFilterText: getDatetimeText,
-    getCsvText: (row) => toCsvText(row.jsDate, getDatetimeText(row)),
+    getCsvText: (row) => toCsvText(getDatetimeValue(row), getDatetimeText(row)),
   };
   const args: EventLogCellValues[] = [];
-  targetEventAbiFragment.inputs.forEach((_, indexOfInputs) => {
-    for (
-      let indexOfArgChild: number = 0;
-      indexOfArgChild <= eachArgsMaxLengths[indexOfInputs] - 1;
-      indexOfArgChild++
-    ) {
-      args.push(
-        cellValuesOf(
-          argChildColId(indexOfInputs, indexOfArgChild),
-          "text",
-          (row) => getArgChildValue(row, indexOfInputs, indexOfArgChild),
-        ),
-      );
-    }
-  });
+  const abiFragmentInputs: EventAbiFragment["inputs"] =
+    targetEventAbiFragment.inputs;
+  if (abiFragmentInputs && Array.isArray(abiFragmentInputs)) {
+    abiFragmentInputs.forEach((_, indexOfInputs) => {
+      for (
+        let indexOfArgChild: number = 0;
+        indexOfArgChild <= eachArgsMaxLengths[indexOfInputs] - 1;
+        indexOfArgChild++
+      ) {
+        // An address column has no valueFormatter, which gives the same text.
+        args.push(
+          cellValuesOf(
+            argChildColId(indexOfInputs, indexOfArgChild),
+            "text",
+            (row) => getArgChildValue(row, indexOfInputs, indexOfArgChild),
+            formatArgChildValue,
+          ),
+        );
+      }
+    });
+  }
   return [
     cellValuesOf(eventLogColIds.blockNumber, "text", getBlockNumberValue),
     datetime,

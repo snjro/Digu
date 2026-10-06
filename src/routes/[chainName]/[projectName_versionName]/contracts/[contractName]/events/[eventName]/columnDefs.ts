@@ -20,8 +20,12 @@ import {
   eventLogColIds,
   formatArgChildValue,
   getArgChildValue,
+  getBlockNumberValue,
   getDatetimeText,
+  getDatetimeValue,
+  getTransactionHashValue,
 } from "./eventLogCellValues";
+import { NO_DATA } from "#utils/utilsConstants.js";
 const cellClass: string = classNames("");
 const sortable = true;
 const editable = false;
@@ -46,7 +50,7 @@ export const columnDefs = <T extends ConvertedEventLog>(
           // Keep this valueGetter: without it, ag-grid infers the type from
           // the Date and gives the column another filter.
           valueGetter: (valueGetterParams: ValueGetterParams) => {
-            return valueGetterParams.data.jsDate;
+            return getDatetimeValue(valueGetterParams.data);
           },
           valueFormatter: (valueFormatterParams: ValueFormatterParams) =>
             getDatetimeText(valueFormatterParams.data),
@@ -68,6 +72,10 @@ const blocknumberColumnDef = <T extends ConvertedEventLog>(): ColumnDef => ({
     "block",
   ),
   colId: eventLogColIds.blockNumber,
+  valueGetter: (valueGetterParams: ValueGetterParams<T>) =>
+    valueGetterParams.data
+      ? getBlockNumberValue(valueGetterParams.data)
+      : NO_DATA,
 });
 const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
   return [
@@ -93,6 +101,12 @@ const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
             "open",
           ),
           colId: eventLogColIds.transactionHash,
+          valueGetter: (
+            valueGetterParams: ValueGetterParams<ConvertedEventLog>,
+          ) =>
+            valueGetterParams.data
+              ? getTransactionHashValue(valueGetterParams.data)
+              : NO_DATA,
         },
       ],
     },
