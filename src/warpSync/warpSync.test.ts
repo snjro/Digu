@@ -635,11 +635,15 @@ describe("warpSync", () => {
       );
     });
 
-    test("waits for the failed import to end before it imports again", async () => {
+    // A failed import that still holds the lock, in the reload after it,
+    // until release() is called.
+    async function failAndHoldLock(): Promise<{
+      failing: Promise<void>;
+      release: () => void;
+    }> {
       vi.spyOn(customLogger, "error").mockImplementation(() => {});
       vi.mocked(importWarpSync).mockRejectedValueOnce(new Error("timeout"));
-      // The reload in the catch ends; the one after the import, while the
-      // failed import holds the lock, waits.
+      // The reload in the catch ends; the one after the import waits.
       let release: () => void = () => {};
       vi.mocked(reloadSyncStatusInChain)
         .mockResolvedValueOnce(undefined)
@@ -652,6 +656,11 @@ describe("warpSync", () => {
           "failed",
         ),
       );
+      return { failing, release };
+    }
+
+    test("waits for the failed import to end before it imports again", async () => {
+      const { failing, release } = await failAndHoldLock();
       const retrying = retryWarpSync(matic);
       release();
       await failing;
@@ -660,6 +669,29 @@ describe("warpSync", () => {
       expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
         "imported",
       );
+      // The two queued results, and the reload after the retry.
+      expect(reloadSyncStatusInChain).toHaveBeenCalledTimes(3);
+    });
+
+    test("does nothing on a second Retry while the first one runs", async () => {
+      const { failing, release } = await failAndHoldLock();
+      const first = retryWarpSync(matic);
+      // It ends without waiting for the failed import.
+      let secondEnded: boolean = false;
+      void retryWarpSync(matic).then(() => (secondEnded = true));
+      await vi.waitFor(() => expect(secondEnded).toBe(true));
+      release();
+      await failing;
+      await first;
+      expect(importWarpSync).toHaveBeenCalledTimes(2);
+      expect(selectWarpSyncState(get(storeWarpSync), "matic")).toMatchObject({
+        status: "imported",
+      });
+      expect(reloadSyncStatusInChain).toHaveBeenCalledTimes(3);
+      // Retry works again once the first one ended.
+      setWarpSyncState("matic", { status: "failed" });
+      await retryWarpSync(matic);
+      expect(importWarpSync).toHaveBeenCalledTimes(3);
     });
 
     test("does nothing when it is off", async () => {
