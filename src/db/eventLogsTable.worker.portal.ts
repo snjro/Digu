@@ -18,7 +18,8 @@ type Pending = {
   reject: (reason: Error) => void;
 };
 
-// The page's side of the table worker, which lives until terminate().
+// The page's side of the table worker, which lives until terminate() or an
+// error of the worker.
 export class EventLogsTableClient {
   private readonly worker: Worker = new EventLogsTableWorker();
   private nextId: number = 0;
@@ -82,7 +83,7 @@ export class EventLogsTableClient {
       this.worker.postMessage({ id, type, params });
     });
   }
-  // A closed client has no worker, which would keep the rows.
+  // Stops the worker, so that it does not keep the rows.
   private close(message: string): void {
     this.worker.terminate();
     this.closedMessage ??= message;
