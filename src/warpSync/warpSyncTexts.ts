@@ -7,9 +7,10 @@ import type { WarpSyncState } from "./warpSyncState";
 // the public site (2,641,924 logs in 159 s with the download, #695), and
 // rounded down.
 const IMPORTED_LOGS_PER_SECOND = 16_000;
-// Stored in IndexedDB for each log: navigator.storage.estimate() before and
-// after the same import (#695).
-const STORED_BYTES_PER_LOG = 223;
+// Stored in IndexedDB for each log: 223 B by navigator.storage.estimate()
+// before and after the same import (#695), with room for other browsers,
+// which were not measured.
+const STORED_BYTES_PER_LOG = 300;
 
 export function formatBytes(bytes: number): string {
   if (bytes < 1_000_000) return `${Math.max(1, Math.round(bytes / 1_000))} KB`;
