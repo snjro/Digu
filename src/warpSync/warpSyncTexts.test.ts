@@ -76,12 +76,15 @@ describe("getConfirmationTexts", () => {
     expect(texts.lines).toHaveLength(4);
   });
 
-  test("warns when the browser may not have the space", () => {
+  test("warns only when the free space is below the space it needs", () => {
     expect(
-      getConfirmationTexts("Ethereum Mainnet", state, 500_000_000).warning,
+      getConfirmationTexts("Ethereum Mainnet", state, 690_000_000).warning,
     ).toBe(
-      "This browser may not have enough space for this site: about 698 MB is needed, 500 MB is free.",
+      "This browser may not have enough space for this site: about 698 MB is needed, 690 MB is free.",
     );
+    expect(
+      getConfirmationTexts("Ethereum Mainnet", state, 750_000_000).warning,
+    ).toBeUndefined();
   });
 });
 

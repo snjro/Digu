@@ -66,8 +66,9 @@ export function getConfirmationTexts(
       ? "Import the rest of the event logs published with this site?"
       : "Import the event logs published with this site?",
     lines,
+    // STORED_BYTES_PER_LOG already has room.
     warning:
-      freeBytes !== undefined && freeBytes < storedBytes * 1.2
+      freeBytes !== undefined && freeBytes < storedBytes
         ? `This browser may not have enough space for this site: about ${formatBytes(storedBytes)} is needed, ${formatBytes(freeBytes)} is free.`
         : undefined,
   };
