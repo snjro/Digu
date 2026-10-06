@@ -56,7 +56,8 @@ export async function convertSnapshot({ dir, log }) {
     if (!contract) {
       throw new Error(`${keyOf(chunk)} of ${chunk.file} is not in the chain.`);
     }
-    // toSnapshotLog checks the address of each log.
+    // The file is of the address of the contract (toSnapshotLog checks the
+    // address of each log).
     if (data.address.toLowerCase() !== contract.address.toLowerCase()) {
       throw new Error(`${chunk.file} is for another address: ${data.address}`);
     }

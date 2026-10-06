@@ -36,11 +36,19 @@ export function eventsByTopic0(iface) {
  * @param {string} blockTimestamp
  */
 export function toSnapshotLog(contract, raw, blockTimestamp) {
-  const at = `at block ${Number(raw.blockNumber)}, log index ${Number(raw.logIndex)}`;
-  const key = `${contract.project}/${contract.version}/${contract.name}`;
-  if (raw.removed) throw new Error(`${key}: a removed log ${at}.`);
+  // Made only when it throws: it checks millions of logs.
+  /**
+   * @param {string} text
+   * @param {unknown} [cause]
+   */
+  const fail = (text, cause) =>
+    new Error(
+      `${contract.project}/${contract.version}/${contract.name}: ${text} at block ${Number(raw.blockNumber)}, log index ${Number(raw.logIndex)}${cause === undefined ? "." : `: ${cause instanceof Error ? cause.message : cause}`}`,
+      cause === undefined ? undefined : { cause },
+    );
+  if (raw.removed) throw fail("a removed log");
   if (raw.address.toLowerCase() !== contract.address.toLowerCase()) {
-    throw new Error(`${key}: a log of another address ${raw.address} ${at}.`);
+    throw fail(`a log of another address ${raw.address}`);
   }
   const fragment = contract.events.get(raw.topics[0]?.toLowerCase());
   let args;
@@ -50,9 +58,9 @@ export function toSnapshotLog(contract, raw, blockTimestamp) {
       contract.iface.decodeEventLog(fragment, raw.data, raw.topics),
     );
   } catch (error) {
-    throw new Error(
-      `${key}: cannot decode the log of ${fragment?.name ?? `topic0 ${raw.topics[0]}`} ${at}: ${error instanceof Error ? error.message : error}`,
-      { cause: error },
+    throw fail(
+      `cannot decode the log of ${fragment?.name ?? `topic0 ${raw.topics[0]}`}`,
+      error,
     );
   }
   return {

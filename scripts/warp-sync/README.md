@@ -14,8 +14,9 @@ users of the app do not run it.
 - `matic`: made by this script with the public RPC of pocket.
 - `eth`: 2,641,099 logs of 16 contracts to block 26,104,938, in 146 files
   (156 MB of gzip, 1.1 GB of JSON). Its first run (2,640,510 logs to block
-  26,075,462) was not made by this script: pocket dropped logs (#576), so the logs were fetched from Infura
-  with all the contracts in one `eth_getLogs` for each range of 10,000 blocks
+  26,075,462) was not made by this script: pocket dropped logs (#576), so
+  the logs were fetched from Infura with all the contracts in one
+  `eth_getLogs` for each range of 10,000 blocks
   (2,293 requests, the `requests` of the run), and written with
   `writeContractChunks` of `snapshot-format.mjs`. They were checked against
   two runs of this script with pocket (every log of both is in the snapshot,
@@ -27,8 +28,9 @@ users of the app do not run it.
 Update the snapshot on the day of a release: it reaches the users only with a
 release. `release.yml` runs `check-snapshot.py` before it deploys. It shows,
 for each chain, the last run of `manifest.json`, when it was made
-(`createdAt`), its `toBlock` and its age in days, in the summary of the run. It stops the release when the last run was
-not made on the day of the release, by the date in UTC, and when it cannot
+(`createdAt`), its `toBlock` and its age in days, in the summary of the run.
+It stops the release when the last run was not made on the day of the
+release, by the date in UTC, and when it cannot
 read a manifest or finds no chain. A chain without a snapshot is not checked.
 
 vitest (`check-files.test.mjs`) checks the files of each chain of
@@ -141,16 +143,16 @@ docker compose run --rm app node scripts/warp-sync/convert-snapshot.mjs \
   --chain matic [--out static/warp-sync]
 ```
 
-It checks the `sha256` of each file of formatVersion 2, decodes its logs as
-this script does (below), and writes a file of formatVersion 3 with the same
-name, range and logs in its place. `manifest.json` keeps its contracts, runs
-and ranges; only `formatVersion` and the `bytes`, `rawBytes`, `sha256` and
-`rawSha256` of the files change. It writes the new files in `<chain>/.convert/`
-and moves them over the old ones only after every file is converted. It
-checks each log as this script does (below), and stops at a file of another
-address than the contract in `src/constants/chains`, and when a contract of a
-file is not there. If it stops, `git checkout -- static/warp-sync/<chain>`
-gives back the files, and `<chain>/.convert/` can be deleted.
+It checks the `sha256` of each file of formatVersion 2, checks and decodes
+its logs as this script does (below), and writes a file of formatVersion 3
+with the same name, range and logs in its place. `manifest.json` keeps its
+contracts, runs and ranges; only `formatVersion` and the `bytes`, `rawBytes`,
+`sha256` and `rawSha256` of the files change. It writes the new files in
+`<chain>/.convert/` and moves them over the old ones only after every file is
+converted. It also stops at a file of another address than the contract in
+`src/constants/chains`, and when a contract of a file is not there. If it
+stops, `git checkout -- static/warp-sync/<chain>` gives back the files, and
+`<chain>/.convert/` can be deleted.
 
 It fetches like the sync: one `eth_getLogs` per range with the address and
 the topic 0 of the events that are not anonymous. It decodes each log with
@@ -159,9 +161,9 @@ the ABI of its contract in `src/constants/chains`, as the sync decodes it
 `.partial/`, and checks that it is not removed and is of the address of the
 contract. A log that fails stops the run at once, with the contract and the
 block of the log. A log that cannot be decoded also shows the event (or the
-topic 0): the ABI does not fit the log. The snapshot has only the args decoded with the ABI of the
-time it was made, so after a fix to the ABI of a contract that has events,
-fetch that contract's snapshot again from an RPC.
+topic 0): the ABI does not fit the log. The snapshot has only the args
+decoded with the ABI of the time it was made, so after a fix to the ABI of a
+contract that has events, fetch that contract's snapshot again from an RPC.
 
 - **Widths:** the ranges start at 100,000 blocks (or `--max-width`, if
   narrower) and are doubled after each full range that works, up to
@@ -322,10 +324,10 @@ spaces:
 ```
 
 `args` has the values by position, without names, as the sync saves them.
-An integer (also `uint8`) is a decimal string, an address is checksummed, a `bytes32` is a hex
-string, and an array or a tuple is an array. The app gives back a `bigint` for
-each integer by the types of the ABI, so that the rows of the import and of
-the sync are the same.
+An integer (also `uint8`) is a decimal string, an address is checksummed, a
+`bytes32` is a hex string, and an array or a tuple is an array. The app gives
+back a `bigint` for each integer by the types of the ABI, so that the rows of
+the import and of the sync are the same.
 
 A row has all the logs of its contract from `fromBlock` to `toBlock`. The
 `fromBlock` of a row is the `toBlock` of the row before it of the same

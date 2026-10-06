@@ -29,9 +29,8 @@ const toHex = (value) => `0x${value.toString(16)}`;
 // decoding them is slow with the coverage of CI.
 const STEP = 20_000;
 let withoutTimestamp = false;
-// The logs of a block that cannot be decoded: { block, topic0 } gives them a
-// topic0 of no event of the ABI; { block, name, data } gives the logs of the
-// contract of that name a data that does not fit its event.
+// { block, name, ...fields }: the logs of that block of the contract of that
+// name get these fields, so that the script does not take them.
 let broken = undefined;
 const requests = [];
 
@@ -55,13 +54,12 @@ function logsOf(address, from, to) {
         transactionIndex: "0x0",
         logIndex: toHex(index),
         address: address.toLowerCase(),
-        data:
-          block === broken?.block && contract.name === broken.name
-            ? broken.data
-            : data,
-        topics:
-          block === broken?.block && broken.topic0 ? [broken.topic0] : topics,
+        data,
+        topics,
         removed: false,
+        ...(block === broken?.block && contract.name === broken.name
+          ? broken.fields
+          : {}),
       });
     }
   }
@@ -264,15 +262,14 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(requests).toContain("eth_getBlockByNumber");
   });
 
-  // The blocks of the logs kept in .partial/ (of the contracts whose name
-  // starts with name).
-  const partialBlocks = (name = "") => {
+  // The blocks of the logs of FeePot kept in .partial/.
+  const partialBlocksOfFeePot = () => {
     const partial = path.join(dir(), ".partial");
     return fs
       .readdirSync(partial)
       .filter(
         (file) =>
-          file.endsWith(".jsonl") && file.startsWith(`Augur__turbo__${name}`),
+          file.startsWith("Augur__turbo__FeePot__") && file.endsWith(".jsonl"),
       )
       .flatMap((file) =>
         fs.readFileSync(path.join(partial, file), "utf8").split("\n"),
@@ -281,25 +278,43 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       .map((line) => Number(JSON.parse(line).blockNumber));
   };
 
-  test("stops at a log of an unknown topic0 when its range is fetched", async () => {
-    broken = { block: 15_000_000, topic0: `0x${"ab".repeat(32)}` };
+  // 15,300,000 is in the first part of FeePot (from its creation block
+  // 14,853,221, 500,000 blocks), after its first range (100,000 blocks): the
+  // ranges of a part are fetched one after another, so that range is always
+  // in .partial/ before the range of the log.
+  test.each([
+    [
+      "a log of an unknown topic0",
+      { topics: [`0x${"ab".repeat(32)}`] },
+      `cannot decode the log of topic0 0x${"ab".repeat(32)} at block 15300000, log index 0: `,
+    ],
+    [
+      // Approval(address indexed, address indexed, uint256): the uint256 is
+      // in the data.
+      "a log whose data does not fit its event",
+      { data: "0x" },
+      "cannot decode the log of Approval at block 15300000, log index 0: ",
+    ],
+    [
+      "a removed log",
+      { removed: true },
+      "a removed log at block 15300000, log index 0.",
+    ],
+    [
+      "a log of another address",
+      { address: `0x${"9".repeat(40)}` },
+      `a log of another address 0x${"9".repeat(40)} at block 15300000, log index 0.`,
+    ],
+  ])("stops at %s when its range is fetched", async (_, fields, message) => {
+    broken = { block: 15_300_000, name: "FeePot", fields };
     await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
-      /: cannot decode the log of topic0 0x(ab){32} at block 15000000, log index 0: /,
+      `Augur/turbo/FeePot: ${message}`,
     );
     expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
-    // The range of the log is not added to .partial/.
-    expect(partialBlocks()).not.toContain(15_000_000);
-  });
-
-  test("stops at a log whose data does not fit its event when its range is fetched", async () => {
-    // Approval(address indexed, address indexed, uint256): the uint256 is
-    // in the data.
-    broken = { block: 15_000_000, name: "FeePot", data: "0x" };
-    await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
-      "Augur/turbo/FeePot: cannot decode the log of Approval at block 15000000, log index 0: ",
-    );
-    expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
-    expect(partialBlocks("FeePot__")).not.toContain(15_000_000);
+    // The first range is kept, and the range of the log is not.
+    const blocks = partialBlocksOfFeePot();
+    expect(blocks).toContain(14_860_000);
+    expect(blocks).not.toContain(15_300_000);
   });
 
   test("stops at a .partial/ of the script before formatVersion 2", async () => {
