@@ -38,7 +38,7 @@ export async function registerEventLogsAndBlockTimes(
     if (isStopped()) {
       return;
     }
-    const namedEventLogs: NamedEventLog[] = getConvertedEventLogs(
+    const namedEventLogs: NamedEventLog[] = getNamedEventLogs(
       ethersEventLogs,
       blockTimesForEventLogs,
     );
@@ -75,7 +75,7 @@ function getUnregisterdBlockTimes(
   return unregisterdBlockTimes;
 }
 
-function getConvertedEventLogs(
+function getNamedEventLogs(
   ethersEventLogs: EthersEventLog[],
   blockTimesForEventLogs: BlockTimeForEventLog[],
 ): NamedEventLog[] {
@@ -129,7 +129,7 @@ export function convertEthersEventToEventLog(
     };
   } else {
     throw new Error(
-      "Invalid EthersEventLog object. The following properties are not a valid hex string: transactionHash.",
+      `Invalid EthersEventLog object. transactionHash is not a valid hex string: ${String(ethersEventLog.transactionHash)} (block ${ethersEventLog.blockNumber}, log index ${ethersEventLog.index}).`,
     );
   }
 }

@@ -1,7 +1,10 @@
 import "fake-indexeddb/auto";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Block } from "ethers";
-import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
+import {
+  groupEventLogsByEventName,
+  registerEventLogsAndBlockTimes,
+} from "./eventLogsContractUpdateTables";
 import { addEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
 import { dbBlockTimes } from "#db/dbBlockTimes.js";
 import { setDbBlockTime } from "#db/dbBlockTimesDataHandlers.js";
@@ -10,8 +13,10 @@ import type { Chain, Contract } from "#constants/chains/types.js";
 import type { DbEventLogs } from "#db/dbEventLogs.js";
 import type {
   BlockTime,
+  ConvertedEventLog,
   EthersEventLog,
   GroupedEventLogs,
+  NamedEventLog,
 } from "#db/dbTypes.js";
 import {
   extractEventContracts,
@@ -229,9 +234,8 @@ describe("registerEventLogsAndBlockTimes", () => {
     ).rejects.toMatchObject({
       message: "Failed to register event logs.",
       cause: {
-        message: expect.stringContaining(
-          "not a valid hex string: transactionHash.",
-        ),
+        message:
+          "Invalid EthersEventLog object. transactionHash is not a valid hex string: zz (block 30, log index 0).",
       },
     });
     expect(addEventLogs_updateFetchedBlockNumber).not.toHaveBeenCalled();
@@ -258,5 +262,37 @@ describe("registerEventLogsAndBlockTimes", () => {
 
     // The caller logs the error, so it is not logged here as well.
     expect(spyError).not.toHaveBeenCalled();
+  });
+});
+
+describe("groupEventLogsByEventName", () => {
+  function namedEventLog(
+    eventName: string,
+    blockNumber: number,
+  ): NamedEventLog {
+    return {
+      eventName,
+      eventLog: { blockNumber } as ConvertedEventLog,
+    };
+  }
+
+  test("should split the logs by event name and keep their order in each group", () => {
+    const groupedEventLogs: GroupedEventLogs = groupEventLogsByEventName([
+      namedEventLog("A", 1),
+      namedEventLog("B", 2),
+      namedEventLog("A", 3),
+      namedEventLog("C", 4),
+      namedEventLog("B", 5),
+      namedEventLog("A", 6),
+    ]);
+
+    expect(
+      Object.fromEntries(
+        Object.entries(groupedEventLogs).map(([eventName, eventLogs]) => [
+          eventName,
+          eventLogs.map((eventLog) => eventLog.blockNumber),
+        ]),
+      ),
+    ).toStrictEqual({ A: [1, 3, 6], B: [2, 5], C: [4] });
   });
 });
