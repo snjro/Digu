@@ -67,7 +67,7 @@ export const showSnackBarAsCopiedFirstRows: BaseSnackbarProps = {
     name: "checkBold",
     colorCategory: "success",
   },
-  text: `Copied the first ${numberWithCommas(CSV_COPY_MAX_ROWS)} rows. Export has all.`,
+  text: `Copied the first ${numberWithCommas(CSV_COPY_MAX_ROWS)} rows`,
   displayTimeInMilliseconds: 4000,
 };
 export const showSnackBarAsExportFailed: BaseSnackbarProps = {
