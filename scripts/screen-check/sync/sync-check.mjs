@@ -216,6 +216,17 @@ const TOGGLE_TEXTS = [
   "start sync",
   "stop sync",
   "starting sync",
+  "stopping sync",
+  "syncing in another tab",
+  // SYNC_WAITS_FOR_IMPORT of src/warpSync/warpSyncTexts.ts.
+  "Importing the published logs. Stop it to sync from your RPC now.",
+];
+// The texts the clicks looked for before #661. "stopping sync" and the import
+// text are left out: the toggle is disabled then, and the click should fail.
+const CLICK_TEXTS = [
+  "start sync",
+  "stop sync",
+  "starting sync",
   "syncing in another tab",
 ];
 async function toggleInfo(page) {
@@ -251,7 +262,7 @@ async function clickToggle(page) {
       }
     }
     return null;
-  }, TOGGLE_TEXTS);
+  }, CLICK_TEXTS);
   await h.click();
 }
 async function waitTooltip(page, text, timeout = 30000) {

@@ -273,11 +273,12 @@ async function pageInfo(page) {
           );
         return i ? { value: i.value, disabled: i.disabled } : null;
       })(),
+      // The last text is SYNC_WAITS_FOR_IMPORT of src/warpSync/warpSyncTexts.ts.
       toggleLabels: [...document.querySelectorAll("*")]
         .filter(
           (e) =>
             e.children.length === 0 &&
-            /^(start sync|stop sync|starting sync|stopping sync|syncing in another tab)$/.test(
+            /^(start sync|stop sync|starting sync|stopping sync|syncing in another tab|Importing the published logs\. Stop it to sync from your RPC now\.)$/.test(
               e.textContent.trim(),
             ),
         )
@@ -385,6 +386,8 @@ async function typeInto(page, el, text) {
 
 async function toggleButton(page) {
   return page.evaluateHandle(() => {
+    // The texts the clicks looked for before #661. "stopping sync" and the import
+    // text are left out: the toggle is disabled then, and the click should fail.
     const labels = [...document.querySelectorAll("*")].filter(
       (e) =>
         e.children.length === 0 &&
