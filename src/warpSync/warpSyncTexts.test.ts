@@ -52,8 +52,8 @@ describe("getConfirmationTexts", () => {
       header: "Import the event logs published with this site?",
       lines: [
         "Ethereum Mainnet: 2,328,259 logs up to block 26,073,896 (2026-10-01).",
-        "Download: 194 MB. Stored in this browser: about 959 MB to 2.2 GB.",
-        "Time: about 9 minutes on a desktop computer; slower on a phone.",
+        "Download: 194 MB. Stored in this browser: about 1.0 GB.",
+        "Time: about 1 minute on a desktop computer; slower on a phone.",
         "You can use Digu while it imports, stop it at any time, and go on later.",
         "Free space for this site: 38.0 GB.",
       ],
@@ -78,9 +78,9 @@ describe("getConfirmationTexts", () => {
 
   test("warns when the browser may not have the space", () => {
     expect(
-      getConfirmationTexts("Ethereum Mainnet", state, 1_100_000_000).warning,
+      getConfirmationTexts("Ethereum Mainnet", state, 900_000_000).warning,
     ).toBe(
-      "This browser may not have enough space for this site: about 2.2 GB is needed, 1.1 GB is free.",
+      "This browser may not have enough space for this site: about 1.0 GB is needed, 900 MB is free.",
     );
   });
 });

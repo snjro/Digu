@@ -15,7 +15,7 @@ afterEach(() => {
 });
 
 const file: WarpSyncFile = {
-  formatVersion: 2,
+  formatVersion: 3,
   chainId: 137,
   project: "Augur",
   version: "turbo",

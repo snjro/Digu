@@ -92,7 +92,7 @@ const chunks: WarpSyncManifestChunk[] = ranges.map(
     if (logs === null) return { ...range, file: null };
     // The first file starts at the creation block unless a test moves it.
     const text = JSON.stringify({
-      formatVersion: 2,
+      formatVersion: 3,
       chainId: 137,
       ...key,
       address: feePot.address,
@@ -118,7 +118,7 @@ function manifest(
   firstFromBlock: number = CREATION,
 ): WarpSyncManifest {
   return {
-    formatVersion: 2,
+    formatVersion: 3,
     chainName: "matic",
     chainId: 137,
     contracts: [

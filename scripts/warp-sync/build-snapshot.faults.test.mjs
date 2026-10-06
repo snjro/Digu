@@ -15,26 +15,30 @@ import { afterAll, beforeAll, expect, test } from "vitest";
 // No wait after a failure. Read when the script is imported.
 process.env.WARP_SYNC_RETRY_WAIT_MS = "0";
 const { buildSnapshot, loadChain } = await import("./build-snapshot.mjs");
+const { fakeEventLog } = await import("./fake-logs.mjs");
 
 const chain = loadChain("matic");
 const TO = 15_600_000;
 const toHex = (value) => `0x${value.toString(16)}`;
-const MAX_RESULTS = 200;
-// Logs: 2 in every block that is a multiple of 1,000, and a dense part (2 in
-// every 10th block) where a range of 5,000 blocks has 1,000 logs.
-const DENSE = [15_400_000, 15_410_000];
+const MAX_RESULTS = 40;
+// Logs: 2 in every block that is a multiple of 10,000, and a dense part (2 in
+// every 40th block) of 102 logs in 2,000 blocks. Few logs, since decoding them
+// is slow with the coverage of CI.
+const DENSE = [15_400_000, 15_402_000];
 function blocksWithLogs(from, to) {
   const blocks = [];
-  for (let block = Math.ceil(from / 10) * 10; block <= to; block += 10) {
+  for (let block = Math.ceil(from / 40) * 40; block <= to; block += 40) {
     const dense = block >= DENSE[0] && block <= DENSE[1];
-    if (dense || block % 1000 === 0) blocks.push(block);
+    if (dense || block % 10_000 === 0) blocks.push(block);
   }
   return blocks;
 }
+const rpcFields = ({ data, topics }) => ({ data, topics });
 function logsOf(contract, from, to) {
   return blocksWithLogs(Math.max(from, contract.creationBlock), to).flatMap(
     (block) =>
       [0, 1].map((index) => ({
+        ...rpcFields(fakeEventLog(contract, block * 10 + index)),
         blockNumber: toHex(block),
         blockHash: `0x${block.toString(16).padStart(64, "0")}`,
         blockTimestamp: toHex(block * 2),
@@ -42,8 +46,6 @@ function logsOf(contract, from, to) {
         transactionIndex: "0x0",
         logIndex: toHex(index),
         address: contract.address.toLowerCase(),
-        data: "0x",
-        topics: [contract.topics[0]],
         removed: false,
       })),
   );
@@ -190,11 +192,22 @@ test("has every log despite the faults of the RPC", async () => {
               ),
             ).logs,
         );
-      // The snapshot does not keep "removed".
-      const expected = logsOf(contract, contract.creationBlock, TO).map((log) =>
-        Object.fromEntries(
-          Object.entries(log).filter(([field]) => field !== "removed"),
-        ),
+      const expected = logsOf(contract, contract.creationBlock, TO).map(
+        (log) => {
+          const { event, args } = fakeEventLog(
+            contract,
+            Number(log.transactionHash),
+          );
+          return {
+            blockNumber: log.blockNumber,
+            blockTimestamp: log.blockTimestamp,
+            transactionHash: log.transactionHash,
+            transactionIndex: log.transactionIndex,
+            logIndex: log.logIndex,
+            event,
+            args,
+          };
+        },
       );
       expect(logs).toEqual(expected);
     }

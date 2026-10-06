@@ -3,11 +3,12 @@
 import { numberWithCommas } from "#utils/utilsCommon.js";
 import type { WarpSyncState } from "./warpSyncState";
 
-// Measured with the DB worker on a desktop computer (2,330,000 logs in 519 s).
-const IMPORTED_LOGS_PER_SECOND = 4_500;
-// Stored in IndexedDB for each log: 412 B in a real browser, 950 B with fake
-// logs in the measurement.
-const STORED_BYTES_PER_LOG: [number, number] = [412, 950];
+// Measured with the DB worker on a desktop computer (2,641,099 logs of
+// formatVersion 3 in 61-71 s, #686).
+const IMPORTED_LOGS_PER_SECOND = 37_000;
+// Stored in IndexedDB for each log: measured with headless Chrome on a
+// desktop computer (#686).
+const STORED_BYTES_PER_LOG = 442;
 
 export function formatBytes(bytes: number): string {
   if (bytes < 1_000_000) return `${Math.max(1, Math.round(bytes / 1_000))} KB`;
@@ -46,14 +47,12 @@ export function getConfirmationTexts(
   const upTo: string = `up to block ${numberWithCommas(state.toBlock ?? 0)} (${state.createdAt?.slice(0, 10) ?? "-"})`;
   // Some were imported before (or synced from an RPC).
   const isRest: boolean = pending.logCount < pending.snapshotLogCount;
-  const [low, high] = STORED_BYTES_PER_LOG.map(
-    (bytesPerLog) => pending.logCount * bytesPerLog,
-  );
+  const storedBytes: number = pending.logCount * STORED_BYTES_PER_LOG;
   const lines: string[] = [
     isRest
       ? `${chainFullName}: ${logs} of ${numberWithCommas(pending.snapshotLogCount)} logs are left, ${upTo}.`
       : `${chainFullName}: ${logs} logs ${upTo}.`,
-    `Download: ${formatBytes(pending.bytes)}. Stored in this browser: about ${formatBytes(low)} to ${formatBytes(high)}.`,
+    `Download: ${formatBytes(pending.bytes)}. Stored in this browser: about ${formatBytes(storedBytes)}.`,
     `Time: about ${formatDuration(pending.logCount / IMPORTED_LOGS_PER_SECOND)} on a desktop computer; slower on a phone.`,
     "You can use Digu while it imports, stop it at any time, and go on later.",
   ];
@@ -66,8 +65,8 @@ export function getConfirmationTexts(
       : "Import the event logs published with this site?",
     lines,
     warning:
-      freeBytes !== undefined && freeBytes < high * 1.2
-        ? `This browser may not have enough space for this site: about ${formatBytes(high)} is needed, ${formatBytes(freeBytes)} is free.`
+      freeBytes !== undefined && freeBytes < storedBytes * 1.2
+        ? `This browser may not have enough space for this site: about ${formatBytes(storedBytes)} is needed, ${formatBytes(freeBytes)} is free.`
         : undefined,
   };
 }

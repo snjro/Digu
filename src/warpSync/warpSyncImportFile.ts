@@ -1,23 +1,19 @@
 // Imports one file of the snapshot. It runs in the DB worker, so that the
-// page does not stop while the logs are decoded and saved.
+// page does not stop while the logs are read and saved.
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Contract, ContractName } from "#constants/chains/types.js";
 import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
 import { saveEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
 import { getDbItemSyncStatus } from "#db/dbEventLogsDataHandlersSyncStatusGetters.js";
 import type {
-  EthersEventLog,
   GroupedEventLogs,
   NamedEventLog,
   SyncStatusContract,
   VersionIdentifier,
 } from "#db/dbTypes.js";
-import {
-  convertEthersEventToEventLog,
-  groupEventLogsByEventName,
-} from "#eventLogs/eventLogsContractUpdateTables.js";
+import { groupEventLogsByEventName } from "#eventLogs/eventLogsContractUpdateTables.js";
 import { getNumber } from "ethers";
-import { decodeWarpSyncLogs } from "./warpSyncDecode";
+import { makeWarpSyncEventLogs } from "./warpSyncEventLogs";
 import { readWarpSyncFile } from "./warpSyncFile";
 import { getNextBlock, getRangeAction } from "./warpSyncPlan";
 import type {
@@ -84,22 +80,7 @@ export async function importWarpSyncFile(
   const logs = file.logs.filter(
     (log) => getNumber(log.blockNumber) >= nextBlock,
   );
-  const timestamps: Map<number, number> = new Map(
-    logs.map((log) => [
-      getNumber(log.blockNumber),
-      getNumber(log.blockTimestamp),
-    ]),
-  );
-  const ethersEventLogs: EthersEventLog[] = decodeWarpSyncLogs(contract, logs);
-  const namedEventLogs: NamedEventLog[] = ethersEventLogs.map(
-    (ethersEventLog: EthersEventLog) => ({
-      eventName: ethersEventLog.eventName,
-      eventLog: convertEthersEventToEventLog(
-        ethersEventLog,
-        timestamps.get(ethersEventLog.blockNumber)!,
-      ),
-    }),
-  );
+  const namedEventLogs: NamedEventLog[] = makeWarpSyncEventLogs(contract, logs);
   const groupedEventLogs: GroupedEventLogs =
     groupEventLogsByEventName(namedEventLogs);
   const syncStatusContract: Partial<SyncStatusContract> =

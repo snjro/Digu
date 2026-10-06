@@ -1,5 +1,9 @@
 import type { DbEventLogs } from "#db/dbEventLogs.js";
-import type { ChainName, Contract } from "#constants/chains/types.js";
+import type {
+  ChainName,
+  Contract,
+  HexString,
+} from "#constants/chains/types.js";
 import { addEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
 import type {
   BlockTime,
@@ -89,49 +93,57 @@ function getNamedEventLogs(
   }
 
   for (const ethersEventLog of ethersEventLogs) {
-    const targetBlockTime: BlockTime | undefined = blockTimes.get(
-      ethersEventLog.blockNumber,
-    );
-
-    if (targetBlockTime) {
-      const convertedEventLog: ConvertedEventLog = convertEthersEventToEventLog(
+    namedEventLogs.push(
+      convertEthersEventToEventLog(
         ethersEventLog,
-        targetBlockTime.timestamp,
-      );
-
-      namedEventLogs.push({
-        eventName: ethersEventLog.eventName,
-        eventLog: convertedEventLog,
-      });
-    } else {
-      throw new Error(
-        `Error! cannot find blocktime. blocknumber is ${ethersEventLog.blockNumber}`,
-      );
-    }
+        blockTimes.get(ethersEventLog.blockNumber)?.timestamp,
+      ),
+    );
   }
 
   return namedEventLogs;
 }
-// Also used by the warp sync, so that its rows are the same as the sync's.
+// The row of a log that the sync decoded with ethers.
 export function convertEthersEventToEventLog(
   ethersEventLog: EthersEventLog,
-  timestamp: number,
-): ConvertedEventLog {
-  if (isHexString(ethersEventLog.transactionHash)) {
-    return {
+  timestamp: number | undefined,
+): NamedEventLog {
+  return makeNamedEventLog(
+    {
+      eventName: ethersEventLog.eventName,
       args: Dexie.deepClone(ethersEventLog.args),
       blockNumber: ethersEventLog.blockNumber,
-      jsDate: new Date(timestamp * 1000),
       logIndex: ethersEventLog.index,
       removed: ethersEventLog.removed,
-      transactionHash: ethersEventLog.transactionHash,
+      transactionHash: ethersEventLog.transactionHash as HexString,
       transactionIndex: ethersEventLog.transactionIndex,
-    };
-  } else {
+    },
+    timestamp,
+  );
+}
+// Makes the row of a log for the sync and the warp sync, so that both save
+// the same rows. timestamp: of the block of the log, in seconds.
+export function makeNamedEventLog(
+  {
+    eventName,
+    ...fields
+  }: Omit<ConvertedEventLog, "jsDate"> & Pick<NamedEventLog, "eventName">,
+  timestamp: number | undefined,
+): NamedEventLog {
+  if (timestamp === undefined) {
     throw new Error(
-      `Invalid EthersEventLog object. transactionHash is not a valid hex string: ${String(ethersEventLog.transactionHash)} (block ${ethersEventLog.blockNumber}, log index ${ethersEventLog.index}).`,
+      `Error! cannot find blocktime. blocknumber is ${fields.blockNumber}`,
     );
   }
+  if (!isHexString(fields.transactionHash)) {
+    throw new Error(
+      `Invalid event log. transactionHash is not a valid hex string: ${String(fields.transactionHash)} (block ${fields.blockNumber}, log index ${fields.logIndex}).`,
+    );
+  }
+  return {
+    eventName,
+    eventLog: { ...fields, jsDate: new Date(timestamp * 1000) },
+  };
 }
 export function groupEventLogsByEventName(
   namedEventLogs: NamedEventLog[],
