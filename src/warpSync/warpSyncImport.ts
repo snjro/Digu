@@ -207,9 +207,9 @@ export function anySignal(
   }
   return controller.signal;
 }
-// A file has about 20,000 logs (more only when one block crosses it; up to
-// about 2 MB as gzip), which a desktop computer imports in a few seconds with
-// the download (#695).
+// A file has about 20,000 logs (more when the logs of one block cross it). A
+// desktop computer imports one in a few seconds with the download (#695), so
+// the limit leaves room for slower devices and networks.
 export const FILE_TIMEOUT_MS = 120_000;
 
 // Without an RPC, the latest block is 0 and the progress stays at 0%. The end

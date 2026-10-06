@@ -85,6 +85,14 @@ describe("getConfirmationTexts", () => {
     expect(
       getConfirmationTexts("Ethereum Mainnet", state, 750_000_000).warning,
     ).toBeUndefined();
+    // 2,328,259 logs of 300 B.
+    const storedBytes: number = 698_477_700;
+    expect(
+      getConfirmationTexts("Ethereum Mainnet", state, storedBytes - 1).warning,
+    ).toBeDefined();
+    expect(
+      getConfirmationTexts("Ethereum Mainnet", state, storedBytes).warning,
+    ).toBeUndefined();
   });
 });
 
