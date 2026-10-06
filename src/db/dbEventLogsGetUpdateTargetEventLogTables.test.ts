@@ -82,17 +82,11 @@ function getDummyGroupedEventLogs(
     const eventName: string = eventNames[i];
     dummyGroupedEventLogs[eventName] = [
       {
-        eventName: eventName,
-        eventSignature: `eventSignature${i}`,
         args: [],
         blockNumber: i,
         jsDate: new Date(i * 1000), // convert milliSec to Sec
-        blockHash: `0xBlockHash${i}`,
-        data: `0xData${i}`,
         logIndex: 100,
         removed: true,
-        topics: [`0xTopic${i}`],
-        address: `0xAddress${i}`,
         transactionHash: `0xTransactionHash${i}`,
         transactionIndex: i,
       },

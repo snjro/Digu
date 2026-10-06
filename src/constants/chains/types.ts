@@ -1,26 +1,13 @@
-import {
-  isHexString,
-  type ConstructorFragment,
-  type EventFragment,
-  type FunctionFragment,
-  type Interface,
-  type ParamType,
-  type FallbackFragment,
+import type {
+  ConstructorFragment,
+  EventFragment,
+  FunctionFragment,
+  Interface,
+  ParamType,
+  FallbackFragment,
 } from "ethers";
 
 export type HexString = `0x${string}`;
-export function isHexStrings(value: unknown): value is HexString[] {
-  if (
-    Array.isArray(value) &&
-    value.every((element) => {
-      return isHexString(element);
-    })
-  ) {
-    return true;
-  } else {
-    return false;
-  }
-}
 
 //ABI fragment (https://docs.ethers.org/v6/api/abi/abi-coder/#Fragment)
 export type AbiFragmentParam = ParamType;

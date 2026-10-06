@@ -24,8 +24,6 @@ const row = {
   blockNumber: 100,
   jsDate: new Date(Date.UTC(2020, 0, 2, 3, 4, 5)),
   args: [["0xaaa", "0xbbb"], 1234567n, 7n, true],
-  topics: ["0xtopic0", "0xtopic1"],
-  data: "0xdata",
   transactionIndex: 1,
   transactionHash: "0xtx",
   logIndex: 2,

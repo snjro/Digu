@@ -10,7 +10,7 @@ function toPlain(v) {
   if (Array.isArray(v)) return [...v].map(toPlain);
   return v;
 }
-function fakeLogs(abi, eventName, address, n, startBlock) {
+function fakeLogs(abi, eventName, n, startBlock) {
   const iface = new Interface(abi);
   const ev = iface.getEvent(eventName);
   const logs = [];
@@ -33,17 +33,11 @@ function fakeLogs(abi, eventName, address, n, startBlock) {
     const { data, topics } = iface.encodeEventLog(ev, values);
     const parsed = iface.parseLog({ data, topics });
     logs.push({
-      eventName: parsed.name,
-      eventSignature: parsed.signature,
       args: toPlain(parsed.args),
       blockNumber: startBlock + i * 1000,
       jsDate: { __date: (1531036621 + i * 15000) * 1000 },
-      blockHash: hex("bh", 32),
-      data,
       logIndex: i % 5,
       removed: false,
-      topics,
-      address,
       transactionHash: hex("tx", 32),
       transactionIndex: i % 7,
     });
@@ -60,13 +54,7 @@ export async function seed(page, n = 60) {
   );
   const start = augur.creation.blockNumber + 10;
   const rows = {
-    Augur_MarketCreated: fakeLogs(
-      augur.abi,
-      "MarketCreated",
-      augur.address,
-      n,
-      start,
-    ),
+    Augur_MarketCreated: fakeLogs(augur.abi, "MarketCreated", n, start),
   };
   const fetched = start + n * 1000 + 10;
   // Not addScriptTag: the Content Security Policy of the app (#504) blocks an

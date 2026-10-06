@@ -134,7 +134,7 @@ describe("addEventLogs_updateFetchedBlockNumber", () => {
               const groupedEventLogs: GroupedEventLogs = {};
               for (const targetEventName of targetContract.events.names) {
                 groupedEventLogs[targetEventName] = [
-                  { ...dummyConvertedEventLog1, eventName: targetEventName },
+                  { ...dummyConvertedEventLog1 },
                 ];
               }
 
@@ -233,9 +233,7 @@ describe("addEventLogs_updateFetchedBlockNumber when the transaction fails", () 
             };
             const groupedEventLogs: GroupedEventLogs = {};
             for (const eventName of targetContract.events.names) {
-              groupedEventLogs[eventName] = [
-                { ...dummyConvertedEventLog1, eventName: eventName },
-              ];
+              groupedEventLogs[eventName] = [{ ...dummyConvertedEventLog1 }];
             }
             const recordBefore: SyncStatusContract =
               await getDbRecordSyncStatus(dbEventLogs, targetContract);
@@ -346,37 +344,25 @@ describe("getEventLogTableRecordCount", () => {
   });
 });
 const dummyConvertedEventLog1: ConvertedEventLog = {
-  eventName: "eventName1",
-  eventSignature: "eventSignature1",
   args: [],
   blockNumber: 1,
   jsDate: new Date(10),
-  blockHash: "0xBlockHash1",
-  data: "0xData1",
   logIndex: 100,
   removed: true,
-  topics: ["0xTopic1000"],
-  address: "0xAddress1",
   transactionHash: "0xTransactionHash1",
   transactionIndex: 10000,
 };
 const dummyConvertedEventLog2: ConvertedEventLog = {
-  eventName: "eventName2",
-  eventSignature: "eventSignature2",
   args: [],
   blockNumber: 2,
   jsDate: new Date(20),
-  blockHash: "0xBlockHash2",
-  data: "0xData2",
   logIndex: 200,
   removed: true,
-  topics: ["0xTopic2000"],
-  address: "0xAddress2",
   transactionHash: "0xTransactionHash2",
   transactionIndex: 20000,
 };
 const returnValueOfTableToArray: ConvertedEventLog[] = [
-  dummyConvertedEventLog1,
+  { ...dummyConvertedEventLog1 },
   dummyConvertedEventLog2,
 ];
 describe("getEventLogTableRecords", () => {
@@ -401,10 +387,10 @@ describe("getEventLogTableRecords", () => {
               // "sortEventLogs" sorts the array in place.
               const tableRecords: ConvertedEventLog[] = [
                 dummyConvertedEventLog2,
-                dummyConvertedEventLog1,
+                { ...dummyConvertedEventLog1 },
               ];
               const expectedResult: ConvertedEventLog[] = [
-                dummyConvertedEventLog1,
+                { ...dummyConvertedEventLog1 },
                 dummyConvertedEventLog2,
               ];
 
@@ -453,12 +439,12 @@ describe("getEventLogTableRecords", () => {
               // A new array in an unsorted order for each call, because
               // "sortEventLogs" sorts the array in place.
               const tableRecords: ConvertedEventLog[] = [
-                dummyConvertedEventLog1,
+                { ...dummyConvertedEventLog1 },
                 dummyConvertedEventLog2,
               ];
               const expectedResult: ConvertedEventLog[] = [
                 dummyConvertedEventLog2,
-                dummyConvertedEventLog1,
+                { ...dummyConvertedEventLog1 },
               ];
 
               // set spy
@@ -535,47 +521,29 @@ describe("sortEventLogs", () => {
   beforeEach(() => {
     logs = [
       {
-        eventName: "event1",
-        eventSignature: "sig1",
         args: [],
         blockNumber: 2,
         jsDate: new Date(),
-        blockHash: "0xhash1",
-        data: "0xdata1",
         logIndex: 1,
         removed: false,
-        topics: ["0xtopic1"],
-        address: "0xaddress1",
         transactionHash: "0xhash1",
         transactionIndex: 1,
       },
       {
-        eventName: "event2",
-        eventSignature: "sig2",
         args: [],
         blockNumber: 2,
         jsDate: new Date(),
-        blockHash: "0xhash2",
-        data: "0xdata2",
         logIndex: 2,
         removed: false,
-        topics: ["0xtopic2"],
-        address: "0xaddress2",
         transactionHash: "0xhash2",
         transactionIndex: 2,
       },
       {
-        eventName: "event3",
-        eventSignature: "sig3",
         args: [],
         blockNumber: 1,
         jsDate: new Date(),
-        blockHash: "0xhash3",
-        data: "0xdata3",
         logIndex: 1,
         removed: false,
-        topics: ["0xtopic3"],
-        address: "0xaddress3",
         transactionHash: "0xhash3",
         transactionIndex: 3,
       },

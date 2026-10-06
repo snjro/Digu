@@ -1,7 +1,10 @@
 import "fake-indexeddb/auto";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Block } from "ethers";
-import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
+import {
+  groupEventLogsByEventName,
+  registerEventLogsAndBlockTimes,
+} from "./eventLogsContractUpdateTables";
 import { addEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
 import { dbBlockTimes } from "#db/dbBlockTimes.js";
 import { setDbBlockTime } from "#db/dbBlockTimesDataHandlers.js";
@@ -10,8 +13,10 @@ import type { Chain, Contract } from "#constants/chains/types.js";
 import type { DbEventLogs } from "#db/dbEventLogs.js";
 import type {
   BlockTime,
+  ConvertedEventLog,
   EthersEventLog,
   GroupedEventLogs,
+  NamedEventLog,
 } from "#db/dbTypes.js";
 import {
   extractEventContracts,
@@ -55,15 +60,10 @@ function eventLogAt(
   const hex: string = "0x" + blockNumber.toString(16).padStart(64, "0");
   return {
     eventName: name,
-    eventSignature: "Test()",
     args: [],
     blockNumber,
-    blockHash: hex,
-    data: "0x",
     index,
     removed: false,
-    topics: [hex],
-    address: "0x" + "1".repeat(40),
     transactionHash: hex,
     transactionIndex: 0,
   } as unknown as EthersEventLog;
@@ -112,6 +112,16 @@ describe("registerEventLogsAndBlockTimes", () => {
       addEventLogs_updateFetchedBlockNumber,
     ).mock.calls[0];
     expect(toBlockNumber).toBe(40);
+    // The row keeps only these fields.
+    expect((groupedEventLogs as GroupedEventLogs)[eventName][0]).toStrictEqual({
+      args: [],
+      blockNumber: 20,
+      jsDate: new Date(timestampOf(20) * 1000),
+      logIndex: 0,
+      removed: false,
+      transactionHash: "0x" + (20).toString(16).padStart(64, "0"),
+      transactionIndex: 0,
+    });
     expect(
       (groupedEventLogs as GroupedEventLogs)[eventName].map((eventLog) => [
         eventLog.blockNumber,
@@ -217,14 +227,15 @@ describe("registerEventLogsAndBlockTimes", () => {
         dbEventLogs,
         targetContract,
         fakeProvider(),
-        [{ ...eventLogAt(30), data: "zz" } as EthersEventLog],
+        [{ ...eventLogAt(30), transactionHash: "zz" } as EthersEventLog],
         40,
         () => false,
       ),
     ).rejects.toMatchObject({
       message: "Failed to register event logs.",
       cause: {
-        message: expect.stringContaining("not a valid hex string: data."),
+        message:
+          "Invalid EthersEventLog object. transactionHash is not a valid hex string: zz (block 30, log index 0).",
       },
     });
     expect(addEventLogs_updateFetchedBlockNumber).not.toHaveBeenCalled();
@@ -251,5 +262,37 @@ describe("registerEventLogsAndBlockTimes", () => {
 
     // The caller logs the error, so it is not logged here as well.
     expect(spyError).not.toHaveBeenCalled();
+  });
+});
+
+describe("groupEventLogsByEventName", () => {
+  function namedEventLog(
+    eventName: string,
+    blockNumber: number,
+  ): NamedEventLog {
+    return {
+      eventName,
+      eventLog: { blockNumber } as ConvertedEventLog,
+    };
+  }
+
+  test("should split the logs by event name and keep their order in each group", () => {
+    const groupedEventLogs: GroupedEventLogs = groupEventLogsByEventName([
+      namedEventLog("A", 1),
+      namedEventLog("B", 2),
+      namedEventLog("A", 3),
+      namedEventLog("C", 4),
+      namedEventLog("B", 5),
+      namedEventLog("A", 6),
+    ]);
+
+    expect(
+      Object.fromEntries(
+        Object.entries(groupedEventLogs).map(([eventName, eventLogs]) => [
+          eventName,
+          eventLogs.map((eventLog) => eventLog.blockNumber),
+        ]),
+      ),
+    ).toStrictEqual({ A: [1, 3, 6], B: [2, 5], C: [4] });
   });
 });

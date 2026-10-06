@@ -478,18 +478,12 @@ function fakeLogs(contract, eventName, count) {
     const { data, topics } = abi.encodeEventLog(event, values);
     const parsed = abi.parseLog({ data, topics });
     logs.push({
-      eventName: parsed.name,
-      eventSignature: parsed.signature,
       // BigInt cannot be passed to the page, so it goes as a string.
       args: plain(parsed.args),
       blockNumber: startBlock + i * 1000,
       timestampMs: (1531036621 + i * 15000) * 1000,
-      blockHash: hex("bh", 32),
-      data,
       logIndex: i % 5,
       removed: false,
-      topics,
-      address: contract.address,
       transactionHash: hex("tx", 32),
       transactionIndex: i % 7,
     });

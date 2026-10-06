@@ -139,19 +139,18 @@ export type SyncStatusEvent = { recordCount: number };
 //=====event log=====
 export type EthersEventLog = OriginalEthersEventLog;
 export type ConvertedEventLog = {
-  eventName: EthersEventLog["eventName"];
-  eventSignature: EthersEventLog["eventSignature"];
   args: unknown[];
   blockNumber: EthersEventLog["blockNumber"];
   jsDate: Date;
-  blockHash: HexString;
-  data: HexString;
   logIndex: EthersEventLog["index"];
   removed: EthersEventLog["removed"];
-  topics: HexString[];
-  address: HexString;
   transactionHash: HexString;
   transactionIndex: EthersEventLog["transactionIndex"];
+};
+// The row does not keep the event name: each event has its own table.
+export type NamedEventLog = {
+  eventName: EthersEventLog["eventName"];
+  eventLog: ConvertedEventLog;
 };
 export type GroupedEventLogs = {
   [eventName: string]: ConvertedEventLog[];
