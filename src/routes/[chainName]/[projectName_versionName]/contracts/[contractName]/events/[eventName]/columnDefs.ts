@@ -49,11 +49,15 @@ export const columnDefs = <T extends ConvertedEventLog>(
           // Sorts by the Date: building the text on each comparison is slow.
           // Keep this valueGetter: without it, ag-grid infers the type from
           // the Date and gives the column another filter.
-          valueGetter: (valueGetterParams: ValueGetterParams) => {
-            return getDatetimeValue(valueGetterParams.data);
-          },
+          // A row of the Infinite Row Model has no data while it loads.
+          valueGetter: (valueGetterParams: ValueGetterParams) =>
+            valueGetterParams.data
+              ? getDatetimeValue(valueGetterParams.data)
+              : undefined,
           valueFormatter: (valueFormatterParams: ValueFormatterParams) =>
-            getDatetimeText(valueFormatterParams.data),
+            valueFormatterParams.data
+              ? getDatetimeText(valueFormatterParams.data)
+              : "",
           // The column filter and the quick search match the shown text.
           filterValueGetter: (valueGetterParams: ValueGetterParams) =>
             getDatetimeText(valueGetterParams.data),
@@ -209,22 +213,26 @@ const argChildColumnDef = (
       editable: editable,
       cellClass: cellClass,
       valueGetter: (valueGetterParams: ValueGetterParams) => {
-        return getArgChildValue(
-          valueGetterParams.data,
-          indexOfInputs,
-          indexOfArgChild,
-        );
+        return valueGetterParams.data
+          ? getArgChildValue(
+              valueGetterParams.data,
+              indexOfInputs,
+              indexOfArgChild,
+            )
+          : undefined;
       },
       cellRenderer: cellRendererFactory(
         (
           cell: AbstractCellRenderer,
           cellRendererParams: ICellRendererParams,
         ) => {
-          const address: unknown = getArgChildValue(
-            cellRendererParams.data,
-            indexOfInputs,
-            indexOfArgChild,
-          );
+          const address: unknown = cellRendererParams.data
+            ? getArgChildValue(
+                cellRendererParams.data,
+                indexOfInputs,
+                indexOfArgChild,
+              )
+            : undefined;
           cell.mount(CommonChainExplorerLink, {
             target: cell.eGui,
             props: {
@@ -249,20 +257,24 @@ const argChildColumnDef = (
           ? "text-right"
           : cellClass,
       valueFormatter: (valueFormatterParams: ValueFormatterParams) => {
-        return formatArgChildValue(
-          getArgChildValue(
-            valueFormatterParams.data,
-            indexOfInputs,
-            indexOfArgChild,
-          ),
-        );
+        return valueFormatterParams.data
+          ? formatArgChildValue(
+              getArgChildValue(
+                valueFormatterParams.data,
+                indexOfInputs,
+                indexOfArgChild,
+              ),
+            )
+          : "";
       },
       valueGetter: (valueGetterParams: ValueGetterParams) => {
-        return getArgChildValue(
-          valueGetterParams.data,
-          indexOfInputs,
-          indexOfArgChild,
-        );
+        return valueGetterParams.data
+          ? getArgChildValue(
+              valueGetterParams.data,
+              indexOfInputs,
+              indexOfArgChild,
+            )
+          : undefined;
       },
     };
   }

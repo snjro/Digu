@@ -123,19 +123,6 @@ export async function getEventLogTableRecordCount(
 ): Promise<number> {
   return await dbEventLogs.table(tableName).count();
 }
-export async function getEventLogTableRecords(
-  dbEventLogs: DbEventLogs,
-  tableName: string,
-  sortModifier: "asc" | "desc" | undefined,
-): Promise<ConvertedEventLog[]> {
-  let eventLogs: ConvertedEventLog[] = await dbEventLogs
-    .table(tableName)
-    .toArray();
-  if (sortModifier) {
-    eventLogs = itSelf.sortEventLogs(eventLogs, sortModifier);
-  }
-  return eventLogs;
-}
 export function sortEventLogs(
   convertedEventLogs: ConvertedEventLog[],
   sortModifier: "asc" | "desc",

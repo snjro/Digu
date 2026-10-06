@@ -6,6 +6,13 @@ import type {
   EventLogsTableRefreshResult,
   EventLogsTableState,
 } from "./eventLogsTable";
+import type { EventLogsTableQueryModel } from "./eventLogsTableQuery";
+
+// Without query, the CSV has all the rows.
+export type EventLogsTableCsvParams = {
+  request: CsvRequest;
+  query?: EventLogsTableQueryModel;
+};
 
 export type EventLogsTableRequestType = "open" | "query" | "refresh" | "csv";
 export type EventLogsTableRequestParams<T extends EventLogsTableRequestType> =
@@ -14,7 +21,7 @@ export type EventLogsTableRequestParams<T extends EventLogsTableRequestType> =
     : T extends "query"
       ? EventLogsTableQuery
       : T extends "csv"
-        ? CsvRequest
+        ? EventLogsTableCsvParams
         : undefined;
 export type EventLogsTableResponseValue<T extends EventLogsTableRequestType> =
   T extends "open"

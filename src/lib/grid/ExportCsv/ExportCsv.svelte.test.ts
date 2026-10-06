@@ -14,12 +14,14 @@ import {
 import { customLogger } from "#utils/logger.js";
 import { exportBlobToFile } from "#utils/utilsFile.js";
 import { ColIdRowSequenceNumber } from "../GridBody/getColumnDefs";
-import type { CsvMaker, CsvResult } from "./csvFormat";
+import type { InfiniteRows } from "../infiniteRows";
+import type { CsvRequest, CsvResult } from "./csvFormat";
 import ExportCsv, { MESSAGE_MAKING_CSV } from "./ExportCsv.svelte";
 import {
   CSV_COPY_MAX_ROWS,
   showSnackBarAsCopiedFirstRows,
   showSnackBarAsExportFailed,
+  type CsvFilteredSorted,
 } from "./exportCsv";
 
 vi.mock("$app/state", () => ({ page: { params: {} } }));
@@ -104,6 +106,20 @@ async function openTheDialog(): Promise<void> {
   );
   await tick();
 }
+type WorkerCsv = (
+  request: CsvRequest,
+  filteredSorted: CsvFilteredSorted,
+) => Promise<CsvResult>;
+// The rows of the Infinite Row Model, whose CSV the worker makes.
+function workerRows(
+  csv: WorkerCsv | undefined,
+  rowCounts: Record<CsvFilteredSorted, number | undefined> = {
+    all: undefined,
+    filteredAndSorted: undefined,
+  },
+): Pick<InfiniteRows<unknown>, "csv" | "rowCounts"> {
+  return { csv, rowCounts };
+}
 class FakeClipboardItem {
   constructor(readonly items: Record<string, Promise<Blob>>) {}
 }
@@ -187,28 +203,31 @@ describe("ExportCsv.svelte", () => {
     test("Export of All: the worker makes the file", async () => {
       const gridApi = createGridApi("1");
       const made = deferred<CsvResult>();
-      const csvOfAllRows = vi.fn<CsvMaker>(() => made.promise);
+      const csv = vi.fn<WorkerCsv>(() => made.promise);
       render(ExportCsv, {
         gridApi,
         exportFilePrefix: "eventLogs",
-        csvOfAllRows,
+        infiniteRows: workerRows(csv),
       });
 
       await fireEvent.click(button("Export"));
-      expect(csvOfAllRows).toHaveBeenCalledWith({
-        columns: [
-          {
-            colId: ColIdRowSequenceNumber,
-            headerName: ColIdRowSequenceNumber,
-            groups: [],
-          },
-          { colId: "name", headerName: "name", groups: [] },
-        ],
-        columnSeparator: ",",
-        suppressQuotes: false,
-        skipColumnHeaders: false,
-        maxRows: undefined,
-      });
+      expect(csv).toHaveBeenCalledWith(
+        {
+          columns: [
+            {
+              colId: ColIdRowSequenceNumber,
+              headerName: ColIdRowSequenceNumber,
+              groups: [],
+            },
+            { colId: "name", headerName: "name", groups: [] },
+          ],
+          columnSeparator: ",",
+          suppressQuotes: false,
+          skipColumnHeaders: false,
+          maxRows: undefined,
+        },
+        "all",
+      );
       expect(gridApi.exportDataAsCsv).not.toHaveBeenCalled();
       // While it makes the file.
       expect(screen.getByText(MESSAGE_MAKING_CSV)).toBeTruthy();
@@ -226,13 +245,13 @@ describe("ExportCsv.svelte", () => {
 
     test("Export of All: tells the failure of the worker", async () => {
       vi.spyOn(customLogger, "error").mockImplementation(() => {});
-      const csvOfAllRows = vi.fn(() =>
+      const csv = vi.fn(() =>
         Promise.reject(new Error("EventLogsTableWorker: could not load")),
       );
       render(ExportCsv, {
         gridApi: createGridApi("1"),
         exportFilePrefix: "eventLogs",
-        csvOfAllRows,
+        infiniteRows: workerRows(csv),
       });
 
       await fireEvent.click(button("Export"));
@@ -243,22 +262,75 @@ describe("ExportCsv.svelte", () => {
       expect(button("Export").disabled).toBe(false);
     });
 
-    test("Filtered & Sorted stays with ag-grid", async () => {
+    test("Filtered & Sorted: the worker makes the CSV of the shown columns", async () => {
       const clipboard = stubClipboard();
       const gridApi = createGridApi("1");
-      const csvOfAllRows = vi.fn();
+      gridApi.getAllDisplayedColumns.mockReturnValue(
+        gridApi.getColumns().slice(1),
+      );
+      const csv = vi.fn<WorkerCsv>(async () => csvResult(1, 1));
       render(ExportCsv, {
         gridApi,
         exportFilePrefix: "eventLogs",
-        csvOfAllRows,
+        infiniteRows: workerRows(csv),
       });
       await selectFilteredAndSorted("1");
 
       await fireEvent.click(button("Export"));
+      await waitFor(() => expect(exportBlobToFile).toHaveBeenCalledTimes(1));
       await fireEvent.click(button("Copy"));
-      await waitFor(() => expect(clipboard.writeText).toHaveBeenCalled());
+      await waitFor(() => expect(clipboard.write).toHaveBeenCalled());
+      expect(
+        csv.mock.calls.map(([request, which]) => [request, which]),
+      ).toEqual(
+        [undefined, CSV_COPY_MAX_ROWS].map((maxRows) => [
+          {
+            columns: [{ colId: "name", headerName: "name", groups: [] }],
+            columnSeparator: ",",
+            suppressQuotes: false,
+            skipColumnHeaders: false,
+            maxRows,
+          },
+          "filteredAndSorted",
+        ]),
+      );
+      expect(gridApi.exportDataAsCsv).not.toHaveBeenCalled();
+      expect(gridApi.getDataAsCsv).not.toHaveBeenCalled();
+    });
+
+    test("shows the rows that the worker counts", async () => {
+      const gridApi = createGridApi("1");
+      const { rerender } = render(ExportCsv, {
+        gridApi,
+        exportFilePrefix: "eventLogs",
+        infiniteRows: workerRows(vi.fn(), { all: 1234, filteredAndSorted: 7 }),
+      });
+      await openTheDialog();
+      expect(screen.getByText("1,234 rows")).toBeTruthy();
+
+      await rerender({
+        infiniteRows: workerRows(vi.fn(), { all: 1235, filteredAndSorted: 7 }),
+      });
+      await waitFor(() => expect(screen.getByText("1,235 rows")).toBeTruthy());
+
+      await selectFilteredAndSorted("1");
+      expect(screen.getByText("7 rows")).toBeTruthy();
+      expect(gridApi.forEachNode).not.toHaveBeenCalled();
+      expect(gridApi.addEventListener).not.toHaveBeenCalled();
+    });
+
+    test("leaves the CSV to ag-grid while the rows load", async () => {
+      const gridApi = createGridApi("1", 2);
+      render(ExportCsv, {
+        gridApi,
+        exportFilePrefix: "eventLogs",
+        infiniteRows: workerRows(undefined),
+      });
+      await openTheDialog();
+      expect(screen.getByText("2 rows")).toBeTruthy();
+
+      await fireEvent.click(button("Export"));
       expect(gridApi.exportDataAsCsv).toHaveBeenCalledTimes(1);
-      expect(csvOfAllRows).not.toHaveBeenCalled();
     });
 
     test.each([
@@ -271,15 +343,15 @@ describe("ExportCsv.svelte", () => {
       async (rowCount, totalRowCount, snackbar) => {
         const clipboard = stubClipboard();
         const made = deferred<CsvResult>();
-        const csvOfAllRows = vi.fn<CsvMaker>(() => made.promise);
+        const csv = vi.fn<WorkerCsv>(() => made.promise);
         render(ExportCsv, {
           gridApi: createGridApi("1"),
           exportFilePrefix: "eventLogs",
-          csvOfAllRows,
+          infiniteRows: workerRows(csv),
         });
 
         await fireEvent.click(button("Copy"));
-        expect(csvOfAllRows.mock.calls[0][0].maxRows).toBe(CSV_COPY_MAX_ROWS);
+        expect(csv.mock.calls[0][0].maxRows).toBe(CSV_COPY_MAX_ROWS);
         // The clipboard is asked before the worker ends.
         expect(clipboard.write).toHaveBeenCalledTimes(1);
         expect(button("Copy").disabled).toBe(true);
@@ -295,15 +367,15 @@ describe("ExportCsv.svelte", () => {
       const clipboard = stubClipboard();
       vi.stubGlobal("ClipboardItem", undefined);
       const made = deferred<CsvResult>();
-      const csvOfAllRows = vi.fn<CsvMaker>(() => made.promise);
+      const csv = vi.fn<WorkerCsv>(() => made.promise);
       render(ExportCsv, {
         gridApi: createGridApi("1"),
         exportFilePrefix: "eventLogs",
-        csvOfAllRows,
+        infiniteRows: workerRows(csv),
       });
 
       await fireEvent.click(button("Copy"));
-      expect(csvOfAllRows.mock.calls[0][0].maxRows).toBe(CSV_COPY_MAX_ROWS);
+      expect(csv.mock.calls[0][0].maxRows).toBe(CSV_COPY_MAX_ROWS);
       expect(clipboard.writeText).not.toHaveBeenCalled();
 
       made.resolve(csvResult(CSV_COPY_MAX_ROWS, CSV_COPY_MAX_ROWS + 1));
@@ -323,7 +395,7 @@ describe("ExportCsv.svelte", () => {
       render(ExportCsv, {
         gridApi: createGridApi("1"),
         exportFilePrefix: "eventLogs",
-        csvOfAllRows: () => made.promise,
+        infiniteRows: workerRows(() => made.promise),
       });
 
       await fireEvent.click(button("Copy"));
@@ -347,7 +419,9 @@ describe("ExportCsv.svelte", () => {
       render(ExportCsv, {
         gridApi: createGridApi("1"),
         exportFilePrefix: "eventLogs",
-        csvOfAllRows: () => Promise.reject(new Error("worker failed")),
+        infiniteRows: workerRows(() =>
+          Promise.reject(new Error("worker failed")),
+        ),
       });
 
       await fireEvent.click(button("Copy"));

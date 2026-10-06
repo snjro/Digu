@@ -47,10 +47,11 @@ export function createEventLogsTableRequestHandler(
         );
       case "refresh":
         return await openedTable().refresh();
-      case "csv":
-        return openedTable().csv(
-          message.params as EventLogsTableRequestParams<"csv">,
-        );
+      case "csv": {
+        const { request, query } =
+          message.params as EventLogsTableRequestParams<"csv">;
+        return openedTable().csv(request, query);
+      }
     }
   }
 

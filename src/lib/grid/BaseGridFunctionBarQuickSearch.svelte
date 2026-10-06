@@ -18,16 +18,26 @@
   interface Props {
     gridApi: GridApi | undefined;
     quickSearchText: string;
+    // The quick search of the Infinite Row Model, which the datasource reads.
+    quickSearch?: { text: string };
   }
 
-  let { gridApi, quickSearchText = $bindable() }: Props = $props();
+  let { gridApi, quickSearchText = $bindable(), quickSearch }: Props = $props();
   let appliedGridApi: GridApi | undefined;
   $effect.pre(() => {
     const api: GridApi | undefined = gridApi;
     const text: string = quickSearchText;
     // Rerun only when these two change, not on what ag-grid reads while filtering.
     const apply = () =>
-      untrack(() => api?.setGridOption("quickFilterText", text));
+      untrack(() => {
+        if (!quickSearch) {
+          api?.setGridOption("quickFilterText", text);
+          return;
+        }
+        // ag-grid reads the rows again on a changed filter.
+        quickSearch.text = text;
+        api?.onFilterChanged();
+      });
     // Clearing (also by Reset all filters) and a new grid do not wait.
     if (text === "" || api !== appliedGridApi) {
       appliedGridApi = api;

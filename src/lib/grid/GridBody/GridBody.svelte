@@ -9,6 +9,7 @@
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import {
     type GridOptions,
+    type IDatasource,
     type ILoadingOverlayParams,
     type GridApi,
     type SortChangedEvent,
@@ -24,6 +25,8 @@
     CsvExportModule,
     DateFilterModule,
     EventApiModule,
+    ExternalFilterModule,
+    InfiniteRowModelModule,
     NumberFilterModule,
     PaginationModule,
     QuickFilterModule,
@@ -39,6 +42,7 @@
   import { baseTextSizesPixel, type BaseSize } from "#lib/base/baseSizes.js";
   import classNames from "classnames";
   import type { ColumnDef } from "../types";
+  import type { InfiniteRows } from "../infiniteRows";
   import { getColorDefinitionsForGrid } from "./getColorDefs";
   import { getColumnDefs, ColIdRowSequenceNumber } from "./getColumnDefs";
   import { suppressKeyboardEventInCell } from "./suppressKeyboardEventInCell";
@@ -46,7 +50,10 @@
   interface Props {
     gridApi: GridApi<GridRow> | undefined;
     paramColumnDefs?: ColumnDef[];
-    rows: GridRow[] | undefined;
+    // The rows of the Client-Side Row Model.
+    rows?: GridRow[] | undefined;
+    // In place of rows, for the Infinite Row Model.
+    infiniteRows?: InfiniteRows<GridRow>;
     loadingText?: string;
   }
 
@@ -54,8 +61,25 @@
     gridApi = $bindable(),
     paramColumnDefs = [],
     rows,
+    infiniteRows,
     loadingText,
   }: Props = $props();
+
+  // ag-grid takes the row model only when it creates the grid.
+  const infiniteOptions: GridOptions<GridRow> | undefined = untrack(() => {
+    const initialInfiniteRows: InfiniteRows<GridRow> | undefined = infiniteRows;
+    if (!initialInfiniteRows) return undefined;
+    const quickSearch: { text: string } = initialInfiniteRows.quickSearch;
+    return {
+      rowModelType: "infinite",
+      getRowId: initialInfiniteRows.getRowId,
+      // The page keeps up to 10 blocks of 100 rows.
+      maxBlocksInCache: 10,
+      // So that ag-grid tells no matching rows from no rows, as for its own
+      // quick search.
+      isExternalFilterPresent: () => quickSearch.text !== "",
+    };
+  });
 
   const gridTextSize: BaseSize = sizeSettings.grid;
 
@@ -129,6 +153,7 @@
         });
       },
     ),
+    ...infiniteOptions,
   });
 
   onMount(() => {
@@ -137,7 +162,8 @@
     }
     // Only the features the grids use. The date filter is for the ISO 8601
     // strings, which ag-grid infers as dateTimeString. The event and row APIs
-    // are for the row count of the CSV dialog.
+    // are for the row count of the CSV dialog. The external filter is for the
+    // quick search of the Infinite Row Model.
     ModuleRegistry.registerModules([
       CellStyleModule,
       ClientSideRowModelModule,
@@ -146,6 +172,8 @@
       CsvExportModule,
       DateFilterModule,
       EventApiModule,
+      ExternalFilterModule,
+      InfiniteRowModelModule,
       NumberFilterModule,
       PaginationModule,
       QuickFilterModule,
@@ -190,7 +218,7 @@
   });
   //set row data
   $effect.pre(() => {
-    if (gridOptions && gridApi) {
+    if (gridOptions && gridApi && !infiniteOptions) {
       const api: GridApi<GridRow> = gridApi;
       const rowData: GridRow[] | undefined = rows;
       // Like the legacy `$:`, rerun only when the values read above change, and
@@ -218,6 +246,25 @@
             api.setGridOption("loading", false);
           }
         }
+      });
+    }
+  });
+  // The loading overlay replaces any other while there is no datasource. A new
+  // datasource makes ag-grid read the rows again.
+  let passedDatasource: IDatasource | undefined = undefined;
+  $effect.pre(() => {
+    if (gridApi && infiniteOptions) {
+      const api: GridApi<GridRow> = gridApi;
+      const datasource: IDatasource | undefined = infiniteRows?.datasource;
+      untrack(() => {
+        if (datasource === undefined) {
+          api.setGridOption("loading", true);
+          return;
+        }
+        if (datasource === passedDatasource) return;
+        passedDatasource = datasource;
+        api.setGridOption("loading", false);
+        api.setGridOption("datasource", datasource);
       });
     }
   });

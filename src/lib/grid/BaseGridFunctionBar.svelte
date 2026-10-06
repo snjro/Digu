@@ -12,23 +12,23 @@
   } from "#lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
   import type { GridApi } from "ag-grid-community";
   import ExportCsv, { openDialogExportCsv } from "./ExportCsv/ExportCsv.svelte";
-  import type { CsvMaker } from "./ExportCsv/csvFormat";
   import { setAllColumnGroupState, setAutoColumnWidth } from "./gridColumns";
+  import type { InfiniteRows } from "./infiniteRows";
 
   interface Props {
     gridApi: GridApi<GridRow> | undefined;
-    rows: GridRow[] | undefined;
+    rows?: GridRow[] | undefined;
+    infiniteRows?: InfiniteRows<GridRow>;
     isFullScreen: boolean;
     exportFilePrefix: ExportFilePrefix;
-    csvOfAllRows?: CsvMaker;
   }
 
   let {
     gridApi,
     rows,
+    infiniteRows,
     isFullScreen = $bindable(),
     exportFilePrefix,
-    csvOfAllRows,
   }: Props = $props();
 
   let quickSearchText: string = $state("");
@@ -152,7 +152,13 @@
       //reload data
       // While the rows are still loading, keep loading. GridBody clears it
       // when they come.
-      if (rows) {
+      if (infiniteRows) {
+        if (infiniteRows.datasource) {
+          gridApi.setGridOption("loading", false);
+          gridApi.purgeInfiniteCache();
+          setAutoColumnWidth(gridApi);
+        }
+      } else if (rows) {
         // While loading is true, the grid shows no other overlay.
         gridApi.setGridOption("loading", false);
         gridApi.setGridOption("rowData", rows);
@@ -167,7 +173,7 @@
   let dialogElement: HTMLDialogElement | undefined = $state();
 </script>
 
-<ExportCsv {gridApi} bind:dialogElement {exportFilePrefix} {csvOfAllRows} />
+<ExportCsv {gridApi} bind:dialogElement {exportFilePrefix} {infiniteRows} />
 <PageWrapperContentFunctionBar
   functionBarDefinition={{
     buttonsDefinition: buttonsDefinition,
@@ -177,5 +183,9 @@
       breakPointWidthThresholds.gridFunctionButtonForOpenedSidebar,
     horizontalAlignment: "between",
   }}
-  ><BaseGridFunctionBarQuickSearch bind:quickSearchText {gridApi} />
+  ><BaseGridFunctionBarQuickSearch
+    bind:quickSearchText
+    {gridApi}
+    quickSearch={infiniteRows?.quickSearch}
+  />
 </PageWrapperContentFunctionBar>

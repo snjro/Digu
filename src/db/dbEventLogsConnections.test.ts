@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from "vitest";
 import Dexie from "dexie";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import { DB_NAME } from "#db/constants.js";
-import { dbWorkerFuncGetConvertedEventLogs } from "#db/db.worker.func.getConvertedEventLogs.js";
+import { EventLogsTable } from "#db/eventLogsTable.js";
 import { initializeDBSyncStatusInChain } from "#db/db.worker.func.InitializeDBSyncStatus.js";
 import { updateSyncStatusInChain } from "#db/dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain.js";
 import { initializeStore } from "../initialization/initializeStore";
@@ -71,15 +71,15 @@ describe("the connections to the DB of a version", () => {
       initializeDBSyncStatusInChain(chain, false),
     );
   });
-  test("dbWorkerFuncGetConvertedEventLogs() does not open more each time", async () => {
+  test("EventLogsTable.open() does not open more each time", async () => {
     await expectNoNewConnection(() =>
-      dbWorkerFuncGetConvertedEventLogs({
+      new EventLogsTable({
         chainName: chain.name,
         projectName: project.name,
         versionName: version.name,
         contractName: contract.name,
         abiFragmentName: contract.events.names[0],
-      }),
+      }).open(),
     );
   });
 });

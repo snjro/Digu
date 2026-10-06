@@ -55,6 +55,7 @@
     type ExportFilePrefix,
   } from "#utils/utilsFile.js";
   import type { GridApi } from "ag-grid-community";
+  import type { InfiniteRows } from "../infiniteRows";
   import type { CsvMaker, CsvResult } from "./csvFormat";
   import {
     CSV_COPY_MAX_ROWS,
@@ -71,15 +72,16 @@
     gridApi: GridApi<GridRow> | undefined;
     dialogElement?: HTMLDialogElement;
     exportFilePrefix: ExportFilePrefix;
-    // Makes the CSV of All in a worker instead of ag-grid.
-    csvOfAllRows?: CsvMaker;
+    // Makes the CSV and counts its rows instead of ag-grid, which keeps only
+    // some blocks of these rows.
+    infiniteRows?: Pick<InfiniteRows<GridRow>, "csv" | "rowCounts">;
   }
 
   let {
     gridApi,
     dialogElement = $bindable(),
     exportFilePrefix,
-    csvOfAllRows,
+    infiniteRows,
   }: Props = $props();
 
   const colorCategory: ColorCategory = colorSettings.dialogHeader;
@@ -222,6 +224,10 @@
       rowCount = undefined;
       return;
     }
+    if (infiniteRows?.csv) {
+      rowCount = infiniteRows.rowCounts[filteredSorted];
+      return;
+    }
     const api: GridApi<GridRow> = gridApi;
     const updateRowCount = (): void => {
       rowCount = getCsvRowCount(api, filteredSorted);
@@ -240,9 +246,11 @@
   let isMaking: boolean = $state(false);
 
   function getWorkerCsvMaker(): CsvMaker | undefined {
-    return selectedValues.filteredSorted.selectedValue === "all"
-      ? csvOfAllRows
-      : undefined;
+    const csv = infiniteRows?.csv;
+    if (!csv) return undefined;
+    const filteredSorted: CsvSelectedValues["filteredSorted"]["selectedValue"] =
+      selectedValues.filteredSorted.selectedValue;
+    return (request) => csv(request, filteredSorted);
   }
 
   async function downloadCsv(): Promise<void> {

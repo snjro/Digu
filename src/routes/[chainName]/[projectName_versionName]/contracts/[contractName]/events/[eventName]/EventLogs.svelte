@@ -13,16 +13,22 @@
   import type { ColumnDef } from "#lib/grid/types.js";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import type { EventAbiFragment } from "#constants/chains/types.js";
+  import type { AbiFragmentIdentifier } from "#db/dbTypes.js";
+  import type { InfiniteRows } from "#lib/grid/infiniteRows.js";
   import type {
-    AbiFragmentIdentifier,
-    ConvertedEventLog,
-  } from "#db/dbTypes.js";
-  import type { CsvMaker, CsvRequest } from "#lib/grid/ExportCsv/csvFormat.js";
-  import { eventLogsCsvInWorker } from "#db/eventLogsTable.worker.portal.js";
+    EventLogsTableState,
+    StoredEventLog,
+  } from "#db/eventLogsTable.js";
+  import { EventLogsTableClient } from "#db/eventLogsTable.worker.portal.js";
+  import type { GridApi, IDatasource } from "ag-grid-community";
   import { columnDefs } from "./columnDefs";
-  import { gridRows } from "./gridRows";
+  import {
+    createEventLogsDatasource,
+    getEventLogRowId,
+    openEventLogsTable,
+    type EventLogsDatasource,
+  } from "./eventLogsDatasource";
   import { createThrottledLoad } from "./latestLoad";
-  import { getEachArgsMaxLengths } from "../../../maxParamsLength";
   import { storeSyncStatus } from "#stores/storeSyncStatus.js";
   import {
     selectWarpSyncState,
@@ -57,21 +63,53 @@
       .status === "importing",
   );
 
-  let rows: ConvertedEventLog[] | undefined = $state.raw(undefined);
-  // Logs of anonymous events are not fetched, so their table does not exist.
+  let gridApi: GridApi<StoredEventLog> | undefined = $state.raw();
+  // The grid keeps it while it lives, and the datasource reads it.
+  const quickSearch: { text: string } = { text: "" };
+  // undefined while the table worker reads the rows.
+  let tableState: EventLogsTableState | undefined = $state.raw();
+  let datasource: EventLogsDatasource | undefined = $state.raw();
+  // The rows of the last query that the grid got.
+  let filteredRowCount: number | undefined = $state();
+
+  // The table worker keeps the rows of the event while the table shows them,
+  // and is stopped when the table closes, shows another event or waits for
+  // the import.
   $effect.pre(() => {
-    if (targetEventAbiFragment.anonymous) {
-      rows = [];
-      return;
-    }
-    // Not the rows of the previous event, or of before the import.
-    rows = undefined;
-    if (isImporting) return;
+    tableState = undefined;
+    datasource = undefined;
+    filteredRowCount = undefined;
+    if (targetEventAbiFragment.anonymous || isImporting) return;
     const eventIdentifier: AbiFragmentIdentifier = targetEventIdentifier;
+    const client: EventLogsTableClient = new EventLogsTableClient();
+    let isOpen: boolean = false;
+    let isClosed: boolean = false;
     const throttledLoad = createThrottledLoad(
-      (signal: AbortSignal) => gridRows(eventIdentifier, signal),
-      (convertedEventLogs: ConvertedEventLog[]) => {
-        rows = convertedEventLogs;
+      (signal: AbortSignal) =>
+        isOpen
+          ? client.refresh()
+          : openEventLogsTable(client, eventIdentifier, signal),
+      (state: EventLogsTableState | undefined) => {
+        if (!isOpen) {
+          // A table that could not be read shows no rows, and is read again
+          // when the sync saves logs of the event.
+          isOpen = state !== undefined;
+          tableState = state ?? { rowCount: 0, argsMaxLengths: [] };
+          datasource = createEventLogsDatasource(
+            isOpen ? client : undefined,
+            quickSearch,
+            {
+              onRowCount: (rowCount: number) => {
+                filteredRowCount = rowCount;
+              },
+              isClosed: () => isClosed,
+            },
+          );
+          return;
+        }
+        tableState = state;
+        // The shown blocks again, on the same page.
+        gridApi?.refreshInfiniteCache();
       },
       EVENT_LOGS_RELOAD_INTERVAL,
     );
@@ -80,33 +118,36 @@
       void recordCount;
       throttledLoad.request();
     });
-    return throttledLoad.dispose;
+    return () => {
+      isClosed = true;
+      // Before terminate(), so that the stopped load is not logged.
+      throttledLoad.dispose();
+      client.terminate();
+    };
   });
   // Keep the same array while the lengths do not change, so new rows do not
   // rebuild the columns.
   let previousArgsMaxLengths: number[] = [];
   let eachArgsMaxLengths: number[] = $derived.by(() => {
-    const lengths: number[] = getEachArgsMaxLengths(
-      rows,
-      targetEventAbiFragment.inputs.length,
-    );
+    const lengths: number[] = tableState?.argsMaxLengths ?? [];
     if (lengths.join(",") !== previousArgsMaxLengths.join(",")) {
       previousArgsMaxLengths = lengths;
     }
     return previousArgsMaxLengths;
   });
-  // The worker reads the table as it is now, so it is used only while the
-  // grid shows the rows: not while they load or the warp sync imports them.
-  let isShowingRows: boolean = $derived(rows !== undefined);
-  let csvOfAllRows: CsvMaker | undefined = $derived.by(() => {
-    if (!isShowingRows) return undefined;
-    const eventIdentifier: AbiFragmentIdentifier = targetEventIdentifier;
-    return (request: CsvRequest) =>
-      eventLogsCsvInWorker(eventIdentifier, request);
-  });
   let eventLogColumnDefs: ColumnDef[] = $derived(
     columnDefs(targetEventAbiFragment, eachArgsMaxLengths),
   );
+  let infiniteRows: InfiniteRows<StoredEventLog> = $derived({
+    datasource: datasource as IDatasource | undefined,
+    getRowId: getEventLogRowId,
+    quickSearch,
+    csv: datasource?.csv,
+    rowCounts: {
+      all: tableState?.rowCount,
+      filteredAndSorted: filteredRowCount,
+    },
+  });
 </script>
 
 {#if targetEventAbiFragment.anonymous}
@@ -118,11 +159,11 @@
 {:else}
   <BaseGrid
     paramColumnDefs={eventLogColumnDefs}
-    {rows}
+    {infiniteRows}
     loadingText={isImporting ? MESSAGE_WAITING_FOR_IMPORT : undefined}
     exportFilePrefix="eventLogs"
     hasMultipleTabs={true}
     bind:isFullScreen
-    {csvOfAllRows}
+    bind:gridApi
   />
 {/if}
