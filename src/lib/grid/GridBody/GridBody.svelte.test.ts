@@ -5,11 +5,7 @@ import GridBody from "./GridBody.svelte";
 
 const gridApi = vi.hoisted(() => {
   // ag-grid ignores hideOverlay and showNoRowsOverlay while loading is true.
-  const state = {
-    loading: false,
-    overlayCallsWhileLoading: 0,
-    loadingOverlayComponentParams: undefined as unknown,
-  };
+  const state = { loading: false, overlayCallsWhileLoading: 0 };
   const onOverlayCall = () => {
     if (state.loading) state.overlayCallsWhileLoading++;
   };
@@ -17,15 +13,9 @@ const gridApi = vi.hoisted(() => {
     state,
     setGridOption: vi.fn((key: string, value: unknown) => {
       if (key === "loading") state.loading = value as boolean;
-      if (key === "loadingOverlayComponentParams")
-        state.loadingOverlayComponentParams = value;
     }),
     getGridOption: vi.fn((key: string) =>
-      key === "loading"
-        ? state.loading
-        : key === "loadingOverlayComponentParams"
-          ? state.loadingOverlayComponentParams
-          : undefined,
+      key === "loading" ? state.loading : undefined,
     ),
     hideOverlay: vi.fn(onOverlayCall),
     showNoRowsOverlay: vi.fn(onOverlayCall),
@@ -47,7 +37,6 @@ afterEach(() => {
   vi.clearAllMocks();
   gridApi.state.loading = false;
   gridApi.state.overlayCallsWhileLoading = 0;
-  gridApi.state.loadingOverlayComponentParams = undefined;
   expect(overlayCallsWhileLoading).toBe(0);
 });
 
