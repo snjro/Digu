@@ -94,6 +94,24 @@ export async function confirmWarpSync(targetChain: Chain): Promise<void> {
   });
 }
 
+// "Retry" in the nav after a failure. A large import that the user did not
+// confirm in this tab asks first, as when the chain is opened: the failure may
+// have come before the confirmation. When the chain is synced now (the lock is
+// held), it says so and the user can choose Retry again.
+export async function retryWarpSync(targetChain: Chain): Promise<void> {
+  const chainName: ChainName = targetChain.name;
+  const before: WarpSyncState = getState(chainName);
+  // Leaves "failed" at once, so that Retry is not shown while it waits.
+  setWarpSyncState(chainName, { ...before, status: "idle", busy: undefined });
+  // The failed import may still hold the lock, to read the DB into the
+  // stores. Without the wait, Retry would get that import back, and nothing
+  // would run.
+  await waitForWarpSync(chainName);
+  const ran: boolean = await startImport(targetChain).ran;
+  if (ran) return;
+  setWarpSyncState(chainName, { ...before, busy: true });
+}
+
 // "Not now", or the confirmation closed: not asked again in this tab.
 export function declineWarpSync(chainName: ChainName): void {
   heldChains.add(chainName);

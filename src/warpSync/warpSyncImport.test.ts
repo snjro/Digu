@@ -263,6 +263,26 @@ describe("importWarpSync", () => {
     expect(await rows("Transfer")).toHaveLength(2);
   });
 
+  test("goes on from the file that failed when it is imported again", async () => {
+    const serve = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url: string) =>
+      url.endsWith("30000000.json.gz")
+        ? new Response("", { status: 500 })
+        : serve(url),
+    );
+    await expect(importWarpSync(matic, manifest())).rejects.toThrow("HTTP 500");
+    fetchMock.mockClear();
+    fetchMock.mockImplementation(serve);
+    expect(await importWarpSync(matic, manifest())).toBe(30_000_000);
+    expect(fetchedFiles()).toEqual(["Augur-turbo-FeePot-30000000.json.gz"]);
+    expect((await rows("Transfer")).map((row) => row.blockNumber)).toEqual([
+      CREATION + 10,
+      19_000_000,
+      26_000_000,
+    ]);
+    expect((await syncStatus()).fetchedBlockNumber).toBe(30_000_000);
+  });
+
   test("skips a contract whose logs would have a gap", async () => {
     await importWarpSync(matic, manifest({}, CREATION + 100));
     expect(fetchMock).not.toHaveBeenCalled();

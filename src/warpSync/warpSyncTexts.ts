@@ -1,5 +1,5 @@
-// The texts of the confirmation and the progress of a large import. Without
-// ethers, so that the components can import it.
+// The texts of the confirmation and the progress of a large import, and of a
+// failed import. Without ethers, so that the components can import it.
 import { numberWithCommas } from "#utils/utilsCommon.js";
 import type { WarpSyncState } from "./warpSyncState";
 
@@ -91,3 +91,9 @@ export function getImportProgressText(
 
 export const SYNC_WAITS_FOR_IMPORT =
   "Importing the published logs. Stop it to sync from your RPC now.";
+
+// In the nav after the import failed, with Retry.
+export const IMPORT_FAILED = "Could not import the published logs.";
+// Retry could not start: the chain is synced (the lock was held).
+export const IMPORT_FAILED_BUSY =
+  "Could not import now: the chain is synced. Choose Retry when the sync stops.";
