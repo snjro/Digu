@@ -278,10 +278,12 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       .map((line) => Number(JSON.parse(line).blockNumber));
   };
 
-  // 15,300,000 is in the first part of FeePot (from its creation block
-  // 14,853,221, 500,000 blocks), after its first range (100,000 blocks): the
-  // ranges of a part are fetched one after another, so that range is always
-  // in .partial/ before the range of the log.
+  // 15,300,000 is in the first part of FeePot (500,000 blocks from its
+  // creation block 14,853,221). The ranges of a part are fetched one after
+  // another, in the order of the blocks, and maxWidth keeps every range at
+  // most 100,000 blocks, whatever the other parts do to the shared widths: no
+  // range has both 14,860,000 and 15,300,000, so the range of 14,860,000 is
+  // always in .partial/ before the range of the log.
   test.each([
     [
       "a log of an unknown topic0",
@@ -307,11 +309,11 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     ],
   ])("stops at %s when its range is fetched", async (_, fields, message) => {
     broken = { block: 15_300_000, name: "FeePot", fields };
-    await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
-      `Augur/turbo/FeePot: ${message}`,
-    );
+    await expect(
+      build({ toBlock: 16_000_000, maxWidth: 100_000 }),
+    ).rejects.toThrow(`Augur/turbo/FeePot: ${message}`);
     expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
-    // The first range is kept, and the range of the log is not.
+    // A range before the log is kept, and the range of the log is not.
     const blocks = partialBlocksOfFeePot();
     expect(blocks).toContain(14_860_000);
     expect(blocks).not.toContain(15_300_000);

@@ -36,19 +36,9 @@ export function eventsByTopic0(iface) {
  * @param {string} blockTimestamp
  */
 export function toSnapshotLog(contract, raw, blockTimestamp) {
-  // Made only when it throws: it checks millions of logs.
-  /**
-   * @param {string} text
-   * @param {unknown} [cause]
-   */
-  const fail = (text, cause) =>
-    new Error(
-      `${contract.project}/${contract.version}/${contract.name}: ${text} at block ${Number(raw.blockNumber)}, log index ${Number(raw.logIndex)}${cause === undefined ? "." : `: ${cause instanceof Error ? cause.message : cause}`}`,
-      cause === undefined ? undefined : { cause },
-    );
-  if (raw.removed) throw fail("a removed log");
+  if (raw.removed) throw failOf(contract, raw, "a removed log");
   if (raw.address.toLowerCase() !== contract.address.toLowerCase()) {
-    throw fail(`a log of another address ${raw.address}`);
+    throw failOf(contract, raw, `a log of another address ${raw.address}`);
   }
   const fragment = contract.events.get(raw.topics[0]?.toLowerCase());
   let args;
@@ -58,7 +48,9 @@ export function toSnapshotLog(contract, raw, blockTimestamp) {
       contract.iface.decodeEventLog(fragment, raw.data, raw.topics),
     );
   } catch (error) {
-    throw fail(
+    throw failOf(
+      contract,
+      raw,
       `cannot decode the log of ${fragment?.name ?? `topic0 ${raw.topics[0]}`}`,
       error,
     );
@@ -72,6 +64,22 @@ export function toSnapshotLog(contract, raw, blockTimestamp) {
     event: fragment.name,
     args,
   };
+}
+
+/**
+ * The error of a log that toSnapshotLog does not take, with the contract and
+ * the block of the log. Its text is made only when a log fails: the build
+ * and the conversion check millions of logs.
+ * @param {DecodingContract} contract
+ * @param {{ blockNumber: string, logIndex: string }} raw
+ * @param {string} text
+ * @param {unknown} [cause]
+ */
+function failOf(contract, raw, text, cause) {
+  return new Error(
+    `${contract.project}/${contract.version}/${contract.name}: ${text} at block ${Number(raw.blockNumber)}, log index ${Number(raw.logIndex)}${cause === undefined ? "." : `: ${cause instanceof Error ? cause.message : cause}`}`,
+    cause === undefined ? undefined : { cause },
+  );
 }
 
 /**
