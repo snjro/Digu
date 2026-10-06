@@ -40,8 +40,6 @@ const runningImports: Map<ChainName, RunningImport> = new Map();
 // those where the user chose "Not now" or stopped the import.
 const confirmedChains: Set<ChainName> = new Set();
 const heldChains: Set<ChainName> = new Set();
-// The chains whose Retry runs in this tab.
-const retryingChains: Set<ChainName> = new Set();
 
 // When a chain is opened, or the warp sync is turned on: imports the
 // snapshot while holding the sync lock. A large import waits for the user
@@ -102,22 +100,16 @@ export async function confirmWarpSync(targetChain: Chain): Promise<void> {
 // held), it says so and the user can choose Retry again.
 export async function retryWarpSync(targetChain: Chain): Promise<void> {
   const chainName: ChainName = targetChain.name;
-  // Retry stays shown while it waits: a second click does nothing.
-  if (retryingChains.has(chainName)) return;
-  retryingChains.add(chainName);
-  try {
-    // The failed import may still hold the lock, to read the DB into the
-    // stores. Without the wait, Retry would get that import back, and nothing
-    // would run.
-    await waitForWarpSync(chainName);
-    const before: WarpSyncState = getState(chainName);
-    setWarpSyncState(chainName, { ...before, status: "idle", busy: undefined });
-    const ran: boolean = await startImport(targetChain).ran;
-    if (ran) return;
-    setWarpSyncState(chainName, { ...before, busy: true });
-  } finally {
-    retryingChains.delete(chainName);
-  }
+  const before: WarpSyncState = getState(chainName);
+  // Leaves "failed" at once, so that Retry is not shown while it waits.
+  setWarpSyncState(chainName, { ...before, status: "idle", busy: undefined });
+  // The failed import may still hold the lock, to read the DB into the
+  // stores. Without the wait, Retry would get that import back, and nothing
+  // would run.
+  await waitForWarpSync(chainName);
+  const ran: boolean = await startImport(targetChain).ran;
+  if (ran) return;
+  setWarpSyncState(chainName, { ...before, busy: true });
 }
 
 // "Not now", or the confirmation closed: not asked again in this tab.
