@@ -1,22 +1,29 @@
 // Checks the build with the public RPC of PublicNode (no key): connection,
-// latest block (Goal), the refused eth_getLogs of old blocks, and the stop.
+// latest block (Goal), the sync of old blocks, and the stop.
 // Runs in the compose "test" service (see run.sh):
 //   node real-rpc-check.mjs <buildDir> <outDir> [--fake] [--only=eth-http,...]
 // - Without --fake, the page talks to the real PublicNode hosts over http(s)
 //   and wss. Every other host is blocked (DNS and request interception).
 // - With --fake, nothing leaves the container: the http requests to the same
 //   URLs are answered by the request interceptor like PublicNode answered in
-//   September 2026 on eth (chainId, a latest block, -32602 for eth_getLogs). wss is not
-//   answered (a WebSocket cannot be intercepted), so it ends in an error.
+//   October 2026 (chainId, a latest block, and for eth_getLogs -32602 on eth
+//   and the block range limit on matic). wss is not answered (a WebSocket
+//   cannot be intercepted), so it ends in an error.
 // One run per chain and protocol, each in a new browser profile. The matic
 // runs turn off the warp sync first, so that the sync starts at old blocks
 // (#635); eth has no snapshot here (see the request interception).
 //   1. "Connected." for the RPC. 2. The Goal (ChainStatus.latestBlockNumber)
 //   is a seen eth_blockNumber minus confirmationBlocks (#498).
-//   3. Sync one contract: eth_getLogs is refused with an error (any code;
-//   PublicNode used -32602 on eth and -32701 on matic), the sync stops
-//   after TRY_COUNT + 1 tries, the toggle is off, the RPC URL is not in the
-//   console (#483), and no contract is left isAbort/isSyncing (#515).
+//   3. Sync one contract.
+//   - eth: eth_getLogs is refused with an error (any code; PublicNode used
+//   -32602), and the sync stops after TRY_COUNT + 1 tries.
+//   - matic: PublicNode returns old logs but refuses a range over its limit
+//   (#694). The sync moves on, each refusal is followed by a range from the
+//   same block that is not wider, and the refused range is then fetched in
+//   narrower ranges. The script stops the sync after that, and nothing is
+//   called after the stop.
+//   - Both: the toggle is off, the RPC URL is not in the console (#483), and
+//   no contract is left isAbort/isSyncing (#515).
 //   4. Console errors and warnings, page errors, CSP violations (#504).
 //   5. The number of requests to the RPC, by method.
 import fs from "node:fs";
@@ -85,6 +92,11 @@ const TARGET = {
 // The import starts when the chain is opened, so its files are answered with
 // 404 until then.
 const WARP_SYNC_OFF = new Set(["matic"]);
+// The chains on which PublicNode returns old logs, so the sync does not stop
+// by itself (#694). The script stops it after the first refused range is
+// fetched in narrower ranges, or after SCRIPT_STOP_MS.
+const SCRIPT_STOP = new Set(["matic"]);
+const SCRIPT_STOP_MS = 60000;
 let holdWarpSync = null;
 let warpSyncRequests = 0;
 const RUNS = [
@@ -147,12 +159,22 @@ function recordSent(transport, body) {
       id: p.id,
       params: p.method === "eth_getLogs" ? p.params : undefined,
     });
-    if (transport === "ws") traffic.pendingWs.set(p.id, p.method);
+    if (transport === "ws") traffic.pendingWs.set(p.id, p);
   }
 }
-function recordAnswer(method, a) {
+// sent: the request of the answer, if found.
+function recordAnswer(sent, a) {
+  const method = sent?.method ?? "?";
   traffic.answers.push({
     method,
+    // The range of eth_getLogs, to see what comes after a refusal (#694).
+    range:
+      method === "eth_getLogs" && sent.params?.[0]
+        ? [
+            Number(BigInt(sent.params[0].fromBlock)),
+            Number(BigInt(sent.params[0].toBlock)),
+          ]
+        : undefined,
     result: a.error
       ? undefined
       : method === "eth_getLogs"
@@ -181,12 +203,45 @@ function summary() {
     errors,
   };
 }
+// Each refused eth_getLogs and what came after it (#694). The next request is
+// from the same block and not wider, and the successes up to the end of the
+// refused range are narrower. complete: that end was reached.
+function refusalsOf(answers) {
+  const logs = answers.filter((a) => a.method === "eth_getLogs" && a.range);
+  const width = (a) => a.range[1] - a.range[0] + 1;
+  return logs.flatMap((r, i) => {
+    if (!r.error) return [];
+    const after = logs.slice(i + 1);
+    const next = after[0];
+    const end = after.findIndex((b) => !b.error && b.range[1] >= r.range[1]);
+    const successes = (end < 0 ? after : after.slice(0, end + 1)).filter(
+      (b) => !b.error,
+    );
+    const nextOk =
+      !next || (next.range[0] === r.range[0] && width(next) <= width(r));
+    const narrower = successes.every((b) => width(b) < width(r));
+    return [
+      {
+        range: r.range,
+        code: r.error.code,
+        next: next?.range,
+        nextOk,
+        successWidths: successes.map(width),
+        narrower,
+        complete: end >= 0,
+      },
+    ];
+  });
+}
 
-// --fake: answers like PublicNode did in September 2026.
+// --fake: answers like PublicNode did in October 2026.
 // Keep each chain above the end of its warp sync snapshot
 // (static/warp-sync/<chain>/), or the sync has no range to ask for after the
 // import.
 const FAKE_LATEST = { eth: 27_000_000, matic: 100_000_000 };
+// The limit in the refusals of PublicNode on matic (#694): "exceed maximum
+// block range: 10000". Whether it answers exactly 10,000 blocks was not seen.
+const FAKE_MATIC_MAX_RANGE = 10_000;
 function fakeAnswer(chain, p) {
   const q = (n) => "0x" + n.toString(16);
   switch (p.method) {
@@ -200,7 +255,21 @@ function fakeAnswer(chain, p) {
       };
     case "eth_blockNumber":
       return { jsonrpc: "2.0", id: p.id, result: q(FAKE_LATEST[chain]) };
-    case "eth_getLogs":
+    case "eth_getLogs": {
+      if (chain === "matic") {
+        const { fromBlock, toBlock } = p.params[0];
+        return Number(BigInt(toBlock) - BigInt(fromBlock)) + 1 >
+          FAKE_MATIC_MAX_RANGE
+          ? {
+              jsonrpc: "2.0",
+              id: p.id,
+              error: {
+                code: -32701,
+                message: `exceed maximum block range: ${FAKE_MATIC_MAX_RANGE}`,
+              },
+            }
+          : { jsonrpc: "2.0", id: p.id, result: [] };
+      }
       return {
         jsonrpc: "2.0",
         id: p.id,
@@ -209,6 +278,7 @@ function fakeAnswer(chain, p) {
           message: "Archive requests require a personal token.",
         },
       };
+    }
     default:
       return { jsonrpc: "2.0", id: p.id, result: null };
   }
@@ -320,7 +390,10 @@ async function newPage(context) {
     const sentList = Array.isArray(sent) ? sent : sent ? [sent] : [];
     const got = Array.isArray(body) ? body : body ? [body] : [];
     for (const a of got)
-      recordAnswer(sentList.find((p) => p.id === a.id)?.method ?? "?", a);
+      recordAnswer(
+        sentList.find((p) => p.id === a.id),
+        a,
+      );
   });
   // wss: the frames, through the DevTools protocol (not intercepted).
   const cdp = await page.createCDPSession();
@@ -342,7 +415,7 @@ async function newPage(context) {
     }
     for (const x of Array.isArray(a) ? a : [a]) {
       if (x.id === undefined) continue;
-      recordAnswer(traffic.pendingWs.get(x.id) ?? "?", x);
+      recordAnswer(traffic.pendingWs.get(x.id), x);
     }
   });
   return page;
@@ -631,11 +704,16 @@ for (const [id, chain, rpc] of RUNS) {
     // 2 and 3. Start the sync and wait until it stops by itself.
     const before = await readDb(page, chain, t.db, t.contract);
     const n0 = traffic.calls.length;
+    const a0 = traffic.answers.length;
+    const scriptStop = SCRIPT_STOP.has(chain);
     await (await toggleButton(page, CLICK_TEXTS)).click();
     const transitions = [];
     const t1 = Date.now();
+    // stopped: by itself (eth), or after the click of the script (matic).
     let stopped = false;
-    while (Date.now() - t1 < 120000) {
+    let stoppedByItself = false;
+    let stopClickedMs = null;
+    while (Date.now() - t1 < (scriptStop ? SCRIPT_STOP_MS + 15000 : 120000)) {
       const ti = await toggleInfo(page);
       const d = await readDb(page, chain, t.db, t.contract);
       const key = JSON.stringify({ toggle: ti, row: d.row });
@@ -647,7 +725,21 @@ for (const [id, chain, rpc] of RUNS) {
         d.row?.isSyncing === false
       ) {
         stopped = true;
+        stoppedByItself = stopClickedMs === null;
         break;
+      }
+      if (
+        scriptStop &&
+        stopClickedMs === null &&
+        (Date.now() - t1 >= SCRIPT_STOP_MS ||
+          refusalsOf(traffic.answers.slice(a0)).some((r) => r.complete))
+      ) {
+        const b = (await toggleButton(page, ["stop sync"])).asElement();
+        if (b) {
+          stopClickedMs = Date.now() - t1;
+          await b.click();
+          continue;
+        }
       }
       await new Promise((r) => setTimeout(r, 200));
     }
@@ -658,10 +750,10 @@ for (const [id, chain, rpc] of RUNS) {
     // Anything that keeps calling after the stop.
     const n1 = traffic.calls.length;
     await new Promise((r) => setTimeout(r, 3000));
-    note(
-      "calls in 3 s after the stop",
-      traffic.calls.slice(n1).map((c) => `${c.transport} ${c.method}`),
-    );
+    const callsAfterStop = traffic.calls
+      .slice(n1)
+      .map((c) => `${c.transport} ${c.method}`);
+    note("calls in 3 s after the stop", callsAfterStop);
     const after = await readDb(page, chain, t.db, t.contract);
     const nav = await navText(page);
     await page.screenshot({ path: path.join(outDir, `${id}-3-stopped.png`) });
@@ -698,7 +790,9 @@ for (const [id, chain, rpc] of RUNS) {
       confirmationBlocks: CONFIRMATION[chain],
     });
 
-    // 3. Refused eth_getLogs, TRY_COUNT + 1 tries, toggle off, #483, #515.
+    // 3. eth: refused eth_getLogs, TRY_COUNT + 1 tries. matic: the sync moves
+    // on, the refused ranges are fetched in narrower ranges, and the script
+    // stops it (#694). Both: toggle off, #483, #515.
     const syncCalls = traffic.calls.slice(n0);
     const getLogs = syncCalls.filter((c) => c.method === "eth_getLogs");
     // Any error code: PublicNode refused with -32602 on eth and -32701 on matic.
@@ -714,18 +808,39 @@ for (const [id, chain, rpc] of RUNS) {
         (x) => x.run === id && `${x.text} ${x.detail ?? ""}`.includes(host),
       )
       .map((x) => `${x.type} ${(x.detail ?? x.text).slice(0, 200)}`);
+    const refusals = refusalsOf(traffic.answers.slice(a0));
+    const fetched = {
+      before: before.row?.fetchedBlockNumber,
+      after: after.row?.fetchedBlockNumber,
+    };
+    const synced = scriptStop
+      ? stopped &&
+        !stoppedByItself &&
+        callsAfterStop.length === 0 &&
+        fetched.after > fetched.before &&
+        refusals.some((r) => r.complete) &&
+        refusals.every((r) => r.nextOk && r.narrower)
+      : stopped &&
+        getLogs.length === TRY_COUNT + 1 &&
+        refused.length === getLogs.length;
     note("3 sync", {
       ok:
-        stopped &&
-        getLogs.length === TRY_COUNT + 1 &&
-        refused.length === getLogs.length &&
+        synced &&
         urlInConsole.length === 0 &&
         after.leftFlags.length === 0 &&
         / stopped /.test(` ${nav} `) &&
         !!gridRow?.includes("stopped"),
       stopped,
+      ...(scriptStop
+        ? {
+            stoppedByItself,
+            stopClickedMs,
+            callsAfterStop: callsAfterStop.length,
+            fetchedBlockNumber: fetched,
+            refusals: refusals.slice(0, 10),
+          }
+        : { expected: TRY_COUNT + 1 }),
       eth_getLogs: getLogs.length,
-      expected: TRY_COUNT + 1,
       refused: refused.length,
       refusedCodes,
       firstGetLogs: getLogs[0]?.params,

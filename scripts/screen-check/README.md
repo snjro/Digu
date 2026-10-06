@@ -279,18 +279,26 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
   DNS and request interception.
 - A run turns off all sync targets but one contract (Augur of Augur version1
   on eth, AMMFactory of Augur turbo on matic), types the RPC URL, waits for
-  "Connected." (30 s), starts the sync and waits until it stops by itself
-  (120 s).
+  "Connected." (30 s) and starts the sync. On eth, it waits until the sync
+  stops by itself (120 s). On matic, it clicks "stop sync" when the first
+  refused range has been fetched in narrower ranges, or after 60 s, and
+  waits for the stop (#694).
 - The matic runs first turn off "Warp sync" in the sync panel (its files get
-  404 until then), so that the sync starts at old blocks and PublicNode
-  refuses it (#635); `warpSync` records it. Eth has no snapshot here.
+  404 until then), so that the sync starts at old blocks (#635); `warpSync`
+  records it. Eth has no snapshot here.
 - It records:
   - `1 helper`: "Connected." was shown.
   - `2 goal`: the Goal is a latest block the RPC returned, less the
     confirmation depth of the build (eth 96, matic 128, #498).
-  - `3 sync`: `eth_getLogs` was sent `TRY_COUNT` + 1 times (11; `TRY_COUNT`
-    of `src/eventLogs/eventLogsContract.ts` in the build) and each was
-    refused with an error (any code), the toggle is off, the nav says
+  - `3 sync`: on eth, `eth_getLogs` was sent `TRY_COUNT` + 1 times (11;
+    `TRY_COUNT` of `src/eventLogs/eventLogsContract.ts` in the build) and
+    each was refused with an error (any code), and the sync stopped by
+    itself. On matic, the sync did not stop by itself, `fetchedBlockNumber`
+    moved on, at least one refused range was fetched again in narrower
+    ranges (`refusals`: after each refusal, the next request is from the same
+    block and not wider, and the successes up to the end of the refused range
+    are narrower), the sync stopped after the click, and nothing was called
+    in 3 s after the stop. On both: the toggle is off, the nav says
     "stopped", the RPC host is not in the console (#483), no contract is left
     syncing or aborting, and the contracts grid shows "stopped" (#515).
   - `4 console by type`, `4 csp`: console errors and warnings, page errors,
@@ -298,20 +306,23 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
   - `5 traffic`: the requests, the WebSocket connections, the calls by method
     (and `eth_chainId`), and the errors by code.
 - `--fake` answers the https requests in the container: the chain id, a
-  latest block, and `-32602` for `eth_getLogs`. A WebSocket cannot be
+  latest block, and for `eth_getLogs` `-32602` on eth, and on matic no logs
+  or `-32701` for a range over 10,000 blocks. A WebSocket cannot be
   intercepted, so the `wss` runs end in an error with `--fake`.
 
-Limits of PublicNode without a key:
+Limits of PublicNode without a key (seen in October 2026):
 
-- It does not return the logs or blocks of old blocks, so this check cannot
-  see a real sync of event logs. It checks the connection, the Goal, the stop
-  after the refused requests and what is left after it. A real sync needs an
-  RPC with a key.
-- It refused `eth_getLogs` of old blocks with `-32602` on eth and `-32701` on
-  matic. Over `wss` on eth, it answered `eth_getLogs` of old blocks with no
-  logs and refused `eth_getBlockByNumber` instead, so `3 sync` of `eth-wss`
-  is not `ok` although the sync stopped and left nothing behind. Read the
-  record of that run.
+- On eth, it does not return the logs or blocks of old blocks, so this check
+  cannot see a real sync of event logs there. It checks the connection, the
+  Goal, the stop after the refused requests and what is left after it. It
+  refused `eth_getLogs` of old blocks with `-32602`. Over `wss`, it answered
+  `eth_getLogs` of old blocks with no logs and refused `eth_getBlockByNumber`
+  instead, so `3 sync` of `eth-wss` is not `ok` although the sync stopped
+  and left nothing behind. Read the record of that run.
+- On matic, it returns the logs of old blocks, but refuses a range over
+  10,000 blocks with `-32701 exceed maximum block range: 10000` (#694). The
+  sync does not stop by itself, so the script stops it. The run does not
+  check the saved logs.
 
 Result in `<out-dir>`: `results.json` (each run), `console.json`,
 `blocked.json`, and `<run>-1-connected.png`, `<run>-3-stopped.png`,
