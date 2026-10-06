@@ -132,7 +132,9 @@ describe("WarpSyncStatus.svelte", () => {
     render(WarpSyncStatus);
     await setState({ status: "failed", busy: true });
     expect(
-      screen.getByText("Could not import now: the chain is synced."),
+      screen.getByText(
+        "Could not import now: the chain is synced. Choose Retry when the sync stops.",
+      ),
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
   });

@@ -100,6 +100,9 @@ export async function confirmWarpSync(targetChain: Chain): Promise<void> {
 // held), it says so and the user can choose Retry again.
 export async function retryWarpSync(targetChain: Chain): Promise<void> {
   const chainName: ChainName = targetChain.name;
+  // The failed import may still hold the lock, to read the DB into the stores.
+  // Without the wait, Retry would get that import back, and nothing would run.
+  await runningImports.get(chainName)?.done;
   const before: WarpSyncState = getState(chainName);
   setWarpSyncState(chainName, { ...before, status: "idle", busy: undefined });
   const ran: boolean = await startImport(targetChain).ran;

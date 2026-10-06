@@ -33,7 +33,12 @@ vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js", () => ({
 // WarpSyncStatus imports these, which load the chain data too.
 vi.mock("#stores/storeRpcSettings.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeRpcSettings: writable({ eth: { warpSync: true } }) };
+  return {
+    storeRpcSettings: writable({
+      eth: { warpSync: true },
+      matic: { warpSync: true },
+    }),
+  };
 });
 vi.mock("#warpSync/warpSync.js", () => ({ retryWarpSync: vi.fn() }));
 vi.mock("#utils/utilsDb.js", () => ({

@@ -95,4 +95,5 @@ export const SYNC_WAITS_FOR_IMPORT =
 // In the nav after the import failed, with Retry.
 export const IMPORT_FAILED = "Could not import the published logs.";
 // Retry could not start: the chain is synced (the lock was held).
-export const IMPORT_FAILED_BUSY = "Could not import now: the chain is synced.";
+export const IMPORT_FAILED_BUSY =
+  "Could not import now: the chain is synced. Choose Retry when the sync stops.";

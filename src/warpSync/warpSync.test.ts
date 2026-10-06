@@ -635,6 +635,33 @@ describe("warpSync", () => {
       );
     });
 
+    test("waits for the failed import to end before it imports again", async () => {
+      vi.spyOn(customLogger, "error").mockImplementation(() => {});
+      vi.mocked(importWarpSync).mockRejectedValueOnce(new Error("timeout"));
+      // The reload in the catch ends; the one after the import, while the
+      // failed import holds the lock, waits.
+      let release: () => void = () => {};
+      vi.mocked(reloadSyncStatusInChain)
+        .mockResolvedValueOnce(undefined)
+        .mockReturnValueOnce(
+          new Promise<void>((resolve) => (release = resolve)),
+        );
+      const failing = startWarpSync(matic);
+      await vi.waitFor(() =>
+        expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
+          "failed",
+        ),
+      );
+      const retrying = retryWarpSync(matic);
+      release();
+      await failing;
+      await retrying;
+      expect(importWarpSync).toHaveBeenCalledTimes(2);
+      expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
+        "imported",
+      );
+    });
+
     test("does nothing when it is off", async () => {
       setWarpSync("matic", false);
       setWarpSyncState("matic", { status: "failed" });
