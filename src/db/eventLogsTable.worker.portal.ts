@@ -44,10 +44,11 @@ export class EventLogsTableClient {
     );
     // The handler answers the errors of each request, so this is an error of
     // the worker itself, such as a worker that could not load.
-    this.worker.addEventListener("error", (event: ErrorEvent) => {
-      this.worker.terminate();
+    this.worker.addEventListener("error", (event: Event | ErrorEvent) => {
       // A worker that could not load gives an Event without a message.
-      this.close(`EventLogsTableWorker: ${event.message ?? "could not load"}`);
+      const message: string =
+        ("message" in event && event.message) || "could not load";
+      this.close(`EventLogsTableWorker: ${message}`);
     });
     this.worker.addEventListener("messageerror", () => {
       this.rejectAll("EventLogsTableWorker: could not read the message");
@@ -65,7 +66,6 @@ export class EventLogsTableClient {
   }
   // Drops the rows, and rejects the requests that wait and the later ones.
   terminate(): void {
-    this.worker.terminate();
     this.close("EventLogsTableWorker: terminated");
   }
 
@@ -82,7 +82,9 @@ export class EventLogsTableClient {
       this.worker.postMessage({ id, type, params });
     });
   }
+  // A closed client has no worker, which would keep the rows.
   private close(message: string): void {
+    this.worker.terminate();
     this.closedMessage ??= message;
     this.rejectAll(message);
   }
