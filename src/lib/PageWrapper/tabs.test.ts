@@ -11,12 +11,7 @@ describe("TAB_VALUES", () => {
   test("should list the tabs of each page", () => {
     expect(TAB_VALUES_CONTRACT).toEqual(["Overview", "ABI"]);
     expect(TAB_VALUES_FUNCTION).toEqual(["Overview", "ABI"]);
-    expect(TAB_VALUES_EVENT).toEqual([
-      "Overview",
-      "ABI",
-      "Event Logs (text)",
-      "Event Logs (hex)",
-    ]);
+    expect(TAB_VALUES_EVENT).toEqual(["Overview", "ABI", "Event Logs"]);
   });
 });
 
@@ -24,8 +19,7 @@ describe("convertTabValueForHref", () => {
   test.each([
     ["Overview", "#overview"],
     ["ABI", "#abi"],
-    ["Event Logs (text)", "#event-logs-text"],
-    ["Event Logs (hex)", "#event-logs-hex"],
+    ["Event Logs", "#event-logs"],
   ] as const)("should convert %j to %j", (tabValue, href) => {
     expect(convertTabValueForHref(tabValue)).toBe(href);
   });

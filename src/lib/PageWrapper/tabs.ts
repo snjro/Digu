@@ -3,11 +3,7 @@ import { convertToKebabCase } from "#utils/utilsCommon.js";
 
 export const TAB_VALUES_COMMON = ["Overview", "ABI"] as const;
 export const TAB_VALUES_CONTRACT = TAB_VALUES_COMMON;
-export const TAB_VALUES_EVENT = [
-  ...TAB_VALUES_COMMON,
-  "Event Logs (text)",
-  "Event Logs (hex)",
-] as const;
+export const TAB_VALUES_EVENT = [...TAB_VALUES_COMMON, "Event Logs"] as const;
 export const TAB_VALUES_FUNCTION = TAB_VALUES_COMMON;
 
 export type TabsDefinitionContract = {
@@ -30,8 +26,7 @@ export function convertTabValueForHref<
   TabsDefinition extends
     TabsDefinitionContract | TabsDefinitionEvent | TabsDefinitionFunction,
 >(tabValue: TabsDefinition["values"][number]): `#${string}` {
-  let convertedTabValue: string = convertToKebabCase(tabValue as string);
-  convertedTabValue = convertedTabValue.replace("(", "").replace(")", "");
+  const convertedTabValue: string = convertToKebabCase(tabValue as string);
   return `#${convertedTabValue}`;
 }
 

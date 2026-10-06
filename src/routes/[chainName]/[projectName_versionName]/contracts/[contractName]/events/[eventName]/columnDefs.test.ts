@@ -14,7 +14,7 @@ import type { ColumnDef } from "#lib/grid/types.js";
 import { getColumnDefs } from "#lib/grid/GridBody/getColumnDefs.js";
 import { getCsvText } from "#lib/grid/ExportCsv/exportCsv.js";
 import type { ConvertedEventLog } from "#db/dbTypes.js";
-import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
+import { columnDefs } from "./columnDefs";
 
 // An array, an indexed argument and integers, which ethers 6 decodes to bigint.
 const fragment: EventFragment = EventFragment.from(
@@ -113,36 +113,6 @@ describe("columnDefs", () => {
     expect(getValue(ok)).toBe(true);
     expect(formatValue(ok)).toBe("true");
     expect((ok as ColDef).cellClass).toBe("");
-  });
-});
-
-describe("getHexEventLogColumnDefs", () => {
-  test("should show the timestamp, the topics and the data", () => {
-    const defs: ColumnDef[] = getHexEventLogColumnDefs(fragment);
-    expect(headerNames(defs)).toEqual([
-      "time",
-      "topics",
-      "data",
-      "transaction",
-      "log",
-    ]);
-    expect(getValue(children(defs[0])[1])).toBe(1577934245);
-  });
-
-  test("should have a topic for the event and one for each indexed argument", () => {
-    const topics: ColumnDef[] = children(getHexEventLogColumnDefs(fragment)[1]);
-    expect(headerNames(topics)).toEqual(["topics[0]", "topics[1]"]);
-    expect(topics.map(getValue)).toEqual(["0xtopic0", "0xtopic1"]);
-  });
-
-  test("should have no topic for an anonymous event without indexed arguments", () => {
-    const anonymous: EventFragment = EventFragment.from({
-      type: "event",
-      name: "Anon",
-      anonymous: true,
-      inputs: [{ name: "amount", type: "uint256", indexed: false }],
-    });
-    expect(children(getHexEventLogColumnDefs(anonymous)[1])).toEqual([]);
   });
 });
 

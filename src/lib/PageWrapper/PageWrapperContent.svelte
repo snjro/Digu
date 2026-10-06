@@ -11,7 +11,7 @@
   };
   type TabNameCommon = "Overview" | "ABI";
   type TabNameContract = TabNameCommon;
-  type TabNameEvent = TabNameCommon | "Event Logs (text)" | "Event Logs (hex)";
+  type TabNameEvent = TabNameCommon | "Event Logs";
   type TabNameFunction = TabNameCommon;
 </script>
 

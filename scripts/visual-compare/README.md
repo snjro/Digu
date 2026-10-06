@@ -95,11 +95,11 @@ Light and dark theme of:
 - 390 × 844: home, contracts, events and function, with the sidebar open (the
   default) and closed
 - with event logs in IndexedDB, as if a sync had run: version, contracts,
-  contract, events, and event (its overview and the Event Logs text and hex
-  tabs). The logs are made with ethers from the ABI of Augur, with fixed
-  values, so every run shows the same rows. Nothing is fetched from an RPC
+  contract, events, and event (its overview and the Event Logs tab). The
+  logs are made with ethers from the ABI of Augur, with fixed values, so
+  every run shows the same rows. Nothing is fetched from an RPC
 
-That is 52 screens for each theme, 104 in all.
+That is 51 screens for each theme, 102 in all.
 
 Each action starts from a fresh browser profile, so what it saves in the
 browser (settings, the chain) does not change the next screen.

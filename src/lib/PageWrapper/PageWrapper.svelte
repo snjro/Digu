@@ -24,7 +24,6 @@
   import BaseRadio, {
     type RadioLabelAndValues,
   } from "#lib/base/BaseRadio.svelte";
-  import type { EventLogType } from "#lib/contracts/eventLogType.js";
   import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
   import { storeUserSettings } from "#stores/storeUserSettings.js";
   import classNames from "classnames";
@@ -48,7 +47,7 @@
   );
 
   type ConvertContentNameForLabelText =
-    "Overv" | "ABI" | `EL (${EventLogType})` | TabsDefinition["values"][number];
+    "Overv" | "ABI" | "EL" | TabsDefinition["values"][number];
 
   const convertTabValueForLabelText = (
     targetTabValue: TabsDefinition["values"][number],
@@ -59,10 +58,8 @@
           return "Overv";
         case "ABI":
           return "ABI";
-        case "Event Logs (text)":
-          return "EL (text)";
-        case "Event Logs (hex)":
-          return "EL (hex)";
+        case "Event Logs":
+          return "EL";
         default:
           return targetTabValue;
       }

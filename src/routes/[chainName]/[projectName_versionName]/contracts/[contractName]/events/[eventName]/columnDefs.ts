@@ -13,10 +13,7 @@ import type {
 import classNames from "classnames";
 import type { AbiFragmentParam } from "#constants/chains/types.js";
 import type { ConvertedEventLog } from "#db/dbTypes.js";
-import {
-  convertJsDateToIso8601,
-  convertJsDateToTimestampSec,
-} from "#utils/utilsTime.js";
+import { convertJsDateToIso8601 } from "#utils/utilsTime.js";
 import { columnDefChainExplorerLinkByKeyName } from "#lib/gridColumnDefs/columnDefChainExplorerLinkByKeyName.js";
 import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 const cellClass: string = classNames("");
@@ -35,7 +32,7 @@ export const columnDefs = <T extends ConvertedEventLog>(
     {
       headerName: "time",
       children: [
-        blocknumberColumnDef<T>(undefined),
+        blocknumberColumnDef<T>(),
         {
           field: "jsDate",
           headerName: "datetime",
@@ -60,85 +57,8 @@ export const columnDefs = <T extends ConvertedEventLog>(
   ];
   return columnDefs;
 };
-export function getHexEventLogColumnDefs(
-  targetEventAbiFragment: EventAbiFragment,
-): ColumnDef[] {
-  const columnDefs: ColumnDef[] = [
-    {
-      headerName: "time",
-      children: [
-        blocknumberColumnDef(undefined),
-        {
-          field: "jsDate",
-          headerName: "timestamp",
-          sortable: sortable,
-          editable: editable,
-          cellClass: "text-right",
-          columnGroupShow: "open",
-          valueGetter: (valueGetterParams: ValueGetterParams) => {
-            return convertJsDateToTimestampSec(valueGetterParams.data.jsDate);
-          },
-        },
-      ],
-    },
-
-    topicsColumnDef(targetEventAbiFragment),
-    {
-      field: "data",
-      headerName: "data",
-      sortable: sortable,
-      editable: editable,
-      cellClass: cellClass,
-    },
-    ...logAndTransactionInfoColumnDefs(),
-  ];
-  return columnDefs;
-}
-
-const blocknumberColumnDef = <T extends ConvertedEventLog>(
-  columnGroupShow: "open" | "closed" | undefined,
-): ColumnDef =>
-  columnDefChainExplorerLinkByKeyName<T>(
-    "blocknumber",
-    "blockNumber",
-    "block",
-    columnGroupShow,
-  );
-function getTopicsLength(targetEventAbiFragment: EventAbiFragment): number {
-  let topicsLength = targetEventAbiFragment.anonymous ? 0 : 1;
-  const abiFragmentInputs: EventAbiFragment["inputs"] =
-    targetEventAbiFragment.inputs;
-  for (const abiFragmentParam of abiFragmentInputs) {
-    if (abiFragmentParam.indexed) {
-      topicsLength++;
-    }
-  }
-  return topicsLength;
-}
-const topicsColumnDef = (
-  targetEventAbiFragment: EventAbiFragment,
-): ColumnDef => {
-  const topicsColumnDef: ColumnDef = { headerName: "topics", children: [] };
-  for (
-    let indexTopics = 0;
-    indexTopics <= getTopicsLength(targetEventAbiFragment) - 1;
-    indexTopics++
-  ) {
-    const topicItemColumnDef: ColumnDef = {
-      headerName: `topics[${indexTopics}]`,
-      sortable: sortable,
-      editable: editable,
-      cellClass: cellClass,
-      columnGroupShow: indexTopics === 0 ? undefined : "open",
-      valueGetter: (valueGetterParams: ValueGetterParams) => {
-        return valueGetterParams.data.topics[indexTopics];
-      },
-    };
-
-    topicsColumnDef.children.push(topicItemColumnDef);
-  }
-  return topicsColumnDef;
-};
+const blocknumberColumnDef = <T extends ConvertedEventLog>(): ColumnDef =>
+  columnDefChainExplorerLinkByKeyName<T>("blocknumber", "blockNumber", "block");
 const logAndTransactionInfoColumnDefs = (): ColumnDef[] => {
   return [
     {

@@ -657,7 +657,7 @@ if (want("S1")) {
     note("rpc until latest", rpcSummary(rpcState));
     note("6-2 goal (#498)", await goalCheck(page));
     await snap(page, "S1-6-3-b-event-overview-latest");
-    await page.evaluate(() => (location.hash = "#event-logs-text"));
+    await page.evaluate(() => (location.hash = "#event-logs"));
     await settle(page);
     await new Promise((res) => setTimeout(res, 1500));
     const gridText = async () =>
@@ -676,14 +676,7 @@ if (want("S1")) {
           e.textContent.trim(),
         ),
       );
-    await snap(page, "S1-6-3-c-event-logs-text", {
-      grid: await gridText(),
-      headers: await headers(),
-    });
-    await page.evaluate(() => (location.hash = "#event-logs-hex"));
-    await settle(page);
-    await new Promise((res) => setTimeout(res, 1500));
-    await snap(page, "S1-6-3-d-event-logs-hex", {
+    await snap(page, "S1-6-3-c-event-logs", {
       grid: await gridText(),
       headers: await headers(),
     });
@@ -691,10 +684,10 @@ if (want("S1")) {
       page,
       "/eth/Augur-version1/contracts/Augur/events/UniverseCreated/",
     );
-    await page.evaluate(() => (location.hash = "#event-logs-text"));
+    await page.evaluate(() => (location.hash = "#event-logs"));
     await settle(page);
     await new Promise((res) => setTimeout(res, 1500));
-    await snap(page, "S1-6-3-e-universe-logs-text", {
+    await snap(page, "S1-6-3-e-universe-logs", {
       grid: await gridText(),
       headers: await headers(),
     });

@@ -115,7 +115,7 @@
   <CommonViewMoreDetailsButton
     label="View all Event Logs"
     size={sizeSettings.itemViewAllButton}
-    href={convertTabValueForHref("Event Logs (text)")}
+    href={convertTabValueForHref("Event Logs")}
   />
 {:else}
   <BaseLabel

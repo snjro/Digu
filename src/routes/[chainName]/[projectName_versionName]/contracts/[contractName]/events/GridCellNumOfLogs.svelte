@@ -28,9 +28,7 @@
   );
 
   const href: string = $derived(
-    `${urlPathName}${targetEventName}${convertTabValueForHref(
-      "Event Logs (text)",
-    )}`,
+    `${urlPathName}${targetEventName}${convertTabValueForHref("Event Logs")}`,
   );
   let text: string = $derived(
     currentRecordCount === undefined

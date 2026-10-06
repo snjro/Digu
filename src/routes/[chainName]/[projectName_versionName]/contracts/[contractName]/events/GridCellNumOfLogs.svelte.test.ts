@@ -79,9 +79,7 @@ describe("GridCellNumOfLogs.svelte", () => {
     renderCell("Transfer");
     const link = screen.getByRole("link");
     expect(link.textContent).toContain("1,234");
-    expect(link.getAttribute("href")).toBe(
-      `${urlPathName}Transfer#event-logs-text`,
-    );
+    expect(link.getAttribute("href")).toBe(`${urlPathName}Transfer#event-logs`);
   });
 
   test("follows a change of the record count in the store", async () => {

@@ -15,8 +15,7 @@
     AbiFragmentIdentifier,
     ConvertedEventLog,
   } from "#db/dbTypes.js";
-  import { columnDefs, getHexEventLogColumnDefs } from "./columnDefs";
-  import type { EventLogType } from "#lib/contracts/eventLogType.js";
+  import { columnDefs } from "./columnDefs";
   import { gridRows } from "./gridRows";
   import { createThrottledLoad } from "./latestLoad";
   import { getEachArgsMaxLengths } from "../../../maxParamsLength";
@@ -25,14 +24,12 @@
   interface Props {
     targetEventIdentifier: AbiFragmentIdentifier;
     targetEventAbiFragment: EventAbiFragment;
-    eventLogType: EventLogType;
     isFullScreen: boolean;
   }
 
   let {
     targetEventIdentifier,
     targetEventAbiFragment,
-    eventLogType,
     isFullScreen = $bindable(),
   }: Props = $props();
 
@@ -81,9 +78,7 @@
     return previousArgsMaxLengths;
   });
   let eventLogColumnDefs: ColumnDef[] = $derived(
-    eventLogType === "hex"
-      ? getHexEventLogColumnDefs(targetEventAbiFragment)
-      : columnDefs(targetEventAbiFragment, eachArgsMaxLengths),
+    columnDefs(targetEventAbiFragment, eachArgsMaxLengths),
   );
 </script>
 
@@ -97,7 +92,7 @@
   <BaseGrid
     paramColumnDefs={eventLogColumnDefs}
     {rows}
-    exportFilePrefix={`eventLogs(${eventLogType})`}
+    exportFilePrefix="eventLogs"
     hasMultipleTabs={true}
     bind:isFullScreen
   />

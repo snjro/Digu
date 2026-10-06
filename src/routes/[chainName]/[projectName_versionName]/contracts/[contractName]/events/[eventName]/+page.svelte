@@ -43,18 +43,10 @@
         targetContract={data.targetContract}
         targetEventAbiFragment={data.targetEventAbiFragment}
       />
-    {:else if tabsDefinition.selected === "Event Logs (text)"}
+    {:else if tabsDefinition.selected === "Event Logs"}
       <EventLogs
         targetEventIdentifier={data.targetEventIdentifier}
         targetEventAbiFragment={data.targetEventAbiFragment}
-        eventLogType="text"
-        bind:isFullScreen
-      />
-    {:else if tabsDefinition.selected === "Event Logs (hex)"}
-      <EventLogs
-        targetEventIdentifier={data.targetEventIdentifier}
-        targetEventAbiFragment={data.targetEventAbiFragment}
-        eventLogType="hex"
         bind:isFullScreen
       />
     {:else if tabsDefinition.selected === "ABI"}
