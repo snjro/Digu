@@ -52,7 +52,7 @@ describe("getConfirmationTexts", () => {
       header: "Import the event logs published with this site?",
       lines: [
         "Ethereum Mainnet: 2,328,259 logs up to block 26,073,896 (2026-10-01).",
-        "Download: 194 MB. Stored in this browser: about 1.0 GB on a desktop computer.",
+        "Download: 194 MB. Stored in this browser: about 1.0 GB.",
         "Time: about 1 minute on a desktop computer; slower on a phone.",
         "You can use Digu while it imports, stop it at any time, and go on later.",
         "Free space for this site: 38.0 GB.",

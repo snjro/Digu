@@ -52,7 +52,7 @@ export function getConfirmationTexts(
     isRest
       ? `${chainFullName}: ${logs} of ${numberWithCommas(pending.snapshotLogCount)} logs are left, ${upTo}.`
       : `${chainFullName}: ${logs} logs ${upTo}.`,
-    `Download: ${formatBytes(pending.bytes)}. Stored in this browser: about ${formatBytes(storedBytes)} on a desktop computer.`,
+    `Download: ${formatBytes(pending.bytes)}. Stored in this browser: about ${formatBytes(storedBytes)}.`,
     `Time: about ${formatDuration(pending.logCount / IMPORTED_LOGS_PER_SECOND)} on a desktop computer; slower on a phone.`,
     "You can use Digu while it imports, stop it at any time, and go on later.",
   ];
