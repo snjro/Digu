@@ -78,6 +78,27 @@
           "range": 4
         }
       }
+    },
+    {
+      "createdAt": "2026-10-06T03:48:29.379Z",
+      "latestBlockNumber": 95035561,
+      "toBlock": 95035433,
+      "logCount": 1,
+      "requests": {
+        "eth_chainId": 1,
+        "eth_blockNumber": 1,
+        "eth_getLogs": 41
+      },
+      "checks": {
+        "emptyRangesAskedAgain": 11,
+        "emptyRangesWithLogs": 0,
+        "errors": {
+          "rate": 0,
+          "results": 0,
+          "unrelated": 7,
+          "range": 0
+        }
+      }
     }
   ],
   "chunks": [
@@ -258,11 +279,69 @@
       "toBlock": 94829025,
       "logCount": 0,
       "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "AMMFactory",
+      "fromBlock": 94829026,
+      "toBlock": 95035433,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "BalancerFactory",
+      "fromBlock": 94829026,
+      "toBlock": 95035433,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "FeePot",
+      "fromBlock": 94829026,
+      "toBlock": 95035433,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "MMALinkMarketFactory",
+      "fromBlock": 94829026,
+      "toBlock": 95035433,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "PlaceholderReputationToken",
+      "fromBlock": 94829026,
+      "toBlock": 95035433,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "SportsLinkMarketFactory",
+      "fromBlock": 94829026,
+      "toBlock": 95035433,
+      "logCount": 1,
+      "file": "Augur-turbo-SportsLinkMarketFactory-95035433.json.gz",
+      "bytes": 358,
+      "rawBytes": 499,
+      "sha256": "88f2be0be5813a99ef2046640cd1e44055dc2b37683335e8bb6cdb7f4b9d3c76",
+      "rawSha256": "c568a558fe7c459d97c8a5f2a518981c3997755eeedfa7eb9362e49ff2201925"
     }
   ],
   "totals": {
-    "logCount": 4140,
-    "bytes": 318266,
-    "rawBytes": 1325573
+    "logCount": 4141,
+    "bytes": 318624,
+    "rawBytes": 1326072
   }
 }
