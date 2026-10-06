@@ -10,8 +10,16 @@ import type {
   SyncStatusesChain,
 } from "#db/dbTypes.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import {
+  setWarpSyncState,
+  storeWarpSync,
+  type WarpSyncState,
+} from "#warpSync/warpSyncState.js";
 import { gridRows } from "./gridRows";
-import EventLogs, { EVENT_LOGS_RELOAD_INTERVAL } from "./EventLogs.svelte";
+import EventLogs, {
+  EVENT_LOGS_RELOAD_INTERVAL,
+  MESSAGE_WAITING_FOR_IMPORT,
+} from "./EventLogs.svelte";
 
 // The real store and DB load the chain data, which loads ethers. ethers does
 // not load in the client project, so they are replaced.
@@ -28,8 +36,8 @@ vi.mock("#lib/common/CommonChainExplorerLink.svelte", async () => {
       Stub(anchor as never, { stubName: String(props.value) }),
   };
 });
-// Shows the number of rows and which column definitions the grid got: the
-// same number while the grid gets the same array.
+// Shows the number of rows, which column definitions the grid got (the same
+// number while the grid gets the same array), and the loading text.
 const columnDefsIds = new Map<object, number>();
 function columnDefsId(columnDefs: object): number {
   if (!columnDefsIds.has(columnDefs)) {
@@ -43,11 +51,15 @@ vi.mock("#lib/grid/BaseGrid.svelte", async () => {
   return {
     default: (
       anchor: unknown,
-      props: { rows: unknown[] | undefined; paramColumnDefs: object },
+      props: {
+        rows: unknown[] | undefined;
+        paramColumnDefs: object;
+        loadingText?: string;
+      },
     ) =>
       Stub(anchor as never, {
         get stubName() {
-          return `rows=${props.rows?.length} columns=${columnDefsId(props.paramColumnDefs)}`;
+          return `rows=${props.rows?.length} columns=${columnDefsId(props.paramColumnDefs)} loading=${props.loadingText ?? ""}`;
         },
       }),
   };
@@ -135,16 +147,32 @@ function renderGrid() {
     isFullScreen: false,
   });
 }
-function shown(): { rows: number; columns: number } {
+// rows is undefined until the rows are loaded.
+function shown(): {
+  rows: number | undefined;
+  columns: number;
+  loadingText: string;
+} {
   const text: string = screen.getByTestId("stub").textContent ?? "";
-  const match = text.match(/^rows=(\d+) columns=(\d+)$/);
+  const match = text.match(/^rows=(\d+|undefined) columns=(\d+) loading=(.*)$/);
   if (!match) throw new Error(`The grid stub shows "${text}".`);
-  return { rows: Number(match[1]), columns: Number(match[2]) };
+  return {
+    rows: match[1] === "undefined" ? undefined : Number(match[1]),
+    columns: Number(match[2]),
+    loadingText: match[3],
+  };
+}
+function setWarpSync(
+  status: WarpSyncState["status"],
+  chainName: string = "chain1",
+): void {
+  setWarpSyncState(chainName as never, { status });
 }
 
 describe("EventLogs.svelte", () => {
   beforeEach(() => {
     store.set(initialState());
+    storeWarpSync.set({});
     load.mockReset();
     // waitFor checks with setInterval, so keep it real.
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
@@ -244,5 +272,86 @@ describe("EventLogs.svelte", () => {
     expect(load).toHaveBeenCalledTimes(2);
     expect(load).toHaveBeenLastCalledWith(approval, expect.any(AbortSignal));
     await waitFor(() => expect(shown().rows).toBe(1));
+  });
+  test("does not show the rows of the previous event while another loads", async () => {
+    load.mockResolvedValueOnce([log(10, 1), log(20, 1)]);
+    const { rerender } = renderGrid();
+    await waitFor(() => expect(shown().rows).toBe(2));
+
+    load.mockReturnValueOnce(new Promise(() => {}));
+    await rerender({
+      targetEventIdentifier: {
+        ...targetEventIdentifier,
+        abiFragmentName: "Approval",
+      } as AbiFragmentIdentifier,
+    });
+    expect(shown().rows).toBeUndefined();
+  });
+
+  describe("while the warp sync imports the logs of the chain", () => {
+    test.each(["imported", "stopped", "failed"] as const)(
+      "does not load, and loads once when it is %s",
+      async (status) => {
+        setWarpSync("importing");
+        load.mockResolvedValue([log(10, 1)]);
+        renderGrid();
+        expect(load).not.toHaveBeenCalled();
+        expect(shown()).toMatchObject({
+          rows: undefined,
+          loadingText: MESSAGE_WAITING_FOR_IMPORT,
+        });
+
+        await saveLogs(1);
+        await saveLogs(2);
+        expect(load).not.toHaveBeenCalled();
+
+        setWarpSync(status);
+        await waitFor(() => expect(shown().rows).toBe(1));
+        expect(shown().loadingText).toBe("");
+        await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL * 2);
+        expect(load).toHaveBeenCalledTimes(1);
+      },
+    );
+
+    test("keeps the rows of the open table, and reloads them once when it ends", async () => {
+      load.mockResolvedValue([log(10, 1)]);
+      renderGrid();
+      await waitFor(() => expect(shown().rows).toBe(1));
+
+      setWarpSync("importing");
+      await saveLogs(1);
+      await saveLogs(2);
+      expect(load).toHaveBeenCalledTimes(1);
+      expect(shown().rows).toBe(1);
+
+      setWarpSync("imported");
+      await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL * 2);
+      expect(load).toHaveBeenCalledTimes(2);
+    });
+
+    test("loads as usual while it only checks what is left, and not again after it", async () => {
+      setWarpSync("checking");
+      load.mockResolvedValue([]);
+      renderGrid();
+      await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
+      expect(shown().loadingText).toBe("");
+
+      await saveLogs(1);
+      expect(load).toHaveBeenCalledTimes(2);
+
+      setWarpSync("imported");
+      await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL * 2);
+      expect(load).toHaveBeenCalledTimes(2);
+    });
+
+    test("does not wait for the import of another chain", async () => {
+      setWarpSync("importing", "chain2");
+      load.mockResolvedValue([]);
+      renderGrid();
+      await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
+      expect(shown().loadingText).toBe("");
+      await saveLogs(1);
+      expect(load).toHaveBeenCalledTimes(2);
+    });
   });
 });

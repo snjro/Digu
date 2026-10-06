@@ -42,6 +42,8 @@ export function getWarpSyncHelperText(
 ): string {
   if (!isOn) return "Off: the logs are fetched only from your RPC.";
   switch (state.status) {
+    case "checking":
+      return "Checking the event logs published with this site…";
     case "importing":
       return "Importing the event logs published with this site…";
     case "imported":

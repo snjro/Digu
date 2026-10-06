@@ -148,6 +148,46 @@ describe("warpSync", () => {
     );
   });
 
+  // The statuses of matic while it runs, each once in a row.
+  async function statusesOf(run: () => Promise<void>): Promise<string[]> {
+    const statuses: string[] = [];
+    const unsubscribe = storeWarpSync.subscribe((all) => {
+      const status: string = selectWarpSyncState(all, "matic").status;
+      if (statuses.at(-1) !== status) statuses.push(status);
+    });
+    try {
+      await run();
+    } finally {
+      unsubscribe();
+    }
+    return statuses;
+  }
+
+  test("checks what is left first, then imports it", async () => {
+    expect(await statusesOf(() => startWarpSync(matic))).toEqual([
+      "idle",
+      "checking",
+      "importing",
+      "imported",
+    ]);
+  });
+
+  test("is not importing when no log is left, but still moves the blocks on", async () => {
+    vi.mocked(getWarpSyncPending).mockResolvedValue({
+      logCount: 0,
+      snapshotLogCount: small.logCount,
+      bytes: 0,
+      rawBytes: 0,
+      files: 0,
+    });
+    expect(await statusesOf(() => startWarpSync(matic))).toEqual([
+      "idle",
+      "checking",
+      "imported",
+    ]);
+    expect(importWarpSync).toHaveBeenCalledTimes(1);
+  });
+
   test("imports once: again only after a failure", async () => {
     await startWarpSync(matic);
     await startWarpSync(matic);
@@ -328,7 +368,11 @@ describe("warpSync", () => {
     });
 
     test("waits for the user, and does not ask twice", async () => {
-      await startWarpSync(matic);
+      expect(await statusesOf(() => startWarpSync(matic))).toEqual([
+        "idle",
+        "checking",
+        "confirm",
+      ]);
       expect(importWarpSync).not.toHaveBeenCalled();
       expect(selectWarpSyncState(get(storeWarpSync), "matic")).toEqual({
         status: "confirm",
@@ -386,11 +430,12 @@ describe("warpSync", () => {
 
     test("is skipped before the sync without asking, until confirmed", async () => {
       setWarpSyncState("matic", { status: "idle" });
-      await importWarpSyncBeforeSync(matic);
-      expect(importWarpSync).not.toHaveBeenCalled();
-      expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
+      expect(await statusesOf(() => importWarpSyncBeforeSync(matic))).toEqual([
         "idle",
-      );
+        "checking",
+        "idle",
+      ]);
+      expect(importWarpSync).not.toHaveBeenCalled();
       await startWarpSync(matic);
       await confirmWarpSync(matic);
       setWarpSyncState("matic", { status: "idle" });

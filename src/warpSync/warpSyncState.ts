@@ -27,6 +27,9 @@ export function needsConfirmation(pending: WarpSyncPending): boolean {
 }
 
 export type WarpSyncState = {
+  // "checking": reads the manifest and counts what is left. With no log left,
+  // it also moves the blocks on. No log is saved.
+  // "importing": saves the logs of the files, only when some are left.
   // "none": the chain has no snapshot, or none of its contracts is in the app.
   // "unsupported": the browser cannot decompress the files.
   // "confirm": the import waits for the user (pending is set). "declined":
@@ -35,6 +38,7 @@ export type WarpSyncState = {
     | "idle"
     | "confirm"
     | "declined"
+    | "checking"
     | "importing"
     | "imported"
     | "stopped"
@@ -58,6 +62,10 @@ export function selectWarpSyncState(
   chainName: ChainName,
 ): WarpSyncState {
   return states[chainName] ?? { status: "idle" };
+}
+// The import holds the sync lock of the chain.
+export function isWarpSyncRunning(state: WarpSyncState): boolean {
+  return state.status === "checking" || state.status === "importing";
 }
 export function setWarpSyncState(
   chainName: ChainName,

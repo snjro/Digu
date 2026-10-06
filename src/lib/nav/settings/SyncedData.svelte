@@ -25,6 +25,7 @@
   import { getTargetChain } from "#utils/utilsDb.js";
   import {
     hasWarpSync,
+    isWarpSyncRunning,
     selectWarpSyncState,
     storeWarpSync,
   } from "#warpSync/warpSyncState.js";
@@ -58,9 +59,9 @@
     getResetDisabledReason({
       syncStateText: $storeSyncStatus[targetChainName].syncStateText,
       isSyncingInOtherTab: $storeSyncLockedByOtherTab[targetChainName],
-      isImporting:
-        selectWarpSyncState($storeWarpSync, targetChainName).status ===
-        "importing",
+      isImporting: isWarpSyncRunning(
+        selectWarpSyncState($storeWarpSync, targetChainName),
+      ),
       isResetting,
     }),
   );

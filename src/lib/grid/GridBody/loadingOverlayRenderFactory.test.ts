@@ -85,4 +85,28 @@ describe("loadingOverlayRendererFactory in a grid", () => {
     }
     gridApi.destroy();
   });
+
+  test("the component is mounted again with the new params while it shows", async () => {
+    const texts: unknown[] = [];
+    const element = document.createElement("div");
+    document.body.appendChild(element);
+    const gridApi = createGrid(element, {
+      columnDefs: [{ field: "a" }],
+      loading: true,
+      loadingOverlayComponentParams: { loadingText: "a" },
+      loadingOverlayComponent: loadingOverlayRendererFactory(
+        (overlay, overlayParams) => {
+          texts.push((overlayParams as { loadingText?: string }).loadingText);
+          mountInOverlay(overlay);
+        },
+      ),
+    });
+    await vi.waitFor(() => expect(texts).toEqual(["a"]));
+    gridApi.setGridOption("loadingOverlayComponentParams", {
+      loadingText: "b",
+    });
+    await vi.waitFor(() => expect(texts).toEqual(["a", "b"]));
+    expect(unmount).toHaveBeenCalledTimes(1);
+    gridApi.destroy();
+  });
 });

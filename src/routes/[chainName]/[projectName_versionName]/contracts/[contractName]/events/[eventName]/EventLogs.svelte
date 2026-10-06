@@ -3,6 +3,8 @@
     "Logs of anonymous events are not fetched.";
   // While the sync saves logs, reload the rows at most once in this time.
   export const EVENT_LOGS_RELOAD_INTERVAL: number = 3000;
+  export const MESSAGE_WAITING_FOR_IMPORT: string =
+    "Waiting for the import of logs";
 </script>
 
 <script lang="ts">
@@ -20,6 +22,10 @@
   import { createThrottledLoad } from "./latestLoad";
   import { getEachArgsMaxLengths } from "../../../maxParamsLength";
   import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import {
+    selectWarpSyncState,
+    storeWarpSync,
+  } from "#warpSync/warpSyncState.js";
 
   interface Props {
     targetEventIdentifier: AbiFragmentIdentifier;
@@ -42,6 +48,13 @@
     ]?.events[targetEventIdentifier.abiFragmentName]?.recordCount,
   );
 
+  // The rows are read once the warp sync import of the chain ends, not after
+  // each of its files.
+  let isImporting: boolean = $derived(
+    selectWarpSyncState($storeWarpSync, targetEventIdentifier.chainName)
+      .status === "importing",
+  );
+
   let rows: ConvertedEventLog[] | undefined = $state.raw(undefined);
   // Logs of anonymous events are not fetched, so their table does not exist.
   $effect.pre(() => {
@@ -49,6 +62,8 @@
       rows = [];
       return;
     }
+    // Not the rows of the previous event while this one waits.
+    rows = undefined;
     const eventIdentifier: AbiFragmentIdentifier = targetEventIdentifier;
     const throttledLoad = createThrottledLoad(
       (signal: AbortSignal) => gridRows(eventIdentifier, signal),
@@ -60,6 +75,7 @@
     // Reload when new logs are saved.
     $effect.pre(() => {
       void recordCount;
+      if (isImporting) return;
       throttledLoad.request();
     });
     return throttledLoad.dispose;
@@ -92,6 +108,7 @@
   <BaseGrid
     paramColumnDefs={eventLogColumnDefs}
     {rows}
+    loadingText={isImporting ? MESSAGE_WAITING_FOR_IMPORT : undefined}
     exportFilePrefix="eventLogs"
     hasMultipleTabs={true}
     bind:isFullScreen

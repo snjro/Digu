@@ -35,7 +35,7 @@ describe("WarpSyncStatus.svelte", () => {
 
   test("shows nothing while it is not importing", async () => {
     const { container } = render(WarpSyncStatus);
-    for (const status of ["idle", "confirm", "imported"] as const) {
+    for (const status of ["idle", "checking", "confirm", "imported"] as const) {
       await setState({ status, pending });
       expect(container.textContent).toBe("");
     }
