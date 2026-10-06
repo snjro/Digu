@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { EventFragment } from "ethers";
 import {
   AllCommunityModule,
@@ -182,6 +182,20 @@ describe("eventLogCellValues", () => {
       expect(value.getCsvText(rows[rowIndex])).toBe(csvText);
     },
   );
+
+  test("should not group the digits of a bigint for the CSV", () => {
+    // The grouping is slow, and the CSV does not have it.
+    const toLocaleString = vi.spyOn(BigInt.prototype, "toLocaleString");
+    try {
+      expect(valuesOf("args.2.0").getCsvText(rows[0])).toBe(
+        "1152921504606846977",
+      );
+      expect(valuesOf("args.4.1").getCsvText(rows[0])).toBe("5");
+      expect(toLocaleString).not.toHaveBeenCalled();
+    } finally {
+      toLocaleString.mockRestore();
+    }
+  });
 
   test("should sort the datetime by the date and match it in ISO 8601", () => {
     const datetime: EventLogCellValues = valuesOf("jsDate");

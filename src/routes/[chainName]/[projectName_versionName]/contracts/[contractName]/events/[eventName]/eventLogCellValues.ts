@@ -68,11 +68,13 @@ function toFilterText(value: unknown): string | null {
   return value == null ? null : String(value);
 }
 // As exportCsv.ts: a bigint without the digit grouping, and a quote before a
-// text that a spreadsheet would read as a formula.
-function toCsvText(value: unknown, formattedText: string): string {
+// text that a spreadsheet would read as a formula. A bigint is not formatted:
+// its digit grouping is slow, and the CSV does not have it.
+function toCsvText(value: unknown, format: () => string): string {
   if (typeof value === "bigint") {
     return value.toString();
   }
+  const formattedText: string = format();
   if (typeof value === "string" && FORMULA_START.test(formattedText)) {
     return "'" + formattedText;
   }
@@ -96,7 +98,7 @@ function cellValuesOf(
     getFilterText: (row) => toFilterText(getValue(row)),
     getCsvText: (row) => {
       const value: unknown = getValue(row);
-      return toCsvText(value, formatValue(value));
+      return toCsvText(value, () => formatValue(value));
     },
   };
 }
@@ -111,7 +113,8 @@ export function eventLogCellValues(
     filterType: "text",
     getSortValue: getDatetimeValue,
     getFilterText: getDatetimeText,
-    getCsvText: (row) => toCsvText(getDatetimeValue(row), getDatetimeText(row)),
+    getCsvText: (row) =>
+      toCsvText(getDatetimeValue(row), () => getDatetimeText(row)),
   };
   const args: EventLogCellValues[] = [];
   const abiFragmentInputs: EventAbiFragment["inputs"] =
