@@ -165,8 +165,8 @@ function columnFilter<M extends ISimpleFilterModel>(
   return (row) => models.every((m) => condition(row, m));
 }
 
-// As ag-grid's QuickFilterService without the cache: each word must be in the
-// text of one column. The text of the quick search keeps its spaces.
+// As ag-grid's QuickFilterService: each word must be in the text of one
+// column. The text of the quick search keeps its spaces.
 function quickSearchFilter(
   cellValues: EventLogCellValues[],
   quickSearch: string,

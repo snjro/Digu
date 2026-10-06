@@ -79,6 +79,19 @@ describe("EventLogsTableClient", () => {
     FakeWorker.last.emit("error", { message: "worker failed" });
 
     await expect(opened).rejects.toThrow("EventLogsTableWorker: worker failed");
+    // Not the rows of a worker that answers no more.
+    expect(FakeWorker.last.terminate).toHaveBeenCalledTimes(1);
+  });
+
+  test("says that the worker could not load when the error has no message", async () => {
+    const client = new EventLogsTableClient();
+    const opened = client.open(eventIdentifier);
+
+    FakeWorker.last.emit("error", {});
+
+    await expect(opened).rejects.toThrow(
+      "EventLogsTableWorker: could not load",
+    );
   });
 
   test("rejects the requests that wait when the message cannot be read", async () => {

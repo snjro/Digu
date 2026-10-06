@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { customLogger } from "#utils/logger.js";
 import type { AbiFragmentIdentifier } from "./dbTypes";
 import type {
@@ -50,6 +50,10 @@ async function settle(): Promise<void> {
 }
 
 describe("createEventLogsTableRequestHandler", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   test("handles the requests in their order, one at a time", async () => {
     const table = fakeTable();
     const opened = deferred<EventLogsTableState>();
@@ -125,7 +129,25 @@ describe("createEventLogsTableRequestHandler", () => {
 
     expect(posted).toEqual([{ id: 1, value: queryResult }]);
     expect(customLogger.error).toHaveBeenCalledTimes(1);
-    vi.restoreAllMocks();
+  });
+
+  test("posts the error when only the response cannot be posted", async () => {
+    const table = fakeTable();
+    table.open.mockResolvedValue(state);
+    const posted: EventLogsTableWorkerResult[] = [];
+    const handle = createEventLogsTableRequestHandler(
+      (result) => {
+        // A response that cannot be cloned, for example.
+        if ("value" in result) throw new Error("could not clone");
+        posted.push(result);
+      },
+      () => table,
+    );
+
+    handle({ id: 0, type: "open", params: { eventIdentifier } });
+    await settle();
+
+    expect(posted).toEqual([{ id: 0, error: "could not clone" }]);
   });
 
   test("answers a query before open with an error", async () => {

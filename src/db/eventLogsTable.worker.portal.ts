@@ -42,8 +42,12 @@ export class EventLogsTableClient {
         }
       },
     );
+    // The handler answers the errors of each request, so this is an error of
+    // the worker itself, such as a worker that could not load.
     this.worker.addEventListener("error", (event: ErrorEvent) => {
-      this.close(`EventLogsTableWorker: ${event.message}`);
+      this.worker.terminate();
+      // A worker that could not load gives an Event without a message.
+      this.close(`EventLogsTableWorker: ${event.message ?? "could not load"}`);
     });
     this.worker.addEventListener("messageerror", () => {
       this.rejectAll("EventLogsTableWorker: could not read the message");
