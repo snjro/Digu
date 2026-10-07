@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/svelte";
-import type { IDatasource, IGetRowsParams } from "ag-grid-community";
+import type { GridApi, IDatasource, IGetRowsParams } from "ag-grid-community";
 import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
 import BaseGrid from "./BaseGrid.svelte";
 import type { InfiniteRows } from "./infiniteRows";
@@ -17,11 +17,12 @@ const rows: Row[] = [
 // keeps the text of each request.
 function datasourceOf(quickSearch: {
   text: string;
-}): IDatasource & { texts: string[] } {
+}): IDatasource & { texts: string[]; api?: GridApi } {
   const texts: string[] = [];
-  return {
+  const datasource: IDatasource & { texts: string[]; api?: GridApi } = {
     texts,
     getRows: (params: IGetRowsParams) => {
+      datasource.api = params.api;
       texts.push(quickSearch.text);
       const matched: Row[] = rows.filter((row) =>
         row.name.includes(quickSearch.text),
@@ -32,6 +33,26 @@ function datasourceOf(quickSearch: {
       );
     },
   };
+  return datasource;
+}
+function renderGrid(quickSearch: { text: string }, datasource: IDatasource) {
+  const infiniteRows: InfiniteRows<unknown> = {
+    datasource,
+    getRowId: ({ data }) => String((data as Row).id),
+    quickSearch,
+    csv: undefined,
+    rowCounts: { all: undefined, filteredAndSorted: undefined },
+  };
+  return render(BaseGrid, {
+    paramColumnDefs: [{ colId: "name", field: "name" }],
+    infiniteRows,
+    exportFilePrefix: "eventLogs",
+    hasMultipleTabs: false,
+  });
+}
+// Lets the grid ask for the blocks that it would, then counts them.
+async function settle(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 100));
 }
 async function typeQuickSearch(value: string): Promise<void> {
   await fireEvent.input(screen.getByRole("textbox", { name: "Quick search" }), {
@@ -97,5 +118,42 @@ describe("BaseGrid.svelte with the Infinite Row Model", () => {
     ).toBe("");
     // The columns are sized after a frame and a timer.
     await new Promise((resolve) => setTimeout(resolve, 100));
+  });
+
+  test("Reset all filters with a column filter and the quick search reads the rows once", async () => {
+    const quickSearch = { text: "" };
+    const datasource = datasourceOf(quickSearch);
+    const { container } = renderGrid(quickSearch, datasource);
+    await waitFor(() => expect(datasource.texts).toEqual([""]));
+    datasource.api?.setFilterModel({
+      name: { filterType: "text", type: "contains", filter: "a" },
+    });
+    await waitFor(() => expect(datasource.texts).toHaveLength(2));
+    await typeQuickSearch("app");
+    await waitFor(() => expect(datasource.texts.at(-1)).toBe("app"));
+    await settle();
+    const requests: number = datasource.texts.length;
+
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Reset all filters" }),
+    );
+    await waitFor(() => expect(shownRowCount(container)).toMatch(/of 2$/));
+    await settle();
+    expect(datasource.texts.slice(requests)).toEqual([""]);
+    expect(datasource.api?.getFilterModel()).toEqual({});
+  });
+
+  test("Reset all filters with nothing set does not read the rows", async () => {
+    const quickSearch = { text: "" };
+    const datasource = datasourceOf(quickSearch);
+    renderGrid(quickSearch, datasource);
+    await waitFor(() => expect(datasource.texts).toEqual([""]));
+    await settle();
+
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Reset all filters" }),
+    );
+    await settle();
+    expect(datasource.texts).toEqual([""]);
   });
 });

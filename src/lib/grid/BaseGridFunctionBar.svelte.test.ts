@@ -24,6 +24,7 @@ function createGridApi() {
     ),
     resetQuickFilter: vi.fn(),
     setFilterModel: vi.fn(),
+    getFilterModel: vi.fn((): Record<string, unknown> => ({})),
     hideOverlay: vi.fn(onOverlayCall),
     showNoRowsOverlay: vi.fn(onOverlayCall),
     applyColumnState: vi.fn(),
@@ -292,6 +293,35 @@ describe("BaseGridFunctionBar.svelte", () => {
       // does not); the cleared text of the box does not again.
       expect(gridApi.onFilterChanged).toHaveBeenCalledTimes(1);
     });
+
+    test.each([
+      ["a column filter and the quick search", true, "abc"],
+      ["a column filter only", true, ""],
+      ["nothing", false, ""],
+    ])(
+      "Reset all filters with %s leaves the reading to setFilterModel()",
+      async (_, hasColumnFilter, text) => {
+        vi.useFakeTimers();
+        const infiniteRows = infiniteRowsOf({ getRows: vi.fn() });
+        const gridApi = renderInfiniteBar(infiniteRows);
+        if (text) {
+          await typeQuickSearch(text);
+          vi.advanceTimersByTime(quickSearchWaitMs);
+        }
+        gridApi.getFilterModel.mockReturnValue(
+          hasColumnFilter ? { name: { filterType: "text" } } : {},
+        );
+        gridApi.onFilterChanged.mockClear();
+
+        await fireEvent.click(
+          screen.getByRole("button", { name: "Reset all filters" }),
+        );
+        await tick();
+        expect(gridApi.setFilterModel).toHaveBeenCalledWith(null);
+        expect(gridApi.onFilterChanged).not.toHaveBeenCalled();
+        expect(infiniteRows.quickSearch.text).toBe("");
+      },
+    );
 
     test("Reload resets the grid and reads the rows again", async () => {
       vi.useFakeTimers();

@@ -65,7 +65,10 @@ vi.mock("#db/eventLogsTable.worker.portal.js", () => ({
       refresh: vi.fn(() => refresh()),
       query: vi.fn(),
       csv: vi.fn(),
-      terminate: vi.fn(),
+      // As the client, which rejects every request after it.
+      terminate: vi.fn(() => {
+        client.isClosed = true;
+      }),
       isClosed: false,
     };
     fakeClients.push(client);
@@ -393,7 +396,11 @@ describe("EventLogs.svelte", () => {
   });
 
   test("shows no rows when the table could not be read, and opens it again in a new worker on new logs", async () => {
-    open.mockRejectedValueOnce(new Error("open failed"));
+    // The worker fails while it opens the table.
+    open.mockImplementationOnce(async () => {
+      fakeClients[0].isClosed = true;
+      throw new Error("EventLogsTableWorker: could not load");
+    });
     const { unmount } = renderGrid();
     await waitFor(() => expect(shown().rows).toBe(0));
     expect(customLogger.error).toHaveBeenCalledTimes(1);
@@ -402,10 +409,8 @@ describe("EventLogs.svelte", () => {
     const params = getRowsParams(0, 100);
     gridProps?.infiniteRows.datasource?.getRows(params);
     expect(params.successCallback).toHaveBeenCalledWith([], 0);
-
-    // After an error of the worker, the client rejects every request.
-    expect(fakeClients).toHaveLength(2);
-    expect(fakeClients[0].terminate).toHaveBeenCalledTimes(1);
+    // The new client is made when the table opens again.
+    expect(fakeClients).toHaveLength(1);
 
     open.mockResolvedValueOnce(tableState(1));
     await saveLogs(1);
@@ -420,23 +425,38 @@ describe("EventLogs.svelte", () => {
     expect(fakeClients[1].terminate).toHaveBeenCalledTimes(1);
   });
 
-  test("opens the table again in a new worker on the next sync, when the worker failed after it opened", async () => {
+  test("opens the table again in the same worker when the worker lives after a failed open", async () => {
+    open.mockRejectedValueOnce(new Error("EventLogsTable: DB failed"));
+    renderGrid();
+    await waitFor(() => expect(shown().rows).toBe(0));
+
+    open.mockResolvedValueOnce(tableState(1));
+    await saveLogs(1);
+    await waitFor(() => expect(shown().rows).toBe(1));
+    expect(fakeClients).toHaveLength(1);
+    expect(fakeClients[0].open).toHaveBeenCalledTimes(2);
+  });
+
+  test("opens the table again in a new worker at once, when the worker failed after it opened", async () => {
     open.mockResolvedValue(tableState(1));
     renderGrid();
     await waitFor(() => expect(shown().rows).toBe(1));
     const datasource = gridProps?.infiniteRows.datasource;
 
     // The worker fails: the client rejects every request.
-    fakeClients[0].isClosed = true;
-    refresh.mockRejectedValueOnce(new Error("EventLogsTableWorker: failed"));
+    refresh.mockImplementationOnce(async () => {
+      fakeClients[0].isClosed = true;
+      throw new Error("EventLogsTableWorker: failed");
+    });
     await saveLogs(1);
     expect(fakeClients[0].refresh).toHaveBeenCalledTimes(1);
-    expect(fakeClients).toHaveLength(2);
 
-    await saveLogs(2);
+    // Without another sync: the open waits only for the interval.
+    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
     await waitFor(() =>
       expect(gridProps?.infiniteRows.datasource).not.toBe(datasource),
     );
+    expect(fakeClients).toHaveLength(2);
     expect(fakeClients[1].open).toHaveBeenCalledWith(targetEventIdentifier);
     expect(fakeClients[0].refresh).toHaveBeenCalledTimes(1);
     expect(fakeClients[1].refresh).not.toHaveBeenCalled();

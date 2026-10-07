@@ -85,28 +85,27 @@
     let isOpen: boolean = false;
     let isClosed: boolean = false;
     const throttledLoad = createThrottledLoad(
-      (signal: AbortSignal) =>
-        isOpen
-          ? client.refresh().catch((error: unknown) => {
-              // A worker that failed after the table opened: the next sync
-              // opens the table again in a new worker.
-              if (!signal.aborted && client.isClosed) {
-                isOpen = false;
-                client = new EventLogsTableClient();
-              }
-              throw error;
-            })
-          : openEventLogsTable(client, eventIdentifier, signal),
+      (signal: AbortSignal) => {
+        if (isOpen) {
+          return client.refresh().catch((error: unknown) => {
+            // A worker that failed after the table opened: open the table
+            // again, without waiting for the next sync.
+            if (!signal.aborted && client.isClosed) {
+              isOpen = false;
+              throttledLoad.request();
+            }
+            throw error;
+          });
+        }
+        // After an error of the worker, the client rejects every request.
+        if (client.isClosed) client = new EventLogsTableClient();
+        return openEventLogsTable(client, eventIdentifier, signal);
+      },
       (state: EventLogsTableState | undefined) => {
         if (!isOpen) {
           // A table that could not be read shows no rows, and is read again
-          // when the sync saves logs of the event, in a new worker: after an
-          // error of the worker, the client rejects every request.
+          // when the sync saves logs of the event.
           isOpen = state !== undefined;
-          if (!isOpen) {
-            client.terminate();
-            client = new EventLogsTableClient();
-          }
           tableState = state ?? { rowCount: 0, argsMaxLengths: [] };
           datasource = createEventLogsDatasource(
             isOpen ? client : undefined,

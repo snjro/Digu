@@ -129,14 +129,23 @@
       buttonDefinitionFullScreen,
     ]);
   function resetAllFilters(): void {
+    // On the Infinite grid: a column filter makes setFilterModel(null) read
+    // the rows again.
+    const hadColumnFilter: boolean =
+      infiniteRows !== undefined &&
+      Object.keys(gridApi?.getFilterModel() ?? {}).length > 0;
+    const hadQuickSearch: boolean =
+      infiniteRows !== undefined && infiniteRows.quickSearch.text !== "";
     // Before the column filter changes, so that the worker does not search
     // with the old text for the rows that are thrown away.
     if (infiniteRows) infiniteRows.quickSearch.text = "";
     gridApi?.resetQuickFilter();
     gridApi?.setFilterModel(null);
-    // Without a column filter, setFilterModel(null) does not read the rows
-    // again, and the quick search box does not for the text cleared above.
-    if (infiniteRows) gridApi?.onFilterChanged();
+    // Without a column filter, only this reads the rows without the text
+    // cleared above: the quick search box does not for the same text.
+    if (hadQuickSearch && !hadColumnFilter) {
+      gridApi?.onFilterChanged();
+    }
     quickSearchText = "";
   }
   function reload(): void {
