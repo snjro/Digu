@@ -7,6 +7,8 @@ export function setAutoColumnWidth(
 ): void {
   gridApi.sizeColumnsToFit(0);
   setTimeout(() => {
+    // The grid may be gone by then, and ag-grid warns.
+    if (gridApi.isDestroyed()) return;
     gridApi.autoSizeAllColumns(skipHeader);
   }, waitMilliSecond);
 }
