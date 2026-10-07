@@ -65,6 +65,8 @@ function startImport(targetChain: Chain): RunningImport {
   let end: WarpSyncState | undefined = undefined;
   const ran: Promise<boolean> = withSyncLock(chainName, async () => {
     end = await runImport(targetChain, true);
+    // After a stop or a failure, runImport read the DB in the lock already.
+    return end?.status === "stopped" || end?.status === "failed";
   }).finally(() => {
     runningImports.delete(chainName);
     // Only once the lock is released: Retry and Import, shown in the end
@@ -272,18 +274,19 @@ async function getPendingOrUndefined(
 }
 
 // Returns false when this tab or another tab held the lock, and nothing ran.
-// The import is tried again next time.
+// The import is tried again next time. run returns true when it has read the
+// DB into the stores itself.
 async function withSyncLock(
   chainName: ChainName,
-  run: () => Promise<void>,
+  run: () => Promise<boolean>,
 ): Promise<boolean> {
   try {
     const ran: boolean = await runWithSyncLock(
       chainName,
       async (): Promise<void> => {
-        await run();
+        const reloaded: boolean = await run();
         // Without Web Locks (insecure context), work as a single tab.
-        if (!navigator.locks) return;
+        if (!navigator.locks || reloaded) return;
         // Another tab may have imported or synced since this tab read the
         // DB, and then this import skips everything.
         await reloadSyncStatusInChain(chainName).catch((error: unknown) => {

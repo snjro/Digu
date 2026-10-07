@@ -374,19 +374,18 @@ describe("warpSync", () => {
     );
   }
 
-  // How the import ends in each end state. reloadsBefore: the reloads of the
-  // sync status in runImport, before the one after it in the lock.
+  // How the import ends in each end state. stop: what the user does while it
+  // runs.
   const endings: {
     status: WarpSyncState["status"];
     prepare: () => Promise<void>;
     start: () => Promise<void>;
-    reloadsBefore: number;
+    stop?: () => Promise<void>;
   }[] = [
     {
       status: "imported",
       prepare: async () => {},
       start: () => startWarpSync(matic),
-      reloadsBefore: 0,
     },
     {
       status: "none",
@@ -394,7 +393,6 @@ describe("warpSync", () => {
         vi.mocked(fetchWarpSyncManifest).mockResolvedValueOnce(undefined);
       },
       start: () => startWarpSync(matic),
-      reloadsBefore: 0,
     },
     {
       status: "confirm",
@@ -402,7 +400,6 @@ describe("warpSync", () => {
         vi.mocked(getWarpSyncPending).mockResolvedValue(large);
       },
       start: () => startWarpSync(matic),
-      reloadsBefore: 0,
     },
     {
       status: "unsupported",
@@ -411,7 +408,6 @@ describe("warpSync", () => {
         vi.stubGlobal("DecompressionStream", undefined);
       },
       start: () => startWarpSync(matic),
-      reloadsBefore: 0,
     },
     {
       status: "failed",
@@ -420,7 +416,6 @@ describe("warpSync", () => {
         vi.mocked(importWarpSync).mockRejectedValueOnce(new Error("timeout"));
       },
       start: () => startWarpSync(matic),
-      reloadsBefore: 1,
     },
     {
       status: "stopped",
@@ -430,27 +425,23 @@ describe("warpSync", () => {
         await startWarpSync(matic);
         importUntilStopped();
       },
-      start: () => {
-        const importing = confirmWarpSync(matic);
-        void vi
-          .waitFor(() => expect(importWarpSync).toHaveBeenCalled())
-          .then(() => stopWarpSync("matic"));
-        return importing;
+      start: () => confirmWarpSync(matic),
+      stop: async () => {
+        await vi.waitFor(() => expect(importWarpSync).toHaveBeenCalled());
+        stopWarpSync("matic");
       },
-      reloadsBefore: 1,
     },
   ];
 
+  // The sync status is read once in the lock: after the import, or in the
+  // catch after a stop or a failure.
   test.each(endings)(
     "shows $status only once the import has released the lock",
-    async ({ status, prepare, start, reloadsBefore }) => {
+    async ({ status, prepare, start, stop }) => {
       try {
         await prepare();
         const reload = vi.mocked(reloadSyncStatusInChain);
         const calls: number = reload.mock.calls.length;
-        for (let i = 0; i < reloadsBefore; i++) {
-          reload.mockResolvedValueOnce(undefined);
-        }
         let release: () => void = () => {};
         reload.mockReturnValueOnce(
           new Promise<void>((resolve) => (release = resolve)),
@@ -467,9 +458,8 @@ describe("warpSync", () => {
           held.push(lockManager.query());
         });
         const ending: Promise<void> = start();
-        await vi.waitFor(() =>
-          expect(reload).toHaveBeenCalledTimes(calls + reloadsBefore + 1),
-        );
+        await stop?.();
+        await vi.waitFor(() => expect(reload).toHaveBeenCalledTimes(calls + 1));
         expect(
           selectWarpSyncState(get(storeWarpSync), "matic").status,
         ).not.toBe(status);
@@ -481,6 +471,7 @@ describe("warpSync", () => {
         );
         expect(held).toHaveLength(1);
         expect((await held[0]).held).toEqual([]);
+        expect(reload).toHaveBeenCalledTimes(calls + 1);
       } finally {
         vi.unstubAllGlobals();
       }
@@ -787,7 +778,7 @@ describe("warpSync", () => {
       );
     });
 
-    // A failed import that holds the lock in the reload after it, until
+    // A failed import that holds the lock in the reload in its catch, until
     // release() is called. It is not "failed" yet, so Retry is not shown.
     async function failAndHoldLock(): Promise<{
       failing: Promise<void>;
@@ -795,16 +786,13 @@ describe("warpSync", () => {
     }> {
       vi.spyOn(customLogger, "error").mockImplementation(() => {});
       vi.mocked(importWarpSync).mockRejectedValueOnce(new Error("timeout"));
-      // The reload in the catch ends; the one after the import waits.
       let release: () => void = () => {};
-      vi.mocked(reloadSyncStatusInChain)
-        .mockResolvedValueOnce(undefined)
-        .mockReturnValueOnce(
-          new Promise<void>((resolve) => (release = resolve)),
-        );
+      vi.mocked(reloadSyncStatusInChain).mockReturnValueOnce(
+        new Promise<void>((resolve) => (release = resolve)),
+      );
       const failing = startWarpSync(matic);
       await vi.waitFor(() =>
-        expect(reloadSyncStatusInChain).toHaveBeenCalledTimes(2),
+        expect(reloadSyncStatusInChain).toHaveBeenCalledTimes(1),
       );
       expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
         "importing",
@@ -822,25 +810,23 @@ describe("warpSync", () => {
       expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
         "imported",
       );
-      // The two queued results, and the reload after the retry.
-      expect(reloadSyncStatusInChain).toHaveBeenCalledTimes(3);
+      // The reload in the catch of the failure, and the one after the retry.
+      expect(reloadSyncStatusInChain).toHaveBeenCalledTimes(2);
     });
 
     test("imports again when the retried import fails, while its reload holds the lock", async () => {
       const { failing, release } = await failAndHoldLock();
-      // The retried import fails too, and its reload after it waits.
+      // The retried import fails too, and the reload in its catch waits.
       vi.mocked(importWarpSync).mockRejectedValueOnce(new Error("timeout"));
       let releaseRetried: () => void = () => {};
-      vi.mocked(reloadSyncStatusInChain)
-        .mockResolvedValueOnce(undefined)
-        .mockReturnValueOnce(
-          new Promise<void>((resolve) => (releaseRetried = resolve)),
-        );
+      vi.mocked(reloadSyncStatusInChain).mockReturnValueOnce(
+        new Promise<void>((resolve) => (releaseRetried = resolve)),
+      );
       const retried = clickWhenShown("failed", () => retryWarpSync(matic));
       release();
       await failing;
       await vi.waitFor(() =>
-        expect(reloadSyncStatusInChain).toHaveBeenCalledTimes(4),
+        expect(reloadSyncStatusInChain).toHaveBeenCalledTimes(2),
       );
       expect(importWarpSync).toHaveBeenCalledTimes(2);
       // Not "failed" while the retried import holds the lock.
@@ -855,8 +841,8 @@ describe("warpSync", () => {
       expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
         "imported",
       );
-      // The four queued results, and the reload after the third import.
-      expect(reloadSyncStatusInChain).toHaveBeenCalledTimes(5);
+      // One reload for each of the three imports.
+      expect(reloadSyncStatusInChain).toHaveBeenCalledTimes(3);
     });
 
     test("does nothing when it is off", async () => {
