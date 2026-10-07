@@ -99,6 +99,27 @@
           "range": 0
         }
       }
+    },
+    {
+      "createdAt": "2026-10-07T07:38:36.498Z",
+      "latestBlockNumber": 95102334,
+      "toBlock": 95102206,
+      "logCount": 0,
+      "requests": {
+        "eth_chainId": 1,
+        "eth_blockNumber": 1,
+        "eth_getLogs": 43
+      },
+      "checks": {
+        "emptyRangesAskedAgain": 12,
+        "emptyRangesWithLogs": 0,
+        "errors": {
+          "rate": 0,
+          "results": 0,
+          "unrelated": 4,
+          "range": 5
+        }
+      }
     }
   ],
   "chunks": [
@@ -337,6 +358,60 @@
       "rawBytes": 499,
       "sha256": "88f2be0be5813a99ef2046640cd1e44055dc2b37683335e8bb6cdb7f4b9d3c76",
       "rawSha256": "c568a558fe7c459d97c8a5f2a518981c3997755eeedfa7eb9362e49ff2201925"
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "AMMFactory",
+      "fromBlock": 95035434,
+      "toBlock": 95102206,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "BalancerFactory",
+      "fromBlock": 95035434,
+      "toBlock": 95102206,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "FeePot",
+      "fromBlock": 95035434,
+      "toBlock": 95102206,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "MMALinkMarketFactory",
+      "fromBlock": 95035434,
+      "toBlock": 95102206,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "PlaceholderReputationToken",
+      "fromBlock": 95035434,
+      "toBlock": 95102206,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "SportsLinkMarketFactory",
+      "fromBlock": 95035434,
+      "toBlock": 95102206,
+      "logCount": 0,
+      "file": null
     }
   ],
   "totals": {

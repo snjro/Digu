@@ -166,6 +166,27 @@
           "range": 0
         }
       }
+    },
+    {
+      "createdAt": "2026-10-07T07:40:23.674Z",
+      "latestBlockNumber": 26139063,
+      "toBlock": 26138967,
+      "logCount": 27,
+      "requests": {
+        "eth_chainId": 1,
+        "eth_blockNumber": 1,
+        "eth_getLogs": 75
+      },
+      "checks": {
+        "emptyRangesAskedAgain": 11,
+        "emptyRangesWithLogs": 0,
+        "errors": {
+          "rate": 34,
+          "results": 0,
+          "unrelated": 0,
+          "range": 3
+        }
+      }
     }
   ],
   "chunks": [
@@ -2356,11 +2377,175 @@
       "toBlock": 26130653,
       "logCount": 0,
       "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "version1",
+      "name": "Augur",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 3,
+      "file": "Augur-version1-Augur-26138967.json.gz",
+      "bytes": 637,
+      "rawBytes": 1623,
+      "sha256": "4df2a113b2b8f754c8b1652384bf83761368e4a81468dad3b074f29aeaf19e10",
+      "rawSha256": "999afb2efdcc2e7ababf6342f09242fef1e27350cd3992e38a7234f9f390bab1"
+    },
+    {
+      "project": "Augur",
+      "version": "version1",
+      "name": "LegacyReputationToken",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "version1",
+      "name": "ShareToken",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "Augur",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 12,
+      "file": "Augur-version2-Augur-26138967.json.gz",
+      "bytes": 901,
+      "rawBytes": 5606,
+      "sha256": "06bc9cf8345634d7a99cceb32dc182174c05e7f75a461e4df5da8a26363f4151",
+      "rawSha256": "1e40ad3a83285ca6b52518995f6597c0d45d9ac9e376019f404e417a44ce2f8b"
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "LegacyReputationToken",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 4,
+      "file": "Augur-version2-LegacyReputationToken-26138967.json.gz",
+      "bytes": 674,
+      "rawBytes": 1525,
+      "sha256": "9e048f0c24ad3544617ed3e878822d81911813b23441dd7b35b98a765e28c6a8",
+      "rawSha256": "fc7b722df9ee03656fb8571e04e2ddcb0d3d3e58a05792e1e2de390755c6b7fb"
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "ShareToken",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "AugurTrading",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "REPv2",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 1,
+      "file": "Augur-version2-REPv2-26138967.json.gz",
+      "bytes": 369,
+      "rawBytes": 521,
+      "sha256": "14fd5b4bb9f4ceb6992d1d9faa3329a45d077f3465b235d7f1b81c9907005b57",
+      "rawSha256": "570a49e22f7abfe29efab9f7ca56411d6519efbe7b5fb89f2838da708d0a1452"
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "ZeroXTrade",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "OICash",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "AugurWalletRegistry",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "AugurWalletRegistryV2",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "REPv2_Yes_1",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 7,
+      "file": "Augur-version2-REPv2_Yes_1-26138967.json.gz",
+      "bytes": 841,
+      "rawBytes": 2688,
+      "sha256": "b3bf15e97454b406fb18efe903c5590a5ee54e23e6ea2e736ed2d3f8cb8773c9",
+      "rawSha256": "bc8b91357e126cf51d6dcbe326b3b898bf457e5e7903e911eabba1d030d26786"
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "OICash_Yes_1",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "REPv2_No_1",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "version2",
+      "name": "OICash_No_1",
+      "fromBlock": 26130654,
+      "toBlock": 26138967,
+      "logCount": 0,
+      "file": null
     }
   ],
   "totals": {
-    "logCount": 2641924,
-    "bytes": 156488206,
-    "rawBytes": 1071888694
+    "logCount": 2641951,
+    "bytes": 156491628,
+    "rawBytes": 1071900657
   }
 }
