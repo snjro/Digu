@@ -2,26 +2,26 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick } from "svelte";
 import type { Writable } from "svelte/store";
 import { render, screen, waitFor } from "@testing-library/svelte";
+import type { GridApi, IGetRowsParams } from "ag-grid-community";
 import type { EventAbiFragment } from "#constants/chains/types.js";
 import type {
   AbiFragmentIdentifier,
-  ConvertedEventLog,
   SyncStatusContract,
   SyncStatusesChain,
 } from "#db/dbTypes.js";
+import type {
+  EventLogsTableRefreshResult,
+  EventLogsTableState,
+  StoredEventLog,
+} from "#db/eventLogsTable.js";
+import type { InfiniteRows } from "#lib/grid/infiniteRows.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { customLogger } from "#utils/logger.js";
 import {
   setWarpSyncState,
   storeWarpSync,
   type WarpSyncState,
 } from "#warpSync/warpSyncState.js";
-import { eventLogsCsvInWorker } from "#db/eventLogsTable.worker.portal.js";
-import type {
-  CsvMaker,
-  CsvRequest,
-  CsvResult,
-} from "#lib/grid/ExportCsv/csvFormat.js";
-import { gridRows } from "./gridRows";
 import EventLogs, {
   EVENT_LOGS_RELOAD_INTERVAL,
   MESSAGE_WAITING_FOR_IMPORT,
@@ -33,7 +33,7 @@ vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncStatus: writable({}) };
 });
-vi.mock("./gridRows", () => ({ gridRows: vi.fn() }));
+vi.mock("#utils/logger.js", () => ({ customLogger: { error: vi.fn() } }));
 vi.mock("#lib/common/CommonChainExplorerLink.svelte", async () => {
   const { default: Stub } =
     await import("../../functions/[functionName]/pageTabs.testStub.svelte");
@@ -42,8 +42,43 @@ vi.mock("#lib/common/CommonChainExplorerLink.svelte", async () => {
       Stub(anchor as never, { stubName: String(props.value) }),
   };
 });
-// Shows the number of rows, which column definitions the grid got (the same
-// number while the grid gets the same array), and the loading text.
+
+// Stands in for the table worker. The test decides what each request gives.
+const fakeClients = vi.hoisted(() => {
+  const clients: {
+    open: ReturnType<typeof vi.fn>;
+    refresh: ReturnType<typeof vi.fn>;
+    query: ReturnType<typeof vi.fn>;
+    csv: ReturnType<typeof vi.fn>;
+    terminate: ReturnType<typeof vi.fn>;
+    isClosed: boolean;
+  }[] = [];
+  return clients;
+});
+const open =
+  vi.fn<(id: AbiFragmentIdentifier) => Promise<EventLogsTableState>>();
+const refresh = vi.fn<() => Promise<EventLogsTableRefreshResult>>();
+vi.mock("#db/eventLogsTable.worker.portal.js", () => ({
+  EventLogsTableClient: vi.fn().mockImplementation(function () {
+    const client = {
+      open: vi.fn((id: AbiFragmentIdentifier) => open(id)),
+      refresh: vi.fn(() => refresh()),
+      query: vi.fn(),
+      csv: vi.fn(),
+      // As the client, which rejects every request after it.
+      terminate: vi.fn(() => {
+        client.isClosed = true;
+      }),
+      isClosed: false,
+    };
+    fakeClients.push(client);
+    return client;
+  }),
+}));
+
+// Shows the rows of the table, which column definitions the grid got (the
+// same number while the grid gets the same array), whether it has a
+// datasource, and the loading text.
 const columnDefsIds = new Map<object, number>();
 function columnDefsId(columnDefs: object): number {
   if (!columnDefsIds.has(columnDefs)) {
@@ -51,27 +86,31 @@ function columnDefsId(columnDefs: object): number {
   }
   return columnDefsIds.get(columnDefs)!;
 }
-vi.mock("#db/eventLogsTable.worker.portal.js", () => ({
-  eventLogsCsvInWorker: vi.fn(),
-}));
 type GridProps = {
-  rows: unknown[] | undefined;
+  infiniteRows: InfiniteRows<StoredEventLog>;
   paramColumnDefs: object;
   loadingText?: string;
-  csvOfAllRows?: CsvMaker;
+  gridApi?: GridApi;
 };
 let gridProps: GridProps | undefined;
+const gridApi = {
+  refreshInfiniteCache: vi.fn(),
+} as unknown as GridApi & { refreshInfiniteCache: ReturnType<typeof vi.fn> };
 vi.mock("#lib/grid/BaseGrid.svelte", async () => {
   const { default: Stub } =
     await import("../../functions/[functionName]/pageTabs.testStub.svelte");
   return {
-    default: (anchor: unknown, props: GridProps) =>
-      Stub(anchor as never, {
+    default: (anchor: unknown, props: GridProps) => {
+      // As bind:gridApi of the grid that is created.
+      props.gridApi = gridApi;
+      return Stub(anchor as never, {
         get stubName() {
           gridProps = props;
-          return `rows=${props.rows?.length} columns=${columnDefsId(props.paramColumnDefs)} loading=${props.loadingText ?? ""}`;
+          const { datasource, rowCounts } = props.infiniteRows;
+          return `rows=${rowCounts.all} datasource=${datasource !== undefined} columns=${columnDefsId(props.paramColumnDefs)} loading=${props.loadingText ?? ""}`;
         },
-      }),
+      });
+    },
   };
 });
 
@@ -134,15 +173,16 @@ function setRecordCount(transfer: number, approval: number = 0): void {
   });
 }
 
-// A log whose array argument has this length.
-function log(blockNumber: number, length: number): ConvertedEventLog {
-  return {
-    blockNumber,
-    args: [Array.from({ length }, (_, index) => BigInt(index))],
-  } as unknown as ConvertedEventLog;
+// A table of rowCount rows, whose longest array argument has this length.
+function tableState(rowCount: number, length: number = 1): EventLogsTableState {
+  return { rowCount, argsMaxLengths: [rowCount === 0 ? 0 : length] };
 }
-
-const load = vi.mocked(gridRows);
+function refreshed(
+  rowCount: number,
+  length: number = 1,
+): EventLogsTableRefreshResult {
+  return { ...tableState(rowCount, length), reloaded: false };
+}
 
 // Like the sync, save logs of the event. The rows reload within the interval.
 async function saveLogs(transfer: number): Promise<void> {
@@ -157,19 +197,23 @@ function renderGrid() {
     isFullScreen: false,
   });
 }
-// rows is undefined until the rows are loaded.
+// rows is undefined until the table is read.
 function shown(): {
   rows: number | undefined;
+  hasDatasource: boolean;
   columns: number;
   loadingText: string;
 } {
   const text: string = screen.getByTestId("stub").textContent ?? "";
-  const match = text.match(/^rows=(\d+|undefined) columns=(\d+) loading=(.*)$/);
+  const match = text.match(
+    /^rows=(\d+|undefined) datasource=(true|false) columns=(\d+) loading=(.*)$/,
+  );
   if (!match) throw new Error(`The grid stub shows "${text}".`);
   return {
     rows: match[1] === "undefined" ? undefined : Number(match[1]),
-    columns: Number(match[2]),
-    loadingText: match[3],
+    hasDatasource: match[2] === "true",
+    columns: Number(match[3]),
+    loadingText: match[4],
   };
 }
 function setWarpSync(
@@ -178,12 +222,35 @@ function setWarpSync(
 ): void {
   setWarpSyncState(chainName as never, { status });
 }
+function lastClient() {
+  return fakeClients[fakeClients.length - 1];
+}
+function getRowsParams(
+  startRow: number,
+  endRow: number,
+): IGetRowsParams & {
+  successCallback: ReturnType<typeof vi.fn>;
+  failCallback: ReturnType<typeof vi.fn>;
+} {
+  return {
+    startRow,
+    endRow,
+    sortModel: [{ colId: "blockNumber", sort: "desc" }],
+    filterModel: {},
+    successCallback: vi.fn(),
+    failCallback: vi.fn(),
+  } as unknown as ReturnType<typeof getRowsParams>;
+}
 
 describe("EventLogs.svelte", () => {
   beforeEach(() => {
     store.set(initialState());
     storeWarpSync.set({});
-    load.mockReset();
+    fakeClients.length = 0;
+    open.mockReset();
+    refresh.mockReset();
+    vi.mocked(customLogger.error).mockClear();
+    gridApi.refreshInfiniteCache.mockClear();
     // waitFor checks with setInterval, so keep it real.
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
   });
@@ -191,245 +258,405 @@ describe("EventLogs.svelte", () => {
     vi.useRealTimers();
   });
 
-  test("reloads the rows when the record count of the event changes", async () => {
-    load.mockResolvedValueOnce([]);
+  test("opens the table of the event in the table worker and gives the grid a datasource", async () => {
+    open.mockResolvedValueOnce(tableState(2));
+    renderGrid();
+    expect(shown()).toMatchObject({ rows: undefined, hasDatasource: false });
+    await waitFor(() => expect(shown().rows).toBe(2));
+    expect(fakeClients).toHaveLength(1);
+    expect(lastClient().open).toHaveBeenCalledWith(targetEventIdentifier);
+    expect(shown().hasDatasource).toBe(true);
+    expect(gridProps?.infiniteRows.getRowId).toBeTypeOf("function");
+  });
+
+  test("refreshes the table when the record count of the event changes", async () => {
+    open.mockResolvedValueOnce(tableState(0));
     renderGrid();
     await waitFor(() => expect(shown().rows).toBe(0));
-    expect(load).toHaveBeenCalledTimes(1);
-    expect(load).toHaveBeenCalledWith(
-      targetEventIdentifier,
-      expect.any(AbortSignal),
-    );
+    const datasource = gridProps?.infiniteRows.datasource;
     const columnsOfNoRows: number = shown().columns;
 
     // The first log adds a column for the array argument.
-    load.mockResolvedValueOnce([log(10, 1)]);
+    refresh.mockResolvedValueOnce(refreshed(1, 1));
     await saveLogs(1);
     await waitFor(() => expect(shown().rows).toBe(1));
-    expect(load).toHaveBeenCalledTimes(2);
+    expect(lastClient().refresh).toHaveBeenCalledTimes(1);
+    // The grid reads the shown blocks again with the same datasource.
+    expect(gridApi.refreshInfiniteCache).toHaveBeenCalledTimes(1);
+    expect(gridProps?.infiniteRows.datasource).toBe(datasource);
     const columnsOfOneItem: number = shown().columns;
     expect(columnsOfOneItem).not.toBe(columnsOfNoRows);
 
     // Same array lengths: the grid keeps the same column definitions.
-    load.mockResolvedValueOnce([log(10, 1), log(20, 1)]);
+    refresh.mockResolvedValueOnce(refreshed(2, 1));
     await saveLogs(2);
     await waitFor(() => expect(shown().rows).toBe(2));
     expect(shown().columns).toBe(columnsOfOneItem);
 
     // A longer array: new column definitions.
-    load.mockResolvedValueOnce([log(10, 1), log(20, 1), log(30, 2)]);
+    refresh.mockResolvedValueOnce(refreshed(3, 2));
     await saveLogs(3);
     await waitFor(() => expect(shown().rows).toBe(3));
     expect(shown().columns).not.toBe(columnsOfOneItem);
-    expect(load).toHaveBeenCalledTimes(4);
+    expect(lastClient().open).toHaveBeenCalledTimes(1);
+    expect(lastClient().refresh).toHaveBeenCalledTimes(3);
+    expect(gridApi.refreshInfiniteCache).toHaveBeenCalledTimes(3);
   });
 
-  test("makes the CSV of All in the table worker of the event", async () => {
-    load.mockResolvedValue([]);
-    const csvResult = { rowCount: 0 } as CsvResult;
-    vi.mocked(eventLogsCsvInWorker).mockResolvedValue(csvResult);
+  test("does not refresh when only other values change", async () => {
+    open.mockResolvedValue(tableState(0));
     renderGrid();
     await waitFor(() => expect(shown().rows).toBe(0));
-
-    const request = { maxRows: 1 } as CsvRequest;
-    await expect(gridProps?.csvOfAllRows?.(request)).resolves.toBe(csvResult);
-    expect(eventLogsCsvInWorker).toHaveBeenCalledWith(
-      targetEventIdentifier,
-      request,
-    );
-  });
-
-  test("leaves the CSV to the grid while the rows load or are imported", async () => {
-    let resolveLoad: (rows: ConvertedEventLog[]) => void = () => {};
-    load.mockReturnValueOnce(
-      new Promise((resolve) => {
-        resolveLoad = resolve;
-      }),
-    );
-    load.mockResolvedValue([]);
-    renderGrid();
-    await tick();
-    expect(shown().rows).toBeUndefined();
-    expect(gridProps?.csvOfAllRows).toBeUndefined();
-
-    resolveLoad([]);
-    await waitFor(() => expect(shown().rows).toBe(0));
-    expect(gridProps?.csvOfAllRows).toBeTypeOf("function");
-
-    setWarpSync("importing");
-    await waitFor(() => expect(shown().rows).toBeUndefined());
-    expect(gridProps?.csvOfAllRows).toBeUndefined();
-
-    setWarpSync("imported");
-    await waitFor(() => expect(shown().rows).toBe(0));
-    expect(gridProps?.csvOfAllRows).toBeTypeOf("function");
-  });
-
-  test("does not reload when only other values change", async () => {
-    load.mockResolvedValue([]);
-    renderGrid();
-    await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
 
     setContract({ fetchedBlockNumber: 200, isSyncing: true });
     setRecordCount(0, 5);
     await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
     await tick();
-    expect(load).toHaveBeenCalledTimes(1);
+    expect(lastClient().refresh).not.toHaveBeenCalled();
   });
 
-  test("reloads once or twice for saves in a short time, and after the last save", async () => {
-    load.mockResolvedValueOnce([]);
+  test("refreshes once or twice for saves in a short time, and after the last save", async () => {
+    open.mockResolvedValueOnce(tableState(0));
     renderGrid();
     await waitFor(() => expect(shown().rows).toBe(0));
 
-    // A load reads the logs saved by then.
-    let savedLogs: ConvertedEventLog[] = [];
-    load.mockImplementation(async () => savedLogs);
+    // A refresh reads the logs saved by then.
+    let savedLogs: number = 0;
+    refresh.mockImplementation(async () => refreshed(savedLogs));
     for (let count = 1; count <= 5; count++) {
-      savedLogs = Array.from({ length: count }, (_, index) => log(index, 1));
+      savedLogs = count;
       setRecordCount(count);
       await vi.advanceTimersByTimeAsync(200);
     }
     await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL * 3);
-    const reloads: number = load.mock.calls.length - 1;
-    expect(reloads).toBeGreaterThanOrEqual(1);
-    expect(reloads).toBeLessThanOrEqual(2);
+    const refreshes: number = lastClient().refresh.mock.calls.length;
+    expect(refreshes).toBeGreaterThanOrEqual(1);
+    expect(refreshes).toBeLessThanOrEqual(2);
     await waitFor(() => expect(shown().rows).toBe(5));
   });
 
-  test("stops the running load when the grid closes", async () => {
-    load.mockReturnValueOnce(new Promise(() => {}));
+  test("stops the worker when the grid closes, and does not log the stopped open", async () => {
+    let rejectOpen: (error: Error) => void = () => {};
+    open.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        rejectOpen = reject;
+      }),
+    );
     const { unmount } = renderGrid();
-    expect(load).toHaveBeenCalledTimes(1);
-    const signal: AbortSignal = load.mock.calls[0][1]!;
-    expect(signal.aborted).toBe(false);
+    const client = lastClient();
 
     unmount();
-    expect(signal.aborted).toBe(true);
+    expect(client.terminate).toHaveBeenCalledTimes(1);
+    rejectOpen(new Error("EventLogsTableWorker: terminated"));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(customLogger.error).not.toHaveBeenCalled();
   });
 
-  test("loads another event at once and stops the load of the previous one", async () => {
-    load.mockReturnValueOnce(new Promise(() => {}));
-    const { rerender } = renderGrid();
-    const signal: AbortSignal = load.mock.calls[0][1]!;
+  test("stops the worker of an open table when the grid closes", async () => {
+    open.mockResolvedValueOnce(tableState(1));
+    const { unmount } = renderGrid();
+    await waitFor(() => expect(shown().rows).toBe(1));
+    const client = lastClient();
+    expect(client.terminate).not.toHaveBeenCalled();
 
-    load.mockResolvedValueOnce([log(10, 1)]);
+    unmount();
+    expect(client.terminate).toHaveBeenCalledTimes(1);
+  });
+
+  test("opens another event at once in a new worker and stops the previous one", async () => {
+    open.mockReturnValueOnce(new Promise(() => {}));
+    const { rerender } = renderGrid();
+    const previous = lastClient();
+
+    open.mockResolvedValueOnce(tableState(1));
     const approval: AbiFragmentIdentifier = {
       ...targetEventIdentifier,
       abiFragmentName: "Approval",
     } as AbiFragmentIdentifier;
     await rerender({ targetEventIdentifier: approval });
-    expect(signal.aborted).toBe(true);
-    expect(load).toHaveBeenCalledTimes(2);
-    expect(load).toHaveBeenLastCalledWith(approval, expect.any(AbortSignal));
+    expect(previous.terminate).toHaveBeenCalledTimes(1);
+    expect(fakeClients).toHaveLength(2);
+    expect(lastClient().open).toHaveBeenCalledWith(approval);
     await waitFor(() => expect(shown().rows).toBe(1));
   });
-  test("does not show the rows of the previous event while another loads", async () => {
-    load.mockResolvedValueOnce([log(10, 1), log(20, 1)]);
+
+  test("does not show the table of the previous event while another opens", async () => {
+    open.mockResolvedValueOnce(tableState(2));
     const { rerender } = renderGrid();
     await waitFor(() => expect(shown().rows).toBe(2));
 
-    load.mockReturnValueOnce(new Promise(() => {}));
+    open.mockReturnValueOnce(new Promise(() => {}));
     await rerender({
       targetEventIdentifier: {
         ...targetEventIdentifier,
         abiFragmentName: "Approval",
       } as AbiFragmentIdentifier,
     });
-    expect(shown().rows).toBeUndefined();
+    expect(shown()).toMatchObject({ rows: undefined, hasDatasource: false });
+  });
+
+  test("shows no rows when the table could not be read, and opens it again in a new worker on new logs", async () => {
+    // The worker fails while it opens the table.
+    open.mockImplementationOnce(async () => {
+      fakeClients[0].isClosed = true;
+      throw new Error("EventLogsTableWorker: could not load");
+    });
+    const { unmount } = renderGrid();
+    await waitFor(() => expect(shown().rows).toBe(0));
+    expect(customLogger.error).toHaveBeenCalledTimes(1);
+    expect(shown().hasDatasource).toBe(true);
+    expect(gridProps?.infiniteRows.csv).toBeUndefined();
+    const params = getRowsParams(0, 100);
+    gridProps?.infiniteRows.datasource?.getRows(params);
+    expect(params.successCallback).toHaveBeenCalledWith([], 0);
+    // The new client is made when the table opens again.
+    expect(fakeClients).toHaveLength(1);
+
+    open.mockResolvedValueOnce(tableState(1));
+    await saveLogs(1);
+    await waitFor(() => expect(shown().rows).toBe(1));
+    expect(fakeClients).toHaveLength(2);
+    expect(fakeClients[0].open).toHaveBeenCalledTimes(1);
+    expect(fakeClients[1].open).toHaveBeenCalledWith(targetEventIdentifier);
+    expect(fakeClients[1].refresh).not.toHaveBeenCalled();
+    expect(gridProps?.infiniteRows.csv).toBeTypeOf("function");
+
+    unmount();
+    expect(fakeClients[1].terminate).toHaveBeenCalledTimes(1);
+  });
+
+  test("opens the table again in the same worker when the worker lives after a failed open", async () => {
+    open.mockRejectedValueOnce(new Error("EventLogsTable: DB failed"));
+    renderGrid();
+    await waitFor(() => expect(shown().rows).toBe(0));
+
+    open.mockResolvedValueOnce(tableState(1));
+    await saveLogs(1);
+    await waitFor(() => expect(shown().rows).toBe(1));
+    expect(fakeClients).toHaveLength(1);
+    expect(fakeClients[0].open).toHaveBeenCalledTimes(2);
+  });
+
+  test("opens the table again in a new worker at once, when the worker failed after it opened", async () => {
+    open.mockResolvedValue(tableState(1));
+    renderGrid();
+    await waitFor(() => expect(shown().rows).toBe(1));
+    const datasource = gridProps?.infiniteRows.datasource;
+
+    // The worker fails: the client rejects every request.
+    refresh.mockImplementationOnce(async () => {
+      fakeClients[0].isClosed = true;
+      throw new Error("EventLogsTableWorker: failed");
+    });
+    await saveLogs(1);
+    expect(fakeClients[0].refresh).toHaveBeenCalledTimes(1);
+
+    // Without another sync: the open waits only for the interval.
+    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
+    await waitFor(() =>
+      expect(gridProps?.infiniteRows.datasource).not.toBe(datasource),
+    );
+    expect(fakeClients).toHaveLength(2);
+    expect(fakeClients[1].open).toHaveBeenCalledWith(targetEventIdentifier);
+    expect(fakeClients[0].refresh).toHaveBeenCalledTimes(1);
+    expect(fakeClients[1].refresh).not.toHaveBeenCalled();
+  });
+
+  test("refreshes with the same worker after a refresh that failed while the worker lives", async () => {
+    open.mockResolvedValue(tableState(1));
+    renderGrid();
+    await waitFor(() => expect(shown().rows).toBe(1));
+
+    refresh.mockRejectedValueOnce(new Error("EventLogsTable: DB failed"));
+    await saveLogs(1);
+    refresh.mockResolvedValueOnce(refreshed(2));
+    await saveLogs(2);
+    await waitFor(() => expect(shown().rows).toBe(2));
+    expect(fakeClients).toHaveLength(1);
+    expect(fakeClients[0].refresh).toHaveBeenCalledTimes(2);
+  });
+
+  test("the datasource asks the worker for the blocks with the quick search, and counts the rows", async () => {
+    open.mockResolvedValueOnce(tableState(5));
+    renderGrid();
+    await waitFor(() => expect(shown().rows).toBe(5));
+    const infiniteRows = gridProps!.infiniteRows;
+    const rows = [{ id: 7 }] as StoredEventLog[];
+    lastClient().query.mockResolvedValueOnce({ rows, lastRow: 3 });
+    infiniteRows.quickSearch.text = "0xab";
+
+    const params = getRowsParams(100, 200);
+    infiniteRows.datasource?.getRows(params);
+    expect(lastClient().query).toHaveBeenCalledWith({
+      startRow: 100,
+      endRow: 200,
+      sortModel: [{ colId: "blockNumber", sort: "desc" }],
+      filterModel: {},
+      quickSearch: "0xab",
+    });
+    await waitFor(() =>
+      expect(params.successCallback).toHaveBeenCalledWith(rows, 3),
+    );
+    await waitFor(() =>
+      expect(gridProps?.infiniteRows.rowCounts).toEqual({
+        all: 5,
+        filteredAndSorted: 3,
+      }),
+    );
+    expect(infiniteRows.getRowId({ data: rows[0] } as never)).toBe("7");
+  });
+
+  test("makes the CSV in the worker of the open table", async () => {
+    open.mockResolvedValueOnce(tableState(5));
+    renderGrid();
+    await waitFor(() => expect(shown().rows).toBe(5));
+    const request = { maxRows: 1 } as never;
+    lastClient().query.mockResolvedValueOnce({ rows: [], lastRow: 0 });
+    const params = getRowsParams(0, 100);
+    gridProps?.infiniteRows.datasource?.getRows(params);
+    await waitFor(() => expect(params.successCallback).toHaveBeenCalled());
+
+    await gridProps?.infiniteRows.csv?.(request, "all");
+    await gridProps?.infiniteRows.csv?.(request, "filteredAndSorted");
+    expect(lastClient().csv.mock.calls).toEqual([
+      [request, undefined],
+      [
+        request,
+        {
+          sortModel: [{ colId: "blockNumber", sort: "desc" }],
+          filterModel: {},
+          quickSearch: "",
+        },
+      ],
+    ]);
+    expect(fakeClients).toHaveLength(1);
+  });
+
+  test("leaves the CSV to the grid while the table opens or is imported", async () => {
+    let resolveOpen: (state: EventLogsTableState) => void = () => {};
+    open.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveOpen = resolve;
+      }),
+    );
+    open.mockResolvedValue(tableState(0));
+    renderGrid();
+    await tick();
+    expect(gridProps?.infiniteRows.csv).toBeUndefined();
+
+    resolveOpen(tableState(0));
+    await waitFor(() => expect(shown().rows).toBe(0));
+    expect(gridProps?.infiniteRows.csv).toBeTypeOf("function");
+
+    setWarpSync("importing");
+    await waitFor(() => expect(shown().rows).toBeUndefined());
+    expect(gridProps?.infiniteRows.csv).toBeUndefined();
+
+    setWarpSync("imported");
+    await waitFor(() => expect(shown().rows).toBe(0));
+    expect(gridProps?.infiniteRows.csv).toBeTypeOf("function");
   });
 
   describe("while the warp sync imports the logs of the chain", () => {
     test.each(["imported", "stopped", "failed"] as const)(
-      "does not load, and loads once when it is %s",
+      "does not open the table, and opens it once when it is %s",
       async (status) => {
         setWarpSync("importing");
-        load.mockResolvedValue([log(10, 1)]);
+        open.mockResolvedValue(tableState(1));
         renderGrid();
-        expect(load).not.toHaveBeenCalled();
+        expect(fakeClients).toHaveLength(0);
         expect(shown()).toMatchObject({
           rows: undefined,
+          hasDatasource: false,
           loadingText: MESSAGE_WAITING_FOR_IMPORT,
         });
 
         await saveLogs(1);
         await saveLogs(2);
-        expect(load).not.toHaveBeenCalled();
+        expect(fakeClients).toHaveLength(0);
 
         setWarpSync(status);
         await waitFor(() => expect(shown().rows).toBe(1));
         expect(shown().loadingText).toBe("");
         await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL * 2);
-        expect(load).toHaveBeenCalledTimes(1);
+        expect(fakeClients).toHaveLength(1);
+        expect(lastClient().open).toHaveBeenCalledTimes(1);
+        expect(lastClient().refresh).not.toHaveBeenCalled();
       },
     );
 
-    test("an open table drops its rows and waits, and loads once when it ends", async () => {
-      load.mockResolvedValue([log(10, 1)]);
+    test("an open table stops its worker and waits, and opens again when it ends", async () => {
+      open.mockResolvedValue(tableState(1));
       renderGrid();
       await waitFor(() => expect(shown().rows).toBe(1));
+      const client = lastClient();
 
       setWarpSync("importing");
       await tick();
+      expect(client.terminate).toHaveBeenCalledTimes(1);
       expect(shown()).toMatchObject({
         rows: undefined,
+        hasDatasource: false,
         loadingText: MESSAGE_WAITING_FOR_IMPORT,
       });
       await saveLogs(1);
       await saveLogs(2);
-      expect(load).toHaveBeenCalledTimes(1);
+      expect(fakeClients).toHaveLength(1);
+      expect(client.refresh).not.toHaveBeenCalled();
 
       setWarpSync("imported");
       await waitFor(() => expect(shown().rows).toBe(1));
-      expect(load).toHaveBeenCalledTimes(2);
+      expect(fakeClients).toHaveLength(2);
     });
 
-    test("stops a load that was waiting or running when it starts", async () => {
-      load.mockResolvedValueOnce([]);
+    test("stops a refresh that was waiting or running when it starts", async () => {
+      open.mockResolvedValue(tableState(0));
       renderGrid();
       await waitFor(() => expect(shown().rows).toBe(0));
-      // Within the interval after the first load: this load waits.
+      // Within the interval after the open: this refresh waits.
       setRecordCount(1);
       await tick();
       setWarpSync("importing");
       await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL * 2);
-      expect(load).toHaveBeenCalledTimes(1);
+      expect(fakeClients[0].refresh).not.toHaveBeenCalled();
 
-      // A load that runs when the next import starts.
-      load.mockReturnValueOnce(new Promise(() => {}));
+      // An open that runs when the next import starts.
+      open.mockReturnValueOnce(new Promise(() => {}));
       setWarpSync("imported");
       await tick();
-      expect(load).toHaveBeenCalledTimes(2);
-      const signal: AbortSignal = load.mock.calls[1][1]!;
+      expect(fakeClients).toHaveLength(2);
       setWarpSync("importing");
       await tick();
-      expect(signal.aborted).toBe(true);
+      expect(fakeClients[1].terminate).toHaveBeenCalledTimes(1);
       expect(shown().rows).toBeUndefined();
     });
 
-    test("loads as usual while it only checks what is left, and not again after it", async () => {
+    test("refreshes as usual while it only checks what is left, and not again after it", async () => {
       setWarpSync("checking");
-      load.mockResolvedValue([]);
+      open.mockResolvedValue(tableState(0));
+      refresh.mockResolvedValue(refreshed(1));
       renderGrid();
-      await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(shown().rows).toBe(0));
       expect(shown().loadingText).toBe("");
 
       await saveLogs(1);
-      expect(load).toHaveBeenCalledTimes(2);
+      expect(lastClient().refresh).toHaveBeenCalledTimes(1);
 
       setWarpSync("imported");
       await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL * 2);
-      expect(load).toHaveBeenCalledTimes(2);
+      expect(fakeClients).toHaveLength(1);
+      expect(lastClient().refresh).toHaveBeenCalledTimes(1);
     });
 
     test("does not wait for the import of another chain", async () => {
       setWarpSync("importing", "chain2");
-      load.mockResolvedValue([]);
+      open.mockResolvedValue(tableState(0));
+      refresh.mockResolvedValue(refreshed(1));
       renderGrid();
-      await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(shown().rows).toBe(0));
       expect(shown().loadingText).toBe("");
       await saveLogs(1);
-      expect(load).toHaveBeenCalledTimes(2);
+      expect(lastClient().refresh).toHaveBeenCalledTimes(1);
     });
   });
 });

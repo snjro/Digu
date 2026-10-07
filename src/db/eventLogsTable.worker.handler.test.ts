@@ -9,6 +9,7 @@ import type {
   EventLogsTableState,
 } from "./eventLogsTable";
 import { createEventLogsTableRequestHandler } from "./eventLogsTable.worker.handler";
+import type { EventLogsTableQueryModel } from "./eventLogsTableQuery";
 import type {
   EventLogsTableWorkerMessage,
   EventLogsTableWorkerResult,
@@ -43,7 +44,9 @@ function fakeTable() {
     open: vi.fn<() => Promise<EventLogsTableState>>(),
     query: vi.fn<(query: EventLogsTableQuery) => EventLogsTableQueryResult>(),
     refresh: vi.fn<() => Promise<EventLogsTableRefreshResult>>(),
-    csv: vi.fn<(request: CsvRequest) => CsvResult>(),
+    csv: vi.fn<
+      (request: CsvRequest, query?: EventLogsTableQueryModel) => CsvResult
+    >(),
   };
 }
 // Waits until the handler has done all the requests it can.
@@ -174,17 +177,27 @@ describe("createEventLogsTableRequestHandler", () => {
       () => table,
     );
 
-    handle({ id: 0, type: "csv", params: csvRequest });
+    const query: EventLogsTableQueryModel = {
+      sortModel: [{ colId: "blockNumber", sort: "desc" }],
+      filterModel: {},
+      quickSearch: "a",
+    };
+
+    handle({ id: 0, type: "csv", params: { request: csvRequest } });
     handle({ id: 1, type: "open", params: { eventIdentifier } });
-    handle({ id: 2, type: "csv", params: csvRequest });
+    handle({ id: 2, type: "csv", params: { request: csvRequest } });
+    handle({ id: 3, type: "csv", params: { request: csvRequest, query } });
     await settle();
 
-    expect(table.csv).toHaveBeenCalledTimes(1);
-    expect(table.csv).toHaveBeenCalledWith(csvRequest);
+    expect(table.csv.mock.calls).toEqual([
+      [csvRequest, undefined],
+      [csvRequest, query],
+    ]);
     expect(posted).toEqual([
       { id: 0, error: "EventLogsTable: no table is open" },
       { id: 1, value: state },
       { id: 2, value: csvResult },
+      { id: 3, value: csvResult },
     ]);
   });
 

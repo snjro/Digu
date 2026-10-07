@@ -3,10 +3,8 @@ import EventLogsTableWorker from "#db/eventLogsTable.worker.js?worker";
 import type { AbiFragmentIdentifier } from "./dbTypes";
 import type { CsvRequest, CsvResult } from "#lib/grid/ExportCsv/csvFormat.js";
 import type { EventLogsTableQuery } from "./eventLogsTable";
-import {
-  EventLogsTableClient,
-  eventLogsCsvInWorker,
-} from "./eventLogsTable.worker.portal";
+import type { EventLogsTableQueryModel } from "./eventLogsTableQuery";
+import { EventLogsTableClient } from "./eventLogsTable.worker.portal";
 
 type Listener = (event: unknown) => void;
 
@@ -154,17 +152,30 @@ describe("EventLogsTableClient", () => {
     await expect(queried).resolves.toEqual({ rows: [], lastRow: 0 });
   });
 
-  test("sends the request of the CSV", async () => {
+  test("sends the request of the CSV, with the query when there is one", async () => {
     const client = new EventLogsTableClient();
+    const csvQuery: EventLogsTableQueryModel = {
+      sortModel: [],
+      filterModel: {},
+      quickSearch: "a",
+    };
     const made = client.csv(csvRequest);
+    const madeOfQuery = client.csv(csvRequest, csvQuery);
 
-    expect(FakeWorker.last.postMessage).toHaveBeenCalledWith({
-      id: 0,
-      type: "csv",
-      params: csvRequest,
-    });
+    expect(FakeWorker.last.postMessage.mock.calls).toEqual([
+      [{ id: 0, type: "csv", params: { request: csvRequest } }],
+      [
+        {
+          id: 1,
+          type: "csv",
+          params: { request: csvRequest, query: csvQuery },
+        },
+      ],
+    ]);
     FakeWorker.last.emit("message", { data: { id: 0, value: csvResult } });
+    FakeWorker.last.emit("message", { data: { id: 1, value: csvResult } });
     await expect(made).resolves.toBe(csvResult);
+    await expect(madeOfQuery).resolves.toBe(csvResult);
   });
 });
 
@@ -179,40 +190,3 @@ const csvResult: CsvResult = {
   rowCount: 1,
   totalRowCount: 1,
 };
-
-describe("eventLogsCsvInWorker", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-  test("opens the table in a new worker, makes the CSV and stops it", async () => {
-    const made = eventLogsCsvInWorker(eventIdentifier, csvRequest);
-    // The CSV is asked after the table is open.
-    FakeWorker.last.postMessage.mockImplementation(
-      (message: { id: number }) => {
-        queueMicrotask(() => {
-          FakeWorker.last.emit("message", {
-            data: { id: message.id, value: csvResult },
-          });
-        });
-      },
-    );
-    FakeWorker.last.emit("message", {
-      data: { id: 0, value: { rowCount: 1, argsMaxLengths: [] } },
-    });
-
-    await expect(made).resolves.toBe(csvResult);
-    expect(FakeWorker.last.postMessage.mock.calls).toEqual([
-      [{ id: 0, type: "open", params: { eventIdentifier } }],
-      [{ id: 1, type: "csv", params: csvRequest }],
-    ]);
-    expect(FakeWorker.last.terminate).toHaveBeenCalledTimes(1);
-  });
-
-  test("stops the worker when it fails", async () => {
-    const made = eventLogsCsvInWorker(eventIdentifier, csvRequest);
-    FakeWorker.last.emit("message", { data: { id: 0, error: "open failed" } });
-
-    await expect(made).rejects.toThrow("EventLogsTableWorker: open failed");
-    expect(FakeWorker.last.terminate).toHaveBeenCalledTimes(1);
-  });
-});

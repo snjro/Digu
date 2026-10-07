@@ -132,6 +132,34 @@ describe("EventLogsTable", () => {
     ]);
   });
 
+  test("makes the CSV of the rows of a query in its order", async () => {
+    await table().bulkAdd([log(3), log(1, 2), log(2), log(4)]);
+    const eventLogsTable = new EventLogsTable(eventIdentifier, 2);
+    await eventLogsTable.open();
+
+    const { blob, rowCount, totalRowCount } = eventLogsTable.csv(
+      {
+        columns: [{ colId: "blockNumber", headerName: "", groups: [] }],
+        columnSeparator: ",",
+        suppressQuotes: true,
+        skipColumnHeaders: true,
+        maxRows: 2,
+      },
+      {
+        sortModel: [{ colId: "blockNumber", sort: "desc" }],
+        filterModel: {
+          blockNumber: { filterType: "text", type: "notEqual", filter: "3" },
+        },
+        quickSearch: "",
+      },
+    );
+    expect([await blob.text(), rowCount, totalRowCount]).toEqual([
+      ["4", "2"].join("\r\n"),
+      2,
+      3,
+    ]);
+  });
+
   test("opens an empty table", async () => {
     const eventLogsTable = new EventLogsTable(eventIdentifier);
 

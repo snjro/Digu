@@ -12,23 +12,27 @@
   } from "#lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
   import type { GridApi } from "ag-grid-community";
   import ExportCsv, { openDialogExportCsv } from "./ExportCsv/ExportCsv.svelte";
-  import type { CsvMaker } from "./ExportCsv/csvFormat";
-  import { setAllColumnGroupState, setAutoColumnWidth } from "./gridColumns";
+  import {
+    setAllColumnGroupState,
+    setAutoColumnWidth,
+    setAutoColumnWidthWhenRowsCome,
+  } from "./gridColumns";
+  import type { InfiniteRows } from "./infiniteRows";
 
   interface Props {
     gridApi: GridApi<GridRow> | undefined;
-    rows: GridRow[] | undefined;
+    rows?: GridRow[] | undefined;
+    infiniteRows?: InfiniteRows<GridRow>;
     isFullScreen: boolean;
     exportFilePrefix: ExportFilePrefix;
-    csvOfAllRows?: CsvMaker;
   }
 
   let {
     gridApi,
     rows,
+    infiniteRows,
     isFullScreen = $bindable(),
     exportFilePrefix,
-    csvOfAllRows,
   }: Props = $props();
 
   let quickSearchText: string = $state("");
@@ -125,8 +129,23 @@
       buttonDefinitionFullScreen,
     ]);
   function resetAllFilters(): void {
+    // On the Infinite grid: a column filter makes setFilterModel(null) read
+    // the rows again.
+    const hadColumnFilter: boolean =
+      infiniteRows !== undefined &&
+      Object.keys(gridApi?.getFilterModel() ?? {}).length > 0;
+    const hadQuickSearch: boolean =
+      infiniteRows !== undefined && infiniteRows.quickSearch.text !== "";
+    // Before the column filter changes, so that the worker does not search
+    // with the old text for the rows that are thrown away.
+    if (infiniteRows) infiniteRows.quickSearch.text = "";
     gridApi?.resetQuickFilter();
     gridApi?.setFilterModel(null);
+    // Without a column filter, only this reads the rows without the text
+    // cleared above: the quick search box does not for the same text.
+    if (hadQuickSearch && !hadColumnFilter) {
+      gridApi?.onFilterChanged();
+    }
     quickSearchText = "";
   }
   function reload(): void {
@@ -152,7 +171,14 @@
       //reload data
       // While the rows are still loading, keep loading. GridBody clears it
       // when they come.
-      if (rows) {
+      if (infiniteRows) {
+        if (infiniteRows.datasource) {
+          gridApi.setGridOption("loading", false);
+          gridApi.purgeInfiniteCache();
+          // The rows have no data until the datasource answers.
+          setAutoColumnWidthWhenRowsCome(gridApi);
+        }
+      } else if (rows) {
         // While loading is true, the grid shows no other overlay.
         gridApi.setGridOption("loading", false);
         gridApi.setGridOption("rowData", rows);
@@ -167,7 +193,7 @@
   let dialogElement: HTMLDialogElement | undefined = $state();
 </script>
 
-<ExportCsv {gridApi} bind:dialogElement {exportFilePrefix} {csvOfAllRows} />
+<ExportCsv {gridApi} bind:dialogElement {exportFilePrefix} {infiniteRows} />
 <PageWrapperContentFunctionBar
   functionBarDefinition={{
     buttonsDefinition: buttonsDefinition,
@@ -177,5 +203,9 @@
       breakPointWidthThresholds.gridFunctionButtonForOpenedSidebar,
     horizontalAlignment: "between",
   }}
-  ><BaseGridFunctionBarQuickSearch bind:quickSearchText {gridApi} />
+  ><BaseGridFunctionBarQuickSearch
+    bind:quickSearchText
+    {gridApi}
+    quickSearch={infiniteRows?.quickSearch}
+  />
 </PageWrapperContentFunctionBar>

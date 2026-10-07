@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { render } from "@testing-library/svelte";
-import type { GridApi } from "ag-grid-community";
+import { createGrid, type GridApi, type IDatasource } from "ag-grid-community";
+import type { InfiniteRows } from "../infiniteRows";
 import GridBody from "./GridBody.svelte";
 
 const gridApi = vi.hoisted(() => {
@@ -106,5 +107,85 @@ describe("GridBody.svelte", () => {
       { loadingText: "Waiting" },
       { loadingText: undefined },
     ]);
+  });
+
+  describe("with the Infinite Row Model", () => {
+    function infiniteRowsOf(
+      datasource: IDatasource | undefined,
+    ): InfiniteRows<unknown> {
+      return {
+        datasource,
+        getRowId: ({ data }) => String((data as { id: number }).id),
+        quickSearch: { text: "" },
+        csv: undefined,
+        rowCounts: { all: undefined, filteredAndSorted: undefined },
+      };
+    }
+    function renderInfinite(infiniteRows: InfiniteRows<unknown>) {
+      return render(GridBody, {
+        gridApi: gridApi as unknown as GridApi,
+        infiniteRows,
+      });
+    }
+    function datasourceCalls() {
+      return gridApi.setGridOption.mock.calls.filter(
+        (call) => call[0] === "datasource",
+      );
+    }
+
+    test("creates the grid with the options of the Infinite Row Model", () => {
+      const infiniteRows = infiniteRowsOf(undefined);
+      renderInfinite(infiniteRows);
+      const options = vi.mocked(createGrid).mock.calls.at(-1)![1];
+      expect(options).toMatchObject({
+        rowModelType: "infinite",
+        getRowId: infiniteRows.getRowId,
+        maxBlocksInCache: 10,
+      });
+      // The quick search counts as a filter, for the overlay of no rows.
+      expect(options.isExternalFilterPresent?.({} as never)).toBe(false);
+      infiniteRows.quickSearch.text = "a";
+      expect(options.isExternalFilterPresent?.({} as never)).toBe(true);
+      // The datasource filters the rows, so every row that comes passes.
+      expect(options.doesExternalFilterPass?.({} as never)).toBe(true);
+    });
+
+    test("no datasource: shows the loading overlay and sets no rows", () => {
+      renderInfinite(infiniteRowsOf(undefined));
+      expect(lastLoading()).toBe(true);
+      expect(datasourceCalls()).toEqual([]);
+      expect(gridApi.setGridOption).not.toHaveBeenCalledWith(
+        "rowData",
+        expect.anything(),
+      );
+    });
+
+    test("a datasource: clears loading and gives it to the grid once", async () => {
+      const datasource: IDatasource = { getRows: vi.fn() };
+      const { rerender } = renderInfinite(infiniteRowsOf(undefined));
+      await rerender({ infiniteRows: infiniteRowsOf(datasource) });
+      expect(lastLoading()).toBe(false);
+      expect(datasourceCalls()).toEqual([["datasource", datasource]]);
+
+      // The same datasource with other values does not read the rows again.
+      await rerender({
+        infiniteRows: { ...infiniteRowsOf(datasource), csv: vi.fn() },
+      });
+      expect(datasourceCalls()).toHaveLength(1);
+    });
+
+    test("another datasource after the loading overlay", async () => {
+      const first: IDatasource = { getRows: vi.fn() };
+      const second: IDatasource = { getRows: vi.fn() };
+      const { rerender } = renderInfinite(infiniteRowsOf(first));
+      await rerender({ infiniteRows: infiniteRowsOf(undefined) });
+      expect(lastLoading()).toBe(true);
+      await rerender({ infiniteRows: infiniteRowsOf(second) });
+      expect(lastLoading()).toBe(false);
+      expect(datasourceCalls()).toEqual([
+        ["datasource", first],
+        ["datasource", second],
+      ]);
+    });
   });
 });

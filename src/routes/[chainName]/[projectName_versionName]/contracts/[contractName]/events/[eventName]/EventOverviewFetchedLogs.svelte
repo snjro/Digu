@@ -70,7 +70,7 @@
     };
     return applyLatestLoad(
       getEventLogEdges(eventIdentifier).catch((error: unknown) => {
-        // Like the table (gridRows.ts): log it and show no logs.
+        // Like the table (openEventLogsTable): log it and show no logs.
         customLogger.error("Get event logs.", {
           eventIdentifier: eventIdentifier,
           errorObject: error,

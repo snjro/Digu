@@ -107,6 +107,24 @@ export class EventLogsTable {
     endRow,
     ...model
   }: EventLogsTableQuery): EventLogsTableQueryResult {
+    const rowIndexes: number[] = this.rowIndexesOf(model);
+    return {
+      rows: rowIndexes
+        .slice(startRow, endRow)
+        .map((rowIndex) => this.rows[rowIndex]),
+      lastRow: rowIndexes.length,
+    };
+  }
+
+  // The rows of the query, or all the rows in the order of the blocks.
+  csv(request: CsvRequest, query?: EventLogsTableQueryModel): CsvResult {
+    const rows: StoredEventLog[] = query
+      ? this.rowIndexesOf(query).map((rowIndex) => this.rows[rowIndex])
+      : this.rows;
+    return eventLogsCsv(rows, this.cellValues, request);
+  }
+
+  private rowIndexesOf(model: EventLogsTableQueryModel): number[] {
     const key: string = JSON.stringify([
       model.sortModel,
       model.filterModel,
@@ -118,18 +136,7 @@ export class EventLogsTable {
         rowIndexes: queryEventLogRows(this.rows, this.cellValues, model),
       };
     }
-    const rowIndexes: number[] = this.result.rowIndexes;
-    return {
-      rows: rowIndexes
-        .slice(startRow, endRow)
-        .map((rowIndex) => this.rows[rowIndex]),
-      lastRow: rowIndexes.length,
-    };
-  }
-
-  // All the rows, in the order of the blocks.
-  csv(request: CsvRequest): CsvResult {
-    return eventLogsCsv(this.rows, this.cellValues, request);
+    return this.result.rowIndexes;
   }
 
   private state(): EventLogsTableState {

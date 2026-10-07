@@ -3,33 +3,34 @@
   import type { ExportFilePrefix } from "#utils/utilsFile.js";
   import type { GridApi } from "ag-grid-community";
   import BaseGridFunctionBar from "./BaseGridFunctionBar.svelte";
-  import type { CsvMaker } from "./ExportCsv/csvFormat";
   import GridBody from "./GridBody/GridBody.svelte";
+  import type { InfiniteRows } from "./infiniteRows";
   import type { ColumnDef } from "./types";
 
   interface Props {
     isFullScreen?: boolean;
     paramColumnDefs: ColumnDef[];
-    rows: GridRow[] | undefined;
+    // The rows of the Client-Side Row Model.
+    rows?: GridRow[] | undefined;
+    // In place of rows, for the Infinite Row Model.
+    infiniteRows?: InfiniteRows<GridRow>;
     // Shown with the spinner while the rows are loaded.
     loadingText?: string;
     exportFilePrefix: ExportFilePrefix;
     hasMultipleTabs: boolean;
-    // Makes the CSV of All in a worker instead of ag-grid.
-    csvOfAllRows?: CsvMaker;
+    gridApi?: GridApi<GridRow> | undefined;
   }
 
   let {
     isFullScreen = $bindable(false),
     paramColumnDefs,
     rows,
+    infiniteRows,
     loadingText,
     exportFilePrefix,
     hasMultipleTabs,
-    csvOfAllRows,
+    gridApi = $bindable(),
   }: Props = $props();
-
-  let gridApi: GridApi<GridRow> | undefined = $state.raw();
 </script>
 
 <PageWrapperContent isAgGrid {hasMultipleTabs}>
@@ -37,15 +38,21 @@
     <BaseGridFunctionBar
       {gridApi}
       {rows}
+      {infiniteRows}
       bind:isFullScreen
       {exportFilePrefix}
-      {csvOfAllRows}
     />
   {/snippet}
 
   {#snippet PageWrapperContentBody()}
     <div class="flex flex-col h-full">
-      <GridBody bind:gridApi {paramColumnDefs} {rows} {loadingText} />
+      <GridBody
+        bind:gridApi
+        {paramColumnDefs}
+        {rows}
+        {infiniteRows}
+        {loadingText}
+      />
     </div>
   {/snippet}
 </PageWrapperContent>

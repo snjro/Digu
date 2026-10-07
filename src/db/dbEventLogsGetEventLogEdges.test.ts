@@ -6,7 +6,6 @@ import { extractEventContracts } from "#utils/utilsEthers.js";
 import { getEventLogTableName } from "#utils/utilsDb.js";
 import type { AbiFragmentIdentifier, ConvertedEventLog } from "./dbTypes";
 import { getDbEventLogs } from "./dbEventLogs";
-import { dbWorkerFuncGetConvertedEventLogs } from "./db.worker.func.getConvertedEventLogs";
 import { addEventLogs_updateFetchedBlockNumber } from "./dbEventLogsDataHandlersEventLog";
 import * as DataHandlerSyncStatusGetters from "./dbEventLogsDataHandlersSyncStatusGetters";
 import { getEventLogEdges } from "./dbEventLogsGetEventLogEdges";
@@ -50,8 +49,8 @@ describe("getEventLogEdges", () => {
     await table().bulkPut([log(106, 3)]);
     await table().bulkPut([log(120, 0), log(120, 2), log(120, 5)]);
 
-    const all: ConvertedEventLog[] =
-      await dbWorkerFuncGetConvertedEventLogs(eventIdentifier);
+    // In the order of the key, which is the order they were saved in.
+    const all: ConvertedEventLog[] = await table().toArray();
     const edges = await getEventLogEdges(eventIdentifier);
     expect(edges).toEqual({
       count: all.length,
@@ -87,8 +86,8 @@ describe("getEventLogEdges", () => {
 
   test("shows one log as the latest and the oldest", async () => {
     await table().bulkPut([log(100, 0)]);
-    const all: ConvertedEventLog[] =
-      await dbWorkerFuncGetConvertedEventLogs(eventIdentifier);
+    // In the order of the key, which is the order they were saved in.
+    const all: ConvertedEventLog[] = await table().toArray();
     expect(await getEventLogEdges(eventIdentifier)).toEqual({
       count: 1,
       oldest: all[0],

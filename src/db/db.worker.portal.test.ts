@@ -37,7 +37,7 @@ vi.mock("#db/db.worker.js?worker", () => ({
 }));
 
 const dbWorkerMessage: DbWorkerMessage<TargetFunctionName> = {
-  targetFunctionName: "getConvertedEventLogs",
+  targetFunctionName: "initializeDbSettings",
   params: undefined,
 };
 
@@ -75,7 +75,7 @@ describe("startDbWorker", () => {
     FakeWorker.last.emit("error", { message: "script error" });
 
     await expect(result).rejects.toThrow(
-      "DbWorker: getConvertedEventLogs: script error",
+      "DbWorker: initializeDbSettings: script error",
     );
     expect(FakeWorker.last.terminate).toHaveBeenCalledTimes(1);
   });
@@ -85,7 +85,7 @@ describe("startDbWorker", () => {
     FakeWorker.last.emit("messageerror", {});
 
     await expect(result).rejects.toThrow(
-      "DbWorker: getConvertedEventLogs: could not read the message",
+      "DbWorker: initializeDbSettings: could not read the message",
     );
     expect(FakeWorker.last.terminate).toHaveBeenCalledTimes(1);
   });

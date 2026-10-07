@@ -55,6 +55,7 @@
     type ExportFilePrefix,
   } from "#utils/utilsFile.js";
   import type { GridApi } from "ag-grid-community";
+  import type { InfiniteRows } from "../infiniteRows";
   import type { CsvMaker, CsvResult } from "./csvFormat";
   import {
     CSV_COPY_MAX_ROWS,
@@ -71,15 +72,16 @@
     gridApi: GridApi<GridRow> | undefined;
     dialogElement?: HTMLDialogElement;
     exportFilePrefix: ExportFilePrefix;
-    // Makes the CSV of All in a worker instead of ag-grid.
-    csvOfAllRows?: CsvMaker;
+    // Makes the CSV and counts its rows instead of ag-grid, which keeps only
+    // some blocks of these rows.
+    infiniteRows?: Pick<InfiniteRows<GridRow>, "csv" | "rowCounts">;
   }
 
   let {
     gridApi,
     dialogElement = $bindable(),
     exportFilePrefix,
-    csvOfAllRows,
+    infiniteRows,
   }: Props = $props();
 
   const colorCategory: ColorCategory = colorSettings.dialogHeader;
@@ -222,6 +224,12 @@
       rowCount = undefined;
       return;
     }
+    if (infiniteRows) {
+      rowCount = infiniteRows.csv
+        ? infiniteRows.rowCounts[filteredSorted]
+        : undefined;
+      return;
+    }
     const api: GridApi<GridRow> = gridApi;
     const updateRowCount = (): void => {
       rowCount = getCsvRowCount(api, filteredSorted);
@@ -240,13 +248,22 @@
   let isMaking: boolean = $state(false);
 
   function getWorkerCsvMaker(): CsvMaker | undefined {
-    return selectedValues.filteredSorted.selectedValue === "all"
-      ? csvOfAllRows
-      : undefined;
+    const csv = infiniteRows?.csv;
+    if (!csv) return undefined;
+    const filteredSorted: CsvSelectedValues["filteredSorted"]["selectedValue"] =
+      selectedValues.filteredSorted.selectedValue;
+    return (request) => csv(request, filteredSorted);
   }
 
+  // ag-grid keeps only some blocks of the rows of the Infinite Row Model,
+  // maybe of the previous table, so there is no CSV until the worker has the
+  // rows.
+  let hasNoCsv: boolean = $derived(
+    infiniteRows !== undefined && infiniteRows.csv === undefined,
+  );
+
   async function downloadCsv(): Promise<void> {
-    if (!gridApi || isMaking) return;
+    if (!gridApi || isMaking || hasNoCsv) return;
     const fileName = getExportFileName(exportFilePrefix, page.params, "csv");
     const makeCsv: CsvMaker | undefined = getWorkerCsvMaker();
     if (!makeCsv) {
@@ -269,7 +286,7 @@
     }
   }
   async function copyToClipboard(): Promise<void> {
-    if (!gridApi || isMaking) return;
+    if (!gridApi || isMaking || hasNoCsv) return;
     const makeCsv: CsvMaker | undefined = getWorkerCsvMaker();
     if (!makeCsv) {
       const csvText = getCsvTextUpTo(
@@ -319,7 +336,7 @@
         tooltipXPosition: "left",
         tooltipYPosition: "top",
         onClickEventFunction: downloadCsv,
-        disabled: isMaking,
+        disabled: isMaking || hasNoCsv,
       },
       {
         iconName: "contentCopy",
@@ -327,7 +344,7 @@
         tooltipXPosition: "left",
         tooltipYPosition: "top",
         onClickEventFunction: copyToClipboard,
-        disabled: isMaking,
+        disabled: isMaking || hasNoCsv,
       },
     ],
     buttonSize: sizeSettings.dialogFooter,
