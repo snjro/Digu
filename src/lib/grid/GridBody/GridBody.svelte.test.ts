@@ -23,6 +23,7 @@ const gridApi = vi.hoisted(() => {
     refreshCells: vi.fn(),
     sizeColumnsToFit: vi.fn(),
     autoSizeAllColumns: vi.fn(),
+    isDestroyed: vi.fn(() => false),
     destroy: vi.fn(),
   };
 });

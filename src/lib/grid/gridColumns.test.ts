@@ -11,6 +11,7 @@ function createGridApi(groupIds: string[] = []) {
   const gridApi = {
     sizeColumnsToFit: vi.fn(),
     autoSizeAllColumns: vi.fn(),
+    isDestroyed: vi.fn(() => false),
     getColumnGroupState: vi.fn(() =>
       groupIds.map((groupId) => ({ groupId, open: false })),
     ),
@@ -42,6 +43,13 @@ describe("setAutoColumnWidth", () => {
     expect(gridApi.autoSizeAllColumns).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
     expect(gridApi.autoSizeAllColumns).toHaveBeenCalledWith(true);
+  });
+  test("does not auto-size a grid destroyed before the wait ends", () => {
+    const gridApi = createGridApi();
+    setAutoColumnWidth(gridApi);
+    gridApi.isDestroyed.mockReturnValue(true);
+    vi.advanceTimersByTime(0);
+    expect(gridApi.autoSizeAllColumns).not.toHaveBeenCalled();
   });
 });
 

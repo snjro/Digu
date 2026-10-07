@@ -88,8 +88,8 @@ describe("GridBody.svelte with the Infinite Row Model", () => {
     await waitFor(() => expect(api.getDisplayedRowCount()).toBe(150));
     expect(api.getDisplayedRowAtIndex(1)?.id).toBe("row2");
     expect(api.getGridOption("maxBlocksInCache")).toBe(10);
-    // The columns are sized after a frame and a timer, which would warn
-    // in the next test, after this grid is gone.
+    // The columns are sized after a frame and a timer: the check below
+    // covers the sizing too.
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(warnings).toEqual([]);
   });
