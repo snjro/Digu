@@ -53,6 +53,9 @@ export type WarpSyncState = {
   busy?: boolean;
   // While importing: the logs of the ranges done, of pending.logCount.
   progress?: { doneLogCount: number; startedAt: number };
+  // With progress: "stopping" once stopped, and "finishing" once all is
+  // imported, while it reads the DB again before its end state.
+  ending?: "stopping" | "finishing";
 };
 // A chain that is not in it is "idle".
 export const storeWarpSync: Writable<Record<ChainName, WarpSyncState>> =

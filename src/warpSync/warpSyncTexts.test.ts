@@ -122,4 +122,16 @@ describe("getImportProgressText", () => {
       ),
     ).toBe("Importing logs 25% · 6 minutes left");
   });
+  test("once a large import is stopped or done", () => {
+    expect(getImportProgressText({ ...importing, ending: "stopping" }, 0)).toBe(
+      "Stopping import…",
+    );
+    expect(
+      getImportProgressText({ ...importing, ending: "finishing" }, 0),
+    ).toBe("Finishing import…");
+    // A small import has no progress.
+    expect(
+      getImportProgressText({ status: "importing", ending: "finishing" }, 0),
+    ).toBe("Importing logs");
+  });
 });

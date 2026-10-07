@@ -204,9 +204,18 @@ async function runImport(
       status: "importing",
       ...about,
       progress: isLarge ? { doneLogCount, startedAt } : undefined,
+      ending: controller.signal.aborted ? "stopping" : undefined,
     });
     // With no logs left, it only moves the blocks on while "checking".
     if (pending.logCount > 0) setWarpSyncState(chainName, importing());
+    // On Stop at once: the import ends only after the DB is read again.
+    if (isLarge) {
+      controller.signal.addEventListener(
+        "abort",
+        () => setWarpSyncState(chainName, importing()),
+        { once: true },
+      );
+    }
     const toBlock: number | undefined = await importWarpSync(
       targetChain,
       manifest,
@@ -218,6 +227,10 @@ async function runImport(
         },
       },
     );
+    // The end state is set once the DB is read again (withSyncLock).
+    if (isLarge) {
+      setWarpSyncState(chainName, { ...importing(), ending: "finishing" });
+    }
     return {
       status: toBlock === undefined ? "none" : "imported",
       toBlock,

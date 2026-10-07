@@ -74,11 +74,19 @@ export function getConfirmationTexts(
   };
 }
 
-// "34%", and the time left once a range is done.
+// In the nav after Stop, and after a large import while the DB is read
+// again, until the import ends.
+export const IMPORT_STOPPING = "Stopping import…";
+export const IMPORT_FINISHING = "Finishing import…";
+
+// "34%", and the time left once a range is done. Once a large import is
+// stopped or done, what it waits for.
 export function getImportProgressText(
   state: WarpSyncState,
   now: number,
 ): string {
+  if (state.progress && state.ending === "stopping") return IMPORT_STOPPING;
+  if (state.progress && state.ending === "finishing") return IMPORT_FINISHING;
   const total: number = state.pending?.logCount ?? 0;
   const done: number = state.progress?.doneLogCount ?? 0;
   if (!state.progress || total === 0) return "Importing logs";
