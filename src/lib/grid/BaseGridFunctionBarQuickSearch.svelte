@@ -34,7 +34,9 @@
           api?.setGridOption("quickFilterText", text);
           return;
         }
-        // ag-grid reads the rows again on a changed filter.
+        // ag-grid reads the rows again on a changed filter. The same text,
+        // such as one that Reset all filters cleared first, needs no reading.
+        if (quickSearch.text === text) return;
         quickSearch.text = text;
         api?.onFilterChanged();
       });

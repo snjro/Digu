@@ -62,9 +62,15 @@ describe("createEventLogsDatasource", () => {
     expect(params.successCallback).not.toHaveBeenCalled();
   });
 
-  test("the CSV of Filtered & Sorted has the query of the last block", async () => {
+  test("the CSV of Filtered & Sorted has the latest query that the grid asked for", async () => {
     const client = fakeClient();
-    client.query.mockResolvedValue({ rows: [], lastRow: 0 });
+    // The block of the new sort is not answered yet.
+    let answer: (value: { rows: []; lastRow: 0 }) => void = () => {};
+    client.query.mockReturnValue(
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+    );
     const quickSearch = { text: "a" };
     const datasource = createEventLogsDatasource(
       client as unknown as EventLogsTableClient,
@@ -73,16 +79,18 @@ describe("createEventLogsDatasource", () => {
     );
     const request = { maxRows: 1 } as never;
 
-    // Before any block, the shown rows have no sort and no filter.
+    // Before any block, the rows have no sort and no filter.
     await datasource.csv?.(request, "filteredAndSorted");
     const params = {
       ...getRowsParams(),
       sortModel: [{ colId: "logIndex", sort: "asc" as const }],
     };
     datasource.getRows(params);
-    await vi.waitFor(() => expect(params.successCallback).toHaveBeenCalled());
+    // The text typed after the request is not in the query yet.
     quickSearch.text = "b";
     await datasource.csv?.(request, "filteredAndSorted");
+    answer({ rows: [], lastRow: 0 });
+    await vi.waitFor(() => expect(params.successCallback).toHaveBeenCalled());
     expect(client.csv.mock.calls).toEqual([
       [request, { sortModel: [], filterModel: {}, quickSearch: "a" }],
       [

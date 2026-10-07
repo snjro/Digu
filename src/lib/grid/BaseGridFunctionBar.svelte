@@ -12,7 +12,11 @@
   } from "#lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
   import type { GridApi } from "ag-grid-community";
   import ExportCsv, { openDialogExportCsv } from "./ExportCsv/ExportCsv.svelte";
-  import { setAllColumnGroupState, setAutoColumnWidth } from "./gridColumns";
+  import {
+    setAllColumnGroupState,
+    setAutoColumnWidth,
+    setAutoColumnWidthWhenRowsCome,
+  } from "./gridColumns";
   import type { InfiniteRows } from "./infiniteRows";
 
   interface Props {
@@ -125,6 +129,9 @@
       buttonDefinitionFullScreen,
     ]);
   function resetAllFilters(): void {
+    // Before the column filter changes, so that the worker does not search
+    // with the old text for the rows that are thrown away.
+    if (infiniteRows) infiniteRows.quickSearch.text = "";
     gridApi?.resetQuickFilter();
     gridApi?.setFilterModel(null);
     quickSearchText = "";
@@ -156,7 +163,8 @@
         if (infiniteRows.datasource) {
           gridApi.setGridOption("loading", false);
           gridApi.purgeInfiniteCache();
-          setAutoColumnWidth(gridApi);
+          // The rows have no data until the datasource answers.
+          setAutoColumnWidthWhenRowsCome(gridApi);
         }
       } else if (rows) {
         // While loading is true, the grid shows no other overlay.

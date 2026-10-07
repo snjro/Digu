@@ -146,6 +146,8 @@ describe("GridBody.svelte", () => {
       expect(options.isExternalFilterPresent?.({} as never)).toBe(false);
       infiniteRows.quickSearch.text = "a";
       expect(options.isExternalFilterPresent?.({} as never)).toBe(true);
+      // The datasource filters the rows, so every row that comes passes.
+      expect(options.doesExternalFilterPass?.({} as never)).toBe(true);
     });
 
     test("no datasource: shows the loading overlay and sets no rows", () => {

@@ -390,9 +390,9 @@ describe("EventLogs.svelte", () => {
     expect(shown()).toMatchObject({ rows: undefined, hasDatasource: false });
   });
 
-  test("shows no rows when the table could not be read, and opens it again on new logs", async () => {
+  test("shows no rows when the table could not be read, and opens it again in a new worker on new logs", async () => {
     open.mockRejectedValueOnce(new Error("open failed"));
-    renderGrid();
+    const { unmount } = renderGrid();
     await waitFor(() => expect(shown().rows).toBe(0));
     expect(customLogger.error).toHaveBeenCalledTimes(1);
     expect(shown().hasDatasource).toBe(true);
@@ -401,11 +401,21 @@ describe("EventLogs.svelte", () => {
     gridProps?.infiniteRows.datasource?.getRows(params);
     expect(params.successCallback).toHaveBeenCalledWith([], 0);
 
+    // After an error of the worker, the client rejects every request.
+    expect(fakeClients).toHaveLength(2);
+    expect(fakeClients[0].terminate).toHaveBeenCalledTimes(1);
+
     open.mockResolvedValueOnce(tableState(1));
     await saveLogs(1);
     await waitFor(() => expect(shown().rows).toBe(1));
-    expect(lastClient().open).toHaveBeenCalledTimes(2);
-    expect(lastClient().refresh).not.toHaveBeenCalled();
+    expect(fakeClients).toHaveLength(2);
+    expect(fakeClients[0].open).toHaveBeenCalledTimes(1);
+    expect(fakeClients[1].open).toHaveBeenCalledWith(targetEventIdentifier);
+    expect(fakeClients[1].refresh).not.toHaveBeenCalled();
+    expect(gridProps?.infiniteRows.csv).toBeTypeOf("function");
+
+    unmount();
+    expect(fakeClients[1].terminate).toHaveBeenCalledTimes(1);
   });
 
   test("the datasource asks the worker for the blocks with the quick search, and counts the rows", async () => {

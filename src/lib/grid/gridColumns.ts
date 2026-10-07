@@ -10,6 +10,24 @@ export function setAutoColumnWidth(
     gridApi.autoSizeAllColumns(skipHeader);
   }, waitMilliSecond);
 }
+// For the Infinite Row Model, whose rows have no data until the datasource
+// answers: sizes the columns after the first rows come, or there are none.
+export function setAutoColumnWidthWhenRowsCome(gridApi: GridApi): void {
+  const onModelUpdated = (): void => {
+    // The first row of the shown page.
+    const firstRowIndex: number =
+      gridApi.paginationGetCurrentPage() * gridApi.paginationGetPageSize();
+    if (
+      gridApi.getDisplayedRowCount() > 0 &&
+      !gridApi.getDisplayedRowAtIndex(firstRowIndex)?.data
+    ) {
+      return;
+    }
+    gridApi.removeEventListener("modelUpdated", onModelUpdated);
+    setAutoColumnWidth(gridApi);
+  };
+  gridApi.addEventListener("modelUpdated", onModelUpdated);
+}
 export function setAllColumnGroupState(gridApi: GridApi, open: boolean): void {
   const stateItems: {
     groupId: string;

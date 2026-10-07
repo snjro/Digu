@@ -224,8 +224,10 @@
       rowCount = undefined;
       return;
     }
-    if (infiniteRows?.csv) {
-      rowCount = infiniteRows.rowCounts[filteredSorted];
+    if (infiniteRows) {
+      rowCount = infiniteRows.csv
+        ? infiniteRows.rowCounts[filteredSorted]
+        : undefined;
       return;
     }
     const api: GridApi<GridRow> = gridApi;
@@ -253,8 +255,15 @@
     return (request) => csv(request, filteredSorted);
   }
 
+  // ag-grid keeps only some blocks of the rows of the Infinite Row Model,
+  // maybe of the previous table, so there is no CSV until the worker has the
+  // rows.
+  let hasNoCsv: boolean = $derived(
+    infiniteRows !== undefined && infiniteRows.csv === undefined,
+  );
+
   async function downloadCsv(): Promise<void> {
-    if (!gridApi || isMaking) return;
+    if (!gridApi || isMaking || hasNoCsv) return;
     const fileName = getExportFileName(exportFilePrefix, page.params, "csv");
     const makeCsv: CsvMaker | undefined = getWorkerCsvMaker();
     if (!makeCsv) {
@@ -277,7 +286,7 @@
     }
   }
   async function copyToClipboard(): Promise<void> {
-    if (!gridApi || isMaking) return;
+    if (!gridApi || isMaking || hasNoCsv) return;
     const makeCsv: CsvMaker | undefined = getWorkerCsvMaker();
     if (!makeCsv) {
       const csvText = getCsvTextUpTo(
@@ -327,7 +336,7 @@
         tooltipXPosition: "left",
         tooltipYPosition: "top",
         onClickEventFunction: downloadCsv,
-        disabled: isMaking,
+        disabled: isMaking || hasNoCsv,
       },
       {
         iconName: "contentCopy",
@@ -335,7 +344,7 @@
         tooltipXPosition: "left",
         tooltipYPosition: "top",
         onClickEventFunction: copyToClipboard,
-        disabled: isMaking,
+        disabled: isMaking || hasNoCsv,
       },
     ],
     buttonSize: sizeSettings.dialogFooter,

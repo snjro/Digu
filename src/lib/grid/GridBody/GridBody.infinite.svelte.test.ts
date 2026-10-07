@@ -130,6 +130,42 @@ describe("GridBody.svelte with the Infinite Row Model", () => {
     expect(warnings).toEqual([]);
   });
 
+  // As EventLogs.svelte after a refresh() that read all the rows again (for
+  // example after a reset): fewer rows, with other ids.
+  test("refreshInfiniteCache() shows the rows of a table that was read again", async () => {
+    const quickSearch = { text: "" };
+    const rows: Row[] = Array.from({ length: 250 }, (_, index) => ({
+      id: index + 1,
+      name: `name${index}`,
+    }));
+    const datasource = datasourceOf(rows, quickSearch);
+    renderGridBody(datasource, quickSearch);
+    await waitFor(() => expect(datasource.calls.length).toBe(1));
+    const api = datasource.calls[0].api as GridApi<Row>;
+    await waitFor(() => expect(api.getDisplayedRowCount()).toBe(250));
+    // A block after the first one is in the cache too.
+    api.getDisplayedRowAtIndex(150);
+    await waitFor(() => expect(datasource.calls.length).toBe(2));
+
+    rows.splice(
+      0,
+      rows.length,
+      ...Array.from({ length: 30 }, (_, index) => ({
+        id: 1001 + index,
+        name: `new${index}`,
+      })),
+    );
+    api.refreshInfiniteCache();
+    await waitFor(() => expect(api.getDisplayedRowCount()).toBe(30));
+    await waitFor(() =>
+      expect(api.getDisplayedRowAtIndex(0)?.id).toBe("row1001"),
+    );
+    expect(api.getDisplayedRowAtIndex(29)?.data?.name).toBe("new29");
+    expect(api.getDisplayedRowAtIndex(30)).toBeUndefined();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(warnings).toEqual([]);
+  });
+
   test("tells no matching rows of the quick search from no rows, as ag-grid's own quick search", async () => {
     const quickSearch = { text: "" };
     const datasource = datasourceOf([{ id: 1, name: "apple" }], quickSearch);

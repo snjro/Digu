@@ -76,8 +76,9 @@
       // The page keeps up to 10 blocks of 100 rows.
       maxBlocksInCache: 10,
       // So that ag-grid tells no matching rows from no rows, as for its own
-      // quick search.
+      // quick search. The datasource filters the rows.
       isExternalFilterPresent: () => quickSearch.text !== "",
+      doesExternalFilterPass: () => true,
     };
   });
 

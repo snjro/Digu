@@ -81,7 +81,7 @@
     filteredRowCount = undefined;
     if (targetEventAbiFragment.anonymous || isImporting) return;
     const eventIdentifier: AbiFragmentIdentifier = targetEventIdentifier;
-    const client: EventLogsTableClient = new EventLogsTableClient();
+    let client: EventLogsTableClient = new EventLogsTableClient();
     let isOpen: boolean = false;
     let isClosed: boolean = false;
     const throttledLoad = createThrottledLoad(
@@ -92,8 +92,13 @@
       (state: EventLogsTableState | undefined) => {
         if (!isOpen) {
           // A table that could not be read shows no rows, and is read again
-          // when the sync saves logs of the event.
+          // when the sync saves logs of the event, in a new worker: after an
+          // error of the worker, the client rejects every request.
           isOpen = state !== undefined;
+          if (!isOpen) {
+            client.terminate();
+            client = new EventLogsTableClient();
+          }
           tableState = state ?? { rowCount: 0, argsMaxLengths: [] };
           datasource = createEventLogsDatasource(
             isOpen ? client : undefined,

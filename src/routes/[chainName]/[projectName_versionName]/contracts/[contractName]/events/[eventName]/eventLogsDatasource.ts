@@ -58,8 +58,9 @@ export function createEventLogsDatasource(
     isClosed: () => boolean;
   },
 ): EventLogsDatasource {
-  // The CSV of Filtered & Sorted has the rows that the grid shows.
-  let shownQuery: EventLogsTableQueryModel = {
+  // The CSV of Filtered & Sorted has the rows of the latest query that the
+  // grid asked for, which it shows when the answer comes.
+  let latestQuery: EventLogsTableQueryModel = {
     sortModel: [],
     filterModel: {},
     quickSearch: quickSearch.text,
@@ -76,12 +77,12 @@ export function createEventLogsDatasource(
         filterModel: params.filterModel,
         quickSearch: quickSearch.text,
       };
+      latestQuery = query;
       // The worker answers in the order of the requests.
       client
         .query({ ...query, startRow: params.startRow, endRow: params.endRow })
         .then(
           ({ rows, lastRow }) => {
-            shownQuery = query;
             onRowCount(lastRow);
             params.successCallback(rows, lastRow);
           },
@@ -99,7 +100,7 @@ export function createEventLogsDatasource(
       ? (request, filteredSorted) =>
           client.csv(
             request,
-            filteredSorted === "filteredAndSorted" ? shownQuery : undefined,
+            filteredSorted === "filteredAndSorted" ? latestQuery : undefined,
           )
       : undefined,
   };

@@ -319,18 +319,32 @@ describe("ExportCsv.svelte", () => {
       expect(gridApi.addEventListener).not.toHaveBeenCalled();
     });
 
-    test("leaves the CSV to ag-grid while the rows load", async () => {
+    test("has no CSV while the worker does not have the rows, not even ag-grid's", async () => {
+      const clipboard = stubClipboard();
+      // ag-grid keeps some blocks, maybe of the previous table.
       const gridApi = createGridApi("1", 2);
-      render(ExportCsv, {
+      const { rerender } = render(ExportCsv, {
         gridApi,
         exportFilePrefix: "eventLogs",
         infiniteRows: workerRows(undefined),
       });
       await openTheDialog();
-      expect(screen.getByText("2 rows")).toBeTruthy();
-
+      expect(screen.queryByText(/rows$/)).toBeNull();
+      expect(button("Export").disabled).toBe(true);
+      expect(button("Copy").disabled).toBe(true);
       await fireEvent.click(button("Export"));
-      expect(gridApi.exportDataAsCsv).toHaveBeenCalledTimes(1);
+      await fireEvent.click(button("Copy"));
+      expect(gridApi.exportDataAsCsv).not.toHaveBeenCalled();
+      expect(gridApi.getDataAsCsv).not.toHaveBeenCalled();
+      expect(gridApi.forEachNode).not.toHaveBeenCalled();
+      expect(clipboard.writeText).not.toHaveBeenCalled();
+
+      // The rows have come.
+      await rerender({
+        infiniteRows: workerRows(vi.fn(), { all: 3, filteredAndSorted: 3 }),
+      });
+      await waitFor(() => expect(screen.getByText("3 rows")).toBeTruthy());
+      expect(button("Export").disabled).toBe(false);
     });
 
     test.each([

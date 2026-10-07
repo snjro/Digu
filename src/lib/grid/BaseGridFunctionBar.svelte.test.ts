@@ -270,6 +270,28 @@ describe("BaseGridFunctionBar.svelte", () => {
       expect(gridApi.onFilterChanged).toHaveBeenCalledTimes(2);
     });
 
+    test("Reset all filters clears the quick search before the column filter, and reads the rows once", async () => {
+      vi.useFakeTimers();
+      const infiniteRows = infiniteRowsOf({ getRows: vi.fn() });
+      const gridApi = renderInfiniteBar(infiniteRows);
+      await typeQuickSearch("abc");
+      vi.advanceTimersByTime(quickSearchWaitMs);
+      gridApi.onFilterChanged.mockClear();
+      // The text that the rows of the new column filter are read with.
+      const quickSearchAtFilter: string[] = [];
+      gridApi.setFilterModel.mockImplementation(() => {
+        quickSearchAtFilter.push(infiniteRows.quickSearch.text);
+      });
+
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Reset all filters" }),
+      );
+      await tick();
+      expect(quickSearchAtFilter).toEqual([""]);
+      // The column filter reads the rows; the cleared text does not again.
+      expect(gridApi.onFilterChanged).not.toHaveBeenCalled();
+    });
+
     test("Reload resets the grid and reads the rows again", async () => {
       vi.useFakeTimers();
       const infiniteRows = infiniteRowsOf({ getRows: vi.fn() });
@@ -289,6 +311,13 @@ describe("BaseGridFunctionBar.svelte", () => {
       expect(infiniteRows.quickSearch.text).toBe("");
       expect(gridApi.purgeInfiniteCache).toHaveBeenCalledTimes(1);
       expect(lastLoading(gridApi)).toBe(false);
+      // The columns are sized after the rows come, not on the loading rows.
+      vi.runAllTimers();
+      expect(gridApi.sizeColumnsToFit).not.toHaveBeenCalled();
+      expect(gridApi.addEventListener).toHaveBeenCalledWith(
+        "modelUpdated",
+        expect.any(Function),
+      );
       expect(gridApi.setGridOption).not.toHaveBeenCalledWith(
         "rowData",
         expect.anything(),
