@@ -716,15 +716,21 @@ describe("warpSync", () => {
     });
 
     // Resolves the next reload of the DB only when the returned function is
-    // called.
+    // called, also before the reload starts.
     function holdNextReload(): () => void {
+      let released: boolean = false;
       let finish: () => void = () => {};
       vi.mocked(reloadSyncStatusInChain)
         .mockClear()
-        .mockImplementationOnce(
-          () => new Promise<void>((resolve) => (finish = resolve)),
+        .mockImplementationOnce(() =>
+          released
+            ? Promise.resolve()
+            : new Promise<void>((resolve) => (finish = resolve)),
         );
-      return () => finish();
+      return () => {
+        released = true;
+        finish();
+      };
     }
 
     test("says it stops at once, even after a range done late, until it is stopped", async () => {
@@ -749,15 +755,21 @@ describe("warpSync", () => {
         progress: { doneLogCount: 20_000 },
         ending: "stopping",
       };
-      expect(selectWarpSyncState(get(storeWarpSync), "matic")).toMatchObject(
-        stopping,
-      );
-      await vi.waitFor(() => expect(reloadSyncStatusInChain).toHaveBeenCalled());
-      expect(selectWarpSyncState(get(storeWarpSync), "matic")).toMatchObject(
-        stopping,
-      );
-      finishReload();
-      await importing;
+      try {
+        expect(selectWarpSyncState(get(storeWarpSync), "matic")).toMatchObject(
+          stopping,
+        );
+        await vi.waitFor(() =>
+          expect(reloadSyncStatusInChain).toHaveBeenCalled(),
+        );
+        expect(selectWarpSyncState(get(storeWarpSync), "matic")).toMatchObject(
+          stopping,
+        );
+      } finally {
+        // The lock is released for the next tests.
+        finishReload();
+        await importing;
+      }
       const state = selectWarpSyncState(get(storeWarpSync), "matic");
       expect(state.status).toBe("stopped");
       expect(state.ending).toBeUndefined();
@@ -769,12 +781,20 @@ describe("warpSync", () => {
       await startWarpSync(matic);
       const finishReload = holdNextReload();
       const importing = confirmWarpSync(matic);
-      await vi.waitFor(() => expect(reloadSyncStatusInChain).toHaveBeenCalled());
-      const state = selectWarpSyncState(get(storeWarpSync), "matic");
-      expect(state).toMatchObject({ status: "importing", ending: "finishing" });
-      expect(state.progress).toBeDefined();
-      finishReload();
-      await importing;
+      try {
+        await vi.waitFor(() =>
+          expect(reloadSyncStatusInChain).toHaveBeenCalled(),
+        );
+        const state = selectWarpSyncState(get(storeWarpSync), "matic");
+        expect(state).toMatchObject({
+          status: "importing",
+          ending: "finishing",
+        });
+        expect(state.progress).toBeDefined();
+      } finally {
+        finishReload();
+        await importing;
+      }
       const end = selectWarpSyncState(get(storeWarpSync), "matic");
       expect(end.status).toBe("imported");
       expect(end.ending).toBeUndefined();
