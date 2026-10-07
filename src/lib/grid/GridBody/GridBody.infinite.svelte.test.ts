@@ -94,6 +94,42 @@ describe("GridBody.svelte with the Infinite Row Model", () => {
     expect(warnings).toEqual([]);
   });
 
+  test("keeps the selected row across a new sort, by the id of the row", async () => {
+    const quickSearch = { text: "" };
+    const rows: Row[] = Array.from({ length: 150 }, (_, index) => ({
+      id: index + 1,
+      name: `name${String(index).padStart(3, "0")}`,
+    }));
+    const datasource = datasourceOf(rows, quickSearch);
+    // Sorts by the name, as the table worker sorts all the rows.
+    const getRows = datasource.getRows;
+    datasource.getRows = (params: IGetRowsParams) =>
+      getRows({
+        ...params,
+        successCallback: (rowsThisBlock, lastRow) =>
+          params.successCallback(
+            params.sortModel[0]?.sort === "desc"
+              ? rows.toReversed().slice(params.startRow, params.endRow)
+              : rowsThisBlock,
+            lastRow,
+          ),
+      });
+    renderGridBody(datasource, quickSearch);
+    await waitFor(() => expect(datasource.calls.length).toBe(1));
+    const api = datasource.calls[0].api as GridApi<Row>;
+    await waitFor(() => expect(api.getDisplayedRowCount()).toBe(150));
+
+    api.getDisplayedRowAtIndex(1)?.setSelected(true);
+    api.applyColumnState({ state: [{ colId: "name", sort: "desc" }] });
+    await waitFor(() => expect(datasource.calls.length).toBe(2));
+    await waitFor(() =>
+      expect(api.getDisplayedRowAtIndex(0)?.id).toBe("row150"),
+    );
+    expect(api.getSelectedNodes().map((node) => node.id)).toEqual(["row2"]);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(warnings).toEqual([]);
+  });
+
   test("tells no matching rows of the quick search from no rows, as ag-grid's own quick search", async () => {
     const quickSearch = { text: "" };
     const datasource = datasourceOf([{ id: 1, name: "apple" }], quickSearch);
