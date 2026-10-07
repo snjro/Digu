@@ -32,10 +32,12 @@
   let hasFailed: boolean = $derived(
     warpState.status === "failed" && $storeRpcSettings[chainName].warpSync,
   );
+  // The texts while stopping or finishing do not read now.
+  let isEnding: boolean = $derived(warpState.ending !== undefined);
   // The time left moves on between the ranges too.
   let now: number = $state(Date.now());
   $effect(() => {
-    if (!isImporting) return;
+    if (!isImporting || isEnding) return;
     const timer = setInterval(() => (now = Date.now()), 1000);
     return () => clearInterval(timer);
   });

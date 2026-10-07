@@ -123,6 +123,7 @@ describe("WarpSyncStatus.svelte", () => {
   ] as const)(
     "says so without Stop while a large import is %s, until it ends",
     async (ending, text) => {
+      const timersBefore: number = vi.getTimerCount();
       const { container } = render(WarpSyncStatus);
       await setState({
         status: "importing",
@@ -134,6 +135,8 @@ describe("WarpSyncStatus.svelte", () => {
         "motion-safe:animate-pulse",
       );
       expect(screen.queryByRole("button", { name: "Stop" })).toBeNull();
+      // The text does not change with the time.
+      expect(vi.getTimerCount()).toBe(timersBefore);
       await setState({
         status: ending === "stopping" ? "stopped" : "imported",
         pending,
