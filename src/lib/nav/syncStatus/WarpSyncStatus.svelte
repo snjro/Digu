@@ -63,7 +63,7 @@
         colorCategoryBg="interactive"
         onclick={() => void retryWarpSync(targetChain)}
       />
-    {:else if warpState.progress}
+    {:else if warpState.progress && !warpState.ending}
       <!-- Only for a large import, which takes minutes. -->
       <BaseButton
         label="Stop"

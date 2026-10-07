@@ -117,6 +117,31 @@ describe("WarpSyncStatus.svelte", () => {
     expect(vi.getTimerCount()).toBe(timersBefore);
   });
 
+  test.each([
+    ["stopping", "Stopping import…"],
+    ["finishing", "Finishing import…"],
+  ] as const)(
+    "says so without Stop while a large import is %s, until it ends",
+    async (ending, text) => {
+      const { container } = render(WarpSyncStatus);
+      await setState({
+        status: "importing",
+        pending,
+        progress: { doneLogCount: 50, startedAt: Date.now() },
+        ending,
+      });
+      expect(screen.getByText(text).className).toContain(
+        "motion-safe:animate-pulse",
+      );
+      expect(screen.queryByRole("button", { name: "Stop" })).toBeNull();
+      await setState({
+        status: ending === "stopping" ? "stopped" : "imported",
+        pending,
+      });
+      expect(container.textContent).toBe("");
+    },
+  );
+
   test("says that the import failed, and Retry imports again", async () => {
     render(WarpSyncStatus);
     await setState({ status: "failed" });

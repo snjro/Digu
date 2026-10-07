@@ -714,6 +714,71 @@ describe("warpSync", () => {
       expect(state.status).toBe("stopped");
       expect(state.pending).toBeUndefined();
     });
+
+    // Resolves the next reload of the DB only when the returned function is
+    // called.
+    function holdNextReload(): () => void {
+      let finish: () => void = () => {};
+      vi.mocked(reloadSyncStatusInChain)
+        .mockClear()
+        .mockImplementationOnce(
+          () => new Promise<void>((resolve) => (finish = resolve)),
+        );
+      return () => finish();
+    }
+
+    test("says it stops at once, even after a range done late, until it is stopped", async () => {
+      vi.spyOn(customLogger, "info").mockImplementation(() => {});
+      vi.mocked(importWarpSync).mockImplementationOnce(
+        (_chain, _manifest, options) =>
+          new Promise((_, reject) =>
+            options?.signal?.addEventListener("abort", () => {
+              // A range saved after the stop, before its result came back.
+              options.onRangeDone?.({ logCount: 20_000 } as never);
+              reject(options.signal!.reason);
+            }),
+          ),
+      );
+      await startWarpSync(matic);
+      const finishReload = holdNextReload();
+      const importing = confirmWarpSync(matic);
+      await vi.waitFor(() => expect(importWarpSync).toHaveBeenCalled());
+      stopWarpSync("matic");
+      const stopping = {
+        status: "importing",
+        progress: { doneLogCount: 20_000 },
+        ending: "stopping",
+      };
+      expect(selectWarpSyncState(get(storeWarpSync), "matic")).toMatchObject(
+        stopping,
+      );
+      await vi.waitFor(() => expect(reloadSyncStatusInChain).toHaveBeenCalled());
+      expect(selectWarpSyncState(get(storeWarpSync), "matic")).toMatchObject(
+        stopping,
+      );
+      finishReload();
+      await importing;
+      const state = selectWarpSyncState(get(storeWarpSync), "matic");
+      expect(state.status).toBe("stopped");
+      expect(state.ending).toBeUndefined();
+      // Only the reload after the stop: the lock does not read the DB again.
+      expect(reloadSyncStatusInChain).toHaveBeenCalledTimes(1);
+    });
+
+    test("says it finishes while it reads the DB again, until it is imported", async () => {
+      await startWarpSync(matic);
+      const finishReload = holdNextReload();
+      const importing = confirmWarpSync(matic);
+      await vi.waitFor(() => expect(reloadSyncStatusInChain).toHaveBeenCalled());
+      const state = selectWarpSyncState(get(storeWarpSync), "matic");
+      expect(state).toMatchObject({ status: "importing", ending: "finishing" });
+      expect(state.progress).toBeDefined();
+      finishReload();
+      await importing;
+      const end = selectWarpSyncState(get(storeWarpSync), "matic");
+      expect(end.status).toBe("imported");
+      expect(end.ending).toBeUndefined();
+    });
   });
 
   describe("retryWarpSync", () => {
@@ -853,10 +918,10 @@ describe("warpSync", () => {
     });
   });
 
-  test("shows no progress for a small import", async () => {
+  test("shows no progress for a small import, nor that it finishes", async () => {
     const progress: unknown[] = [];
     const unsubscribe = storeWarpSync.subscribe((all) =>
-      progress.push(all.matic?.progress),
+      progress.push(all.matic?.progress, all.matic?.ending),
     );
     await startWarpSync(matic);
     unsubscribe();
