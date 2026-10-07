@@ -87,7 +87,15 @@
     const throttledLoad = createThrottledLoad(
       (signal: AbortSignal) =>
         isOpen
-          ? client.refresh()
+          ? client.refresh().catch((error: unknown) => {
+              // A worker that failed after the table opened: the next sync
+              // opens the table again in a new worker.
+              if (!signal.aborted && client.isClosed) {
+                isOpen = false;
+                client = new EventLogsTableClient();
+              }
+              throw error;
+            })
           : openEventLogsTable(client, eventIdentifier, signal),
       (state: EventLogsTableState | undefined) => {
         if (!isOpen) {

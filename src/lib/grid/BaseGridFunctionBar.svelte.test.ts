@@ -288,8 +288,9 @@ describe("BaseGridFunctionBar.svelte", () => {
       );
       await tick();
       expect(quickSearchAtFilter).toEqual([""]);
-      // The column filter reads the rows; the cleared text does not again.
-      expect(gridApi.onFilterChanged).not.toHaveBeenCalled();
+      // Reset reads the rows once (without a column filter, setFilterModel()
+      // does not); the cleared text of the box does not again.
+      expect(gridApi.onFilterChanged).toHaveBeenCalledTimes(1);
     });
 
     test("Reload resets the grid and reads the rows again", async () => {

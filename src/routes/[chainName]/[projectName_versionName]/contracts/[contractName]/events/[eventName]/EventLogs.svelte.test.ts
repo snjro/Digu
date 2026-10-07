@@ -51,6 +51,7 @@ const fakeClients = vi.hoisted(() => {
     query: ReturnType<typeof vi.fn>;
     csv: ReturnType<typeof vi.fn>;
     terminate: ReturnType<typeof vi.fn>;
+    isClosed: boolean;
   }[] = [];
   return clients;
 });
@@ -65,6 +66,7 @@ vi.mock("#db/eventLogsTable.worker.portal.js", () => ({
       query: vi.fn(),
       csv: vi.fn(),
       terminate: vi.fn(),
+      isClosed: false,
     };
     fakeClients.push(client);
     return client;
@@ -416,6 +418,42 @@ describe("EventLogs.svelte", () => {
 
     unmount();
     expect(fakeClients[1].terminate).toHaveBeenCalledTimes(1);
+  });
+
+  test("opens the table again in a new worker on the next sync, when the worker failed after it opened", async () => {
+    open.mockResolvedValue(tableState(1));
+    renderGrid();
+    await waitFor(() => expect(shown().rows).toBe(1));
+    const datasource = gridProps?.infiniteRows.datasource;
+
+    // The worker fails: the client rejects every request.
+    fakeClients[0].isClosed = true;
+    refresh.mockRejectedValueOnce(new Error("EventLogsTableWorker: failed"));
+    await saveLogs(1);
+    expect(fakeClients[0].refresh).toHaveBeenCalledTimes(1);
+    expect(fakeClients).toHaveLength(2);
+
+    await saveLogs(2);
+    await waitFor(() =>
+      expect(gridProps?.infiniteRows.datasource).not.toBe(datasource),
+    );
+    expect(fakeClients[1].open).toHaveBeenCalledWith(targetEventIdentifier);
+    expect(fakeClients[0].refresh).toHaveBeenCalledTimes(1);
+    expect(fakeClients[1].refresh).not.toHaveBeenCalled();
+  });
+
+  test("refreshes with the same worker after a refresh that failed while the worker lives", async () => {
+    open.mockResolvedValue(tableState(1));
+    renderGrid();
+    await waitFor(() => expect(shown().rows).toBe(1));
+
+    refresh.mockRejectedValueOnce(new Error("EventLogsTable: DB failed"));
+    await saveLogs(1);
+    refresh.mockResolvedValueOnce(refreshed(2));
+    await saveLogs(2);
+    await waitFor(() => expect(shown().rows).toBe(2));
+    expect(fakeClients).toHaveLength(1);
+    expect(fakeClients[0].refresh).toHaveBeenCalledTimes(2);
   });
 
   test("the datasource asks the worker for the blocks with the quick search, and counts the rows", async () => {

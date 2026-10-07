@@ -74,6 +74,10 @@ export class EventLogsTableClient {
   ): Promise<CsvResult> {
     return this.request("csv", { request, query });
   }
+  // After terminate() or an error of the worker.
+  get isClosed(): boolean {
+    return this.closedMessage !== undefined;
+  }
   // Drops the rows, and rejects the requests that wait and the later ones.
   terminate(): void {
     this.close("EventLogsTableWorker: terminated");
