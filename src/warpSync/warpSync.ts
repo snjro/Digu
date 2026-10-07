@@ -62,9 +62,15 @@ function startImport(targetChain: Chain): RunningImport {
     const ran: Promise<boolean> = Promise.resolve(true);
     return { ran, done: ran.then(() => {}) };
   }
-  const ran: Promise<boolean> = withSyncLock(chainName, () =>
-    runImport(targetChain, true),
-  ).finally(() => runningImports.delete(chainName));
+  let end: WarpSyncState | undefined = undefined;
+  const ran: Promise<boolean> = withSyncLock(chainName, async () => {
+    end = await runImport(targetChain, true);
+  }).finally(() => {
+    runningImports.delete(chainName);
+    // Only once the lock is released: Retry and Import, shown in the end
+    // states, then start a new import instead of getting this one back.
+    if (end) setWarpSyncState(chainName, end);
+  });
   const importing: RunningImport = { ran, done: ran.then(() => {}) };
   runningImports.set(chainName, importing);
   return importing;
@@ -101,12 +107,7 @@ export async function confirmWarpSync(targetChain: Chain): Promise<void> {
 export async function retryWarpSync(targetChain: Chain): Promise<void> {
   const chainName: ChainName = targetChain.name;
   const before: WarpSyncState = getState(chainName);
-  // Leaves "failed" at once, so that Retry is not shown while it waits.
   setWarpSyncState(chainName, { ...before, status: "idle", busy: undefined });
-  // The failed import may still hold the lock, to read the DB into the
-  // stores. Without the wait, Retry would get that import back, and nothing
-  // would run.
-  await waitForWarpSync(chainName);
   const ran: boolean = await startImport(targetChain).ran;
   if (ran) return;
   setWarpSyncState(chainName, { ...before, busy: true });
@@ -151,20 +152,24 @@ export async function importWarpSyncBeforeSync(
   const chainName: ChainName = targetChain.name;
   if (!isWarpSyncOn(chainName) || isDone(chainName)) return;
   if (heldChains.has(chainName)) return;
-  await runImport(targetChain, false);
+  const end: WarpSyncState | undefined = await runImport(targetChain, false);
+  if (end) setWarpSyncState(chainName, end);
 }
 
+// Returns the state to set once it ends, and sets the states while it runs.
 // ask: a large import that the user did not confirm waits in "confirm";
 // without it, such an import is skipped and the state is kept.
-async function runImport(targetChain: Chain, ask: boolean): Promise<void> {
+async function runImport(
+  targetChain: Chain,
+  ask: boolean,
+): Promise<WarpSyncState | undefined> {
   const chainName: ChainName = targetChain.name;
   // The files are gzip. Nothing is fetched, and the sync fetches the logs.
   if (typeof DecompressionStream === "undefined") {
     customLogger.info("Skip the warp sync: no DecompressionStream.", {
       chainName,
     });
-    setWarpSyncState(chainName, { status: "unsupported" });
-    return;
+    return { status: "unsupported" };
   }
   const before: WarpSyncState = getState(chainName);
   // Turned off while waiting for the lock.
@@ -175,10 +180,7 @@ async function runImport(targetChain: Chain, ask: boolean): Promise<void> {
   let manifest: WarpSyncManifest | undefined = undefined;
   try {
     manifest = await fetchWarpSyncManifest(targetChain);
-    if (!manifest) {
-      setWarpSyncState(chainName, { status: "none" });
-      return;
-    }
+    if (!manifest) return { status: "none" };
     const pending: WarpSyncPending = await getWarpSyncPending(
       targetChain,
       manifest,
@@ -191,11 +193,7 @@ async function runImport(targetChain: Chain, ask: boolean): Promise<void> {
     };
     const isLarge: boolean = needsConfirmation(pending);
     if (isLarge && !confirmedChains.has(chainName)) {
-      setWarpSyncState(
-        chainName,
-        ask ? { status: "confirm", ...about } : before,
-      );
-      return;
+      return ask ? { status: "confirm", ...about } : before;
     }
     // Only a large import shows its progress and can be stopped from the nav.
     let doneLogCount: number = 0;
@@ -218,11 +216,11 @@ async function runImport(targetChain: Chain, ask: boolean): Promise<void> {
         },
       },
     );
-    setWarpSyncState(chainName, {
+    return {
       status: toBlock === undefined ? "none" : "imported",
       toBlock,
       createdAt: manifest.runs.at(-1)?.createdAt,
-    });
+    };
   } catch (error) {
     // A file may have been saved after the stop or the timeout, before its
     // result reached this tab: the stores follow the DB again.
@@ -237,21 +235,20 @@ async function runImport(targetChain: Chain, ask: boolean): Promise<void> {
         chainName,
       });
       heldChains.add(chainName);
-      setWarpSyncState(chainName, {
+      return {
         status: "stopped",
         toBlock: manifest?.runs.at(-1)?.toBlock,
         createdAt: manifest?.runs.at(-1)?.createdAt,
         pending: manifest
           ? await getPendingOrUndefined(targetChain, manifest)
           : undefined,
-      });
-      return;
+      };
     }
     customLogger.error("Import the warp sync snapshot.", {
       chainName,
       errorObject: error,
     });
-    setWarpSyncState(chainName, { status: "failed" });
+    return { status: "failed" };
   } finally {
     setWarpSyncStopController(chainName, undefined);
   }
