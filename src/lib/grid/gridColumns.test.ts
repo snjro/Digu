@@ -46,9 +46,10 @@ describe("setAutoColumnWidth", () => {
   });
   test("does not auto-size a grid destroyed before the wait ends", () => {
     const gridApi = createGridApi();
-    setAutoColumnWidth(gridApi);
+    setAutoColumnWidth(gridApi, false, 100);
+    vi.advanceTimersByTime(50);
     gridApi.isDestroyed.mockReturnValue(true);
-    vi.advanceTimersByTime(0);
+    vi.advanceTimersByTime(50);
     expect(gridApi.autoSizeAllColumns).not.toHaveBeenCalled();
   });
 });
