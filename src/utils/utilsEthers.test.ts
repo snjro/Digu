@@ -13,13 +13,13 @@ import {
   cancelNodeProviderCall,
   extractDecodedEventLogs,
   extractEventContracts,
-  forgetBlockTimestampsFromLogs,
   getAndUpdateLatestBlockNumber,
   getBlockTimestampFromLogs,
   getEthersEventLogs,
   getLoggableError,
   getNodeProvider,
   isErrorUnrelatedToRange,
+  MAX_BLOCK_TIMESTAMPS,
   startNodeProviderCall,
   type NodeProvider,
 } from "./utilsEthers";
@@ -914,63 +914,43 @@ describe("getBlockTimestampFromLogs", () => {
     await otherProvider.destroy();
   });
 
-  test("should forget the blockTimestamp of the logs that are skipped", async () => {
-    const nodeProvider = (await getNodeProvider(
-      targetChain,
-      "https://bar",
-    )) as JsonRpcProvider;
-    // A log of an event that the contract does not have.
-    const undecodedLog = (blockNumber: number) => ({
-      ...rawLog(blockNumber, blockNumber * 100),
-      topics: [`0x${"c".repeat(64)}`],
-    });
-    vi.spyOn(nodeProvider, "_send").mockImplementation(
-      async (
-        payload: JsonRpcPayload | JsonRpcPayload[],
-      ): Promise<JsonRpcResult[]> =>
-        [payload].flat().map((request: JsonRpcPayload) => ({
-          id: request.id,
-          result: [rawLog(10, 1000), undecodedLog(10), undecodedLog(11)],
-        })),
-    );
-    const spyError = vi
-      .spyOn(customLogger, "error")
-      .mockImplementation(() => {});
-    const ethersContract: EthersContract = new ethers.Contract(
-      address,
-      contractInterface,
-      nodeProvider,
-    );
-
-    const logs: EthersEventLog[] = await getEthersEventLogs(
-      ["EventB"],
-      ethersContract,
-      10,
-      11,
-    );
-    spyError.mockRestore();
-
-    expect(logs.map((log) => log.blockNumber)).toEqual([10]);
-    // The block of a log that is saved keeps it.
-    expect(getBlockTimestampFromLogs(nodeProvider, 10)).toBe(1000);
-    expect(getBlockTimestampFromLogs(nodeProvider, 11)).toBeUndefined();
-    await nodeProvider.destroy();
-  });
-
-  test("should forget only the blockTimestamp of the given blocks", async () => {
+  test("should drop the oldest blockTimestamp beyond MAX_BLOCK_TIMESTAMPS", async () => {
     const nodeProvider = (await getNodeProvider(targetChain, "https://bar"))!;
-    for (const blockNumber of [10, 11, 12]) {
+    const network: Network = Network.from(targetChain.chainId);
+    const log: Record<string, unknown> = rawLog(1, 0);
+    const keep = (blockNumber: number): void => {
       nodeProvider._wrapLog(
-        rawLog(blockNumber, blockNumber * 100) as unknown as LogParams,
-        Network.from(targetChain.chainId),
+        {
+          ...log,
+          blockNumber: toQuantity(blockNumber),
+          blockTimestamp: toQuantity(blockNumber * 10),
+        } as unknown as LogParams,
+        network,
       );
+    };
+    const timestampOf = (blockNumber: number): number | undefined =>
+      getBlockTimestampFromLogs(nodeProvider, blockNumber);
+    for (
+      let blockNumber = 1;
+      blockNumber <= MAX_BLOCK_TIMESTAMPS;
+      blockNumber++
+    ) {
+      keep(blockNumber);
     }
+    // Within the bound.
+    expect(timestampOf(1)).toBe(10);
+    expect(timestampOf(MAX_BLOCK_TIMESTAMPS)).toBe(MAX_BLOCK_TIMESTAMPS * 10);
 
-    forgetBlockTimestampsFromLogs(nodeProvider, [10, 12]);
+    // Set again, block 1 becomes the newest, and block 2 the oldest.
+    keep(1);
+    keep(MAX_BLOCK_TIMESTAMPS + 1);
 
-    expect(getBlockTimestampFromLogs(nodeProvider, 10)).toBeUndefined();
-    expect(getBlockTimestampFromLogs(nodeProvider, 11)).toBe(1100);
-    expect(getBlockTimestampFromLogs(nodeProvider, 12)).toBeUndefined();
+    expect(timestampOf(2)).toBeUndefined();
+    expect(timestampOf(1)).toBe(10);
+    expect(timestampOf(3)).toBe(30);
+    expect(timestampOf(MAX_BLOCK_TIMESTAMPS + 1)).toBe(
+      (MAX_BLOCK_TIMESTAMPS + 1) * 10,
+    );
     await nodeProvider.destroy();
   });
 });

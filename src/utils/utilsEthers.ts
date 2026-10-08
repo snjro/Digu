@@ -43,6 +43,13 @@ export function extractEventContracts(targetContracts: Contract[]): Contract[] {
 }
 export type NodeProvider = JsonRpcProvider | WebSocketProvider;
 
+// The blocks kept for each provider. The oldest ones are dropped beyond it,
+// so that the map does not grow during the whole sync. A block is read right
+// after the eth_getLogs answer that has it, and the range of an answer has at
+// most MAX_BULK_UNIT (100,000) blocks, so the blocks of one answer fit in
+// it. A block dropped before it is read is read from the DB or the RPC
+// instead.
+export const MAX_BLOCK_TIMESTAMPS: number = 100000;
 // The blockTimestamp that an RPC may put in each log, by block number, for
 // each provider. ethers does not keep it in a Log.
 const blockTimestampsOfProviders: WeakMap<
@@ -62,7 +69,14 @@ function keepBlockTimestamp(provider: NodeProvider, log: LogParams): void {
     blockTimestamps = new Map();
     blockTimestampsOfProviders.set(provider, blockTimestamps);
   }
-  blockTimestamps.set(getNumber(log.blockNumber), getNumber(blockTimestamp));
+  const blockNumber: number = getNumber(log.blockNumber);
+  // A Map keeps the order of insertion, so a block set again becomes the
+  // newest.
+  blockTimestamps.delete(blockNumber);
+  blockTimestamps.set(blockNumber, getNumber(blockTimestamp));
+  if (blockTimestamps.size > MAX_BLOCK_TIMESTAMPS) {
+    blockTimestamps.delete(blockTimestamps.keys().next().value!);
+  }
 }
 // The blockTimestamp of a log that this provider has returned, if any.
 export function getBlockTimestampFromLogs(
@@ -70,17 +84,6 @@ export function getBlockTimestampFromLogs(
   blockNumber: number,
 ): number | undefined {
   return blockTimestampsOfProviders.get(provider)?.get(blockNumber);
-}
-// Only these blocks: the contracts of the chain share the provider.
-export function forgetBlockTimestampsFromLogs(
-  provider: NodeProvider,
-  blockNumbers: number[],
-): void {
-  const blockTimestamps: Map<number, number> | undefined =
-    blockTimestampsOfProviders.get(provider);
-  for (const blockNumber of blockNumbers) {
-    blockTimestamps?.delete(blockNumber);
-  }
 }
 // ethers calls _wrapLog with each log of eth_getLogs.
 class JsonRpcProviderKeepingBlockTimestamps extends JsonRpcProvider {
@@ -278,18 +281,24 @@ export async function getNodeProvider(
     }
   } catch (error) {
     // A WebSocket would stay open.
-    try {
-      await nodeProvider?.destroy();
-    } catch {
-      // Throw the error of the write, which tells why it failed.
-    }
+    await destroyNodeProvider(nodeProvider);
     throw error;
   }
   if (nodeStatus !== "SUCCESS") {
-    await nodeProvider?.destroy();
+    await destroyNodeProvider(nodeProvider);
     return undefined;
   }
   return nodeProvider;
+}
+// Does not throw, so that the caller goes on with its own result or error.
+async function destroyNodeProvider(
+  nodeProvider: NodeProvider | undefined,
+): Promise<void> {
+  try {
+    await nodeProvider?.destroy();
+  } catch (error) {
+    customLogger.error("nodeProvider.destroy().", getLoggableError(error));
+  }
 }
 // ethers puts the request URL, which may hold an API key, in the message and
 // the properties of its errors.
@@ -391,19 +400,7 @@ async function queryFilter(
     fromBlock,
     toBlock,
   );
-  const decodedEventLogs: EthersEventLog[] = extractDecodedEventLogs(logs);
-  // No row needs the block times of the logs that are skipped. The sync
-  // forgets the others once the range is done.
-  const blocksOfDecodedEventLogs: Set<number> = new Set(
-    decodedEventLogs.map((eventLog: EthersEventLog) => eventLog.blockNumber),
-  );
-  forgetBlockTimestampsFromLogs(
-    ethersContract.runner as NodeProvider,
-    logs
-      .map((log: EventLog | Log) => log.blockNumber)
-      .filter((blockNumber) => !blocksOfDecodedEventLogs.has(blockNumber)),
-  );
-  return decodedEventLogs;
+  return extractDecodedEventLogs(logs);
 }
 
 // Logs that could not be decoded (e.g. "UndecodedEventLog") are skipped

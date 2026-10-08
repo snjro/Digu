@@ -101,6 +101,31 @@ describe("startUpdateLatestBlockNumber", () => {
     expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(3);
   });
 
+  test("should abort the chain when unexpected errors exceed Try Count", async () => {
+    const originalSubscribe = storeSyncStatus.subscribe;
+    let throwCount: number = 0;
+    // The update reads the store first, and fails each time until Try Count is
+    // exceeded. Aborting reads it too, then without an error.
+    vi.spyOn(storeSyncStatus, "subscribe").mockImplementation((...args) => {
+      if (throwCount <= TRY_COUNT) {
+        throwCount++;
+        throw new Error("store error");
+      }
+      return originalSubscribe(...args);
+    });
+    const { customLogger } = await import("#utils/logger.js");
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+
+    await startUpdateLatestBlockNumber(chainName, nodeProvider);
+    await vi.advanceTimersByTimeAsync((TRY_COUNT + 3) * blockIntervalMs);
+
+    expect(throwCount).toBe(TRY_COUNT + 1);
+    expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(chainName);
+    expect(get(storeSyncStoppedReason)[chainName]).toBe("RPC_ERRORS");
+    // Only the request before the updates.
+    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledOnce();
+  });
+
   test("should stop once when it is stopped after it stopped itself", async () => {
     vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
       new Error("RPC error"),

@@ -11,6 +11,7 @@ import {
 } from "vitest";
 import { getNodeProvider, type NodeProvider } from "./utilsEthers";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import { customLogger } from "./logger";
 import * as dbChainStatusDataHandlers from "#db/dbChainStatusDataHandlers.js";
 import {
   JsonRpcProvider,
@@ -222,16 +223,50 @@ describe("getNodeProvider when the node status cannot be saved", () => {
         if (value === "SUCCESS") throw dbError;
       },
     );
+    const destroyError: Error = new Error("destroy failed");
     const spyDestroy: MockInstance = vi
       .spyOn(WebSocketProvider.prototype, "destroy")
-      .mockRejectedValue(new Error("destroy failed"));
+      .mockRejectedValue(destroyError);
+    const spyError: MockInstance = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
     try {
       await expect(
         getNodeProvider(targetChain, "ws://127.0.0.1:9"),
       ).rejects.toBe(dbError);
+      expect(spyError).toHaveBeenCalledWith(
+        "nodeProvider.destroy().",
+        destroyError,
+      );
     } finally {
       spyDestroy.mockRestore();
+      spyError.mockRestore();
       spyUpdateDbItemChainStatus.mockResolvedValue(undefined);
+    }
+  });
+
+  test("should return undefined and log when destroying a provider on another chain fails", async () => {
+    fakeNode.chainId = otherChainId;
+    fakeNode.socketOpens = true;
+    const destroyError: Error = new Error("destroy failed");
+    const spyDestroy: MockInstance = vi
+      .spyOn(WebSocketProvider.prototype, "destroy")
+      .mockRejectedValue(destroyError);
+    const spyError: MockInstance = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    try {
+      expect(
+        await getNodeProvider(targetChain, "ws://127.0.0.1:9"),
+      ).toBeUndefined();
+      expectLastNodeStatus("WRONG_CHAIN");
+      expect(spyError).toHaveBeenCalledWith(
+        "nodeProvider.destroy().",
+        destroyError,
+      );
+    } finally {
+      spyDestroy.mockRestore();
+      spyError.mockRestore();
     }
   });
 });

@@ -64,40 +64,43 @@ export async function startUpdateLatestBlockNumber(
         stop();
         return;
       }
-
       await tryGetAndUpdateLatestBlockNumber();
-      // A request in flight fails when the provider is destroyed after
-      // stopping.
-      if (isStopped) return;
-      if (errorCount > TRY_COUNT) {
+    } catch (error) {
+      // Counted like a failed request, so that the updates do not go on for
+      // ever, and end at Try Count.
+      if (!isStopped) {
+        errorCount++;
         customLogger.error({
           errorOn: functionName,
           errorCount: `${errorCount}/${TRY_COUNT}`,
-          errorMessage: "errorCount exceeded the limit. Start aborting.",
+          errorMessage: "Failed to update the latest block number.",
+          error: getLoggableError(error),
         });
-
-        recordSyncStoppedReason(targetChainName, "RPC_ERRORS");
-        try {
-          await startAbortingInChain(targetChainName);
-        } catch (error) {
-          customLogger.error({
-            errorOn: functionName,
-            errorMessage: "Failed to start aborting.",
-            error: error,
-          });
-        }
-        stop();
       }
-    } catch (error) {
+    }
+    // A request in flight fails when the provider is destroyed after stopping.
+    if (isStopped) return;
+    if (errorCount > TRY_COUNT) {
       customLogger.error({
         errorOn: functionName,
-        errorMessage: "Failed to update the latest block number.",
-        error: getLoggableError(error),
+        errorCount: `${errorCount}/${TRY_COUNT}`,
+        errorMessage: "errorCount exceeded the limit. Start aborting.",
       });
-    } finally {
-      // Unless stopped, so that an unexpected error does not end the updates.
-      if (!isStopped) scheduleUpdate();
+
+      recordSyncStoppedReason(targetChainName, "RPC_ERRORS");
+      try {
+        await startAbortingInChain(targetChainName);
+      } catch (error) {
+        customLogger.error({
+          errorOn: functionName,
+          errorMessage: "Failed to start aborting.",
+          error: error,
+        });
+      }
+      stop();
+      return;
     }
+    scheduleUpdate();
   };
   // The next request after the last one ends, so that the requests do not
   // pile up and an older answer does not overwrite a newer one.
