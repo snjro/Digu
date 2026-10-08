@@ -88,15 +88,26 @@ export async function startUpdateLatestBlockNumber(
           errorMessage: "errorCount exceeded the limit. Start aborting.",
         });
         recordSyncStoppedReason(targetChainName, "RPC_ERRORS");
-        await startAbortingInChain(targetChainName);
       } catch (error) {
         customLogger.error({
           errorOn: functionName,
-          errorMessage: "Failed to start aborting.",
+          errorMessage: "Failed to record why the sync stopped.",
           error: getLoggableError(error),
         });
+      } finally {
+        // Even when the lines above throw.
+        try {
+          await startAbortingInChain(targetChainName);
+        } catch (error) {
+          customLogger.error({
+            errorOn: functionName,
+            errorMessage: "Failed to start aborting.",
+            error: getLoggableError(error),
+          });
+        } finally {
+          stop();
+        }
       }
-      stop();
       return;
     }
     scheduleUpdate();

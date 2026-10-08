@@ -264,7 +264,7 @@ describe("startUpdateLatestBlockNumber", () => {
     );
   });
 
-  test("should stop when starting to abort throws", async () => {
+  test("should abort and stop when the log before aborting throws", async () => {
     vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
       new Error("RPC error"),
     );
@@ -283,8 +283,11 @@ describe("startUpdateLatestBlockNumber", () => {
     await vi.advanceTimersByTimeAsync((TRY_COUNT + 3) * blockIntervalMs);
 
     expect(spyError).toHaveBeenCalledWith(
-      expect.objectContaining({ errorMessage: "Failed to start aborting." }),
+      expect.objectContaining({
+        errorMessage: "Failed to record why the sync stopped.",
+      }),
     );
+    expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(chainName);
     expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(TRY_COUNT + 1);
   });
 

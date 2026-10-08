@@ -86,7 +86,9 @@ export async function fetchEventLogsContract(
 
   const creationBlockNumber: number = targetContract.creation.blockNumber;
 
-  // In order to optimize memory usage, declare variables OUTSIDE the loop
+  // The values of the range, set again at the top of each loop. The logs of a
+  // range are declared in the loop instead, so that they are not kept during
+  // the requests of the next range.
   let fetchedBlockNumber: number;
   let fromBlockNumber: number;
   let latestBlockNumber: number;
@@ -155,8 +157,6 @@ export async function fetchEventLogsContract(
       customLogger.start("Fetch eventLogs. targetBlocks:", {
         fetchingTarget: fetchingTargetInfo,
       });
-      // In the loop, so that the logs of a range are not kept during the
-      // requests of the next one.
       const ethersEventLogs: EthersEventLog[] = await getEthersEventLogs(
         targetContract.events.names,
         ethersContract,

@@ -43,7 +43,7 @@ export function extractEventContracts(targetContracts: Contract[]): Contract[] {
 }
 export type NodeProvider = JsonRpcProvider | WebSocketProvider;
 
-// The blocks of the current map before it becomes the previous one. A block
+// The blocks of the current map when it becomes the previous one. A block
 // is read right after the eth_getLogs answer that has it, and the range of an
 // answer has at most MAX_BULK_UNIT (100,000) blocks, so the blocks of one
 // answer are still kept when they are read. A block no longer kept is read
@@ -57,7 +57,7 @@ export class BlockTimestamps {
   constructor(private readonly maxSize: number = MAX_BLOCK_TIMESTAMPS) {}
   set(blockNumber: number, timestamp: number): void {
     this.#current.set(blockNumber, timestamp);
-    if (this.#current.size > this.maxSize) {
+    if (this.#current.size >= this.maxSize) {
       this.#previous = this.#current;
       this.#current = new Map();
     }

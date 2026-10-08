@@ -20,6 +20,7 @@ import {
   getLoggableError,
   getNodeProvider,
   isErrorUnrelatedToRange,
+  MAX_BLOCK_TIMESTAMPS,
   startNodeProviderCall,
   type NodeProvider,
 } from "./utilsEthers";
@@ -913,6 +914,41 @@ describe("getBlockTimestampFromLogs", () => {
     await webSocketProvider.destroy();
     await otherProvider.destroy();
   });
+
+  test("should keep the blocks of an answer that fills the map of the current blocks", async () => {
+    const nodeProvider = (await getNodeProvider(targetChain, "https://bar"))!;
+    const network: Network = Network.from(targetChain.chainId);
+    const log: Record<string, unknown> = rawLog(1, 0);
+    const keep = (blockNumber: number): void => {
+      nodeProvider._wrapLog(
+        {
+          ...log,
+          blockNumber: toQuantity(blockNumber),
+          blockTimestamp: toQuantity(blockNumber * 10),
+        } as unknown as LogParams,
+        network,
+      );
+    };
+    for (
+      let blockNumber = 1;
+      blockNumber <= MAX_BLOCK_TIMESTAMPS - 2;
+      blockNumber++
+    ) {
+      keep(blockNumber);
+    }
+    // An answer whose third block fills the map of the current blocks.
+    const answer: number[] = [0, 1, 2, 3, 4].map(
+      (index: number) => MAX_BLOCK_TIMESTAMPS - 1 + index,
+    );
+    answer.forEach(keep);
+
+    expect(
+      answer.map((blockNumber: number) =>
+        getBlockTimestampFromLogs(nodeProvider, blockNumber),
+      ),
+    ).toEqual(answer.map((blockNumber: number) => blockNumber * 10));
+    await nodeProvider.destroy();
+  });
 });
 
 describe("BlockTimestamps", () => {
@@ -924,7 +960,7 @@ describe("BlockTimestamps", () => {
     expect(blockTimestamps.get(1)).toBe(10);
     expect(blockTimestamps.get(3)).toBe(30);
 
-    // The fourth block makes the current map the previous one.
+    // The third block filled the current map, which became the previous one.
     blockTimestamps.set(4, 40);
     blockTimestamps.set(5, 50);
     expect([1, 2, 3, 4, 5].map((n) => blockTimestamps.get(n))).toEqual([
@@ -937,14 +973,13 @@ describe("BlockTimestamps", () => {
     for (let blockNumber = 1; blockNumber <= 8; blockNumber++) {
       blockTimestamps.set(blockNumber, blockNumber * 10);
     }
-    expect([1, 2, 3, 4].map((n) => blockTimestamps.get(n))).toEqual([
-      undefined,
+    expect([1, 2, 3].map((n) => blockTimestamps.get(n))).toEqual([
       undefined,
       undefined,
       undefined,
     ]);
-    expect([5, 6, 7, 8].map((n) => blockTimestamps.get(n))).toEqual([
-      50, 60, 70, 80,
+    expect([4, 5, 6, 7, 8].map((n) => blockTimestamps.get(n))).toEqual([
+      40, 50, 60, 70, 80,
     ]);
   });
 
