@@ -1,9 +1,6 @@
 import type { Contract as EthersContract } from "ethers";
 import type { DbEventLogs } from "#db/dbEventLogs.js";
-import {
-  stopSyncingInContract,
-  startAbortingInChain,
-} from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import { stopSyncingInContract } from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import type { Chain, ChainName, Contract } from "#constants/chains/types.js";
 import {
   getEthersEventLogs,
@@ -22,7 +19,7 @@ import type {
 } from "#db/dbTypes.js";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
-import { recordSyncStoppedReason } from "./syncStoppedReason";
+import { abortChainWithReason } from "./syncStoppedReason";
 import { assertIsDefined, sleep } from "#utils/utilsCommon.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { getNextBlock } from "#warpSync/warpSyncPlan.js";
@@ -219,15 +216,20 @@ export async function fetchEventLogsContract(
       });
     }
     if (errorCount > TRY_COUNT) {
-      customLogger.fatal(
+      await abortChainWithReason(
+        chainName,
+        "RPC_ERRORS",
         "Fetch EventLogs. Error count exceeded the limit. Start to abort:",
         {
           errorCount: `${errorCount}/${TRY_COUNT}`,
           fetchingTarget: fetchingTargetInfo,
         },
       );
-      recordSyncStoppedReason(chainName, "RPC_ERRORS");
-      await startAbortingInChain(chainName);
+      // The abort failed: end the contract, which then aborts the chain as
+      // for an unexpected error.
+      if (!syncStatusContract(contractIdentifier).isAbort) {
+        throw new Error("Failed to start aborting.");
+      }
     } else if (errorCount > 0) {
       await sleepUnlessAborted(contractIdentifier, RETRY_WAIT_MS);
     }

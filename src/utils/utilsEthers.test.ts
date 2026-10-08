@@ -20,7 +20,7 @@ import {
   getLoggableError,
   getNodeProvider,
   isErrorUnrelatedToRange,
-  MAX_BLOCK_TIMESTAMPS,
+  JsonRpcProviderKeepingBlockTimestamps,
   startNodeProviderCall,
   type NodeProvider,
 } from "./utilsEthers";
@@ -916,7 +916,12 @@ describe("getBlockTimestampFromLogs", () => {
   });
 
   test("should keep the blocks of an answer that fills the map of the current blocks", async () => {
-    const nodeProvider = (await getNodeProvider(targetChain, "https://bar"))!;
+    // A bound of 3, so that the maps turn at blocks 3 and 6.
+    const nodeProvider = new JsonRpcProviderKeepingBlockTimestamps(
+      "https://bar",
+      { staticNetwork: true },
+      3,
+    );
     const network: Network = Network.from(targetChain.chainId);
     const log: Record<string, unknown> = rawLog(1, 0);
     const keep = (blockNumber: number): void => {
@@ -929,24 +934,26 @@ describe("getBlockTimestampFromLogs", () => {
         network,
       );
     };
-    for (
-      let blockNumber = 1;
-      blockNumber <= MAX_BLOCK_TIMESTAMPS - 2;
-      blockNumber++
-    ) {
-      keep(blockNumber);
-    }
-    // An answer whose third block fills the map of the current blocks.
-    const answer: number[] = [0, 1, 2, 3, 4].map(
-      (index: number) => MAX_BLOCK_TIMESTAMPS - 1 + index,
-    );
-    answer.forEach(keep);
-
-    expect(
-      answer.map((blockNumber: number) =>
+    const timestampsOf = (blockNumbers: number[]): (number | undefined)[] =>
+      blockNumbers.map((blockNumber: number) =>
         getBlockTimestampFromLogs(nodeProvider, blockNumber),
-      ),
-    ).toEqual(answer.map((blockNumber: number) => blockNumber * 10));
+      );
+    keep(1);
+    keep(2);
+
+    // An answer whose first block fills the map of the current blocks.
+    [3, 4, 5].forEach(keep);
+    expect(timestampsOf([1, 2, 3, 4, 5])).toEqual([10, 20, 30, 40, 50]);
+
+    keep(6);
+    expect(timestampsOf([1, 2, 3, 4, 5, 6])).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      40,
+      50,
+      60,
+    ]);
     await nodeProvider.destroy();
   });
 });

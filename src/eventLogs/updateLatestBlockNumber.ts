@@ -7,8 +7,7 @@ import {
 } from "#utils/utilsEthers.js";
 import { get } from "svelte/store";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
-import { recordSyncStoppedReason } from "./syncStoppedReason";
-import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import { abortChainWithReason } from "./syncStoppedReason";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { TRY_COUNT } from "./eventLogsContract";
 
@@ -81,33 +80,13 @@ export async function startUpdateLatestBlockNumber(
     // A request in flight fails when the provider is destroyed after stopping.
     if (isStopped) return;
     if (errorCount > TRY_COUNT) {
-      try {
-        customLogger.error({
-          errorOn: functionName,
-          errorCount: `${errorCount}/${TRY_COUNT}`,
-          errorMessage: "errorCount exceeded the limit. Start aborting.",
-        });
-        recordSyncStoppedReason(targetChainName, "RPC_ERRORS");
-      } catch (error) {
-        customLogger.error({
-          errorOn: functionName,
-          errorMessage: "Failed to record why the sync stopped.",
-          error: getLoggableError(error),
-        });
-      } finally {
-        // Even when the lines above throw.
-        try {
-          await startAbortingInChain(targetChainName);
-        } catch (error) {
-          customLogger.error({
-            errorOn: functionName,
-            errorMessage: "Failed to start aborting.",
-            error: getLoggableError(error),
-          });
-        } finally {
-          stop();
-        }
-      }
+      await abortChainWithReason(
+        targetChainName,
+        "RPC_ERRORS",
+        "errorCount exceeded the limit. Start aborting.",
+        { errorOn: functionName, errorCount: `${errorCount}/${TRY_COUNT}` },
+      );
+      stop();
       return;
     }
     scheduleUpdate();

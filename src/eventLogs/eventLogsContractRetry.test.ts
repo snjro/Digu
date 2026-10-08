@@ -173,6 +173,24 @@ describe("fetchEventLogsContract", () => {
     expect(get(storeSyncStoppedReason)[targetChain.name]).toBe("RPC_ERRORS");
   });
 
+  test("should end the contract with an error when aborting the chain fails", async () => {
+    const { provider } = providerFailingGetLogs(TRY_COUNT + 1);
+    vi.mocked(startAbortingInChain).mockRejectedValueOnce(
+      new Error("DB error"),
+    );
+
+    const promise: Promise<void> = fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      provider,
+    );
+    const ended = expect(promise).rejects.toThrow("Failed to start aborting.");
+    await vi.runAllTimersAsync();
+    await ended;
+
+    expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
+  });
+
   test("should keep no reason when the user stops during the request that exceeds Try Count", async () => {
     const { provider } = providerFailingGetLogs((requestNumber: number) => {
       if (requestNumber === TRY_COUNT + 1) {

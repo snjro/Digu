@@ -46,8 +46,10 @@ export type NodeProvider = JsonRpcProvider | WebSocketProvider;
 // The blocks of the current map when it becomes the previous one. A block
 // is read right after the eth_getLogs answer that has it, and the range of an
 // answer has at most MAX_BULK_UNIT (100,000) blocks, so the blocks of one
-// answer are still kept when they are read. A block no longer kept is read
-// from the DB or the RPC instead.
+// answer are still kept when they are read: they are in the current map, or
+// the earlier ones in the previous map. Turning one block later (">") would
+// keep that too. A block no longer kept is read from the DB or the RPC
+// instead.
 export const MAX_BLOCK_TIMESTAMPS: number = 100000;
 // The timestamps by block number, in two maps, so that old blocks are dropped
 // without deleting them one by one: at most twice maxSize blocks.
@@ -77,13 +79,9 @@ function keepBlockTimestamp(provider: NodeProvider, log: LogParams): void {
   if (!isHexString(blockTimestamp)) {
     return;
   }
-  let blockTimestamps: BlockTimestamps | undefined =
-    blockTimestampsOfProviders.get(provider);
-  if (blockTimestamps === undefined) {
-    blockTimestamps = new BlockTimestamps();
-    blockTimestampsOfProviders.set(provider, blockTimestamps);
-  }
-  blockTimestamps.set(getNumber(log.blockNumber), getNumber(blockTimestamp));
+  blockTimestampsOfProviders
+    .get(provider)
+    ?.set(getNumber(log.blockNumber), getNumber(blockTimestamp));
 }
 // The blockTimestamp of a log that this provider has returned, if any.
 export function getBlockTimestampFromLogs(
@@ -93,7 +91,18 @@ export function getBlockTimestampFromLogs(
   return blockTimestampsOfProviders.get(provider)?.get(blockNumber);
 }
 // ethers calls _wrapLog with each log of eth_getLogs.
-class JsonRpcProviderKeepingBlockTimestamps extends JsonRpcProvider {
+export class JsonRpcProviderKeepingBlockTimestamps extends JsonRpcProvider {
+  constructor(
+    url: string,
+    options: JsonRpcApiProviderOptions,
+    maxBlockTimestamps: number = MAX_BLOCK_TIMESTAMPS,
+  ) {
+    super(url, undefined, options);
+    blockTimestampsOfProviders.set(
+      this,
+      new BlockTimestamps(maxBlockTimestamps),
+    );
+  }
   override _wrapLog(value: LogParams, network: Network): Log {
     keepBlockTimestamp(this, value);
     return super._wrapLog(value, network);
@@ -105,6 +114,7 @@ class WebSocketProviderKeepingBlockTimestamps extends WebSocketProvider {
   readonly #closed: Promise<never>;
   constructor(url: string) {
     super(url);
+    blockTimestampsOfProviders.set(this, new BlockTimestamps());
     this.#closed = new Promise<never>((_, reject) => {
       (this.websocket as WebSocket).onclose = () => {
         reject(makeError("WebSocket closed.", "NETWORK_ERROR"));
@@ -224,7 +234,6 @@ export async function getNodeProvider(
         };
         nodeProvider = new JsonRpcProviderKeepingBlockTimestamps(
           rpc,
-          undefined,
           jsonRpcApiProviderOptions,
         );
       } else {
