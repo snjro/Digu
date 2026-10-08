@@ -72,7 +72,24 @@ function contentProblems(data, chunk, manifest) {
 // Returns the problems of the snapshot of each chain under dir.
 export function checkSnapshotFiles(dir, chainNames) {
   if (chainNames.length === 0) return ["No chain to check."];
-  return chainNames.flatMap((name) => checkChain(path.join(dir, name), name));
+  // The app imports only the chains of WARP_SYNC_CHAIN_NAMES: a snapshot of
+  // another chain would not be used, without a word.
+  const others = fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter(
+      (entry) =>
+        entry.isDirectory() &&
+        !chainNames.includes(entry.name) &&
+        fs.existsSync(path.join(dir, entry.name, "manifest.json")),
+    )
+    .map(
+      (entry) =>
+        `${path.join(dir, entry.name, "manifest.json")} is of a chain that is not in WARP_SYNC_CHAIN_NAMES.`,
+    );
+  return [
+    ...others,
+    ...chainNames.flatMap((name) => checkChain(path.join(dir, name), name)),
+  ];
 }
 
 function checkChain(dir, name) {

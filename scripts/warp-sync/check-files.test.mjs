@@ -3,10 +3,12 @@ import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { WARP_SYNC_FORMAT_VERSION } from "../../src/warpSync/warpSyncTypes.ts";
 import { loadChain } from "./build-snapshot.mjs";
 import { checkSnapshotFiles, readWarpSyncChainNames } from "./check-files.mjs";
 import {
   emptyManifest,
+  FORMAT_VERSION,
   readManifest,
   sha256,
   totalsOf,
@@ -99,6 +101,15 @@ describe("checkSnapshotFiles", () => {
       [B.name, b, b + 5],
     ]);
     expect(check()).toEqual([]);
+  });
+
+  test("a snapshot of a chain that is not in the list", () => {
+    const file = path.join(dir, "eth", "manifest.json");
+    fs.mkdirSync(path.dirname(file));
+    fs.writeFileSync(file, "{}");
+    expect(check()).toEqual([
+      `${file} is of a chain that is not in WARP_SYNC_CHAIN_NAMES.`,
+    ]);
   });
 
   test("an empty list of chains", () => {
@@ -300,6 +311,12 @@ describe("checkSnapshotFiles", () => {
       `matic: ${path.join(chainDir, "x.json.gz")} is not in the manifest.`,
     ]);
   });
+});
+
+// The app reads only the format of its own version (checkFormat of
+// warpSyncFile.ts): the two must be raised together.
+test("the format of the scripts is the one that the app reads", () => {
+  expect(FORMAT_VERSION).toBe(WARP_SYNC_FORMAT_VERSION);
 });
 
 describe("readWarpSyncChainNames", () => {
