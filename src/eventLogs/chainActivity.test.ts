@@ -4,6 +4,7 @@ import { NO_DATA } from "#utils/utilsConstants.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import {
   setWarpSyncState,
+  storeWarpSync,
   type WarpSyncState,
 } from "#warpSync/warpSyncState.js";
 import { get } from "svelte/store";
@@ -13,7 +14,11 @@ import {
   type ChainActivity,
   type ChainActivitySources,
 } from "./chainActivity";
-import { runWithSyncLock, storeSyncLockedByOtherTab } from "./syncLock";
+import {
+  runWithSyncLock,
+  storeSyncLockedByOtherTab,
+  storeSyncLockedByThisTab,
+} from "./syncLock";
 
 const free: ChainActivitySources = {
   lockedByThisTab: undefined,
@@ -142,26 +147,43 @@ describe("storeChainActivity", () => {
   });
 
   test("tells the subscribers only when an activity changes", () => {
+    const syncStatusBefore = get(storeSyncStatus);
+    const lockedByOtherTabBefore = get(storeSyncLockedByOtherTab);
+    const warpSyncBefore = get(storeWarpSync);
+    // No lock and no import: every chain is free.
+    expect(get(storeSyncLockedByThisTab)).toEqual({});
+    storeSyncLockedByOtherTab.set(
+      Object.fromEntries(
+        Object.keys(lockedByOtherTabBefore).map((name) => [name, false]),
+      ),
+    );
+    storeWarpSync.set({});
     const shown: Record<string, ChainActivity>[] = [];
     const unsubscribe = storeChainActivity.subscribe((activities) =>
       shown.push(activities),
     );
-    expect(shown).toHaveLength(1);
-    const first = shown[0];
-    // As a sync saving a range, and other changes that keep the activities.
-    storeSyncStatus.update((state) => structuredClone(state));
-    storeSyncLockedByOtherTab.update((state) => ({ ...state }));
-    setWarpSyncState("matic", { status: "imported" });
-    expect(shown).toHaveLength(1);
-    expect(get(storeChainActivity)).toBe(first);
+    try {
+      expect(shown).toHaveLength(1);
+      const first = shown[0];
+      expect(first.matic).toBe("free");
+      // As a sync saving a range, and other changes that keep the activities.
+      storeSyncStatus.update((state) => structuredClone(state));
+      storeSyncLockedByOtherTab.update((state) => ({ ...state }));
+      setWarpSyncState("matic", { status: "imported" });
+      expect(shown).toHaveLength(1);
+      expect(get(storeChainActivity)).toBe(first);
 
-    storeSyncLockedByOtherTab.update((state) => ({ ...state, matic: true }));
-    expect(shown).toHaveLength(2);
-    expect(shown[1].matic).toBe("otherTab");
-    expect(shown[1].eth).toBe("free");
-    storeSyncLockedByOtherTab.update((state) => ({ ...state, matic: false }));
-    expect(shown).toHaveLength(3);
-    unsubscribe();
-    setWarpSyncState("matic", { status: "idle" });
+      storeSyncLockedByOtherTab.update((state) => ({ ...state, matic: true }));
+      expect(shown).toHaveLength(2);
+      expect(shown[1].matic).toBe("otherTab");
+      expect(shown[1].eth).toBe("free");
+      storeSyncLockedByOtherTab.update((state) => ({ ...state, matic: false }));
+      expect(shown).toHaveLength(3);
+    } finally {
+      unsubscribe();
+      storeSyncStatus.set(syncStatusBefore);
+      storeSyncLockedByOtherTab.set(lockedByOtherTabBefore);
+      storeWarpSync.set(warpSyncBefore);
+    }
   });
 });

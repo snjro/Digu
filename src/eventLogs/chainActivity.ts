@@ -59,12 +59,17 @@ function getImportActivity(state: WarpSyncState): ChainActivity {
     : "smallImport";
 }
 
-let shownActivities: Record<ChainName, ChainActivity> = {};
-
-// storeSyncStatus has every chain. Set only when an activity changes:
-// storeSyncStatus changes with each range that a sync saves.
+// storeSyncStatus has every chain.
 export const storeChainActivity: Readable<Record<ChainName, ChainActivity>> =
-  derived(
+  createStoreChainActivity();
+
+// Set only when an activity changes: storeSyncStatus changes with each range
+// that a sync saves.
+function createStoreChainActivity(): Readable<
+  Record<ChainName, ChainActivity>
+> {
+  let shown: Record<ChainName, ChainActivity> = {};
+  return derived(
     [
       storeSyncLockedByThisTab,
       storeSyncLockedByOtherTab,
@@ -83,12 +88,13 @@ export const storeChainActivity: Readable<Record<ChainName, ChainActivity>> =
           }),
         ]),
       );
-      if (isSameActivities(shownActivities, activities)) return;
-      shownActivities = activities;
+      if (isSameActivities(shown, activities)) return;
+      shown = activities;
       set(activities);
     },
-    shownActivities,
+    shown,
   );
+}
 
 function isSameActivities(
   a: Record<ChainName, ChainActivity>,
