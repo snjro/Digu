@@ -187,6 +187,34 @@ describe("SyncStatusToggle.svelte", () => {
     expect(getIcon().classList).toContain("motion-safe:animate-spin");
   });
 
+  test.each<[string, WarpSyncState]>([
+    ["small", { status: "checking" }],
+    ["small", { status: "importing" }],
+    [
+      "large",
+      { status: "importing", progress: { doneLogCount: 0, startedAt: 0 } },
+    ],
+  ])(
+    "cannot be stopped while the sync imports a %s snapshot first",
+    async (_size, importing) => {
+      const finish = deferFetch();
+      render(SyncStatusToggle);
+      await fireEvent.click(getToggle());
+      // importWarpSyncBeforeSync, in the lock of the sync.
+      lockedByThisTab.set({ eth: "sync" });
+      setWarpSyncState("eth", importing);
+      await tick();
+      expect(getToggle().disabled).toBe(true);
+      expect(screen.getByText("starting sync")).toBeTruthy();
+
+      setWarpSyncState("eth", { status: "imported" });
+      setSyncStatus("eth", { syncStateText: "syncing" });
+      await finish(true);
+      expect(getToggle().disabled).toBe(false);
+      expect(screen.getByText("stop sync")).toBeTruthy();
+    },
+  );
+
   test("turns off again when the sync did not start", async () => {
     const finish = deferFetch();
     render(SyncStatusToggle);

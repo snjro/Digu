@@ -2,6 +2,7 @@ import type { ChainName } from "#constants/chains/types.js";
 import type { SyncStateText } from "#db/dbTypes.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import {
+  isWarpSyncRunning,
   selectWarpSyncState,
   storeWarpSync,
   type WarpSyncState,
@@ -40,16 +41,22 @@ export function getChainActivity(sources: ChainActivitySources): ChainActivity {
     case "reset":
       return "resetting";
     case "import":
-      // Only a large import shows its progress and can be stopped.
-      return sources.warpSyncState.status === "importing" &&
-        sources.warpSyncState.progress !== undefined
-        ? "largeImport"
-        : "smallImport";
+      return getImportActivity(sources.warpSyncState);
     case "sync":
-      // Also while it starts or ends, when syncStateText is "stopped". An
-      // import before the sync is a part of it.
+      // The import before the sync, in the lock of the sync.
+      if (isWarpSyncRunning(sources.warpSyncState)) {
+        return getImportActivity(sources.warpSyncState);
+      }
+      // Also while it starts or ends, when syncStateText is "stopped".
       return sources.syncStateText === "stopping" ? "stopping" : "syncing";
   }
+}
+
+// Only a large import shows its progress and can be stopped.
+function getImportActivity(state: WarpSyncState): ChainActivity {
+  return state.status === "importing" && state.progress !== undefined
+    ? "largeImport"
+    : "smallImport";
 }
 
 // storeSyncStatus has every chain.

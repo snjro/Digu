@@ -135,11 +135,19 @@ describe("SyncedData.svelte", () => {
     expect(resetButton().disabled).toBe(true);
 
     storeSyncLockedByOtherTab.set({ matic: false });
-    lockedByThisTab.set({ matic: "import" });
-    for (const status of ["checking", "importing"] as const) {
-      setWarpSyncState("matic", { status });
-      await tick();
-      expect(resetButton().disabled).toBe(true);
+    // The import of the warp sync, or the one before the sync, in its lock.
+    for (const kind of ["import", "sync"] as const) {
+      lockedByThisTab.set({ matic: kind });
+      for (const status of ["checking", "importing"] as const) {
+        setWarpSyncState("matic", { status });
+        await tick();
+        expect(resetButton().disabled).toBe(true);
+        expect(
+          screen.getByText(
+            "Wait until the logs published with this site are imported, or stop the import.",
+          ),
+        ).toBeTruthy();
+      }
     }
 
     lockedByThisTab.set({});

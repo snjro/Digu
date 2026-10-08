@@ -46,14 +46,32 @@ describe("getChainActivity", () => {
     ).toBe(activity);
   });
 
-  test("is still the sync while the sync imports first", () => {
-    expect(
-      getChainActivity({
-        ...free,
-        lockedByThisTab: "sync",
-        warpSyncState: largeImport,
-      }),
-    ).toBe("syncing");
+  test("is the import while the sync imports first, in its lock", () => {
+    const syncing = { ...free, lockedByThisTab: "sync" } as const;
+    expect(getChainActivity({ ...syncing, warpSyncState: largeImport })).toBe(
+      "largeImport",
+    );
+    // As isWarpSyncRunning: "checking" is a part of the import.
+    for (const status of ["checking", "importing"] as const) {
+      expect(getChainActivity({ ...syncing, warpSyncState: { status } })).toBe(
+        "smallImport",
+      );
+    }
+    // The end states of an import are not.
+    for (const status of [
+      "idle",
+      "imported",
+      "none",
+      "confirm",
+      "declined",
+      "stopped",
+      "failed",
+      "unsupported",
+    ] as const) {
+      expect(getChainActivity({ ...syncing, warpSyncState: { status } })).toBe(
+        "syncing",
+      );
+    }
   });
 
   test("tells a large import, with its progress, from a small one", () => {
