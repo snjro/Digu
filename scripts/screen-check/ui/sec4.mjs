@@ -306,18 +306,19 @@ for (const g of ["contracts", "events", "functions"]) {
   });
   await L.step(`4-5-${g}`, page, async () => {
     const vis = () =>
-      page.evaluate(() => ({
-        tabsOrTitle: !!document
-          .querySelector("nav[aria-label=Breadcrumb]")
-          ?.getClientRects().length,
-        sidebar: !!document
-          .querySelector("aside[aria-label=Sidebar]")
-          ?.getClientRects().length,
-        grid: Math.round(
-          document.querySelector(".ag-root-wrapper")?.getBoundingClientRect()
-            .height ?? 0,
-        ),
-      }));
+      page.evaluate(
+        (SB) => ({
+          tabsOrTitle: !!document
+            .querySelector("nav[aria-label=Breadcrumb]")
+            ?.getClientRects().length,
+          sidebar: !!document.querySelector(SB)?.getClientRects().length,
+          grid: Math.round(
+            document.querySelector(".ag-root-wrapper")?.getBoundingClientRect()
+              .height ?? 0,
+          ),
+        }),
+        L.SIDEBAR,
+      );
     const v0 = await vis();
     await btn("Full screen");
     const v1 = await vis();

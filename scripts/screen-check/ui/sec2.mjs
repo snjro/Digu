@@ -3,7 +3,7 @@ import * as L from "./lib.mjs";
 await L.startServers();
 await L.launch();
 const { page } = await L.newContextPage(1400, 900);
-const SB = "aside[aria-label=Sidebar]";
+const SB = L.SIDEBAR;
 const EV = L.ROOT + "/eth/Augur-version1/contracts/Augur/events/MarketCreated/";
 await page.goto(EV, { waitUntil: "load" });
 await L.settle(page, 800);
@@ -81,7 +81,7 @@ await L.step("2-2", page, async () => {
       SB,
     );
   const v0 = await vis();
-  await page.click('button[aria-label="Close sidebar"]');
+  await page.click(L.CLOSE_SIDEBAR);
   await L.settle(page);
   const v1 = await vis();
   const u1 = (await us()).isOpenSidebar;

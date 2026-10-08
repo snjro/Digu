@@ -84,6 +84,22 @@ describe("BaseToggle.svelte", () => {
     expect(thumb.classList.contains("contrast-50")).toBe(true);
   });
 
+  test("is a switch named by ariaLabel, else by the tooltip", async () => {
+    const { container, rerender } = render(BaseToggle, {
+      ...baseProps,
+      toggleValue: false,
+      tooltipText: "start sync",
+    });
+    const { track } = getParts(container);
+    expect(track.getAttribute("role")).toBe("switch");
+    expect(track.getAttribute("aria-checked")).toBe("false");
+    expect(track.getAttribute("aria-label")).toBe("start sync");
+
+    await rerender({ toggleValue: true, ariaLabel: "Sync" });
+    expect(track.getAttribute("aria-checked")).toBe("true");
+    expect(track.getAttribute("aria-label")).toBe("Sync");
+  });
+
   test("keeps the same color classes in both themes", async () => {
     const { container } = render(BaseToggle, {
       ...baseProps,

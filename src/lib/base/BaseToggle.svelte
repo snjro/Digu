@@ -13,6 +13,7 @@
     colorCategoryThumbToggleOn?: ColorCategory;
     colorCategoryThumbToggleOff?: ColorCategory;
     colorCategoryTrack: ColorCategory;
+    ariaLabel?: BaseButtonProps["ariaLabel"];
     tooltipText?: BaseButtonProps["tooltipText"];
     tooltipXPosition?: BaseButtonProps["tooltipXPosition"];
     tooltipYPosition?: BaseButtonProps["tooltipYPosition"];
@@ -27,6 +28,7 @@
     colorCategoryThumbToggleOn = "interactive",
     colorCategoryThumbToggleOff = "interactive",
     colorCategoryTrack,
+    ariaLabel = undefined,
     tooltipText = undefined,
     tooltipXPosition = "right",
     tooltipYPosition = "top",
@@ -136,7 +138,14 @@
 </script>
 
 <div class={classNames(paddingX[size])}>
-  <button class={trackClass} onclick={onToggle} {disabled}>
+  <button
+    class={trackClass}
+    role="switch"
+    aria-checked={toggleValue}
+    aria-label={ariaLabel ?? tooltipText}
+    onclick={onToggle}
+    {disabled}
+  >
     <BaseTooltip
       text={tooltipText}
       xPosition={tooltipXPosition}
