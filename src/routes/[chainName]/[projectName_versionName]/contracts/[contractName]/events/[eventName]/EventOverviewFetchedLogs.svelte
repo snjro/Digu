@@ -21,8 +21,11 @@
   import { customLogger } from "#utils/logger.js";
   import classNames from "classnames";
   import EventOverviewFetchedLogsEdge from "./EventOverviewFetchedLogsEdge.svelte";
-  import { MESSAGE_ANONYMOUS_EVENT_LOGS } from "./EventLogs.svelte";
-  import { applyLatestLoad } from "./latestLoad";
+  import {
+    EVENT_LOGS_RELOAD_INTERVAL,
+    MESSAGE_ANONYMOUS_EVENT_LOGS,
+  } from "./EventLogs.svelte";
+  import { createThrottledLoad } from "./latestLoad";
 
   interface Props {
     targetChain: Chain;
@@ -59,8 +62,6 @@
       edges = noLogs;
       return;
     }
-    // Reload when new logs are saved.
-    void recordCount;
     const eventIdentifier: AbiFragmentIdentifier = {
       chainName: targetChain.name,
       projectName: targetProject.name,
@@ -68,19 +69,28 @@
       contractName: targetContract.name,
       abiFragmentName: targetEventAbiFragment.name,
     };
-    return applyLatestLoad(
-      getEventLogEdges(eventIdentifier).catch((error: unknown) => {
-        // Like the table (openEventLogsTable): log it and show no logs.
-        customLogger.error("Get event logs.", {
-          eventIdentifier: eventIdentifier,
-          errorObject: error,
-        });
-        return noLogs;
-      }),
+    // Like the table: many saves in a short time make one load.
+    const throttledLoad = createThrottledLoad(
+      () =>
+        getEventLogEdges(eventIdentifier).catch((error: unknown) => {
+          // Like the table (openEventLogsTable): log it and show no logs.
+          customLogger.error("Get event logs.", {
+            eventIdentifier: eventIdentifier,
+            errorObject: error,
+          });
+          return noLogs;
+        }),
       (loadedEdges: EventLogEdges) => {
         edges = loadedEdges;
       },
+      EVENT_LOGS_RELOAD_INTERVAL,
     );
+    // Reload when new logs are saved.
+    $effect.pre(() => {
+      void recordCount;
+      throttledLoad.request();
+    });
+    return () => throttledLoad.dispose();
   });
 
   const gridMain: string = classNames(

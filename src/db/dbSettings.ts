@@ -24,6 +24,8 @@ class DbSettings extends dbBase {
     const schemaDefinition: SchemaDefinition = this.getSchemaDefinition();
     this.version(DB_VERSIONS.Settings)
       .stores(schemaDefinition)
+      // From version 1 to 2. For version 3, put this upgrade on version(2) and
+      // add version(3) with its own, so that version 1 is upgraded too.
       .upgrade(async (tx: Transaction) => {
         await tx
           .table(tableNameRpcSettings)

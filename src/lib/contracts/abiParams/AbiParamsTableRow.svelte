@@ -16,7 +16,10 @@
   import BaseTableRow from "#lib/base/BaseTable/BaseTableRow.svelte";
   import SequenceBodyCell from "#lib/base/BaseTable/SequenceBodyCell.svelte";
   import type { BaseSize } from "#lib/base/baseSizes.js";
-  import { getComponentsFromAbiFragmentParam } from "#lib/gridColumnDefs/columnDefAbiParamsArgsChildren.js";
+  import {
+    getAbiParamText,
+    getComponentsFromAbiFragmentParam,
+  } from "#lib/contracts/abiJson/abiText.js";
   import type {
     AbiFragmentParam,
     EventAbiFragment,
@@ -48,18 +51,18 @@
     colorCategoryBorder={colorSettings.itemMemberTableBorder}
   />
   <BaseTableBodyCell
-    text={paramType.name ? paramType.name : NO_DATA}
+    text={getAbiParamText(paramType, "name")}
     align="left"
     textSize={abiParamsTabeSize}
   />
   <BaseTableBodyCell
-    text={paramType.type}
+    text={getAbiParamText(paramType, "type")}
     align="center"
     textSize={abiParamsTabeSize}
   />
   {#if showInputIndexedField}
     <BaseTableBodyCell
-      text={paramType.indexed ? "true" : "false"}
+      text={getAbiParamText(paramType, "indexed")}
       align="center"
       textSize={abiParamsTabeSize}
     />

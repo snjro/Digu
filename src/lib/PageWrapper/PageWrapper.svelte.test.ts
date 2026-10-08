@@ -104,7 +104,10 @@ describe("PageWrapper.svelte full screen", () => {
   });
 
   test("stays in the full screen when Escape closes the menu", async () => {
-    // The menu listens first, so the full screen cannot rely on the order.
+    // Checks that the menu closes and the full screen stays. It does not check
+    // that the full screen listens in the capture phase: Svelte removes
+    // data-open-menu only after every listener has run, whatever the phase.
+    // That was checked in Chrome (#488).
     const { container: menu } = render(
       PageWrapperContentFunctionBarButtonsThreeDots,
       {

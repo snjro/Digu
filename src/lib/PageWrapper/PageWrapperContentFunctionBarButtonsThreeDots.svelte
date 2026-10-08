@@ -80,6 +80,8 @@
     colorCategoryFront={colorCategory}
     onclick={toggleShowChildren}
   />
+  <!-- While it is set, Escape closes the menu and not the full screen
+       (PageWrapper.svelte). -->
   <div
     data-open-menu={showChildren || undefined}
     class={classNames(

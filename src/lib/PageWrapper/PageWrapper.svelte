@@ -129,7 +129,8 @@
     }
   });
 
-  // Escape closes only the top one. An open dialog or menu takes it first.
+  // Escape closes only the top one. An open dialog or menu takes it first: a
+  // popup or menu that is not a dialog sets data-open-menu while it is open.
   // Listen in the capture phase, so they are still open whatever the listener order is.
   // An ag-grid popup (e.g. a column filter) is neither, and ag-grid closes it
   // only when the focus is inside it.

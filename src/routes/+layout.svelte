@@ -114,6 +114,9 @@
   <!-- Out of the main area, which is blocked on a narrow screen with the
        sidebar open: this dialog opens without a click. -->
   <WarpSyncConfirmDialog />
+  <!-- Out of the blurred main area too, so that a narrow screen with the
+       sidebar open shows it above the sidebar: the blur would keep it below. -->
+  <BaseSnackbar />
   <div
     class={classNames(
       "min-w-0 flex-auto",
@@ -135,7 +138,6 @@
     >
       <Breadcrumb />
       {@render children?.()}
-      <BaseSnackbar />
     </main>
   </div>
 </div>

@@ -28,6 +28,9 @@ const versions = TARGET_CHAINS.flatMap((targetChain) =>
     ),
   ),
 );
+function duplicatesOf(values: string[]): string[] {
+  return values.filter((value, index) => values.indexOf(value) !== index);
+}
 const ABI_FRAGMENT_TYPES = [
   "constructor",
   "function",
@@ -58,17 +61,31 @@ describe("TARGET_CHAINS", () => {
       const names = targetVersion.contracts.map(
         (targetContract) => targetContract.name,
       );
-      const duplicates = names.filter(
-        (name, index) => names.indexOf(name) !== index,
+      expect(duplicatesOf(names)).toEqual([]);
+    });
+  });
+  // Two contracts of one address would save the same logs in two tables.
+  describe.each(
+    TARGET_CHAINS.map(
+      (targetChain) => [targetChain.name, targetChain] as const,
+    ),
+  )("%s", (_, targetChain) => {
+    test("contract addresses are unique", () => {
+      const addresses = targetChain.projects.flatMap((targetProject) =>
+        targetProject.versions.flatMap((targetVersion) =>
+          targetVersion.contracts.map((targetContract) =>
+            targetContract.address.toLowerCase(),
+          ),
+        ),
       );
-      expect(duplicates).toEqual([]);
+      expect(duplicatesOf(addresses)).toEqual([]);
     });
   });
 });
 
 // ethers.Interface skips an ABI entry it cannot read, so check the JSON files.
 const jsonFiles = Object.entries(
-  import.meta.glob<{ abi: unknown }>("./**/*.json", {
+  import.meta.glob<{ abi: unknown; name: unknown }>("./**/*.json", {
     eager: true,
     import: "default",
   }),
@@ -78,7 +95,12 @@ describe("contract JSON files", () => {
   test("one for each contract", () => {
     expect(jsonFiles.length).toBe(contracts.length);
   });
-  describe.each(jsonFiles)("%s", (_, jsonFile) => {
+  describe.each(jsonFiles)("%s", (jsonPath, jsonFile) => {
+    test("name is the file name", () => {
+      expect(jsonFile.name).toBe(
+        jsonPath.split("/").at(-1)?.slice(0, -".json".length),
+      );
+    });
     test("abi", () => {
       // Order of Augur version1 has an empty ABI.
       expect(Array.isArray(jsonFile.abi)).toBe(true);

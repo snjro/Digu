@@ -1,10 +1,12 @@
 import type {
+  AbiFragmentParam,
   ContractInterface,
   EventAbiFragment,
   FunctionAbiFragment,
 } from "#constants/chains/types.js";
 import type { JsonFragment } from "ethers";
 import { jsonStringifyFormatted } from "#utils/utilsCommon.js";
+import { NO_DATA } from "#utils/utilsConstants.js";
 import type { AbiFormatType } from "#utils/utilsEthers.js";
 
 export type TargetAbi =
@@ -44,6 +46,43 @@ export function formatTargetAbi(
         ? targetAbi.format(true)
         : targetAbi.format("minimal");
   }
+}
+
+// The params of the grid and of the table of the dialog.
+export type AbiParamField = "name" | "type" | "indexed";
+export function getAbiParamText(
+  abiParam: AbiFragmentParam | undefined,
+  field: AbiParamField,
+): string {
+  if (!abiParam) return NO_DATA;
+  // Only the inputs of an event show it. For an input that is not indexed,
+  // ethers gives null from a human readable ABI, and undefined from a JSON ABI
+  // without the key.
+  if (field === "indexed") return String(abiParam.indexed === true);
+  // ethers gives an unnamed param the name "".
+  return abiParam[field] === "" ? NO_DATA : abiParam[field];
+}
+export function getComponentsFromAbiFragmentParam(
+  abiFragmentParam: AbiFragmentParam | undefined,
+): readonly AbiFragmentParam[] | undefined {
+  if (!abiFragmentParam) return undefined;
+  if (abiFragmentParam.components !== null) return abiFragmentParam.components;
+  if (abiFragmentParam.arrayChildren !== null)
+    return getComponentsFromAbiFragmentParam(abiFragmentParam.arrayChildren);
+  return undefined;
+}
+// The standard ABI JSON of the components of a param, without the fields that
+// only ethers has (baseType, arrayChildren, ...), like the "json" format above.
+export function getComponentsJsonText(
+  components: readonly AbiFragmentParam[],
+  isExpanded: boolean,
+): string {
+  const texts: string[] = components.map((component) =>
+    component.format("json"),
+  );
+  return isExpanded
+    ? jsonStringifyFormatted(texts.map((text): unknown => JSON.parse(text)))
+    : `[${texts.join(",")}]`;
 }
 
 // Only the JSON format is JSON. The human readable formats are plain text.

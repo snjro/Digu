@@ -1,4 +1,4 @@
-export const zIndex: Record<string, `z-${number}`> = {
+export const zIndex = {
   snackbar: "z-50",
   leftSidebar: "z-10",
   tooltip: "z-10",
@@ -6,4 +6,4 @@ export const zIndex: Record<string, `z-${number}`> = {
   threeDotsMenu: "z-50",
   syncPanel: "z-20",
   loadingSpinner: "z-50",
-};
+} as const satisfies Record<string, `z-${number}`>;

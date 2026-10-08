@@ -9,31 +9,33 @@ import { NO_DATA } from "#utils/utilsConstants.js";
 import BaseLabel from "#lib/base/BaseLabel.svelte";
 import { capitalizeFirstLetter } from "#utils/utilsCommon.js";
 import AbiParamComponentsDetailsButton from "#lib/contracts/abiParams/AbiParamComponentsDetailsButton.svelte";
+import {
+  getAbiParamText,
+  getComponentsFromAbiFragmentParam,
+  getComponentsJsonText,
+  type AbiParamField,
+} from "#lib/contracts/abiJson/abiText.js";
 import { cellAlign } from "./cellStyles";
 import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 import { getAbiParamsFromAbiRow } from "./getAbiParamsFromAbiRow";
 import type { AbiRow } from "./types";
 
-type ArgKey = "name" | "type" | "indexed";
 function getAbiParamsArgStringValueFromAbiRow<T extends AbiRow>(
   targetParams: ValueGetterParams<T> | ICellRendererParams<T>,
   abiParamsKey: keyof T,
   indexOfArgs: number,
-  argKey: ArgKey,
+  argKey: AbiParamField,
 ): string {
-  const targetAbiParam: AbiFragmentParam | undefined =
-    getAbiParamsFromAbiRow<T>(targetParams, abiParamsKey)[indexOfArgs];
-  if (!targetAbiParam || targetAbiParam[argKey] === null) {
-    return NO_DATA;
-  } else {
-    return targetAbiParam[argKey]!.toString();
-  }
+  return getAbiParamText(
+    getAbiParamsFromAbiRow<T>(targetParams, abiParamsKey)[indexOfArgs],
+    argKey,
+  );
 }
 
 const columnDefAbiParamsStringArg = <T extends AbiRow>(
   abiParamsKey: keyof T,
   indexOfArgs: number,
-  argKey: ArgKey,
+  argKey: AbiParamField,
 ): ColumnDef => {
   return {
     headerName: capitalizeFirstLetter(argKey),
@@ -72,7 +74,7 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
       valueGetter: (valueGetterParams: ValueGetterParams<T>): string => {
         const components: readonly AbiFragmentParam[] | undefined =
           getComponents(valueGetterParams, abiParamsKey, indexOfArgs);
-        return components ? JSON.stringify(components) : NO_DATA;
+        return components ? getComponentsJsonText(components, false) : NO_DATA;
       },
       cellRenderer: cellRendererFactory(
         (
@@ -118,13 +120,4 @@ function getComponents<T extends AbiRow>(
   const components: readonly AbiFragmentParam[] | undefined =
     getComponentsFromAbiFragmentParam(abiFragmentParam);
   return components;
-}
-export function getComponentsFromAbiFragmentParam(
-  abiFragmentParam: AbiFragmentParam,
-): readonly AbiFragmentParam[] | undefined {
-  if (!abiFragmentParam) return undefined;
-  if (abiFragmentParam.components !== null) return abiFragmentParam.components;
-  if (abiFragmentParam.arrayChildren !== null)
-    return getComponentsFromAbiFragmentParam(abiFragmentParam.arrayChildren);
-  return undefined;
 }
