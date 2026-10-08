@@ -39,6 +39,12 @@ function pageLib(syncToggleSelector, oldSyncToggleTexts) {
     }
     return null;
   }
+  // The visible checkboxes with the aria-label `label`.
+  function checkboxes(label) {
+    return [
+      ...document.querySelectorAll(`input[aria-label="${label}"]`),
+    ].filter(visible);
+  }
   // With `oldTexts`, a build without the name is searched by the tooltips of
   // v1.0.2; only for the older builds.
   function syncToggle(oldTexts) {
@@ -86,6 +92,7 @@ function pageLib(syncToggleSelector, oldSyncToggleTexts) {
   }
   return {
     buttonNearText,
+    checkboxes,
     syncToggle,
     readToggle,
     findToggle,
@@ -112,16 +119,46 @@ export async function inPage(page, fn, ...args) {
   return page.evaluate(inPageSource(fn, args));
 }
 
+// How long a click waits for its control to be enabled. Opening a chain
+// starts the warp sync, which holds the sync lock (and so disables the sync
+// targets) while it fetches the manifest and reads the DB (warpSync.ts).
+// Where the checks click, the manifest gets 404, so that is short, but on a
+// slow CI runner it outlasted the settle (#757); 30 s leaves a wide margin.
+const ENABLED_TIMEOUT_MS = 30000;
+
+// Waits until `fn(lib, ...args)` (see inPage) gives an element that is not
+// disabled. After ENABLED_TIMEOUT_MS it returns, and the caller throws with
+// what it finds.
+async function waitEnabled(page, fn, ...args) {
+  await page
+    .waitForFunction(`((e) => !!e && !e.disabled)(${inPageSource(fn, args)})`, {
+      timeout: ENABLED_TIMEOUT_MS,
+      polling: 100,
+    })
+    .then(
+      (h) => h.dispose(),
+      (error) => {
+        if (error.name !== "TimeoutError") throw error;
+      },
+    );
+}
+
 // { checked, disabled, pulse, tooltip } of the sync toggle, or null. The
 // tooltip is for the records.
 export async function findToggle(page, { oldTexts = false } = {}) {
   return inPage(page, (lib, oldTexts) => lib.findToggle(oldTexts), oldTexts);
 }
 
-// Clicks the sync toggle with the mouse, as a person does. It throws when the
-// toggle is not found or is disabled, so the scenario ends as ERROR. When the
-// state can change by itself before the click, use clickToggleIf().
+// Clicks the sync toggle with the mouse, as a person does, once it is enabled.
+// It throws when the toggle is not found or stays disabled, so the scenario
+// ends as ERROR. When the state can change by itself before the click, use
+// clickToggleIf().
 export async function clickToggle(page, { oldTexts = false } = {}) {
+  await waitEnabled(
+    page,
+    (lib, oldTexts) => lib.syncToggle(oldTexts),
+    oldTexts,
+  );
   const h = await page.evaluateHandle(
     inPageSource(
       (lib, oldTexts) => lib.toggleIf({ disabled: false }, oldTexts),
@@ -205,19 +242,46 @@ export async function clickByTooltip(page, text) {
 }
 
 // Clicks the `index`-th visible checkbox with the aria-label `label` (the one
-// in the sidebar is first, the one in the page last). `checked` is read after
-// `after()`, such as a settle of the caller. Returns { count, checked }.
+// in the sidebar is first, the one in the page last), once it is enabled. It
+// throws when the checkbox is not found or stays disabled, as clickToggle()
+// does. `checked` is read after `after()`, such as a settle of the caller.
+// Returns { count, checked }.
 export async function clickCheckbox(
   page,
   label,
   { index = -1, after = async () => {} } = {},
 ) {
-  const visible = [];
-  for (const h of await page.$$(`input[aria-label="${label}"]`))
-    if (await h.evaluate((e) => e.getClientRects().length > 0)) visible.push(h);
-  if (!visible.length) throw new Error(`No checkbox ${label}`);
-  const h = visible.at(index);
-  await h.click();
-  await after();
-  return { count: visible.length, checked: await h.evaluate((e) => e.checked) };
+  await waitEnabled(
+    page,
+    (lib, label, index) => lib.checkboxes(label).at(index),
+    label,
+    index,
+  );
+  const boxes = await page.evaluateHandle(
+    inPageSource((lib, label) => lib.checkboxes(label), [label]),
+  );
+  try {
+    const { count, disabled } = await boxes.evaluate(
+      (boxes, index) => ({
+        count: boxes.length,
+        disabled: boxes.at(index)?.disabled,
+      }),
+      index,
+    );
+    if (!count) throw new Error(`No checkbox ${label}`);
+    if (disabled) throw new Error(`The checkbox ${label} is disabled`);
+    const h = await boxes.evaluateHandle(
+      (boxes, index) => boxes.at(index),
+      index,
+    );
+    try {
+      await h.asElement().click();
+      await after();
+      return { count, checked: await h.evaluate((e) => e.checked) };
+    } finally {
+      await h.dispose();
+    }
+  } finally {
+    await boxes.dispose();
+  }
 }
