@@ -41,7 +41,8 @@ describe("AbiParamsTable.svelte", () => {
     expect(cellsOfRow(0)).toEqual(["1", "from", "address", "true", NO_DATA]);
     // Like the columns of the grid (getAbiParamText).
     expect(cellsOfRow(1)).toEqual(["2", NO_DATA, "uint256", "false", NO_DATA]);
-    expect(cellsOfRow(2)).toEqual(["3", "c", "bool", NO_DATA, NO_DATA]);
+    // An ABI without "indexed" for an input that is not indexed.
+    expect(cellsOfRow(2)).toEqual(["3", "c", "bool", "false", NO_DATA]);
   });
 
   test("leaves the indexed column out for a function", () => {

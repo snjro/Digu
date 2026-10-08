@@ -1,9 +1,11 @@
 import { EventFragment, FunctionFragment, Interface } from "ethers";
 import { describe, expect, test } from "vitest";
 import type { AbiFormatType } from "#utils/utilsEthers.js";
+import { NO_DATA } from "#utils/utilsConstants.js";
 import {
-  formatComponentsJson,
   formatTargetAbi,
+  getAbiParamText,
+  getComponentsFromAbiFragmentParam,
   getComponentsJsonText,
   getAbiExportTooltipText,
   getAbiFileExtension,
@@ -215,32 +217,77 @@ describe("getAbiExportTooltipText", () => {
   );
 });
 
-describe("formatComponentsJson", () => {
-  test("keeps the nested tuples and their arrays", () => {
-    const [param] = FunctionFragment.from(
-      "function h((uint256 a, (address b, bool c)[2] d) p)",
+describe("getAbiParamText", () => {
+  const [named, unnamed] = FunctionFragment.from(
+    "function f(address owner, uint256)",
+  ).inputs;
+  test("has no data for an unnamed param and for no param", () => {
+    expect(getAbiParamText(named, "name")).toBe("owner");
+    expect(getAbiParamText(unnamed, "name")).toBe(NO_DATA);
+    expect(getAbiParamText(unnamed, "type")).toBe("uint256");
+    expect(getAbiParamText(undefined, "type")).toBe(NO_DATA);
+    expect(getAbiParamText(undefined, "indexed")).toBe(NO_DATA);
+  });
+  test("shows false for an input that is not indexed", () => {
+    // A human readable ABI leaves "indexed" out of an input that is not.
+    const [from, value] = EventFragment.from(
+      "event E(address indexed from, uint256 value)",
     ).inputs;
-    expect(formatComponentsJson(param.components!)).toEqual([
-      { type: "uint256", name: "a" },
-      {
-        type: "tuple[2]",
-        name: "d",
-        components: [
-          { type: "address", name: "b" },
-          { type: "bool", name: "c" },
-        ],
-      },
-    ]);
+    expect(value.indexed).toBeNull();
+    expect(getAbiParamText(from, "indexed")).toBe("true");
+    expect(getAbiParamText(value, "indexed")).toBe("false");
+  });
+});
+
+describe("getComponentsFromAbiFragmentParam", () => {
+  test("follows the children of nested arrays", () => {
+    const [param] = FunctionFragment.from(
+      "function g((uint256 a)[][2] p)",
+    ).inputs;
+    const components = getComponentsFromAbiFragmentParam(param);
+    expect(components?.map((component) => component.name)).toEqual(["a"]);
+  });
+  test("has none for a type that is not a tuple", () => {
+    const [param] = FunctionFragment.from("function g(uint256[] p)").inputs;
+    expect(getComponentsFromAbiFragmentParam(param)).toBeUndefined();
   });
 });
 
 describe("getComponentsJsonText", () => {
-  test("is the JSON of formatComponentsJson", () => {
-    const [param] = FunctionFragment.from(
-      "function h((uint256 a, (address b, bool c)[2] d) p)",
-    ).inputs;
-    expect(getComponentsJsonText(param.components!)).toBe(
-      JSON.stringify(formatComponentsJson(param.components!)),
+  const [param] = FunctionFragment.from(
+    "function h((uint256 a, (address b, bool c)[2] d) p)",
+  ).inputs;
+  const COMPONENTS_JSON =
+    '[{"type":"uint256","name":"a"},{"type":"tuple[2]","name":"d","components":[{"type":"address","name":"b"},{"type":"bool","name":"c"}]}]';
+  test("keeps the nested tuples and their arrays, without the fields of ethers", () => {
+    expect(getComponentsJsonText(param.components!, false)).toBe(
+      COMPONENTS_JSON,
+    );
+  });
+  test("is indented when expanded", () => {
+    expect(getComponentsJsonText(param.components!, true)).toBe(
+      [
+        "[",
+        "  {",
+        '    "type": "uint256",',
+        '    "name": "a"',
+        "  },",
+        "  {",
+        '    "type": "tuple[2]",',
+        '    "name": "d",',
+        '    "components": [',
+        "      {",
+        '        "type": "address",',
+        '        "name": "b"',
+        "      },",
+        "      {",
+        '        "type": "bool",',
+        '        "name": "c"',
+        "      }",
+        "    ]",
+        "  }",
+        "]",
+      ].join("\n"),
     );
   });
 });

@@ -7,8 +7,7 @@
   import BaseHighlight from "#lib/base/BaseHighlight.svelte";
   import type { BaseIconProps } from "#lib/base/BaseIcon.js";
   import type { AbiFragmentParam } from "#constants/chains/types.js";
-  import { jsonStringifyFormatted } from "#utils/utilsCommon.js";
-  import { formatComponentsJson } from "#lib/contracts/abiJson/abiText.js";
+  import { getComponentsJsonText } from "#lib/contracts/abiJson/abiText.js";
 
   interface Props {
     dialogHeaderText: string;
@@ -22,9 +21,7 @@
   function showDialog() {
     openDialog(dialogElement);
   }
-  let dialogText = $derived(
-    jsonStringifyFormatted(formatComponentsJson(components)),
-  );
+  let dialogText = $derived(getComponentsJsonText(components, true));
 </script>
 
 <BaseButtonIcon

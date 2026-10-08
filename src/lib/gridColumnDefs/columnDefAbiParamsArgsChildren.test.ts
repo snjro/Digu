@@ -2,12 +2,7 @@ import { EventFragment, FunctionFragment } from "ethers";
 import { describe, expect, test } from "vitest";
 import type { ColDef, ValueGetterParams } from "ag-grid-community";
 import { NO_DATA } from "#utils/utilsConstants.js";
-import { formatComponentsJson } from "#lib/contracts/abiJson/abiText.js";
-import {
-  columnDefAbiParamsArgsChildren,
-  getAbiParamText,
-  getComponentsFromAbiFragmentParam,
-} from "./columnDefAbiParamsArgsChildren";
+import { columnDefAbiParamsArgsChildren } from "./columnDefAbiParamsArgsChildren";
 import type { EventRow, FunctionRow } from "./rowTypes";
 import type { AbiRow } from "./types";
 
@@ -117,26 +112,5 @@ describe("columnDefAbiParamsArgsChildren", () => {
       Type: "uint256",
       Components: NO_DATA,
     });
-  });
-});
-
-describe("getAbiParamText", () => {
-  test("has no data for an indexed that is not known", () => {
-    // A human readable ABI leaves "indexed" out of a param that is not indexed.
-    const [param] = EventFragment.from("event F(uint256 value)").inputs;
-    expect(param.indexed).toBeNull();
-    expect(getAbiParamText(param, "indexed")).toBe(NO_DATA);
-    expect(getAbiParamText(param, "name")).toBe("value");
-  });
-});
-
-describe("getComponentsFromAbiFragmentParam", () => {
-  test("follows the children of nested arrays", () => {
-    const [param] = FunctionFragment.from(
-      "function g((uint256 a)[][2] p)",
-    ).inputs;
-    expect(
-      formatComponentsJson(getComponentsFromAbiFragmentParam(param)!),
-    ).toEqual([{ type: "uint256", name: "a" }]);
   });
 });

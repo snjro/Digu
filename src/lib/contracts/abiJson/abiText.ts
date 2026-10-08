@@ -6,6 +6,7 @@ import type {
 } from "#constants/chains/types.js";
 import type { JsonFragment } from "ethers";
 import { jsonStringifyFormatted } from "#utils/utilsCommon.js";
+import { NO_DATA } from "#utils/utilsConstants.js";
 import type { AbiFormatType } from "#utils/utilsEthers.js";
 
 export type TargetAbi =
@@ -47,17 +48,36 @@ export function formatTargetAbi(
   }
 }
 
+// The params of the grid and of the table of the dialog.
+export type AbiParamField = "name" | "type" | "indexed";
+export function getAbiParamText(
+  abiParam: AbiFragmentParam | undefined,
+  field: AbiParamField,
+): string {
+  if (!abiParam) return NO_DATA;
+  // Only the inputs of an event show it. A human readable ABI, or a JSON ABI
+  // without the key, gives null for an input that is not indexed.
+  if (field === "indexed") return String(abiParam.indexed === true);
+  // ethers gives an unnamed param the name "".
+  return abiParam[field] === "" ? NO_DATA : abiParam[field];
+}
+export function getComponentsFromAbiFragmentParam(
+  abiFragmentParam: AbiFragmentParam | undefined,
+): readonly AbiFragmentParam[] | undefined {
+  if (!abiFragmentParam) return undefined;
+  if (abiFragmentParam.components !== null) return abiFragmentParam.components;
+  if (abiFragmentParam.arrayChildren !== null)
+    return getComponentsFromAbiFragmentParam(abiFragmentParam.arrayChildren);
+  return undefined;
+}
 // The standard ABI JSON of the components of a param, without the fields that
 // only ethers has (baseType, arrayChildren, ...), like the "json" format above.
 export function getComponentsJsonText(
   components: readonly AbiFragmentParam[],
+  isExpanded: boolean,
 ): string {
-  return `[${components.map((component) => component.format("json")).join(",")}]`;
-}
-export function formatComponentsJson(
-  components: readonly AbiFragmentParam[],
-): unknown[] {
-  return JSON.parse(getComponentsJsonText(components)) as unknown[];
+  const text: string = `[${components.map((component) => component.format("json")).join(",")}]`;
+  return isExpanded ? jsonStringifyFormatted(JSON.parse(text)) : text;
 }
 
 // Only the JSON format is JSON. The human readable formats are plain text.

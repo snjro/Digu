@@ -19,7 +19,7 @@
   import {
     getAbiParamText,
     getComponentsFromAbiFragmentParam,
-  } from "#lib/gridColumnDefs/columnDefAbiParamsArgsChildren.js";
+  } from "#lib/contracts/abiJson/abiText.js";
   import type {
     AbiFragmentParam,
     EventAbiFragment,
