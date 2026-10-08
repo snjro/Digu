@@ -63,6 +63,22 @@ as, for example, `/scripts/screen-check/ui/sec1.mjs`, and imports
 The Docker Compose project is `<repo>-sc-<check>`, or `PROJECT`; each `run.sh`
 removes it when it ends.
 
+## Finding an element
+
+- Find an element by its name (`aria-label`), its role or its attributes.
+  Do not find it by a text that changes with a state, such as the tooltip of
+  the sync toggle. A copy of such texts falls behind the app (#661).
+- Read a state from attributes, such as `aria-checked` and `disabled`. A
+  text that tells the state is for the records, or for a check that compares
+  it with one exact text (a changed text then fails the check).
+- When a control has no name that stays, give it one in the app (for
+  example, `ariaLabel` of `BaseButton` and `BaseToggle`).
+- The selectors and the helpers that more than one check uses are in
+  `scripts/check-lib/app.mjs`, such as `findToggle()` and `clickToggle()`
+  for the sync toggle. A build before #661 has no name on the toggle; only
+  the checks that open such a build (the `old` phase of `upgrade/`, and the
+  base of `scripts/visual-compare/`) find it by its tooltips in v1.0.2.
+
 ## All the checks at once (`run-all.sh`)
 
 ```sh

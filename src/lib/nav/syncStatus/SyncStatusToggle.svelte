@@ -132,6 +132,7 @@
     toggleValue={toggleOn}
     size={sizeSettings.navToggle}
     {disabled}
+    ariaLabel="Sync"
     {tooltipText}
     tooltipXPosition="right"
     tooltipYPosition="bottom"

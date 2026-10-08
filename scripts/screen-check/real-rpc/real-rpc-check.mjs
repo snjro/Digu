@@ -36,6 +36,15 @@ import {
   serveBuild,
 } from "../../check-lib/browser.mjs";
 import { readTryCount } from "../../check-lib/build-source.mjs";
+import {
+  RPC_INPUT,
+  clickCheckbox,
+  clickToggle,
+  clickToggleIf,
+  findToggle,
+  openSyncPanel,
+  typeInto,
+} from "../../check-lib/app.mjs";
 import { createChecks } from "../../check-lib/results.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
@@ -477,79 +486,6 @@ async function navIn(page, p) {
     .catch(() => {});
   await settle(page);
 }
-async function typeInto(page, selector, text) {
-  await page.focus(selector);
-  await page.keyboard.down("Control");
-  await page.keyboard.press("a");
-  await page.keyboard.up("Control");
-  await page.keyboard.type(text);
-  await page.keyboard.press("Tab");
-}
-const TOGGLE_TEXTS = [
-  "start sync",
-  "stop sync",
-  "starting sync",
-  "stopping sync",
-  "syncing in another tab",
-  // SYNC_WAITS_FOR_IMPORT and SYNC_WAITS_FOR_IMPORT_STOPPING, _FINISHING and
-  // _FAILING of src/warpSync/warpSyncTexts.ts.
-  "Importing the published logs. Stop it to sync from your RPC now.",
-  "Stopping the import of the published logs.",
-  "Finishing the import of the published logs.",
-  "Importing the published logs.",
-];
-// The texts the clicks looked for before #661. "stopping sync" and the import
-// text are left out: the toggle is disabled then, and the click should fail.
-const CLICK_TEXTS = [
-  "start sync",
-  "stop sync",
-  "starting sync",
-  "syncing in another tab",
-];
-async function toggleButton(page, texts) {
-  return page.evaluateHandle((texts) => {
-    for (const label of [...document.querySelectorAll("*")].filter(
-      (e) => e.children.length === 0 && texts.includes(e.textContent.trim()),
-    )) {
-      for (let e = label; e; e = e.parentElement) {
-        const b = e.querySelector("button");
-        if (b && b.getClientRects().length) return b;
-      }
-    }
-    return null;
-  }, texts);
-}
-// Clicks "stop sync" in the page, so that the label is the one at the click:
-// a sync that stopped by itself in between is not started again. Returns
-// whether it clicked.
-async function clickStopSync(page) {
-  return page.evaluate(() => {
-    for (const label of [...document.querySelectorAll("*")].filter(
-      (e) => e.children.length === 0 && e.textContent.trim() === "stop sync",
-    )) {
-      for (let e = label; e; e = e.parentElement) {
-        const b = e.querySelector("button");
-        if (b && b.getClientRects().length) {
-          if (b.disabled) return false;
-          b.click();
-          return true;
-        }
-      }
-    }
-    return false;
-  });
-}
-async function toggleInfo(page) {
-  const h = await toggleButton(page, TOGGLE_TEXTS);
-  const el = h.asElement();
-  if (!el) return null;
-  return el.evaluate((b, texts) => {
-    const text = [...b.parentElement.parentElement.querySelectorAll("*")]
-      .map((e) => e.textContent.trim())
-      .find((t) => texts.includes(t));
-    return { tooltip: text, disabled: b.disabled };
-  }, TOGGLE_TEXTS);
-}
 // The helper text under the RPC input.
 async function helper(page) {
   return page.evaluate(() =>
@@ -578,23 +514,19 @@ async function navText(page) {
       .slice(0, 300),
   );
 }
-async function clickCheckbox(page, label) {
-  const all = await page.$$(`input[aria-label="${label}"]`);
-  const visible = [];
-  for (const h of all)
-    if (await h.evaluate((e) => e.getClientRects().length > 0)) visible.push(h);
-  if (!visible.length) throw new Error(`no checkbox ${label}`);
-  // The sidebar is first; the one in the page is last.
-  await visible.at(-1).click();
-  await settle(page);
-  return visible.at(-1).evaluate((e) => e.checked);
+// The sidebar is first; the one in the page is last. Returns `checked` after
+// the click.
+async function clickLastCheckbox(page, label) {
+  const { checked } = await clickCheckbox(page, label, {
+    after: () => settle(page),
+  });
+  return checked;
 }
 // Unchecks "Warp sync" in the sync panel, and reads the saved setting.
 async function turnOffWarpSync(page, chain) {
-  await page.click('nav button[aria-controls="sync-panel"]');
-  await page.waitForSelector("#sync-panel:not(.hidden)", { timeout: 5000 });
+  await openSyncPanel(page);
   await settle(page);
-  const checkedAfterClick = await clickCheckbox(page, "Warp sync");
+  const checkedAfterClick = await clickLastCheckbox(page, "Warp sync");
   const OFF = "Off: the logs are fetched only from your RPC.";
   const helperShown = await page
     .waitForFunction(
@@ -715,9 +647,9 @@ for (const [id, chain, rpc] of RUNS) {
     // One contract as the sync target.
     const targets = {};
     for (const v of t.versions)
-      targets[v] = await clickCheckbox(page, `Sync target: ${v}`);
+      targets[v] = await clickLastCheckbox(page, `Sync target: ${v}`);
     await navIn(page, t.contractPage);
-    targets[t.contract] = await clickCheckbox(
+    targets[t.contract] = await clickLastCheckbox(
       page,
       `Sync target: ${t.contract}`,
     );
@@ -731,7 +663,7 @@ for (const [id, chain, rpc] of RUNS) {
 
     // 1. Connected.
     const seen = [];
-    await typeInto(page, 'input[aria-label="RPC URL"]', rpc);
+    await typeInto(page, RPC_INPUT, rpc);
     const t0 = Date.now();
     // Right after Tab, the helper can show "Error. Invalid URL." for a moment:
     // the new URL is saved before the node status leaves INVALID_URL (#573).
@@ -759,7 +691,7 @@ for (const [id, chain, rpc] of RUNS) {
     const n0 = traffic.calls.length;
     const a0 = traffic.answers.length;
     const scriptStop = SCRIPT_STOP.has(chain);
-    await (await toggleButton(page, CLICK_TEXTS)).click();
+    await clickToggle(page);
     const transitions = [];
     const t1 = Date.now();
     // stopped: by itself (eth), or after the click of the script (matic).
@@ -767,7 +699,7 @@ for (const [id, chain, rpc] of RUNS) {
     let stoppedByItself = false;
     let stopClickedMs = null;
     while (Date.now() - t1 < (scriptStop ? SCRIPT_STOP_MS + 15000 : 120000)) {
-      const ti = await toggleInfo(page);
+      const ti = await findToggle(page);
       const d = await readDb(page, chain, t.db, t.contract);
       const key = JSON.stringify({ toggle: ti, row: d.row });
       if (transitions.at(-1)?.key !== key)
@@ -788,7 +720,9 @@ for (const [id, chain, rpc] of RUNS) {
           refusalsOf(traffic.answers.slice(a0)).some((r) => r.complete))
       ) {
         const ms = Date.now() - t1;
-        if (await clickStopSync(page)) {
+        // Only while it is on: a sync that stopped by itself is not started
+        // again.
+        if (await clickToggleIf(page, { checked: true, disabled: false })) {
           stopClickedMs = ms;
           continue;
         }

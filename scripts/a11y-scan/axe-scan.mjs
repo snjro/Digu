@@ -5,6 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { SYNC_PANEL_BUTTON } from "../check-lib/app.mjs";
 import { handleRequests, serveBuild } from "../check-lib/browser.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
@@ -129,13 +130,11 @@ await page.waitForFunction(
 );
 await new Promise((r) => setTimeout(r, 2000));
 // The progress in the nav opens it.
-const opened = await page.evaluate(() => {
-  const button = document.querySelector(
-    'nav button[aria-controls="sync-panel"]',
-  );
+const opened = await page.evaluate((selector) => {
+  const button = document.querySelector(selector);
   button?.click();
   return !!button;
-});
+}, SYNC_PANEL_BUTTON);
 if (!opened) throw new Error("No button that opens the sync panel");
 await new Promise((r) => setTimeout(r, 1000));
 const panelOpen = await page.evaluate(

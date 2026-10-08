@@ -13,6 +13,7 @@
     colorCategoryThumbToggleOn?: ColorCategory;
     colorCategoryThumbToggleOff?: ColorCategory;
     colorCategoryTrack: ColorCategory;
+    ariaLabel?: BaseButtonProps["ariaLabel"];
     tooltipText?: BaseButtonProps["tooltipText"];
     tooltipXPosition?: BaseButtonProps["tooltipXPosition"];
     tooltipYPosition?: BaseButtonProps["tooltipYPosition"];
@@ -27,6 +28,7 @@
     colorCategoryThumbToggleOn = "interactive",
     colorCategoryThumbToggleOff = "interactive",
     colorCategoryTrack,
+    ariaLabel = undefined,
     tooltipText = undefined,
     tooltipXPosition = "right",
     tooltipYPosition = "top",
@@ -35,6 +37,12 @@
     iconProps = undefined,
     ontogglechanged = undefined,
   }: Props = $props();
+
+  const tooltipId: string = $props.id();
+  // With a name of its own, the tooltip tells the state as the description.
+  let describedBy: string | undefined = $derived(
+    ariaLabel && tooltipText ? tooltipId : undefined,
+  );
 
   function onToggle(): void {
     toggleValue = !toggleValue;
@@ -136,9 +144,18 @@
 </script>
 
 <div class={classNames(paddingX[size])}>
-  <button class={trackClass} onclick={onToggle} {disabled}>
+  <button
+    class={trackClass}
+    role="switch"
+    aria-checked={toggleValue}
+    aria-label={ariaLabel ?? tooltipText}
+    aria-describedby={describedBy}
+    onclick={onToggle}
+    {disabled}
+  >
     <BaseTooltip
       text={tooltipText}
+      id={tooltipId}
       xPosition={tooltipXPosition}
       yPosition={tooltipYPosition}
     >

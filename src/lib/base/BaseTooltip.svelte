@@ -17,6 +17,8 @@
   import { baseTextSizes } from "./baseSizes";
   interface Props {
     text: BaseTooltipProps["text"];
+    // The id of the text, for aria-describedby.
+    id?: string | undefined;
     xPosition?: BaseTooltipProps["xPosition"];
     yPosition?: BaseTooltipProps["yPosition"];
     children?: Snippet;
@@ -24,6 +26,7 @@
 
   let {
     text,
+    id = undefined,
     xPosition = "right",
     yPosition = "top",
     children,
@@ -57,7 +60,7 @@
 
 {#if text}
   <div class={classNames("relative", "group", "flex")}>
-    <span class={textClass}>
+    <span {id} class={textClass}>
       {text}
     </span>
     {@render children?.()}

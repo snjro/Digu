@@ -91,7 +91,7 @@ function setNodeStatus(
   }));
 }
 function getToggle(): HTMLButtonElement {
-  return screen.getByRole("button") as HTMLButtonElement;
+  return screen.getByRole("switch", { name: "Sync" }) as HTMLButtonElement;
 }
 function getIcon(): SVGElement {
   const svg = getToggle().querySelector("svg");
