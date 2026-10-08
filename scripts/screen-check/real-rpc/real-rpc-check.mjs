@@ -724,7 +724,13 @@ for (const [id, chain, rpc] of RUNS) {
       page,
       `Sync target: ${t.contract}`,
     );
-    note("syncTargets (checked after the click)", targets);
+    // Only the one contract is a sync target.
+    check(
+      "syncTargets (checked after the click)",
+      t.versions.every((v) => targets[v] === false) &&
+        targets[t.contract] === true,
+      targets,
+    );
 
     // 1. Connected.
     const seen = [];

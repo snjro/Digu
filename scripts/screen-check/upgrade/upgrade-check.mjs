@@ -542,9 +542,12 @@ const browser = await puppeteer.launch({
   protocolTimeout: 60000,
   args: ["--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost"],
 });
-note(
+// The phase before left a blank tab (see the end of this file).
+const openPages = (await browser.pages()).map((p) => p.url());
+check(
   "open pages at launch",
-  (await browser.pages()).map((p) => p.url()).join(", "),
+  openPages.every((url) => url === "about:blank"),
+  openPages.join(", "),
 );
 const page = (await browser.pages())[0] ?? (await browser.newPage());
 await page.bringToFront();
@@ -736,7 +739,13 @@ await results.guard(
             r.innerText.replace(/\s+/g, " ").slice(0, 400),
           ),
         );
-        note(`${name} ag-row count`, `${rows.length}: ${JSON.stringify(rows)}`);
+        // The fake logs: TimestampSet of v1.0.2 and of the new build, and
+        // UniverseForked of v1.0.2.
+        check(
+          `${name} ag-row count`,
+          rows.length === { TimestampSet: 2, UniverseForked: 1 }[ev],
+          `${rows.length}: ${JSON.stringify(rows)}`,
+        );
         // #509: sort by the datetime column (the Date), ascending then descending.
         if (name === "grid-TimestampSet") {
           for (const n of [1, 2]) {
@@ -767,7 +776,17 @@ await results.guard(
                 )
                 .map((c) => c.innerText.trim()),
             }));
-            note(`${name} datetime sort click ${n}`, JSON.stringify(sorted));
+            // Ascending, then descending.
+            const order = n === 1 ? "ascending" : "descending";
+            const want = [...sorted.rows].sort();
+            if (n === 2) want.reverse();
+            check(
+              `${name} datetime sort click ${n}`,
+              sorted.ariaSort === order &&
+                sorted.rows.length === 2 &&
+                JSON.stringify(sorted.rows) === JSON.stringify(want),
+              JSON.stringify(sorted),
+            );
             await page.screenshot({
               path: path.join(shotDir, `${name}-sort${n}.png`),
             });
@@ -796,7 +815,11 @@ await results.guard(
             };
           }),
       );
-      note("Augur_TimestampSet jsDate types", JSON.stringify(jsDateTypes));
+      check(
+        "Augur_TimestampSet jsDate types",
+        jsDateTypes.length === 2 && jsDateTypes.every((l) => l.isDate),
+        JSON.stringify(jsDateTypes),
+      );
     } else {
       stepName = "new-00";
       // The Settings DB before the new build opens it, from a file of the
@@ -850,7 +873,16 @@ await results.guard(
           text: d.innerText.slice(0, 800),
         };
       });
-      note("sync panel (eth page)", JSON.stringify(dialogValues));
+      // The 2 fake logs below the latest block of the old phase, and the
+      // warp sync on: v1.0.2 had no such setting, so it is the default.
+      check(
+        "sync panel (eth page)",
+        /\b2 logs\b/.test(dialogValues.text) &&
+          dialogValues.checkboxes.some(
+            (c) => c.label === "Warp sync" && c.checked,
+          ),
+        JSON.stringify(dialogValues),
+      );
       await record(page, "new-10-sync-panel");
       await page.keyboard.press("Escape");
       await settle(page);

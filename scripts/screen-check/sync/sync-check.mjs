@@ -34,6 +34,12 @@ const FAKE_RPC = `http://fake-rpc.invalid/v3/${FAKE_KEY}`;
 // #498: the Goal is latest - CONF, so every latest below is the value before #498 + CONF.
 const CONF = CONFIRMATION_BLOCKS;
 const V1_CREATION = 5926229;
+// The errors after which the sync stops (TRY_COUNT of the build).
+const TRY_COUNT = Number(
+  fs
+    .readFileSync("/app/src/eventLogs/eventLogsContract.ts", "utf8")
+    .match(/export const TRY_COUNT\b[^=]*=\s*(\d+)/)[1],
+);
 
 // results.json is for a person; judge.py reads results-sync.json.
 const results = {};
@@ -491,7 +497,8 @@ async function syncStateOf(page, dbName, contract) {
   );
 }
 
-// Poll the toggle and the DB for state transitions.
+// Poll the toggle and the DB for state transitions. Gives the transitions,
+// whether `until` ended the wait (`met`), and the last toggle and DB state.
 // The syncStateText of a contract row stays "-" (also in earlier runs), so the stop
 // conditions wait for isSyncing === false instead of "stopped".
 async function watchTransitions(
@@ -503,9 +510,12 @@ async function watchTransitions(
 ) {
   const seen = [];
   const t0 = Date.now();
+  let met = false;
+  let t;
+  let s;
   while (Date.now() - t0 < timeout) {
-    const t = await toggleInfo(page);
-    const s = await syncStateOf(page, dbName, contract);
+    t = await toggleInfo(page);
+    s = await syncStateOf(page, dbName, contract);
     const key = JSON.stringify({
       tooltip: t?.tooltip,
       disabled: t?.disabled,
@@ -515,11 +525,21 @@ async function watchTransitions(
       isAbort: s?.isAbort,
     });
     if (seen.at(-1)?.key !== key) seen.push({ ms: Date.now() - t0, key });
-    if (until(t, s)) break;
+    if (until(t, s)) {
+      met = true;
+      break;
+    }
     await new Promise((res) => setTimeout(res, 50));
   }
-  return seen.map((x) => `${x.ms}ms ${x.key}`);
+  return { transitions: seen.map((x) => `${x.ms}ms ${x.key}`), met, t, s };
 }
+// OK when `until` ended the wait of watchTransitions() `w` and `ok(t, s)`
+// accepts its last state.
+function checkTransitions(key, w, ok) {
+  check(key, w.met && ok(w.t, w.s), { transitions: w.transitions });
+}
+const startSync = (t) => t?.tooltip === "start sync" && t.disabled === false;
+const stopped = (t, s) => t?.tooltip === "start sync" && s?.isSyncing === false;
 
 // #498: the Goal in ChainStatus is the latest block of the RPC minus CONF.
 async function goalCheck(page) {
@@ -560,13 +580,26 @@ if (want("S1")) {
   await guard(
     async () => {
       await gotoApp(page, "/eth/");
-      note("locks", await page.evaluate(() => !!navigator.locks));
+      // S4 needs Web Locks; without them the app works as a single tab.
+      const locks = await page.evaluate(() => !!navigator.locks);
+      check("locks", locks, { locks });
       await setupRpc(page);
       // 6-1: sync targets
       await snap(page, "S1-6-1-a-chain-initial", {
         checkboxes: await checkboxes(page),
       });
-      note("chainCheckboxes", await checkboxes(page));
+      // Every version is a sync target at first.
+      const chainBoxes = await checkboxes(page);
+      check(
+        "chainCheckboxes",
+        ["Augur version1", "Augur version2"].every((v) =>
+          chainBoxes.some(
+            (b) =>
+              b.label === `Sync target: ${v}` && b.checked && !b.indeterminate,
+          ),
+        ),
+        { checkboxes: chainBoxes },
+      );
       // chain page: the version groups. Turn off Augur version2.
       note(
         "click v2",
@@ -584,7 +617,15 @@ if (want("S1")) {
         checkboxes: await checkboxes(page),
       });
       await navIn(page, "/eth/Augur-version1/contracts/Augur/");
-      note("contractPageCheckboxes", await checkboxes(page));
+      // Turning version1 off turned its contracts off.
+      const contractBoxes = (await checkboxes(page)).filter(
+        (b) => b.label === "Sync target: Augur",
+      );
+      check(
+        "contractPageCheckboxes",
+        contractBoxes.length > 0 && contractBoxes.every((b) => !b.checked),
+        { checkboxes: contractBoxes },
+      );
       await clickCheckbox(page, "Sync target: Augur", -1);
       await snap(page, "S1-6-1-d-augur-on", {
         checkboxes: await checkboxes(page),
@@ -616,7 +657,11 @@ if (want("S1")) {
         (t, s) => s?.fetched > V1_CREATION,
         20000,
       );
-      note("6-2 start transitions", tr);
+      checkTransitions(
+        "6-2 start transitions",
+        tr,
+        (t, s) => t?.tooltip === "stop sync" && s?.isSyncing === true,
+      );
       await snap(page, "S1-6-2-a-syncing-early", {
         checkboxes: await checkboxes(page),
       });
@@ -744,7 +789,13 @@ if (want("S1")) {
       await new Promise((res) => setTimeout(res, 1500));
       await snap(page, "S1-6-5-b-matic-while-eth-syncing");
       const ethStillSyncing = await syncStateOf(page, V1, "Augur");
-      note("6-5 eth while on matic", ethStillSyncing);
+      // Changing the chain does not stop the sync.
+      check(
+        "6-5 eth while on matic",
+        ethStillSyncing?.isSyncing === true &&
+          ethStillSyncing.isAbort === false,
+        ethStillSyncing,
+      );
       await page.select('select[aria-label="Chain"]', "eth");
       await page
         .waitForFunction(() => location.pathname.startsWith("/eth"), {
@@ -759,14 +810,8 @@ if (want("S1")) {
       // 6-6: stop
       await navIn(page, EV);
       await clickToggle(page);
-      const stopTr = await watchTransitions(
-        page,
-        V1,
-        "Augur",
-        (t, s) => t?.tooltip === "start sync" && s?.isSyncing === false,
-        30000,
-      );
-      note("6-6 stop transitions", stopTr);
+      const stopTr = await watchTransitions(page, V1, "Augur", stopped, 30000);
+      checkTransitions("6-6 stop transitions", stopTr, stopped);
       await snap(page, "S1-6-6-stopped");
       note("rpc S1 total", rpcSummary(rpcState));
 
@@ -790,20 +835,22 @@ if (want("S1")) {
       await settle(page);
       await new Promise((res) => setTimeout(res, 1500));
       await snap(page, "S1-6-9-d-reload-while-syncing");
-      // can it start again?
+      // The reload stops the sync, and only the toggle starts it again.
       const tInfo = await toggleInfo(page);
-      if (tInfo && !tInfo.disabled && tInfo.tooltip === "start sync") {
+      check("6-9 start after reload", startSync(tInfo), { toggle: tInfo });
+      if (startSync(tInfo)) {
         await clickToggle(page);
-        await watchTransitions(
+        const restart = await watchTransitions(
           page,
           V1,
           "Augur",
           (t, s) => s?.fetched >= V1_CREATION + 400,
           60000,
         );
+        checkTransitions("6-9 restarted to latest", restart, () => true);
         await snap(page, "S1-6-9-e-restarted-to-latest");
         await clickToggle(page);
-        note(
+        checkTransitions(
           "6-9 restart stop",
           await watchTransitions(
             page,
@@ -812,6 +859,7 @@ if (want("S1")) {
             (t, s) => s?.isSyncing === false,
             30000,
           ),
+          stopped,
         );
         await snap(page, "S1-6-9-f-stopped");
       }
@@ -862,8 +910,23 @@ for (const [mode, stopTimeoutMs] of S3_MODES) {
           s?.fetched >= V1_CREATION + 250,
         stopTimeoutMs,
       );
-      note("transitions", tr);
-      note("rpc", rpcSummary(rpcState));
+      note("transitions", tr.transitions);
+      const rpc = rpcSummary(rpcState);
+      // errorGetLogs: every eth_getLogs fails, and the sync stops after
+      // TRY_COUNT + 1. errorAll: no Goal, so no eth_getLogs, and it stops
+      // when the latest block has failed TRY_COUNT + 1 times.
+      if (mode === "errorGetLogs") {
+        check("rpc", rpc.counts.eth_getLogs === TRY_COUNT + 1, rpc);
+      } else if (mode === "errorAll") {
+        check(
+          "rpc",
+          !rpc.counts.eth_getLogs &&
+            rpc.counts.eth_blockNumber === TRY_COUNT + 1,
+          rpc,
+        );
+      } else {
+        note("rpc", rpc);
+      }
       await snap(page, `S3-6-7-${mode}`);
       // wait a bit more: does anything keep calling the RPC?
       const n0 = rpcState.calls.length;
@@ -882,24 +945,28 @@ for (const [mode, stopTimeoutMs] of S3_MODES) {
         note("calls in 3 s after stop", { calls });
         check("reached latest", s?.fetched >= V1_CREATION + 250, end);
       } else {
-        const stopped = t?.tooltip === "start sync" && s?.isSyncing === false;
         check(
           "calls in 3 s after stop",
-          n0 > 0 && stopped && calls.length === 0,
+          n0 > 0 && stopped(t, s) && calls.length === 0,
           { calls, ...end },
         );
       }
-      // #519/#520: one failure log with "returned no block".
+      // #519/#520: one failure log, an error, for each failure, with
+      // "returned no block".
       if (mode === "nullBlock") {
-        note(
+        const messages = consoleLog.filter(
+          (x) =>
+            x.scenario === scenario &&
+            `${x.text} ${x.detail ?? ""}`.includes("returned no block"),
+        );
+        check(
           "noBlockMessages",
-          consoleLog
-            .filter(
-              (x) =>
-                x.scenario === scenario &&
-                `${x.text} ${x.detail ?? ""}`.includes("returned no block"),
-            )
-            .map((x) => `${x.type} ${(x.detail ?? x.text).slice(0, 300)}`),
+          messages.length > 0 && messages.every((x) => x.type === "error"),
+          {
+            messages: messages.map(
+              (x) => `${x.type} ${(x.detail ?? x.text).slice(0, 300)}`,
+            ),
+          },
         );
       }
     },
@@ -919,7 +986,8 @@ if (want("S4")) {
   await guard(
     async () => {
       await (await front(a), gotoApp)(a, "/eth/");
-      note("locks", await a.evaluate(() => !!navigator.locks));
+      const locks = await a.evaluate(() => !!navigator.locks);
+      check("locks", locks, { locks });
       await (await front(a), setupRpc)(a);
       await (await front(a), clickCheckbox)(a, "Sync target: Augur version1");
       await (await front(a), clickCheckbox)(a, "Sync target: Augur version2");
@@ -940,7 +1008,7 @@ if (want("S4")) {
       note("B toggle before click", bInfo);
       if (bInfo && !bInfo.disabled) {
         await (await front(b), clickToggle)(b);
-        note(
+        checkTransitions(
           "B after click",
           await (await front(b), watchTransitions)(
             b,
@@ -949,6 +1017,7 @@ if (want("S4")) {
             (t) => t?.tooltip === "syncing in another tab",
             5000,
           ),
+          (t) => t?.tooltip === "syncing in another tab" && t.disabled === true,
         );
       }
       await (await front(b), snap)(b, "S4-6-8-d-B-after-click");
@@ -959,23 +1028,24 @@ if (want("S4")) {
       await (await front(c), snap)(c, "S4-6-8-e-C-opened-while-A-syncing");
       // A stops.
       await (await front(a), clickToggle)(a);
-      note(
+      checkTransitions(
         "A stop",
         await (await front(a), watchTransitions)(
           a,
           V1,
           "Augur",
-          (t, s) => s?.isSyncing === false && t?.tooltip === "start sync",
+          stopped,
           30000,
         ),
+        stopped,
       );
       await new Promise((res) => setTimeout(res, 1500));
       await (await front(b), snap)(b, "S4-6-8-f-B-after-A-stopped");
       await (await front(c), snap)(c, "S4-6-8-g-C-after-A-stopped");
       // B starts now.
       const b2 = await (await front(b), toggleInfo)(b);
-      note("B toggle after A stopped", b2);
-      if (b2 && !b2.disabled && b2.tooltip === "start sync") {
+      check("B toggle after A stopped", startSync(b2), { toggle: b2 });
+      if (startSync(b2)) {
         await (await front(b), clickToggle)(b);
         await (await front(b), waitTooltip)(b, "stop sync", 15000).catch(
           () => {},
@@ -984,7 +1054,7 @@ if (want("S4")) {
         await (await front(b), snap)(b, "S4-6-8-h-B-syncing");
         await (await front(a), snap)(a, "S4-6-8-i-A-while-B-syncing");
         await (await front(b), clickToggle)(b);
-        note(
+        checkTransitions(
           "B stop",
           await (await front(b), watchTransitions)(
             b,
@@ -993,9 +1063,11 @@ if (want("S4")) {
             (t, s) => s?.isSyncing === false,
             30000,
           ),
+          stopped,
         );
       }
-      // A closes while syncing: B should take over.
+      // A closes while syncing: B can start a sync (it does not start one
+      // by itself).
       await (await front(a), clickToggle)(a);
       await (await front(a), waitTooltip)(a, "stop sync", 15000).catch(
         () => {},
@@ -1007,6 +1079,10 @@ if (want("S4")) {
         b,
         "S4-6-8-j-B-after-A-closed-while-syncing",
       );
+      const b3 = await (await front(b), toggleInfo)(b);
+      check("B toggle after A closed while syncing", startSync(b3), {
+        toggle: b3,
+      });
     },
     () => b?.screenshot({ path: path.join(outDir, "S4-error.png") }),
   );
