@@ -23,17 +23,26 @@ export function readWarpSyncChainNames(file = "src/warpSync/warpSyncState.ts") {
   return [...found[1].matchAll(/"([^"]+)"/g)].map((name) => name[1]);
 }
 
-// The app checks the sha256, the format, the key and the range of a file, but
-// not its logs (warpSyncFile.ts), so a file that build-snapshot.mjs wrote
-// wrong would be imported.
-function contentProblems(data, chunk, manifest) {
+// The app checks the sha256 (of the gzip, or of the JSON when the server sends
+// it decoded), the format, the key and the range of a file, but not its logs
+// (warpSyncFile.ts), so a file that build-snapshot.mjs wrote wrong would be
+// imported. contract: the one of the chunk in manifest.contracts, if any.
+function contentProblems(data, chunk, manifest, contract) {
+  let text;
   let file;
   try {
-    file = JSON.parse(zlib.gunzipSync(data).toString());
+    text = zlib.gunzipSync(data);
+    file = JSON.parse(text.toString());
   } catch (e) {
     return [`cannot be read: ${e.message}`];
   }
   const problems = [];
+  if (text.length !== chunk.rawBytes) {
+    problems.push(`has ${text.length} bytes of JSON, not ${chunk.rawBytes}.`);
+  }
+  if (sha256(text) !== chunk.rawSha256) {
+    problems.push("does not match its rawSha256.");
+  }
   if (file.formatVersion !== FORMAT_VERSION) {
     problems.push(`has formatVersion ${file.formatVersion}.`);
   }
@@ -43,7 +52,6 @@ function contentProblems(data, chunk, manifest) {
   if (keyOf(file) !== keyOf(chunk)) {
     problems.push(`is of ${keyOf(file)}.`);
   }
-  const contract = manifest.contracts.find((c) => keyOf(c) === keyOf(chunk));
   if (
     contract &&
     String(file.address).toLowerCase() !== contract.address.toLowerCase()
@@ -66,6 +74,24 @@ function contentProblems(data, chunk, manifest) {
   if (outside) {
     problems.push(`has a log of block ${Number(outside.blockNumber)}.`);
   }
+  // In the order that writeContractChunks writes them: by block and log
+  // index, each log once.
+  const disorder = file.logs.findIndex((log, i) => {
+    if (i === 0) return false;
+    const before = file.logs[i - 1];
+    const block = Number(log.blockNumber);
+    const beforeBlock = Number(before.blockNumber);
+    return (
+      block < beforeBlock ||
+      (block === beforeBlock && Number(log.logIndex) <= Number(before.logIndex))
+    );
+  });
+  if (disorder !== -1) {
+    const log = file.logs[disorder];
+    problems.push(
+      `has a log out of order at block ${Number(log.blockNumber)}, log index ${Number(log.logIndex)}.`,
+    );
+  }
   return problems;
 }
 
@@ -74,8 +100,10 @@ export function checkSnapshotFiles(dir, chainNames) {
   if (chainNames.length === 0) return ["No chain to check."];
   // The app imports only the chains of WARP_SYNC_CHAIN_NAMES: a snapshot of
   // another chain would not be used, without a word.
-  const others = fs
-    .readdirSync(dir, { withFileTypes: true })
+  const entries = fs.existsSync(dir)
+    ? fs.readdirSync(dir, { withFileTypes: true })
+    : [];
+  const others = entries
     .filter(
       (entry) =>
         entry.isDirectory() &&
@@ -111,6 +139,9 @@ function checkChain(dir, name) {
   // and creation block (matchWarpSyncContracts of warpSyncPlan.ts), and skips
   // the others without a word.
   const appContracts = new Map(chain.contracts.map((c) => [keyOf(c), c]));
+  const manifestContracts = new Map(
+    manifest.contracts.map((c) => [keyOf(c), c]),
+  );
   for (const contract of manifest.contracts) {
     const key = keyOf(contract);
     const appContract = appContracts.get(key);
@@ -129,9 +160,10 @@ function checkChain(dir, name) {
       );
     }
   }
-  const inManifest = new Set(manifest.contracts.map(keyOf));
   for (const key of appContracts.keys()) {
-    if (!inManifest.has(key)) problem(`${key} is not in manifest.contracts.`);
+    if (!manifestContracts.has(key)) {
+      problem(`${key} is not in manifest.contracts.`);
+    }
   }
 
   const listed = new Set();
@@ -160,28 +192,24 @@ function checkChain(dir, name) {
       problem(`${chunkFile} does not match its sha256.`);
       continue;
     }
-    for (const text of contentProblems(data, chunk, manifest)) {
+    const contract = manifestContracts.get(keyOf(chunk));
+    for (const text of contentProblems(data, chunk, manifest, contract)) {
       problem(`${chunkFile} ${text}`);
     }
   }
 
   // The app imports the chunks of a contract in this order, and stops the
   // contract at a gap (getRangeAction of warpSyncPlan.ts).
-  const creationBlocks = new Map(
-    manifest.contracts.map((contract) => [
-      keyOf(contract),
-      contract.creationBlock,
-    ]),
-  );
   const nextBlocks = new Map();
   for (const chunk of manifest.chunks) {
     const key = keyOf(chunk);
     const label = `${key} ${chunk.fromBlock}-${chunk.toBlock}`;
-    if (!creationBlocks.has(key)) {
+    const contract = manifestContracts.get(key);
+    if (!contract) {
       problem(`${label}: ${key} is not in manifest.contracts.`);
       continue;
     }
-    const nextBlock = nextBlocks.get(key) ?? creationBlocks.get(key);
+    const nextBlock = nextBlocks.get(key) ?? contract.creationBlock;
     if (chunk.fromBlock !== nextBlock) {
       problem(`${label} does not start at block ${nextBlock}.`);
     }
@@ -189,7 +217,7 @@ function checkChain(dir, name) {
     // The app takes a fetchedBlockNumber at the creation block for "nothing
     // fetched" (getNextBlock of warpSyncPlan.ts): it would fetch that block
     // again, and skip the next range.
-    if (chunk.toBlock === creationBlocks.get(key)) {
+    if (chunk.toBlock === contract.creationBlock) {
       problem(`${label} ends at the creation block.`);
     }
     nextBlocks.set(key, chunk.toBlock + 1);

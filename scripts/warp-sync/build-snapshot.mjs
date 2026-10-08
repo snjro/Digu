@@ -695,8 +695,19 @@ async function build(chain, rpc, outDir, toBlock, options) {
   }
   if (plans.length === 0) {
     fs.rmSync(partialDir, { recursive: true, force: true });
-    log(`Nothing to add: the snapshot already reaches block ${end}.`);
-    return undefined;
+    // A contract created after the end has no range yet, but goes into
+    // manifest.contracts, which check-files.mjs compares with the chain.
+    const contracts = contractsOf(known, chain);
+    if (contracts.length === manifest.contracts.length) {
+      log(`Nothing to add: the snapshot already reaches block ${end}.`);
+      return undefined;
+    }
+    manifest.contracts = contracts;
+    writeManifest(manifestFile, manifest);
+    log(
+      `No logs to add to block ${end}: added the contracts to ${manifestFile}.`,
+    );
+    return manifest;
   }
 
   // The parts wait in a queue, the first part of each contract first, and
@@ -792,16 +803,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
   }
   moveChunkFiles(rows, tmpDir, dir, manifest);
 
-  for (const contract of chain.contracts) {
-    known.set(keyOf(contract), {
-      project: contract.project,
-      version: contract.version,
-      name: contract.name,
-      address: contract.address,
-      creationBlock: contract.creationBlock,
-    });
-  }
-  manifest.contracts = [...known.values()];
+  manifest.contracts = contractsOf(known, chain);
   manifest.runs.push({
     createdAt: new Date().toISOString(),
     latestBlockNumber: latest,
@@ -816,6 +818,21 @@ async function build(chain, rpc, outDir, toBlock, options) {
   const written = rows.filter((row) => row.file !== null).length;
   log(`Wrote ${written} files to ${dir} and ${manifestFile}.`);
   return manifest;
+}
+
+// The contracts of the manifest (known, by key) with those of the chain.
+function contractsOf(known, chain) {
+  const contracts = new Map(known);
+  for (const contract of chain.contracts) {
+    contracts.set(keyOf(contract), {
+      project: contract.project,
+      version: contract.version,
+      name: contract.name,
+      address: contract.address,
+      creationBlock: contract.creationBlock,
+    });
+  }
+  return [...contracts.values()];
 }
 
 // ---------- command line ----------

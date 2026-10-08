@@ -25,6 +25,7 @@ import {
   RequestLimitError,
 } from "./build-snapshot.mjs";
 import { fakeEventLog } from "./fake-logs.mjs";
+import { keyOf, writeManifest } from "./snapshot-format.mjs";
 
 const chain = loadChain("matic");
 const LATEST = 16_200_000;
@@ -257,6 +258,27 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     }
     expect(logsInFiles(manifest)).toEqual(expectedLogs(16_100_000));
     await expect(build({ toBlock: 16_100_000 })).resolves.toBeUndefined();
+  });
+
+  test("a run with no logs to add adds the contracts that the manifest does not have", async () => {
+    // The contracts created after the end have no range.
+    await build({ toBlock: 15_000_000 });
+    const later = chain.contracts
+      .filter((contract) => contract.creationBlock > 15_000_000)
+      .map(keyOf);
+    expect(later.length).toBeGreaterThan(0);
+    const manifest = readManifest();
+    manifest.contracts = manifest.contracts.filter(
+      (contract) => !later.includes(keyOf(contract)),
+    );
+    writeManifest(path.join(dir(), "manifest.json"), manifest);
+    await build({ toBlock: 15_000_000 });
+    const after = readManifest();
+    expect(after.contracts.map(keyOf).sort()).toEqual(
+      chain.contracts.map(keyOf).sort(),
+    );
+    expect(after.runs).toHaveLength(1);
+    await expect(build({ toBlock: 15_000_000 })).resolves.toBeUndefined();
   });
 
   test("gets blockTimestamp from the block when the RPC does not return it", async () => {

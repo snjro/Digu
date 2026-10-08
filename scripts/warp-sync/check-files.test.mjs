@@ -9,9 +9,9 @@ import { checkSnapshotFiles, readWarpSyncChainNames } from "./check-files.mjs";
 import {
   emptyManifest,
   FORMAT_VERSION,
+  keyOf,
   readManifest,
   sha256,
-  totalsOf,
   writeContractChunks,
   writeManifest,
 } from "./snapshot-format.mjs";
@@ -28,11 +28,12 @@ const contracts = chain.contracts.map(
   }),
 );
 // The two that have logs in the sample snapshot, and their creation blocks.
-const [A, B] = [contracts[0], contracts[2]];
+const contractOf = (name) =>
+  contracts.find((contract) => keyOf(contract) === `Augur/turbo/${name}`);
+const [A, B] = [contractOf("AMMFactory"), contractOf("FeePot")];
 const a = A.creationBlock;
 const b = B.creationBlock;
-const labelOf = (contract, from, to) =>
-  `${contract.project}/${contract.version}/${contract.name} ${from}-${to}`;
+const labelOf = (contract, from, to) => `${keyOf(contract)} ${from}-${to}`;
 const logOf = (block, index) => ({
   blockNumber: `0x${block.toString(16)}`,
   logIndex: `0x${index.toString(16)}`,
@@ -112,6 +113,13 @@ describe("checkSnapshotFiles", () => {
     ]);
   });
 
+  test("a folder of the snapshot that does not exist", () => {
+    const missing = path.join(dir, "none");
+    expect(checkSnapshotFiles(missing, ["matic"])).toEqual([
+      `matic: no ${path.join(missing, "matic", "manifest.json")}.`,
+    ]);
+  });
+
   test("an empty list of chains", () => {
     expect(checkSnapshotFiles(dir, [])).toEqual(["No chain to check."]);
   });
@@ -180,8 +188,11 @@ describe("checkSnapshotFiles", () => {
   });
 
   test("a first fromBlock that is not the creationBlock", () => {
-    change((m) => (m.contracts[2].creationBlock = b - 1));
-    const key = labelOf(B, b, b + 5).split(" ")[0];
+    change(
+      (m) =>
+        (m.contracts.find((c) => keyOf(c) === keyOf(B)).creationBlock = b - 1),
+    );
+    const key = keyOf(B);
     expect(check()).toEqual([
       `matic: ${key} has creationBlock ${b - 1}, not ${b}.`,
       `matic: ${labelOf(B, b, b + 5)} does not start at block ${b - 1}.`,
@@ -214,8 +225,10 @@ describe("checkSnapshotFiles", () => {
   });
 
   test("a chunk of a contract that is not in manifest.contracts", () => {
-    change((m) => m.contracts.splice(2, 1));
-    const key = labelOf(B, b, b + 5).split(" ")[0];
+    change(
+      (m) => (m.contracts = m.contracts.filter((c) => keyOf(c) !== keyOf(B))),
+    );
+    const key = keyOf(B);
     expect(check()).toEqual([
       `matic: ${key} is not in manifest.contracts.`,
       `matic: ${labelOf(B, b, b + 5)}: ${key} is not in manifest.contracts.`,
@@ -223,8 +236,11 @@ describe("checkSnapshotFiles", () => {
   });
 
   test("a contract of another address than in the chain", () => {
-    change((m) => (m.contracts[0].address = B.address));
-    const key = labelOf(A, a, a).split(" ")[0];
+    change(
+      (m) =>
+        (m.contracts.find((c) => keyOf(c) === keyOf(A)).address = B.address),
+    );
+    const key = keyOf(A);
     expect(check()).toEqual([
       `matic: ${key} has address ${B.address}, not ${A.address}.`,
       fileProblem(0, `has address ${A.address}, not ${B.address}.`),
@@ -247,12 +263,14 @@ describe("checkSnapshotFiles", () => {
     const file = path.join(chainDir, chunk.file);
     const data = JSON.parse(zlib.gunzipSync(fs.readFileSync(file)).toString());
     edit(data);
-    const gzip = zlib.gzipSync(JSON.stringify(data));
+    const text = JSON.stringify(data);
+    const gzip = zlib.gzipSync(text);
     fs.writeFileSync(file, gzip);
     chunk.bytes = gzip.length;
     chunk.sha256 = sha256(gzip);
-    manifest.totals = totalsOf(manifest.chunks);
-    fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+    chunk.rawBytes = Buffer.byteLength(text);
+    chunk.rawSha256 = sha256(text);
+    writeManifest(manifestFile, manifest);
   };
 
   test.each([
@@ -275,6 +293,16 @@ describe("checkSnapshotFiles", () => {
     ],
     ["another number of logs", (d) => d.logs.pop(), "has 1 logs, not 2."],
     [
+      "two logs swapped",
+      (d) => d.logs.reverse(),
+      `has a log out of order at block ${a}, log index 0.`,
+    ],
+    [
+      "a log twice",
+      (d) => (d.logs[1] = d.logs[0]),
+      `has a log out of order at block ${a}, log index 0.`,
+    ],
+    [
       "a log out of the range",
       (d) => (d.logs[1].blockNumber = `0x${(a + 2).toString(16)}`),
       `has a log of block ${a + 2}.`,
@@ -284,6 +312,19 @@ describe("checkSnapshotFiles", () => {
     expect(check()).toEqual([fileProblem(0, text)]);
   });
 
+  test("another size or sha256 of the JSON", () => {
+    change((m) => {
+      m.chunks[0].rawBytes += 1;
+      m.chunks[0].rawSha256 = "0".repeat(64);
+      m.totals.rawBytes += 1;
+    });
+    const raw = readManifest(manifestFile, chain).chunks[0].rawBytes;
+    expect(check()).toEqual([
+      fileProblem(0, `has ${raw - 1} bytes of JSON, not ${raw}.`),
+      fileProblem(0, "does not match its rawSha256."),
+    ]);
+  });
+
   test("a file that is not gzip", () => {
     const manifest = readManifest(manifestFile, chain);
     const chunk = manifest.chunks[0];
@@ -291,8 +332,7 @@ describe("checkSnapshotFiles", () => {
     fs.writeFileSync(path.join(chainDir, chunk.file), data);
     chunk.bytes = data.length;
     chunk.sha256 = sha256(data);
-    manifest.totals = totalsOf(manifest.chunks);
-    fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+    writeManifest(manifestFile, manifest);
     const problems = check();
     expect(problems).toHaveLength(1);
     expect(problems[0]).toMatch(/ cannot be read: /);
