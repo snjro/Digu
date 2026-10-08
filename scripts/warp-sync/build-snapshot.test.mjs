@@ -21,6 +21,7 @@ import {
   KEEP_WRITE_LENGTH,
   keepLogsBefore,
   loadChain,
+  parsePositiveInteger,
   RequestLimitError,
 } from "./build-snapshot.mjs";
 import { fakeEventLog } from "./fake-logs.mjs";
@@ -397,4 +398,32 @@ test("keepLogsBefore keeps a file of more than one piece", async () => {
   fs.writeFileSync(file, blocks.map((block) => `${line(block)}\n`).join(""));
   await keepLogsBefore(file, 25_001);
   expect(fs.readFileSync(file, "utf8")).toBe(kept.join(""));
+});
+
+describe("parsePositiveInteger", () => {
+  test.each([
+    ["1", 1],
+    ["26100000", 26_100_000],
+    ["9007199254740991", Number.MAX_SAFE_INTEGER],
+  ])("takes %s", (text, value) => {
+    expect(parsePositiveInteger(text)).toBe(value);
+  });
+  test.each([
+    "0x18e4120",
+    "2.61e7",
+    "26,100,000",
+    "26_100_000",
+    " 5",
+    "5 ",
+    "+5",
+    "0",
+    "007",
+    "-1",
+    "1.0",
+    "",
+    "9007199254740993",
+    undefined,
+  ])("does not take %j", (text) => {
+    expect(parsePositiveInteger(text)).toBeUndefined();
+  });
 });

@@ -845,10 +845,18 @@ export function withKey(url, keyFile) {
   return `${url}${key}`;
 }
 
+// A positive integer written in decimal digits only, or undefined: Number()
+// would also take "0x10", "2.6e7", " 5" and numbers above the safe integers.
+export function parsePositiveInteger(text) {
+  const value = Number(text);
+  return /^[1-9]\d*$/.test(text) && Number.isSafeInteger(value)
+    ? value
+    : undefined;
+}
 function positiveInteger(values, name) {
-  const value = Number(values[name]);
-  if (!Number.isInteger(value) || value <= 0) {
-    console.error(`--${name} must be a positive integer.`);
+  const value = parsePositiveInteger(values[name]);
+  if (value === undefined) {
+    console.error(`--${name} must be a positive integer in decimal digits.`);
     process.exit(2);
   }
   return value;
