@@ -13,7 +13,7 @@ import {
   CLOSE_SIDEBAR,
   SYNC_PANEL_BUTTON,
   clickByTooltip,
-  clickToggleIf,
+  findToggle,
   openSyncPanel as openSyncPanelIn,
 } from "../check-lib/app.mjs";
 
@@ -209,13 +209,14 @@ const STATES = [
       return openSyncPanel(page);
     },
   ],
-  // There is no RPC, so the toggle is disabled and the sync does not start.
-  // The bases before #661 have no name on the toggle.
+  // There is no RPC, so the toggle is disabled and a click on it does
+  // nothing: the screen shows it as it is. The bases before #661 have no name
+  // on the toggle.
   [
     "sync-toggle",
     EVENTS,
     async (page) => {
-      if (!(await clickToggleIf(page, {}, { oldTexts: true })))
+      if (!(await findToggle(page, { oldTexts: true })))
         throw new Error("No sync toggle");
     },
   ],

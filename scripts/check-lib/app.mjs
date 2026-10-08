@@ -78,11 +78,13 @@ function pageLib(syncToggleSelector, oldSyncToggleTexts) {
       !!toggle && Object.entries(state).every(([k, v]) => toggle[k] === v);
     return { b, toggle, ok };
   }
-  // Clicks the toggle when `state` holds, and returns whether it clicked.
+  // Clicks the toggle when `state` holds, and returns whether it clicked. A
+  // disabled toggle is not clicked: a click on it does nothing.
   function clickToggleIf(state, oldTexts) {
     const { b, ok } = toggleIf(state, oldTexts);
-    if (ok) b.click();
-    return ok;
+    if (!ok || b.disabled) return false;
+    b.click();
+    return true;
   }
   return {
     buttonNearText,
@@ -150,7 +152,8 @@ export async function clickToggle(page, { oldTexts = false } = {}) {
 // Clicks the sync toggle in the page when each field of `state` (such as
 // { checked: true, disabled: false }) is the one of the toggle. The state is
 // read and the toggle clicked in one evaluate, so a sync that stopped by
-// itself in between is not started again. Returns whether it clicked.
+// itself in between is not started again. Returns whether it clicked; it does
+// not click a disabled toggle.
 export async function clickToggleIf(page, state, { oldTexts = false } = {}) {
   return inPage(
     page,
