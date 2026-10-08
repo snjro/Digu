@@ -7,16 +7,15 @@ import type {
   VersionIdentifier,
 } from "./dbTypes";
 import { getTargetChain } from "#utils/utilsDb.js";
-import { customLogger } from "#utils/logger.js";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { getDbRecordsSyncStatusContractByKeyValue } from "./dbEventLogsDataHandlersSyncStatusGetters";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 
-// Changes only the rows of the event contracts of this build, and returns
-// them: the DB may have a row of a contract that it does not know (from a tab
-// of another build), which is left as it is, and logged.
+// Changes every row that matches, and returns the contracts of those rows
+// among the event contracts of this build: the DB may have a row of a
+// contract that this build does not know (from a tab of another build).
 export async function updateSyncStatusInChain<
   T extends keyof SyncStatusContract,
 >(
@@ -63,7 +62,7 @@ async function updateSyncStatusInVersion<T extends keyof SyncStatusContract>(
 ): Promise<ContractIdentifier[]> {
   // Read and write in one transaction, so that a row changed in between is
   // not overwritten with the result of an old read.
-  const { updatedNames, skippedNames } = await dbEventLogs.transaction(
+  const updatedNames: string[] = await dbEventLogs.transaction(
     "rw",
     tableNameSyncStatus,
     async () => {
@@ -73,39 +72,25 @@ async function updateSyncStatusInVersion<T extends keyof SyncStatusContract>(
           targetKey,
           targetValue,
         );
-      const names: string[] = syncStatusesContract.map(
-        (syncStatusContract: SyncStatusContract) => syncStatusContract.name,
-      );
-      const updatedNames: string[] = names.filter((name: string) =>
-        eventContractNames.has(name),
-      );
       await Promise.all(
-        updatedNames.map((name: string) =>
+        syncStatusesContract.map((syncStatusContract: SyncStatusContract) =>
           dbEventLogs
             .table(tableNameSyncStatus)
-            .update(name, newSyncStatusContract),
+            .update(syncStatusContract.name, newSyncStatusContract),
         ),
       );
-      return {
-        updatedNames,
-        skippedNames: names.filter(
-          (name: string) => !eventContractNames.has(name),
-        ),
-      };
+      return syncStatusesContract.map(
+        (syncStatusContract: SyncStatusContract) => syncStatusContract.name,
+      );
     },
   );
-  if (skippedNames.length > 0) {
-    customLogger.error(
-      "Skip the sync statuses of contracts that this build does not know.",
-      { ...dbEventLogs.versionIdentifier, contractNames: skippedNames },
-    );
-  }
-  const contractIdentifiers: ContractIdentifier[] = updatedNames.map(
-    (name: string) => ({
+  // The loops and the store follow this build's event contracts only.
+  const contractIdentifiers: ContractIdentifier[] = updatedNames
+    .filter((name: string) => eventContractNames.has(name))
+    .map((name: string) => ({
       ...dbEventLogs.versionIdentifier,
       contractName: name,
-    }),
-  );
+    }));
   // Update the store only after the commit.
   for (const contractIdentifier of contractIdentifiers) {
     storeSyncStatus.updateState(contractIdentifier, newSyncStatusContract);

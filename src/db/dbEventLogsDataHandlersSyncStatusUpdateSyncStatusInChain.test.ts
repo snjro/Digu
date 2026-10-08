@@ -18,7 +18,6 @@ import {
 import { DbEventLogs } from "./dbEventLogs";
 import { DB_TABLE_NAMES } from "./constants";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
-import { customLogger } from "#utils/logger.js";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 
@@ -32,7 +31,7 @@ function getStoreSyncStatusContract(
 }
 
 describe("updateSyncStatusInChain", () => {
-  test("should neither write nor return a row of a contract that this build does not know", async () => {
+  test("should write but not return a row of a contract that this build does not know", async () => {
     const targetChain = TARGET_CHAINS[0];
     const version = targetChain.projects[0].versions[0];
     const versionIdentifier: VersionIdentifier = {
@@ -41,9 +40,6 @@ describe("updateSyncStatusInChain", () => {
       versionName: version.name,
     };
     const dbEventLogs = new DbEventLogs(versionIdentifier);
-    const spyError = vi
-      .spyOn(customLogger, "error")
-      .mockImplementation(() => {});
     try {
       const knownRow: SyncStatusContract | undefined = await dbEventLogs
         .table(tableNameSyncStatus)
@@ -67,15 +63,13 @@ describe("updateSyncStatusInChain", () => {
       const unknownRow: SyncStatusContract | undefined = await dbEventLogs
         .table(tableNameSyncStatus)
         .get("UnknownContract");
-      expect(unknownRow?.isAbort).toBe(true);
-      expect(spyError).toHaveBeenCalledWith(
-        "Skip the sync statuses of contracts that this build does not know.",
-        { ...versionIdentifier, contractNames: ["UnknownContract"] },
-      );
+      expect(unknownRow?.isAbort).toBe(false);
     } finally {
-      spyError.mockRestore();
-      await dbEventLogs.table(tableNameSyncStatus).delete("UnknownContract");
-      dbEventLogs.close();
+      try {
+        await dbEventLogs.table(tableNameSyncStatus).delete("UnknownContract");
+      } finally {
+        dbEventLogs.close();
+      }
     }
   });
 
