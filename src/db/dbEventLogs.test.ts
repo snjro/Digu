@@ -276,6 +276,19 @@ describe("getDbEventLogs", () => {
     expect(dbEventLogs).toBe(getDbEventLogs(versionIdentifier));
     expect(dbEventLogs.name).toBe(new DbEventLogs(versionIdentifier).name);
   });
+  test("names the DB from the chain, the project and the version, whatever the order of the keys", () => {
+    const { chainName, projectName, versionName } = versionIdentifier;
+    const reordered = {
+      versionName,
+      contractName: "Augur",
+      projectName,
+      chainName,
+    } as VersionIdentifier;
+
+    expect(new DbEventLogs(reordered).name).toBe(
+      `Digu_EventLog_${chainName}_${projectName}_${versionName}`,
+    );
+  });
   test("opens the DB again after it was deleted", async () => {
     const dbEventLogs: DbEventLogs = getDbEventLogs(versionIdentifier);
     const tableName = DB_TABLE_NAMES.EventLog.syncStatus;

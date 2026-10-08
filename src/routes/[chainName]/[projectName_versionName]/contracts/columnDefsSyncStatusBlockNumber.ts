@@ -48,7 +48,10 @@ export const columnDefsSyncStatusBlockNumber = <T extends ContractRow>(
     comparator: compareSyncStatusValues,
     editable: false,
     cellStyle: (cellClassParams: CellClassParams<T>): CellStyle | undefined => {
-      if (cellClassParams.data && cellClassParams.data.contractHasEvent) {
+      if (
+        cellClassParams.data &&
+        cellClassParams.data.contractHasSyncTargetEvents
+      ) {
         return cellAlign("end");
       } else {
         return cellAlign("center");

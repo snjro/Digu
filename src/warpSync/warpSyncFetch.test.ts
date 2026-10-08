@@ -5,6 +5,7 @@ import { fetchWarpSyncManifest, getWarpSyncFileUrl } from "./warpSyncFetch";
 vi.mock("#lib/common/basePath.js", () => ({ basePath: "/Digu" }));
 
 const chain = { name: "matic", chainId: 137 } as Chain;
+const signal: AbortSignal = new AbortController().signal;
 const fetchMock = vi.fn();
 vi.stubGlobal("fetch", fetchMock);
 
@@ -30,25 +31,28 @@ afterEach(() => {
 describe("fetchWarpSyncManifest", () => {
   test("reads the manifest of the chain under the base path", async () => {
     fetchMock.mockResolvedValueOnce(reply(200, manifest));
-    expect(await fetchWarpSyncManifest(chain)).toEqual(manifest);
+    expect(await fetchWarpSyncManifest(chain, signal)).toEqual(manifest);
     expect(fetchMock).toHaveBeenCalledWith(
       "/Digu/warp-sync/matic/manifest.json",
+      { signal },
     );
   });
   test("is undefined when the chain has no snapshot", async () => {
     fetchMock.mockResolvedValueOnce(reply(404, "Not Found"));
-    expect(await fetchWarpSyncManifest(chain)).toBeUndefined();
+    expect(await fetchWarpSyncManifest(chain, signal)).toBeUndefined();
   });
   test("throws on another error", async () => {
     fetchMock.mockResolvedValueOnce(reply(500, "error"));
-    await expect(fetchWarpSyncManifest(chain)).rejects.toThrow("HTTP 500");
+    await expect(fetchWarpSyncManifest(chain, signal)).rejects.toThrow(
+      "HTTP 500",
+    );
   });
   test.each([
     ["formatVersion 2", { formatVersion: 2 }, "format version: 2"],
     ["another chain", { chainId: 1 }, "chainId 1"],
   ])("throws for %s", async (_, change, message) => {
     fetchMock.mockResolvedValueOnce(reply(200, { ...manifest, ...change }));
-    await expect(fetchWarpSyncManifest(chain)).rejects.toThrow(message);
+    await expect(fetchWarpSyncManifest(chain, signal)).rejects.toThrow(message);
   });
 });
 

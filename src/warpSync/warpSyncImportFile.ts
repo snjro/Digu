@@ -1,6 +1,5 @@
 // Imports one file of the snapshot. It runs in the DB worker, so that the
 // page does not stop while the logs are read and saved.
-import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Contract, ContractName } from "#constants/chains/types.js";
 import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
 import { saveEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
@@ -13,6 +12,7 @@ import type {
 } from "#db/dbTypes.js";
 import { groupEventLogsByEventName } from "#eventLogs/eventLogsContractUpdateTables.js";
 import { getNumber } from "ethers";
+import { getTargetContract } from "#utils/utilsDb.js";
 import { makeWarpSyncEventLogs } from "./warpSyncEventLogs";
 import { readWarpSyncFile } from "./warpSyncFile";
 import { getNextBlock, getRangeAction } from "./warpSyncPlan";
@@ -34,30 +34,16 @@ export type ImportWarpSyncFileResult = {
   logCount: number;
 };
 
-function getContract(
-  versionIdentifier: VersionIdentifier,
-  contractName: ContractName,
-): Contract {
-  const contract: Contract | undefined = TARGET_CHAINS.find(
-    (chain) => chain.name === versionIdentifier.chainName,
-  )
-    ?.projects.find((project) => project.name === versionIdentifier.projectName)
-    ?.versions.find((version) => version.name === versionIdentifier.versionName)
-    ?.contracts.find((contract) => contract.name === contractName);
-  if (!contract) throw new Error(`No contract ${contractName}.`);
-  return contract;
-}
-
 // Saves the logs after the ones in the DB, and moves fetchedBlockNumber to
 // the end of the file, in one transaction, as the sync does. Returns the new
 // values of the sync status for the store of the page.
 export async function importWarpSyncFile(
   params: ImportWarpSyncFileParams,
 ): Promise<ImportWarpSyncFileResult> {
-  const contract: Contract = getContract(
-    params.versionIdentifier,
-    params.contractName,
-  );
+  const contract: Contract = getTargetContract({
+    ...params.versionIdentifier,
+    contractName: params.contractName,
+  });
   const dbEventLogs: DbEventLogs = getDbEventLogs(params.versionIdentifier);
   const fetchedBlockNumber: number = await getDbItemSyncStatus(
     dbEventLogs,

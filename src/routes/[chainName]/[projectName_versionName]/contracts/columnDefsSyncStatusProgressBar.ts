@@ -40,7 +40,10 @@ export const columnDefsSyncstatusProgressBar = <T extends ContractRow>(
     comparator: compareSyncStatusValues,
     editable: false,
     cellStyle: (cellClassParams: CellClassParams<T>): CellStyle | undefined => {
-      if (cellClassParams.data && cellClassParams.data.contractHasEvent) {
+      if (
+        cellClassParams.data &&
+        cellClassParams.data.contractHasSyncTargetEvents
+      ) {
         return undefined;
       } else {
         return cellAlign("center");
