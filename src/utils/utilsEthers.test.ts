@@ -670,45 +670,33 @@ describe("getAndUpdateLatestBlockNumber", () => {
     spyGetBlockNumber.mockRestore();
     spyRaise.mockRestore();
   });
-  test("should get latestBlockNumber", async () => {
+  beforeEach(() => {
+    // So that an earlier call cannot make a test pass.
+    spyRaise.mockClear();
+    spyUpdateDbItemChainStatus.mockClear();
+  });
+  test("should get latestBlockNumber, and only raise it", async () => {
     const expectedLatestBlockNumber: number =
       rpcLatestBlockNumber - targetChain.confirmationBlocks;
     const actualLatestBlockNumber: number = await getAndUpdateLatestBlockNumber(
       nodeProvider!,
       targetChainName,
-      { raiseOnly: false },
     );
-    //check latestBlockNumber
-    expect(spyUpdateDbItemChainStatus).toHaveBeenCalledWith<
-      [ChainName, "latestBlockNumber", ChainStatus["latestBlockNumber"]]
-    >(targetChainName, "latestBlockNumber", expectedLatestBlockNumber);
-    expect(spyRaise).not.toHaveBeenCalled();
-
-    expect(actualLatestBlockNumber).toBe(expectedLatestBlockNumber);
-  });
-  test("should only raise latestBlockNumber when asked", async () => {
-    spyUpdateDbItemChainStatus.mockClear();
-
-    await getAndUpdateLatestBlockNumber(nodeProvider!, targetChainName, {
-      raiseOnly: true,
-    });
-
     expect(spyRaise).toHaveBeenCalledExactlyOnceWith(
       targetChainName,
-      rpcLatestBlockNumber - targetChain.confirmationBlocks,
+      expectedLatestBlockNumber,
     );
     expect(spyUpdateDbItemChainStatus).not.toHaveBeenCalled();
+
+    expect(actualLatestBlockNumber).toBe(expectedLatestBlockNumber);
   });
   test("should not go below 0 when the chain is shorter than the confirmation depth", async () => {
     spyGetBlockNumber.mockResolvedValueOnce(targetChain.confirmationBlocks - 1);
     const actualLatestBlockNumber: number = await getAndUpdateLatestBlockNumber(
       nodeProvider!,
       targetChainName,
-      { raiseOnly: false },
     );
-    expect(spyUpdateDbItemChainStatus).toHaveBeenLastCalledWith<
-      [ChainName, "latestBlockNumber", ChainStatus["latestBlockNumber"]]
-    >(targetChainName, "latestBlockNumber", 0);
+    expect(spyRaise).toHaveBeenCalledExactlyOnceWith(targetChainName, 0);
     expect(actualLatestBlockNumber).toBe(0);
   });
 });

@@ -26,11 +26,9 @@ export async function startUpdateLatestBlockNumber(
   let errorCount: number = 0;
   let isStopped: boolean = false;
 
-  const tryGetAndUpdateLatestBlockNumber = async (raiseOnly: boolean) => {
+  const tryGetAndUpdateLatestBlockNumber = async () => {
     try {
-      await getAndUpdateLatestBlockNumber(nodeProvider, targetChainName, {
-        raiseOnly,
-      });
+      await getAndUpdateLatestBlockNumber(nodeProvider, targetChainName);
       errorCount = 0;
     } catch (error) {
       // Destroying the provider after stopping cancels the request in flight.
@@ -48,9 +46,7 @@ export async function startUpdateLatestBlockNumber(
   // The reason is that the fetching event logs start before the interval starts.
   // And the block number, which is the goal of the fetching event log, is considered 0.
   // To avoid this, get the latest blocknumber here.
-  // The value of the node as it is, also lower: the node may have been
-  // switched to one that is further behind.
-  await tryGetAndUpdateLatestBlockNumber(false);
+  await tryGetAndUpdateLatestBlockNumber();
 
   // The requests and the aborting catch and log their errors. The rest
   // (reading the store, logging, clearing the interval) is not in a try.
@@ -60,9 +56,7 @@ export async function startUpdateLatestBlockNumber(
       return;
     }
 
-    // Only raised: the requests may overlap, and an older answer that comes
-    // later does not move the latest block back.
-    await tryGetAndUpdateLatestBlockNumber(true);
+    await tryGetAndUpdateLatestBlockNumber();
     // A request in flight fails when the provider is destroyed after stopping.
     if (isStopped) return;
     if (errorCount > TRY_COUNT) {

@@ -57,17 +57,6 @@ describe("startUpdateLatestBlockNumber", () => {
     expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(2);
   });
 
-  test("should write the first latest block as it is, and only raise it after that", async () => {
-    stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
-    await vi.advanceTimersByTimeAsync(2 * blockIntervalMs);
-
-    expect(
-      vi
-        .mocked(getAndUpdateLatestBlockNumber)
-        .mock.calls.map(([, , options]) => options),
-    ).toEqual([{ raiseOnly: false }, { raiseOnly: true }, { raiseOnly: true }]);
-  });
-
   test("should stop once when it is stopped after it stopped itself", async () => {
     vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
       new Error("RPC error"),

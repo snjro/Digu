@@ -3,6 +3,7 @@ import { DB_TABLE_NAMES } from "./constants";
 import type { ChainStatus } from "./dbTypes";
 import { dbChainStatus } from "./dbChainStatus";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
+import { get } from "svelte/store";
 const tableNameChainStatus = DB_TABLE_NAMES.ChainStatus;
 export async function getDbRecordChainStatus(
   chainName: ChainName,
@@ -35,8 +36,9 @@ export async function updateDbItemChainStatus<T extends keyof ChainStatus>(
 }
 // Only a higher block, read and written in one transaction, so that a late or
 // older answer, or another tab, does not move the latest block back. The
-// store gets the higher one each time, so that a store behind the DB catches
-// up. A chain without a row changes nothing.
+// store gets the higher one when it has another value, so that a store behind
+// the DB catches up without waking its subscribers on each tick. A chain
+// without a row changes nothing.
 export async function raiseDbLatestBlockNumber(
   chainName: ChainName,
   latestBlockNumber: number,
@@ -58,7 +60,10 @@ export async function raiseDbLatestBlockNumber(
       return latestBlockNumber;
     },
   );
-  if (higher !== undefined) {
+  if (
+    higher !== undefined &&
+    get(storeChainStatus)[chainName]?.latestBlockNumber !== higher
+  ) {
     storeChainStatus.updateState(chainName, { latestBlockNumber: higher });
   }
 }

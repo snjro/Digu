@@ -121,6 +121,24 @@ describe("raiseDbLatestBlockNumber", () => {
     },
   );
 
+  test("should leave the store as it is when it has the value", async () => {
+    const spyGetStore = vi
+      .spyOn(storeChainStatus, "subscribe")
+      .mockImplementation((run) => {
+        run({
+          [dummyChainName]: { latestBlockNumber: 1 },
+        } as unknown as Parameters<typeof run>[0]);
+        return () => {};
+      });
+    try {
+      await raiseDbLatestBlockNumber(dummyChainName, 1);
+
+      expect(spyStoreChainStatus).not.toHaveBeenCalled();
+    } finally {
+      spyGetStore.mockRestore();
+    }
+  });
+
   test("should change nothing for a chain without a row", async () => {
     spyTableGet.mockResolvedValueOnce(undefined);
 
