@@ -157,6 +157,8 @@
     ...infiniteOptions,
   });
 
+  // Only the grid of this component is destroyed with it.
+  let createdGridApi: GridApi<GridRow> | undefined;
   onMount(() => {
     if (import.meta.env.DEV) {
       enableDevValidations();
@@ -183,15 +185,14 @@
       RowSelectionModule,
       TextFilterModule,
     ]);
-    gridApi = createGrid(elementGridDiv, gridOptions);
+    createdGridApi = createGrid(elementGridDiv, gridOptions);
+    gridApi = createdGridApi;
   });
 
   onDestroy(() => {
-    if (gridApi) {
-      gridApi.destroy();
-      // The parent may keep it through the binding and give it to the next grid.
-      gridApi = undefined;
-    }
+    createdGridApi?.destroy();
+    // The parent may keep it through the binding and give it to the next grid.
+    if (gridApi === createdGridApi) gridApi = undefined;
   });
 
   // Set the columns only when they change, so new rows keep the column state.
