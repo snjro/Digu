@@ -43,8 +43,11 @@ export async function startUpdateLatestBlockNumber(
   };
 
   // Fetch the latest block number before updating in the interval, and raise
-  // the stored one to it (it is never lowered). The fetching of event logs
-  // starts before the interval does, and would take 0 as its goal otherwise.
+  // the stored goal (the latest block minus confirmationBlocks) to it; it is
+  // never lowered. The fetching of event logs starts before the interval
+  // does, so it would take the goal stored before (0 on the first sync of a
+  // chain). When this request fails, its error is counted, and the fetching
+  // starts with that stored goal all the same.
   await tryFetchAndRaiseLatestBlockNumber();
 
   // The requests and the aborting catch and log their errors. The rest
