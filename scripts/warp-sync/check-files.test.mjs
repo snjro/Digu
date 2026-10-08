@@ -1,12 +1,15 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import zlib from "node:zlib";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { loadChain } from "./build-snapshot.mjs";
 import { checkSnapshotFiles, readWarpSyncChainNames } from "./check-files.mjs";
 import {
   emptyManifest,
   readManifest,
+  sha256,
+  totalsOf,
   writeContractChunks,
   writeManifest,
 } from "./snapshot-format.mjs";
@@ -74,6 +77,9 @@ const change = (edit) => {
   fs.writeFileSync(manifestFile, JSON.stringify(manifest));
 };
 const firstFile = () => readManifest(manifestFile, chain).chunks[0].file;
+// A problem of the file of chunk i (the files are not changed by change()).
+const fileProblem = (i, text) =>
+  `matic: ${path.join(chainDir, readManifest(manifestFile, chain).chunks[i].file)} ${text}`;
 
 describe("checkSnapshotFiles", () => {
   test("finds no problem in the snapshot of the repository", () => {
@@ -156,6 +162,8 @@ describe("checkSnapshotFiles", () => {
   test("a gap", () => {
     change((m) => (m.chunks[1].fromBlock = a + 3));
     expect(check()).toEqual([
+      fileProblem(1, `has blocks ${a + 2}-${a + 9}, not ${a + 3}-${a + 9}.`),
+      fileProblem(1, `has a log of block ${a + 2}.`),
       `matic: ${labelOf(A, a + 3, a + 9)} does not start at block ${a + 2}.`,
     ]);
   });
@@ -175,6 +183,8 @@ describe("checkSnapshotFiles", () => {
       m.chunks[1].fromBlock = a + 2;
     });
     expect(check()).toEqual([
+      fileProblem(1, `has blocks ${a + 2}-${a + 9}, not ${a + 2}-${a + 1}.`),
+      fileProblem(1, `has a log of block ${a + 2}.`),
       `matic: ${labelOf(A, a + 2, a + 1)} has no block.`,
     ]);
   });
@@ -185,6 +195,9 @@ describe("checkSnapshotFiles", () => {
       m.chunks[1].fromBlock = a + 1;
     });
     expect(check()).toEqual([
+      fileProblem(0, `has blocks ${a}-${a + 1}, not ${a}-${a}.`),
+      fileProblem(0, `has a log of block ${a + 1}.`),
+      fileProblem(1, `has blocks ${a + 2}-${a + 9}, not ${a + 1}-${a + 9}.`),
       `matic: ${labelOf(A, a, a)} ends at the creation block.`,
     ]);
   });
@@ -203,6 +216,8 @@ describe("checkSnapshotFiles", () => {
     const key = labelOf(A, a, a).split(" ")[0];
     expect(check()).toEqual([
       `matic: ${key} has address ${B.address}, not ${A.address}.`,
+      fileProblem(0, `has address ${A.address}, not ${B.address}.`),
+      fileProblem(1, `has address ${A.address}, not ${B.address}.`),
     ]);
   });
 
@@ -211,6 +226,65 @@ describe("checkSnapshotFiles", () => {
     expect(check()).toEqual([
       `matic: ${A.project}/${A.version}/Other is not a contract with events of the chain.`,
     ]);
+  });
+
+  // Writes the file of chunk 0 again with edit, with its new size and sha256
+  // in the manifest, as build-snapshot.mjs would have.
+  const writeFirstFile = (edit) => {
+    const manifest = readManifest(manifestFile, chain);
+    const chunk = manifest.chunks[0];
+    const file = path.join(chainDir, chunk.file);
+    const data = JSON.parse(zlib.gunzipSync(fs.readFileSync(file)).toString());
+    edit(data);
+    const gzip = zlib.gzipSync(JSON.stringify(data));
+    fs.writeFileSync(file, gzip);
+    chunk.bytes = gzip.length;
+    chunk.sha256 = sha256(gzip);
+    manifest.totals = totalsOf(manifest.chunks);
+    fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+  };
+
+  test.each([
+    ["another format", (d) => (d.formatVersion = 2), "has formatVersion 2."],
+    ["another chain", (d) => (d.chainId = 1), "is for chainId 1."],
+    [
+      "another contract",
+      (d) => (d.name = B.name),
+      `is of ${A.project}/${A.version}/${B.name}.`,
+    ],
+    [
+      "another address",
+      (d) => (d.address = B.address),
+      `has address ${B.address}, not ${A.address}.`,
+    ],
+    [
+      "another range",
+      (d) => (d.toBlock = a + 2),
+      `has blocks ${a}-${a + 2}, not ${a}-${a + 1}.`,
+    ],
+    ["another number of logs", (d) => d.logs.pop(), "has 1 logs, not 2."],
+    [
+      "a log out of the range",
+      (d) => (d.logs[1].blockNumber = `0x${(a + 2).toString(16)}`),
+      `has a log of block ${a + 2}.`,
+    ],
+  ])("a file with %s", (_, edit, text) => {
+    writeFirstFile(edit);
+    expect(check()).toEqual([fileProblem(0, text)]);
+  });
+
+  test("a file that is not gzip", () => {
+    const manifest = readManifest(manifestFile, chain);
+    const chunk = manifest.chunks[0];
+    const data = Buffer.from("not gzip");
+    fs.writeFileSync(path.join(chainDir, chunk.file), data);
+    chunk.bytes = data.length;
+    chunk.sha256 = sha256(data);
+    manifest.totals = totalsOf(manifest.chunks);
+    fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+    const problems = check();
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toMatch(/ cannot be read: /);
   });
 
   test("other totals", () => {

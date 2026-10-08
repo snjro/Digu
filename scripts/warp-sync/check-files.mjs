@@ -2,8 +2,10 @@
 // check-files.test.mjs: it runs on every PR and in the release. See README.md.
 import fs from "node:fs";
 import path from "node:path";
+import zlib from "node:zlib";
 import { loadChain } from "./build-snapshot.mjs";
 import {
+  FORMAT_VERSION,
   keyOf,
   readManifest,
   readText,
@@ -19,6 +21,52 @@ export function readWarpSyncChainNames(file = "src/warpSync/warpSyncState.ts") {
   );
   if (!found) return [];
   return [...found[1].matchAll(/"([^"]+)"/g)].map((name) => name[1]);
+}
+
+// The app checks the sha256, the format, the key and the range of a file, but
+// not its logs (warpSyncFile.ts), so a file that build-snapshot.mjs wrote
+// wrong would be imported.
+function contentProblems(data, chunk, manifest) {
+  let file;
+  try {
+    file = JSON.parse(zlib.gunzipSync(data).toString());
+  } catch (e) {
+    return [`cannot be read: ${e.message}`];
+  }
+  const problems = [];
+  if (file.formatVersion !== FORMAT_VERSION) {
+    problems.push(`has formatVersion ${file.formatVersion}.`);
+  }
+  if (file.chainId !== manifest.chainId) {
+    problems.push(`is for chainId ${file.chainId}.`);
+  }
+  if (keyOf(file) !== keyOf(chunk)) {
+    problems.push(`is of ${keyOf(file)}.`);
+  }
+  const contract = manifest.contracts.find((c) => keyOf(c) === keyOf(chunk));
+  if (
+    contract &&
+    String(file.address).toLowerCase() !== contract.address.toLowerCase()
+  ) {
+    problems.push(`has address ${file.address}, not ${contract.address}.`);
+  }
+  if (file.fromBlock !== chunk.fromBlock || file.toBlock !== chunk.toBlock) {
+    problems.push(
+      `has blocks ${file.fromBlock}-${file.toBlock}, not ${chunk.fromBlock}-${chunk.toBlock}.`,
+    );
+  }
+  if (!Array.isArray(file.logs) || file.logs.length !== chunk.logCount) {
+    problems.push(`has ${file.logs?.length} logs, not ${chunk.logCount}.`);
+    return problems;
+  }
+  const outside = file.logs.find((log) => {
+    const block = Number(log.blockNumber);
+    return !(block >= chunk.fromBlock && block <= chunk.toBlock);
+  });
+  if (outside) {
+    problems.push(`has a log of block ${Number(outside.blockNumber)}.`);
+  }
+  return problems;
 }
 
 // Returns the problems of the snapshot of each chain under dir.
@@ -93,6 +141,10 @@ function checkChain(dir, name) {
     }
     if (sha256(data) !== chunk.sha256) {
       problem(`${chunkFile} does not match its sha256.`);
+      continue;
+    }
+    for (const text of contentProblems(data, chunk, manifest)) {
+      problem(`${chunkFile} ${text}`);
     }
   }
 
