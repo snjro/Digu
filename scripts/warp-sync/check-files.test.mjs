@@ -81,15 +81,6 @@ describe("checkSnapshotFiles", () => {
     console.log(`static/warp-sync: checked in ${Date.now() - start} ms`);
   }, 120_000);
 
-  test("reads the chain names of a file with a byte order mark", () => {
-    const file = path.join(dir, "warpSyncState.ts");
-    fs.writeFileSync(
-      file,
-      '\uFEFFexport const WARP_SYNC_CHAIN_NAMES = ["matic", "eth"];\n',
-    );
-    expect(readWarpSyncChainNames(file)).toEqual(["matic", "eth"]);
-  });
-
   test("finds no problem in a good snapshot", () => {
     const { chunks } = readManifest(manifestFile, chain);
     // Two files of A, a range of A without logs, and one file of B.

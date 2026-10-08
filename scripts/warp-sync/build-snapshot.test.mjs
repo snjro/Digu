@@ -369,12 +369,19 @@ test("keepLogsBefore keeps the file when its read fails", async () => {
 
 test("keepLogsBefore keeps the file when its write fails", async () => {
   const file = path.join(outDir, "segment.jsonl");
-  // More than a piece of the write, so that the write fails while the read
-  // still has lines: the error of the read stream then comes after the loop
-  // ended, and vitest fails the run on an uncaught error.
+  // More than a piece of the write. The read stream must not be left open,
+  // and vitest fails the run on an uncaught error of it.
   const line = JSON.stringify({ blockNumber: toHex(5), data: "0".repeat(100) });
   const content = `${line}\n`.repeat(20_000);
   fs.writeFileSync(file, content);
+  const createReadStream = fs.createReadStream.bind(fs);
+  let input;
+  const read = vi
+    .spyOn(fs, "createReadStream")
+    .mockImplementationOnce((...args) => {
+      input = createReadStream(...args);
+      return input;
+    });
   // The write makes the .tmp file, and then fails.
   const write = vi
     .spyOn(fs, "createWriteStream")
@@ -389,8 +396,10 @@ test("keepLogsBefore keeps the file when its write fails", async () => {
   try {
     await expect(keepLogsBefore(file, 7)).rejects.toThrow("write failed");
   } finally {
+    read.mockRestore();
     write.mockRestore();
   }
+  expect(input.destroyed).toBe(true);
   expect(fs.readFileSync(file, "utf8")).toBe(content);
   expect(fs.existsSync(`${file}.tmp`)).toBe(false);
 });

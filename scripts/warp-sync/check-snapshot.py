@@ -42,8 +42,7 @@ def problem(text):
 # The name of each chain in src/constants/chains/<folder>/_index.ts.
 chains = []
 for index in sorted(glob.glob(os.path.join(root, "src/constants/chains/*/_index.ts"))):
-    # utf-8-sig: without a byte order mark, like readText of the scripts.
-    with open(index, encoding="utf-8-sig") as f:
+    with open(index) as f:
         match = re.search(r'^\s*name:\s*"([^"]+)"', f.read(), re.M)
     if match:
         chains.append(match.group(1))
@@ -60,6 +59,7 @@ for chain in chains:
         rows.append([chain, "No snapshot", "", "", ""])
         continue
     try:
+        # utf-8-sig: without a byte order mark, like readText of the scripts.
         with open(path, encoding="utf-8-sig") as f:
             manifest = json.load(f)
         if manifest["formatVersion"] != 3:
@@ -93,7 +93,7 @@ lines += [
 ] + ["| " + " | ".join(r) + " |" for r in rows]
 summary = os.environ.get("GITHUB_STEP_SUMMARY")
 if summary:
-    with open(summary, "a") as f:
+    with open(summary, "a", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 else:
     print("\n".join(lines))
