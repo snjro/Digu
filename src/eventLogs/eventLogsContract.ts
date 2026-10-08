@@ -19,7 +19,7 @@ import type {
 } from "#db/dbTypes.js";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
-import { abortChainWithReason } from "./syncStoppedReason";
+import { abortChainWithReason, type AbortResult } from "./syncStoppedReason";
 import { assertIsDefined, sleep } from "#utils/utilsCommon.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { getNextBlock } from "#warpSync/warpSyncPlan.js";
@@ -216,19 +216,25 @@ export async function fetchEventLogsContract(
       });
     }
     if (errorCount > TRY_COUNT) {
-      await abortChainWithReason(
+      const abortResult: AbortResult = await abortChainWithReason(
         chainName,
         "RPC_ERRORS",
         "Fetch EventLogs. Error count exceeded the limit. Start to abort:",
         {
-          errorCount: `${errorCount}/${TRY_COUNT}`,
-          fetchingTarget: fetchingTargetInfo,
+          level: "fatal",
+          details: {
+            errorCount: `${errorCount}/${TRY_COUNT}`,
+            fetchingTarget: fetchingTargetInfo,
+          },
+          logAbortError: false,
         },
       );
-      // The abort failed: end the contract, which then aborts the chain as
-      // for an unexpected error.
-      if (!syncStatusContract(contractIdentifier).isAbort) {
-        throw new Error("Failed to start aborting.");
+      // End the contract, which then aborts the chain again as for an
+      // unexpected error, and logs it.
+      if (!abortResult.aborted) {
+        throw new Error("Failed to start aborting.", {
+          cause: abortResult.error,
+        });
       }
     } else if (errorCount > 0) {
       await sleepUnlessAborted(contractIdentifier, RETRY_WAIT_MS);

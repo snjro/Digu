@@ -51,12 +51,17 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
   try {
     nodeProvider = await getNodeProvider(targetChain, rpc);
     if (nodeProvider === undefined) {
+      // When the abort fails, no contract has started yet, and the finally
+      // below still stops the chain.
       await abortChainWithReason(
         targetChain.name,
         "RPC_ERRORS",
         "Get provider.",
-        // Only the host: the rest of the URL may hold an API key.
-        { rpcHost: getUrlObject(rpc)?.host },
+        {
+          level: "fail",
+          // Only the host: the rest of the URL may hold an API key.
+          details: { rpcHost: getUrlObject(rpc)?.host },
+        },
       );
       return;
     }
@@ -123,6 +128,6 @@ async function abortOnError(
     chainName,
     "UNEXPECTED_ERROR",
     "Fetch event logs. Stop syncing the chain:",
-    { contractName: contractName, errorObject: error },
+    { details: { contractName: contractName }, error: error },
   );
 }

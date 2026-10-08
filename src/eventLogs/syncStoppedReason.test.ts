@@ -50,20 +50,34 @@ describe("abortChainWithReason", () => {
     vi.restoreAllMocks();
     storeSyncStoppedReason.clear(chainName);
   });
+  const ethersError = (): Error =>
+    makeError("server response 401 Unauthorized", "SERVER_ERROR", {
+      request: new FetchRequest("https://rpc.example/secret-key"),
+      info: { requestUrl: "https://rpc.example/secret-key" },
+    });
+  const loggableEthersError = {
+    code: "SERVER_ERROR",
+    shortMessage: "server response 401 Unauthorized",
+  };
 
-  test("should log why, record the reason and start to abort", async () => {
-    const spyError = vi
-      .spyOn(customLogger, "error")
+  test("should log why at the level, record the reason and start to abort", async () => {
+    const spyFatal = vi
+      .spyOn(customLogger, "fatal")
       .mockImplementation(() => {});
 
-    await abortChainWithReason(chainName, "RPC_ERRORS", "Too many errors.", {
-      errorCount: "11/10",
-    });
+    expect(
+      await abortChainWithReason(chainName, "RPC_ERRORS", "Too many errors.", {
+        level: "fatal",
+        details: { errorCount: "11/10" },
+        error: ethersError(),
+      }),
+    ).toEqual({ aborted: true });
 
-    expect(spyError).toHaveBeenCalledExactlyOnceWith("Too many errors.", {
+    expect(spyFatal).toHaveBeenCalledExactlyOnceWith("Too many errors.", {
       chainName,
       reason: "RPC_ERRORS",
       errorCount: "11/10",
+      error: loggableEthersError,
     });
     expect(get(storeSyncStoppedReason)[chainName]).toBe("RPC_ERRORS");
     expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(chainName);
@@ -97,42 +111,69 @@ describe("abortChainWithReason", () => {
     expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(chainName);
   });
 
-  test("should log only the code and the short message of an error of aborting", async () => {
+  test("should log the error of aborting without what ethers adds, and return it", async () => {
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    const abortError: Error = ethersError();
+    vi.mocked(startAbortingInChain).mockRejectedValueOnce(abortError);
+
+    expect(
+      await abortChainWithReason(chainName, "RPC_ERRORS", "Too many errors."),
+    ).toEqual({ aborted: false, error: abortError });
+
+    expect(spyError).toHaveBeenCalledWith("Failed to start aborting.", {
+      chainName,
+      error: loggableEthersError,
+    });
+  });
+
+  test("should leave the error of aborting to the caller when asked", async () => {
     const spyError = vi
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});
     vi.mocked(startAbortingInChain).mockRejectedValueOnce(
-      makeError("server response 401 Unauthorized", "SERVER_ERROR", {
-        request: new FetchRequest("https://rpc.example/secret-key"),
-        info: { requestUrl: "https://rpc.example/secret-key" },
-      }),
+      new Error("DB error"),
     );
 
-    await abortChainWithReason(chainName, "RPC_ERRORS", "Too many errors.");
-
-    expect(spyError).toHaveBeenCalledWith("Failed to start aborting.", {
+    const result = await abortChainWithReason(
       chainName,
-      error: {
-        code: "SERVER_ERROR",
-        shortMessage: "server response 401 Unauthorized",
-      },
-    });
+      "RPC_ERRORS",
+      "Too many errors.",
+      { logAbortError: false },
+    );
+
+    expect(result.aborted).toBe(false);
+    expect(spyError).toHaveBeenCalledOnce();
+    expect(spyError).not.toHaveBeenCalledWith(
+      "Failed to start aborting.",
+      expect.anything(),
+    );
   });
 
-  test("should not throw when every step and every log fails", async () => {
+  test("should not throw when every step, every log and making the error loggable fail", async () => {
     vi.spyOn(customLogger, "error").mockImplementation(() => {
       throw new Error("logger error");
     });
     vi.spyOn(storeSyncStoppedReason, "record").mockImplementation(() => {
       throw new Error("store error");
     });
-    vi.mocked(startAbortingInChain).mockRejectedValueOnce(
-      new Error("DB error"),
-    );
+    // An error whose code cannot be read, as getLoggableError reads it.
+    const unreadableError = Object.defineProperties(new Error("DB error"), {
+      code: {
+        get: () => {
+          throw new Error("unreadable");
+        },
+      },
+      shortMessage: { value: "DB error" },
+    });
+    vi.mocked(startAbortingInChain).mockRejectedValueOnce(unreadableError);
 
     await expect(
-      abortChainWithReason(chainName, "RPC_ERRORS", "Too many errors."),
-    ).resolves.toBeUndefined();
+      abortChainWithReason(chainName, "RPC_ERRORS", "Too many errors.", {
+        error: unreadableError,
+      }),
+    ).resolves.toEqual({ aborted: false, error: unreadableError });
     expect(startAbortingInChain).toHaveBeenCalledOnce();
   });
 });

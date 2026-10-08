@@ -45,11 +45,9 @@ export type NodeProvider = JsonRpcProvider | WebSocketProvider;
 
 // The blocks of the current map when it becomes the previous one. A block
 // is read right after the eth_getLogs answer that has it, and the range of an
-// answer has at most MAX_BULK_UNIT (100,000) blocks, so the blocks of one
-// answer are still kept when they are read: they are in the current map, or
-// the earlier ones in the previous map. Turning one block later (">") would
-// keep that too. A block no longer kept is read from the DB or the RPC
-// instead.
+// answer has at most MAX_BULK_UNIT (100,000) blocks. The contracts of a chain
+// fetch at the same time with one provider, so the answers of the others can
+// drop a block before it is read; it is then read from the DB or the RPC.
 export const MAX_BLOCK_TIMESTAMPS: number = 100000;
 // The timestamps by block number, in two maps, so that old blocks are dropped
 // without deleting them one by one: at most twice maxSize blocks.

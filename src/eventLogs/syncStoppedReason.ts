@@ -18,37 +18,67 @@ export function recordSyncStoppedReason(
   if (get(storeSyncStatus)[chainName].isAbort) return;
   storeSyncStoppedReason.record(chainName, reason);
 }
+export type AbortResult =
+  { aborted: true } | { aborted: false; error: unknown };
+type LogLevel = "error" | "fail" | "fatal";
 // The sync stops the chain by itself: logs why, records the reason, then
 // starts to abort. A step that fails is logged, and the next one still runs.
-// It never throws, so that the caller goes on to stop its own work.
+// It never throws, so that the caller goes on to stop its own work, and
+// returns whether the abort started. A caller that ends with the error of the
+// abort passes logAbortError: false, so that the error is logged once.
 export async function abortChainWithReason(
   chainName: ChainName,
   reason: SyncStoppedReason,
   message: string,
-  details: Record<string, unknown> = {},
-): Promise<void> {
-  logError(message, { chainName, reason, ...details });
+  {
+    level = "error",
+    details = {},
+    error,
+    logAbortError = true,
+  }: {
+    level?: LogLevel;
+    details?: Record<string, unknown>;
+    // The error that stops the chain, logged without what ethers adds.
+    error?: unknown;
+    logAbortError?: boolean;
+  } = {},
+): Promise<AbortResult> {
+  safeLog(level, message, { chainName, reason, ...details }, error);
   try {
     recordSyncStoppedReason(chainName, reason);
-  } catch (error) {
-    logError("Failed to record why the sync stopped.", {
-      chainName,
-      error: getLoggableError(error),
-    });
+  } catch (recordError) {
+    safeLog(
+      "error",
+      "Failed to record why the sync stopped.",
+      { chainName },
+      recordError,
+    );
   }
   try {
     await startAbortingInChain(chainName);
-  } catch (error) {
-    logError("Failed to start aborting.", {
-      chainName,
-      error: getLoggableError(error),
-    });
+    return { aborted: true };
+  } catch (abortError) {
+    if (logAbortError) {
+      safeLog("error", "Failed to start aborting.", { chainName }, abortError);
+    }
+    return { aborted: false, error: abortError };
   }
 }
-function logError(message: string, details: Record<string, unknown>): void {
+// A logger that fails must not keep the chain from stopping.
+function safeLog(
+  level: LogLevel,
+  message: string,
+  details: Record<string, unknown>,
+  error?: unknown,
+): void {
   try {
-    customLogger.error(message, details);
+    customLogger[level](
+      message,
+      error === undefined
+        ? details
+        : { ...details, error: getLoggableError(error) },
+    );
   } catch {
-    // A logger that fails must not keep the chain from stopping.
+    // Nowhere else to report it.
   }
 }
