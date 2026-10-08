@@ -482,8 +482,12 @@ const TOGGLE_TEXTS = [
   "starting sync",
   "stopping sync",
   "syncing in another tab",
-  // SYNC_WAITS_FOR_IMPORT of src/warpSync/warpSyncTexts.ts.
+  // SYNC_WAITS_FOR_IMPORT and SYNC_WAITS_FOR_IMPORT_STOPPING, _FINISHING and
+  // _FAILING of src/warpSync/warpSyncTexts.ts.
   "Importing the published logs. Stop it to sync from your RPC now.",
+  "Stopping the import of the published logs.",
+  "Finishing the import of the published logs.",
+  "Importing the published logs.",
 ];
 // The texts the clicks looked for before #661. "stopping sync" and the import
 // text are left out: the toggle is disabled then, and the click should fail.

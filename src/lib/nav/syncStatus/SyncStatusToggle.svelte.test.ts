@@ -21,6 +21,11 @@ import {
   storeNoDbSnackBarInitialValue,
 } from "#stores/storeNoDb.js";
 import { customLogger } from "#utils/logger.js";
+import {
+  setWarpSyncState,
+  storeWarpSync,
+  type WarpSyncState,
+} from "#warpSync/warpSyncState.js";
 
 // The real stores build their state from the chain data, which loads ethers.
 // ethers does not load in the client project, so the stores are plain ones.
@@ -126,6 +131,7 @@ describe("SyncStatusToggle.svelte", () => {
   afterEach(() => {
     storeUserSettings.set({ ...initialDataUserSettings });
     storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
+    storeWarpSync.set({});
     vi.restoreAllMocks();
     vi.clearAllMocks();
   });
@@ -316,6 +322,30 @@ describe("SyncStatusToggle.svelte", () => {
     expect(getToggle().disabled).toBe(true);
     expect(screen.getByText("syncing in another tab")).toBeTruthy();
   });
+
+  test.each([
+    [
+      undefined,
+      "Importing the published logs. Stop it to sync from your RPC now.",
+    ],
+    ["stopping", "Stopping the import of the published logs."],
+    ["finishing", "Finishing the import of the published logs."],
+    ["failing", "Importing the published logs."],
+  ] as const)(
+    "is disabled and says so while a large import is %s",
+    async (ending, text) => {
+      render(SyncStatusToggle);
+      const importing: WarpSyncState = {
+        status: "importing",
+        progress: { doneLogCount: 0, startedAt: 0 },
+        ending,
+      };
+      setWarpSyncState("eth", importing);
+      await tick();
+      expect(getToggle().disabled).toBe(true);
+      expect(screen.getByText(text)).toBeTruthy();
+    },
+  );
 
   test("follows the chain selected in storeUserSettings", async () => {
     setNodeStatus("matic", undefined);

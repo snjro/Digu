@@ -5,6 +5,7 @@ import {
   formatDuration,
   getConfirmationTexts,
   getImportProgressText,
+  getSyncWaitsForImportText,
 } from "./warpSyncTexts";
 
 describe("formatBytes", () => {
@@ -133,5 +134,33 @@ describe("getImportProgressText", () => {
     expect(
       getImportProgressText({ status: "importing", ending: "finishing" }, 0),
     ).toBe("Importing logs");
+  });
+  test("the progress as it was, once a large import failed", () => {
+    expect(
+      getImportProgressText(
+        {
+          ...importing,
+          progress: { doneLogCount: 582_065, startedAt: 1_000_000 },
+          ending: "failing",
+        },
+        1_120_000,
+      ),
+    ).toBe("Importing logs 25% · 6 minutes left");
+  });
+});
+
+describe("getSyncWaitsForImportText", () => {
+  test.each([
+    [
+      undefined,
+      "Importing the published logs. Stop it to sync from your RPC now.",
+    ],
+    ["stopping", "Stopping the import of the published logs."],
+    ["finishing", "Finishing the import of the published logs."],
+    ["failing", "Importing the published logs."],
+  ] as const)("while it is %s", (ending, text) => {
+    expect(getSyncWaitsForImportText({ status: "importing", ending })).toBe(
+      text,
+    );
   });
 });
