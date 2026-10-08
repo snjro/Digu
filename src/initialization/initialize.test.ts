@@ -2,7 +2,7 @@ import "fake-indexeddb/auto";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
-import { DB_TABLE_NAMES } from "#db/constants.js";
+import { DB_TABLE_NAMES, getSyncLockName } from "#db/constants.js";
 import { startDbWorker } from "#db/db.worker.portal.js";
 import type {
   DbWorkerMessage,
@@ -16,7 +16,6 @@ import { storeRpcSettings } from "#stores/storeRpcSettings.js";
 import { customLogger } from "#utils/logger.js";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { installFakeLockManager } from "../testUtils/fakeLockManager";
-import { holdOperationOfOtherTab } from "../testUtils/otherTabOperation";
 import { forgetInitialization, initialize } from "./initialize";
 import { initializeStore } from "./initializeStore";
 import { watchRpcSettings } from "./watchRpcSettings";
@@ -102,9 +101,11 @@ describe("initialize", () => {
   });
 
   test("waits for a chain whose sync lock another tab holds", async () => {
-    installFakeLockManager();
-    const { held: heldLock, release: releaseLock } = holdOperationOfOtherTab(
-      chain.name,
+    const lockManager = installFakeLockManager();
+    let releaseLock: () => void = () => {};
+    const heldLock = lockManager.request(
+      getSyncLockName(chain.name),
+      () => new Promise<void>((resolve) => (releaseLock = resolve)),
     );
 
     await initialize();

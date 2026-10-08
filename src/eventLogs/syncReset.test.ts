@@ -20,7 +20,6 @@ import {
   removeLockManager,
   type FakeLockManager,
 } from "../testUtils/fakeLockManager";
-import { holdOperationOfOtherTab } from "../testUtils/otherTabOperation";
 import {
   reloadSyncStatusInChain,
   runWithSyncLock,
@@ -138,7 +137,11 @@ describe("resetSyncedData", () => {
 
   test("deletes nothing while another tab holds the lock", async () => {
     const spyInfo = vi.spyOn(customLogger, "info").mockImplementation(() => {});
-    const { release } = holdOperationOfOtherTab("matic");
+    let release: () => void = () => {};
+    void lockManager.request(
+      getSyncLockName("matic"),
+      () => new Promise<void>((resolve) => (release = resolve)),
+    );
     // Waits SYNC_LOCK_TIMEOUT_MS (1 s), as the sync does.
     expect((await resetSyncedData(matic)).result).toBe("busy");
     expect(spyInfo).toHaveBeenCalledWith("The sync lock was not granted.", {

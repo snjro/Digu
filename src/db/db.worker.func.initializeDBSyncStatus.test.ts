@@ -6,7 +6,7 @@ import { extractEventContracts } from "#utils/utilsEthers.js";
 import type { Chain, Contract } from "#constants/chains/types.js";
 import type { VersionIdentifier } from "./dbTypes";
 import { DbEventLogs, getDbEventLogs } from "./dbEventLogs";
-import { getSyncLockName, getSyncPresenceLockName } from "./constants";
+import { getSyncLockName } from "./constants";
 import {
   installFakeLockManager,
   type FakeLockManager,
@@ -98,12 +98,12 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
     expect(calledArgs()).toEqual(expect.arrayContaining(expected));
   });
 
-  test("should still count a chain that another tab reads again", async () => {
-    // A reading holds only the presence lock, shared. The startup is the only
-    // place that recounts the records, so it does not skip the chain.
+  test("should skip a chain that another tab reads again", async () => {
+    // waitForSyncLockRelease() reads the chain with the lock shared.
+    const readChain: Chain = TARGET_CHAINS[0];
     let release: () => void = () => {};
     const heldLock = lockManager.request(
-      getSyncPresenceLockName(TARGET_CHAINS[0].name),
+      getSyncLockName(readChain.name),
       { mode: "shared" },
       () => new Promise<void>((resolve) => (release = resolve)),
     );
@@ -112,7 +112,7 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
     release();
     await heldLock;
 
-    const expected: CalledArgs[] = expectedArgs(TARGET_CHAINS);
+    const expected: CalledArgs[] = expectedArgs(TARGET_CHAINS.slice(1));
     expect(calledArgs()).toHaveLength(expected.length);
     expect(calledArgs()).toEqual(expect.arrayContaining(expected));
   });

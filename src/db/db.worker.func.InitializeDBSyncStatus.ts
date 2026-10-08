@@ -18,9 +18,8 @@ export async function dbWorkerFuncInitializeDBSyncStatus(): Promise<void> {
   }
   await Promise.all(
     TARGET_CHAINS.map((targetChain: Chain) =>
-      // Skip the chain while another tab syncs it. A tab that reads the chain
-      // again holds only its presence lock, and may read the counts from
-      // before this recount; its next reading corrects them.
+      // Skip the chain while another tab syncs it, or reads it again with the
+      // lock shared.
       navigator.locks.request(
         getSyncLockName(targetChain.name),
         { ifAvailable: true },
