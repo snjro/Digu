@@ -615,20 +615,6 @@ describe("getLoggableError", () => {
     });
   });
 
-  test("should keep the own fields of an error with a cause", () => {
-    const error = Object.assign(
-      new Error("Failed to save.", { cause: makeEthersErrorWithRpcUrl() }),
-      { name: "BulkError", inner: { name: "ConstraintError" } },
-    );
-    expect(getLoggableError(error)).toStrictEqual({
-      name: "BulkError",
-      message: "Failed to save.",
-      stack: error.stack,
-      inner: { name: "ConstraintError" },
-      cause: LOGGABLE_ETHERS_ERROR,
-    });
-  });
-
   test("should keep only the names of an error and its causes when asked", () => {
     const error: Error = new Error("wss://rpc.example/secret-key", {
       cause: new TypeError("wss://rpc.example/secret-key"),
@@ -673,12 +659,52 @@ describe("getLoggableError", () => {
     expect(depth).toBe(6);
   });
 
-  test.each([new Error("DB error"), "text", undefined])(
-    "should return %s as it is when it is not an ethers error",
+  test("should make a plain object of the name, the message and the stack of another error", () => {
+    const error: Error = new Error("DB error");
+    expect(getLoggableError(error)).toStrictEqual({
+      name: "Error",
+      message: "DB error",
+      stack: error.stack,
+    });
+  });
+
+  test("should keep only the fixed fields, and clean the inner error of Dexie", () => {
+    const error = Object.assign(new Error("Failed to save."), {
+      name: "AbortError",
+      request: { url: "https://rpc.example/secret-key" },
+      inner: makeEthersErrorWithRpcUrl(),
+    });
+    expect(getLoggableError(error)).toStrictEqual({
+      name: "AbortError",
+      message: "Failed to save.",
+      stack: error.stack,
+      inner: LOGGABLE_ETHERS_ERROR,
+    });
+  });
+
+  test.each(["text", undefined, { url: "https://rpc.example/secret-key" }])(
+    "should return %s as it is when it is not an error",
     (error: unknown) => {
       expect(getLoggableError(error)).toBe(error);
     },
   );
+
+  test("should keep only the type of a value that is not an error, with onlyNames", () => {
+    expect(
+      getLoggableError(
+        new Error("https://rpc.example/secret-key", {
+          cause: "https://rpc.example/secret-key",
+        }),
+        { onlyNames: true },
+      ),
+    ).toStrictEqual({ name: "Error", cause: { type: "string" } });
+    expect(
+      getLoggableError(
+        { url: "https://rpc.example/secret-key" },
+        { onlyNames: true },
+      ),
+    ).toStrictEqual({ type: "object" });
+  });
 });
 
 describe("isErrorUnrelatedToRange", () => {

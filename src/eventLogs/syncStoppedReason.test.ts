@@ -100,6 +100,43 @@ describe("abortChainWithReason", () => {
     });
   });
 
+  test("should mark the syncing contracts of the chain as aborting in the store when the abort fails", async () => {
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    vi.mocked(startAbortingInChain).mockRejectedValueOnce(
+      new Error("DB error"),
+    );
+    const chain = TARGET_CHAINS[0];
+    const project = chain.projects[0].name;
+    const version = chain.projects[0].versions[0].name;
+    const contractsOf = (state: SyncStatusesChain) =>
+      state[chainName].subSyncStatuses[project].subSyncStatuses[version]
+        .subSyncStatuses;
+    const [syncing, notSyncing] = Object.keys(
+      contractsOf(get(storeSyncStatus)),
+    );
+    storeSyncStatus.update((state: SyncStatusesChain) => {
+      Object.assign(contractsOf(state)[syncing]!, { isSyncing: true });
+      Object.assign(contractsOf(state)[notSyncing]!, { isSyncing: false });
+      return state;
+    });
+
+    await abortChainWithReason(chainName, "RPC_ERRORS", "Too many errors.");
+
+    const contracts = contractsOf(get(storeSyncStatus));
+    expect(contracts[syncing]!.isAbort).toBe(true);
+    expect(contracts[notSyncing]!.isAbort).toBe(false);
+    // Through updateState, which also clears the flags of the chain.
+    storeSyncStatus.updateState(
+      {
+        chainName,
+        projectName: project,
+        versionName: version,
+        contractName: syncing,
+      },
+      { isSyncing: false, isAbort: false },
+    );
+  });
+
   test("should record the reason and start to abort when the log throws", async () => {
     vi.spyOn(customLogger, "error").mockImplementation(() => {
       throw new Error("logger error");

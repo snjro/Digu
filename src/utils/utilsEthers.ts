@@ -317,10 +317,11 @@ async function destroyNodeProvider(
 // The causes followed, so that a cause that loops also ends.
 const MAX_CAUSE_DEPTH: number = 5;
 // ethers puts the request URL, which may hold an API key, in the message and
-// the properties of its errors. The causes are cleaned too. onlyNames keeps
-// only the names of an error that is not from ethers and of its causes, for
-// an error whose message may have the URL, such as the DOMException of a
-// WebSocket that cannot be made.
+// the properties of its errors. Another error becomes a plain object of a few
+// fields, whose cause and inner error (of Dexie) are cleaned the same way.
+// onlyNames keeps only the names of the errors and the types of the other
+// values, for an error whose message may have the URL, such as the
+// DOMException of a WebSocket that cannot be made.
 export function getLoggableError(
   error: unknown,
   { onlyNames = false }: { onlyNames?: boolean } = {},
@@ -332,22 +333,21 @@ function getLoggableErrorAt(
   depth: number,
   onlyNames: boolean,
 ): unknown {
-  if (!(error instanceof Error)) return error;
+  if (!(error instanceof Error)) {
+    return onlyNames ? { type: typeof error } : error;
+  }
   if (depth > MAX_CAUSE_DEPTH) return "(more causes)";
   if (!("code" in error && "shortMessage" in error)) {
-    const cleanedCause: { cause?: unknown } =
-      error.cause === undefined
-        ? {}
-        : { cause: getLoggableErrorAt(error.cause, depth + 1, onlyNames) };
-    if (onlyNames) return { name: error.name, ...cleanedCause };
-    if (error.cause === undefined) return error;
-    // Its own fields too, such as the inner error of Dexie.
+    const inner: unknown = "inner" in error ? error.inner : undefined;
     return {
-      ...error,
       name: error.name,
-      message: error.message,
-      stack: error.stack,
-      ...cleanedCause,
+      ...(onlyNames ? {} : { message: error.message, stack: error.stack }),
+      ...(error.cause === undefined
+        ? {}
+        : { cause: getLoggableErrorAt(error.cause, depth + 1, onlyNames) }),
+      ...(inner === undefined
+        ? {}
+        : { inner: getLoggableErrorAt(inner, depth + 1, onlyNames) }),
     };
   }
   const loggableError = { code: error.code, shortMessage: error.shortMessage };

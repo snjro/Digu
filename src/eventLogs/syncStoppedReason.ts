@@ -1,5 +1,6 @@
 import type { ChainName } from "#constants/chains/types.js";
 import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import type { SyncStatusChain } from "#db/dbTypes.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import {
   storeSyncStoppedReason,
@@ -21,11 +22,14 @@ export function recordSyncStoppedReason(
 export type AbortResult =
   { aborted: true } | { aborted: false; error: unknown };
 type LogLevel = "error" | "fail" | "fatal";
-// The sync stops the chain by itself: logs why, records the reason, then
-// starts to abort. A step that fails is logged, and the next one still runs.
-// It never throws, so that the caller goes on to stop its own work, and
-// returns whether the abort started. A caller that ends with the error of the
-// abort passes logAbortError: false, so that the error is logged once.
+// The sync stops the chain by itself: logs why, records the reason (the first
+// one is kept), then starts to abort. A step that fails is logged, and the
+// next one still runs. When the abort fails, the chain is marked as aborting
+// in the store, so that the loops of its contracts end and the sync of the
+// chain ends. It never throws, so that the caller goes on to stop its own
+// work, and returns whether the abort started. A caller that ends with the
+// error of the abort passes logAbortError: false, so that the error is logged
+// once.
 export async function abortChainWithReason(
   chainName: ChainName,
   reason: SyncStoppedReason,
@@ -61,7 +65,36 @@ export async function abortChainWithReason(
     if (logAbortError) {
       safeLog("error", "Failed to start aborting.", { chainName }, abortError);
     }
+    try {
+      markChainAbortingInStore(chainName);
+    } catch (markError) {
+      safeLog(
+        "error",
+        "Failed to mark the chain as aborting.",
+        { chainName },
+        markError,
+      );
+    }
     return { aborted: false, error: abortError };
+  }
+}
+// As startAbortingInChain does after the write, for the syncing contracts.
+function markChainAbortingInStore(chainName: ChainName): void {
+  const chain: SyncStatusChain = get(storeSyncStatus)[chainName];
+  for (const [projectName, project] of Object.entries(chain.subSyncStatuses)) {
+    for (const [versionName, version] of Object.entries(
+      project.subSyncStatuses,
+    )) {
+      for (const [contractName, contract] of Object.entries(
+        version.subSyncStatuses,
+      )) {
+        if (!contract?.isSyncing) continue;
+        storeSyncStatus.updateState(
+          { chainName, projectName, versionName, contractName },
+          { isAbort: true },
+        );
+      }
+    }
   }
 }
 // A logger that fails must not keep the chain from stopping.

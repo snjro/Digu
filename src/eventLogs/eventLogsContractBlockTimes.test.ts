@@ -222,7 +222,11 @@ describe("fetchBlockTimesForEventLogs", () => {
       message: expect.stringContaining(
         'Exception in "nodeProvider.getBlock". Block number is 20.',
       ),
-      cause: rpcError,
+      cause: {
+        name: "Error",
+        message: "RPC error",
+        stack: rpcError.stack,
+      },
     });
   });
 
