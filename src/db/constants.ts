@@ -48,3 +48,9 @@ export function getSyncPresenceLockName(chainName: ChainName): string {
 // briefly, so do not give up at once. A sync, an import or a reset holds it for
 // longer.
 export const SYNC_LOCK_TIMEOUT_MS: number = 1000;
+
+// How long a tab reads the chain again after another tab's operation, while it
+// holds the presence lock shared. A new operation waits for the reading, so a
+// reading that hangs (a blocked DB) stops being waited for after this. It
+// takes far less: it reads the sync status of each contract of the chain.
+export const SYNC_STATUS_RELOAD_TIMEOUT_MS: number = 10_000;

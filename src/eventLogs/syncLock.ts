@@ -9,6 +9,7 @@ import {
   getSyncLockName,
   getSyncPresenceLockName,
   SYNC_LOCK_TIMEOUT_MS,
+  SYNC_STATUS_RELOAD_TIMEOUT_MS,
 } from "#db/constants.js";
 import { getDbRecordChainStatus } from "#db/dbChainStatusDataHandlers.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
@@ -51,10 +52,12 @@ export const storeSyncLockedByThisTab: Readable<
   Partial<Record<ChainName, SyncLockKind>>
 > = readonly(chainsLockedByThisTab);
 
-// Runs `run` while holding the sync lock of the chain. Resolves true once
-// `run` has finished, or false without running it when this tab holds or
-// waits for the lock, or another tab holds it for SYNC_LOCK_TIMEOUT_MS.
-// Rejects when `run` throws.
+// Runs `run` while holding the sync lock of the chain and its presence lock.
+// Resolves true once `run` has finished, or false without running it when
+// this tab holds or waits for the sync lock, or another tab holds it for
+// SYNC_LOCK_TIMEOUT_MS. Once it holds the sync lock, it waits without a limit
+// for the presence lock, behind the readings of the other tabs, each of which
+// ends within SYNC_STATUS_RELOAD_TIMEOUT_MS. Rejects when `run` throws.
 export async function runWithSyncLock(
   chainName: ChainName,
   kind: SyncLockKind,
@@ -74,13 +77,12 @@ export async function runWithSyncLock(
         getSyncLockName(chainName),
         { signal: AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS) },
         async (): Promise<void> => {
-          // Behind the tabs that read the chain again, which hold it shared.
-          // A reading that hangs is refused like another tab's operation.
+          granted = true;
+          // Behind the tabs that read the chain again, which hold it shared
+          // for up to SYNC_STATUS_RELOAD_TIMEOUT_MS.
           await navigator.locks.request(
             getSyncPresenceLockName(chainName),
-            { signal: AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS) },
             async (): Promise<void> => {
-              granted = true;
               postSyncLockTaken(chainName);
               await run();
             },
@@ -90,7 +92,7 @@ export async function runWithSyncLock(
       return true;
     } catch (error) {
       if (granted) throw error;
-      // A TimeoutError when another tab holds a lock.
+      // A TimeoutError when another tab holds the lock.
       const context = { chainName, errorObject: error };
       if (error instanceof Error && error.name === "TimeoutError") {
         customLogger.info("The sync lock was not granted.", context);
@@ -199,9 +201,12 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
 // closed or crashes. The others wait on the presence lock shared, so they read
 // the chain again once the operation ends, or at once if it has ended already.
 type SyncLockMessage = { chainName: ChainName };
-const syncLockChannel = createTabChannel<SyncLockMessage>(
+const syncLockChannel = createTabChannel<SyncLockMessage | null>(
   `${DB_NAME.firstName}_syncLock`,
-  ({ chainName }: SyncLockMessage) => {
+  (message: SyncLockMessage | null) => {
+    // Without a chain, as from a tab still on the build before.
+    const chainName: ChainName | undefined = message?.chainName;
+    if (typeof chainName !== "string") return;
     // Waiting for the sync lock: it waits for the release itself if it is
     // not granted.
     if (!get(chainsLockedByThisTab)[chainName]) {
@@ -241,7 +246,7 @@ export function waitForSyncLockRelease(chainName: ChainName): void {
       { mode: "shared" },
       async (): Promise<void> => {
         try {
-          await reloadSyncStatusInChain(chainName);
+          await readWithinLimit(chainName);
         } catch (error) {
           // A failure only leaves this chain's status stale.
           customLogger.error("Reset sync status after release.", {
@@ -267,6 +272,26 @@ export function waitForSyncLockRelease(chainName: ChainName): void {
         [chainName]: false,
       }));
     });
+}
+
+// Stops waiting for a reading that hangs, so that it does not hold the
+// presence lock, and with it the next operation, for ever.
+async function readWithinLimit(chainName: ChainName): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const limit = new Promise<void>((resolve) => {
+    timer = setTimeout(() => {
+      customLogger.error("Reading the chain again did not end in time.", {
+        chainName,
+        timeoutMs: SYNC_STATUS_RELOAD_TIMEOUT_MS,
+      });
+      resolve();
+    }, SYNC_STATUS_RELOAD_TIMEOUT_MS);
+  });
+  try {
+    await Promise.race([reloadSyncStatusInChain(chainName), limit]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // Reads the chain from the DB into the stores, after another tab (or the warp

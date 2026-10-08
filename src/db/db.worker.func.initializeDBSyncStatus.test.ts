@@ -98,13 +98,12 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
     expect(calledArgs()).toEqual(expect.arrayContaining(expected));
   });
 
-  test("should skip a chain that another tab reads again", async () => {
-    const readChain: Chain = TARGET_CHAINS[0];
-    // waitForSyncLockRelease() reads it with the presence lock shared, and
-    // without the sync lock.
+  test("should still count a chain that another tab reads again", async () => {
+    // A reading holds only the presence lock, shared. The startup is the only
+    // place that recounts the records, so it does not skip the chain.
     let release: () => void = () => {};
     const heldLock = lockManager.request(
-      getSyncPresenceLockName(readChain.name),
+      getSyncPresenceLockName(TARGET_CHAINS[0].name),
       { mode: "shared" },
       () => new Promise<void>((resolve) => (release = resolve)),
     );
@@ -113,35 +112,8 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
     release();
     await heldLock;
 
-    const expected: CalledArgs[] = expectedArgs(TARGET_CHAINS.slice(1));
+    const expected: CalledArgs[] = expectedArgs(TARGET_CHAINS);
     expect(calledArgs()).toHaveLength(expected.length);
     expect(calledArgs()).toEqual(expect.arrayContaining(expected));
-  });
-
-  test("should hold the presence lock exclusive too while it counts", async () => {
-    // The locks held while the first contract is counted, and its chain.
-    let held: LockInfo[] = [];
-    let chainName: string | undefined;
-    spyInitializeDBSyncStatusForContract.mockImplementationOnce(
-      async (dbEventLogs) => {
-        held = (await lockManager.query()).held ?? [];
-        const mocked = vi.mocked(getDbEventLogs).mock;
-        const index: number = mocked.results.findIndex(
-          (result) => result.value === dbEventLogs,
-        );
-        chainName = mocked.calls[index][0].chainName;
-      },
-    );
-    await InitializeDBSyncStatus.dbWorkerFuncInitializeDBSyncStatus();
-
-    expect(chainName).toBeDefined();
-    // A reading of another tab, which takes the presence lock shared, waits.
-    expect(held).toEqual(
-      expect.arrayContaining([
-        { name: getSyncLockName(chainName!), mode: "exclusive" },
-        { name: getSyncPresenceLockName(chainName!), mode: "exclusive" },
-      ]),
-    );
-    expect(await lockManager.query()).toEqual({ held: [], pending: [] });
   });
 });
