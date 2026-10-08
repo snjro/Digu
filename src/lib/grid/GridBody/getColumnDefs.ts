@@ -21,7 +21,8 @@ function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
       "text-right",
       "",
     ),
-    type: "numericColumn",
+    // Not the type numericColumn, whose header class would move "#" to the
+    // right.
     maxWidth: 70,
     pinned: "left",
     suppressHeaderMenuButton: true,
