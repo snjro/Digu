@@ -20,65 +20,42 @@ function store() {
     contractIdentifier: ContractIdentifier,
     newSyncStatusContract: Partial<SyncStatusContract>,
   ): void => {
-    update((state: SyncStatusesChain) =>
-      applyUpdate(state, contractIdentifier, newSyncStatusContract),
-    );
-  };
-  // Several contracts in one update, so that the screen is told once.
-  const updateStates = (updates: SyncStatusContractUpdate[]): void => {
-    update((state: SyncStatusesChain) =>
-      updates.reduce(
-        (newState, { contractIdentifier, newSyncStatusContract }) =>
-          applyUpdate(newState, contractIdentifier, newSyncStatusContract),
+    update((state: SyncStatusesChain) => {
+      const contract: SyncStatusContract | undefined = getContractInState(
         state,
-      ),
-    );
+        contractIdentifier,
+      );
+      // Adding the contract would count it in the summarized statuses.
+      if (!contract) {
+        customLogger.error(
+          "Skip updating the sync status of a contract that is not in the store.",
+          contractIdentifier,
+        );
+        return state;
+      }
+      const newState: SyncStatusesChain = copyPath(
+        state,
+        contractIdentifier,
+        contract,
+        newSyncStatusContract,
+      );
+      // The updaters change only the objects on the path, which are copies.
+      updateStoreSyncStatusSyncStateText(
+        newState,
+        contractIdentifier,
+        newSyncStatusContract,
+      );
+      updateStoreSyncStatusSummarized(
+        newState,
+        contractIdentifier,
+        newSyncStatusContract,
+      );
+      return newState;
+    });
   };
-  return { subscribe, set, update, updateState, updateStates };
+  return { subscribe, set, update, updateState };
 }
 export const storeSyncStatus = store();
-
-export type SyncStatusContractUpdate = {
-  contractIdentifier: ContractIdentifier;
-  newSyncStatusContract: Partial<SyncStatusContract>;
-};
-
-function applyUpdate(
-  state: SyncStatusesChain,
-  contractIdentifier: ContractIdentifier,
-  newSyncStatusContract: Partial<SyncStatusContract>,
-): SyncStatusesChain {
-  const contract: SyncStatusContract | undefined = getContractInState(
-    state,
-    contractIdentifier,
-  );
-  // Adding the contract would count it in the summarized statuses.
-  if (!contract) {
-    customLogger.error(
-      "Skip updating the sync status of a contract that is not in the store.",
-      contractIdentifier,
-    );
-    return state;
-  }
-  const newState: SyncStatusesChain = copyPath(
-    state,
-    contractIdentifier,
-    contract,
-    newSyncStatusContract,
-  );
-  // The updaters change only the objects on the path, which are copies.
-  updateStoreSyncStatusSyncStateText(
-    newState,
-    contractIdentifier,
-    newSyncStatusContract,
-  );
-  updateStoreSyncStatusSummarized(
-    newState,
-    contractIdentifier,
-    newSyncStatusContract,
-  );
-  return newState;
-}
 
 function getContractInState(
   state: SyncStatusesChain,

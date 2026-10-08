@@ -1,14 +1,10 @@
 import type { ChainName, Contract } from "#constants/chains/types.js";
-import {
-  storeSyncStatus,
-  type SyncStatusContractUpdate,
-} from "#stores/storeSyncStatus.js";
+import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { customLogger } from "#utils/logger.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { DB_TABLE_NAMES } from "./constants";
 import { getDbEventLogs, type DbEventLogs } from "./dbEventLogs";
-import { getInitialDataOfSyncStatusContract } from "./dbEventLogsAddInitialData";
 import {
   clearedSyncFlags,
   getSyncStatusReset,
@@ -70,51 +66,29 @@ async function loadVersion(
       rows = await resetRows(dbEventLogs, contracts);
       break;
   }
-  // Only after the commit, in one update of the store.
+  // Only after the commit. Each row as it is in the DB, as before.
   const versionIdentifier: VersionIdentifier = dbEventLogs.versionIdentifier;
-  const updates: SyncStatusContractUpdate[] = rows.map(({ contract, row }) => {
+  for (const { contract, row } of rows) {
     const contractIdentifier = {
       ...versionIdentifier,
       contractName: contract.name,
     };
-    if (!row) {
-      customLogger.warn(
-        "No sync status of the contract in the DB: the store gets its initial data.",
+    if (row) {
+      storeSyncStatus.updateState(contractIdentifier, row);
+      continue;
+    }
+    customLogger.warn(
+      "No sync status of the contract in the DB.",
+      contractIdentifier,
+    );
+    // As the reset of each contract did before, also without a row.
+    if (load === "reset") {
+      storeSyncStatus.updateState(
         contractIdentifier,
+        getSyncStatusReset(contract),
       );
     }
-    return {
-      contractIdentifier,
-      newSyncStatusContract: toStoreRecord(contract, row),
-    };
-  });
-  storeSyncStatus.updateStates(updates);
-}
-
-// A whole record, so that the store keeps nothing of before: the defined
-// fields of the row over the initial data of the contract in the DB, which a
-// contract without a row gets alone.
-function toStoreRecord(
-  contract: Contract,
-  row: SyncStatusContract | undefined,
-): SyncStatusContract {
-  const base: SyncStatusContract = getInitialDataOfSyncStatusContract(contract);
-  const defined: Partial<SyncStatusContract> = Object.fromEntries(
-    Object.entries(row ?? {}).filter(([, value]) => value !== undefined),
-  );
-  return {
-    ...base,
-    ...defined,
-    // An event of this build that the row does not have keeps its count of 0.
-    events: { ...base.events, ...defined.events },
-    // A missing flag is false.
-    isSyncing: row?.isSyncing === true,
-    isAbort: row?.isAbort === true,
-    // The creation block that this build syncs from, also when a tab on
-    // another build wrote its own. Tabs of two builds on one DB are not
-    // supported beyond keeping the screen right: Digu has no users yet.
-    creationBlockNumber: contract.creation.blockNumber,
-  };
+  }
 }
 
 // Every contract with its row, or undefined. In "rw", also clears the flags
