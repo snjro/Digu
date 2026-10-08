@@ -3,7 +3,7 @@ import { FetchRequest, makeError } from "ethers";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { TRY_COUNT } from "./eventLogsContract";
 import {
-  getAndUpdateLatestBlockNumber,
+  fetchAndRaiseLatestBlockNumber,
   type NodeProvider,
 } from "#utils/utilsEthers.js";
 import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
@@ -17,7 +17,7 @@ import { get } from "svelte/store";
 vi.mock("#utils/utilsEthers.js", async (importOriginal) => {
   const original =
     await importOriginal<typeof import("#utils/utilsEthers.js")>();
-  return { ...original, getAndUpdateLatestBlockNumber: vi.fn() };
+  return { ...original, fetchAndRaiseLatestBlockNumber: vi.fn() };
 });
 vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js");
 
@@ -32,7 +32,7 @@ describe("startUpdateLatestBlockNumber", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    vi.mocked(getAndUpdateLatestBlockNumber).mockResolvedValue();
+    vi.mocked(fetchAndRaiseLatestBlockNumber).mockResolvedValue();
     storeSyncStatus.update((state: SyncStatusesChain) => {
       state[chainName].isSyncing = true;
       state[chainName].isAbort = false;
@@ -50,15 +50,15 @@ describe("startUpdateLatestBlockNumber", () => {
   test("should stop requesting the latest block number when stopped", async () => {
     const stop = await startUpdateLatestBlockNumber(chainName, nodeProvider);
     await vi.advanceTimersByTimeAsync(blockIntervalMs);
-    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(2);
+    expect(fetchAndRaiseLatestBlockNumber).toHaveBeenCalledTimes(2);
 
     stop();
     await vi.advanceTimersByTimeAsync(3 * blockIntervalMs);
-    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(2);
+    expect(fetchAndRaiseLatestBlockNumber).toHaveBeenCalledTimes(2);
   });
 
   test("should stop once when it is stopped after it stopped itself", async () => {
-    vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
+    vi.mocked(fetchAndRaiseLatestBlockNumber).mockRejectedValue(
       new Error("RPC error"),
     );
     const { customLogger } = await import("#utils/logger.js");
@@ -81,24 +81,24 @@ describe("startUpdateLatestBlockNumber", () => {
     });
 
     await vi.advanceTimersByTimeAsync(3 * blockIntervalMs);
-    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledOnce();
+    expect(fetchAndRaiseLatestBlockNumber).toHaveBeenCalledOnce();
   });
 
   test("should abort the chain once when the errors exceed Try Count", async () => {
-    vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
+    vi.mocked(fetchAndRaiseLatestBlockNumber).mockRejectedValue(
       new Error("RPC error"),
     );
 
     await startUpdateLatestBlockNumber(chainName, nodeProvider);
     await vi.advanceTimersByTimeAsync((TRY_COUNT + 3) * blockIntervalMs);
 
-    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(TRY_COUNT + 1);
+    expect(fetchAndRaiseLatestBlockNumber).toHaveBeenCalledTimes(TRY_COUNT + 1);
     expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(chainName);
     expect(get(storeSyncStoppedReason)[chainName]).toBe("RPC_ERRORS");
   });
 
   test("should keep no reason when the errors exceed Try Count after the user stopped", async () => {
-    vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
+    vi.mocked(fetchAndRaiseLatestBlockNumber).mockRejectedValue(
       new Error("RPC error"),
     );
     storeSyncStatus.update((state: SyncStatusesChain) => {
@@ -117,11 +117,11 @@ describe("startUpdateLatestBlockNumber", () => {
     let failRequest: () => void = () => {};
     // Errors up to Try Count, so that one more error would abort.
     for (let i = 0; i < TRY_COUNT; i++) {
-      vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValueOnce(
+      vi.mocked(fetchAndRaiseLatestBlockNumber).mockRejectedValueOnce(
         new Error("RPC error"),
       );
     }
-    vi.mocked(getAndUpdateLatestBlockNumber).mockImplementationOnce(
+    vi.mocked(fetchAndRaiseLatestBlockNumber).mockImplementationOnce(
       () =>
         new Promise((_resolve, reject) => {
           failRequest = () => reject(new Error("destroyed"));
@@ -140,7 +140,7 @@ describe("startUpdateLatestBlockNumber", () => {
 
   test("should not warn when a request fails after it is stopped", async () => {
     let failRequest: () => void = () => {};
-    vi.mocked(getAndUpdateLatestBlockNumber)
+    vi.mocked(fetchAndRaiseLatestBlockNumber)
       .mockResolvedValueOnce()
       .mockImplementationOnce(
         () =>
@@ -162,7 +162,7 @@ describe("startUpdateLatestBlockNumber", () => {
   });
 
   test("should warn when a request fails while it is not stopped", async () => {
-    vi.mocked(getAndUpdateLatestBlockNumber)
+    vi.mocked(fetchAndRaiseLatestBlockNumber)
       .mockResolvedValueOnce()
       .mockRejectedValueOnce(new Error("RPC error"));
     const { customLogger } = await import("#utils/logger.js");
@@ -177,7 +177,7 @@ describe("startUpdateLatestBlockNumber", () => {
   });
 
   test("should log an error when aborting fails", async () => {
-    vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
+    vi.mocked(fetchAndRaiseLatestBlockNumber).mockRejectedValue(
       new Error("RPC error"),
     );
     vi.mocked(startAbortingInChain).mockRejectedValueOnce(
@@ -207,7 +207,7 @@ describe("startUpdateLatestBlockNumber", () => {
   });
 
   test("should log only the code and the short message of an ethers error", async () => {
-    vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValueOnce(
+    vi.mocked(fetchAndRaiseLatestBlockNumber).mockRejectedValueOnce(
       makeError("server response 401 Unauthorized", "SERVER_ERROR", {
         request: new FetchRequest("https://rpc.example/secret-key"),
         info: { requestUrl: "https://rpc.example/secret-key" },

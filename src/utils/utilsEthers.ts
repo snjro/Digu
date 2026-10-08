@@ -348,7 +348,7 @@ function isJsonRpcError(
 }
 // Written only when it is higher than the one stored: the requests may
 // overlap, and an older answer that comes later does not move it back.
-export async function getAndUpdateLatestBlockNumber(
+export async function fetchAndRaiseLatestBlockNumber(
   nodeProvider: NodeProvider,
   chainName: ChainName,
 ): Promise<void> {

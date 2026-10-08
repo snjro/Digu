@@ -61,9 +61,8 @@ export async function raiseDbLatestBlockNumber(
     },
   );
   if (higher === undefined) return;
-  const inStore: number | undefined =
-    get(storeChainStatus)[chainName]?.latestBlockNumber;
-  if (inStore === undefined || inStore < higher) {
+  const inStore: number = get(storeChainStatus)[chainName].latestBlockNumber;
+  if (inStore < higher) {
     storeChainStatus.updateState(chainName, { latestBlockNumber: higher });
   }
 }

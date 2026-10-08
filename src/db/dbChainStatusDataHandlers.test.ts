@@ -5,6 +5,7 @@ import {
   test,
   expect,
   beforeEach,
+  afterEach,
 } from "vitest";
 import type { Chain } from "#constants/chains/types.js";
 import type { ChainStatus } from "./dbTypes";
@@ -95,6 +96,22 @@ describe("getDbRecordChainStatus", () => {
 });
 
 describe("raiseDbLatestBlockNumber", () => {
+  // The latest block of the chain in the store: 0 unless a test sets it.
+  let spySubscribe: MockInstance;
+  function setStoreAt(latestBlockNumber: number): void {
+    spySubscribe.mockImplementation((run: (value: unknown) => void) => {
+      run({ [dummyChainName]: { latestBlockNumber } });
+      return () => {};
+    });
+  }
+  beforeEach(() => {
+    spySubscribe = vi.spyOn(storeChainStatus, "subscribe");
+    setStoreAt(0);
+  });
+  afterEach(() => {
+    spySubscribe.mockRestore();
+  });
+
   test("should write a higher latest block to the DB and the store", async () => {
     await raiseDbLatestBlockNumber(dummyChainName, 2);
 
@@ -107,49 +124,40 @@ describe("raiseDbLatestBlockNumber", () => {
     );
   });
 
-  // The latest block of the chain in the store, for a test.
-  function withStoreAt(latestBlockNumber: number): () => void {
-    const spySubscribe = vi
-      .spyOn(storeChainStatus, "subscribe")
-      .mockImplementation((run) => {
-        run({
-          [dummyChainName]: { latestBlockNumber },
-        } as unknown as Parameters<typeof run>[0]);
-        return () => {};
-      });
-    return () => spySubscribe.mockRestore();
-  }
+  test("should write a higher latest block to the DB, and leave a store that is higher still", async () => {
+    // The DB has 1.
+    setStoreAt(3);
+
+    await raiseDbLatestBlockNumber(dummyChainName, 2);
+
+    expect(spyTableUpdate).toHaveBeenCalledExactlyOnceWith(dummyChainName, {
+      latestBlockNumber: 2,
+    });
+    expect(spyStoreChainStatus).not.toHaveBeenCalled();
+  });
 
   test.each([1, 0])(
     "should not write %s to the DB, and raise a store behind the DB to the one of the DB",
     async (latestBlockNumber: number) => {
-      const restore = withStoreAt(0);
-      try {
-        await raiseDbLatestBlockNumber(dummyChainName, latestBlockNumber);
+      await raiseDbLatestBlockNumber(dummyChainName, latestBlockNumber);
 
-        expect(spyTableUpdate).not.toHaveBeenCalled();
-        expect(spyStoreChainStatus).toHaveBeenCalledExactlyOnceWith(
-          dummyChainName,
-          { latestBlockNumber: dummyChainStatus.latestBlockNumber },
-        );
-      } finally {
-        restore();
-      }
+      expect(spyTableUpdate).not.toHaveBeenCalled();
+      expect(spyStoreChainStatus).toHaveBeenCalledExactlyOnceWith(
+        dummyChainName,
+        { latestBlockNumber: dummyChainStatus.latestBlockNumber },
+      );
     },
   );
 
   test.each([1, 2])(
     "should not lower or set again a store at %s",
     async (inStore: number) => {
-      const restore = withStoreAt(inStore);
-      try {
-        // The DB has 1.
-        await raiseDbLatestBlockNumber(dummyChainName, 0);
+      setStoreAt(inStore);
 
-        expect(spyStoreChainStatus).not.toHaveBeenCalled();
-      } finally {
-        restore();
-      }
+      // The DB has 1.
+      await raiseDbLatestBlockNumber(dummyChainName, 0);
+
+      expect(spyStoreChainStatus).not.toHaveBeenCalled();
     },
   );
 

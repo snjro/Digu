@@ -13,7 +13,7 @@ import {
   cancelNodeProviderCall,
   extractDecodedEventLogs,
   extractEventContracts,
-  getAndUpdateLatestBlockNumber,
+  fetchAndRaiseLatestBlockNumber,
   getBlockTimestampFromLogs,
   getEthersEventLogs,
   getLoggableError,
@@ -652,7 +652,7 @@ describe("isErrorUnrelatedToRange", () => {
   );
 });
 
-describe("getAndUpdateLatestBlockNumber", () => {
+describe("fetchAndRaiseLatestBlockNumber", () => {
   let nodeProvider: NodeProvider | undefined;
   let spyGetBlockNumber: MockInstance;
   let spyRaise: MockInstance;
@@ -678,7 +678,7 @@ describe("getAndUpdateLatestBlockNumber", () => {
   test("should get latestBlockNumber, and only raise it", async () => {
     const expectedLatestBlockNumber: number =
       rpcLatestBlockNumber - targetChain.confirmationBlocks;
-    await getAndUpdateLatestBlockNumber(nodeProvider!, targetChainName);
+    await fetchAndRaiseLatestBlockNumber(nodeProvider!, targetChainName);
     expect(spyRaise).toHaveBeenCalledExactlyOnceWith(
       targetChainName,
       expectedLatestBlockNumber,
@@ -687,7 +687,7 @@ describe("getAndUpdateLatestBlockNumber", () => {
   });
   test("should not go below 0 when the chain is shorter than the confirmation depth", async () => {
     spyGetBlockNumber.mockResolvedValueOnce(targetChain.confirmationBlocks - 1);
-    await getAndUpdateLatestBlockNumber(nodeProvider!, targetChainName);
+    await fetchAndRaiseLatestBlockNumber(nodeProvider!, targetChainName);
     expect(spyRaise).toHaveBeenCalledExactlyOnceWith(targetChainName, 0);
   });
 });
