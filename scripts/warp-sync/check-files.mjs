@@ -117,6 +117,12 @@ function checkChain(dir, name) {
       problem(`${label} does not start at block ${nextBlock}.`);
     }
     if (chunk.fromBlock > chunk.toBlock) problem(`${label} has no block.`);
+    // The app takes a fetchedBlockNumber at the creation block for "nothing
+    // fetched" (getNextBlock of warpSyncPlan.ts): it would fetch that block
+    // again, and skip the next range.
+    if (chunk.toBlock === creationBlocks.get(key)) {
+      problem(`${label} ends at the creation block.`);
+    }
     nextBlocks.set(key, chunk.toBlock + 1);
   }
 

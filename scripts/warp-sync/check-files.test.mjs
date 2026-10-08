@@ -179,6 +179,16 @@ describe("checkSnapshotFiles", () => {
     ]);
   });
 
+  test("a range that ends at the creation block", () => {
+    change((m) => {
+      m.chunks[0].toBlock = a;
+      m.chunks[1].fromBlock = a + 1;
+    });
+    expect(check()).toEqual([
+      `matic: ${labelOf(A, a, a)} ends at the creation block.`,
+    ]);
+  });
+
   test("a chunk of a contract that is not in manifest.contracts", () => {
     change((m) => m.contracts.splice(2, 1));
     const key = labelOf(B, b, b + 5).split(" ")[0];
