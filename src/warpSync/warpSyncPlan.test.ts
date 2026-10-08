@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain, Contract } from "#constants/chains/types.js";
 import {
@@ -100,6 +100,9 @@ describe("matchWarpSyncContracts", () => {
 });
 
 describe("matchWarpSyncContracts when finding a contract fails otherwise", () => {
+  afterEach(() => {
+    vi.mocked(getTargetContract).mockReset();
+  });
   test("throws the error", () => {
     const error: Error = new Error("broken");
     vi.mocked(getTargetContract).mockImplementationOnce(() => {

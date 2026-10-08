@@ -1,4 +1,4 @@
-import type { Chain } from "#constants/chains/types.js";
+import type { Chain, ChainName } from "#constants/chains/types.js";
 import { raiseDbLatestBlockNumber } from "#db/dbChainStatusDataHandlers.js";
 import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
 import { addEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
@@ -26,11 +26,11 @@ import type {
 // in the same way as importWarpSync, without importing: a contract goes on
 // from its fetchedBlockNumber until a gap.
 export async function getWarpSyncPending(
-  targetChain: Chain,
+  chainName: ChainName,
   manifest: WarpSyncManifest,
 ): Promise<WarpSyncPending> {
   const targets: Map<string, WarpSyncTarget> = matchWarpSyncContracts(
-    targetChain.name,
+    chainName,
     manifest,
   );
   const pending: WarpSyncPending = {

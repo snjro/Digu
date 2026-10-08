@@ -180,24 +180,22 @@ async function runImport(
   const controller = new AbortController();
   setWarpSyncStopController(chainName, controller);
   let manifest: WarpSyncManifest | undefined = undefined;
-  // What is left, as read before the import saves anything.
-  let pendingBeforeImport: WarpSyncPending | undefined = undefined;
   // Once a large import failed, while it reads the DB again.
   let failing: boolean = false;
   try {
     manifest = await fetchWarpSyncManifest(targetChain);
     if (!manifest) return { status: "none" };
     const pending: WarpSyncPending = await getWarpSyncPending(
-      targetChain,
+      chainName,
       manifest,
     );
-    pendingBeforeImport = pending;
-    controller.signal.throwIfAborted();
     const about = {
       toBlock: manifest.runs.at(-1)?.toBlock,
       createdAt: manifest.runs.at(-1)?.createdAt,
       pending,
     };
+    // Stopped while checking: nothing is saved, so the counts stand.
+    if (controller.signal.aborted) return stoppedState(chainName, about);
     const isLarge: boolean = needsConfirmation(pending);
     if (isLarge && !confirmedChains.has(chainName)) {
       return ask ? { status: "confirm", ...about } : before;
@@ -225,8 +223,6 @@ async function runImport(
         { once: true },
       );
     }
-    // The import may save files, after which the counts are read again.
-    pendingBeforeImport = undefined;
     const toBlock: number | undefined = await importWarpSync(
       targetChain,
       manifest,
@@ -266,20 +262,13 @@ async function runImport(
       });
     });
     if (stopped) {
-      customLogger.info("Stopped the import of the warp sync snapshot.", {
-        chainName,
-      });
-      heldChains.add(chainName);
-      return {
-        status: "stopped",
+      return stoppedState(chainName, {
         toBlock: manifest?.runs.at(-1)?.toBlock,
         createdAt: manifest?.runs.at(-1)?.createdAt,
-        pending:
-          pendingBeforeImport ??
-          (manifest
-            ? await getPendingOrUndefined(targetChain, manifest)
-            : undefined),
-      };
+        pending: manifest
+          ? await getPendingOrUndefined(chainName, manifest)
+          : undefined,
+      });
     }
     customLogger.error("Import the warp sync snapshot.", {
       chainName,
@@ -291,17 +280,27 @@ async function runImport(
   }
 }
 
+function stoppedState(
+  chainName: ChainName,
+  about: Pick<WarpSyncState, "toBlock" | "createdAt" | "pending">,
+): WarpSyncState {
+  customLogger.info("Stopped the import of the warp sync snapshot.", {
+    chainName,
+  });
+  heldChains.add(chainName);
+  return { status: "stopped", ...about };
+}
 // What is left after a stop; undefined when it cannot be read, so that the
 // state still leaves "checking" or "importing".
 async function getPendingOrUndefined(
-  targetChain: Chain,
+  chainName: ChainName,
   manifest: WarpSyncManifest,
 ): Promise<WarpSyncPending | undefined> {
   try {
-    return await getWarpSyncPending(targetChain, manifest);
+    return await getWarpSyncPending(chainName, manifest);
   } catch (error) {
     customLogger.error("Count what is left of the warp sync snapshot.", {
-      chainName: targetChain.name,
+      chainName,
       errorObject: error,
     });
     return undefined;
