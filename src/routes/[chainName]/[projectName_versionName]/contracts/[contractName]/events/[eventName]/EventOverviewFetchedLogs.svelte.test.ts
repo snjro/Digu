@@ -97,9 +97,11 @@ function contractOf(state: SyncStatusesChain): SyncStatusContract {
   if (!contract) throw new Error("contract1 is not in the store.");
   return contract;
 }
-function recordCountOfTransfer(): number {
-  const event = contractOf(get(store)).events.Transfer;
-  if (!event) throw new Error("Transfer of contract1 is not in the store.");
+// The record count of the event of the section, as the component reads it.
+function recordCountOfTheEvent(): number {
+  const eventName: string = targetEventAbiFragment.name;
+  const event = contractOf(get(store)).events[eventName];
+  if (!event) throw new Error(`${eventName} of contract1 is not in the store.`);
   return event.recordCount;
 }
 
@@ -211,7 +213,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
   // Any change of the record count reloads: it saves the one in the store
   // plus one.
   async function saveAndWaitForTheReload(): Promise<void> {
-    const recordCount: number = recordCountOfTransfer();
+    const recordCount: number = recordCountOfTheEvent();
     await vi.advanceTimersByTimeAsync(sinceLoad);
     await save(recordCount + 1);
     await vi.advanceTimersByTimeAsync(
