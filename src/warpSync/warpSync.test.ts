@@ -698,10 +698,13 @@ describe("warpSync", () => {
       const importing = confirmWarpSync(matic);
       await vi.waitFor(() => expect(fetchWarpSyncManifest).toHaveBeenCalled());
       vi.mocked(getWarpSyncPending).mockClear();
+      vi.mocked(reloadSyncStatusInChain).mockClear();
       stopWarpSync("matic");
       give(manifest);
       await importing;
       expect(importWarpSync).not.toHaveBeenCalled();
+      // The stores follow the DB again, as on every stopped end.
+      expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("matic");
       const state = selectWarpSyncState(get(storeWarpSync), "matic");
       expect(state.status).toBe("stopped");
       // Counted once, before the stop is seen, and kept for the stopped state.
