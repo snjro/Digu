@@ -25,7 +25,6 @@ import {
   RequestLimitError,
 } from "./build-snapshot.mjs";
 import { fakeEventLog } from "./fake-logs.mjs";
-import { keyOf, writeManifest } from "./snapshot-format.mjs";
 
 const chain = loadChain("matic");
 const LATEST = 16_200_000;
@@ -258,56 +257,6 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     }
     expect(logsInFiles(manifest)).toEqual(expectedLogs(16_100_000));
     await expect(build({ toBlock: 16_100_000 })).resolves.toBeUndefined();
-  });
-
-  test("a run with no logs to add adds the contracts that the manifest does not have", async () => {
-    // The contracts created after the end have no range.
-    await build({ toBlock: 15_000_000 });
-    const later = chain.contracts
-      .filter((contract) => contract.creationBlock > 15_000_000)
-      .map(keyOf);
-    expect(later.length).toBeGreaterThan(0);
-    const manifest = readManifest();
-    manifest.contracts = manifest.contracts.filter(
-      (contract) => !later.includes(keyOf(contract)),
-    );
-    writeManifest(path.join(dir(), "manifest.json"), manifest);
-    await build({ toBlock: 15_000_000 });
-    const after = readManifest();
-    expect(after.contracts.map(keyOf).sort()).toEqual(
-      chain.contracts.map(keyOf).sort(),
-    );
-    // No run: the last one still tells how far the snapshot reaches.
-    expect(after.runs).toEqual(manifest.runs);
-    expect(after.chunks).toEqual(manifest.chunks);
-    await expect(build({ toBlock: 15_000_000 })).resolves.toBeUndefined();
-  });
-
-  test("a run with no logs to add compares the fields of the contracts too", async () => {
-    await build({ toBlock: 15_000_000 });
-    const manifest = readManifest();
-    // The same address in other letters, which the script accepts.
-    manifest.contracts[0].address = manifest.contracts[0].address.toLowerCase();
-    writeManifest(path.join(dir(), "manifest.json"), manifest);
-    await build({ toBlock: 15_000_000 });
-    const after = readManifest();
-    const contract = chain.contracts.find(
-      (c) => keyOf(c) === keyOf(manifest.contracts[0]),
-    );
-    expect(after.contracts[0].address).toBe(contract.address);
-    expect(after.runs).toEqual(manifest.runs);
-  });
-
-  test("a first run before every contract writes their contracts into a new folder", async () => {
-    expect(fs.existsSync(dir())).toBe(false);
-    const first = Math.min(...chain.contracts.map((c) => c.creationBlock));
-    await build({ toBlock: first - 1 });
-    const manifest = readManifest();
-    expect(manifest.contracts.map(keyOf).sort()).toEqual(
-      chain.contracts.map(keyOf).sort(),
-    );
-    expect(manifest.chunks).toEqual([]);
-    expect(manifest.runs).toEqual([]);
   });
 
   test("gets blockTimestamp from the block when the RPC does not return it", async () => {

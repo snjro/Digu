@@ -85,11 +85,11 @@ function contentProblems(data, chunk, chainId, contract) {
       continue;
     }
     const [block, index] = position;
-    if (
-      (block < chunk.fromBlock || block > chunk.toBlock) &&
-      !found.has("range")
-    ) {
-      found.set("range", `has a log of block ${block}.`);
+    // The order is compared only between the logs in the range.
+    if (block < chunk.fromBlock || block > chunk.toBlock) {
+      if (!found.has("range"))
+        found.set("range", `has a log of block ${block}.`);
+      continue;
     }
     if (!isAfter(position, last) && !found.has("order")) {
       found.set(

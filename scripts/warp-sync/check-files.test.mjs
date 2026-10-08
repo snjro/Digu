@@ -330,15 +330,31 @@ describe("checkSnapshotFiles", () => {
     ]);
   });
 
-  test("a file with a log out of the range and logs out of order", () => {
+  // Three logs in the file of chunk 0, which has the blocks a and a + 1.
+  const writeThreeLogs = (blocks) => {
     writeFirstFile((d) => {
-      d.logs.reverse();
-      d.logs[0].blockNumber = `0x${(a + 5).toString(16)}`;
+      d.logs = blocks.map((block) => ({
+        ...d.logs[0],
+        blockNumber: `0x${block.toString(16)}`,
+      }));
     });
+    change((m) => {
+      m.chunks[0].logCount = 3;
+      m.totals.logCount += 1;
+    });
+  };
+
+  test("a file with a log out of the range and logs out of order", () => {
+    writeThreeLogs([a + 1, a + 5, a]);
     expect(check()).toEqual([
       fileProblem(0, `has a log of block ${a + 5}.`),
       fileProblem(0, `has a log out of order at block ${a}, log index 0.`),
     ]);
+  });
+
+  test("a log out of the range does not make the next one out of order", () => {
+    writeThreeLogs([a, a + 5, a + 1]);
+    expect(check()).toEqual([fileProblem(0, `has a log of block ${a + 5}.`)]);
   });
 
   test("a file that is not gzip", () => {

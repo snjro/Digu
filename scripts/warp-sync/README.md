@@ -43,11 +43,12 @@ manifest against those with events in `src/constants/chains` (the same
 contracts, addresses and creation blocks), that no other folder has a
 `manifest.json`, and that `FORMAT_VERSION` is `WARP_SYNC_FORMAT_VERSION` of
 the app. So a contract with events added to the app needs a run of this
-script for its chain before its pull request passes (a run adds it to
-`manifest.contracts`, also when it has no logs to add). A contract with
-events removed from the app, or with another address or creation block,
-fails the check too, and a run cannot fix that yet: the script keeps a
-removed contract, and stops at a changed one (#761).
+script for its chain before its pull request passes. A contract with events
+removed from the app, or with another address or creation block, fails the
+check too, and a run cannot fix all of these yet (#761): the script keeps a
+removed contract, stops at a changed one, and adds a contract created after
+the end of the snapshot only with a run that reaches its creation block
+(a run with no range to fetch ends at "Nothing to add").
 `WARP_SYNC_SNAPSHOT_CHECK=off` does not turn this check off.
 
 ```sh

@@ -693,27 +693,12 @@ async function build(chain, rpc, outDir, toBlock, options) {
       files: [],
     });
   }
-  const contracts = contractsOf(known, chain);
   if (plans.length === 0) {
     fs.rmSync(partialDir, { recursive: true, force: true });
-    if (JSON.stringify(contracts) === JSON.stringify(manifest.contracts)) {
-      log(`Nothing to add: the snapshot already reaches block ${end}.`);
-      return undefined;
-    }
-    // A contract created after the end has no range to fetch, but goes into
-    // manifest.contracts, which check-files.mjs compares with the chain. No
-    // run is added: the snapshot has no new logs, and its last run still
-    // tells how far it reaches and when it was made.
-    fs.mkdirSync(dir, { recursive: true });
-    manifest.contracts = contracts;
-    writeManifest(manifestFile, manifest);
-    log(
-      `No logs to add to block ${end}: wrote the contracts to ${manifestFile}.`,
-    );
-    return manifest;
+    log(`Nothing to add: the snapshot already reaches block ${end}.`);
+    return undefined;
   }
 
-  const rows = [];
   // The parts wait in a queue, the first part of each contract first, and
   // `concurrency` workers take the next part when they finish one, so that
   // the requests at a time stay the same until the end (#586). When one part
@@ -791,6 +776,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
   // in the order of the blocks, so that the logs are not all in memory.
   const tmpDir = path.join(partialDir, OUT_DIR);
   fs.rmSync(tmpDir, { recursive: true, force: true });
+  const rows = [];
   for (const { contract, from, files } of plans) {
     rows.push(
       ...(await writeContractChunks({
@@ -806,7 +792,16 @@ async function build(chain, rpc, outDir, toBlock, options) {
   }
   moveChunkFiles(rows, tmpDir, dir, manifest);
 
-  manifest.contracts = contracts;
+  for (const contract of chain.contracts) {
+    known.set(keyOf(contract), {
+      project: contract.project,
+      version: contract.version,
+      name: contract.name,
+      address: contract.address,
+      creationBlock: contract.creationBlock,
+    });
+  }
+  manifest.contracts = [...known.values()];
   manifest.runs.push({
     createdAt: new Date().toISOString(),
     latestBlockNumber: latest,
@@ -821,21 +816,6 @@ async function build(chain, rpc, outDir, toBlock, options) {
   const written = rows.filter((row) => row.file !== null).length;
   log(`Wrote ${written} files to ${dir} and ${manifestFile}.`);
   return manifest;
-}
-
-// The contracts of the manifest (known, by key) with those of the chain.
-function contractsOf(known, chain) {
-  const contracts = new Map(known);
-  for (const contract of chain.contracts) {
-    contracts.set(keyOf(contract), {
-      project: contract.project,
-      version: contract.version,
-      name: contract.name,
-      address: contract.address,
-      creationBlock: contract.creationBlock,
-    });
-  }
-  return [...contracts.values()];
 }
 
 // ---------- command line ----------

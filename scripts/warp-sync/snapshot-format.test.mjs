@@ -341,17 +341,27 @@ describe("logPositionOf", () => {
       26, 0,
     ]);
   });
-  test.each([null, "", true, 5, "26", "0x", "0xg", undefined])(
-    "does not take %j",
-    (value) => {
-      expect(
-        logPositionOf({ blockNumber: value, logIndex: "0x0" }),
-      ).toBeUndefined();
-      expect(
-        logPositionOf({ blockNumber: "0x1", logIndex: value }),
-      ).toBeUndefined();
+  test.each([
+    null,
+    "",
+    true,
+    5,
+    "26",
+    "0x",
+    "0xg",
+    undefined,
+    ["0x1"],
+    {
+      toString: () => "0x1",
     },
-  );
+  ])("does not take %j", (value) => {
+    expect(
+      logPositionOf({ blockNumber: value, logIndex: "0x0" }),
+    ).toBeUndefined();
+    expect(
+      logPositionOf({ blockNumber: "0x1", logIndex: value }),
+    ).toBeUndefined();
+  });
   test("does not take a log that is not an object", () => {
     expect(logPositionOf(null)).toBeUndefined();
   });
