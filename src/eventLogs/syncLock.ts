@@ -3,7 +3,11 @@ import type { Chain, ChainName } from "#constants/chains/types.js";
 import { initializeDBSyncStatusInChain } from "#db/db.worker.func.InitializeDBSyncStatus.js";
 import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
 import { getDbRecordSyncStatusContract } from "#db/dbEventLogsDataHandlersSyncStatusGetters.js";
-import type { SyncStatusContract, VersionIdentifier } from "#db/dbTypes.js";
+import type {
+  ContractIdentifier,
+  SyncStatusContract,
+  VersionIdentifier,
+} from "#db/dbTypes.js";
 import {
   DB_NAME,
   getSyncLockName,
@@ -191,17 +195,11 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
 // closed or crashes. The others wait for the lock shared, so they read the
 // chain again once the operation ends, or at once if it has ended already.
 type SyncLockMessage = { chainName: ChainName };
-const syncLockChannel = createTabChannel<SyncLockMessage | null>(
+const syncLockChannel = createTabChannel<SyncLockMessage>(
   `${DB_NAME.firstName}_syncLock`,
-  (message: SyncLockMessage | null) => {
-    // Without a chain of the app, as from a tab on another build.
-    const chainName: ChainName | undefined = message?.chainName;
-    if (
-      chainName === undefined ||
-      !TARGET_CHAINS.some((chain: Chain) => chain.name === chainName)
-    ) {
-      return;
-    }
+  (message: unknown) => {
+    const chainName: ChainName | undefined = getChainNameOfMessage(message);
+    if (chainName === undefined) return;
     // Waiting for the sync lock: it waits for the release itself if it is
     // not granted.
     if (!get(chainsLockedByThisTab)[chainName]) {
@@ -209,6 +207,16 @@ const syncLockChannel = createTabChannel<SyncLockMessage | null>(
     }
   },
 );
+
+// The chain that a message of another tab names, or undefined when it names
+// no chain of the app, as from a tab on another build.
+export function getChainNameOfMessage(message: unknown): ChainName | undefined {
+  const chainName: unknown = (message as { chainName?: unknown } | null)
+    ?.chainName;
+  return TARGET_CHAINS.some((chain: Chain) => chain.name === chainName)
+    ? (chainName as ChainName)
+    : undefined;
+}
 
 function postSyncLockTaken(chainName: ChainName): void {
   try {
@@ -240,7 +248,7 @@ export function waitForSyncLockRelease(chainName: ChainName): void {
       { mode: "shared" },
       async (): Promise<void> => {
         try {
-          await reloadSyncStatusInChain(chainName);
+          await readChainAfterRelease(chainName);
         } catch (error) {
           // A failure only leaves this chain's status stale.
           customLogger.error("Reset sync status after release.", {
@@ -275,7 +283,31 @@ export async function reloadSyncStatusInChain(
   chainName: ChainName,
 ): Promise<void> {
   await resetSyncStatusInChain(chainName);
-  // Only the syncing tab updates the latest block number.
+  await readLatestBlockNumber(chainName);
+}
+
+// After another tab's operation, with the lock shared. It writes only when a
+// row was left syncing or aborting (a tab closed while it synced): the writes
+// of every waiting tab would run one after another, and hold the lock longer
+// than a new operation waits.
+async function readChainAfterRelease(chainName: ChainName): Promise<void> {
+  const syncStatuses: ContractSyncStatus[] =
+    await readSyncStatusesInChain(chainName);
+  if (
+    syncStatuses.some(
+      ({ syncStatusContract }) =>
+        syncStatusContract.isSyncing || syncStatusContract.isAbort,
+    )
+  ) {
+    await reloadSyncStatusInChain(chainName);
+    return;
+  }
+  setSyncStatuses(syncStatuses);
+  await readLatestBlockNumber(chainName);
+}
+
+// Only the syncing tab updates the latest block number.
+async function readLatestBlockNumber(chainName: ChainName): Promise<void> {
   const { latestBlockNumber } = await getDbRecordChainStatus(chainName);
   storeChainStatus.updateState(chainName, { latestBlockNumber });
 }
@@ -286,9 +318,20 @@ async function resetSyncStatusInChain(chainName: ChainName): Promise<void> {
   // The Worker counted the records at startup, and the syncing tab keeps the
   // counts in the DB up to date.
   await initializeDBSyncStatusInChain(targetChain, false);
+  setSyncStatuses(await readSyncStatusesInChain(chainName));
+}
 
-  // Reload the whole records, including fetchedBlockNumber.
-  const promises: Promise<void>[] = [];
+type ContractSyncStatus = {
+  contractIdentifier: ContractIdentifier;
+  syncStatusContract: SyncStatusContract;
+};
+
+// The whole records, including fetchedBlockNumber.
+async function readSyncStatusesInChain(
+  chainName: ChainName,
+): Promise<ContractSyncStatus[]> {
+  const targetChain: Chain = getTargetChain({ chainName: chainName });
+  const promises: Promise<ContractSyncStatus>[] = [];
   for (const targetProject of targetChain.projects) {
     for (const targetVersion of targetProject.versions) {
       const versionIdentifier: VersionIdentifier = {
@@ -302,16 +345,23 @@ async function resetSyncStatusInChain(chainName: ChainName): Promise<void> {
       )) {
         promises.push(
           getDbRecordSyncStatusContract(dbEventLogs, targetContract.name).then(
-            (syncStatusContract: SyncStatusContract) => {
-              storeSyncStatus.updateState(
-                { ...versionIdentifier, contractName: targetContract.name },
-                syncStatusContract,
-              );
-            },
+            (syncStatusContract: SyncStatusContract) => ({
+              contractIdentifier: {
+                ...versionIdentifier,
+                contractName: targetContract.name,
+              },
+              syncStatusContract,
+            }),
           ),
         );
       }
     }
   }
-  await Promise.all(promises);
+  return await Promise.all(promises);
+}
+
+function setSyncStatuses(syncStatuses: ContractSyncStatus[]): void {
+  for (const { contractIdentifier, syncStatusContract } of syncStatuses) {
+    storeSyncStatus.updateState(contractIdentifier, syncStatusContract);
+  }
 }

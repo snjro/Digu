@@ -375,6 +375,25 @@ describe("watchSyncResetsOfOtherTabs", () => {
     expect(forgetWarpSyncConfirmation).toHaveBeenCalledOnce();
   });
 
+  test("ignores a message without a known chain", async () => {
+    watchSyncResetsOfOtherTabs();
+    setWarpSyncState("matic", { status: "imported", toBlock: 30_000_000 });
+    const other = new BroadcastChannel(`${DB_NAME.firstName}_syncReset`);
+    try {
+      // As from a tab on another build.
+      other.postMessage(null);
+      other.postMessage({});
+      other.postMessage({ chainName: "unknown" });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    } finally {
+      other.close();
+    }
+    expect(forgetWarpSyncConfirmation).not.toHaveBeenCalled();
+    expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
+      "imported",
+    );
+  });
+
   test("watches only once", async () => {
     watchSyncResetsOfOtherTabs();
     watchSyncResetsOfOtherTabs();

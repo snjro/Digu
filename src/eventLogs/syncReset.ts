@@ -9,7 +9,11 @@ import {
 } from "#warpSync/warpSync.js";
 import { hasWarpSync, setWarpSyncState } from "#warpSync/warpSyncState.js";
 import { get } from "svelte/store";
-import { reloadSyncStatusInChain, runWithSyncLock } from "./syncLock";
+import {
+  getChainNameOfMessage,
+  reloadSyncStatusInChain,
+  runWithSyncLock,
+} from "./syncLock";
 import { createTabChannel } from "./tabChannel";
 
 // "busy": the chain is synced or imported now, and nothing was deleted.
@@ -106,7 +110,10 @@ function forgetWarpSyncImport(chainName: ChainName): void {
 // again from the signal of the sync lock, which the reset holds.
 const syncResetChannel = createTabChannel<SyncResetMessage>(
   `${DB_NAME.firstName}_syncReset`,
-  ({ chainName }: SyncResetMessage) => forgetWarpSyncImport(chainName),
+  (message: unknown) => {
+    const chainName: ChainName | undefined = getChainNameOfMessage(message);
+    if (chainName !== undefined) forgetWarpSyncImport(chainName);
+  },
 );
 
 function postSyncReset(chainName: ChainName): void {

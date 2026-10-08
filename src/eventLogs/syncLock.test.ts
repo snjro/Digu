@@ -748,6 +748,53 @@ describe("sync with two tabs (issue #49)", () => {
       await stopAndWait(a);
     }, 30_000);
 
+    test("only reads the chain after a release that left nothing behind", async () => {
+      const a = await openTab();
+      tabs.push(a);
+      const b = await openTab();
+      tabs.push(b);
+      // Tab B's module instance: the last tab opened.
+      const initializeDBSyncStatus =
+        await import("#db/db.worker.func.InitializeDBSyncStatus.js");
+      const spyWrite = vi.spyOn(
+        initializeDBSyncStatus,
+        "initializeDBSyncStatusInChain",
+      );
+      expect(await a.fetchEventLogs()).toBe(true);
+      await waitForSavedLogs(a);
+      expect(await waitFor(() => b.isLockedByOtherTab())).toBe(true);
+      await stopAndWait(a);
+      expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
+
+      expect(b.storeStatus().syncStateText).toBe("stopped");
+      expect(savedLogs(b)).toBe(savedLogs(a));
+      expect(spyWrite).not.toHaveBeenCalled();
+    }, 30_000);
+
+    test("clears the flags that a tab closed while it synced left behind, after the release", async () => {
+      const a = await openTab();
+      tabs.push(a);
+      // Tab C syncs, and is closed while it holds the lock: its rows stay
+      // syncing.
+      const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
+      await a.db
+        .table("SyncStatus")
+        .update(a.contract.name, { isSyncing: true, isAbort: false });
+      const signal = new BroadcastChannel("Digu_syncLock");
+      try {
+        signal.postMessage({ chainName: chain.name });
+      } finally {
+        signal.close();
+      }
+      expect(await waitFor(() => a.isLockedByOtherTab())).toBe(true);
+
+      closeTabC();
+      await heldLock;
+      expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
+      expect((await dbStatus(a)).isSyncing).toBe(false);
+      expect(a.storeStatus().syncStateText).toBe("stopped");
+    }, 30_000);
+
     test("ignores a message without a known chain", async () => {
       const a = await openTab();
       tabs.push(a);
@@ -985,12 +1032,12 @@ describe("sync with two tabs (issue #49)", () => {
     const b = await openTab();
     expect(b.isLockedByOtherTab()).toBe(true);
     // Same module instances as tab B (openTab() resets modules only at start).
-    const initializeDBSyncStatus =
-      await import("#db/db.worker.func.InitializeDBSyncStatus.js");
-    vi.spyOn(
-      initializeDBSyncStatus,
-      "initializeDBSyncStatusInChain",
-    ).mockRejectedValueOnce(new Error("DB error"));
+    // After a release that left nothing behind, B only reads.
+    const getters =
+      await import("#db/dbEventLogsDataHandlersSyncStatusGetters.js");
+    vi.spyOn(getters, "getDbRecordSyncStatusContract").mockRejectedValueOnce(
+      new Error("DB error"),
+    );
     const { customLogger } = await import("#utils/logger.js");
     const spyError = vi.spyOn(customLogger, "error");
 
