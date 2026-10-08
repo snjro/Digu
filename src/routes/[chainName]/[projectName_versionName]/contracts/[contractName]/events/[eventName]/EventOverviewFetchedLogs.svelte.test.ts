@@ -139,6 +139,20 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     await vi.advanceTimersByTimeAsync(0);
   }
 
+  // Saves a while after the first load ended, and checks that the reload
+  // starts the interval after that load ended, not after the save.
+  async function saveAndWaitForTheReload(recordCount: number): Promise<void> {
+    const sinceLoad: number = 1000;
+    await vi.advanceTimersByTimeAsync(sinceLoad);
+    await save(recordCount);
+    await vi.advanceTimersByTimeAsync(
+      EVENT_LOGS_RELOAD_INTERVAL - sinceLoad - 1,
+    );
+    expect(load).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(load).toHaveBeenCalledTimes(2);
+  }
+
   test("reloads the logs when the record count of the event changes", async () => {
     load.mockResolvedValueOnce(noLogs);
     await renderWithFakeTimers();
@@ -146,13 +160,8 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     expect(load).toHaveBeenCalledTimes(1);
 
     load.mockResolvedValueOnce({ count: 2, oldest: log(10), latest: log(20) });
-    await save(2);
-    // Not before the interval.
-    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL - 1);
-    expect(load).toHaveBeenCalledTimes(1);
-    await vi.advanceTimersByTimeAsync(1);
+    await saveAndWaitForTheReload(2);
     expect(screen.getByText("2")).toBeTruthy();
-    expect(load).toHaveBeenCalledTimes(2);
     expect(screen.queryByText("No logs fetched yet.")).toBeNull();
     // Latest, then oldest: block number and tx hash of each.
     expect(
@@ -181,12 +190,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
 
     const error = new Error("test error");
     load.mockRejectedValueOnce(error);
-    await save(2);
-    // Not before the interval.
-    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL - 1);
-    expect(load).toHaveBeenCalledTimes(1);
-    await vi.advanceTimersByTimeAsync(1);
-    expect(load).toHaveBeenCalledTimes(2);
+    await saveAndWaitForTheReload(2);
     expect(screen.getByText("No logs fetched yet.")).toBeTruthy();
     expect(customLogger.error).toHaveBeenCalledWith("Get event logs.", {
       eventIdentifier: {

@@ -77,13 +77,12 @@ export function getComponentsJsonText(
   components: readonly AbiFragmentParam[],
   isExpanded: boolean,
 ): string {
+  const texts: string[] = components.map((component) =>
+    component.format("json"),
+  );
   return isExpanded
-    ? jsonStringifyFormatted(
-        components.map((component): unknown =>
-          JSON.parse(component.format("json")),
-        ),
-      )
-    : `[${components.map((component) => component.format("json")).join(",")}]`;
+    ? jsonStringifyFormatted(texts.map((text): unknown => JSON.parse(text)))
+    : `[${texts.join(",")}]`;
 }
 
 // Only the JSON format is JSON. The human readable formats are plain text.

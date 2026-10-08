@@ -236,6 +236,14 @@ describe("getAbiParamText", () => {
     expect(value.indexed).toBeNull();
     expect(getAbiParamText(from, "indexed")).toBe("true");
     expect(getAbiParamText(value, "indexed")).toBe("false");
+    // A JSON ABI without the key.
+    const [flag] = EventFragment.from({
+      type: "event",
+      name: "F",
+      inputs: [{ type: "bool", name: "flag" }],
+    }).inputs;
+    expect(flag.indexed).toBeUndefined();
+    expect(getAbiParamText(flag, "indexed")).toBe("false");
   });
 });
 
