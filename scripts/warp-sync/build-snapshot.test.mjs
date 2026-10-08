@@ -399,6 +399,7 @@ test("keepLogsBefore keeps the file when its write fails", async () => {
     read.mockRestore();
     write.mockRestore();
   }
+  expect(input).toBeDefined();
   expect(input.destroyed).toBe(true);
   expect(fs.readFileSync(file, "utf8")).toBe(content);
   expect(fs.existsSync(`${file}.tmp`)).toBe(false);
