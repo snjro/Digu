@@ -87,11 +87,11 @@
   let isSyncingInOtherTab: boolean = $derived(
     $storeSyncLockedByOtherTab[targetChainName],
   );
-  // A large import of this tab, which shows its progress and has Stop. A
-  // small one takes seconds, and the sync waits for it as before.
   let warpState: WarpSyncState = $derived(
     selectWarpSyncState($storeWarpSync, targetChainName),
   );
+  // A large import of this tab, which shows its progress and has Stop. A
+  // small one takes seconds, and the sync waits for it as before.
   let isWarpSyncImporting: boolean = $derived(
     warpState.status === "importing" && warpState.progress !== undefined,
   );
