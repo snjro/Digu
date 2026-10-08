@@ -59,8 +59,11 @@ const targetChain = { name: "chain1" } as Chain;
 const targetProject = { name: "project1" } as Project;
 const targetVersion = { name: "version1" } as Version;
 const targetContract = { name: "contract1" } as Contract;
+// The event of the section, and another event of the contract.
+const EVENT: string = "Transfer";
+const OTHER_EVENT: string = "Approval";
 const targetEventAbiFragment = {
-  name: "Transfer",
+  name: EVENT,
   anonymous: false,
 } as EventAbiFragment;
 
@@ -75,8 +78,8 @@ function initialState(): SyncStatusesChain {
                 contract1: {
                   fetchedBlockNumber: 100,
                   events: {
-                    Transfer: { recordCount: 0 },
-                    Approval: { recordCount: 0 },
+                    [EVENT]: { recordCount: 0 },
+                    [OTHER_EVENT]: { recordCount: 0 },
                   },
                 },
               },
@@ -97,11 +100,11 @@ function contractOf(state: SyncStatusesChain): SyncStatusContract {
   if (!contract) throw new Error("contract1 is not in the store.");
   return contract;
 }
-// The record count of the event of the section, as the component reads it.
+// The record count of the event of the section. Throws when the store has
+// none.
 function recordCountOfTheEvent(): number {
-  const eventName: string = targetEventAbiFragment.name;
-  const event = contractOf(get(store)).events[eventName];
-  if (!event) throw new Error(`${eventName} of contract1 is not in the store.`);
+  const event = contractOf(get(store)).events[EVENT];
+  if (!event) throw new Error(`${EVENT} of contract1 is not in the store.`);
   return event.recordCount;
 }
 
@@ -176,7 +179,10 @@ describe("EventOverviewFetchedLogs.svelte", () => {
   }
   async function save(recordCount: number): Promise<void> {
     setContract({
-      events: { Transfer: { recordCount }, Approval: { recordCount: 0 } },
+      events: {
+        [EVENT]: { recordCount },
+        [OTHER_EVENT]: { recordCount: 0 },
+      },
     });
     await vi.advanceTimersByTimeAsync(0);
   }
@@ -271,7 +277,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
         projectName: "project1",
         versionName: "version1",
         contractName: "contract1",
-        abiFragmentName: "Transfer",
+        abiFragmentName: EVENT,
       },
       errorObject: error,
     });
@@ -300,7 +306,10 @@ describe("EventOverviewFetchedLogs.svelte", () => {
 
     setContract({ fetchedBlockNumber: 200, isSyncing: true });
     setContract({
-      events: { Transfer: { recordCount: 0 }, Approval: { recordCount: 5 } },
+      events: {
+        [EVENT]: { recordCount: 0 },
+        [OTHER_EVENT]: { recordCount: 5 },
+      },
     });
     await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL * 2);
     expect(load).toHaveBeenCalledTimes(1);
