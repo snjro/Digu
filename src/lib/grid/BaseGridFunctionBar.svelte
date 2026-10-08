@@ -158,7 +158,8 @@
     }
     gridApi.setGridOption("loading", true);
     setTimeout(() => {
-      if (!gridApi) return;
+      // The grid may be gone by then, and ag-grid warns.
+      if (!gridApi || gridApi.isDestroyed()) return;
       //reset filters
       resetAllFilters();
       //reset sort
