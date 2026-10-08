@@ -140,22 +140,13 @@ export async function inPage(page, fn, ...args) {
 // slow CI runner it outlasted the settle (#757); 30 s leaves a wide margin.
 const ENABLED_TIMEOUT_MS = 30000;
 
-// Waits until `fn(lib, ...args)` (see inPage), the `what` of the page, is not
-// disabled, and with `handle` gives its handle. It throws at once when there is
-// none, and after ENABLED_TIMEOUT_MS when it stays disabled, with
-// `detail(lib, ...args)` of the page when it is given.
-async function waitEnabled(
-  page,
-  what,
-  fn,
-  args,
-  { detail, handle = false } = {},
-) {
-  const found = await page
-    .waitForFunction(
-      `((e) => (!e || !e.disabled) && { e })(${inPageSource(fn, args)})`,
-      { timeout: ENABLED_TIMEOUT_MS, polling: 100 },
-    )
+// Polls `predicate` (the source of an expression of the page) until it is
+// truthy, and gives its handle. After ENABLED_TIMEOUT_MS it throws that the
+// `what` of the page is disabled, with `detail(lib, ...args)` of the page when
+// it is given.
+async function waitInPage(page, what, predicate, { detail, args = [] } = {}) {
+  return page
+    .waitForFunction(predicate, { timeout: ENABLED_TIMEOUT_MS, polling: 100 })
     .catch(async (error) => {
       if (error.name !== "TimeoutError") throw error;
       const seen = detail
@@ -163,12 +154,24 @@ async function waitEnabled(
         : "";
       throw new Error(`The ${what} is disabled${seen}`);
     });
-  try {
-    if (!(await found.evaluate(({ e }) => !!e))) throw new Error(`No ${what}`);
-    if (handle) return (await found.getProperty("e")).asElement();
-  } finally {
-    await found.dispose();
-  }
+}
+
+// Waits until `fn(lib, ...args)` (see inPage), the `what` of the page, is not
+// disabled, and gives its handle. It throws at once when there is none, and
+// after ENABLED_TIMEOUT_MS when it stays disabled (see waitInPage).
+async function waitEnabled(page, what, fn, args, detail) {
+  const found = await waitInPage(
+    page,
+    what,
+    `((e) => (!e || !e.disabled) && { e })(${inPageSource(fn, args)})`,
+    { detail, args },
+  );
+  const e = await found.getProperty("e");
+  await found.dispose();
+  const el = e.asElement();
+  if (el) return el;
+  await e.dispose();
+  throw new Error(`No ${what}`);
 }
 
 // { checked, disabled, pulse, tooltip } of the sync toggle, or null. The
@@ -187,7 +190,7 @@ export async function clickToggle(page, { oldTexts = false } = {}) {
     "sync toggle",
     (lib, oldTexts) => lib.syncToggle(oldTexts),
     [oldTexts],
-    { detail: (lib, oldTexts) => lib.findToggle(oldTexts), handle: true },
+    (lib, oldTexts) => lib.findToggle(oldTexts),
   );
   try {
     await b.click();
@@ -231,7 +234,6 @@ export async function typeInto(page, target, text, { clear = false } = {}) {
         target,
         (lib, selector) => lib.visibleElement(selector),
         [target],
-        { handle: true },
       )
     : target;
   try {
@@ -242,10 +244,13 @@ export async function typeInto(page, target, text, { clear = false } = {}) {
     await page.keyboard.up("Control");
     if (clear) await page.keyboard.press("Backspace");
     if (text) await page.keyboard.type(text);
-    const value = await el.evaluate((e) => e.value);
+    const { value, disabled } = await el.evaluate((e) => ({
+      value: e.value,
+      disabled: e.disabled,
+    }));
     if (value !== text)
       throw new Error(
-        `Typed "${text}" into ${isSelector ? target : "an input"}, which has "${value}"`,
+        `Typed "${text}" into ${isSelector ? target : "an input"}, which has "${value}"${disabled ? " and is disabled" : ""}`,
       );
   } finally {
     if (el !== target) await el.dispose();
@@ -270,9 +275,10 @@ export async function clickByTooltip(page, text) {
 
 // Clicks the `index`-th visible checkbox with the aria-label `label` (the one
 // in the sidebar is first, the one in the page last), once it is enabled. The
-// page checks it and clicks it in one evaluate, so a checkbox disabled in
-// between is not clicked: then it throws, as when it stays disabled or is not
-// found. `checked` is read after `after()`, such as a settle of the caller.
+// page checks it and clicks it in one evaluate, which is polled until it
+// clicks, so a checkbox disabled in between is not clicked. It throws at once
+// when the checkbox is not found, and after ENABLED_TIMEOUT_MS when it stays
+// disabled. `checked` is read after `after()`, such as a settle of the caller.
 // Returns { count, checked }.
 export async function clickCheckbox(
   page,
@@ -280,33 +286,26 @@ export async function clickCheckbox(
   { index = -1, after = async () => {} } = {},
 ) {
   const what = `checkbox ${label}`;
-  await waitEnabled(
+  const h = await waitInPage(
     page,
     what,
-    (lib, label, index) => lib.checkboxes(label).at(index),
-    [label, index],
-  );
-  const h = await page.evaluateHandle(
-    inPageSource(
+    `((r) => (r.clicked || !r.box) && r)(${inPageSource(
       (lib, label, index) => lib.clickCheckbox(label, index),
       [label, index],
-    ),
+    )})`,
   );
   try {
     const { count, clicked } = await h.evaluate(({ count, clicked }) => ({
       count,
       clicked,
     }));
-    if (!clicked)
-      throw new Error(
-        count ? `The ${what} is disabled at the click` : `No ${what}`,
-      );
-    const clickedBox = await h.getProperty("box");
+    if (!clicked) throw new Error(`No ${what}`);
+    const box = await h.getProperty("box");
     try {
       await after();
-      return { count, checked: await clickedBox.evaluate((e) => e.checked) };
+      return { count, checked: await box.evaluate((e) => e.checked) };
     } finally {
-      await clickedBox.dispose();
+      await box.dispose();
     }
   } finally {
     await h.dispose();
