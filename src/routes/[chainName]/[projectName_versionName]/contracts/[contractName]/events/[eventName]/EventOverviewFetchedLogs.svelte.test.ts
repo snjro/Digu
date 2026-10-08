@@ -44,8 +44,13 @@ vi.mock("#lib/common/CommonChainExplorerLink.svelte", async () => {
   const { default: Stub } =
     await import("../../functions/[functionName]/pageTabs.testStub.svelte");
   return {
+    // A getter, so that the stub follows the edges when they change.
     default: (anchor: unknown, props: Record<string, unknown>) =>
-      Stub(anchor as never, { stubName: String(props.value) }),
+      Stub(anchor as never, {
+        get stubName() {
+          return String(props.value);
+        },
+      }),
   };
 });
 
@@ -144,9 +149,12 @@ describe("EventOverviewFetchedLogs.svelte", () => {
 
   // The first load takes loadTime, and the save comes sinceLoad after it
   // ended: the reload starts the interval after the first load ended, not
-  // after it started or after the save.
+  // after it started or after the save. They differ, so that no other sum of
+  // them gives the same time.
   const loadTime: number = EVENT_LOGS_RELOAD_INTERVAL / 4;
-  const sinceLoad: number = EVENT_LOGS_RELOAD_INTERVAL / 4;
+  const sinceLoad: number = EVENT_LOGS_RELOAD_INTERVAL / 2;
+  // edges must show something other than "No logs fetched yet.", so that the
+  // end of the load can be seen.
   async function renderWithASlowFirstLoad(edges: EventLogEdges): Promise<void> {
     load.mockImplementationOnce(
       () =>
@@ -156,7 +164,10 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     );
     await renderWithFakeTimers();
     expect(load).toHaveBeenCalledTimes(1);
-    await vi.advanceTimersByTimeAsync(loadTime);
+    await vi.advanceTimersByTimeAsync(loadTime - 1);
+    expect(screen.getByText("No logs fetched yet.")).toBeTruthy();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(screen.queryByText("No logs fetched yet.")).toBeNull();
   }
   async function saveAndWaitForTheReload(recordCount: number): Promise<void> {
     await vi.advanceTimersByTimeAsync(sinceLoad);
@@ -170,8 +181,12 @@ describe("EventOverviewFetchedLogs.svelte", () => {
   }
 
   test("reloads the logs when the record count of the event changes", async () => {
-    await renderWithASlowFirstLoad(noLogs);
-    expect(screen.getByText("No logs fetched yet.")).toBeTruthy();
+    await renderWithASlowFirstLoad({
+      count: 1,
+      oldest: log(5),
+      latest: log(5),
+    });
+    expect(screen.getByText("1")).toBeTruthy();
 
     load.mockResolvedValueOnce({ count: 2, oldest: log(10), latest: log(20) });
     await saveAndWaitForTheReload(2);
