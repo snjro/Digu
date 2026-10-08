@@ -119,11 +119,13 @@
         : // The toggle is already off: the contracts end what they do first.
           isStopping
           ? "stopping sync"
-          : toggleOn
-            ? "stop sync"
-            : isWarpSyncImporting
-              ? getSyncWaitsForImportText(warpState)
-              : "start sync",
+          : activity === "resetting"
+            ? "resetting"
+            : toggleOn
+              ? "stop sync"
+              : isWarpSyncImporting
+                ? getSyncWaitsForImportText(warpState)
+                : "start sync",
   );
 </script>
 

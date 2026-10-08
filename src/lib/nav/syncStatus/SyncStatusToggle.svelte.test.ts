@@ -361,15 +361,22 @@ describe("SyncStatusToggle.svelte", () => {
     expect(getToggle().disabled).toBe(false);
   });
 
-  test("is disabled while this tab resets the chain", async () => {
+  test("is disabled and says so while this tab resets the chain", async () => {
     render(SyncStatusToggle);
     expect(getToggle().disabled).toBe(false);
     lockedByThisTab.set({ eth: "reset" });
     await tick();
     expect(getToggle().disabled).toBe(true);
+    expect(screen.getByText("resetting")).toBeTruthy();
+    // Another tab first, as in the chain activity.
+    lockedByOtherTab.update((state) => ({ ...state, eth: true }));
+    await tick();
+    expect(screen.getByText("syncing in another tab")).toBeTruthy();
+    lockedByOtherTab.update((state) => ({ ...state, eth: false }));
     lockedByThisTab.set({});
     await tick();
     expect(getToggle().disabled).toBe(false);
+    expect(screen.getByText("start sync")).toBeTruthy();
   });
 
   test("is enabled during a small import of this tab, which the sync waits for", async () => {
