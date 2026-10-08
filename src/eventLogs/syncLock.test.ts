@@ -906,14 +906,27 @@ describe("sync with two tabs (issue #49)", () => {
         .table("SyncStatus")
         .update(a.contract.name, { isAbort: undefined });
       expect((await dbStatus(a)).isAbort).toBeUndefined();
-      // And a field that the row does not have.
-      await a.db
-        .table("SyncStatus")
-        .update(a.contract.name, { isSyncTarget: undefined });
+      // And a field stored as undefined (put() keeps it, unlike update()),
+      // and the count of an event, that the row does not have.
+      const [firstEvent, ...otherEvents] = a.contract.events.names;
+      const row = await dbStatus(a);
+      await a.db.table("SyncStatus").put({
+        ...row,
+        isAbort: undefined,
+        isSyncTarget: undefined,
+        events: Object.fromEntries(
+          otherEvents.map((name) => [name, row.events[name]]),
+        ),
+      });
+      expect(Object.keys(await dbStatus(a))).toContain("isSyncTarget");
       // The store still has them, as from before.
       storeSyncStatus.updateState(
         { ...versionIdentifier, contractName: a.contract.name },
-        { isAbort: true, isSyncTarget: false },
+        {
+          isAbort: true,
+          isSyncTarget: false,
+          events: { ...row.events, [firstEvent]: { recordCount: 5 } },
+        },
       );
       const signal = new BroadcastChannel("Digu_syncLock");
       try {
@@ -928,11 +941,43 @@ describe("sync with two tabs (issue #49)", () => {
       expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
       expect(spyWrite).not.toHaveBeenCalled();
       expect(a.storeStatus().isAbort).toBe(false);
-      // The initial value of the field.
+      // The initial data of the field and of the event, and the counts of
+      // the other events from the row.
       expect(a.storeStatus().isSyncTarget).toBe(true);
+      expect(a.storeStatus().events[firstEvent]).toEqual({ recordCount: 0 });
+      for (const name of otherEvents) {
+        expect(a.storeStatus().events[name]).toEqual(row.events[name]);
+      }
     }, 30_000);
 
-    test("gives the store the initial value of a contract without a row when it resets the chain", async () => {
+    test.each(["repair", "reset"] as const)(
+      "puts each version in the store with one update (%s)",
+      async (load) => {
+        const a = await openTab();
+        tabs.push(a);
+        // Tab A's module instances.
+        const { storeSyncStatus } = await import("#stores/storeSyncStatus.js");
+        const { loadSyncStatusInChain } =
+          await import("#db/dbEventLogsDataHandlersSyncStatusLoad.js");
+        let updates: number = -1;
+        const unsubscribe = storeSyncStatus.subscribe(() => {
+          updates += 1;
+        });
+        try {
+          // As with the lock held.
+          await loadSyncStatusInChain(chain.name, load);
+        } finally {
+          unsubscribe();
+        }
+        const versions: number = chain.projects.flatMap(
+          (targetProject) => targetProject.versions,
+        ).length;
+        expect(updates).toBe(versions);
+      },
+      30_000,
+    );
+
+    test("gives the store the initial data of a contract without a row when it resets the chain", async () => {
       const a = await openTab();
       tabs.push(a);
       // Tab A's module instances.
@@ -954,16 +999,17 @@ describe("sync with two tabs (issue #49)", () => {
         isSyncing: false,
         isAbort: false,
         isSyncTarget: true,
-        fetchedBlockNumber: 0,
+        // Its sync starts from the creation block.
+        fetchedBlockNumber: a.contract.creation.blockNumber,
         creationBlockNumber: a.contract.creation.blockNumber,
       });
       expect(spyWarn).toHaveBeenCalledWith(
-        "No sync status of the contract in the DB: the store gets its initial value.",
+        "No sync status of the contract in the DB: the store gets its initial data.",
         { ...versionIdentifier, contractName: a.contract.name },
       );
     }, 30_000);
 
-    test("gives the store the initial value of a contract without a row when it reads the chain again", async () => {
+    test("gives the store the initial data of a contract without a row when it reads the chain again", async () => {
       const a = await openTab();
       tabs.push(a);
       // Tab A's module instances.
@@ -991,11 +1037,12 @@ describe("sync with two tabs (issue #49)", () => {
       expect(spyError).not.toHaveBeenCalled();
       expect(a.storeStatus()).toMatchObject({
         isSyncTarget: true,
-        fetchedBlockNumber: 0,
+        // Its sync starts from the creation block.
+        fetchedBlockNumber: a.contract.creation.blockNumber,
         creationBlockNumber: a.contract.creation.blockNumber,
       });
       expect(spyWarn).toHaveBeenCalledExactlyOnceWith(
-        "No sync status of the contract in the DB: the store gets its initial value.",
+        "No sync status of the contract in the DB: the store gets its initial data.",
         { ...versionIdentifier, contractName: a.contract.name },
       );
     }, 30_000);

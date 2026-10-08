@@ -97,9 +97,7 @@ export const syncStateText = (
     }
   }
 };
-export function getInitialValueContract(
-  targetContract: Contract,
-): SyncStatusContract {
+function getInitialValueContract(targetContract: Contract): SyncStatusContract {
   return {
     ...initialValueBase(targetContract.name, null),
     events: getInitialDataOfSyncStatusesEvent(targetContract.events.names),

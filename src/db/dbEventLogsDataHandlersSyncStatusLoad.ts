@@ -1,11 +1,14 @@
 import type { ChainName, Contract } from "#constants/chains/types.js";
-import { storeSyncStatus } from "#stores/storeSyncStatus.js";
-import { getInitialValueContract } from "#stores/storeSyncStatusGetInitialState.js";
+import {
+  storeSyncStatus,
+  type SyncStatusContractUpdate,
+} from "#stores/storeSyncStatus.js";
 import { customLogger } from "#utils/logger.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { DB_TABLE_NAMES } from "./constants";
 import { getDbEventLogs, type DbEventLogs } from "./dbEventLogs";
+import { getInitialDataOfSyncStatusContract } from "./dbEventLogsAddInitialData";
 import {
   clearedSyncFlags,
   getSyncStatusReset,
@@ -25,7 +28,7 @@ const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 //   the cleared flags and the creation block of this build to every row.
 export type SyncStatusLoad = "repair" | "reset";
 
-type Row = { contract: Contract; row: SyncStatusContract };
+type Row = { contract: Contract; row: SyncStatusContract | undefined };
 
 export async function loadSyncStatusInChain(
   chainName: ChainName,
@@ -59,7 +62,7 @@ async function loadVersion(
   switch (load) {
     case "repair":
       rows = await readRows(dbEventLogs, contracts, "r");
-      if (rows.some(({ row }) => getRepair(row))) {
+      if (rows.some(({ row }) => row && getRepair(row))) {
         rows = await readRows(dbEventLogs, contracts, "rw");
       }
       break;
@@ -67,39 +70,43 @@ async function loadVersion(
       rows = await resetRows(dbEventLogs, contracts);
       break;
   }
-  // Only after the commit.
+  // Only after the commit, in one update of the store.
   const versionIdentifier: VersionIdentifier = dbEventLogs.versionIdentifier;
-  const rowsByName: Map<string, SyncStatusContract> = new Map(
-    rows.map(({ contract, row }) => [contract.name, row]),
-  );
-  for (const contract of contracts) {
+  const updates: SyncStatusContractUpdate[] = rows.map(({ contract, row }) => {
     const contractIdentifier = {
       ...versionIdentifier,
       contractName: contract.name,
     };
-    const row: SyncStatusContract | undefined = rowsByName.get(contract.name);
     if (!row) {
       customLogger.warn(
-        "No sync status of the contract in the DB: the store gets its initial value.",
+        "No sync status of the contract in the DB: the store gets its initial data.",
         contractIdentifier,
       );
     }
-    storeSyncStatus.updateState(
+    return {
       contractIdentifier,
-      toStoreRecord(contract, row),
-    );
-  }
+      newSyncStatusContract: toStoreRecord(contract, row),
+    };
+  });
+  storeSyncStatus.updateStates(updates);
 }
 
-// A whole record, as the store starts with, so that the store keeps nothing
-// of before.
+// A whole record, so that the store keeps nothing of before: the defined
+// fields of the row over the initial data of the contract in the DB, which a
+// contract without a row gets alone.
 function toStoreRecord(
   contract: Contract,
   row: SyncStatusContract | undefined,
 ): SyncStatusContract {
+  const base: SyncStatusContract = getInitialDataOfSyncStatusContract(contract);
+  const defined: Partial<SyncStatusContract> = Object.fromEntries(
+    Object.entries(row ?? {}).filter(([, value]) => value !== undefined),
+  );
   return {
-    ...getInitialValueContract(contract),
-    ...row,
+    ...base,
+    ...defined,
+    // An event of this build that the row does not have keeps its count of 0.
+    events: { ...base.events, ...defined.events },
     // A missing flag is false.
     isSyncing: row?.isSyncing === true,
     isAbort: row?.isAbort === true,
@@ -110,7 +117,7 @@ function toStoreRecord(
   };
 }
 
-// The rows of the contracts that have one. In "rw", also clears the flags
+// Every contract with its row, or undefined. In "rw", also clears the flags
 // that are set, in the same transaction.
 async function readRows(
   dbEventLogs: DbEventLogs,
@@ -124,7 +131,7 @@ async function readRows(
     const repaired = rows.map(({ contract, row }) => ({
       contract,
       row,
-      repair: getRepair(row),
+      repair: row && getRepair(row),
     }));
     const changes = repaired.flatMap(({ contract, repair }) =>
       repair ? [{ key: contract.name, changes: repair }] : [],
@@ -132,7 +139,7 @@ async function readRows(
     if (changes.length > 0) await table.bulkUpdate(changes);
     return repaired.map(({ contract, row, repair }) => ({
       contract,
-      row: { ...row, ...repair },
+      row: row && { ...row, ...repair },
     }));
   });
 }
@@ -148,22 +155,22 @@ async function resetRows(
       ({ contract, row }) => ({
         contract,
         row,
-        changes: getSyncStatusReset(contract),
+        changes: row && getSyncStatusReset(contract),
       }),
     );
-    if (reset.length > 0) {
-      await table.bulkUpdate(
-        reset.map(({ contract, changes }) => ({ key: contract.name, changes })),
-      );
-    }
+    const changes = reset.flatMap(({ contract, changes }) =>
+      changes ? [{ key: contract.name, changes }] : [],
+    );
+    if (changes.length > 0) await table.bulkUpdate(changes);
     return reset.map(({ contract, row, changes }) => ({
       contract,
-      row: { ...row, ...changes },
+      row: row && { ...row, ...changes },
     }));
   });
 }
 
-// In the transaction of the caller.
+// Every contract with its row, or undefined. In the transaction of the
+// caller.
 async function getRows(
   dbEventLogs: DbEventLogs,
   contracts: Contract[],
@@ -171,10 +178,10 @@ async function getRows(
   const records: (SyncStatusContract | undefined)[] = await dbEventLogs
     .table(tableNameSyncStatus)
     .bulkGet(contracts.map((contract: Contract) => contract.name));
-  return contracts.flatMap((contract: Contract, index: number) => {
-    const row: SyncStatusContract | undefined = records[index];
-    return row ? [{ contract, row }] : [];
-  });
+  return contracts.map((contract: Contract, index: number) => ({
+    contract,
+    row: records[index],
+  }));
 }
 
 // The flags of the row that are set, cleared, or undefined.
