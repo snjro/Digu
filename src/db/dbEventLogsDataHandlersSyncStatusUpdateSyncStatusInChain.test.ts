@@ -31,6 +31,41 @@ function getStoreSyncStatusContract(
 }
 
 describe("updateSyncStatusInChain", () => {
+  test("should return the contracts whose rows it changed", async () => {
+    const targetChain = TARGET_CHAINS[0];
+    const version = targetChain.projects[0].versions[0];
+    const versionIdentifier: VersionIdentifier = {
+      chainName: targetChain.name,
+      projectName: targetChain.projects[0].name,
+      versionName: version.name,
+    };
+    const [changed, other] = extractEventContracts(version.contracts);
+    const dbEventLogs = new DbEventLogs(versionIdentifier);
+    // Only one row matches.
+    await dbEventLogs
+      .table(tableNameSyncStatus)
+      .update(changed.name, { isAbort: true });
+    await dbEventLogs
+      .table(tableNameSyncStatus)
+      .update(other.name, { isAbort: false });
+
+    const contracts: ContractIdentifier[] = await updateSyncStatusInChain(
+      targetChain.name,
+      "isAbort",
+      true,
+      { isAbort: false },
+    );
+
+    expect(contracts).toContainEqual({
+      ...versionIdentifier,
+      contractName: changed.name,
+    });
+    expect(contracts).not.toContainEqual({
+      ...versionIdentifier,
+      contractName: other.name,
+    });
+  });
+
   for (const targetChain of TARGET_CHAINS) {
     test(`should update the table and the store of the matching rows in "${targetChain.name}"`, async () => {
       // The initial rows have isAbort false.

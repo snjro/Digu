@@ -1,11 +1,16 @@
 import type { ChainName, ContractName } from "#constants/chains/types.js";
 import { DbEventLogs } from "./dbEventLogs";
+import type { ContractIdentifier } from "./dbTypes";
 import { customLogger } from "#utils/logger.js";
 import { updateDbRecordSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbRecordSyncStatus";
 import { updateSyncStatusInChain } from "./dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain";
 
-export async function startSyncingInChain(chainName: ChainName): Promise<void> {
-  await updateSyncStatusInChain(chainName, "isSyncTarget", true, {
+// Returns the contracts that it marked as syncing: the sync targets in the DB,
+// which another tab may have changed since this tab read them.
+export async function startSyncingInChain(
+  chainName: ChainName,
+): Promise<ContractIdentifier[]> {
+  return await updateSyncStatusInChain(chainName, "isSyncTarget", true, {
     isSyncing: true,
   });
 }

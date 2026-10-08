@@ -56,10 +56,6 @@ export async function fetchEventLogsContract(
     ...dbEventLogs.versionIdentifier,
     contractName: targetContract.name,
   };
-  const contractSyncStatus: SyncStatusContract = syncStatusContract({
-    ...dbEventLogs.versionIdentifier,
-    contractName: targetContract.name,
-  });
   const targetChain: Chain = getTargetChain({ chainName: chainName });
   let errorCount: number = 0;
   // Errors in a row that may come from a range that is too wide.
@@ -72,13 +68,6 @@ export async function fetchEventLogsContract(
   let bulkUnit: number = INITIAL_BULK_UNIT;
   let maxBulkUnit: number = MAX_BULK_UNIT;
   let successCount: number = 0;
-
-  // Only the contracts that the start marked as syncing, which it does from
-  // the DB: another tab may have changed the sync target since this tab read
-  // it, and a loop that the abort does not reach would never end.
-  if (!contractSyncStatus.isSyncing) {
-    return;
-  }
 
   const ethersContract: EthersContract = new ethers.Contract(
     targetContract.address,

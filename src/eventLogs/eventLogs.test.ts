@@ -4,11 +4,14 @@ import type { Chain } from "#constants/chains/types.js";
 import {
   startAbortingInChain,
   startSyncingInChain,
+  stopSyncingInChain,
 } from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { customLogger } from "#utils/logger.js";
 import { getNodeProvider, type NodeProvider } from "#utils/utilsEthers.js";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
+import { fetchEventLogsContract } from "./eventLogsContract";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import {
   importWarpSyncBeforeSync,
   waitForWarpSync,
@@ -33,6 +36,7 @@ vi.mock("#utils/utilsEthers.js", async (importOriginal) => ({
 vi.mock("./updateLatestBlockNumber", () => ({
   startUpdateLatestBlockNumber: vi.fn(),
 }));
+vi.mock("./eventLogsContract", () => ({ fetchEventLogsContract: vi.fn() }));
 
 const chain = { name: "matic" } as Chain;
 
@@ -47,6 +51,7 @@ describe("fetchEventLogs", () => {
     });
     vi.mocked(startSyncingInChain).mockImplementation(async () => {
       calls.push("start syncing");
+      return [];
     });
     vi.mocked(requestSyncLock).mockImplementation(async (chainName, start) => {
       calls.push(`lock ${chainName}`);
@@ -104,5 +109,46 @@ describe("syncEventLogs", () => {
     expect(spyError).toHaveBeenCalledWith("nodeProvider.destroy().", {
       name: "Error",
     });
+  });
+
+  test("starts the loops of the contracts that the start marked as syncing only", async () => {
+    const matic: Chain = TARGET_CHAINS.find((chain) => chain.name === "matic")!;
+    const version = matic.projects[0].versions[0];
+    const [marked, other] = extractEventContracts(version.contracts);
+    // Both are sync targets in the store of this tab; another tab took the
+    // other one out of the sync target in the DB.
+    expect(other).toBeDefined();
+    vi.mocked(startSyncingInChain).mockResolvedValue([
+      {
+        chainName: matic.name,
+        projectName: matic.projects[0].name,
+        versionName: version.name,
+        contractName: marked.name,
+      },
+    ]);
+    vi.mocked(getNodeProvider).mockResolvedValue({
+      destroy: vi.fn(),
+    } as unknown as NodeProvider);
+    vi.mocked(startUpdateLatestBlockNumber).mockResolvedValue(() => {});
+    vi.mocked(fetchEventLogsContract).mockResolvedValue();
+    let syncing: Promise<void> = Promise.resolve();
+    vi.mocked(requestSyncLock).mockImplementation(
+      async (_chainName, start, sync) => {
+        await start();
+        syncing = sync();
+        return true;
+      },
+    );
+
+    expect(await fetchEventLogs(matic)).toBe(true);
+    await syncing;
+
+    expect(
+      vi
+        .mocked(fetchEventLogsContract)
+        .mock.calls.map(([, contract]) => contract.name),
+    ).toEqual([marked.name]);
+    // The run ends with the loops that the abort reaches.
+    expect(stopSyncingInChain).toHaveBeenCalledWith("matic");
   });
 });

@@ -115,7 +115,6 @@ describe("fetchEventLogsContract", () => {
     storeSyncStatus.update((state: SyncStatusesChain) => {
       Object.assign(contractInState(state), {
         isSyncTarget: true,
-        isSyncing: true,
         isAbort: false,
         fetchedBlockNumber: creationBlockNumber,
       });
