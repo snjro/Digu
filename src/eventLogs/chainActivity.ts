@@ -27,6 +27,7 @@ export type ChainActivity =
 
 export type ChainActivitySources = {
   lockedByThisTab: SyncLockKind | undefined;
+  // Another tab's operation, or this tab reading the chain again after it.
   lockedByOtherTab: boolean;
   syncStateText: SyncStateText;
   warpSyncState: WarpSyncState;

@@ -2,7 +2,7 @@ import { getDbEventLogs, type DbEventLogs } from "./dbEventLogs";
 import type { VersionIdentifier } from "./dbTypes";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain } from "#constants/chains/types.js";
-import { getSyncLockName } from "./constants";
+import { getSyncLockName, getSyncPresenceLockName } from "./constants";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { initializeDBSyncStatusForContract } from "./db.worker.func.InitializeDBSyncStatusForContract";
 
@@ -18,12 +18,22 @@ export async function dbWorkerFuncInitializeDBSyncStatus(): Promise<void> {
   }
   await Promise.all(
     TARGET_CHAINS.map((targetChain: Chain) =>
-      // Skip the chain while another tab syncs it.
+      // Skip the chain while another tab syncs it, or reads it again: that
+      // tab holds the presence lock shared, without the sync lock.
       navigator.locks.request(
         getSyncLockName(targetChain.name),
         { ifAvailable: true },
         async (lock: Lock | null): Promise<void> => {
-          if (lock) await initializeDBSyncStatusInChain(targetChain, true);
+          if (!lock) return;
+          await navigator.locks.request(
+            getSyncPresenceLockName(targetChain.name),
+            { ifAvailable: true },
+            async (presence: Lock | null): Promise<void> => {
+              if (presence) {
+                await initializeDBSyncStatusInChain(targetChain, true);
+              }
+            },
+          );
         },
       ),
     ),

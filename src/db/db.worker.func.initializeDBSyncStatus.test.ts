@@ -6,7 +6,7 @@ import { extractEventContracts } from "#utils/utilsEthers.js";
 import type { Chain, Contract } from "#constants/chains/types.js";
 import type { VersionIdentifier } from "./dbTypes";
 import { DbEventLogs, getDbEventLogs } from "./dbEventLogs";
-import { getSyncLockName } from "./constants";
+import { getSyncLockName, getSyncPresenceLockName } from "./constants";
 import {
   installFakeLockManager,
   type FakeLockManager,
@@ -96,5 +96,52 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
     const expected: CalledArgs[] = expectedArgs(TARGET_CHAINS.slice(1));
     expect(calledArgs()).toHaveLength(expected.length);
     expect(calledArgs()).toEqual(expect.arrayContaining(expected));
+  });
+
+  test("should skip a chain that another tab reads again", async () => {
+    const readChain: Chain = TARGET_CHAINS[0];
+    // waitForSyncLockRelease() reads it with the presence lock shared, and
+    // without the sync lock.
+    let release: () => void = () => {};
+    const heldLock = lockManager.request(
+      getSyncPresenceLockName(readChain.name),
+      { mode: "shared" },
+      () => new Promise<void>((resolve) => (release = resolve)),
+    );
+
+    await InitializeDBSyncStatus.dbWorkerFuncInitializeDBSyncStatus();
+    release();
+    await heldLock;
+
+    const expected: CalledArgs[] = expectedArgs(TARGET_CHAINS.slice(1));
+    expect(calledArgs()).toHaveLength(expected.length);
+    expect(calledArgs()).toEqual(expect.arrayContaining(expected));
+  });
+
+  test("should hold the presence lock exclusive too while it counts", async () => {
+    // The locks held while the first contract is counted, and its chain.
+    let held: LockInfo[] = [];
+    let chainName: string | undefined;
+    spyInitializeDBSyncStatusForContract.mockImplementationOnce(
+      async (dbEventLogs) => {
+        held = (await lockManager.query()).held ?? [];
+        const mocked = vi.mocked(getDbEventLogs).mock;
+        const index: number = mocked.results.findIndex(
+          (result) => result.value === dbEventLogs,
+        );
+        chainName = mocked.calls[index][0].chainName;
+      },
+    );
+    await InitializeDBSyncStatus.dbWorkerFuncInitializeDBSyncStatus();
+
+    expect(chainName).toBeDefined();
+    // A reading of another tab, which takes the presence lock shared, waits.
+    expect(held).toEqual(
+      expect.arrayContaining([
+        { name: getSyncLockName(chainName!), mode: "exclusive" },
+        { name: getSyncPresenceLockName(chainName!), mode: "exclusive" },
+      ]),
+    );
+    expect(await lockManager.query()).toEqual({ held: [], pending: [] });
   });
 });

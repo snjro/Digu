@@ -93,7 +93,9 @@ export class FakeLockManager {
 
   private release(name: string, mode: LockMode): void {
     const modes: LockMode[] = [...(this.held.get(name) ?? [])];
-    modes.splice(modes.indexOf(mode), 1);
+    const index: number = modes.indexOf(mode);
+    if (index < 0) throw new Error(`The ${mode} lock ${name} is not held.`);
+    modes.splice(index, 1);
     if (modes.length > 0) {
       this.held.set(name, modes);
     } else {

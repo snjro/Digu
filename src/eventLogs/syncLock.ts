@@ -27,8 +27,9 @@ import {
   type Writable,
 } from "svelte/store";
 
-// true while another tab holds the sync lock of the chain (its sync, import or
-// reset).
+// true while another tab's operation (a sync, an import or a reset) holds the
+// chain, and then while this tab reads the chain again after it
+// (waitForSyncLockRelease). The activity of a chain reads it.
 export const storeSyncLockedByOtherTab: Writable<Record<ChainName, boolean>> =
   writable(
     Object.fromEntries(TARGET_CHAINS.map((chain) => [chain.name, false])),
@@ -73,12 +74,14 @@ export async function runWithSyncLock(
         getSyncLockName(chainName),
         { signal: AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS) },
         async (): Promise<void> => {
-          granted = true;
           // Behind the tabs that read the chain again, which hold it shared.
+          // A reading that hangs is refused like another tab's operation.
           await navigator.locks.request(
             getSyncPresenceLockName(chainName),
+            { signal: AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS) },
             async (): Promise<void> => {
-              postSyncLockTaken();
+              granted = true;
+              postSyncLockTaken(chainName);
               await run();
             },
           );
@@ -87,7 +90,7 @@ export async function runWithSyncLock(
       return true;
     } catch (error) {
       if (granted) throw error;
-      // A TimeoutError when another tab holds the lock.
+      // A TimeoutError when another tab holds a lock.
       const context = { chainName, errorObject: error };
       if (error instanceof Error && error.name === "TimeoutError") {
         customLogger.info("The sync lock was not granted.", context);
@@ -191,48 +194,28 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
   );
 }
 
-// A tab tells the others when an operation takes a sync lock, without the
-// state: the browser's lock manager keeps it, and releases the locks of a tab
-// that is closed or crashes. The others learn of the release from the lock.
-const syncLockChannel = createTabChannel<null>(
+// A tab tells the others which chain an operation took, not the state: the
+// browser's lock manager keeps it, and releases the locks of a tab that is
+// closed or crashes. The others wait on the presence lock shared, so they read
+// the chain again once the operation ends, or at once if it has ended already.
+type SyncLockMessage = { chainName: ChainName };
+const syncLockChannel = createTabChannel<SyncLockMessage>(
   `${DB_NAME.firstName}_syncLock`,
-  () => void findSyncLocksOfOtherTabs(),
+  ({ chainName }: SyncLockMessage) => {
+    // Waiting for the sync lock: it waits for the release itself if it is
+    // not granted.
+    if (!get(chainsLockedByThisTab)[chainName]) {
+      waitForSyncLockRelease(chainName);
+    }
+  },
 );
 
-function postSyncLockTaken(): void {
+function postSyncLockTaken(chainName: ChainName): void {
   try {
-    syncLockChannel.post(null);
+    syncLockChannel.post({ chainName });
   } catch (error) {
     customLogger.error("Tell the other tabs about the sync lock.", {
-      errorObject: error,
-    });
-  }
-}
-
-// An operation holds the presence lock exclusive. A chain in the record of
-// this tab before or after the query is this tab's own.
-async function findSyncLocksOfOtherTabs(): Promise<void> {
-  try {
-    const before = get(chainsLockedByThisTab);
-    const { held } = await navigator.locks.query();
-    const after = get(chainsLockedByThisTab);
-    const operations: Set<string | undefined> = new Set(
-      held
-        ?.filter((lock: LockInfo) => lock.mode === "exclusive")
-        .map((lock: LockInfo) => lock.name),
-    );
-    for (const targetChain of TARGET_CHAINS) {
-      const chainName: ChainName = targetChain.name;
-      if (
-        operations.has(getSyncPresenceLockName(chainName)) &&
-        !before[chainName] &&
-        !after[chainName]
-      ) {
-        waitForSyncLockRelease(chainName);
-      }
-    }
-  } catch (error) {
-    customLogger.error("Find the sync locks of other tabs.", {
+      chainName,
       errorObject: error,
     });
   }
