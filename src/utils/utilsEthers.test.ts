@@ -655,14 +655,21 @@ describe("isErrorUnrelatedToRange", () => {
 describe("getAndUpdateLatestBlockNumber", () => {
   let nodeProvider: NodeProvider | undefined;
   let spyGetBlockNumber: MockInstance;
+  let spyRaise: MockInstance;
   const rpcLatestBlockNumber: number = 1000;
   beforeAll(async () => {
     nodeProvider = new JsonRpcProvider();
     spyGetBlockNumber = vi
       .spyOn(nodeProvider, "getBlockNumber")
       .mockResolvedValue(rpcLatestBlockNumber);
+    spyRaise = vi
+      .spyOn(dbChainStatusDataHandlers, "raiseDbLatestBlockNumber")
+      .mockResolvedValue();
   });
-  afterAll(() => spyGetBlockNumber.mockRestore());
+  afterAll(() => {
+    spyGetBlockNumber.mockRestore();
+    spyRaise.mockRestore();
+  });
   test("should get latestBlockNumber", async () => {
     const expectedLatestBlockNumber: number =
       rpcLatestBlockNumber - targetChain.confirmationBlocks;
@@ -670,10 +677,11 @@ describe("getAndUpdateLatestBlockNumber", () => {
       nodeProvider!,
       targetChainName,
     );
-    //check latestBlockNumber
-    expect(spyUpdateDbItemChainStatus).toHaveBeenCalledWith<
-      [ChainName, "latestBlockNumber", ChainStatus["latestBlockNumber"]]
-    >(targetChainName, "latestBlockNumber", expectedLatestBlockNumber);
+    // Only raised, so that a late answer does not lower it.
+    expect(spyRaise).toHaveBeenCalledWith(
+      targetChainName,
+      expectedLatestBlockNumber,
+    );
 
     expect(actualLatestBlockNumber).toBe(expectedLatestBlockNumber);
   });
@@ -683,9 +691,7 @@ describe("getAndUpdateLatestBlockNumber", () => {
       nodeProvider!,
       targetChainName,
     );
-    expect(spyUpdateDbItemChainStatus).toHaveBeenLastCalledWith<
-      [ChainName, "latestBlockNumber", ChainStatus["latestBlockNumber"]]
-    >(targetChainName, "latestBlockNumber", 0);
+    expect(spyRaise).toHaveBeenLastCalledWith(targetChainName, 0);
     expect(actualLatestBlockNumber).toBe(0);
   });
 });

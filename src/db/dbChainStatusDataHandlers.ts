@@ -33,3 +33,30 @@ export async function updateDbItemChainStatus<T extends keyof ChainStatus>(
       storeChainStatus.updateState(chainName, { [key]: newValue });
     });
 }
+// Only a higher block, read and written in one transaction, so that a late or
+// older answer, or another tab, does not move the latest block back.
+export async function raiseDbLatestBlockNumber(
+  chainName: ChainName,
+  latestBlockNumber: number,
+): Promise<void> {
+  const raised: boolean = await dbChainStatus.transaction(
+    "rw",
+    tableNameChainStatus,
+    async () => {
+      const chainStatus: ChainStatus | undefined = await dbChainStatus
+        .table(tableNameChainStatus)
+        .get(chainName);
+      if (
+        chainStatus !== undefined &&
+        latestBlockNumber <= chainStatus.latestBlockNumber
+      ) {
+        return false;
+      }
+      await dbChainStatus
+        .table(tableNameChainStatus)
+        .update(chainName, { latestBlockNumber });
+      return true;
+    },
+  );
+  if (raised) storeChainStatus.updateState(chainName, { latestBlockNumber });
+}

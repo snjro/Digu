@@ -9,11 +9,7 @@ import {
   vi,
   type MockInstance,
 } from "vitest";
-import {
-  getNodeProvider,
-  RPC_REQUEST_TIMEOUT_MS,
-  type NodeProvider,
-} from "./utilsEthers";
+import { getNodeProvider, type NodeProvider } from "./utilsEthers";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import { customLogger } from "./logger";
 import * as dbChainStatusDataHandlers from "#db/dbChainStatusDataHandlers.js";
@@ -276,17 +272,6 @@ describe("getNodeProvider when the node status cannot be saved", () => {
 });
 
 describe("getNodeProvider with an http RPC", () => {
-  test("should cancel a request after the timeout of a WebSocket request", async () => {
-    fakeNode.chainId = targetChain.chainId;
-    const nodeProvider = (await getNodeProvider(
-      targetChain,
-      "http://127.0.0.1:9",
-    )) as JsonRpcProvider;
-
-    expect(nodeProvider._getConnection().timeout).toBe(RPC_REQUEST_TIMEOUT_MS);
-    await nodeProvider.destroy();
-  });
-
   test("should not send eth_chainId for each getLogs", async () => {
     fakeNode.chainId = targetChain.chainId;
     fakeNode.methods = [];

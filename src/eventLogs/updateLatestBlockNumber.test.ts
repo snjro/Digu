@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { FetchRequest, makeError } from "ethers";
-import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
+import {
+  LATEST_BLOCK_REQUEST_LIMIT_IN_INTERVALS,
+  startUpdateLatestBlockNumber,
+} from "./updateLatestBlockNumber";
 import { TRY_COUNT } from "./eventLogsContract";
 import {
   getAndUpdateLatestBlockNumber,
@@ -57,48 +60,47 @@ describe("startUpdateLatestBlockNumber", () => {
     expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(2);
   });
 
-  test("should not request the latest block number again until the last request ends", async () => {
-    let answerRequest: () => void = () => {};
+  test("should not start a request while one is in flight", async () => {
+    vi.mocked(getAndUpdateLatestBlockNumber)
+      .mockResolvedValueOnce(1)
+      .mockReturnValueOnce(new Promise(() => {}));
+
+    stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
+    await vi.advanceTimersByTimeAsync(
+      LATEST_BLOCK_REQUEST_LIMIT_IN_INTERVALS * blockIntervalMs,
+    );
+
+    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(2);
+  });
+
+  test("should count a request in flight for too long as failed, and start a new one", async () => {
+    let failLateRequest: () => void = () => {};
     vi.mocked(getAndUpdateLatestBlockNumber)
       .mockResolvedValueOnce(1)
       .mockImplementationOnce(
         () =>
-          new Promise((resolve) => {
-            answerRequest = () => resolve(2);
+          new Promise((_resolve, reject) => {
+            failLateRequest = () => reject(new Error("late"));
           }),
       );
-
-    stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
-    await vi.advanceTimersByTimeAsync(3 * blockIntervalMs);
-    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(2);
-
-    answerRequest();
-    await vi.advanceTimersByTimeAsync(blockIntervalMs);
-    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(3);
-  });
-
-  test("should go on requesting the latest block number after an unexpected error", async () => {
-    vi.mocked(getAndUpdateLatestBlockNumber)
-      .mockResolvedValueOnce(1)
-      .mockRejectedValueOnce(new Error("RPC error"));
     const { customLogger } = await import("#utils/logger.js");
-    // An error outside the try of the request.
-    vi.spyOn(customLogger, "warn").mockImplementationOnce(() => {
-      throw new Error("logger error");
-    });
-    const spyError = vi
-      .spyOn(customLogger, "error")
-      .mockImplementation(() => {});
+    const spyWarn = vi.spyOn(customLogger, "warn").mockImplementation(() => {});
 
     stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
-    await vi.advanceTimersByTimeAsync(2 * blockIntervalMs);
-
-    expect(spyError).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
-        errorMessage: "Failed to update the latest block number.",
-      }),
+    // The request starts at the first tick, and is replaced at the tick after
+    // the limit.
+    await vi.advanceTimersByTimeAsync(
+      (LATEST_BLOCK_REQUEST_LIMIT_IN_INTERVALS + 1) * blockIntervalMs,
     );
     expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(3);
+    expect(spyWarn).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ errorCount: `1/${TRY_COUNT}` }),
+    );
+
+    // The replaced request is not counted again when it fails at last.
+    failLateRequest();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(spyWarn).toHaveBeenCalledOnce();
   });
 
   test("should stop once when it is stopped after it stopped itself", async () => {

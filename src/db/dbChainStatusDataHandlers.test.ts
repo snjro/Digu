@@ -10,6 +10,7 @@ import type { Chain } from "#constants/chains/types.js";
 import type { ChainStatus } from "./dbTypes";
 import {
   getDbRecordChainStatus,
+  raiseDbLatestBlockNumber,
   updateDbItemChainStatus,
 } from "./dbChainStatusDataHandlers";
 import { dbChainStatus } from "./dbChainStatus";
@@ -90,5 +91,36 @@ describe("getDbRecordChainStatus", () => {
     );
     expect(spyTableGet).toBeCalledWith(dummyChainName);
     expect(result).toEqual(dummyChainStatus);
+  });
+});
+
+describe("raiseDbLatestBlockNumber", () => {
+  test("should write a higher latest block to the DB and the store", async () => {
+    await raiseDbLatestBlockNumber(dummyChainName, 2);
+
+    expect(spyTableUpdate).toHaveBeenCalledExactlyOnceWith(dummyChainName, {
+      latestBlockNumber: 2,
+    });
+    expect(spyStoreChainStatus).toHaveBeenCalledExactlyOnceWith(
+      dummyChainName,
+      { latestBlockNumber: 2 },
+    );
+  });
+
+  test.each([1, 0])(
+    "should not write %s, which is not higher than the latest block of the DB",
+    async (latestBlockNumber: number) => {
+      await raiseDbLatestBlockNumber(dummyChainName, latestBlockNumber);
+
+      expect(spyTableUpdate).not.toHaveBeenCalled();
+      expect(spyStoreChainStatus).not.toHaveBeenCalled();
+    },
+  );
+
+  test("should read and write in one transaction", async () => {
+    await raiseDbLatestBlockNumber(dummyChainName, 2);
+
+    expect(spyDbChainStatusTransaction).toHaveBeenCalledOnce();
+    expect(spyDbChainStatusTransaction.mock.calls[0][0]).toBe("rw");
   });
 });

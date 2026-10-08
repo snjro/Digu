@@ -4,14 +4,16 @@ import type {
   Contract,
   EventAbiFragment,
 } from "#constants/chains/types.js";
-import { updateDbItemChainStatus } from "#db/dbChainStatusDataHandlers.js";
+import {
+  raiseDbLatestBlockNumber,
+  updateDbItemChainStatus,
+} from "#db/dbChainStatusDataHandlers.js";
 import type { EthersEventLog, NodeStatus } from "#db/dbTypes.js";
 import { customLogger } from "./logger";
 import { getUrlObject } from "./utilsCommon";
 import { getTargetChain } from "./utilsDb";
 import { BlockTimestamps } from "./blockTimestamps";
 import {
-  FetchRequest,
   JsonRpcProvider,
   Network,
   WebSocketProvider,
@@ -69,8 +71,8 @@ export function getBlockTimestampFromLogs(
 }
 // ethers calls _wrapLog with each log of eth_getLogs.
 class JsonRpcProviderKeepingBlockTimestamps extends JsonRpcProvider {
-  constructor(request: FetchRequest, options: JsonRpcApiProviderOptions) {
-    super(request, undefined, options);
+  constructor(url: string, options: JsonRpcApiProviderOptions) {
+    super(url, undefined, options);
     blockTimestampsOfProviders.set(this, new BlockTimestamps());
   }
   override _wrapLog(value: LogParams, network: Network): Log {
@@ -137,7 +139,7 @@ const skippedNodeStatuses: Record<
 // A WebSocket that never opens makes getNetwork wait forever.
 const GET_NETWORK_TIMEOUT_MS: number = 10000;
 // A WebSocket that stays open but does not answer makes a request wait forever.
-export const RPC_REQUEST_TIMEOUT_MS: number = 60000;
+const RPC_REQUEST_TIMEOUT_MS: number = 60000;
 
 // Shows CONNECTING. The number is taken before the write, so that an earlier
 // call cannot write its status after it.
@@ -202,12 +204,8 @@ export async function getNodeProvider(
           // each request. Do not pass targetNetwork: then it is never asked.
           staticNetwork: true,
         };
-        // The limit of a WebSocket request too, instead of the 5 minutes of
-        // ethers, so that a request that hangs is cancelled and fails.
-        const request: FetchRequest = new FetchRequest(rpc);
-        request.timeout = RPC_REQUEST_TIMEOUT_MS;
         nodeProvider = new JsonRpcProviderKeepingBlockTimestamps(
-          request,
+          rpc,
           jsonRpcApiProviderOptions,
         );
       } else {
@@ -359,11 +357,7 @@ export async function getAndUpdateLatestBlockNumber(
     (await nodeProvider.getBlockNumber()) -
       getTargetChain({ chainName }).confirmationBlocks,
   );
-  await updateDbItemChainStatus(
-    chainName,
-    "latestBlockNumber",
-    latestBlockNumber,
-  );
+  await raiseDbLatestBlockNumber(chainName, latestBlockNumber);
   return latestBlockNumber;
 }
 
