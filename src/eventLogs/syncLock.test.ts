@@ -754,12 +754,9 @@ describe("sync with two tabs (issue #49)", () => {
       const b = await openTab();
       tabs.push(b);
       // Tab B's module instance: the last tab opened.
-      const initializeDBSyncStatus =
-        await import("#db/db.worker.func.InitializeDBSyncStatus.js");
-      const spyWrite = vi.spyOn(
-        initializeDBSyncStatus,
-        "initializeDBSyncStatusInChain",
-      );
+      const { getDbEventLogs } = await import("#db/dbEventLogs.js");
+      const table = getDbEventLogs(versionIdentifier).table("SyncStatus");
+      const spyWrite = vi.spyOn(table, "bulkUpdate");
       expect(await a.fetchEventLogs()).toBe(true);
       await waitForSavedLogs(a);
       expect(await waitFor(() => b.isLockedByOtherTab())).toBe(true);
@@ -777,8 +774,8 @@ describe("sync with two tabs (issue #49)", () => {
       // Tab C syncs, and is closed while it holds the lock: its rows stay
       // syncing.
       const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
-      // And the creation block of another build, which the reading leaves:
-      // the operations and the Worker of each build write their own.
+      // And the creation block of another build, which the reading leaves in
+      // the DB: the operations and the Worker of each build write their own.
       await a.db.table("SyncStatus").update(a.contract.name, {
         isSyncing: true,
         isAbort: false,
@@ -808,7 +805,10 @@ describe("sync with two tabs (issue #49)", () => {
         creationBlockNumber: 1,
       });
       expect(a.storeStatus().syncStateText).toBe("stopped");
-      expect(a.storeStatus().creationBlockNumber).toBe(1);
+      // The store has the creation block that this build syncs from.
+      expect(a.storeStatus().creationBlockNumber).toBe(
+        a.contract.creation.blockNumber,
+      );
     }, 30_000);
 
     test("writes a row left behind once, of the tabs that read it again at the same time", async () => {
@@ -819,23 +819,22 @@ describe("sync with two tabs (issue #49)", () => {
       let watching: boolean = false;
       let readWriteRequests: number = 0;
       let bothAsked: () => void = () => {};
-      // Not for ever: a tab that does not ask fails on the count below.
-      const barrier = Promise.race([
-        new Promise<void>((resolve) => (bothAsked = resolve)),
-        sleep(2000),
-      ]);
+      const asked = new Promise<void>((resolve) => (bothAsked = resolve));
+      // Not for ever, from the first request: a tab that does not ask fails on
+      // the count below.
+      let barrier: Promise<unknown> | undefined;
       const countWrites = async (): Promise<void> => {
         // The module instance of the tab opened last.
         const { getDbEventLogs } = await import("#db/dbEventLogs.js");
         const db = getDbEventLogs(versionIdentifier);
-        // Every call: Dexie leaves out a write that changes nothing.
+        // Every row asked for: Dexie leaves out a write that changes nothing.
         const table = db.table("SyncStatus");
-        const update = table.update.bind(table);
-        vi.spyOn(table, "update").mockImplementation(((
-          ...args: Parameters<typeof update>
+        const bulkUpdate = table.bulkUpdate.bind(table);
+        vi.spyOn(table, "bulkUpdate").mockImplementation(((
+          ...args: Parameters<typeof bulkUpdate>
         ) => {
-          if (watching) writes += 1;
-          return update(...args);
+          if (watching) writes += args[0].length;
+          return bulkUpdate(...args);
         }) as never);
         const transaction = db.transaction.bind(db) as (
           ...args: unknown[]
@@ -845,6 +844,7 @@ describe("sync with two tabs (issue #49)", () => {
         ) => {
           if (watching && args[0] === "rw") {
             readWriteRequests += 1;
+            barrier ??= Promise.race([asked, sleep(2000)]);
             if (readWriteRequests === 2) bothAsked();
             await barrier;
           }
@@ -884,6 +884,33 @@ describe("sync with two tabs (issue #49)", () => {
       expect((await dbStatus(a)).isSyncing).toBe(false);
       expect(a.storeStatus().syncStateText).toBe("stopped");
       expect(b.storeStatus().syncStateText).toBe("stopped");
+    }, 30_000);
+
+    test("does not write a flag that a row does not have", async () => {
+      const a = await openTab();
+      tabs.push(a);
+      // Tab A's module instance.
+      const { getDbEventLogs } = await import("#db/dbEventLogs.js");
+      const table = getDbEventLogs(versionIdentifier).table("SyncStatus");
+      const spyWrite = vi.spyOn(table, "bulkUpdate");
+      const { held: heldLock, release } = holdSyncLockOfOtherTab();
+      // Dexie removes a key set to undefined.
+      await a.db
+        .table("SyncStatus")
+        .update(a.contract.name, { isAbort: undefined });
+      expect((await dbStatus(a)).isAbort).toBeUndefined();
+      const signal = new BroadcastChannel("Digu_syncLock");
+      try {
+        signal.postMessage({ chainName: chain.name });
+      } finally {
+        signal.close();
+      }
+      expect(await waitFor(() => a.isLockedByOtherTab())).toBe(true);
+
+      release();
+      await heldLock;
+      expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
+      expect(spyWrite).not.toHaveBeenCalled();
     }, 30_000);
 
     test("skips a contract without a row when it reads the chain again", async () => {
@@ -1054,12 +1081,10 @@ describe("sync with two tabs (issue #49)", () => {
     const a = await openTab();
     tabs.push(a);
     // Same module instance as tab A (openTab() resets modules only at start).
-    const initializeDBSyncStatus =
-      await import("#db/db.worker.func.InitializeDBSyncStatus.js");
-    vi.spyOn(
-      initializeDBSyncStatus,
-      "initializeDBSyncStatusInChain",
-    ).mockRejectedValueOnce(new Error("DB error"));
+    const load = await import("#db/dbEventLogsDataHandlersSyncStatusLoad.js");
+    vi.spyOn(load, "loadSyncStatusInChain").mockRejectedValueOnce(
+      new Error("DB error"),
+    );
 
     expect(await a.fetchEventLogs()).toBe(false);
     // Resolved in the lock: both locks are released right after it.
@@ -1128,12 +1153,10 @@ describe("sync with two tabs (issue #49)", () => {
   test("opens the tab even when the startup reset fails", async () => {
     const a = await openTab(async () => {
       // Same module instance as the tab being opened.
-      const initializeDBSyncStatus =
-        await import("#db/db.worker.func.InitializeDBSyncStatus.js");
-      vi.spyOn(
-        initializeDBSyncStatus,
-        "initializeDBSyncStatusInChain",
-      ).mockRejectedValueOnce(new Error("DB error"));
+      const load = await import("#db/dbEventLogsDataHandlersSyncStatusLoad.js");
+      vi.spyOn(load, "loadSyncStatusInChain").mockRejectedValueOnce(
+        new Error("DB error"),
+      );
     });
     tabs.push(a);
 
@@ -1150,9 +1173,8 @@ describe("sync with two tabs (issue #49)", () => {
     const b = await openTab();
     expect(b.isLockedByOtherTab()).toBe(true);
     // Same module instances as tab B (openTab() resets modules only at start).
-    const repair =
-      await import("#db/dbEventLogsDataHandlersSyncStatusRepair.js");
-    vi.spyOn(repair, "repairSyncStatusInChain").mockRejectedValueOnce(
+    const load = await import("#db/dbEventLogsDataHandlersSyncStatusLoad.js");
+    vi.spyOn(load, "loadSyncStatusInChain").mockRejectedValueOnce(
       new Error("DB error"),
     );
     const { customLogger } = await import("#utils/logger.js");

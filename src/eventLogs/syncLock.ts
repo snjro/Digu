@@ -1,6 +1,5 @@
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain, ChainName } from "#constants/chains/types.js";
-import { initializeDBSyncStatusInChain } from "#db/db.worker.func.InitializeDBSyncStatus.js";
 import {
   DB_NAME,
   getSyncLockName,
@@ -10,12 +9,8 @@ import { getDbRecordChainStatus } from "#db/dbChainStatusDataHandlers.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { recordSyncStoppedReason } from "./syncStoppedReason";
-import { getTargetChain } from "#utils/utilsDb.js";
 import { customLogger } from "#utils/logger.js";
-import {
-  readSyncStatusInChain,
-  repairSyncStatusInChain,
-} from "#db/dbEventLogsDataHandlersSyncStatusRepair.js";
+import { loadSyncStatusInChain } from "#db/dbEventLogsDataHandlersSyncStatusLoad.js";
 import { createTabChannel } from "./tabChannel";
 import {
   get,
@@ -168,7 +163,7 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
           if (lock) {
             // A failure only leaves this chain's status stale; do not fail
             // the startup.
-            await repairSyncStatusInChain(targetChain.name).catch(
+            await loadSyncStatusInChain(targetChain.name, "repair").catch(
               (error: unknown) => {
                 customLogger.error("Read the sync status at startup.", {
                   chainName: targetChain.name,
@@ -272,7 +267,7 @@ export async function reloadSyncStatusInChain(
 // rows that need it, once of all the tabs that read: their writes would run
 // one after another, and hold the lock longer than a new operation waits.
 async function readChainAfterRelease(chainName: ChainName): Promise<void> {
-  await repairSyncStatusInChain(chainName);
+  await loadSyncStatusInChain(chainName, "repair");
   await readLatestBlockNumber(chainName);
 }
 
@@ -284,11 +279,8 @@ async function readLatestBlockNumber(chainName: ChainName): Promise<void> {
 
 // For an operation of this tab, holding the sync lock exclusive: it writes
 // every row, as a tab that synced may have been closed since this tab read
-// the chain.
+// the chain. The Worker counted the records at startup, and the syncing tab
+// keeps the counts in the DB up to date.
 async function resetSyncStatusInChain(chainName: ChainName): Promise<void> {
-  const targetChain: Chain = getTargetChain({ chainName: chainName });
-  // The Worker counted the records at startup, and the syncing tab keeps the
-  // counts in the DB up to date.
-  await initializeDBSyncStatusInChain(targetChain, false);
-  await readSyncStatusInChain(chainName);
+  await loadSyncStatusInChain(chainName, "reset");
 }
