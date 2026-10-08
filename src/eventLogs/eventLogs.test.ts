@@ -114,20 +114,27 @@ describe("syncEventLogs", () => {
     });
   });
 
-  test("starts the loops of the contracts that the start marked as syncing only", async () => {
-    const matic: Chain = TARGET_CHAINS.find((chain) => chain.name === "matic")!;
-    const version = matic.projects[0].versions[0];
-    const [marked, other] = extractEventContracts(version.contracts);
-    // Both are sync targets in the store of this tab; another tab took the
-    // other one out of the sync target in the DB.
-    expect(other).toBeDefined();
+  test("starts the loops of the contracts that the start marked as syncing only, each with the DB of its version", async () => {
+    const eth: Chain = TARGET_CHAINS.find((chain) => chain.name === "eth")!;
+    const project = eth.projects[0];
+    const [version1, version2] = project.versions;
+    // A contract of the same name in both versions.
+    const name: string = "Augur";
+    for (const version of [version1, version2]) {
+      expect(
+        extractEventContracts(version.contracts).map((c) => c.name),
+      ).toContain(name);
+    }
+    const identifierIn = (versionName: string) => ({
+      chainName: eth.name,
+      projectName: project.name,
+      versionName,
+    });
+    // The other contracts are sync targets in the store of this tab; another
+    // tab took them out of the sync target in the DB.
     vi.mocked(startSyncingInChain).mockResolvedValue([
-      {
-        chainName: matic.name,
-        projectName: matic.projects[0].name,
-        versionName: version.name,
-        contractName: marked.name,
-      },
+      { ...identifierIn(version1.name), contractName: name },
+      { ...identifierIn(version2.name), contractName: name },
     ]);
     vi.mocked(getNodeProvider).mockResolvedValue({
       destroy: vi.fn(),
@@ -143,29 +150,25 @@ describe("syncEventLogs", () => {
       },
     );
 
-    expect(await fetchEventLogs(matic)).toBe(true);
+    expect(await fetchEventLogs(eth)).toBe(true);
     await syncing;
 
-    // The DB of its version too: the names of the contracts repeat across
-    // versions.
     expect(
       vi
         .mocked(fetchEventLogsContract)
         .mock.calls.map(([dbEventLogs, contract]) => [
           dbEventLogs.versionIdentifier,
           contract.name,
+          contract.address,
         ]),
-    ).toEqual([
-      [
-        {
-          chainName: matic.name,
-          projectName: matic.projects[0].name,
-          versionName: version.name,
-        },
-        marked.name,
-      ],
-    ]);
+    ).toEqual(
+      [version1, version2].map((version) => [
+        identifierIn(version.name),
+        name,
+        version.contracts.find((c) => c.name === name)!.address,
+      ]),
+    );
     // The run ends with the loops that the abort reaches.
-    expect(stopSyncingInChain).toHaveBeenCalledWith("matic");
+    expect(stopSyncingInChain).toHaveBeenCalledWith("eth");
   });
 });
