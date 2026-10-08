@@ -155,9 +155,38 @@ export function readManifest(file, chain) {
   return manifest;
 }
 
+// Writes file whole and then renames it, so that a stop does not leave half a
+// file: write(tmp) writes the file tmp. When write fails, tmp is removed and
+// file stays as it was; only a stop before the rename leaves <file>.tmp.
+export function writeWhole(file, write) {
+  const tmp = `${file}.tmp`;
+  try {
+    write(tmp);
+  } catch (error) {
+    fs.rmSync(tmp, { force: true });
+    throw error;
+  }
+  fs.renameSync(tmp, file);
+}
+// writeWhole for a write that returns a promise, which is waited for.
+export async function writeWholeAsync(file, write) {
+  const tmp = `${file}.tmp`;
+  try {
+    await write(tmp);
+  } catch (error) {
+    fs.rmSync(tmp, { force: true });
+    throw error;
+  }
+  fs.renameSync(tmp, file);
+}
+
 export function writeManifest(file, manifest) {
   manifest.totals = totalsOf(manifest.chunks);
-  fs.writeFileSync(file, `${JSON.stringify(manifest, null, 2)}\n`);
+  // .gitignore ignores the manifest.json.tmp of a stop only in
+  // static/warp-sync/, the default --out.
+  writeWhole(file, (tmp) =>
+    fs.writeFileSync(tmp, `${JSON.stringify(manifest, null, 2)}\n`),
+  );
 }
 
 // Moves the files written in fromDir to dir, after checking that none of them

@@ -121,7 +121,8 @@ describe("SyncStatus.svelte", () => {
     setLayout(1400, true);
     render(SyncStatus, { isSyncPanelOpen: false });
     // The toggle, and the progress, which opens the sync panel.
-    expect(screen.getAllByRole("button")).toHaveLength(2);
+    expect(screen.getByRole("switch", { name: "Sync" })).toBeTruthy();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
     expect(
       screen.getByRole("button", {
         name: "Sync of Ethereum Mainnet: 50.0%, stopped",

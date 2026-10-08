@@ -7,7 +7,7 @@ const pre = mode === "digu" ? "d-" : "";
 await L.startServers();
 await L.launch();
 const { page } = await L.newContextPage();
-const SB = "aside[aria-label=Sidebar]";
+const SB = L.SIDEBAR;
 const BC = "nav[aria-label=Breadcrumb]";
 const path = () => page.evaluate(() => location.pathname + location.hash);
 

@@ -12,6 +12,14 @@ import {
   logPageProblems,
   serveBuild,
 } from "../../check-lib/browser.mjs";
+import {
+  RPC_INPUT,
+  clickByTooltip,
+  clickToggle,
+  inPage,
+  openSyncPanel,
+  typeInto,
+} from "../../check-lib/app.mjs";
 import { createResults } from "../../check-lib/results.mjs";
 
 const require = createRequire("/app/package.json");
@@ -38,6 +46,9 @@ const CONFIRMATION_BLOCKS = Number(
     )
     .match(/confirmationBlocks:\s*(\d+)/)[1],
 );
+// The sync toggle of v1.0.2 has no name; only the old phase finds it by its
+// tooltips.
+const OLD_TEXTS = { oldTexts: phase === "old" };
 // NEW_LATEST (env): the latest block of the new phases, for #498 with
 // Current > Goal (e.g. 5926479 gives the Goal 5926383, below what v1.0.2 fetched).
 const LATEST =
@@ -266,42 +277,40 @@ async function dumpDb(page) {
   });
 }
 
+// The toggle is read in the same evaluate as the rest.
 async function pageInfo(page) {
-  return page.evaluate(() => {
-    const text = document.body.innerText;
-    return {
-      url: location.href,
-      title: document.title,
-      htmlClass: document.documentElement.className,
-      bodyBg: getComputedStyle(document.body).backgroundColor,
-      text: text.slice(0, 1500),
-      navRpc: (() => {
-        // develop: aria-label "RPC URL" (#394); v1.0.2: the placeholder.
-        const i =
-          document.querySelector('input[aria-label="RPC URL"]') ??
-          [...document.querySelectorAll("nav input, header input, input")].find(
-            (e) =>
-              e.placeholder === "https://localhost:8545" ||
-              /fake-rpc|polygon|http/.test(e.value),
-          );
-        return i ? { value: i.value, disabled: i.disabled } : null;
-      })(),
-      // The last texts are SYNC_WAITS_FOR_IMPORT and SYNC_WAITS_FOR_IMPORT_STOPPING,
-      // _FINISHING and _FAILING of src/warpSync/warpSyncTexts.ts.
-      toggleLabels: [...document.querySelectorAll("*")]
-        .filter(
-          (e) =>
-            e.children.length === 0 &&
-            /^(start sync|stop sync|starting sync|stopping sync|in use in another tab|syncing in another tab|Importing the published logs\. Stop it to sync from your RPC now\.|Stopping the import of the published logs\.|Finishing the import of the published logs\.|Importing the published logs\.)$/.test(
-              e.textContent.trim(),
-            ),
-        )
-        .map((e) => e.textContent.trim()),
-      gridRows: document.querySelectorAll(
-        ".ag-center-cols-container [role=row]",
-      ).length,
-    };
-  });
+  return inPage(
+    page,
+    (lib, oldTexts, rpcInput) => {
+      const text = document.body.innerText;
+      return {
+        url: location.href,
+        title: document.title,
+        htmlClass: document.documentElement.className,
+        bodyBg: getComputedStyle(document.body).backgroundColor,
+        text: text.slice(0, 1500),
+        navRpc: (() => {
+          // develop: aria-label "RPC URL" (#394); v1.0.2: the placeholder.
+          const i =
+            document.querySelector(rpcInput) ??
+            [
+              ...document.querySelectorAll("nav input, header input, input"),
+            ].find(
+              (e) =>
+                e.placeholder === "https://localhost:8545" ||
+                /fake-rpc|polygon|http/.test(e.value),
+            );
+          return i ? { value: i.value, disabled: i.disabled } : null;
+        })(),
+        gridRows: document.querySelectorAll(
+          ".ag-center-cols-container [role=row]",
+        ).length,
+        toggle: lib.findToggle(oldTexts),
+      };
+    },
+    OLD_TEXTS.oldTexts,
+    RPC_INPUT,
+  );
 }
 
 async function record(page, name, { dump = false } = {}) {
@@ -320,7 +329,7 @@ async function record(page, name, { dump = false } = {}) {
     "STEP",
     name,
     info.url,
-    JSON.stringify(info.toggleLabels),
+    JSON.stringify(info.toggle),
     info.gridRows,
   );
   flush();
@@ -340,27 +349,6 @@ function flush() {
     path.join(outDir, `getlogs-${phase}.json`),
     JSON.stringify(getLogsCalls),
   );
-}
-
-async function clickByTooltip(page, text) {
-  const clicked = await page.evaluate((text) => {
-    const isVisible = (e) => e.getClientRects().length > 0;
-    const labels = [...document.querySelectorAll("*")].filter(
-      (e) => e.children.length === 0 && e.textContent.trim() === text,
-    );
-    for (const label of labels) {
-      for (let e = label; e; e = e.parentElement) {
-        const button = e.querySelector("button");
-        if (button) {
-          if (!isVisible(button)) break;
-          button.click();
-          return true;
-        }
-      }
-    }
-    return false;
-  }, text);
-  if (!clicked) throw new Error(`No visible button with the tooltip "${text}"`);
 }
 
 // Returns the input found nearest to a leaf element with the given text.
@@ -389,35 +377,6 @@ async function inputNearLabel(page, scope, label, selector) {
   return el;
 }
 
-async function typeInto(page, el, text) {
-  await el.focus();
-  await page.keyboard.down("Control");
-  await page.keyboard.press("a");
-  await page.keyboard.up("Control");
-  await page.keyboard.type(text);
-  await page.keyboard.press("Tab");
-}
-
-async function toggleButton(page) {
-  return page.evaluateHandle(() => {
-    // The texts the clicks looked for before #661. "stopping sync" and the import
-    // text are left out: the toggle is disabled then, and the click should fail.
-    const labels = [...document.querySelectorAll("*")].filter(
-      (e) =>
-        e.children.length === 0 &&
-        ["start sync", "stop sync", "starting sync"].includes(
-          e.textContent.trim(),
-        ),
-    );
-    for (const label of labels) {
-      for (let e = label; e; e = e.parentElement) {
-        const b = e.querySelector("button");
-        if (b && b.getClientRects().length) return b;
-      }
-    }
-    return null;
-  });
-}
 async function waitLabel(page, label, timeout = 60000) {
   await page.waitForFunction(
     (label) =>
@@ -506,7 +465,7 @@ function checkSettingsUpgrade(before, after) {
   );
 }
 async function syncUntil(page, prefix, target) {
-  await (await toggleButton(page)).click();
+  await clickToggle(page, OLD_TEXTS);
   await waitLabel(page, "stop sync", 20000).catch(() => {});
   await record(page, `${prefix}-sync-started`);
   const t0 = Date.now();
@@ -527,7 +486,7 @@ async function syncUntil(page, prefix, target) {
   );
   // Let the remaining loop settle a little, then stop.
   await new Promise((r) => setTimeout(r, 4000));
-  await (await toggleButton(page)).click();
+  await clickToggle(page, OLD_TEXTS);
   await waitLabel(page, "start sync", 60000).then(
     () => check(`${prefix} stop wait`, true, "start sync"),
     (e) => check(`${prefix} stop wait`, false, e.message),
@@ -860,8 +819,7 @@ await results.guard(
         await record(page, name);
       }
       // The sync panel (#596), which took the place of the settings dialog.
-      await page.click('nav button[aria-controls="sync-panel"]');
-      await page.waitForSelector("#sync-panel:not(.hidden)");
+      await openSyncPanel(page);
       await settle(page);
       const dialogValues = await page.evaluate(() => {
         const d = document.getElementById("sync-panel");

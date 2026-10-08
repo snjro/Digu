@@ -9,6 +9,13 @@ import {
   logPageProblems,
   serveBuild,
 } from "../check-lib/browser.mjs";
+import {
+  CLOSE_SIDEBAR,
+  SYNC_PANEL_BUTTON,
+  clickByTooltip,
+  findToggle,
+  openSyncPanel as openSyncPanelIn,
+} from "../check-lib/app.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
 const puppeteer = require("puppeteer");
@@ -45,6 +52,9 @@ const PAGES = [
   ],
 ];
 const VERSION = "/eth/Augur-version1/";
+// Not QUICK_SEARCH of check-lib: the bases before ebb7f2e have no aria-label
+// on it.
+const QUICK_SEARCH = 'input[placeholder="Quick search..."]';
 // Screens after an action. Each starts from a fresh browser profile, so that
 // what an action saves in IndexedDB (settings, the chain) does not carry over.
 // With `keepMouse`, the mouse stays where the action put it (for hover).
@@ -55,7 +65,7 @@ const STATES = [
     "quick-search",
     EVENTS,
     async (page) => {
-      await page.type('input[placeholder="Quick search..."]', "Market");
+      await page.type(QUICK_SEARCH, "Market");
     },
   ],
   [
@@ -173,7 +183,7 @@ const STATES = [
     "quick-search-clear",
     EVENTS,
     async (page) => {
-      await page.type('input[placeholder="Quick search..."]', "Market");
+      await page.type(QUICK_SEARCH, "Market");
       await settle(page);
       await clickByTooltip(page, "clear");
     },
@@ -194,13 +204,24 @@ const STATES = [
     async (page) => {
       await page.setViewport(PHONE_VIEWPORT);
       await settle(page);
-      await page.click('button[aria-label="Close sidebar"]');
+      await page.click(CLOSE_SIDEBAR);
       await settle(page);
       return openSyncPanel(page);
     },
   ],
-  // There is no RPC, so the sync does not start.
-  ["sync-toggle", EVENTS, (page) => clickByTooltip(page, "start sync")],
+  // There is no RPC, so the toggle is disabled and the sync cannot start.
+  // The bases before #661 have no name on the toggle.
+  [
+    "sync-toggle",
+    EVENTS,
+    async (page) => {
+      const toggle = await findToggle(page, { oldTexts: true });
+      if (!toggle?.disabled)
+        throw new Error(
+          `The sync toggle is not found or not disabled: ${JSON.stringify(toggle)}`,
+        );
+    },
+  ],
 ];
 
 const CONTRACT = "/eth/Augur-version1/contracts/Augur/";
@@ -334,29 +355,6 @@ async function open(page, url, viewport = VIEWPORT) {
   await settle(page);
 }
 
-// Clicks the visible button that has the tooltip `text`.
-// The same buttons are also in the "three dots" menu, which is hidden.
-async function clickByTooltip(page, text) {
-  const clicked = await page.evaluate((text) => {
-    const isVisible = (e) => e.getClientRects().length > 0;
-    const labels = [...document.querySelectorAll("*")].filter(
-      (e) => e.children.length === 0 && e.textContent.trim() === text,
-    );
-    for (const label of labels) {
-      for (let e = label; e; e = e.parentElement) {
-        const button = e.querySelector("button");
-        if (button) {
-          if (!isVisible(button)) break;
-          button.click();
-          return true;
-        }
-      }
-    }
-    return false;
-  }, text);
-  if (!clicked) throw new Error(`No visible button with the tooltip "${text}"`);
-}
-
 // A BaseButton with href is a link.
 async function buttonByText(page, text) {
   const button = await page.evaluateHandle(
@@ -423,10 +421,8 @@ const NOT_IN_THIS_BUILD = Symbol("not in this build");
 // Opens the sync panel with the progress in the nav. A build before the panel
 // (#596) has the settings dialog instead.
 async function openSyncPanel(page) {
-  const button = await page.$('button[aria-controls="sync-panel"]');
-  if (!button) return NOT_IN_THIS_BUILD;
-  await button.click();
-  await page.waitForSelector("#sync-panel:not(.hidden)");
+  if (!(await page.$(SYNC_PANEL_BUTTON))) return NOT_IN_THIS_BUILD;
+  await openSyncPanelIn(page);
 }
 
 async function setTheme(page, theme) {
@@ -659,7 +655,7 @@ for (const theme of ["light", "dark"]) {
       for (const state of ["sidebar-open", "sidebar-closed"]) {
         if (state === "sidebar-closed") {
           // The choice is kept in IndexedDB.
-          await page.click('button[aria-label="Close sidebar"]');
+          await page.click(CLOSE_SIDEBAR);
           await settle(page);
         }
         for (const [name, url] of PHONE_PAGES) {

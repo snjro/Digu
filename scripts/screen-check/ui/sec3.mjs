@@ -1,5 +1,6 @@
 // Section 3: RPC input and the sync panel (fake RPC: eth_chainId / eth_blockNumber only).
 import fs from "node:fs";
+import { typeInto } from "../../check-lib/app.mjs";
 import * as L from "./lib.mjs";
 await L.startServers();
 await L.launch();
@@ -25,15 +26,6 @@ const helper = () =>
       .filter((t) => /^(Enter URL|Connecting|Connected|Error\.)/.test(t));
     return t.join(" / ");
   });
-async function typeInto(sel, text) {
-  await page.click(sel, { clickCount: 3 });
-  await page.keyboard.down("Control");
-  await page.keyboard.press("a");
-  await page.keyboard.up("Control");
-  await page.keyboard.press("Backspace");
-  if (text) await page.keyboard.type(text);
-  await page.keyboard.press("Tab");
-}
 const rpcDb = async (p = page) => {
   const d = await L.idb(p);
   return d.Digu_Settings?.RpcSettings?.filter((r) => r.chainName === "eth").map(
@@ -69,7 +61,7 @@ await L.step("3-2", page, async () => {
     ["abc", "Error. Invalid URL."],
     ["ftp://x", "Error. Protocol is invalid."],
   ]) {
-    await typeInto(RPC, txt);
+    await typeInto(page, RPC, txt, { clear: true });
     await L.settle(page);
     const h = await helper();
     if (h !== exp) ok = false;
@@ -80,7 +72,7 @@ await L.step("3-2", page, async () => {
 });
 
 await L.step("3-3", page, async () => {
-  await typeInto(RPC, L.FAKE_RPC_WRONG);
+  await typeInto(page, RPC, L.FAKE_RPC_WRONG, { clear: true });
   await L.settle(page, 800);
   const h = await helper();
   const s = await L.shot(page, "3-3-wrong-chain");
@@ -103,7 +95,7 @@ await L.step("3-4", page, async () => {
       // the page is navigating
     }
   }, 30);
-  await typeInto(RPC, L.FAKE_RPC);
+  await typeInto(page, RPC, L.FAKE_RPC, { clear: true });
   await L.settle(page, 800);
   clearInterval(watcher);
   const h = await helper();
@@ -271,7 +263,7 @@ await L.step("3-9", page, async () => {
   await L.settle(p2, 800);
   // change in tab 1
   await page.bringToFront();
-  await typeInto(RPC, "http://fake-rpc.invalid/v2");
+  await typeInto(page, RPC, "http://fake-rpc.invalid/v2", { clear: true });
   await L.settle(page, 800);
   await L.sleep(1000);
   // tab 2

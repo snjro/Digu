@@ -9,7 +9,15 @@ import {
   logPageProblems,
   serveBuild,
 } from "../../check-lib/browser.mjs";
+import { openSyncPanel as openSyncPanelIn } from "../../check-lib/app.mjs";
 import { createResults } from "../../check-lib/results.mjs";
+export {
+  CLOSE_SIDEBAR,
+  QUICK_SEARCH,
+  RPC_INPUT,
+  SIDEBAR,
+  SYNC_PANEL_BUTTON,
+} from "../../check-lib/app.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
 export const puppeteer = require("puppeteer");
@@ -20,12 +28,6 @@ export const ROOT = "http://localhost:4173";
 export const DIGU = "http://localhost:4174/Digu";
 export const FAKE_RPC = "http://fake-rpc.invalid/";
 export const FAKE_RPC_WRONG = "http://wrong-chain.invalid/";
-// The RPC input has no placeholder while it has the focus (BaseInput.svelte),
-// and the placeholder became http://localhost:8545 in #459.
-export const RPC_INPUT = 'input[aria-label="RPC URL"]';
-export const QUICK_SEARCH = 'main input[aria-label="Quick search"]';
-// The progress in the nav, which opens the sync panel (#596).
-export const SYNC_PANEL_BUTTON = 'nav button[aria-controls="sync-panel"]';
 fs.mkdirSync(path.join(OUT, "shots"), { recursive: true });
 
 const servers = [];
@@ -153,8 +155,7 @@ export async function newContextPage(w = 1400, h = 900, tag = "") {
 }
 
 export async function openSyncPanel(page) {
-  await page.click(SYNC_PANEL_BUTTON);
-  await page.waitForSelector("#sync-panel:not(.hidden)");
+  await openSyncPanelIn(page);
   await settle(page, 200);
 }
 

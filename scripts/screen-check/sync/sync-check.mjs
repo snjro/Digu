@@ -11,6 +11,13 @@ import {
   serveBuild,
 } from "../../check-lib/browser.mjs";
 import { readTryCount } from "../../check-lib/build-source.mjs";
+import {
+  RPC_INPUT,
+  clickCheckbox as clickCheckboxIn,
+  clickToggle as clickToggleIn,
+  findToggle,
+  typeInto,
+} from "../../check-lib/app.mjs";
 import { createChecks } from "../../check-lib/results.mjs";
 import {
   handle,
@@ -218,66 +225,9 @@ async function navIn(page, p) {
   await settle(page);
 }
 
-const TOGGLE_TEXTS = [
-  "start sync",
-  "stop sync",
-  "starting sync",
-  "stopping sync",
-  "in use in another tab",
-  // Before #656.
-  "syncing in another tab",
-  // SYNC_WAITS_FOR_IMPORT and SYNC_WAITS_FOR_IMPORT_STOPPING, _FINISHING and
-  // _FAILING of src/warpSync/warpSyncTexts.ts.
-  "Importing the published logs. Stop it to sync from your RPC now.",
-  "Stopping the import of the published logs.",
-  "Finishing the import of the published logs.",
-  "Importing the published logs.",
-];
-// The texts the clicks looked for before #661. "stopping sync" and the import
-// text are left out: the toggle is disabled then, and the click should fail.
-const CLICK_TEXTS = [
-  "start sync",
-  "stop sync",
-  "starting sync",
-  "in use in another tab",
-  // Before #656.
-  "syncing in another tab",
-];
-async function toggleInfo(page) {
-  return page.evaluate((texts) => {
-    const labels = [...document.querySelectorAll("*")].filter(
-      (e) => e.children.length === 0 && texts.includes(e.textContent.trim()),
-    );
-    for (const label of labels) {
-      for (let e = label; e; e = e.parentElement) {
-        const b = e.querySelector("button");
-        if (b && b.getClientRects().length) {
-          return {
-            tooltip: label.textContent.trim(),
-            disabled: b.disabled,
-            pulse: !!b.closest('[class~="motion-safe:animate-pulse"]'),
-          };
-        }
-      }
-    }
-    return null;
-  }, TOGGLE_TEXTS);
-}
 async function clickToggle(page) {
   lastAction = "toggle";
-  const h = await page.evaluateHandle((texts) => {
-    const labels = [...document.querySelectorAll("*")].filter(
-      (e) => e.children.length === 0 && texts.includes(e.textContent.trim()),
-    );
-    for (const label of labels) {
-      for (let e = label; e; e = e.parentElement) {
-        const b = e.querySelector("button");
-        if (b && b.getClientRects().length) return b;
-      }
-    }
-    return null;
-  }, CLICK_TEXTS);
-  await h.click();
+  await clickToggleIn(page);
 }
 async function waitTooltip(page, text, timeout = 30000) {
   await page.waitForFunction(
@@ -319,32 +269,20 @@ async function checkboxes(page) {
   );
 }
 // index: which of the visible checkboxes with this label (sidebar is first).
+// Returns how many are visible.
 async function clickCheckbox(page, label, index = -1) {
   lastAction = `checkbox ${label}`;
-  const all = (await page.$$(`input[aria-label="${label}"]`)).filter(Boolean);
-  const visible = [];
-  for (const h of all)
-    if (await h.evaluate((e) => e.getClientRects().length > 0)) visible.push(h);
-  if (!visible.length) throw new Error(`no checkbox ${label}`);
-  const h = visible.at(index);
-  await h.click();
-  await settle(page);
-  return visible.length;
-}
-
-async function typeInto(page, selector, text) {
-  await page.focus(selector);
-  await page.keyboard.down("Control");
-  await page.keyboard.press("a");
-  await page.keyboard.up("Control");
-  await page.keyboard.type(text);
-  await page.keyboard.press("Tab");
+  const { count } = await clickCheckboxIn(page, label, {
+    index,
+    after: () => settle(page),
+  });
+  return count;
 }
 
 // Fake RPC in the nav.
 // The RPC input has no placeholder while focused (BaseInput.svelte); use its aria-label (#394).
 async function setupRpc(page) {
-  await typeInto(page, 'input[aria-label="RPC URL"]', FAKE_RPC);
+  await typeInto(page, RPC_INPUT, FAKE_RPC);
   await settle(page);
 }
 
@@ -436,7 +374,7 @@ async function snap(
   const step = {
     step: name,
     url: page.url(),
-    toggle: await toggleInfo(page),
+    toggle: await findToggle(page),
     nav: await navText(page),
     main: await mainText(page),
     db: await dbDump(page, contractNames),
@@ -515,10 +453,11 @@ async function watchTransitions(
   let t;
   let s;
   while (Date.now() - t0 < timeout) {
-    t = await toggleInfo(page);
+    t = await findToggle(page);
     s = await syncStateOf(page, dbName, contract);
     const key = JSON.stringify({
       tooltip: t?.tooltip,
+      checked: t?.checked,
       disabled: t?.disabled,
       pulse: t?.pulse,
       db: s?.text,
@@ -836,7 +775,7 @@ if (want("S1")) {
       await new Promise((res) => setTimeout(res, 1500));
       await snap(page, "S1-6-9-d-reload-while-syncing");
       // The reload stops the sync, and only the toggle starts it again.
-      const tInfo = await toggleInfo(page);
+      const tInfo = await findToggle(page);
       check("6-9 start after reload", startSync(tInfo), { toggle: tInfo });
       if (startSync(tInfo)) {
         await clickToggle(page);
@@ -926,7 +865,7 @@ for (const [mode, stopTimeoutMs] of S3_MODES) {
         note("rpc", rpc);
       }
       const calls = rpcState.calls.slice(n0).map((c) => c.method);
-      const t = await toggleInfo(page);
+      const t = await findToggle(page);
       const s = await syncStateOf(page, V1, "Augur");
       const end = {
         tooltip: t?.tooltip,
@@ -999,7 +938,7 @@ if (want("S4")) {
       await (await front(b), snap)(b, "S4-6-8-c-B-while-A-syncing-no-click");
       // B knows from the signal of A that A syncs, without trying to start
       // (#656). There is nothing to click: the toggle is disabled.
-      const bInfo = await (await front(b), toggleInfo)(b);
+      const bInfo = await (await front(b), findToggle)(b);
       check(
         "B toggle before click",
         bInfo?.tooltip === "in use in another tab" && bInfo.disabled === true,
@@ -1026,7 +965,7 @@ if (want("S4")) {
       await (await front(b), snap)(b, "S4-6-8-f-B-after-A-stopped");
       await (await front(c), snap)(c, "S4-6-8-g-C-after-A-stopped");
       // B starts now.
-      const b2 = await (await front(b), toggleInfo)(b);
+      const b2 = await (await front(b), findToggle)(b);
       check("B toggle after A stopped", startSync(b2), { toggle: b2 });
       if (startSync(b2)) {
         await (await front(b), clickToggle)(b);
@@ -1061,7 +1000,7 @@ if (want("S4")) {
         b,
         "S4-6-8-j-B-after-A-closed-while-syncing",
       );
-      const b3 = await (await front(b), toggleInfo)(b);
+      const b3 = await (await front(b), findToggle)(b);
       check("B toggle after A closed while syncing", startSync(b3), {
         toggle: b3,
       });
