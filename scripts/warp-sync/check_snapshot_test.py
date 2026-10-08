@@ -94,6 +94,17 @@ class CheckSnapshot(unittest.TestCase):
         self.assertEqual(p.returncode, 1)
         self.assertIn("release on 2026-10-09", p.stdout)
 
+    def test_a_snapshot_made_after_the_release_time_on_its_day_passes(self):
+        # Only the day counts: a run made later that day passes, with a
+        # negative age.
+        self.write_manifest("eth", runs=[run("2026-10-08T23:00:00Z")])
+        p = self.check()
+        self.assertEqual(p.returncode, 0, p.stdout)
+        self.assertNotIn("::", p.stdout)
+        self.assertIn(
+            "| eth | run 1 | 2026-10-08 23:00 UTC | 26,138,967 | -0.5 |", p.stdout
+        )
+
     def test_off_warns_instead_of_failing(self):
         self.write_manifest("eth", runs=[run("2026-10-07T00:00:00Z")])
         self.env["WARP_SYNC_SNAPSHOT_CHECK"] = "off"
