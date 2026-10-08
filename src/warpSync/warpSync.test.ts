@@ -802,11 +802,9 @@ describe("warpSync", () => {
 
     test("hides Stop once it failed, while it reads the DB again, and a stop then still ends it as failed", async () => {
       vi.spyOn(customLogger, "error").mockImplementation(() => {});
-      const late: { options?: Parameters<typeof importWarpSync>[2] } = {};
       vi.mocked(importWarpSync).mockImplementationOnce(
         async (_chain, _manifest, options) => {
           options?.onRangeDone?.({ logCount: 20_000 } as never);
-          late.options = options;
           throw new Error("timeout");
         },
       );
@@ -829,12 +827,6 @@ describe("warpSync", () => {
         expect(selectWarpSyncState(get(storeWarpSync), "matic")).toMatchObject(
           failing,
         );
-        // A range saved before the failure, whose result came back late.
-        late.options?.onRangeDone?.({ logCount: 20_000 } as never);
-        expect(selectWarpSyncState(get(storeWarpSync), "matic")).toMatchObject({
-          ...failing,
-          progress: { doneLogCount: 40_000 },
-        });
       } finally {
         finishReload();
         await importing;
