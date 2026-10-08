@@ -137,13 +137,16 @@ It reads only the results file of each step (`RESULTS`):
 `sync/results.json` and the `[check]` lines of `upgrade/log-<phase>.txt`,
 are for a person.
 
-- A new check writes its records with `createResults()`. A record that
-  `judge.py` should fail on is `OK`/`NG` (`check()` in `sync/` and
-  `real-rpc/`); `note()` writes `INFO`.
+- A new check writes its records with `createResults()`, or with
+  `createChecks()` of the same module when it also keeps a file for a person
+  (`sync/` and `real-rpc/`). A record that `judge.py` should fail on is
+  `OK`/`NG` (`check(key, ok, value)`, also in `upgrade/`); `note()` (`info()`
+  in `upgrade/`) writes `INFO`.
 - A new step needs its results file in `RESULTS`, or a place in
   `NO_RESULTS` with the reason. Without it, `judge.py` fails.
 - With `--fake`, the `wss` runs of `real-rpc/` end in an error (a WebSocket
-  cannot be faked), so their records are `INFO`.
+  cannot be faked), so their records are `INFO`, and so is that error
+  (`judged` of `createChecks()`).
 
 Tests of `judge.py`:
 

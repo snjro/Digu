@@ -61,11 +61,11 @@ class Judge(unittest.TestCase):
 
     def test_upgrade_b_is_read_when_it_ran(self):
         self.codes["upgrade-b-new"] = "0"
-        self.assertEqual(
-            self.run_judge(),
-            ["upgrade-b-new: cannot read results-new.json "
-             "([Errno 2] No such file or directory: "
-             f"'{os.path.join(self.out, 'upgrade-b/results-new.json')}')"],
+        lines = self.run_judge()
+        self.assertEqual(len(lines), 1)
+        self.assertTrue(
+            lines[0].startswith("upgrade-b-new: cannot read results-new.json"),
+            lines[0],
         )
 
     def test_only_the_results_file_of_the_step_is_read(self):
@@ -146,6 +146,24 @@ class Judge(unittest.TestCase):
         self.codes["ui-merge"] = "missing"
         self.assertCountEqual(
             self.run_judge(), ["sync-smoke: exit 1", "ui-merge: exit missing"]
+        )
+
+    def test_a_step_that_did_not_run_is_reported_once(self):
+        os.remove(os.path.join(self.out, RESULTS["ui-sec2"]))
+        self.codes["ui-sec2"] = "missing"
+        self.codes["ui-sec9"] = "not-in-steps"
+        self.assertCountEqual(
+            self.run_judge(),
+            ["ui-sec2: exit missing", "ui-sec9: exit not-in-steps"],
+        )
+
+    def test_a_step_that_failed_is_also_judged_by_its_results(self):
+        self.codes["sync-check"] = "1"
+        self.write("sync/results-sync.json", [
+            {"id": "S1 error", "result": "ERROR", "note": "script exception"}])
+        self.assertEqual(
+            self.run_judge(),
+            ["sync-check: exit 1", "sync-check S1 error: ERROR script exception"],
         )
 
     def test_without_exit_codes(self):

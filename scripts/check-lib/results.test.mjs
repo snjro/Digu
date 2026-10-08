@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { RESULTS, createResults } from "./results.mjs";
+import { RESULTS, createChecks, createResults } from "./results.mjs";
 
 let dir;
 beforeAll(() => {
@@ -61,6 +61,12 @@ describe("createResults", () => {
     ]);
   });
 
+  test("a field does not take the place of id, result or note", () => {
+    const r = createResults({ file: path.join(dir, "fields.json") });
+    r.add("a", "NG", "wrong", { id: "b", result: "OK", note: "x", n: 1 });
+    expect(r.records).toEqual([{ id: "a", result: "NG", note: "wrong", n: 1 }]);
+  });
+
   test("without a file, writes nothing until writeTo", () => {
     const file = path.join(dir, "later.json");
     const r = createResults();
@@ -93,7 +99,7 @@ describe("guard", () => {
       async () => {
         throw new Error("boom");
       },
-      async () => ({ shots: ["S1-error.png"] }),
+      { onError: async () => ({ shots: ["S1-error.png"] }) },
     );
     expect(r.records).toHaveLength(1);
     expect(r.records[0]).toMatchObject({
@@ -111,10 +117,96 @@ describe("guard", () => {
       () => {
         throw new Error("boom");
       },
-      () => {
-        throw new Error("no screenshot");
+      {
+        onError: () => {
+          throw new Error("no screenshot");
+        },
       },
     );
     expect(r.records.map((x) => x.result)).toEqual(["ERROR"]);
+  });
+
+  test("writes the result it is given", async () => {
+    const r = createResults({ file: path.join(dir, "guard-info.json") });
+    await r.guard(
+      "wss error",
+      () => {
+        throw new Error("boom");
+      },
+      { result: "INFO" },
+    );
+    expect(r.records.map((x) => x.result)).toEqual(["INFO"]);
+  });
+});
+
+describe("createChecks", () => {
+  // A check with its file for a person in `kept`, like sync and real-rpc.
+  function setup(name) {
+    const file = path.join(dir, `checks-${name}.json`);
+    const kept = {};
+    const state = { scenario: "S1", judged: true };
+    const c = createChecks({
+      file,
+      prefix: () => state.scenario,
+      keep: (key, value) => ((kept[state.scenario] ??= {})[key] = value),
+      judged: () => state.judged,
+    });
+    return { file, kept, state, c };
+  }
+
+  test("note writes INFO, and check OK or NG, with the prefix", () => {
+    const { file, kept, state, c } = setup("judged");
+    c.note("locks", true);
+    c.check("reached", true, { n: 1 });
+    state.scenario = "S3";
+    c.check("reached", false);
+    expect(read(file).results).toEqual([
+      { id: "S1 locks", result: "INFO", note: true },
+      { id: "S1 reached", result: "OK", note: { n: 1 } },
+      { id: "S3 reached", result: "NG", note: {} },
+    ]);
+    expect(kept).toEqual({
+      S1: { locks: true, reached: { ok: true, n: 1 } },
+      S3: { reached: { ok: false } },
+    });
+  });
+
+  test("check writes INFO while the run is not judged", () => {
+    const { c, state } = setup("not-judged");
+    state.judged = false;
+    c.check("1 helper", false, { seen: [] });
+    state.judged = true;
+    c.check("1 helper", false, { seen: [] });
+    expect(c.records.map((x) => [x.result, x.note])).toEqual([
+      ["INFO", { ok: false, seen: [] }],
+      ["NG", { seen: [] }],
+    ]);
+  });
+
+  test("guard keeps the error and writes ERROR, or INFO when not judged", async () => {
+    const { c, kept, state } = setup("guard");
+    const shots = [];
+    const boom = () => {
+      throw new Error("boom");
+    };
+    await c.guard(boom, () => shots.push(state.scenario));
+    state.scenario = "wss";
+    state.judged = false;
+    await c.guard(boom, () => {
+      throw new Error("no screenshot");
+    });
+    expect(c.records.map((x) => [x.id, x.result])).toEqual([
+      ["S1 error", "ERROR"],
+      ["wss error", "INFO"],
+    ]);
+    expect(shots).toEqual(["S1"]);
+    expect(kept.S1.error).toContain("boom");
+    expect(kept.wss.error).toContain("boom");
+  });
+
+  test("guard writes nothing when the scenario ends", async () => {
+    const { c } = setup("guard-ok");
+    await c.guard(async () => c.note("a", 1));
+    expect(c.records.map((x) => x.id)).toEqual(["S1 a"]);
   });
 });

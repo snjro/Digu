@@ -35,7 +35,7 @@ import {
   logPageProblems,
   serveBuild,
 } from "../../check-lib/browser.mjs";
-import { createResults } from "../../check-lib/results.mjs";
+import { createChecks } from "../../check-lib/results.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
 const puppeteer = require("puppeteer");
@@ -110,9 +110,6 @@ const RUNS = [
 
 // results.json is for a person; judge.py reads results-real-rpc.json.
 const results = {};
-const records = createResults({
-  file: path.join(outDir, "results-real-rpc.json"),
-});
 const consoleLog = [];
 const blocked = [];
 let run = "";
@@ -136,23 +133,19 @@ function save() {
     JSON.stringify(blocked, null, 2),
   );
 }
-// Only in results.json.
-function keep(key, value) {
-  (results[run] ??= {})[key] = value;
-  console.log(`[${run}] ${key}: ${JSON.stringify(value).slice(0, 500)}`);
-  save();
-}
-// A record that is not judged (INFO).
-function note(key, value) {
-  keep(key, value);
-  records.add(`${run} ${key}`, "INFO", value);
-}
-// A record that is judged: OK or NG. INFO in a run that is not judged.
-function check(key, ok, value = {}) {
-  keep(key, { ok, ...value });
-  if (judged) records.check(`${run} ${key}`, ok, value);
-  else records.add(`${run} ${key}`, "INFO", { ok, ...value });
-}
+// note() writes INFO, check() OK or NG, and guard() turns an exception of a
+// run into ERROR; INFO in a run that is not judged
+// (scripts/check-lib/results.mjs).
+const { note, check, guard } = createChecks({
+  file: path.join(outDir, "results-real-rpc.json"),
+  prefix: () => run,
+  keep(key, value) {
+    (results[run] ??= {})[key] = value;
+    console.log(`[${run}] ${key}: ${JSON.stringify(value).slice(0, 500)}`);
+    save();
+  },
+  judged: () => judged,
+});
 
 // ---- the build, served like GitHub Pages ----
 const server = serveBuild(buildDir);
@@ -915,20 +908,9 @@ for (const [id, chain, rpc] of RUNS) {
       },
     );
   };
-  const screenshot = () =>
-    page.screenshot({ path: path.join(outDir, `${id}-error.png`) });
-  if (judged) {
-    await records.guard(`${id} error`, scenario, async (e) => {
-      keep("error", String(e.stack ?? e));
-      await screenshot();
-    });
-  } else {
-    // The error that ends a wss run with --fake.
-    await scenario().catch(async (e) => {
-      note("error", String(e.stack ?? e));
-      await screenshot().catch(() => {});
-    });
-  }
+  await guard(scenario, () =>
+    page.screenshot({ path: path.join(outDir, `${id}-error.png`) }),
+  );
   // 4 and 5.
   const own = consoleLog.filter((x) => x.run === id);
   const byType = {};

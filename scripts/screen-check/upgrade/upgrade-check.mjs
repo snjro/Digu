@@ -65,11 +65,14 @@ let stepName = "start";
 const results = createResults({
   file: path.join(outDir, `results-${phase}.json`),
 });
-// Writes a record and its [check] line in the log.
-function check(id, result, note) {
+// Write a record and its [check] line in the log: check() OK or NG, info()
+// INFO.
+function add(id, result, note) {
   results.add(`${phase} ${id}`, result, note);
   log.push(`[check] ${id}: ${result} ${note}`);
 }
+const check = (id, ok, note) => add(id, ok ? "OK" : "NG", note);
+const info = (id, note) => add(id, "INFO", note);
 
 const server = serveBuild(buildDir, {
   headers: { "cache-control": "no-store" },
@@ -498,7 +501,7 @@ function checkSettingsUpgrade(before, after) {
   }
   check(
     "Settings DB upgrade",
-    ng.length ? "NG" : "OK",
+    ng.length === 0,
     `${ng.length ? `${ng.join("; ")}; ` : ""}version ${before?.version} -> ${after?.version}; before ${JSON.stringify(before?.rows)}; after ${JSON.stringify(after?.rows)}`,
   );
 }
@@ -519,15 +522,15 @@ async function syncUntil(page, prefix, target) {
   }
   check(
     `${prefix} Augur_TimestampSet count`,
-    n >= target ? "OK" : "NG",
+    n >= target,
     `${n} after ${Date.now() - t0}ms, expected ${target}`,
   );
   // Let the remaining loop settle a little, then stop.
   await new Promise((r) => setTimeout(r, 4000));
   await (await toggleButton(page)).click();
   await waitLabel(page, "start sync", 60000).then(
-    () => check(`${prefix} stop wait`, "OK", "start sync"),
-    (e) => check(`${prefix} stop wait`, "NG", e.message),
+    () => check(`${prefix} stop wait`, true, "start sync"),
+    (e) => check(`${prefix} stop wait`, false, e.message),
   );
   await record(page, `${prefix}-sync-stopped`);
 }
@@ -539,9 +542,8 @@ const browser = await puppeteer.launch({
   protocolTimeout: 60000,
   args: ["--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost"],
 });
-check(
+info(
   "open pages at launch",
-  "INFO",
   (await browser.pages()).map((p) => p.url()).join(", "),
 );
 const page = (await browser.pages())[0] ?? (await browser.newPage());
@@ -652,7 +654,7 @@ await results.guard(
         b.click();
         return b.outerHTML.slice(0, 200);
       });
-      check("sidebar close clicked", "INFO", closed);
+      info("sidebar close clicked", closed);
       await settle(page, 1000);
       await record(page, "old-06-final", { dump: true });
     } else if (phase === "probe") {
@@ -734,11 +736,7 @@ await results.guard(
             r.innerText.replace(/\s+/g, " ").slice(0, 400),
           ),
         );
-        check(
-          `${name} ag-row count`,
-          "INFO",
-          `${rows.length}: ${JSON.stringify(rows)}`,
-        );
+        info(`${name} ag-row count`, `${rows.length}: ${JSON.stringify(rows)}`);
         // #509: sort by the datetime column (the Date), ascending then descending.
         if (name === "grid-TimestampSet") {
           for (const n of [1, 2]) {
@@ -747,7 +745,7 @@ await results.guard(
             );
             check(
               `${name} datetime header ${n}`,
-              label ? "OK" : "NG",
+              !!label,
               label ? "found" : "not found",
             );
             if (!label) break;
@@ -769,11 +767,7 @@ await results.guard(
                 )
                 .map((c) => c.innerText.trim()),
             }));
-            check(
-              `${name} datetime sort click ${n}`,
-              "INFO",
-              JSON.stringify(sorted),
-            );
+            info(`${name} datetime sort click ${n}`, JSON.stringify(sorted));
             await page.screenshot({
               path: path.join(shotDir, `${name}-sort${n}.png`),
             });
@@ -802,11 +796,7 @@ await results.guard(
             };
           }),
       );
-      check(
-        "Augur_TimestampSet jsDate types",
-        "INFO",
-        JSON.stringify(jsDateTypes),
-      );
+      info("Augur_TimestampSet jsDate types", JSON.stringify(jsDateTypes));
     } else {
       stepName = "new-00";
       // The Settings DB before the new build opens it, from a file of the
@@ -860,7 +850,7 @@ await results.guard(
           text: d.innerText.slice(0, 800),
         };
       });
-      check("sync panel (eth page)", "INFO", JSON.stringify(dialogValues));
+      info("sync panel (eth page)", JSON.stringify(dialogValues));
       await record(page, "new-10-sync-panel");
       await page.keyboard.press("Escape");
       await settle(page);
@@ -873,13 +863,15 @@ await results.guard(
       await record(page, "new-12-events-after-sync", { dump: true });
     }
   },
-  async (e) => {
-    log.push(`[script-error] ${stepName}: ${e.stack}`);
-    console.log("SCRIPT ERROR", e.message);
-    await page
-      .screenshot({ path: path.join(shotDir, `error-${stepName}.png`) })
-      .catch(() => {});
-    return { step: stepName };
+  {
+    onError: async (e) => {
+      log.push(`[script-error] ${stepName}: ${e.stack}`);
+      console.log("SCRIPT ERROR", e.message);
+      await page
+        .screenshot({ path: path.join(shotDir, `error-${stepName}.png`) })
+        .catch(() => {});
+      return { step: stepName };
+    },
   },
 );
 flush();

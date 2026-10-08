@@ -54,7 +54,9 @@ def judge(out):
             continue
         if code != "0":
             failures.append(f"{step}: exit {code}")
-        if step in NO_RESULTS:
+        # A step that did not run, or that run-all.sh does not know: the line
+        # above is enough.
+        if code in ("missing", "not-in-steps") or step in NO_RESULTS:
             continue
         if step not in RESULTS:
             failures.append(f"{step}: judge.py does not know its results file")

@@ -313,9 +313,11 @@ export async function step(id, page, fn) {
   if (ONLY && !ONLY.some((o) => id.startsWith(o))) return;
   setStep(id);
   const before = log.length;
-  await results.guard(id, fn, async (e) => {
-    console.log(`[${id}] ERROR script exception: ${e?.message}`);
-    return { shots: [await shot(page, `${id}-exception`)] };
+  await results.guard(id, fn, {
+    onError: async (e) => {
+      console.log(`[${id}] ERROR script exception: ${e?.message}`);
+      return { shots: [await shot(page, `${id}-exception`)] };
+    },
   });
   const errs = log
     .slice(before)

@@ -10,7 +10,7 @@ import {
   logPageProblems,
   serveBuild,
 } from "../../check-lib/browser.mjs";
-import { createResults } from "../../check-lib/results.mjs";
+import { createChecks } from "../../check-lib/results.mjs";
 import {
   handle,
   makeState,
@@ -37,7 +37,6 @@ const V1_CREATION = 5926229;
 
 // results.json is for a person; judge.py reads results-sync.json.
 const results = {};
-const records = createResults({ file: path.join(outDir, "results-sync.json") });
 const consoleLog = []; // {scenario, page, type, text}
 const blocked = [];
 let scenario = "";
@@ -65,29 +64,17 @@ function saveResults() {
 function r() {
   return (results[scenario] ??= { steps: [] });
 }
-// Only in results.json.
-function keep(key, value) {
-  r()[key] = value;
-  console.log(`[${scenario}] ${key}:`, JSON.stringify(value).slice(0, 400));
-  saveResults();
-}
-// A record that is not judged (INFO).
-function note(key, value) {
-  keep(key, value);
-  records.add(`${scenario} ${key}`, "INFO", value);
-}
-// A record that is judged: OK or NG.
-function check(key, ok, value = {}) {
-  keep(key, { ok, ...value });
-  records.check(`${scenario} ${key}`, ok, value);
-}
-// Runs a scenario. An exception becomes an ERROR record.
-async function guard(fn, screenshot) {
-  await records.guard(`${scenario} error`, fn, async (e) => {
-    keep("error", String(e.stack ?? e));
-    await screenshot?.();
-  });
-}
+// note() writes INFO, check() OK or NG, and guard() turns an exception of a
+// scenario into ERROR (scripts/check-lib/results.mjs).
+const { note, check, guard } = createChecks({
+  file: path.join(outDir, "results-sync.json"),
+  prefix: () => scenario,
+  keep(key, value) {
+    r()[key] = value;
+    console.log(`[${scenario}] ${key}:`, JSON.stringify(value).slice(0, 400));
+    saveResults();
+  },
+});
 
 const server = serveBuild(buildDir);
 
