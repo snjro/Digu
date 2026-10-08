@@ -346,9 +346,11 @@ function isJsonRpcError(
     typeof value.message === "string"
   );
 }
+// raiseOnly: written only when it is higher than the one stored.
 export async function getAndUpdateLatestBlockNumber(
   nodeProvider: NodeProvider,
   chainName: ChainName,
+  { raiseOnly }: { raiseOnly: boolean },
 ): Promise<number> {
   // Blocks within the confirmation depth can still be replaced by a chain
   // reorganization, so the sync does not go past them.
@@ -357,7 +359,15 @@ export async function getAndUpdateLatestBlockNumber(
     (await nodeProvider.getBlockNumber()) -
       getTargetChain({ chainName }).confirmationBlocks,
   );
-  await raiseDbLatestBlockNumber(chainName, latestBlockNumber);
+  if (raiseOnly) {
+    await raiseDbLatestBlockNumber(chainName, latestBlockNumber);
+  } else {
+    await updateDbItemChainStatus(
+      chainName,
+      "latestBlockNumber",
+      latestBlockNumber,
+    );
+  }
   return latestBlockNumber;
 }
 

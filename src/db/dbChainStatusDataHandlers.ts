@@ -34,29 +34,31 @@ export async function updateDbItemChainStatus<T extends keyof ChainStatus>(
     });
 }
 // Only a higher block, read and written in one transaction, so that a late or
-// older answer, or another tab, does not move the latest block back.
+// older answer, or another tab, does not move the latest block back. The
+// store gets the higher one each time, so that a store behind the DB catches
+// up. A chain without a row changes nothing.
 export async function raiseDbLatestBlockNumber(
   chainName: ChainName,
   latestBlockNumber: number,
 ): Promise<void> {
-  const raised: boolean = await dbChainStatus.transaction(
+  const higher: number | undefined = await dbChainStatus.transaction(
     "rw",
     tableNameChainStatus,
     async () => {
       const chainStatus: ChainStatus | undefined = await dbChainStatus
         .table(tableNameChainStatus)
         .get(chainName);
-      if (
-        chainStatus !== undefined &&
-        latestBlockNumber <= chainStatus.latestBlockNumber
-      ) {
-        return false;
+      if (chainStatus === undefined) return undefined;
+      if (latestBlockNumber <= chainStatus.latestBlockNumber) {
+        return chainStatus.latestBlockNumber;
       }
       await dbChainStatus
         .table(tableNameChainStatus)
         .update(chainName, { latestBlockNumber });
-      return true;
+      return latestBlockNumber;
     },
   );
-  if (raised) storeChainStatus.updateState(chainName, { latestBlockNumber });
+  if (higher !== undefined) {
+    storeChainStatus.updateState(chainName, { latestBlockNumber: higher });
+  }
 }

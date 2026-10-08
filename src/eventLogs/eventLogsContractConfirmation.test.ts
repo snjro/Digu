@@ -100,7 +100,9 @@ describe("fetchEventLogsContract with the latest block number from the RPC", () 
   });
 
   test("should keep the confirmation depth in the store and in the DB", async () => {
-    await getAndUpdateLatestBlockNumber(nodeProvider, targetChain.name);
+    await getAndUpdateLatestBlockNumber(nodeProvider, targetChain.name, {
+      raiseOnly: false,
+    });
 
     expect(get(storeChainStatus)[targetChain.name].latestBlockNumber).toBe(
       confirmedBlockNumber,
@@ -111,7 +113,9 @@ describe("fetchEventLogsContract with the latest block number from the RPC", () 
   });
 
   test("should not mark blocks within the confirmation depth as fetched", async () => {
-    await getAndUpdateLatestBlockNumber(nodeProvider, targetChain.name);
+    await getAndUpdateLatestBlockNumber(nodeProvider, targetChain.name, {
+      raiseOnly: false,
+    });
 
     await fetchEventLogsContract(dbEventLogs, targetContract, nodeProvider);
 

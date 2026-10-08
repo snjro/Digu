@@ -108,14 +108,27 @@ describe("raiseDbLatestBlockNumber", () => {
   });
 
   test.each([1, 0])(
-    "should not write %s, which is not higher than the latest block of the DB",
+    "should not write %s to the DB, and give the store the one of the DB",
     async (latestBlockNumber: number) => {
       await raiseDbLatestBlockNumber(dummyChainName, latestBlockNumber);
 
       expect(spyTableUpdate).not.toHaveBeenCalled();
-      expect(spyStoreChainStatus).not.toHaveBeenCalled();
+      // A store behind the DB catches up.
+      expect(spyStoreChainStatus).toHaveBeenCalledExactlyOnceWith(
+        dummyChainName,
+        { latestBlockNumber: dummyChainStatus.latestBlockNumber },
+      );
     },
   );
+
+  test("should change nothing for a chain without a row", async () => {
+    spyTableGet.mockResolvedValueOnce(undefined);
+
+    await raiseDbLatestBlockNumber(dummyChainName, 2);
+
+    expect(spyTableUpdate).not.toHaveBeenCalled();
+    expect(spyStoreChainStatus).not.toHaveBeenCalled();
+  });
 
   test("should read and write in one transaction", async () => {
     await raiseDbLatestBlockNumber(dummyChainName, 2);

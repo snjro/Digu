@@ -13,10 +13,6 @@ import { getTargetChain } from "#utils/utilsDb.js";
 import { TRY_COUNT } from "./eventLogsContract";
 
 const functionName: string = "startUpdateLatestBlockNumber";
-// A request of the latest block that has been in flight for longer counts as
-// failed, and the next tick starts a new one, so that a request, a body or a
-// DB write that hangs does not stop the updates.
-export const LATEST_BLOCK_REQUEST_LIMIT_IN_INTERVALS: number = 5;
 
 // Resolves a function that stops the updates.
 export async function startUpdateLatestBlockNumber(
@@ -29,30 +25,22 @@ export async function startUpdateLatestBlockNumber(
   const targetChain: Chain = getTargetChain({ chainName: targetChainName });
   let errorCount: number = 0;
   let isStopped: boolean = false;
-  // The request in flight, if any. A request that was replaced does not count
-  // its end.
-  let requestInFlight: { startedAt: number } | undefined = undefined;
 
-  const countError = (error: unknown): void => {
-    errorCount++;
-    customLogger.warn({
-      errorOn: functionName,
-      errorCount: `${errorCount}/${TRY_COUNT}`,
-      error: getLoggableError(error),
-    });
-  };
-  const tryGetAndUpdateLatestBlockNumber = async () => {
-    const request = { startedAt: Date.now() };
-    requestInFlight = request;
+  const tryGetAndUpdateLatestBlockNumber = async (raiseOnly: boolean) => {
     try {
-      await getAndUpdateLatestBlockNumber(nodeProvider, targetChainName);
-      if (requestInFlight === request) errorCount = 0;
+      await getAndUpdateLatestBlockNumber(nodeProvider, targetChainName, {
+        raiseOnly,
+      });
+      errorCount = 0;
     } catch (error) {
       // Destroying the provider after stopping cancels the request in flight.
-      if (isStopped || requestInFlight !== request) return;
-      countError(error);
-    } finally {
-      if (requestInFlight === request) requestInFlight = undefined;
+      if (isStopped) return;
+      errorCount++;
+      customLogger.warn({
+        errorOn: functionName,
+        errorCount: `${errorCount}/${TRY_COUNT}`,
+        error: getLoggableError(error),
+      });
     }
   };
 
@@ -60,7 +48,9 @@ export async function startUpdateLatestBlockNumber(
   // The reason is that the fetching event logs start before the interval starts.
   // And the block number, which is the goal of the fetching event log, is considered 0.
   // To avoid this, get the latest blocknumber here.
-  await tryGetAndUpdateLatestBlockNumber();
+  // The value of the node as it is, also lower: the node may have been
+  // switched to one that is further behind.
+  await tryGetAndUpdateLatestBlockNumber(false);
 
   // The requests and the aborting catch and log their errors. The rest
   // (reading the store, logging, clearing the interval) is not in a try.
@@ -69,20 +59,10 @@ export async function startUpdateLatestBlockNumber(
       stop();
       return;
     }
-    // One request at a time, so that the requests do not pile up. A late
-    // answer of a replaced request does not lower the latest block, which is
-    // only raised.
-    if (requestInFlight !== undefined) {
-      if (
-        Date.now() - requestInFlight.startedAt <
-        LATEST_BLOCK_REQUEST_LIMIT_IN_INTERVALS * targetChain.blockIntervalMs
-      ) {
-        return;
-      }
-      countError(new Error("The request of the latest block did not end."));
-    }
 
-    await tryGetAndUpdateLatestBlockNumber();
+    // Only raised: the requests may overlap, and an older answer that comes
+    // later does not move the latest block back.
+    await tryGetAndUpdateLatestBlockNumber(true);
     // A request in flight fails when the provider is destroyed after stopping.
     if (isStopped) return;
     if (errorCount > TRY_COUNT) {
