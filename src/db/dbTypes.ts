@@ -6,6 +6,7 @@ import type {
   AbiFragmentName,
   HexString,
   Chain,
+  Contract,
 } from "#constants/chains/types.js";
 import type { NO_DATA } from "#utils/utilsConstants.js";
 import type { EventLog as OriginalEthersEventLog } from "ethers";
@@ -173,6 +174,16 @@ export const clearedSyncFlags = {
   isAbort: false,
   isSyncing: false,
 } as const satisfies Partial<SyncStatusContract>;
+// The reset of the row of a contract where no sync runs: the flags cleared,
+// and the creation block of this build.
+export function getSyncStatusReset(
+  contract: Contract,
+): Partial<SyncStatusContract> {
+  return {
+    ...clearedSyncFlags,
+    creationBlockNumber: contract.creation.blockNumber,
+  };
+}
 type SyncStatusBaseNumberItems = {
   [key in (typeof syncStatusBaseNumberKeys)[number]]: number;
 };

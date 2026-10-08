@@ -43,11 +43,8 @@ vi.mock("./warpSyncImport", () => ({
   getWarpSyncPending: vi.fn(),
 }));
 // What the real waitForSyncLockRelease() reads once the lock is released.
-vi.mock("#db/db.worker.func.InitializeDBSyncStatus.js", () => ({
-  initializeDBSyncStatusInChain: vi.fn(async () => {}),
-}));
-vi.mock("#db/dbEventLogsDataHandlersSyncStatusGetters.js", () => ({
-  getDbRecordSyncStatusContract: vi.fn(async () => ({})),
+vi.mock("#db/dbEventLogsDataHandlersSyncStatusLoad.js", () => ({
+  loadSyncStatusInChain: vi.fn(async () => {}),
 }));
 vi.mock("#db/dbChainStatusDataHandlers.js", () => ({
   getDbRecordChainStatus: vi.fn(async () => ({ latestBlockNumber: 0 })),

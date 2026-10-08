@@ -254,8 +254,8 @@ export function waitForSyncLockRelease(chainName: ChainName): void {
 }
 
 // Reads the chain from the DB into the stores, after another tab (or the warp
-// sync) changed it. Call only while holding the sync lock of the chain,
-// exclusive or shared: no operation runs then.
+// sync) changed it, and resets every row. Call only while holding the sync
+// lock of the chain exclusive, for an operation of this tab.
 export async function reloadSyncStatusInChain(
   chainName: ChainName,
 ): Promise<void> {

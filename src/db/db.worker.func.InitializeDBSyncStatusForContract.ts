@@ -1,38 +1,20 @@
 import type { Contract, EventAbiFragment } from "#constants/chains/types.js";
-import {
-  clearedSyncFlags,
-  type SyncStatusContract,
-  type SyncStatusesEvent,
-} from "./dbTypes";
+import { getSyncStatusReset, type SyncStatusesEvent } from "./dbTypes";
 import { updateDbRecordSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbRecordSyncStatus";
 import { getEventLogTableName } from "#utils/utilsDb.js";
 import { getEventLogTableRecordCount } from "./dbEventLogsDataHandlersEventLog";
 import type { DbEventLogs } from "./dbEventLogs";
 
-// With `recount`, the record counts are counted from the event log tables.
-// Without it, the counts in the DB are kept: they are added in the same
-// transaction as the logs, so only the startup recounts them.
+// At startup, the record counts are counted from the event log tables:
+// afterwards they are added in the same transaction as the logs.
 export async function initializeDBSyncStatusForContract(
   dbEventLogs: DbEventLogs,
   targetContract: Contract,
-  recount: boolean,
 ): Promise<void> {
-  const newSyncStatusContract: Partial<SyncStatusContract> = {
-    ...clearedSyncFlags,
-    creationBlockNumber: targetContract.creation.blockNumber,
-  };
-  if (recount) {
-    newSyncStatusContract.events = await getSyncStatusesEvent(
-      dbEventLogs,
-      targetContract,
-    );
-  }
-
-  await updateDbRecordSyncStatus(
-    dbEventLogs,
-    targetContract.name,
-    newSyncStatusContract,
-  );
+  await updateDbRecordSyncStatus(dbEventLogs, targetContract.name, {
+    ...getSyncStatusReset(targetContract),
+    events: await getSyncStatusesEvent(dbEventLogs, targetContract),
+  });
 }
 async function getSyncStatusesEvent(
   dbEventLogs: DbEventLogs,

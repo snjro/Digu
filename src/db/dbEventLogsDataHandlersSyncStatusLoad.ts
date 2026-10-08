@@ -7,6 +7,7 @@ import { DB_TABLE_NAMES } from "./constants";
 import { getDbEventLogs, type DbEventLogs } from "./dbEventLogs";
 import {
   clearedSyncFlags,
+  getSyncStatusReset,
   type SyncStatusContract,
   type VersionIdentifier,
 } from "./dbTypes";
@@ -70,19 +71,40 @@ async function loadVersion(
   const found: Set<string> = new Set();
   for (const { contract, row } of rows) {
     found.add(contract.name);
-    // The creation block that this build syncs from, also when a tab on
-    // another build wrote its own.
     storeSyncStatus.updateState(
       { ...versionIdentifier, contractName: contract.name },
-      { ...row, creationBlockNumber: contract.creation.blockNumber },
+      {
+        ...row,
+        // A missing flag is false: the store would keep the one it has.
+        isSyncing: row.isSyncing === true,
+        isAbort: row.isAbort === true,
+        // The creation block that this build syncs from, also when a tab on
+        // another build wrote its own ("reset" has just written it). Tabs of
+        // two builds on one DB are not supported beyond keeping the screen
+        // right: Digu has no users yet.
+        ...(load === "repair"
+          ? { creationBlockNumber: contract.creation.blockNumber }
+          : {}),
+      },
     );
   }
   for (const contract of contracts) {
     if (found.has(contract.name)) continue;
-    customLogger.warn("Skip a contract without a sync status in the DB.", {
+    const contractIdentifier = {
       ...versionIdentifier,
       contractName: contract.name,
-    });
+    };
+    customLogger.warn(
+      "Skip a contract without a sync status in the DB.",
+      contractIdentifier,
+    );
+    // As the reset of each row did: the store does not keep a sync.
+    if (load === "reset") {
+      storeSyncStatus.updateState(
+        contractIdentifier,
+        getSyncStatusReset(contract),
+      );
+    }
   }
 }
 
@@ -117,21 +139,17 @@ async function resetRows(
   return await dbEventLogs.transaction("rw", tableNameSyncStatus, async () => {
     const table = dbEventLogs.table(tableNameSyncStatus);
     const rows: Row[] = await getRows(dbEventLogs, contracts);
-    const reset = (contract: Contract): Partial<SyncStatusContract> => ({
-      ...clearedSyncFlags,
-      creationBlockNumber: contract.creation.blockNumber,
-    });
     if (rows.length > 0) {
       await table.bulkUpdate(
         rows.map(({ contract }) => ({
           key: contract.name,
-          changes: reset(contract),
+          changes: getSyncStatusReset(contract),
         })),
       );
     }
     return rows.map(({ contract, row }) => ({
       contract,
-      row: { ...row, ...reset(contract) },
+      row: { ...row, ...getSyncStatusReset(contract) },
     }));
   });
 }
