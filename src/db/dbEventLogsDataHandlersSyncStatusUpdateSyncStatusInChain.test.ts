@@ -85,7 +85,8 @@ describe("startSyncingInChain and stopSyncingInChain with a row of a contract th
     const dbEventLogs = new DbEventLogs(versionIdentifier);
     const unknownRow = async (): Promise<SyncStatusContract | undefined> =>
       await dbEventLogs.table(tableNameSyncStatus).get("UnknownContract");
-    // The store of this tab has no such contract.
+    // The store of this tab has no such contract, and logs an error for the
+    // row on every update (#763).
     const spyError = vi
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});
@@ -119,11 +120,18 @@ describe("startSyncingInChain and stopSyncingInChain with a row of a contract th
 
       expect((await unknownRow())?.isSyncing).toBe(false);
     } finally {
-      spyError.mockRestore();
       try {
-        await dbEventLogs.table(tableNameSyncStatus).delete("UnknownContract");
+        // Clear the rows that the start marked, also when a check failed.
+        await stopSyncingInChain(targetChain.name);
       } finally {
-        dbEventLogs.close();
+        spyError.mockRestore();
+        try {
+          await dbEventLogs
+            .table(tableNameSyncStatus)
+            .delete("UnknownContract");
+        } finally {
+          dbEventLogs.close();
+        }
       }
     }
   });

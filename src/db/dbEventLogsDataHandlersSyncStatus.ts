@@ -2,8 +2,10 @@ import type {
   ChainName,
   Contract,
   ContractName,
+  Project,
+  Version,
 } from "#constants/chains/types.js";
-import { getTargetVersion } from "#utils/utilsDb.js";
+import { getTargetChain } from "#utils/utilsDb.js";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { DbEventLogs } from "./dbEventLogs";
 import type { ContractIdentifier } from "./dbTypes";
@@ -24,9 +26,23 @@ export async function startSyncingInChain(
     true,
     { isSyncing: true },
   );
+  const eventContractKeys: Set<string> = new Set(
+    getTargetChain({ chainName: chainName }).projects.flatMap(
+      (project: Project) =>
+        project.versions.flatMap((version: Version) =>
+          extractEventContracts(version.contracts).map((contract: Contract) =>
+            JSON.stringify([project.name, version.name, contract.name]),
+          ),
+        ),
+    ),
+  );
   return marked.filter((contractIdentifier: ContractIdentifier) =>
-    extractEventContracts(getTargetVersion(contractIdentifier).contracts).some(
-      (contract: Contract) => contract.name === contractIdentifier.contractName,
+    eventContractKeys.has(
+      JSON.stringify([
+        contractIdentifier.projectName,
+        contractIdentifier.versionName,
+        contractIdentifier.contractName,
+      ]),
     ),
   );
 }
