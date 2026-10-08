@@ -94,6 +94,7 @@ describe("abortChainWithReason", () => {
       error: {
         name: "Error",
         message: "Failed to start aborting.",
+        stack: expect.any(String),
         cause: LOGGABLE_ETHERS_ERROR,
       },
     });

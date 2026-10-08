@@ -176,7 +176,7 @@ describe("fetchEventLogsContract", () => {
     expect(get(storeSyncStoppedReason)[targetChain.name]).toBe("RPC_ERRORS");
   });
 
-  test("should stop the contract and end it with the error of aborting as the cause, and leave the log to the caller", async () => {
+  test("should end the contract with the error of aborting as the cause, and leave the log to the caller", async () => {
     const { provider } = providerFailingGetLogs(TRY_COUNT + 1);
     const abortError: Error = new Error("DB error");
     vi.mocked(startAbortingInChain).mockRejectedValueOnce(abortError);
@@ -197,10 +197,8 @@ describe("fetchEventLogsContract", () => {
     await ended;
 
     expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
-    expect(stopSyncingInContract).toHaveBeenCalledExactlyOnceWith(
-      dbEventLogs,
-      targetContract.name,
-    );
+    // The sync of the chain clears the row when it ends.
+    expect(stopSyncingInContract).not.toHaveBeenCalled();
     expect(spyError).not.toHaveBeenCalledWith(
       "Failed to start aborting.",
       expect.anything(),

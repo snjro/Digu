@@ -80,21 +80,18 @@ describe("fetchEventLogs stops the chain by itself", () => {
   const matic: Chain = TARGET_CHAINS.find((chain) => chain.name === "matic")!;
   const nodeProvider = { destroy: vi.fn() } as unknown as NodeProvider;
   let spyLogs: Record<"error" | "fail", ReturnType<typeof vi.spyOn>>;
-  // The sync that the lock runs after it resolves.
-  let syncing: Promise<void>;
+  // The error that the sync throws, or undefined. The lock resolves once
+  // started, and then catches it.
+  let syncing: Promise<unknown>;
   beforeEach(() => {
     vi.clearAllMocks();
-    // As the lock does: resolves once started, then syncs, and logs a sync
-    // that fails instead of passing it on.
     vi.mocked(requestSyncLock).mockImplementation(
-      async (chainName, start, sync) => {
+      async (_chainName, start, sync) => {
         await start();
-        syncing = sync().catch((error: unknown) => {
-          customLogger.error("Sync event logs.", {
-            chainName: chainName,
-            errorObject: error,
-          });
-        });
+        syncing = sync().then(
+          () => undefined,
+          (error: unknown) => error,
+        );
         return true;
       },
     );
@@ -108,14 +105,6 @@ describe("fetchEventLogs stops the chain by itself", () => {
   });
   afterEach(() => {
     vi.restoreAllMocks();
-    for (const mock of [
-      requestSyncLock,
-      getNodeProvider,
-      startUpdateLatestBlockNumber,
-      fetchEventLogsContract,
-    ]) {
-      vi.mocked(mock).mockReset();
-    }
     storeSyncStoppedReason.clear("matic");
   });
 
@@ -123,7 +112,7 @@ describe("fetchEventLogs stops the chain by itself", () => {
     vi.mocked(getNodeProvider).mockResolvedValue(undefined);
 
     expect(await fetchEventLogs(matic)).toBe(true);
-    await syncing;
+    expect(await syncing).toBeUndefined();
 
     expect(spyLogs.fail).toHaveBeenCalledExactlyOnceWith(
       "Get provider.",
@@ -140,17 +129,13 @@ describe("fetchEventLogs stops the chain by itself", () => {
     vi.mocked(startUpdateLatestBlockNumber).mockRejectedValue(error);
 
     expect(await fetchEventLogs(matic)).toBe(true);
-    await syncing;
+    // Thrown again, for the lock.
+    expect(await syncing).toBe(error);
 
     expect(spyLogs.error).toHaveBeenCalledWith(
       "Fetch event logs. Stop syncing the chain after an error.",
       { chainName: "matic", reason: "UNEXPECTED_ERROR", error: error },
     );
-    // Thrown again, and logged by the lock.
-    expect(spyLogs.error).toHaveBeenCalledWith("Sync event logs.", {
-      chainName: "matic",
-      errorObject: error,
-    });
     expect(get(storeSyncStoppedReason).matic).toBe("UNEXPECTED_ERROR");
     expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith("matic");
     expect(stopSyncingInChain).toHaveBeenCalledWith("matic");
@@ -162,7 +147,7 @@ describe("fetchEventLogs stops the chain by itself", () => {
     );
 
     expect(await fetchEventLogs(matic)).toBe(true);
-    await syncing;
+    expect(await syncing).toBeUndefined();
 
     // Without the request URL of the ethers error.
     expect(spyLogs.error).toHaveBeenCalledExactlyOnceWith(
@@ -177,5 +162,20 @@ describe("fetchEventLogs stops the chain by itself", () => {
     expect(get(storeSyncStoppedReason).matic).toBe("UNEXPECTED_ERROR");
     expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith("matic");
     expect(stopSyncingInChain).toHaveBeenCalledWith("matic");
+  });
+
+  test("clears the rows when the abort of the chain fails", async () => {
+    vi.mocked(fetchEventLogsContract).mockRejectedValueOnce(
+      new Error("Failed to start aborting.", { cause: new Error("DB error") }),
+    );
+    vi.mocked(startAbortingInChain).mockRejectedValueOnce(
+      new Error("DB error"),
+    );
+
+    expect(await fetchEventLogs(matic)).toBe(true);
+    expect(await syncing).toBeUndefined();
+
+    expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith("matic");
+    expect(stopSyncingInChain).toHaveBeenCalledExactlyOnceWith("matic");
   });
 });

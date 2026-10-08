@@ -322,11 +322,28 @@ async function destroyNodeProvider(
     );
   }
 }
+// The causes followed, so that a cause that loops also ends.
+const MAX_CAUSE_DEPTH: number = 5;
 // ethers puts the request URL, which may hold an API key, in the message and
 // the properties of its errors.
 export function getLoggableError(error: unknown): unknown {
+  return getLoggableErrorAt(error, 0);
+}
+function getLoggableErrorAt(error: unknown, depth: number): unknown {
   if (!(error instanceof Error && "code" in error && "shortMessage" in error)) {
-    return error;
+    if (!(error instanceof Error) || error.cause === undefined) {
+      return error;
+    }
+    // The cause may be an ethers error.
+    return {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      cause:
+        depth < MAX_CAUSE_DEPTH
+          ? getLoggableErrorAt(error.cause, depth + 1)
+          : "(more causes)",
+    };
   }
   const loggableError = { code: error.code, shortMessage: error.shortMessage };
   // The error in the JSON-RPC response, which tells why the RPC failed.

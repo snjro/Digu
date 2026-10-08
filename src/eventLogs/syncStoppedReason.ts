@@ -74,22 +74,11 @@ function safeLog(
   try {
     customLogger[level](
       message,
-      error === undefined ? details : { ...details, error: loggable(error) },
+      error === undefined
+        ? details
+        : { ...details, error: getLoggableError(error) },
     );
   } catch {
     // Nowhere else to report it.
   }
-}
-// Also the cause, which getLoggableError does not look into: an ethers error
-// there has the RPC URL.
-function loggable(error: unknown): unknown {
-  const loggableError: unknown = getLoggableError(error);
-  if (!(loggableError instanceof Error) || loggableError.cause === undefined) {
-    return loggableError;
-  }
-  return {
-    name: loggableError.name,
-    message: loggableError.message,
-    cause: loggable(loggableError.cause),
-  };
 }

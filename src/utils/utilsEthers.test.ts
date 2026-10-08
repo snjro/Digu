@@ -581,6 +581,36 @@ describe("getLoggableError", () => {
     );
   });
 
+  test("should keep the name, the message and the stack of an error, and clean its cause", () => {
+    const error: Error = new Error("Failed to start aborting.", {
+      cause: makeEthersErrorWithRpcUrl(),
+    });
+    expect(getLoggableError(error)).toStrictEqual({
+      name: "Error",
+      message: "Failed to start aborting.",
+      stack: error.stack,
+      cause: LOGGABLE_ETHERS_ERROR,
+    });
+  });
+
+  test("should stop following the causes of an error whose cause loops", () => {
+    const error: Error = new Error("loop");
+    error.cause = error;
+    let loggableError: unknown = getLoggableError(error);
+    // At most 10 steps, so that the test ends if the causes are not cut.
+    let depth: number = 0;
+    while (
+      depth < 10 &&
+      typeof loggableError === "object" &&
+      loggableError !== null
+    ) {
+      loggableError = (loggableError as { cause: unknown }).cause;
+      depth++;
+    }
+    expect(loggableError).toBe("(more causes)");
+    expect(depth).toBe(6);
+  });
+
   test.each([new Error("DB error"), "text", undefined])(
     "should return %s as it is when it is not an ethers error",
     (error: unknown) => {
