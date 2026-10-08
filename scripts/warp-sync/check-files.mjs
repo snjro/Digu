@@ -3,14 +3,20 @@
 import fs from "node:fs";
 import path from "node:path";
 import { loadChain } from "./build-snapshot.mjs";
-import { keyOf, readManifest, sha256, totalsOf } from "./snapshot-format.mjs";
+import {
+  keyOf,
+  readManifest,
+  readText,
+  sha256,
+  totalsOf,
+} from "./snapshot-format.mjs";
 
 // Reads WARP_SYNC_CHAIN_NAMES like build-snapshot.mjs reads the _index.ts
 // files. Returns [] when the line is not found.
 export function readWarpSyncChainNames(file = "src/warpSync/warpSyncState.ts") {
-  const found = fs
-    .readFileSync(file, "utf8")
-    .match(/WARP_SYNC_CHAIN_NAMES[^=]*=\s*\[([^\]]*)\]/);
+  const found = readText(file).match(
+    /WARP_SYNC_CHAIN_NAMES[^=]*=\s*\[([^\]]*)\]/,
+  );
   if (!found) return [];
   return [...found[1].matchAll(/"([^"]+)"/g)].map((name) => name[1]);
 }

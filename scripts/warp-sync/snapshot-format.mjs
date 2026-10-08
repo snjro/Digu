@@ -138,9 +138,8 @@ export function emptyManifest(chain) {
   };
 }
 
-// The text of a file of the chains or of the snapshot, without a byte order
-// mark, which would hide the first import of an _index.ts and break
-// JSON.parse.
+// The text of a text file that these scripts read, without a byte order mark,
+// which would hide the first import of an _index.ts and break JSON.parse.
 export function readText(file) {
   return fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
 }

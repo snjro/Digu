@@ -42,7 +42,8 @@ def problem(text):
 # The name of each chain in src/constants/chains/<folder>/_index.ts.
 chains = []
 for index in sorted(glob.glob(os.path.join(root, "src/constants/chains/*/_index.ts"))):
-    with open(index) as f:
+    # utf-8-sig: without a byte order mark, like readText of the scripts.
+    with open(index, encoding="utf-8-sig") as f:
         match = re.search(r'^\s*name:\s*"([^"]+)"', f.read(), re.M)
     if match:
         chains.append(match.group(1))
@@ -59,7 +60,7 @@ for chain in chains:
         rows.append([chain, "No snapshot", "", "", ""])
         continue
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8-sig") as f:
             manifest = json.load(f)
         if manifest["formatVersion"] != 3:
             raise ValueError(f"formatVersion {manifest['formatVersion']}")
