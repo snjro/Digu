@@ -5,6 +5,7 @@ import { NO_DATA } from "#utils/utilsConstants.js";
 import { formatComponentsJson } from "#lib/contracts/abiJson/abiText.js";
 import {
   columnDefAbiParamsArgsChildren,
+  getAbiParamText,
   getComponentsFromAbiFragmentParam,
 } from "./columnDefAbiParamsArgsChildren";
 import type { EventRow, FunctionRow } from "./rowTypes";
@@ -116,6 +117,16 @@ describe("columnDefAbiParamsArgsChildren", () => {
       Type: "uint256",
       Components: NO_DATA,
     });
+  });
+});
+
+describe("getAbiParamText", () => {
+  test("has no data for an indexed that is not known", () => {
+    // A human readable ABI leaves "indexed" out of a param that is not indexed.
+    const [param] = EventFragment.from("event F(uint256 value)").inputs;
+    expect(param.indexed).toBeNull();
+    expect(getAbiParamText(param, "indexed")).toBe(NO_DATA);
+    expect(getAbiParamText(param, "name")).toBe("value");
   });
 });
 

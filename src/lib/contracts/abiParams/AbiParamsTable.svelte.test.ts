@@ -33,13 +33,15 @@ describe("AbiParamsTable.svelte", () => {
       paramTypes: [
         param({ name: "from", type: "address", indexed: true }),
         param({ name: "", type: "uint256", indexed: false }),
+        param({ name: "c", type: "bool", indexed: null }),
       ],
       dialogHeaderText: "Inputs",
       showInputIndexedField: true,
     });
     expect(cellsOfRow(0)).toEqual(["1", "from", "address", "true", NO_DATA]);
-    // An unnamed param, like the Name column of the grid.
+    // Like the columns of the grid (getAbiParamText).
     expect(cellsOfRow(1)).toEqual(["2", NO_DATA, "uint256", "false", NO_DATA]);
+    expect(cellsOfRow(2)).toEqual(["3", "c", "bool", NO_DATA, NO_DATA]);
   });
 
   test("leaves the indexed column out for a function", () => {

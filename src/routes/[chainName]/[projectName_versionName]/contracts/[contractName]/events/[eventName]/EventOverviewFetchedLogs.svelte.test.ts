@@ -106,6 +106,24 @@ function log(blockNumber: number): ConvertedEventLog {
 const load = vi.mocked(getEventLogEdges);
 const noLogs = { count: 0, oldest: undefined, latest: undefined };
 
+// Only where a test waits for the reload interval: fake timers also fake the
+// timeout of waitFor, which then waits forever instead of failing.
+function useFakeTimers(): void {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+}
+// Saves logs of the event, and waits until the reload starts.
+async function saveAfterTheInterval(recordCount: number): Promise<void> {
+  useFakeTimers();
+  try {
+    setContract({
+      events: { Transfer: { recordCount }, Approval: { recordCount: 0 } },
+    });
+    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
+  } finally {
+    vi.useRealTimers();
+  }
+}
+
 function renderSection() {
   return render(EventOverviewFetchedLogs, {
     targetChain,
@@ -121,8 +139,6 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     store.set(initialState());
     load.mockReset();
     vi.mocked(customLogger.error).mockClear();
-    // waitFor checks with setInterval, so keep it real.
-    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -137,10 +153,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     expect(load).toHaveBeenCalledTimes(1);
 
     load.mockResolvedValueOnce({ count: 2, oldest: log(10), latest: log(20) });
-    setContract({
-      events: { Transfer: { recordCount: 2 }, Approval: { recordCount: 0 } },
-    });
-    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
+    await saveAfterTheInterval(2);
     await waitFor(() => expect(screen.getByText("2")).toBeTruthy());
     expect(load).toHaveBeenCalledTimes(2);
     expect(screen.queryByText("No logs fetched yet.")).toBeNull();
@@ -171,10 +184,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
 
     const error = new Error("test error");
     load.mockRejectedValueOnce(error);
-    setContract({
-      events: { Transfer: { recordCount: 2 }, Approval: { recordCount: 0 } },
-    });
-    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
+    await saveAfterTheInterval(2);
     await waitFor(() =>
       expect(screen.getByText("No logs fetched yet.")).toBeTruthy(),
     );
@@ -195,6 +205,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     renderSection();
     await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
 
+    useFakeTimers();
     for (const recordCount of [1, 2, 3]) {
       setContract({
         events: { Transfer: { recordCount }, Approval: { recordCount: 0 } },

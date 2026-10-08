@@ -4,6 +4,7 @@ import type { AbiFormatType } from "#utils/utilsEthers.js";
 import {
   formatComponentsJson,
   formatTargetAbi,
+  getComponentsJsonText,
   getAbiExportTooltipText,
   getAbiFileExtension,
   getAbiText,
@@ -230,5 +231,16 @@ describe("formatComponentsJson", () => {
         ],
       },
     ]);
+  });
+});
+
+describe("getComponentsJsonText", () => {
+  test("is the JSON of formatComponentsJson", () => {
+    const [param] = FunctionFragment.from(
+      "function h((uint256 a, (address b, bool c)[2] d) p)",
+    ).inputs;
+    expect(getComponentsJsonText(param.components!)).toBe(
+      JSON.stringify(formatComponentsJson(param.components!)),
+    );
   });
 });

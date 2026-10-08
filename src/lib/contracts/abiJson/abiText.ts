@@ -49,13 +49,15 @@ export function formatTargetAbi(
 
 // The standard ABI JSON of the components of a param, without the fields that
 // only ethers has (baseType, arrayChildren, ...), like the "json" format above.
+export function getComponentsJsonText(
+  components: readonly AbiFragmentParam[],
+): string {
+  return `[${components.map((component) => component.format("json")).join(",")}]`;
+}
 export function formatComponentsJson(
   components: readonly AbiFragmentParam[],
 ): unknown[] {
-  return components.map(
-    (component: AbiFragmentParam): unknown =>
-      JSON.parse(component.format("json")) as unknown,
-  );
+  return JSON.parse(getComponentsJsonText(components)) as unknown[];
 }
 
 // Only the JSON format is JSON. The human readable formats are plain text.

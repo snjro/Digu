@@ -9,7 +9,7 @@ import { NO_DATA } from "#utils/utilsConstants.js";
 import BaseLabel from "#lib/base/BaseLabel.svelte";
 import { capitalizeFirstLetter } from "#utils/utilsCommon.js";
 import AbiParamComponentsDetailsButton from "#lib/contracts/abiParams/AbiParamComponentsDetailsButton.svelte";
-import { formatComponentsJson } from "#lib/contracts/abiJson/abiText.js";
+import { getComponentsJsonText } from "#lib/contracts/abiJson/abiText.js";
 import { cellAlign } from "./cellStyles";
 import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 import { getAbiParamsFromAbiRow } from "./getAbiParamsFromAbiRow";
@@ -22,18 +22,21 @@ function getAbiParamsArgStringValueFromAbiRow<T extends AbiRow>(
   indexOfArgs: number,
   argKey: ArgKey,
 ): string {
-  const targetAbiParam: AbiFragmentParam | undefined =
-    getAbiParamsFromAbiRow<T>(targetParams, abiParamsKey)[indexOfArgs];
+  return getAbiParamText(
+    getAbiParamsFromAbiRow<T>(targetParams, abiParamsKey)[indexOfArgs],
+    argKey,
+  );
+}
+// The text of a field of a param, in the grid and in the table of the dialog.
+export function getAbiParamText(
+  abiParam: AbiFragmentParam | undefined,
+  argKey: ArgKey,
+): string {
+  const value: string | boolean | null | undefined = abiParam?.[argKey];
   // ethers gives an unnamed param the name "".
-  if (
-    !targetAbiParam ||
-    targetAbiParam[argKey] === null ||
-    targetAbiParam[argKey] === ""
-  ) {
-    return NO_DATA;
-  } else {
-    return targetAbiParam[argKey]!.toString();
-  }
+  return value === undefined || value === null || value === ""
+    ? NO_DATA
+    : value.toString();
 }
 
 const columnDefAbiParamsStringArg = <T extends AbiRow>(
@@ -78,9 +81,7 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
       valueGetter: (valueGetterParams: ValueGetterParams<T>): string => {
         const components: readonly AbiFragmentParam[] | undefined =
           getComponents(valueGetterParams, abiParamsKey, indexOfArgs);
-        return components
-          ? JSON.stringify(formatComponentsJson(components))
-          : NO_DATA;
+        return components ? getComponentsJsonText(components) : NO_DATA;
       },
       cellRenderer: cellRendererFactory(
         (

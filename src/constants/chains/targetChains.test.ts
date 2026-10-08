@@ -28,6 +28,9 @@ const versions = TARGET_CHAINS.flatMap((targetChain) =>
     ),
   ),
 );
+function duplicatesOf(values: string[]): string[] {
+  return values.filter((value, index) => values.indexOf(value) !== index);
+}
 const ABI_FRAGMENT_TYPES = [
   "constructor",
   "function",
@@ -58,10 +61,7 @@ describe("TARGET_CHAINS", () => {
       const names = targetVersion.contracts.map(
         (targetContract) => targetContract.name,
       );
-      const duplicates = names.filter(
-        (name, index) => names.indexOf(name) !== index,
-      );
-      expect(duplicates).toEqual([]);
+      expect(duplicatesOf(names)).toEqual([]);
     });
   });
   // Two contracts of one address would save the same logs in two tables.
@@ -78,10 +78,7 @@ describe("TARGET_CHAINS", () => {
           ),
         ),
       );
-      const duplicates = addresses.filter(
-        (address, index) => addresses.indexOf(address) !== index,
-      );
-      expect(duplicates).toEqual([]);
+      expect(duplicatesOf(addresses)).toEqual([]);
     });
   });
 });

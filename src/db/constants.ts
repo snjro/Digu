@@ -16,6 +16,10 @@ export const DB_NAME = {
 // upgrade. Raise EventLog when a contract or an event that has logs is
 // removed or renamed (not when one is added), and BlockTimes when a chain is
 // removed. A version applies to the databases of every chain and version.
+// The upgrade deletes the sync statuses of the removed contracts only. The
+// events of a sync status follow the ABI at the next startup, when the record
+// counts are counted again, and a renamed event, like an added one, does not
+// get the logs before the fetched block (#732).
 export const DB_VERSIONS = {
   // 2: removed the contracts of Augur version2 that Augur did not deploy.
   EventLog: 2,
