@@ -107,7 +107,8 @@ function log(blockNumber: number): ConvertedEventLog {
     blockNumber,
     logIndex: 0,
     transactionHash: `0xtx${blockNumber}`,
-    jsDate: new Date(Date.UTC(2020, 0, 1)),
+    // A second for each block, so that each log has its own date.
+    jsDate: new Date(Date.UTC(2020, 0, 1) + blockNumber * 1000),
   } as unknown as ConvertedEventLog;
 }
 
@@ -177,9 +178,11 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     await vi.advanceTimersByTimeAsync(1);
     expect(screen.queryByText("No logs fetched yet.")).toBeNull();
   }
-  async function saveAndWaitForTheReload(recordCount: number): Promise<void> {
+  // Any change of the record count reloads. The saved one is neither count of
+  // the DB, so a shown count can only come from the DB.
+  async function saveAndWaitForTheReload(): Promise<void> {
     await vi.advanceTimersByTimeAsync(sinceLoad);
-    await save(recordCount);
+    await save(7);
     await vi.advanceTimersByTimeAsync(
       EVENT_LOGS_RELOAD_INTERVAL - sinceLoad - 1,
     );
@@ -197,7 +200,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     ).toEqual(["block:6", "tx:0xtx6", "block:5", "tx:0xtx5"]);
 
     load.mockResolvedValueOnce({ count: 3, oldest: log(10), latest: log(20) });
-    await saveAndWaitForTheReload(3);
+    await saveAndWaitForTheReload();
     expect(screen.getByText("3")).toBeTruthy();
     expect(
       screen.getAllByTestId("stub").map((stub) => stub.textContent),
@@ -215,7 +218,10 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     expect(
       screen.getAllByTestId("stub").map((stub) => stub.textContent),
     ).toEqual(["block:20", "tx:0xtx20", "block:10", "tx:0xtx10"]);
-    expect(screen.getAllByText("2020-01-01T00:00:00Z")).toHaveLength(2);
+    // Latest, then oldest.
+    expect(
+      screen.getAllByText(/^2020-01-01T/).map((date) => date.textContent),
+    ).toEqual(["2020-01-01T00:00:20Z", "2020-01-01T00:00:10Z"]);
   });
 
   test("logs a failed load and shows no logs, like the table", async () => {
@@ -224,7 +230,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
 
     const error = new Error("test error");
     load.mockRejectedValueOnce(error);
-    await saveAndWaitForTheReload(3);
+    await saveAndWaitForTheReload();
     expect(screen.getByText("No logs fetched yet.")).toBeTruthy();
     expect(customLogger.error).toHaveBeenCalledWith("Get event logs.", {
       eventIdentifier: {

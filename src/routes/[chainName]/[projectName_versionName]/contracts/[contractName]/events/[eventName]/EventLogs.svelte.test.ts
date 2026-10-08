@@ -34,10 +34,12 @@ vi.mock("#stores/storeSyncStatus.js", async () => {
   return { storeSyncStatus: writable({}) };
 });
 vi.mock("#utils/logger.js", () => ({ customLogger: { error: vi.fn() } }));
-// BaseGrid is mocked, so no cell renders a link: this only keeps the real one
-// (and ethers) from loading.
+// BaseGrid is mocked, so no cell renders a link: this keeps the real one (and
+// ethers) from loading, and fails a test that renders one.
 vi.mock("#lib/common/CommonChainExplorerLink.svelte", () => ({
-  default: () => {},
+  default: () => {
+    throw new Error("No explorer link is rendered here.");
+  },
 }));
 
 // Stands in for the table worker. The test decides what each request gives.
