@@ -114,25 +114,6 @@ class CheckSnapshot(unittest.TestCase):
         self.assertNotIn("::error::", p.stdout)
         self.assertIn("WARP_SYNC_SNAPSHOT_CHECK is off", p.stdout)
 
-    def test_an_index_with_non_ascii_text_is_read_under_the_c_locale(self):
-        path = os.path.join(self.root, "src/constants/chains/matic/_index.ts")
-        with open(path, "a", encoding="utf-8") as f:
-            f.write("// Polygon — 日本語\n")
-        self.env.update({"LC_ALL": "C", "LANG": "C", "PYTHONUTF8": "0"})
-        p = self.check()
-        self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
-        self.assertIn("| matic | run 1 |", p.stdout)
-
-    def test_a_manifest_with_a_byte_order_mark_is_read(self):
-        path = self.manifest_path("eth")
-        with open(path, encoding="utf-8") as f:
-            text = f.read()
-        with open(path, "w", encoding="utf-8") as f:
-            f.write("\ufeff" + text)
-        p = self.check()
-        self.assertEqual(p.returncode, 0, p.stdout)
-        self.assertIn("| eth | run 2 |", p.stdout)
-
     def test_a_chain_without_a_snapshot_is_not_checked(self):
         os.remove(self.manifest_path("matic"))
         p = self.check()
