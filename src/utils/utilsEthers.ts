@@ -278,7 +278,11 @@ export async function getNodeProvider(
     }
   } catch (error) {
     // A WebSocket would stay open.
-    await nodeProvider?.destroy();
+    try {
+      await nodeProvider?.destroy();
+    } catch {
+      // Throw the error of the write, which tells why it failed.
+    }
     throw error;
   }
   if (nodeStatus !== "SUCCESS") {
@@ -387,7 +391,19 @@ async function queryFilter(
     fromBlock,
     toBlock,
   );
-  return extractDecodedEventLogs(logs);
+  const decodedEventLogs: EthersEventLog[] = extractDecodedEventLogs(logs);
+  // No row needs the block times of the logs that are skipped. The sync
+  // forgets the others once the range is done.
+  const blocksOfDecodedEventLogs: Set<number> = new Set(
+    decodedEventLogs.map((eventLog: EthersEventLog) => eventLog.blockNumber),
+  );
+  forgetBlockTimestampsFromLogs(
+    ethersContract.runner as NodeProvider,
+    logs
+      .map((log: EventLog | Log) => log.blockNumber)
+      .filter((blockNumber) => !blocksOfDecodedEventLogs.has(blockNumber)),
+  );
+  return decodedEventLogs;
 }
 
 // Logs that could not be decoded (e.g. "UndecodedEventLog") are skipped

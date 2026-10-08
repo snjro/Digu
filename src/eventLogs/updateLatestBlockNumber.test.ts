@@ -77,6 +77,46 @@ describe("startUpdateLatestBlockNumber", () => {
     expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(3);
   });
 
+  test("should go on requesting the latest block number after an unexpected error", async () => {
+    vi.mocked(getAndUpdateLatestBlockNumber)
+      .mockResolvedValueOnce(1)
+      .mockRejectedValueOnce(new Error("RPC error"));
+    const { customLogger } = await import("#utils/logger.js");
+    // An error outside the try of the request.
+    vi.spyOn(customLogger, "warn").mockImplementationOnce(() => {
+      throw new Error("logger error");
+    });
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+
+    stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
+    await vi.advanceTimersByTimeAsync(2 * blockIntervalMs);
+
+    expect(spyError).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        errorMessage: "Failed to update the latest block number.",
+      }),
+    );
+    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(3);
+  });
+
+  test("should stop once when it is stopped after it stopped itself", async () => {
+    vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
+      new Error("RPC error"),
+    );
+    const { customLogger } = await import("#utils/logger.js");
+    const spyStart = vi.spyOn(customLogger, "start");
+
+    const stop = await startUpdateLatestBlockNumber(chainName, nodeProvider);
+    await vi.advanceTimersByTimeAsync((TRY_COUNT + 3) * blockIntervalMs);
+    stop();
+
+    expect(
+      spyStart.mock.calls.filter(([log]) => String(log).startsWith("Stop ")),
+    ).toHaveLength(1);
+  });
+
   test("should stop requesting the latest block number when the chain is not syncing", async () => {
     await startUpdateLatestBlockNumber(chainName, nodeProvider);
     storeSyncStatus.update((state: SyncStatusesChain) => {

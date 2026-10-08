@@ -15,10 +15,7 @@ import type {
 import { setDbBlockTime } from "#db/dbBlockTimesDataHandlers.js";
 import Dexie from "dexie";
 import { isHexString } from "ethers";
-import {
-  forgetBlockTimestampsFromLogs,
-  type NodeProvider,
-} from "#utils/utilsEthers.js";
+import type { NodeProvider } from "#utils/utilsEthers.js";
 import {
   fetchBlockTimesForEventLogs,
   type BlockTimeForEventLog,
@@ -58,12 +55,6 @@ export async function registerEventLogsAndBlockTimes(
     );
 
     await setDbBlockTime(targetChainName, unregisteredBlockTimes);
-    forgetBlockTimestampsFromLogs(
-      nodeProvider,
-      blockTimesForEventLogs.map(
-        ({ fetchedBlockTime }) => fetchedBlockTime.blockNumber,
-      ),
-    );
 
     await addEventLogs_updateFetchedBlockNumber(
       dbEventLogs,

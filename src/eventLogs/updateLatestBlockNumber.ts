@@ -50,44 +50,54 @@ export async function startUpdateLatestBlockNumber(
 
   let timeoutId: number | undefined = undefined;
   const stop = (): void => {
+    // The update may have stopped itself before the caller stops it.
+    if (isStopped) return;
     isStopped = true;
     const log: string = `Stop ${functionName}(). timeoutId=${timeoutId}`;
     customLogger.start(log);
     window.clearTimeout(timeoutId);
     customLogger.finished(log);
   };
-  // The requests and the aborting catch and log their errors. The rest
-  // (reading the store, logging, stopping) is not in a try.
   const update = async (): Promise<void> => {
-    if (!get(storeSyncStatus)[targetChainName].isSyncing) {
-      stop();
-      return;
-    }
+    try {
+      if (!get(storeSyncStatus)[targetChainName].isSyncing) {
+        stop();
+        return;
+      }
 
-    await tryGetAndUpdateLatestBlockNumber();
-    // A request in flight fails when the provider is destroyed after stopping.
-    if (isStopped) return;
-    if (errorCount > TRY_COUNT) {
-      customLogger.error({
-        errorOn: functionName,
-        errorCount: `${errorCount}/${TRY_COUNT}`,
-        errorMessage: "errorCount exceeded the limit. Start aborting.",
-      });
-
-      recordSyncStoppedReason(targetChainName, "RPC_ERRORS");
-      try {
-        await startAbortingInChain(targetChainName);
-      } catch (error) {
+      await tryGetAndUpdateLatestBlockNumber();
+      // A request in flight fails when the provider is destroyed after
+      // stopping.
+      if (isStopped) return;
+      if (errorCount > TRY_COUNT) {
         customLogger.error({
           errorOn: functionName,
-          errorMessage: "Failed to start aborting.",
-          error: error,
+          errorCount: `${errorCount}/${TRY_COUNT}`,
+          errorMessage: "errorCount exceeded the limit. Start aborting.",
         });
+
+        recordSyncStoppedReason(targetChainName, "RPC_ERRORS");
+        try {
+          await startAbortingInChain(targetChainName);
+        } catch (error) {
+          customLogger.error({
+            errorOn: functionName,
+            errorMessage: "Failed to start aborting.",
+            error: error,
+          });
+        }
+        stop();
       }
-      stop();
-      return;
+    } catch (error) {
+      customLogger.error({
+        errorOn: functionName,
+        errorMessage: "Failed to update the latest block number.",
+        error: getLoggableError(error),
+      });
+    } finally {
+      // Unless stopped, so that an unexpected error does not end the updates.
+      if (!isStopped) scheduleUpdate();
     }
-    scheduleUpdate();
   };
   // The next request after the last one ends, so that the requests do not
   // pile up and an older answer does not overwrite a newer one.

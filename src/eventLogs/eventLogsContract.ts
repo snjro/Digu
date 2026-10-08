@@ -6,6 +6,7 @@ import {
 } from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import type { Chain, ChainName, Contract } from "#constants/chains/types.js";
 import {
+  forgetBlockTimestampsFromLogs,
   getEthersEventLogs,
   getLoggableError,
   isErrorUnrelatedToRange,
@@ -141,7 +142,8 @@ export async function fetchEventLogsContract(
       }
       if (toBlockNumber < minToBlockNumber) {
         // If "fetchedBlockNumber" and "latestBlockNumber" have the same value,
-        // the above condition is satisfied.
+        // or the latest block is the creation block, the above condition is
+        // satisfied.
         // This can happen if "toBlockNumber" reaches "latestBlockNumber"
         // and this loop is executed again before the new block is generated.
         customLogger.info(
@@ -151,6 +153,7 @@ export async function fetchEventLogsContract(
         continue;
       }
     }
+    ethersEventLogs = [];
     try {
       customLogger.start("Fetch eventLogs. targetBlocks:", {
         fetchingTarget: fetchingTargetInfo,
@@ -215,6 +218,12 @@ export async function fetchEventLogsContract(
         fetchingTarget: fetchingTargetInfo,
         errorObject: getLoggableError(error),
       });
+    } finally {
+      // Saved, or fetched again with the logs on a later try.
+      forgetBlockTimestampsFromLogs(
+        nodeProvider,
+        ethersEventLogs.map((ethersEventLog) => ethersEventLog.blockNumber),
+      );
     }
     if (errorCount > TRY_COUNT) {
       customLogger.fatal(

@@ -914,6 +914,49 @@ describe("getBlockTimestampFromLogs", () => {
     await otherProvider.destroy();
   });
 
+  test("should forget the blockTimestamp of the logs that are skipped", async () => {
+    const nodeProvider = (await getNodeProvider(
+      targetChain,
+      "https://bar",
+    )) as JsonRpcProvider;
+    // A log of an event that the contract does not have.
+    const undecodedLog = (blockNumber: number) => ({
+      ...rawLog(blockNumber, blockNumber * 100),
+      topics: [`0x${"c".repeat(64)}`],
+    });
+    vi.spyOn(nodeProvider, "_send").mockImplementation(
+      async (
+        payload: JsonRpcPayload | JsonRpcPayload[],
+      ): Promise<JsonRpcResult[]> =>
+        [payload].flat().map((request: JsonRpcPayload) => ({
+          id: request.id,
+          result: [rawLog(10, 1000), undecodedLog(10), undecodedLog(11)],
+        })),
+    );
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    const ethersContract: EthersContract = new ethers.Contract(
+      address,
+      contractInterface,
+      nodeProvider,
+    );
+
+    const logs: EthersEventLog[] = await getEthersEventLogs(
+      ["EventB"],
+      ethersContract,
+      10,
+      11,
+    );
+    spyError.mockRestore();
+
+    expect(logs.map((log) => log.blockNumber)).toEqual([10]);
+    // The block of a log that is saved keeps it.
+    expect(getBlockTimestampFromLogs(nodeProvider, 10)).toBe(1000);
+    expect(getBlockTimestampFromLogs(nodeProvider, 11)).toBeUndefined();
+    await nodeProvider.destroy();
+  });
+
   test("should forget only the blockTimestamp of the given blocks", async () => {
     const nodeProvider = (await getNodeProvider(targetChain, "https://bar"))!;
     for (const blockNumber of [10, 11, 12]) {

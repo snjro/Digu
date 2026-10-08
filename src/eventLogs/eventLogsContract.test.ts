@@ -6,7 +6,11 @@ import {
   TRY_COUNT,
 } from "./eventLogsContract";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
-import { getEthersEventLogs, type NodeProvider } from "#utils/utilsEthers.js";
+import {
+  forgetBlockTimestampsFromLogs,
+  getEthersEventLogs,
+  type NodeProvider,
+} from "#utils/utilsEthers.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { customLogger } from "#utils/logger.js";
@@ -17,6 +21,7 @@ import type { Chain, Contract } from "#constants/chains/types.js";
 import type { DbEventLogs } from "#db/dbEventLogs.js";
 import type {
   ContractIdentifier,
+  EthersEventLog,
   SyncStatusContract,
   SyncStatusesChain,
 } from "#db/dbTypes.js";
@@ -24,7 +29,11 @@ import type {
 vi.mock("#utils/utilsEthers.js", async (importOriginal) => {
   const original =
     await importOriginal<typeof import("#utils/utilsEthers.js")>();
-  return { ...original, getEthersEventLogs: vi.fn().mockResolvedValue([]) };
+  return {
+    ...original,
+    getEthersEventLogs: vi.fn().mockResolvedValue([]),
+    forgetBlockTimestampsFromLogs: vi.fn(),
+  };
 });
 vi.mock("./eventLogsContractUpdateTables");
 vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js");
@@ -193,5 +202,61 @@ describe("fetchEventLogsContract", () => {
       [creationBlockNumber + 2, creationBlockNumber + 2],
       [creationBlockNumber + 3, creationBlockNumber + 3],
     ]);
+  });
+
+  describe("forgets the block times of the logs of a range", () => {
+    const nodeProvider = {} as NodeProvider;
+    const logs = [
+      { blockNumber: creationBlockNumber + 5 },
+      { blockNumber: creationBlockNumber + 7 },
+    ] as EthersEventLog[];
+    function abort(): void {
+      storeSyncStatus.update((state: SyncStatusesChain) => {
+        contractInState(state).isAbort = true;
+        return state;
+      });
+    }
+    async function fetchOneRange(): Promise<void> {
+      vi.mocked(getEthersEventLogs).mockResolvedValueOnce(logs);
+      await fetchEventLogsContract(dbEventLogs, targetContract, nodeProvider);
+      expect(forgetBlockTimestampsFromLogs).toHaveBeenCalledExactlyOnceWith(
+        nodeProvider,
+        [creationBlockNumber + 5, creationBlockNumber + 7],
+      );
+    }
+
+    test("after saving them", async () => {
+      vi.mocked(registerEventLogsAndBlockTimes).mockImplementationOnce(
+        async () => {
+          expect(forgetBlockTimestampsFromLogs).not.toHaveBeenCalled();
+          abort();
+        },
+      );
+      await fetchOneRange();
+    });
+
+    test("when stopped while it fetches", async () => {
+      vi.mocked(getEthersEventLogs).mockImplementationOnce(async () => {
+        abort();
+        return logs;
+      });
+      await fetchEventLogsContract(dbEventLogs, targetContract, nodeProvider);
+      expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
+      expect(forgetBlockTimestampsFromLogs).toHaveBeenCalledExactlyOnceWith(
+        nodeProvider,
+        [creationBlockNumber + 5, creationBlockNumber + 7],
+      );
+    });
+
+    test("when saving them fails", async () => {
+      vi.spyOn(customLogger, "error").mockImplementation(() => {});
+      vi.mocked(registerEventLogsAndBlockTimes).mockImplementationOnce(
+        async () => {
+          abort();
+          throw new Error("DB error");
+        },
+      );
+      await fetchOneRange();
+    });
   });
 });

@@ -212,6 +212,28 @@ describe("getNodeProvider when the node status cannot be saved", () => {
       }
     },
   );
+
+  test("should throw the error of the write when destroying fails too", async () => {
+    fakeNode.chainId = targetChain.chainId;
+    fakeNode.socketOpens = true;
+    const dbError: Error = new Error("DB closed");
+    spyUpdateDbItemChainStatus.mockImplementation(
+      async (_chainName: ChainName, _key: string, value: unknown) => {
+        if (value === "SUCCESS") throw dbError;
+      },
+    );
+    const spyDestroy: MockInstance = vi
+      .spyOn(WebSocketProvider.prototype, "destroy")
+      .mockRejectedValue(new Error("destroy failed"));
+    try {
+      await expect(
+        getNodeProvider(targetChain, "ws://127.0.0.1:9"),
+      ).rejects.toBe(dbError);
+    } finally {
+      spyDestroy.mockRestore();
+      spyUpdateDbItemChainStatus.mockResolvedValue(undefined);
+    }
+  });
 });
 
 describe("getNodeProvider with an http RPC", () => {

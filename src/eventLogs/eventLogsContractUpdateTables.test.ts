@@ -20,18 +20,12 @@ import type {
 } from "#db/dbTypes.js";
 import {
   extractEventContracts,
-  forgetBlockTimestampsFromLogs,
   type NodeProvider,
 } from "#utils/utilsEthers.js";
 import { customLogger } from "#utils/logger.js";
 import { convertTimestampSecToIso8601 } from "#utils/utilsTime.js";
 
 vi.mock("#db/dbEventLogsDataHandlersEventLog.js");
-vi.mock("#utils/utilsEthers.js", async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import("#utils/utilsEthers.js")>();
-  return { ...original, forgetBlockTimestampsFromLogs: vi.fn() };
-});
 
 const targetChain: Chain = TARGET_CHAINS[0];
 const targetProject = targetChain.projects[0];
@@ -99,12 +93,11 @@ describe("registerEventLogsAndBlockTimes", () => {
 
   test("should save the block times from the RPC and register the logs with them", async () => {
     await setDbBlockTime(targetChain.name, [blockTimeOf(20)]);
-    const provider: NodeProvider = fakeProvider();
 
     await registerEventLogsAndBlockTimes(
       dbEventLogs,
       targetContract,
-      provider,
+      fakeProvider(),
       [eventLogAt(20), eventLogAt(30), eventLogAt(30, 1)],
       40,
       () => false,
@@ -114,11 +107,6 @@ describe("registerEventLogsAndBlockTimes", () => {
       blockTimeOf(20),
       blockTimeOf(30),
     ]);
-    // The block times are saved, so the provider need not keep them.
-    expect(forgetBlockTimestampsFromLogs).toHaveBeenCalledExactlyOnceWith(
-      provider,
-      [20, 30],
-    );
     expect(addEventLogs_updateFetchedBlockNumber).toHaveBeenCalledOnce();
     const [, , groupedEventLogs, toBlockNumber] = vi.mocked(
       addEventLogs_updateFetchedBlockNumber,
