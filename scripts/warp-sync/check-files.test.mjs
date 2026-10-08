@@ -303,6 +303,11 @@ describe("checkSnapshotFiles", () => {
       `has a log out of order at block ${a}, log index 0.`,
     ],
     [
+      "a log without a log index",
+      (d) => delete d.logs[1].logIndex,
+      `has a log with block 0x${(a + 1).toString(16)} and log index undefined.`,
+    ],
+    [
       "a log out of the range",
       (d) => (d.logs[1].blockNumber = `0x${(a + 2).toString(16)}`),
       `has a log of block ${a + 2}.`,

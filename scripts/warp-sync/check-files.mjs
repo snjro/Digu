@@ -6,7 +6,9 @@ import zlib from "node:zlib";
 import { loadChain } from "./build-snapshot.mjs";
 import {
   FORMAT_VERSION,
+  isAfter,
   keyOf,
+  logPositionOf,
   readManifest,
   readText,
   sha256,
@@ -27,7 +29,7 @@ export function readWarpSyncChainNames(file = "src/warpSync/warpSyncState.ts") {
 // it decoded), the format, the key and the range of a file, but not its logs
 // (warpSyncFile.ts), so a file that build-snapshot.mjs wrote wrong would be
 // imported. contract: the one of the chunk in manifest.contracts, if any.
-function contentProblems(data, chunk, manifest, contract) {
+function contentProblems(data, chunk, chainId, contract) {
   let text;
   let file;
   try {
@@ -46,7 +48,7 @@ function contentProblems(data, chunk, manifest, contract) {
   if (file.formatVersion !== FORMAT_VERSION) {
     problems.push(`has formatVersion ${file.formatVersion}.`);
   }
-  if (file.chainId !== manifest.chainId) {
+  if (file.chainId !== chainId) {
     problems.push(`is for chainId ${file.chainId}.`);
   }
   if (keyOf(file) !== keyOf(chunk)) {
@@ -67,30 +69,29 @@ function contentProblems(data, chunk, manifest, contract) {
     problems.push(`has ${file.logs?.length} logs, not ${chunk.logCount}.`);
     return problems;
   }
-  const outside = file.logs.find((log) => {
-    const block = Number(log.blockNumber);
-    return !(block >= chunk.fromBlock && block <= chunk.toBlock);
-  });
-  if (outside) {
-    problems.push(`has a log of block ${Number(outside.blockNumber)}.`);
-  }
-  // In the order that writeContractChunks writes them: by block and log
-  // index, each log once.
-  const disorder = file.logs.findIndex((log, i) => {
-    if (i === 0) return false;
-    const before = file.logs[i - 1];
-    const block = Number(log.blockNumber);
-    const beforeBlock = Number(before.blockNumber);
-    return (
-      block < beforeBlock ||
-      (block === beforeBlock && Number(log.logIndex) <= Number(before.logIndex))
-    );
-  });
-  if (disorder !== -1) {
-    const log = file.logs[disorder];
-    problems.push(
-      `has a log out of order at block ${Number(log.blockNumber)}, log index ${Number(log.logIndex)}.`,
-    );
+  // In the range and in the order that writeContractChunks writes them. The
+  // first log that is not stops the check of the file.
+  let last;
+  for (const log of file.logs) {
+    const position = logPositionOf(log);
+    if (!position) {
+      problems.push(
+        `has a log with block ${log?.blockNumber} and log index ${log?.logIndex}.`,
+      );
+      break;
+    }
+    const [block, index] = position;
+    if (block < chunk.fromBlock || block > chunk.toBlock) {
+      problems.push(`has a log of block ${block}.`);
+      break;
+    }
+    if (!isAfter(position, last)) {
+      problems.push(
+        `has a log out of order at block ${block}, log index ${index}.`,
+      );
+      break;
+    }
+    last = position;
   }
   return problems;
 }
@@ -193,7 +194,12 @@ function checkChain(dir, name) {
       continue;
     }
     const contract = manifestContracts.get(keyOf(chunk));
-    for (const text of contentProblems(data, chunk, manifest, contract)) {
+    for (const text of contentProblems(
+      data,
+      chunk,
+      manifest.chainId,
+      contract,
+    )) {
       problem(`${chunkFile} ${text}`);
     }
   }
