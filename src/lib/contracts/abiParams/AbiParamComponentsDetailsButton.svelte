@@ -8,6 +8,7 @@
   import type { BaseIconProps } from "#lib/base/BaseIcon.js";
   import type { AbiFragmentParam } from "#constants/chains/types.js";
   import { jsonStringifyFormatted } from "#utils/utilsCommon.js";
+  import { formatComponentsJson } from "#lib/gridColumnDefs/columnDefAbiParamsArgsChildren.js";
 
   interface Props {
     dialogHeaderText: string;
@@ -21,7 +22,9 @@
   function showDialog() {
     openDialog(dialogElement);
   }
-  let dialogText = $derived(jsonStringifyFormatted(components));
+  let dialogText = $derived(
+    jsonStringifyFormatted(formatComponentsJson(components)),
+  );
 </script>
 
 <BaseButtonIcon

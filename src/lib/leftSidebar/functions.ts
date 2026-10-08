@@ -7,18 +7,29 @@ import { storeUserSettings } from "#stores/storeUserSettings.js";
 import { customLogger } from "#utils/logger.js";
 import { get } from "svelte/store";
 
-export async function toggleLeftSideBar(): Promise<void> {
-  const isOpenSidebar = get(storeUserSettings).isOpenSidebar;
+// updateDbItemUserSettings opens or closes it after the save succeeds.
+async function saveIsOpenSidebar(isOpenSidebar: boolean): Promise<void> {
   try {
-    await updateDbItemUserSettings("isOpenSidebar", !isOpenSidebar);
+    await updateDbItemUserSettings("isOpenSidebar", isOpenSidebar);
   } catch (error) {
     customLogger.error("Save the sidebar state.", error);
     storeNoDbSnackBar.set(showSnackBarAsSaveFailed);
   }
 }
+export async function toggleLeftSideBar(): Promise<void> {
+  await saveIsOpenSidebar(!get(storeUserSettings).isOpenSidebar);
+}
 export async function toggleLeftSideBarWithCondition(): Promise<void> {
   if (get(storeNoDbCurrentWidth) <= breakPointWidths.sm) {
     await toggleLeftSideBar();
+  }
+}
+export async function closeLeftSideBarWithCondition(): Promise<void> {
+  if (
+    get(storeNoDbCurrentWidth) <= breakPointWidths.sm &&
+    get(storeUserSettings).isOpenSidebar
+  ) {
+    await saveIsOpenSidebar(false);
   }
 }
 

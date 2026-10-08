@@ -3,19 +3,14 @@
   import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js";
   import { zIndex } from "#lib/appearanceConfig/zIndex.js";
-  import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
-  import { updateDbItemUserSettings } from "#db/dbSettings.js";
-  import {
-    storeNoDbCurrentWidth,
-    storeNoDbSnackBar,
-  } from "#stores/storeNoDb.js";
+  import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
   import { storeUserSettings } from "#stores/storeUserSettings.js";
-  import { customLogger } from "#utils/logger.js";
   import classNames from "classnames";
   import type { ActionReturn } from "svelte/action";
   import Body from "./Body/Body.svelte";
   import Footer from "./Footer/Footer.svelte";
   import Header from "./Header/Header.svelte";
+  import { closeLeftSideBarWithCondition } from "./functions";
 
   function clickOutside(node: HTMLElement): ActionReturn {
     const handleClick = (event: Event) => {
@@ -53,20 +48,7 @@
       classNames("absolute top-0", "left-0"),
     zIndex.leftSidebar,
   )}
-  onclick_outside={async () => {
-    if (
-      $storeNoDbCurrentWidth <= breakPointWidths.sm &&
-      $storeUserSettings.isOpenSidebar
-    ) {
-      // updateDbItemUserSettings closes it after the save succeeds.
-      try {
-        await updateDbItemUserSettings("isOpenSidebar", false);
-      } catch (error) {
-        customLogger.error("Save the sidebar state.", error);
-        $storeNoDbSnackBar = showSnackBarAsSaveFailed;
-      }
-    }
-  }}
+  onclick_outside={closeLeftSideBarWithCondition}
 >
   <Header />
   <Body />

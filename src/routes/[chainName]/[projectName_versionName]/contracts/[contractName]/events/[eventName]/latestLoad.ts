@@ -1,20 +1,5 @@
 import { customLogger } from "#utils/logger.js";
 
-// Applies the result only while it is the latest load, so a slow earlier load
-// does not overwrite a later one. Returns the cleanup for $effect.
-export function applyLatestLoad<T>(
-  load: Promise<T>,
-  apply: (value: T) => void,
-): () => void {
-  let isStale: boolean = false;
-  void load.then((value: T) => {
-    if (!isStale) apply(value);
-  });
-  return () => {
-    isStale = true;
-  };
-}
-
 // Loads at once on the first request. Later requests wait until intervalMs has
 // passed since the previous load ended, so many requests in a short time make
 // one load, which still starts after the last request. A request does not stop

@@ -23,7 +23,12 @@ function getAbiParamsArgStringValueFromAbiRow<T extends AbiRow>(
 ): string {
   const targetAbiParam: AbiFragmentParam | undefined =
     getAbiParamsFromAbiRow<T>(targetParams, abiParamsKey)[indexOfArgs];
-  if (!targetAbiParam || targetAbiParam[argKey] === null) {
+  // ethers gives an unnamed param the name "".
+  if (
+    !targetAbiParam ||
+    targetAbiParam[argKey] === null ||
+    targetAbiParam[argKey] === ""
+  ) {
     return NO_DATA;
   } else {
     return targetAbiParam[argKey]!.toString();
@@ -72,7 +77,9 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
       valueGetter: (valueGetterParams: ValueGetterParams<T>): string => {
         const components: readonly AbiFragmentParam[] | undefined =
           getComponents(valueGetterParams, abiParamsKey, indexOfArgs);
-        return components ? JSON.stringify(components) : NO_DATA;
+        return components
+          ? JSON.stringify(formatComponentsJson(components))
+          : NO_DATA;
       },
       cellRenderer: cellRendererFactory(
         (
@@ -118,6 +125,16 @@ function getComponents<T extends AbiRow>(
   const components: readonly AbiFragmentParam[] | undefined =
     getComponentsFromAbiFragmentParam(abiFragmentParam);
   return components;
+}
+// The standard ABI JSON of the components, without the fields that only ethers
+// has (baseType, arrayChildren, ...), like the ABI viewer (abiText.ts).
+export function formatComponentsJson(
+  components: readonly AbiFragmentParam[],
+): unknown[] {
+  return components.map(
+    (component: AbiFragmentParam): unknown =>
+      JSON.parse(component.format("json")) as unknown,
+  );
 }
 export function getComponentsFromAbiFragmentParam(
   abiFragmentParam: AbiFragmentParam,

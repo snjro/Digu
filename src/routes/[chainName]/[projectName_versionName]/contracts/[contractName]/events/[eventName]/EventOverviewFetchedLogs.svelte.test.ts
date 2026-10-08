@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { tick } from "svelte";
 import type { Writable } from "svelte/store";
 import { render, screen, waitFor } from "@testing-library/svelte";
@@ -18,6 +18,7 @@ import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { getEventLogEdges } from "#db/dbEventLogsGetEventLogEdges.js";
 import { customLogger } from "#utils/logger.js";
 import EventOverviewFetchedLogs from "./EventOverviewFetchedLogs.svelte";
+import { EVENT_LOGS_RELOAD_INTERVAL } from "./EventLogs.svelte";
 
 // The real store and DB load the chain data, which loads ethers. ethers does
 // not load in the client project, so they are replaced.
@@ -34,6 +35,7 @@ vi.mock("#utils/logger.js", () => ({
   },
 }));
 vi.mock("./EventLogs.svelte", () => ({
+  EVENT_LOGS_RELOAD_INTERVAL: 3000,
   MESSAGE_ANONYMOUS_EVENT_LOGS: "Logs of anonymous events are not fetched.",
 }));
 vi.mock("#lib/common/CommonChainExplorerLink.svelte", async () => {
@@ -119,6 +121,11 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     store.set(initialState());
     load.mockReset();
     vi.mocked(customLogger.error).mockClear();
+    // waitFor checks with setInterval, so keep it real.
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   test("reloads the logs when the record count of the event changes", async () => {
@@ -133,6 +140,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     setContract({
       events: { Transfer: { recordCount: 2 }, Approval: { recordCount: 0 } },
     });
+    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
     await waitFor(() => expect(screen.getByText("2")).toBeTruthy());
     expect(load).toHaveBeenCalledTimes(2);
     expect(screen.queryByText("No logs fetched yet.")).toBeNull();
@@ -166,6 +174,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     setContract({
       events: { Transfer: { recordCount: 2 }, Approval: { recordCount: 0 } },
     });
+    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
     await waitFor(() =>
       expect(screen.getByText("No logs fetched yet.")).toBeTruthy(),
     );
@@ -179,6 +188,24 @@ describe("EventOverviewFetchedLogs.svelte", () => {
       },
       errorObject: error,
     });
+  });
+
+  test("makes one load of many saves in a short time", async () => {
+    load.mockResolvedValue(noLogs);
+    renderSection();
+    await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
+
+    for (const recordCount of [1, 2, 3]) {
+      setContract({
+        events: { Transfer: { recordCount }, Approval: { recordCount: 0 } },
+      });
+      await vi.advanceTimersByTimeAsync(100);
+    }
+    expect(load).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
+    expect(load).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL * 2);
+    expect(load).toHaveBeenCalledTimes(2);
   });
 
   test("does not reload when only other values change", async () => {

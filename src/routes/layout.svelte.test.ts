@@ -41,6 +41,12 @@ vi.mock("#lib/breadcrumb/Breadcrumb.svelte", () => ({ default: () => {} }));
 vi.mock("#warpSync/warpSync.js", () => ({
   startWarpSync: vi.fn(async () => {}),
 }));
+// The fly transition of the snackbar is canceled when the test ends, which the
+// browser reports as an error.
+vi.mock("svelte/transition", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("svelte/transition")>()),
+  fly: () => ({}),
+}));
 
 const initialWidth: number = get(storeNoDbCurrentWidth);
 
@@ -96,5 +102,17 @@ describe("+layout.svelte", () => {
     const dialog = container.querySelector("dialog");
     expect(dialog).not.toBeNull();
     expect(dialog?.closest(".pointer-events-none")).toBeNull();
+  });
+
+  // The blur of the main area would keep the snackbar below the sidebar.
+  test("keeps the snackbar out of the blurred main area", () => {
+    storeNoDbCurrentWidth.set(breakPointWidths.sm);
+    storeUserSettings.updateState({ isOpenSidebar: true });
+    storeNoDbSnackBar.set({ visible: true, text: "Save failed" });
+    const { container, getAllByText } = render(Layout);
+    expect(container.querySelector(".blur-xs")).not.toBeNull();
+    const texts: HTMLElement[] = getAllByText("Save failed");
+    expect(texts.length).toBeGreaterThan(0);
+    for (const text of texts) expect(text.closest(".blur-xs")).toBeNull();
   });
 });

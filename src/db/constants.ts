@@ -12,6 +12,10 @@ export const DB_NAME = {
   },
 } as const;
 
+// Dexie adds a table without a new version, but deletes one only on an
+// upgrade. Raise EventLog when a contract or an event that has logs is
+// removed or renamed (not when one is added), and BlockTimes when a chain is
+// removed. A version applies to the databases of every chain and version.
 export const DB_VERSIONS = {
   // 2: removed the contracts of Augur version2 that Augur did not deploy.
   EventLog: 2,

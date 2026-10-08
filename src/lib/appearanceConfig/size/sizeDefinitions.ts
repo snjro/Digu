@@ -12,7 +12,7 @@ export const breakPointWidths: { [key in BreakPointWidthKey]: number } = {
 export type BreakPointWidthValue =
   (typeof breakPointWidths)[keyof typeof breakPointWidths];
 
-export const breakPointWidthThresholds: Record<string, BreakPointWidthValue> = {
+export const breakPointWidthThresholds = {
   gridFunctionButtonForOpenedSidebar: breakPointWidths.lg,
   navSyncStatusForOpenedSidebar: breakPointWidths.md,
-};
+} as const satisfies Record<string, BreakPointWidthValue>;
