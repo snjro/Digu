@@ -35,6 +35,7 @@ import {
   logPageProblems,
   serveBuild,
 } from "../../check-lib/browser.mjs";
+import { readTryCount } from "../../check-lib/build-source.mjs";
 import { createChecks } from "../../check-lib/results.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
@@ -70,11 +71,7 @@ const conf = (dir) =>
   );
 const CONFIRMATION = { eth: conf("ethereum-mainnet"), matic: conf("matic") };
 // The errors after which the sync stops (TRY_COUNT of the build).
-const TRY_COUNT = Number(
-  fs
-    .readFileSync("/app/src/eventLogs/eventLogsContract.ts", "utf8")
-    .match(/export const TRY_COUNT\b[^=]*=\s*(\d+)/)[1],
-);
+const TRY_COUNT = readTryCount();
 // One contract to sync. The versions are turned off first.
 const TARGET = {
   eth: {

@@ -546,7 +546,7 @@ const browser = await puppeteer.launch({
 const openPages = (await browser.pages()).map((p) => p.url());
 check(
   "open pages at launch",
-  openPages.every((url) => url === "about:blank"),
+  openPages.length > 0 && openPages.every((url) => url === "about:blank"),
   openPages.join(", "),
 );
 const page = (await browser.pages())[0] ?? (await browser.newPage());
@@ -784,6 +784,8 @@ await results.guard(
               `${name} datetime sort click ${n}`,
               sorted.ariaSort === order &&
                 sorted.rows.length === 2 &&
+                // Two equal values pass in any order.
+                sorted.rows[0] !== sorted.rows[1] &&
                 JSON.stringify(sorted.rows) === JSON.stringify(want),
               JSON.stringify(sorted),
             );

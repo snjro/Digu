@@ -10,6 +10,7 @@ import {
   logPageProblems,
   serveBuild,
 } from "../../check-lib/browser.mjs";
+import { readTryCount } from "../../check-lib/build-source.mjs";
 import { createChecks } from "../../check-lib/results.mjs";
 import {
   handle,
@@ -35,11 +36,7 @@ const FAKE_RPC = `http://fake-rpc.invalid/v3/${FAKE_KEY}`;
 const CONF = CONFIRMATION_BLOCKS;
 const V1_CREATION = 5926229;
 // The errors after which the sync stops (TRY_COUNT of the build).
-const TRY_COUNT = Number(
-  fs
-    .readFileSync("/app/src/eventLogs/eventLogsContract.ts", "utf8")
-    .match(/export const TRY_COUNT\b[^=]*=\s*(\d+)/)[1],
-);
+const TRY_COUNT = readTryCount();
 
 // results.json is for a person; judge.py reads results-sync.json.
 const results = {};
@@ -533,10 +530,10 @@ async function watchTransitions(
   }
   return { transitions: seen.map((x) => `${x.ms}ms ${x.key}`), met, t, s };
 }
-// OK when `until` ended the wait of watchTransitions() `w` and `ok(t, s)`
-// accepts its last state.
-function checkTransitions(key, w, ok) {
-  check(key, w.met && ok(w.t, w.s), { transitions: w.transitions });
+// OK when `until` ended the wait of watchTransitions() `w`. The wait and the
+// judgement use the same condition, so a wait cannot end one render early.
+function checkTransitions(key, w) {
+  check(key, w.met, { transitions: w.transitions });
 }
 const startSync = (t) => t?.tooltip === "start sync" && t.disabled === false;
 const stopped = (t, s) => t?.tooltip === "start sync" && s?.isSyncing === false;
@@ -654,14 +651,13 @@ if (want("S1")) {
         page,
         V1,
         "Augur",
-        (t, s) => s?.fetched > V1_CREATION,
+        (t, s) =>
+          s?.fetched > V1_CREATION &&
+          t?.tooltip === "stop sync" &&
+          s.isSyncing === true,
         20000,
       );
-      checkTransitions(
-        "6-2 start transitions",
-        tr,
-        (t, s) => t?.tooltip === "stop sync" && s?.isSyncing === true,
-      );
+      checkTransitions("6-2 start transitions", tr);
       await snap(page, "S1-6-2-a-syncing-early", {
         checkboxes: await checkboxes(page),
       });
@@ -811,7 +807,7 @@ if (want("S1")) {
       await navIn(page, EV);
       await clickToggle(page);
       const stopTr = await watchTransitions(page, V1, "Augur", stopped, 30000);
-      checkTransitions("6-6 stop transitions", stopTr, stopped);
+      checkTransitions("6-6 stop transitions", stopTr);
       await snap(page, "S1-6-6-stopped");
       note("rpc S1 total", rpcSummary(rpcState));
 
@@ -847,19 +843,12 @@ if (want("S1")) {
           (t, s) => s?.fetched >= V1_CREATION + 400,
           60000,
         );
-        checkTransitions("6-9 restarted to latest", restart, () => true);
+        checkTransitions("6-9 restarted to latest", restart);
         await snap(page, "S1-6-9-e-restarted-to-latest");
         await clickToggle(page);
         checkTransitions(
           "6-9 restart stop",
-          await watchTransitions(
-            page,
-            V1,
-            "Augur",
-            (t, s) => s?.isSyncing === false,
-            30000,
-          ),
-          stopped,
+          await watchTransitions(page, V1, "Augur", stopped, 30000),
         );
         await snap(page, "S1-6-9-f-stopped");
       }
@@ -911,6 +900,11 @@ for (const [mode, stopTimeoutMs] of S3_MODES) {
         stopTimeoutMs,
       );
       note("transitions", tr.transitions);
+      await snap(page, `S3-6-7-${mode}`);
+      // wait a bit more: does anything keep calling the RPC?
+      const n0 = rpcState.calls.length;
+      await new Promise((res) => setTimeout(res, 3000));
+      // After the wait, so that a request still in flight at the stop counts.
       const rpc = rpcSummary(rpcState);
       // errorGetLogs: every eth_getLogs fails, and the sync stops after
       // TRY_COUNT + 1. errorAll: no Goal, so no eth_getLogs, and it stops
@@ -927,10 +921,6 @@ for (const [mode, stopTimeoutMs] of S3_MODES) {
       } else {
         note("rpc", rpc);
       }
-      await snap(page, `S3-6-7-${mode}`);
-      // wait a bit more: does anything keep calling the RPC?
-      const n0 = rpcState.calls.length;
-      await new Promise((res) => setTimeout(res, 3000));
       const calls = rpcState.calls.slice(n0).map((c) => c.method);
       const t = await toggleInfo(page);
       const s = await syncStateOf(page, V1, "Augur");
@@ -1014,10 +1004,10 @@ if (want("S4")) {
             b,
             V1,
             "Augur",
-            (t) => t?.tooltip === "syncing in another tab",
+            (t) =>
+              t?.tooltip === "syncing in another tab" && t.disabled === true,
             5000,
           ),
-          (t) => t?.tooltip === "syncing in another tab" && t.disabled === true,
         );
       }
       await (await front(b), snap)(b, "S4-6-8-d-B-after-click");
@@ -1037,7 +1027,6 @@ if (want("S4")) {
           stopped,
           30000,
         ),
-        stopped,
       );
       await new Promise((res) => setTimeout(res, 1500));
       await (await front(b), snap)(b, "S4-6-8-f-B-after-A-stopped");
@@ -1060,10 +1049,9 @@ if (want("S4")) {
             b,
             V1,
             "Augur",
-            (t, s) => s?.isSyncing === false,
+            stopped,
             30000,
           ),
-          stopped,
         );
       }
       // A closes while syncing: B can start a sync (it does not start one
@@ -1083,6 +1071,32 @@ if (want("S4")) {
       check("B toggle after A closed while syncing", startSync(b3), {
         toggle: b3,
       });
+      // B's toggle shows "start sync" also while another tab syncs, until B
+      // tries. So B starts and stops a sync: A's lock was released.
+      if (startSync(b3)) {
+        await (await front(b), clickToggle)(b);
+        checkTransitions(
+          "B start after A closed",
+          await (await front(b), watchTransitions)(
+            b,
+            V1,
+            "Augur",
+            (t, s) => t?.tooltip === "stop sync" && s?.isSyncing === true,
+            15000,
+          ),
+        );
+        await (await front(b), clickToggle)(b);
+        checkTransitions(
+          "B stop after A closed",
+          await (await front(b), watchTransitions)(
+            b,
+            V1,
+            "Augur",
+            stopped,
+            30000,
+          ),
+        );
+      }
     },
     () => b?.screenshot({ path: path.join(outDir, "S4-error.png") }),
   );
