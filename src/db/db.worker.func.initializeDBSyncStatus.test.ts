@@ -113,4 +113,14 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
     expect(calledArgs()).toHaveLength(expected.length);
     expect(calledArgs()).toEqual(expect.arrayContaining(expected));
   });
+
+  test("should throw an error of the recount", async () => {
+    spyInitializeDBSyncStatusForContract.mockRejectedValueOnce(
+      new Error("failed"),
+    );
+
+    await expect(
+      InitializeDBSyncStatus.dbWorkerFuncInitializeDBSyncStatus(),
+    ).rejects.toThrow("failed");
+  });
 });

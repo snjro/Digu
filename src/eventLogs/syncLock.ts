@@ -10,10 +10,7 @@ import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { customLogger } from "#utils/logger.js";
-import {
-  loadSyncStatusInChain,
-  type SyncStatusLoad,
-} from "#db/dbEventLogsDataHandlersSyncStatusLoad.js";
+import { loadSyncStatusInChain } from "#db/dbEventLogsDataHandlersSyncStatusLoad.js";
 import { createTabChannel } from "./tabChannel";
 import {
   get,
@@ -113,7 +110,7 @@ export async function requestSyncLock(
         // was opened, or left flags behind when it was closed. The Worker
         // counted the records at startup, and the syncing tab keeps the
         // counts in the DB up to date.
-        if (navigator.locks) await loadSyncStatusInChain(chainName, "reset");
+        if (navigator.locks) await resetSyncStatusInChain(chainName);
         await start();
       });
       resolve(started);
@@ -150,11 +147,15 @@ async function tryToStart(
   }
 }
 
-// Reads each chain at startup ("startup"), at once if it is free, or else
-// once it is released. The recount in the Worker skips a chain another tab
-// syncs, and that tab may have been closed since then.
+// Reads each chain at startup ("startup"): at once if it is free, or else
+// once it is released, and in a hidden tab once the tab is shown. The
+// recount in the Worker skips a chain another tab syncs, and that tab may
+// have been closed since then.
 export async function watchSyncLocksOfOtherTabs(): Promise<void> {
   if (!navigator.locks) return;
+  for (const targetChain of TARGET_CHAINS) {
+    chainsNotReadAtStartup.add(targetChain.name);
+  }
   // Before the requests below, so that no lock taken in between is missed.
   syncLockChannel.watch();
   watchVisibility();
@@ -167,6 +168,7 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
         { mode: "shared", ifAvailable: true },
         async (lock: Lock | null): Promise<void> => {
           if (lock) {
+            chainsNotReadAtStartup.delete(targetChain.name);
             // A failure only leaves this chain's status stale; do not fail
             // the startup.
             await loadSyncStatusInChain(targetChain.name, "startup").catch(
@@ -178,7 +180,7 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
               },
             );
           } else {
-            readChainWhenFree(targetChain.name, "startup");
+            readChainWhenFree(targetChain.name);
           }
         },
       ),
@@ -193,16 +195,16 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
 const syncLockChannel = createTabChannel(
   `${DB_NAME.firstName}_syncLock`,
   (chainName: ChainName) => {
-    readChainWhenFree(chainName, "release");
+    readChainWhenFree(chainName);
   },
 );
 
-// A reading after another tab's operation, or the startup's reading of a
-// chain that was not free.
-type Reading = Extract<SyncStatusLoad, "release" | "startup">;
+// The chains that this tab has not read since it started: their next reading
+// runs as "startup". This tab's own reset writes all that it writes.
+const chainsNotReadAtStartup: Set<ChainName> = new Set();
 
 // The chains that a hidden tab reads once it is shown.
-const chainsToReadWhenShown: Map<ChainName, Reading> = new Map();
+const chainsToReadWhenShown: Set<ChainName> = new Set();
 
 function isHidden(): boolean {
   return (
@@ -212,11 +214,8 @@ function isHidden(): boolean {
 
 function readChainsWhenShown(): void {
   if (isHidden()) return;
-  const chains = [...chainsToReadWhenShown];
+  for (const chainName of chainsToReadWhenShown) readChainWhenFree(chainName);
   chainsToReadWhenShown.clear();
-  for (const [chainName, reading] of chains) {
-    readChainWhenFree(chainName, reading);
-  }
 }
 
 let watchingVisibility: boolean = false;
@@ -230,18 +229,15 @@ function watchVisibility(): void {
 // Reads the chain once it is released, or, in a hidden tab, once the tab is
 // shown: its reading would keep a new operation waiting, for a screen that
 // nobody sees.
-function readChainWhenFree(chainName: ChainName, reading: Reading): void {
+function readChainWhenFree(chainName: ChainName): void {
   if (isHidden()) {
-    // "startup" writes all that "release" writes.
-    if (chainsToReadWhenShown.get(chainName) !== "startup") {
-      chainsToReadWhenShown.set(chainName, reading);
-    }
+    chainsToReadWhenShown.add(chainName);
     return;
   }
   // Waiting for the sync lock: it waits for the release itself if it is not
   // granted.
   if (!get(chainsLockedByThisTab)[chainName]) {
-    waitForSyncLockRelease(chainName, reading);
+    waitForSyncLockRelease(chainName);
   }
 }
 
@@ -264,21 +260,11 @@ export function stopWatchingSyncLockSignals(): void {
     watchingVisibility = false;
   }
   chainsToReadWhenShown.clear();
-  startupReadingsWaiting.clear();
+  chainsNotReadAtStartup.clear();
 }
 
-// The "startup" reading that a chain waits for, from a call while its wait
-// was queued or its reading ran.
-const startupReadingsWaiting: Set<ChainName> = new Set();
-
-export function waitForSyncLockRelease(
-  chainName: ChainName,
-  reading: Reading = "release",
-): void {
-  if (get(storeSyncLockedByOtherTab)[chainName]) {
-    if (reading === "startup") startupReadingsWaiting.add(chainName);
-    return;
-  }
+export function waitForSyncLockRelease(chainName: ChainName): void {
+  if (get(storeSyncLockedByOtherTab)[chainName]) return;
   storeSyncLockedByOtherTab.update((state) => ({
     ...state,
     [chainName]: true,
@@ -290,11 +276,8 @@ export function waitForSyncLockRelease(
       getSyncLockName(chainName),
       { mode: "shared" },
       async (): Promise<void> => {
-        const load: Reading = startupReadingsWaiting.delete(chainName)
-          ? "startup"
-          : reading;
         try {
-          await readChainAfterRelease(chainName, load);
+          await readChainAfterRelease(chainName);
         } catch (error) {
           // A failure only leaves this chain's status stale.
           customLogger.error("Read the chain again after the release.", {
@@ -306,10 +289,6 @@ export function waitForSyncLockRelease(
             ...state,
             [chainName]: false,
           }));
-          // Asked for while this reading ran.
-          if (startupReadingsWaiting.delete(chainName)) {
-            waitForSyncLockRelease(chainName, "startup");
-          }
         }
       },
     )
@@ -319,7 +298,6 @@ export function waitForSyncLockRelease(
         errorObject: error,
       });
       // The finally of the callback does not run when the request fails.
-      startupReadingsWaiting.delete(chainName);
       storeSyncLockedByOtherTab.update((state) => ({
         ...state,
         [chainName]: false,
@@ -333,18 +311,24 @@ export function waitForSyncLockRelease(
 export async function reloadSyncStatusInChain(
   chainName: ChainName,
 ): Promise<void> {
-  await loadSyncStatusInChain(chainName, "reset");
+  await resetSyncStatusInChain(chainName);
   await readLatestBlockNumber(chainName);
+}
+
+// For an operation of this tab, holding the sync lock exclusive.
+async function resetSyncStatusInChain(chainName: ChainName): Promise<void> {
+  await loadSyncStatusInChain(chainName, "reset");
+  chainsNotReadAtStartup.delete(chainName);
 }
 
 // After another tab's operation, with the lock shared. It writes only the
 // rows that need it, once of all the tabs that read: their writes would run
 // one after another, and hold the lock longer than a new operation waits.
-async function readChainAfterRelease(
-  chainName: ChainName,
-  reading: Reading,
-): Promise<void> {
-  await loadSyncStatusInChain(chainName, reading);
+async function readChainAfterRelease(chainName: ChainName): Promise<void> {
+  await loadSyncStatusInChain(
+    chainName,
+    chainsNotReadAtStartup.delete(chainName) ? "startup" : "release",
+  );
   await readLatestBlockNumber(chainName);
 }
 

@@ -1314,35 +1314,66 @@ describe("sync with two tabs (issue #49)", () => {
     ).toEqual([[chain.name, "startup"]]);
   }, 30_000);
 
-  test("reads at startup once a reading after a release that ran then is done", async () => {
+  test("reads at startup a chain that this tab's own operation waited for at startup", async () => {
     const a = await openTab();
     tabs.push(a);
-    // Same module instances as tab A.
-    const { waitForSyncLockRelease } = await import("./syncLock");
-    const load = await import("#db/dbEventLogsDataHandlersSyncStatusLoad.js");
-    const { loadSyncStatusInChain } = load;
-    let endReading: () => void = () => {};
-    const readingEnds: Promise<void> = new Promise<void>(
-      (resolve) => (endReading = resolve),
+    await a.db
+      .table("SyncStatus")
+      .update(a.contract.name, { creationBlockNumber: 1 });
+    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
+    let operation: Promise<boolean> | undefined;
+    const b = await openTab(async () => {
+      // Same module instances as tab B. It waits behind tab C, so the
+      // startup does not wait for the release itself.
+      const { runWithSyncLock } = await import("./syncLock");
+      operation = runWithSyncLock(chain.name, "sync", async () => {});
+    });
+    tabs.push(b);
+    // Not granted within SYNC_LOCK_TIMEOUT_MS: it waits for the release.
+    expect(await operation).toBe(false);
+
+    closeTabC();
+    await heldLock;
+    expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
+    expect((await dbStatus(b)).creationBlockNumber).toBe(
+      b.contract.creation.blockNumber,
     );
-    const spyLoad = vi
-      .spyOn(load, "loadSyncStatusInChain")
-      .mockImplementation(async (chainName, mode) => {
-        if (spyLoad.mock.calls.length === 1) await readingEnds;
-        await loadSyncStatusInChain(chainName, mode);
+  }, 30_000);
+
+  test("reads a chain that this tab reset after the startup as after a release", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
+    const spyVisibility = vi
+      .spyOn(document, "visibilityState", "get")
+      .mockReturnValue("hidden");
+    try {
+      let spyLoad: MockInstance | undefined;
+      const b = await openTab(async () => {
+        const load =
+          await import("#db/dbEventLogsDataHandlersSyncStatusLoad.js");
+        spyLoad = vi.spyOn(load, "loadSyncStatusInChain");
       });
+      tabs.push(b);
+      closeTabC();
+      await heldLock;
+      // Its reset at the start writes all that the startup's reading writes.
+      expect(await b.fetchEventLogs()).toBe(true);
+      await stopAndWait(b);
 
-    waitForSyncLockRelease(chain.name);
-    expect(await waitFor(() => spyLoad.mock.calls.length === 1)).toBe(true);
-    waitForSyncLockRelease(chain.name, "startup");
-    endReading();
-
-    expect(await waitFor(() => spyLoad.mock.calls.length === 2)).toBe(true);
-    expect(spyLoad.mock.calls.map(([, mode]) => mode)).toEqual([
-      "release",
-      "startup",
-    ]);
-    expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
+      spyVisibility.mockReturnValue("visible");
+      document.dispatchEvent(new Event("visibilitychange"));
+      expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
+      const modes = (): unknown[] =>
+        spyLoad!.mock.calls
+          .filter(([chainName]) => chainName === chain.name)
+          .map(([, mode]) => mode);
+      expect(await waitFor(() => modes().includes("release"))).toBe(true);
+      expect(modes()).toContain("reset");
+      expect(modes()).not.toContain("startup");
+    } finally {
+      spyVisibility.mockRestore();
+    }
   }, 30_000);
 
   test("lets a tab opened hidden read a chain busy at startup once it is shown", async () => {
@@ -1357,8 +1388,25 @@ describe("sync with two tabs (issue #49)", () => {
       .spyOn(document, "visibilityState", "get")
       .mockReturnValue("hidden");
     try {
+      // The signals that tab B gets.
+      const received: unknown[] = [];
+      const addEventListener = BroadcastChannel.prototype.addEventListener;
+      const spyListen = vi
+        .spyOn(BroadcastChannel.prototype, "addEventListener")
+        .mockImplementation(function (
+          this: BroadcastChannel,
+          ...args: Parameters<BroadcastChannel["addEventListener"]>
+        ) {
+          if (this.name === "Digu_syncLock") {
+            addEventListener.call(this, "message", (event: Event) =>
+              received.push((event as MessageEvent).data),
+            );
+          }
+          addEventListener.apply(this, args);
+        });
       const b = await openTab();
       tabs.push(b);
+      spyListen.mockRestore();
       // The signal of tab C, after the startup: it does not replace the
       // startup's reading.
       const signal = new BroadcastChannel("Digu_syncLock");
@@ -1367,6 +1415,7 @@ describe("sync with two tabs (issue #49)", () => {
       } finally {
         signal.close();
       }
+      expect(await waitFor(() => received.length === 1)).toBe(true);
       closeTabC();
       await heldLock;
       await sleep(300);
