@@ -42,9 +42,10 @@ export async function startUpdateLatestBlockNumber(
     }
   };
 
-  // Before the interval: the fetching of event logs starts right after this,
-  // with the goal in the store as it is then (see
-  // fetchAndRaiseLatestBlockNumber).
+  // Once before the interval: the contracts start right after this, and read
+  // the goal from the store in each loop. Without it they would sync toward
+  // the goal stored before until the first tick. A failure here is counted
+  // like those on the interval, and the contracts start all the same.
   await tryFetchAndRaiseLatestBlockNumber();
 
   // The requests and the aborting catch and log their errors. The rest
