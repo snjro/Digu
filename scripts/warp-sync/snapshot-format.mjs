@@ -138,9 +138,16 @@ export function emptyManifest(chain) {
   };
 }
 
+// The text of a file of the chains or of the snapshot, without a byte order
+// mark, which would hide the first import of an _index.ts and break
+// JSON.parse.
+export function readText(file) {
+  return fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
+}
+
 export function readManifest(file, chain) {
   if (!fs.existsSync(file)) return emptyManifest(chain);
-  const manifest = JSON.parse(fs.readFileSync(file, "utf8"));
+  const manifest = JSON.parse(readText(file));
   if (manifest.formatVersion === 2) {
     throw new Error(
       `${file} has formatVersion 2. Convert it first with scripts/warp-sync/convert-snapshot.mjs.`,
@@ -158,8 +165,9 @@ export function readManifest(file, chain) {
 // Writes file whole and then renames it, so that a stop does not leave half a
 // file: write(tmp) writes the file tmp. When the write or the rename fails, tmp
 // is removed, file stays as it was, and the error is thrown. <file>.tmp is left
-// only by a stop (a kill) before the rename, and by a write that returns a
-// promise (a misuse: it is not waited for, and writeWhole throws).
+// when its removal fails, after a stop (a kill) before the rename, and by a
+// write that returns a promise (a misuse: it is not waited for, and writeWhole
+// throws).
 export function writeWhole(file, write) {
   const tmp = `${file}.tmp`;
   let written;

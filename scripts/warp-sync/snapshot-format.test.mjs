@@ -183,6 +183,13 @@ describe("the manifest", () => {
     expect(() => readManifest(file, chain)).toThrow("convert-snapshot.mjs");
   });
 
+  test("one with a byte order mark is read", () => {
+    const file = path.join(dir, "manifest.json");
+    const manifest = { formatVersion: 3, chainId: 1, chunks: [] };
+    fs.writeFileSync(file, `\uFEFF${JSON.stringify(manifest)}`);
+    expect(readManifest(file, chain)).toEqual(manifest);
+  });
+
   test("another chain stops it", () => {
     const file = path.join(dir, "manifest.json");
     fs.writeFileSync(file, JSON.stringify({ formatVersion: 3, chainId: 137 }));

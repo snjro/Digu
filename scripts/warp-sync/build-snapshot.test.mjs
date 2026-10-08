@@ -19,6 +19,7 @@ import {
 import {
   buildSnapshot,
   keepLogsBefore,
+  linesOf,
   loadChain,
   parsePositiveInteger,
   RequestLimitError,
@@ -368,14 +369,22 @@ test("keepLogsBefore keeps the file when its read fails", async () => {
 
 test("keepLogsBefore keeps the file when its write fails", async () => {
   const file = path.join(outDir, "segment.jsonl");
-  // Many lines, so that the read goes on after the write failed (the error
-  // of the read stream must not then be left uncaught).
-  const content = `${JSON.stringify({ blockNumber: toHex(5) })}\n`.repeat(
-    20_000,
-  );
+  // More than a piece of the write, so that the write fails while the read
+  // still has lines: the error of the read stream then comes after the loop
+  // ended, and vitest fails the run on an uncaught error.
+  const line = JSON.stringify({ blockNumber: toHex(5), data: "0".repeat(100) });
+  const content = `${line}\n`.repeat(20_000);
   fs.writeFileSync(file, content);
+  const createReadStream = fs.createReadStream.bind(fs);
+  let input;
+  const read = vi
+    .spyOn(fs, "createReadStream")
+    .mockImplementationOnce((...args) => {
+      input = createReadStream(...args);
+      return input;
+    });
   // The write makes the .tmp file, and then fails.
-  const spy = vi
+  const write = vi
     .spyOn(fs, "createWriteStream")
     .mockImplementationOnce((tmp) => {
       fs.writeFileSync(tmp, "partial");
@@ -388,8 +397,11 @@ test("keepLogsBefore keeps the file when its write fails", async () => {
   try {
     await expect(keepLogsBefore(file, 7)).rejects.toThrow("write failed");
   } finally {
-    spy.mockRestore();
+    read.mockRestore();
+    write.mockRestore();
   }
+  expect(input.readableEnded).toBe(false);
+  expect(input.destroyed).toBe(true);
   expect(fs.readFileSync(file, "utf8")).toBe(content);
   expect(fs.existsSync(`${file}.tmp`)).toBe(false);
 });
@@ -406,6 +418,17 @@ test("keepLogsBefore keeps a file of many chunks of the read", async () => {
   fs.writeFileSync(file, blocks.map((block) => `${line(block)}\n`).join(""));
   await keepLogsBefore(file, 25_001);
   expect(fs.readFileSync(file, "utf8")).toBe(kept.join(""));
+});
+
+test("linesOf closes its input when the loop ends early", async () => {
+  // A stream that does not end on its own.
+  const input = new Readable({ read() {} });
+  input.push("a\nb\n");
+  for await (const line of linesOf(input)) {
+    expect(line).toBe("a");
+    break;
+  }
+  expect(input.destroyed).toBe(true);
 });
 
 test("keepLogsBefore keeps a last line without a newline", async () => {

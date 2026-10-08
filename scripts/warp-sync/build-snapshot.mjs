@@ -15,6 +15,7 @@ import {
   lastBlocks,
   moveChunkFiles,
   readManifest,
+  readText,
   writeContractChunks,
   writeManifest,
   writeWhole,
@@ -63,17 +64,13 @@ const MAX_RATE_ERRORS = 30;
 
 // ---------- the constants of the app ----------
 
-// Without a byte order mark, which would hide the first import of an _index.ts
-// and break JSON.parse.
-function read(file) {
-  return fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
-}
 function match(text, regex, what) {
   const found = text.match(regex);
   if (!found) throw new Error(`Cannot find ${what}.`);
   return found[1];
 }
-// The paths of the imports of an _index.ts. Every import must have the form of
+// The paths of the imports of the text of an _index.ts, read with readText
+// (without a byte order mark). Every import must have the form of
 // regex, so that an import of another form does not leave its contracts out
 // without a word. Imports of types, and of modules that are not relative (#…)
 // and not a JSON file, are not data and are skipped.
@@ -95,13 +92,13 @@ function importsOf(text, regex, what) {
 // files that they import.
 export function loadChain(chainName, chainsDir = CHAINS_DIR) {
   const chainDirs = importsOf(
-    read(path.join(chainsDir, "_index.ts")),
+    readText(path.join(chainsDir, "_index.ts")),
     /^import \{ chain as \w+ \} from "\.\/([^"]+)\/_index";$/,
     `the chains of ${chainsDir}`,
   );
   for (const chainDir of chainDirs) {
     const dir = path.join(chainsDir, chainDir);
-    const index = read(path.join(dir, "_index.ts"));
+    const index = readText(path.join(dir, "_index.ts"));
     const name = match(
       index,
       /export const chain: Chain = \{\s*name: "([^"]+)"/,
@@ -127,7 +124,7 @@ function loadContracts(chainDir, chainIndex) {
     `the projects of ${chainDir}`,
   )) {
     const dir = path.join(chainDir, projectDir);
-    const index = read(path.join(dir, "_index.ts"));
+    const index = readText(path.join(dir, "_index.ts"));
     const project = match(
       index,
       /export const project: Project = \{\s*name: "([^"]+)"/,
@@ -139,7 +136,7 @@ function loadContracts(chainDir, chainIndex) {
       `the versions of ${dir}`,
     )) {
       const vDir = path.join(dir, versionDir);
-      const vIndex = read(path.join(vDir, "_index.ts"));
+      const vIndex = readText(path.join(vDir, "_index.ts"));
       const version = match(
         vIndex,
         /export const version: Version = \{\s*name: "([^"]+)"/,
@@ -150,7 +147,7 @@ function loadContracts(chainDir, chainIndex) {
         /^import \w+ from "\.\/([^"]+\.json)";$/,
         `the JSON files of ${vDir}`,
       )) {
-        const json = JSON.parse(read(path.join(vDir, file)));
+        const json = JSON.parse(readText(path.join(vDir, file)));
         const iface = new Interface(json.abi);
         const events = eventsByTopic0(iface);
         if (events.size === 0) continue;
@@ -527,7 +524,7 @@ function readStates(partialDir) {
   if (!fs.existsSync(partialDir)) return states;
   for (const file of fs.readdirSync(partialDir)) {
     if (file.endsWith(".state.json")) {
-      const state = JSON.parse(read(path.join(partialDir, file)));
+      const state = JSON.parse(readText(path.join(partialDir, file)));
       states.set(partKeyOf(state), state);
     } else if (file.endsWith(".json")) {
       // The logs of a segment in one .json file, before formatVersion 2.
@@ -541,8 +538,8 @@ function readStates(partialDir) {
 function writeState(file, state) {
   writeWhole(file, (tmp) => fs.writeFileSync(tmp, JSON.stringify(state)));
 }
-// The kept lines are written this many at a time.
-const KEEP_BATCH_LINES = 1000;
+// The kept lines are written in pieces of about this many characters.
+const KEEP_BATCH_LENGTH = 1 << 20;
 // Keeps the lines of the blocks before nextBlock. A line that a stop left
 // half written is dropped too. It streams the file, which can be larger than
 // a string can hold: pipeline writes all of it, closes the files, and passes
@@ -560,30 +557,32 @@ export async function keepLogsBefore(file, nextBlock) {
     pipeline(
       fs.createReadStream(file),
       async function* (input) {
-        let kept = [];
+        let kept = "";
         for await (const line of linesOf(input)) {
           if (!isKept(line)) continue;
-          kept.push(line);
-          if (kept.length >= KEEP_BATCH_LINES) {
-            yield `${kept.join("\n")}\n`;
-            kept = [];
+          kept += `${line}\n`;
+          if (kept.length >= KEEP_BATCH_LENGTH) {
+            yield kept;
+            kept = "";
           }
         }
-        if (kept.length > 0) yield `${kept.join("\n")}\n`;
+        if (kept) yield kept;
       },
       fs.createWriteStream(tmp),
     ),
   );
 }
-// The lines of a stream. The interface is closed when the loop ends, also by
-// an error: it would otherwise give the error of its input again after the
-// loop, with no listener (an uncaught error).
-async function* linesOf(input) {
+// The lines of a stream. When the loop ends, also early or by an error, the
+// interface is closed (it would otherwise give the error of its input again,
+// with no listener: an uncaught error) and the input is destroyed (closing
+// the interface takes its listener off the input).
+export async function* linesOf(input) {
   const lines = readline.createInterface({ input, crlfDelay: Infinity });
   try {
     yield* lines;
   } finally {
     lines.close();
+    input.destroy();
   }
 }
 async function* readLogs(file) {

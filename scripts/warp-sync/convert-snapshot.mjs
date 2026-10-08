@@ -10,6 +10,7 @@ import { loadChain } from "./build-snapshot.mjs";
 import {
   FORMAT_VERSION,
   keyOf,
+  readText,
   sha256,
   writeContractChunks,
   writeManifest,
@@ -18,7 +19,7 @@ import { toSnapshotLog } from "./snapshot-log.mjs";
 
 export async function convertSnapshot({ dir, log }) {
   const manifestFile = path.join(dir, "manifest.json");
-  const old = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+  const old = JSON.parse(readText(manifestFile));
   if (old.formatVersion !== 2) {
     throw new Error(`${manifestFile} has formatVersion ${old.formatVersion}.`);
   }
