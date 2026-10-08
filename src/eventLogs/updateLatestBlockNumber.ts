@@ -42,10 +42,10 @@ export async function startUpdateLatestBlockNumber(
     }
   };
 
-  // Once before the interval: the contracts start right after this, and read
-  // the goal from the store in each loop. Without it they would sync toward
-  // the goal stored before until the first tick. A failure here is counted
-  // like those on the interval, and the contracts start all the same.
+  // Once before the interval, so that the contracts, which start right after
+  // this, have an up-to-date goal (fetchAndRaiseLatestBlockNumber) without
+  // waiting for a tick. When it fails, they start with the goal stored before,
+  // and the failure counts toward the limit of the interval.
   await tryFetchAndRaiseLatestBlockNumber();
 
   // The requests and the aborting catch and log their errors. The rest
