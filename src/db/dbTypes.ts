@@ -167,6 +167,12 @@ export const syncStatusBaseBooleanKeys = [
   "isSyncing",
   "isSyncTarget",
 ] as const;
+// The flags of a sync, cleared where no sync runs: a tab closed while it
+// synced leaves them set.
+export const clearedSyncFlags = {
+  isAbort: false,
+  isSyncing: false,
+} as const satisfies Partial<SyncStatusContract>;
 type SyncStatusBaseNumberItems = {
   [key in (typeof syncStatusBaseNumberKeys)[number]]: number;
 };

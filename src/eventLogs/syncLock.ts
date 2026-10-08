@@ -12,7 +12,10 @@ import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { customLogger } from "#utils/logger.js";
-import { repairSyncStatusInChain } from "#db/dbEventLogsDataHandlersSyncStatusRepair.js";
+import {
+  readSyncStatusInChain,
+  repairSyncStatusInChain,
+} from "#db/dbEventLogsDataHandlersSyncStatusRepair.js";
 import { createTabChannel } from "./tabChannel";
 import {
   get,
@@ -287,5 +290,5 @@ async function resetSyncStatusInChain(chainName: ChainName): Promise<void> {
   // The Worker counted the records at startup, and the syncing tab keeps the
   // counts in the DB up to date.
   await initializeDBSyncStatusInChain(targetChain, false);
-  await repairSyncStatusInChain(chainName);
+  await readSyncStatusInChain(chainName);
 }

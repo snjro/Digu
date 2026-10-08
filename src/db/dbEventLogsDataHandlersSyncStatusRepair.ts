@@ -1,33 +1,56 @@
 import type { ChainName, Contract } from "#constants/chains/types.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { customLogger } from "#utils/logger.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { DB_TABLE_NAMES } from "./constants";
 import { getDbEventLogs, type DbEventLogs } from "./dbEventLogs";
-import type { SyncStatusContract, VersionIdentifier } from "./dbTypes";
+import {
+  clearedSyncFlags,
+  type SyncStatusContract,
+  type VersionIdentifier,
+} from "./dbTypes";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 
-// Reads the sync status of every contract of the chain into the store. A row
-// that a tab closed while it synced left syncing or aborting, or with the
-// creation block of another build, is written in a read-write transaction
-// that checks it again, so that of the tabs that read at the same time only
-// the first writes. A contract without a row is skipped. Call only while
-// holding the sync lock of the chain, exclusive or shared.
+type Rows = Map<string, SyncStatusContract>;
+
+// Reads the sync status of every contract of the chain into the store, and
+// clears the flags of a sync that a tab closed while it synced left set. A
+// row is written only when it needs it, in a read-write transaction that
+// checks it again, so that of the tabs that read at the same time only the
+// first writes. Call only while holding the sync lock of the chain, exclusive
+// or shared, with no sync of this tab.
 export async function repairSyncStatusInChain(
   chainName: ChainName,
+): Promise<void> {
+  await forEachVersion(chainName, true);
+}
+
+// Reads the sync status of every contract of the chain into the store, as it
+// is in the DB.
+export async function readSyncStatusInChain(
+  chainName: ChainName,
+): Promise<void> {
+  await forEachVersion(chainName, false);
+}
+
+async function forEachVersion(
+  chainName: ChainName,
+  repair: boolean,
 ): Promise<void> {
   const promises: Promise<void>[] = [];
   for (const targetProject of getTargetChain({ chainName }).projects) {
     for (const targetVersion of targetProject.versions) {
       promises.push(
-        repairSyncStatusInVersion(
+        readVersion(
           getDbEventLogs({
             chainName,
             projectName: targetProject.name,
             versionName: targetVersion.name,
           }),
           extractEventContracts(targetVersion.contracts),
+          repair,
         ),
       );
     }
@@ -35,22 +58,31 @@ export async function repairSyncStatusInChain(
   await Promise.all(promises);
 }
 
-async function repairSyncStatusInVersion(
+async function readVersion(
   dbEventLogs: DbEventLogs,
   contracts: Contract[],
+  repair: boolean,
 ): Promise<void> {
-  let rows: Map<string, SyncStatusContract> = await readRows(
-    dbEventLogs,
-    contracts,
-    "r",
-  );
-  if (contracts.some((contract) => getRepair(contract, rows))) {
+  let rows: Rows = await readRows(dbEventLogs, contracts, "r");
+  if (repair && [...rows.values()].some((row) => getRepair(row))) {
     rows = await readRows(dbEventLogs, contracts, "rw");
   }
   // Only after the commit.
   const versionIdentifier: VersionIdentifier = dbEventLogs.versionIdentifier;
-  for (const [contractName, row] of rows) {
-    storeSyncStatus.updateState({ ...versionIdentifier, contractName }, row);
+  for (const contract of contracts) {
+    const contractIdentifier = {
+      ...versionIdentifier,
+      contractName: contract.name,
+    };
+    const row: SyncStatusContract | undefined = rows.get(contract.name);
+    if (row) {
+      storeSyncStatus.updateState(contractIdentifier, row);
+    } else {
+      customLogger.warn(
+        "Skip a contract without a sync status in the DB.",
+        contractIdentifier,
+      );
+    }
   }
 }
 
@@ -59,42 +91,37 @@ async function readRows(
   dbEventLogs: DbEventLogs,
   contracts: Contract[],
   mode: "r" | "rw",
-): Promise<Map<string, SyncStatusContract>> {
+): Promise<Rows> {
   return await dbEventLogs.transaction(mode, tableNameSyncStatus, async () => {
-    const rows: Map<string, SyncStatusContract> = new Map();
-    for (const contract of contracts) {
-      const row: SyncStatusContract | undefined = await dbEventLogs
-        .table(tableNameSyncStatus)
-        .get(contract.name);
+    const table = dbEventLogs.table(tableNameSyncStatus);
+    const records: (SyncStatusContract | undefined)[] = await table.bulkGet(
+      contracts.map((contract: Contract) => contract.name),
+    );
+    const rows: Rows = new Map();
+    for (const [index, contract] of contracts.entries()) {
+      const row: SyncStatusContract | undefined = records[index];
       if (!row) continue;
-      rows.set(contract.name, row);
-      const repair: Partial<SyncStatusContract> | undefined = getRepair(
-        contract,
-        rows,
-      );
-      if (mode === "rw" && repair) {
-        await dbEventLogs
-          .table(tableNameSyncStatus)
-          .update(contract.name, repair);
-        rows.set(contract.name, { ...row, ...repair });
+      const repairOfRow: Partial<SyncStatusContract> | undefined =
+        getRepair(row);
+      if (mode === "rw" && repairOfRow) {
+        await table.update(contract.name, repairOfRow);
+        rows.set(contract.name, { ...row, ...repairOfRow });
+      } else {
+        rows.set(contract.name, row);
       }
     }
     return rows;
   });
 }
 
-// What the row of the contract needs, or undefined.
+// The flags of the row to clear, or undefined.
 function getRepair(
-  contract: Contract,
-  rows: Map<string, SyncStatusContract>,
+  row: SyncStatusContract,
 ): Partial<SyncStatusContract> | undefined {
-  const row: SyncStatusContract | undefined = rows.get(contract.name);
-  if (!row) return undefined;
   const repair: Partial<SyncStatusContract> = {};
-  if (row.isSyncing) repair.isSyncing = false;
-  if (row.isAbort) repair.isAbort = false;
-  if (row.creationBlockNumber !== contract.creation.blockNumber) {
-    repair.creationBlockNumber = contract.creation.blockNumber;
+  for (const [key, value] of Object.entries(clearedSyncFlags)) {
+    const flag = key as keyof typeof clearedSyncFlags;
+    if (row[flag] !== value) repair[flag] = value;
   }
   return Object.keys(repair).length > 0 ? repair : undefined;
 }

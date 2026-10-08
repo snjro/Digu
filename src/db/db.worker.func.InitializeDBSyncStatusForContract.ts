@@ -1,5 +1,9 @@
 import type { Contract, EventAbiFragment } from "#constants/chains/types.js";
-import type { SyncStatusContract, SyncStatusesEvent } from "./dbTypes";
+import {
+  clearedSyncFlags,
+  type SyncStatusContract,
+  type SyncStatusesEvent,
+} from "./dbTypes";
 import { updateDbRecordSyncStatus } from "./dbEventLogsDataHandlersSyncStatusUpdateDbRecordSyncStatus";
 import { getEventLogTableName } from "#utils/utilsDb.js";
 import { getEventLogTableRecordCount } from "./dbEventLogsDataHandlersEventLog";
@@ -14,8 +18,7 @@ export async function initializeDBSyncStatusForContract(
   recount: boolean,
 ): Promise<void> {
   const newSyncStatusContract: Partial<SyncStatusContract> = {
-    isAbort: false,
-    isSyncing: false,
+    ...clearedSyncFlags,
     creationBlockNumber: targetContract.creation.blockNumber,
   };
   if (recount) {

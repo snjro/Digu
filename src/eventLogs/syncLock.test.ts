@@ -777,7 +777,8 @@ describe("sync with two tabs (issue #49)", () => {
       // Tab C syncs, and is closed while it holds the lock: its rows stay
       // syncing.
       const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
-      // And the creation block of another build.
+      // And the creation block of another build, which the reading leaves:
+      // the operations and the Worker of each build write their own.
       await a.db.table("SyncStatus").update(a.contract.name, {
         isSyncing: true,
         isAbort: false,
@@ -804,12 +805,10 @@ describe("sync with two tabs (issue #49)", () => {
       expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
       expect(await dbStatus(a)).toMatchObject({
         isSyncing: false,
-        creationBlockNumber: a.contract.creation.blockNumber,
+        creationBlockNumber: 1,
       });
       expect(a.storeStatus().syncStateText).toBe("stopped");
-      expect(a.storeStatus().creationBlockNumber).toBe(
-        a.contract.creation.blockNumber,
-      );
+      expect(a.storeStatus().creationBlockNumber).toBe(1);
     }, 30_000);
 
     test("writes a row left behind once, of the tabs that read it again at the same time", async () => {
@@ -820,7 +819,11 @@ describe("sync with two tabs (issue #49)", () => {
       let watching: boolean = false;
       let readWriteRequests: number = 0;
       let bothAsked: () => void = () => {};
-      const barrier = new Promise<void>((resolve) => (bothAsked = resolve));
+      // Not for ever: a tab that does not ask fails on the count below.
+      const barrier = Promise.race([
+        new Promise<void>((resolve) => (bothAsked = resolve)),
+        sleep(2000),
+      ]);
       const countWrites = async (): Promise<void> => {
         // The module instance of the tab opened last.
         const { getDbEventLogs } = await import("#db/dbEventLogs.js");
@@ -889,6 +892,7 @@ describe("sync with two tabs (issue #49)", () => {
       // Tab A's module instance.
       const { customLogger } = await import("#utils/logger.js");
       const spyError = vi.spyOn(customLogger, "error");
+      const spyWarn = vi.spyOn(customLogger, "warn");
       const { held: heldLock, release } = holdSyncLockOfOtherTab();
       await a.db.table("SyncStatus").delete(a.contract.name);
       const signal = new BroadcastChannel("Digu_syncLock");
@@ -903,6 +907,10 @@ describe("sync with two tabs (issue #49)", () => {
       await heldLock;
       expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
       expect(spyError).not.toHaveBeenCalled();
+      expect(spyWarn).toHaveBeenCalledExactlyOnceWith(
+        "Skip a contract without a sync status in the DB.",
+        { ...versionIdentifier, contractName: a.contract.name },
+      );
     }, 30_000);
 
     test("ignores a message without a known chain", async () => {
