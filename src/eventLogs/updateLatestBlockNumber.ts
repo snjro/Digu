@@ -42,10 +42,9 @@ export async function startUpdateLatestBlockNumber(
     }
   };
 
-  // Get the latest block number before updating in the interval.
-  // The reason is that the fetching event logs start before the interval starts.
-  // And the block number, which is the goal of the fetching event log, is considered 0.
-  // To avoid this, get the latest blocknumber here.
+  // Fetch the latest block number before updating in the interval, and raise
+  // the stored one to it (it is never lowered). The fetching of event logs
+  // starts before the interval does, and would take 0 as its goal otherwise.
   await tryFetchAndRaiseLatestBlockNumber();
 
   // The requests and the aborting catch and log their errors. The rest
