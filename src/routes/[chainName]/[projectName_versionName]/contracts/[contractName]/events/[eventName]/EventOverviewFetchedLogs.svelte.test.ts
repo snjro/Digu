@@ -89,15 +89,25 @@ function initialState(): SyncStatusesChain {
 }
 const store = storeSyncStatus as unknown as Writable<SyncStatusesChain>;
 
+// The status of contract1 in a state of the store.
+function contractOf(state: SyncStatusesChain): SyncStatusContract {
+  const contract: SyncStatusContract | undefined =
+    state.chain1.subSyncStatuses.project1.subSyncStatuses.version1
+      .subSyncStatuses.contract1;
+  if (!contract) throw new Error("contract1 is not in the store.");
+  return contract;
+}
+function recordCountOfTransfer(): number {
+  const event = contractOf(get(store)).events.Transfer;
+  if (!event) throw new Error("Transfer of contract1 is not in the store.");
+  return event.recordCount;
+}
+
 // Like storeSyncStatus.updateState, return a new state.
 function setContract(value: Partial<SyncStatusContract>): void {
   store.update((state) => {
     const newState = structuredClone(state);
-    Object.assign(
-      newState.chain1.subSyncStatuses.project1.subSyncStatuses.version1
-        .subSyncStatuses.contract1!,
-      value,
-    );
+    Object.assign(contractOf(newState), value);
     return newState;
   });
 }
@@ -112,15 +122,24 @@ function log(blockNumber: number): ConvertedEventLog {
   } as unknown as ConvertedEventLog;
 }
 
-// The date shown in the part of an edge: the nearest element around its title
-// that has a date.
-function shownDateOf(title: "Latest Log" | "Oldest Log"): string | null {
-  const isoDate: RegExp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
-  let part: HTMLElement | null = screen.getByText(title).parentElement;
-  while (part && !within(part).queryByText(isoDate)) {
+// The part of a title (CommonItemMember): the nearest element around the
+// title that has the content next to it.
+function partOf(title: string): HTMLElement {
+  const titleElement: HTMLElement = screen.getByText(title);
+  let part: HTMLElement | null = titleElement.parentElement;
+  while (
+    part &&
+    [...part.children].every((child) => child.contains(titleElement))
+  ) {
     part = part.parentElement;
   }
-  return part ? within(part).getByText(isoDate).textContent : null;
+  if (!part) throw new Error(`No part around the title "${title}".`);
+  return part;
+}
+// The date shown in the part of an edge, or null when it has none.
+function shownDateOf(title: "Latest Log" | "Oldest Log"): string | null {
+  const isoDate: RegExp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+  return within(partOf(title)).queryByText(isoDate)?.textContent ?? null;
 }
 
 const load = vi.mocked(getEventLogEdges);
@@ -192,9 +211,7 @@ describe("EventOverviewFetchedLogs.svelte", () => {
   // Any change of the record count reloads: it saves the one in the store
   // plus one.
   async function saveAndWaitForTheReload(): Promise<void> {
-    const recordCount: number =
-      get(store).chain1.subSyncStatuses.project1.subSyncStatuses.version1
-        .subSyncStatuses.contract1!.events.Transfer!.recordCount;
+    const recordCount: number = recordCountOfTransfer();
     await vi.advanceTimersByTimeAsync(sinceLoad);
     await save(recordCount + 1);
     await vi.advanceTimersByTimeAsync(
