@@ -13,7 +13,13 @@ import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { customLogger } from "#utils/logger.js";
-import { get, writable, type Writable } from "svelte/store";
+import {
+  get,
+  readonly,
+  writable,
+  type Readable,
+  type Writable,
+} from "svelte/store";
 
 // true while another tab holds the sync lock of the chain (its sync, import or
 // reset).
@@ -26,10 +32,17 @@ export const storeSyncLockedByOtherTab: Writable<Record<ChainName, boolean>> =
 // holds the sync lock of the chain, and the browser releases it when the tab
 // is closed.
 
-// Chains whose sync lock this tab holds or waits for. A request for a lock
-// that this tab holds would wait for it, time out, and be taken for another
-// tab.
-const chainsLockedByThisTab: Set<ChainName> = new Set();
+export type SyncLockKind = "sync" | "import" | "reset";
+
+// The operation of this tab that holds or waits for the sync lock of each
+// chain. A request for a lock that this tab holds would wait for it, time
+// out, and be taken for another tab.
+const chainsLockedByThisTab: Writable<
+  Partial<Record<ChainName, SyncLockKind>>
+> = writable({});
+export const storeSyncLockedByThisTab: Readable<
+  Partial<Record<ChainName, SyncLockKind>>
+> = readonly(chainsLockedByThisTab);
 
 // Runs `run` while holding the sync lock of the chain. Resolves true once
 // `run` has finished, or false without running it when this tab holds or
@@ -37,10 +50,11 @@ const chainsLockedByThisTab: Set<ChainName> = new Set();
 // Rejects when `run` throws.
 export async function runWithSyncLock(
   chainName: ChainName,
+  kind: SyncLockKind,
   run: () => Promise<void>,
 ): Promise<boolean> {
-  if (chainsLockedByThisTab.has(chainName)) return false;
-  chainsLockedByThisTab.add(chainName);
+  if (get(chainsLockedByThisTab)[chainName]) return false;
+  chainsLockedByThisTab.update((state) => ({ ...state, [chainName]: kind }));
   try {
     // Without Web Locks (insecure context), work as a single tab.
     if (!navigator.locks) {
@@ -71,7 +85,11 @@ export async function runWithSyncLock(
       return false;
     }
   } finally {
-    chainsLockedByThisTab.delete(chainName);
+    chainsLockedByThisTab.update((state) => {
+      const rest = { ...state };
+      delete rest[chainName];
+      return rest;
+    });
   }
 }
 
@@ -84,7 +102,7 @@ export async function requestSyncLock(
   sync: () => Promise<void>,
 ): Promise<boolean> {
   return await new Promise((resolve) => {
-    runWithSyncLock(chainName, async (): Promise<void> => {
+    runWithSyncLock(chainName, "sync", async (): Promise<void> => {
       const started: boolean = await tryToStart(chainName, async () => {
         // The store may be stale: another tab may have synced since this tab
         // was opened, or left flags behind when it was closed.

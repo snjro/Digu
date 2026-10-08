@@ -11,7 +11,11 @@ import type {
 import { initialDataUserSettings } from "#db/dbTypes.js";
 import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import { fetchEventLogs } from "#eventLogs/eventLogs.js";
-import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+import {
+  storeSyncLockedByOtherTab,
+  storeSyncLockedByThisTab,
+  type SyncLockKind,
+} from "#eventLogs/syncLock.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { storeUserSettings } from "#stores/storeUserSettings.js";
@@ -39,7 +43,10 @@ vi.mock("#stores/storeChainStatus.js", async () => {
 });
 vi.mock("#eventLogs/syncLock.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeSyncLockedByOtherTab: writable({}) };
+  return {
+    storeSyncLockedByOtherTab: writable({}),
+    storeSyncLockedByThisTab: writable({}),
+  };
 });
 vi.mock("#eventLogs/eventLogs.js", () => ({ fetchEventLogs: vi.fn() }));
 vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js", () => ({
@@ -58,6 +65,9 @@ const chainStatus = storeChainStatus as unknown as Writable<
 >;
 const lockedByOtherTab = storeSyncLockedByOtherTab as unknown as Writable<
   Record<string, boolean>
+>;
+const lockedByThisTab = storeSyncLockedByThisTab as unknown as Writable<
+  Record<string, SyncLockKind>
 >;
 
 function setSyncStatus(
@@ -132,6 +142,7 @@ describe("SyncStatusToggle.svelte", () => {
     storeUserSettings.set({ ...initialDataUserSettings });
     storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
     storeWarpSync.set({});
+    lockedByThisTab.set({});
     vi.restoreAllMocks();
     vi.clearAllMocks();
   });
@@ -175,6 +186,34 @@ describe("SyncStatusToggle.svelte", () => {
     expect(screen.getByText("stop sync")).toBeTruthy();
     expect(getIcon().classList).toContain("motion-safe:animate-spin");
   });
+
+  test.each<[string, WarpSyncState]>([
+    ["small", { status: "checking" }],
+    ["small", { status: "importing" }],
+    [
+      "large",
+      { status: "importing", progress: { doneLogCount: 0, startedAt: 0 } },
+    ],
+  ])(
+    "cannot be stopped while the sync imports a %s snapshot first",
+    async (_size, importing) => {
+      const finish = deferFetch();
+      render(SyncStatusToggle);
+      await fireEvent.click(getToggle());
+      // importWarpSyncBeforeSync, in the lock of the sync.
+      lockedByThisTab.set({ eth: "sync" });
+      setWarpSyncState("eth", importing);
+      await tick();
+      expect(getToggle().disabled).toBe(true);
+      expect(screen.getByText("starting sync")).toBeTruthy();
+
+      setWarpSyncState("eth", { status: "imported" });
+      setSyncStatus("eth", { syncStateText: "syncing" });
+      await finish(true);
+      expect(getToggle().disabled).toBe(false);
+      expect(screen.getByText("stop sync")).toBeTruthy();
+    },
+  );
 
   test("turns off again when the sync did not start", async () => {
     const finish = deferFetch();
@@ -290,6 +329,7 @@ describe("SyncStatusToggle.svelte", () => {
 
   test("is disabled and pulses while stopping", async () => {
     const { container } = render(SyncStatusToggle);
+    lockedByThisTab.set({ eth: "sync" });
     setSyncStatus("eth", { syncStateText: "stopping" });
     await tick();
     expect(getToggle().disabled).toBe(true);
@@ -303,6 +343,7 @@ describe("SyncStatusToggle.svelte", () => {
   test("says stopping sync after stop sync is pressed, until it has stopped", async () => {
     render(SyncStatusToggle);
     await startSync();
+    lockedByThisTab.set({ eth: "sync" });
     setSyncStatus("eth", { syncStateText: "syncing" });
     await tick();
     vi.mocked(startAbortingInChain).mockResolvedValueOnce();
@@ -312,6 +353,38 @@ describe("SyncStatusToggle.svelte", () => {
     expect(screen.getByText("stopping sync")).toBeTruthy();
     setSyncStatus("eth", { syncStateText: "stopped" });
     await tick();
+    expect(screen.getByText("start sync")).toBeTruthy();
+    // Until the sync releases the lock, a new sync would be refused.
+    expect(getToggle().disabled).toBe(true);
+    lockedByThisTab.set({});
+    await tick();
+    expect(getToggle().disabled).toBe(false);
+  });
+
+  test("is disabled and says so while this tab resets the chain", async () => {
+    render(SyncStatusToggle);
+    expect(getToggle().disabled).toBe(false);
+    lockedByThisTab.set({ eth: "reset" });
+    await tick();
+    expect(getToggle().disabled).toBe(true);
+    expect(screen.getByText("resetting")).toBeTruthy();
+    // Another tab first, as in the chain activity.
+    lockedByOtherTab.update((state) => ({ ...state, eth: true }));
+    await tick();
+    expect(screen.getByText("syncing in another tab")).toBeTruthy();
+    lockedByOtherTab.update((state) => ({ ...state, eth: false }));
+    lockedByThisTab.set({});
+    await tick();
+    expect(getToggle().disabled).toBe(false);
+    expect(screen.getByText("start sync")).toBeTruthy();
+  });
+
+  test("is enabled during a small import of this tab, which the sync waits for", async () => {
+    render(SyncStatusToggle);
+    lockedByThisTab.set({ eth: "import" });
+    setWarpSyncState("eth", { status: "importing" });
+    await tick();
+    expect(getToggle().disabled).toBe(false);
     expect(screen.getByText("start sync")).toBeTruthy();
   });
 
@@ -340,6 +413,7 @@ describe("SyncStatusToggle.svelte", () => {
         progress: { doneLogCount: 0, startedAt: 0 },
         ending,
       };
+      lockedByThisTab.set({ eth: "import" });
       setWarpSyncState("eth", importing);
       await tick();
       expect(getToggle().disabled).toBe(true);

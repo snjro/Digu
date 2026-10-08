@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
-import { get } from "svelte/store";
+import { tick } from "svelte";
+import { get, type Writable } from "svelte/store";
+import {
+  storeChainActivity,
+  type ChainActivity,
+} from "#eventLogs/chainActivity.js";
 import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import {
   storeNoDbSnackBar,
@@ -30,12 +35,14 @@ vi.mock("#stores/storeChainStatus.js", async () => {
 });
 vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeSyncStatus: writable({ chain1: { isSyncing: false } }) };
+  return {
+    storeSyncStatus: writable({ chain1: { syncStateText: "stopped" } }),
+  };
 });
 // The real module loads the chain data, which loads ethers.
-vi.mock("#eventLogs/syncLock.js", async () => {
+vi.mock("#eventLogs/chainActivity.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeSyncLockedByOtherTab: writable({}) };
+  return { storeChainActivity: writable({ chain1: "free" }) };
 });
 vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: () => ({ name: "chain1" }),
@@ -49,13 +56,37 @@ vi.mock("./rpcInput", () => ({
 }));
 vi.mock("#utils/logger.js", () => ({ customLogger: { error: vi.fn() } }));
 
+const activity = storeChainActivity as unknown as Writable<
+  Record<string, ChainActivity>
+>;
+
 describe("SyncListChainRpcInput.svelte", () => {
   beforeEach(() => {
+    activity.set({ chain1: "free" });
     vi.mocked(updateRpc).mockResolvedValue(undefined);
   });
   afterEach(() => {
     vi.clearAllMocks();
     storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
+  });
+
+  test.each<ChainActivity>([
+    "syncing",
+    "stopping",
+    "otherTab",
+    "smallImport",
+    "largeImport",
+    "resetting",
+  ])("disables the input while the chain is busy: %s", async (busy) => {
+    render(SyncListChainRpcInput);
+    const input = screen.getByLabelText("RPC URL") as HTMLInputElement;
+    expect(input.disabled).toBe(false);
+    activity.set({ chain1: busy });
+    await tick();
+    expect(input.disabled).toBe(true);
+    activity.set({ chain1: "free" });
+    await tick();
+    expect(input.disabled).toBe(false);
   });
 
   test("logs a failed update of the RPC when the chain is shown", async () => {

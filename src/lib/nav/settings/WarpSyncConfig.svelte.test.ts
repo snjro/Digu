@@ -32,6 +32,10 @@ vi.mock("#utils/utilsDb.js", () => ({
     name: chainName,
   }),
 }));
+vi.mock("#eventLogs/chainActivity.js", async () => {
+  const { writable } = await import("svelte/store");
+  return { storeChainActivity: writable({ matic: "free" }) };
+});
 vi.mock("#db/dbSettings.js", () => ({ updateDbItemRpcSettings: vi.fn() }));
 vi.mock("#warpSync/warpSync.js", () => ({
   startWarpSync: vi.fn(async () => {}),

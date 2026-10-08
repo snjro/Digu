@@ -7,13 +7,7 @@ import {
   forgetWarpSyncConfirmation,
   startWarpSync,
 } from "#warpSync/warpSync.js";
-import {
-  hasWarpSync,
-  isWarpSyncRunning,
-  selectWarpSyncState,
-  setWarpSyncState,
-  storeWarpSync,
-} from "#warpSync/warpSyncState.js";
+import { hasWarpSync, setWarpSyncState } from "#warpSync/warpSyncState.js";
 import { get } from "svelte/store";
 import {
   reloadSyncStatusInChain,
@@ -41,13 +35,10 @@ export async function resetSyncedData(
 ): Promise<SyncResetOutcome> {
   const chainName: ChainName = targetChain.name;
   const busy: SyncResetOutcome = { result: "busy", deletedLogCount: 0 };
-  if (isWarpSyncRunning(selectWarpSyncState(get(storeWarpSync), chainName))) {
-    return busy;
-  }
   let outcome: SyncResetOutcome = busy;
   let ran: boolean;
   try {
-    ran = await runWithSyncLock(chainName, async () => {
+    ran = await runWithSyncLock(chainName, "reset", async () => {
       outcome = await resetInLock(targetChain);
     });
   } catch (error) {

@@ -14,7 +14,10 @@
     SyncStatus,
   } from "#db/dbTypes.js";
   import { fetchEventLogs } from "#eventLogs/eventLogs.js";
-  import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+  import {
+    storeChainActivity,
+    type ChainActivity,
+  } from "#eventLogs/chainActivity.js";
   import { storeChainStatus } from "#stores/storeChainStatus.js";
   import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
   import { storeSyncStatus } from "#stores/storeSyncStatus.js";
@@ -28,7 +31,7 @@
     type WarpSyncState,
   } from "#warpSync/warpSyncState.js";
   import { getSyncWaitsForImportText } from "#warpSync/warpSyncTexts.js";
-  import { isSyncToggleDisabled } from "./syncToggleDisabled";
+  import { isSyncToggleDisabled } from "../chainControls";
 
   let toggleOn: boolean = $state(false);
   let isStarting: boolean = $state(false);
@@ -83,27 +86,16 @@
     else if (syncStateText === "syncing") toggleOn = true;
   });
 
-  let isStopping: boolean = $derived(syncStateText === "stopping");
-  let isSyncingInOtherTab: boolean = $derived(
-    $storeSyncLockedByOtherTab[targetChainName],
-  );
+  let activity: ChainActivity = $derived($storeChainActivity[targetChainName]);
   let warpState: WarpSyncState = $derived(
     selectWarpSyncState($storeWarpSync, targetChainName),
   );
-  // A large import of this tab, which shows its progress and has Stop. A
-  // small one takes seconds, and the sync waits for it as before.
-  let isWarpSyncImporting: boolean = $derived(
-    warpState.status === "importing" && warpState.progress !== undefined,
-  );
   let disabled: boolean = $derived(
-    isSyncToggleDisabled({
+    isSyncToggleDisabled(activity, {
       nodeStatus,
       isSyncTarget: targetChainSyncStatus.isSyncTarget,
       isToggleOn: toggleOn,
-      syncStateText,
       isStarting,
-      isSyncingInOtherTab,
-      isWarpSyncImporting,
     }),
   );
 
@@ -115,22 +107,27 @@
   });
 
   let tooltipText: string = $derived(
-    isSyncingInOtherTab
+    activity === "otherTab"
       ? "syncing in another tab"
       : isStarting
         ? "starting sync"
         : // The toggle is already off: the contracts end what they do first.
-          isStopping
+          activity === "stopping"
           ? "stopping sync"
-          : toggleOn
-            ? "stop sync"
-            : isWarpSyncImporting
-              ? getSyncWaitsForImportText(warpState)
-              : "start sync",
+          : activity === "resetting"
+            ? "resetting"
+            : toggleOn
+              ? "stop sync"
+              : // A large import of this tab, which shows its progress and
+                // has Stop. A small one takes seconds, and the sync waits
+                // for it as before.
+                activity === "largeImport"
+                ? getSyncWaitsForImportText(warpState)
+                : "start sync",
   );
 </script>
 
-<div class={classNames(isStopping && "motion-safe:animate-pulse")}>
+<div class={classNames(activity === "stopping" && "motion-safe:animate-pulse")}>
   <BaseToggle
     toggleValue={toggleOn}
     size={sizeSettings.navToggle}

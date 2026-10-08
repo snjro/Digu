@@ -24,6 +24,7 @@ import {
   reloadSyncStatusInChain,
   runWithSyncLock,
   storeSyncLockedByOtherTab,
+  storeSyncLockedByThisTab,
   waitForSyncLockRelease,
 } from "./syncLock";
 import {
@@ -157,32 +158,65 @@ describe("resetSyncedData", () => {
     );
     // The stores are read again when the other tab releases the lock.
     expect(get(storeSyncLockedByOtherTab).matic).toBe(true);
+    expect(get(storeSyncLockedByThisTab).matic).toBeUndefined();
     release();
     await vi.waitFor(() =>
       expect(get(storeSyncLockedByOtherTab).matic).toBe(false),
     );
   });
 
-  test("deletes nothing while this tab syncs or imports the chain", async () => {
-    let finish: () => void = () => {};
-    // As this tab's sync does.
-    const holding: Promise<boolean> = runWithSyncLock(
-      "matic",
-      () => new Promise<void>((resolve) => (finish = resolve)),
-    );
-    // No request, so no wait for SYNC_LOCK_TIMEOUT_MS.
-    const request = vi.spyOn(lockManager, "request");
-    expect((await resetSyncedData(matic)).result).toBe("busy");
-    expect(request).not.toHaveBeenCalled();
-    // Not read as another tab, which disables the sync toggle.
-    expect(get(storeSyncLockedByOtherTab).matic).toBe(false);
-    finish();
-    expect(await holding).toBe(true);
-    for (const status of ["checking", "importing"] as const) {
-      setWarpSyncState("matic", { status });
+  test.each(["sync", "import"] as const)(
+    "deletes nothing while this tab holds the lock for its %s",
+    async (kind) => {
+      let finish: () => void = () => {};
+      const holding: Promise<boolean> = runWithSyncLock(
+        "matic",
+        kind,
+        () => new Promise<void>((resolve) => (finish = resolve)),
+      );
+      // No request, so no wait for SYNC_LOCK_TIMEOUT_MS.
+      const request = vi.spyOn(lockManager, "request");
       expect((await resetSyncedData(matic)).result).toBe("busy");
-    }
-    expect(resetDbSyncedData).not.toHaveBeenCalled();
+      expect(request).not.toHaveBeenCalled();
+      // Not read as another tab, which disables the sync toggle.
+      expect(get(storeSyncLockedByOtherTab).matic).toBe(false);
+      // The operation that holds the lock stays in the record.
+      expect(get(storeSyncLockedByThisTab).matic).toBe(kind);
+      finish();
+      expect(await holding).toBe(true);
+      expect(resetDbSyncedData).not.toHaveBeenCalled();
+    },
+  );
+
+  test("keeps the reset in the lock record of this tab until it ends", async () => {
+    const kinds: (string | undefined)[] = [];
+    const recordKind = async (): Promise<void> => {
+      kinds.push(get(storeSyncLockedByThisTab).matic);
+    };
+    vi.mocked(resetDbSyncedData).mockImplementationOnce(async () => {
+      await recordKind();
+      return 7;
+    });
+    vi.mocked(reloadSyncStatusInChain).mockImplementationOnce(recordKind);
+    const resetting: Promise<unknown> = resetSyncedData(matic);
+    // Already while it waits for the lock.
+    expect(get(storeSyncLockedByThisTab).matic).toBe("reset");
+    await resetting;
+    expect(kinds).toEqual(["reset", "reset"]);
+    expect(get(storeSyncLockedByThisTab).matic).toBeUndefined();
+  });
+
+  test("clears the reset from the lock record also after a failure", async () => {
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    vi.mocked(resetDbSyncedData).mockRejectedValueOnce(new Error("blocked"));
+    expect((await resetSyncedData(matic)).result).toBe("failed");
+    expect(get(storeSyncLockedByThisTab).matic).toBeUndefined();
+    // Thrown in the lock, after the DB was read again.
+    vi.mocked(reloadSyncStatusInChain).mockImplementationOnce(() => {
+      throw new Error("thrown");
+    });
+    expect((await resetSyncedData(matic)).result).toBe("failed");
+    expect(get(storeSyncLockedByThisTab).matic).toBeUndefined();
   });
 
   test("deletes nothing without Web Locks while this tab syncs the chain", async () => {
@@ -190,6 +224,7 @@ describe("resetSyncedData", () => {
     let finish: () => void = () => {};
     const holding: Promise<boolean> = runWithSyncLock(
       "matic",
+      "sync",
       () => new Promise<void>((resolve) => (finish = resolve)),
     );
     expect((await resetSyncedData(matic)).result).toBe("busy");

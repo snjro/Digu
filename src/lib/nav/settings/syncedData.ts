@@ -1,5 +1,5 @@
 import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
-import type { SyncStateText, SyncStatusChain } from "#db/dbTypes.js";
+import type { SyncStatusChain } from "#db/dbTypes.js";
 import type {
   SyncResetOutcome,
   SyncResetResult,
@@ -28,32 +28,6 @@ export const STOP_THE_SYNC_FIRST = "Stop the sync first.";
 // Shown with a pulse: something goes on, unlike STOP_THE_SYNC_FIRST, which
 // waits for the user.
 export const WAIT_UNTIL_THE_SYNC_STOPS = "Wait until the sync stops.";
-
-export type ResetConditions = {
-  syncStateText: SyncStateText;
-  isSyncingInOtherTab: boolean;
-  isWarpSyncRunning: boolean;
-  isResetting: boolean;
-};
-
-// Why the reset cannot run now, or undefined when it can.
-export function getResetDisabledReason(
-  conditions: ResetConditions,
-): string | undefined {
-  if (conditions.isResetting) return "Resetting…";
-  // The panel says that the chain is synced in another tab.
-  if (conditions.isSyncingInOtherTab) {
-    return "Stop the sync in the other tab first.";
-  }
-  if (conditions.syncStateText === "syncing") return STOP_THE_SYNC_FIRST;
-  // "stop sync" was pressed: the contracts end what they are doing first.
-  if (conditions.syncStateText === "stopping") return WAIT_UNTIL_THE_SYNC_STOPS;
-  // The nav has "Stop" for a large import.
-  if (conditions.isWarpSyncRunning) {
-    return "Wait until the logs published with this site are imported, or stop the import.";
-  }
-  return undefined;
-}
 
 export function getResetConfirmationTexts(
   chainFullName: string,

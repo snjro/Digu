@@ -7,7 +7,10 @@
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import CommonItemGroup from "#lib/common/CommonItemGroup.svelte";
   import type { Chain, ChainName } from "#constants/chains/types.js";
-  import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+  import {
+    storeChainActivity,
+    type ChainActivity,
+  } from "#eventLogs/chainActivity.js";
   import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
   import { storeSyncStatus } from "#stores/storeSyncStatus.js";
   import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
@@ -40,15 +43,14 @@
     getTargetChain({ chainName: targetChainName }),
   );
   let stateText: SyncPanelStateText | undefined = $derived.by(() => {
+    const activity: ChainActivity = $storeChainActivity[targetChainName];
     const syncStateText = $storeSyncStatus[targetChainName].syncStateText;
-    const isSyncingInOtherTab: boolean =
-      $storeSyncLockedByOtherTab[targetChainName];
     return getSyncPanelStateText(
+      activity,
       syncStateText,
-      isSyncingInOtherTab,
       getShownSyncStoppedReason(
+        activity,
         syncStateText,
-        isSyncingInOtherTab,
         $storeSyncStoppedReason[targetChainName],
       ),
     );

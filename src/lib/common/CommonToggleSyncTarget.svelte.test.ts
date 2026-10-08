@@ -11,6 +11,10 @@ import type {
   Version,
 } from "#constants/chains/types.js";
 import type { SyncStatusesChain } from "#db/dbTypes.js";
+import {
+  storeChainActivity,
+  type ChainActivity,
+} from "#eventLogs/chainActivity.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
 import {
@@ -21,6 +25,10 @@ import { customLogger } from "#utils/logger.js";
 
 // The real store builds its state from the chain data, which loads ethers.
 // ethers does not load in the client project, so the store is a plain one.
+vi.mock("#eventLogs/chainActivity.js", async () => {
+  const { writable } = await import("svelte/store");
+  return { storeChainActivity: writable({}) };
+});
 vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return { storeSyncStatus: writable({}) };
@@ -59,6 +67,9 @@ function initialState(): SyncStatusesChain {
   } as unknown as SyncStatusesChain;
 }
 const store = storeSyncStatus as unknown as Writable<SyncStatusesChain>;
+const activity = storeChainActivity as unknown as Writable<
+  Record<string, ChainActivity>
+>;
 
 function getCheckbox(): HTMLInputElement {
   return screen.getByRole("checkbox") as HTMLInputElement;
@@ -93,7 +104,7 @@ function setContractIsSyncTarget(target: Contract, value: boolean): void {
     return newState;
   });
 }
-function setChain(values: { isSyncTarget?: boolean; isSyncing?: boolean }) {
+function setChain(values: { isSyncTarget?: boolean }) {
   store.update((state) => {
     const newState = structuredClone(state);
     Object.assign(newState[chain.name], values);
@@ -111,6 +122,7 @@ const contractProps = {
 describe("CommonToggleSyncTarget.svelte", () => {
   beforeEach(() => {
     store.set(initialState());
+    activity.set({ [chain.name]: "free" });
   });
   afterEach(() => {
     storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
@@ -171,13 +183,24 @@ describe("CommonToggleSyncTarget.svelte", () => {
     expect(getCheckbox().checked).toBe(false);
   });
 
-  test("disables the box while the chain is syncing", async () => {
+  test.each<ChainActivity>([
+    "syncing",
+    "stopping",
+    "otherTab",
+    "smallImport",
+    "largeImport",
+    "resetting",
+  ])("disables the box while the chain is busy: %s", async (busy) => {
     render(CommonToggleSyncTarget, contractProps);
     expect(getCheckbox().disabled).toBe(false);
 
-    setChain({ isSyncing: true });
+    activity.set({ [chain.name]: busy });
     await tick();
     expect(getCheckbox().disabled).toBe(true);
+
+    activity.set({ [chain.name]: "free" });
+    await tick();
+    expect(getCheckbox().disabled).toBe(false);
   });
 
   test("follows a change of the target props", async () => {

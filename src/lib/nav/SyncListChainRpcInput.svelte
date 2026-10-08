@@ -12,7 +12,7 @@
   import { storeChainStatus } from "#stores/storeChainStatus.js";
   import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
   import { storeRpcSettings } from "#stores/storeRpcSettings.js";
-  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { storeChainActivity } from "#eventLogs/chainActivity.js";
   import { storeUserSettings } from "#stores/storeUserSettings.js";
   import { customLogger } from "#utils/logger.js";
   import { getTargetChain } from "#utils/utilsDb.js";
@@ -20,6 +20,7 @@
   import { untrack } from "svelte";
   import SyncListChainRpcInputHelperLabel from "./SyncListChainRpcInputHelperLabel.svelte";
   import type { HelperTextState } from "#lib/base/helperTextState.js";
+  import { isChainSettingDisabled } from "./chainControls";
   import {
     blurOnEnter,
     clearSucceededNodeStatus,
@@ -103,7 +104,7 @@
     value={rpc}
     size={sizeSettings.navInput}
     {truncate}
-    disabled={$storeSyncStatus[targetChainName].isSyncing}
+    disabled={isChainSettingDisabled($storeChainActivity[targetChainName])}
     helperTextState={helperTextState()}
     placeholder="http://localhost:8545"
     ariaLabel="RPC URL"

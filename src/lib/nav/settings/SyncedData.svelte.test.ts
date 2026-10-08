@@ -2,7 +2,11 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { get, type Writable } from "svelte/store";
-import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+import {
+  storeSyncLockedByOtherTab,
+  storeSyncLockedByThisTab,
+  type SyncLockKind,
+} from "#eventLogs/syncLock.js";
 import { resetSyncedData } from "#eventLogs/syncReset.js";
 import {
   storeNoDbSnackBar,
@@ -34,7 +38,10 @@ vi.mock("#utils/utilsDb.js", () => ({
 }));
 vi.mock("#eventLogs/syncLock.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeSyncLockedByOtherTab: writable({ matic: false }) };
+  return {
+    storeSyncLockedByOtherTab: writable({ matic: false }),
+    storeSyncLockedByThisTab: writable({}),
+  };
 });
 // The fly transition of the snackbar in the dialog is canceled when the test
 // ends, which the browser reports as an error.
@@ -44,6 +51,9 @@ vi.mock("#eventLogs/syncReset.js", () => ({
 }));
 
 const syncStatus = storeSyncStatus as unknown as Writable<unknown>;
+const lockedByThisTab = storeSyncLockedByThisTab as unknown as Writable<
+  Record<string, SyncLockKind>
+>;
 function setChain(syncStateText: string, recordCount: number): void {
   syncStatus.set({
     matic: {
@@ -82,6 +92,7 @@ function confirmButton(container: HTMLElement): HTMLButtonElement {
 describe("SyncedData.svelte", () => {
   afterEach(() => {
     storeSyncLockedByOtherTab.set({ matic: false });
+    lockedByThisTab.set({});
     storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
     setWarpSyncState("matic", { status: "idle" });
     vi.clearAllMocks();
@@ -95,6 +106,7 @@ describe("SyncedData.svelte", () => {
   });
 
   test("cannot reset while the chain is synced here or in another tab, or imported", async () => {
+    lockedByThisTab.set({ matic: "sync" });
     setChain("syncing", 0);
     render(SyncedData);
     expect(resetButton().disabled).toBe(true);
@@ -112,22 +124,49 @@ describe("SyncedData.svelte", () => {
     );
     expect(screen.queryByText("Stop the sync first.")).toBeNull();
 
+    // While the sync ends: it still holds the lock.
     setChain("stopped", 0);
+    await tick();
+    expect(screen.getByText("Stop the sync first.")).toBeTruthy();
+
+    lockedByThisTab.set({});
     storeSyncLockedByOtherTab.set({ matic: true });
     await tick();
     expect(resetButton().disabled).toBe(true);
 
     storeSyncLockedByOtherTab.set({ matic: false });
-    for (const status of ["checking", "importing"] as const) {
-      setWarpSyncState("matic", { status });
-      await tick();
-      expect(resetButton().disabled).toBe(true);
+    // The import of the warp sync, or the one before the sync, in its lock.
+    for (const kind of ["import", "sync"] as const) {
+      lockedByThisTab.set({ matic: kind });
+      for (const status of ["checking", "importing"] as const) {
+        setWarpSyncState("matic", { status });
+        await tick();
+        expect(resetButton().disabled).toBe(true);
+        expect(
+          screen.getByText(
+            "Wait until the logs published with this site are imported, or stop the import.",
+          ),
+        ).toBeTruthy();
+      }
     }
 
+    lockedByThisTab.set({});
     setWarpSyncState("matic", { status: "imported" });
     await tick();
     expect(resetButton().disabled).toBe(false);
     expect(screen.queryByText(/^Wait until|^Stop the sync/)).toBeNull();
+  });
+
+  test("says Resetting… only for the chain that this tab resets", async () => {
+    setChain("stopped", 0);
+    render(SyncedData);
+    lockedByThisTab.set({ eth: "reset" });
+    await tick();
+    expect(resetButton().disabled).toBe(false);
+    lockedByThisTab.set({ matic: "reset" });
+    await tick();
+    expect(resetButton().disabled).toBe(true);
+    expect(screen.getByText("Resetting…")).toBeTruthy();
   });
 
   test("asks first, and deletes nothing when it is cancelled", async () => {

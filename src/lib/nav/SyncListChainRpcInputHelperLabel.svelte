@@ -2,7 +2,7 @@
   import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
   import BaseA from "#lib/base/BaseA.svelte";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
-  import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+  import { storeChainActivity } from "#eventLogs/chainActivity.js";
   import { storeChainStatus } from "#stores/storeChainStatus.js";
   import { storeRpcSettings } from "#stores/storeRpcSettings.js";
   import { storeSyncStatus } from "#stores/storeSyncStatus.js";
@@ -19,8 +19,8 @@
   let rpc = $derived($storeRpcSettings[targetChainName].rpc);
   let syncStoppedReason = $derived(
     getShownSyncStoppedReason(
+      $storeChainActivity[targetChainName],
       $storeSyncStatus[targetChainName].syncStateText,
-      $storeSyncLockedByOtherTab[targetChainName],
       $storeSyncStoppedReason[targetChainName],
     ),
   );
