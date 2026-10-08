@@ -368,7 +368,11 @@ test("keepLogsBefore keeps the file when its read fails", async () => {
 
 test("keepLogsBefore keeps the file when its write fails", async () => {
   const file = path.join(outDir, "segment.jsonl");
-  const content = `${JSON.stringify({ blockNumber: toHex(5) })}\n`;
+  // Many lines, so that the read goes on after the write failed (the error
+  // of the read stream must not then be left uncaught).
+  const content = `${JSON.stringify({ blockNumber: toHex(5) })}\n`.repeat(
+    20_000,
+  );
   fs.writeFileSync(file, content);
   // The write makes the .tmp file, and then fails.
   const spy = vi
@@ -513,10 +517,12 @@ describe("loadChain", () => {
     ]);
   });
 
-  test("reads an import on the first line after a byte order mark", () => {
+  test("reads an _index.ts and a JSON file that start with a byte order mark", () => {
     writeChain(['import A from "./A.json";']);
-    const index = path.join(chainsDir, "c/p/v/_index.ts");
-    fs.writeFileSync(index, `\uFEFF${fs.readFileSync(index, "utf8")}`);
+    for (const file of ["c/p/v/_index.ts", "c/p/v/A.json"]) {
+      const full = path.join(chainsDir, file);
+      fs.writeFileSync(full, `\uFEFF${fs.readFileSync(full, "utf8")}`);
+    }
     const chain = loadChain("c", chainsDir);
     expect(chain.contracts.map((contract) => contract.name)).toEqual(["A"]);
   });

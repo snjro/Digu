@@ -63,8 +63,10 @@ const MAX_RATE_ERRORS = 30;
 
 // ---------- the constants of the app ----------
 
+// Without a byte order mark, which would hide the first import of an _index.ts
+// and break JSON.parse.
 function read(file) {
-  return fs.readFileSync(file, "utf8");
+  return fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
 }
 function match(text, regex, what) {
   const found = text.match(regex);
@@ -77,8 +79,7 @@ function match(text, regex, what) {
 // and not a JSON file, are not data and are skipped.
 function importsOf(text, regex, what) {
   const paths = [];
-  // Without a byte order mark, which would hide the import on the first line.
-  for (const line of text.replace(/^\uFEFF/, "").split(/\r?\n/)) {
+  for (const line of text.split(/\r?\n/)) {
     if (!line.startsWith("import ") || line.startsWith("import type "))
       continue;
     if (/ from "[^."][^"]*(?<!\.json)";$/.test(line)) continue;
@@ -540,6 +541,8 @@ function readStates(partialDir) {
 function writeState(file, state) {
   writeWhole(file, (tmp) => fs.writeFileSync(tmp, JSON.stringify(state)));
 }
+// The kept lines are written this many at a time.
+const KEEP_BATCH_LINES = 1000;
 // Keeps the lines of the blocks before nextBlock. A line that a stop left
 // half written is dropped too. It streams the file, which can be larger than
 // a string can hold: pipeline writes all of it, closes the files, and passes
@@ -557,27 +560,35 @@ export async function keepLogsBefore(file, nextBlock) {
     pipeline(
       fs.createReadStream(file),
       async function* (input) {
-        // Like readLogs.
-        const lines = readline.createInterface({ input, crlfDelay: Infinity });
-        // pipeline gets the error of each stream. The interface gives the
-        // error of its input again, also after the loop ended, which would
-        // otherwise be an uncaught error.
-        lines.on("error", () => {});
-        for await (const line of lines) {
-          if (isKept(line)) yield `${line}\n`;
+        let kept = [];
+        for await (const line of linesOf(input)) {
+          if (!isKept(line)) continue;
+          kept.push(line);
+          if (kept.length >= KEEP_BATCH_LINES) {
+            yield `${kept.join("\n")}\n`;
+            kept = [];
+          }
         }
+        if (kept.length > 0) yield `${kept.join("\n")}\n`;
       },
       fs.createWriteStream(tmp),
     ),
   );
 }
+// The lines of a stream. The interface is closed when the loop ends, also by
+// an error: it would otherwise give the error of its input again after the
+// loop, with no listener (an uncaught error).
+async function* linesOf(input) {
+  const lines = readline.createInterface({ input, crlfDelay: Infinity });
+  try {
+    yield* lines;
+  } finally {
+    lines.close();
+  }
+}
 async function* readLogs(file) {
   if (!fs.existsSync(file)) return;
-  const lines = readline.createInterface({
-    input: fs.createReadStream(file),
-    crlfDelay: Infinity,
-  });
-  for await (const line of lines) {
+  for await (const line of linesOf(fs.createReadStream(file))) {
     if (line) yield JSON.parse(line);
   }
 }

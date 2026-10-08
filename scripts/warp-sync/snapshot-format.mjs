@@ -157,8 +157,9 @@ export function readManifest(file, chain) {
 
 // Writes file whole and then renames it, so that a stop does not leave half a
 // file: write(tmp) writes the file tmp. When the write or the rename fails, tmp
-// is removed, file stays as it was, and the error is thrown; only a stop (a
-// kill) before the rename leaves <file>.tmp.
+// is removed, file stays as it was, and the error is thrown. <file>.tmp is left
+// only by a stop (a kill) before the rename, and by a write that returns a
+// promise (a misuse: it is not waited for, and writeWhole throws).
 export function writeWhole(file, write) {
   const tmp = `${file}.tmp`;
   let written;
