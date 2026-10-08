@@ -189,6 +189,8 @@
   onDestroy(() => {
     if (gridApi) {
       gridApi.destroy();
+      // The parent may keep it through the binding and give it to the next grid.
+      gridApi = undefined;
     }
   });
 
