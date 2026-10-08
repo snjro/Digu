@@ -66,6 +66,7 @@ describe("fetchEventLogsContract", () => {
     storeSyncStatus.update((state: SyncStatusesChain) => {
       Object.assign(contractInState(state), {
         isSyncTarget: true,
+        isSyncing: true,
         isAbort: false,
         fetchedBlockNumber: creationBlockNumber,
       });
@@ -99,6 +100,24 @@ describe("fetchEventLogsContract", () => {
       .mocked(getEthersEventLogs)
       .mock.calls.map(([, , fromBlock, toBlock]) => [fromBlock, toBlock]);
   }
+
+  // Another tab took the contract out of the sync target before this tab
+  // started: the start did not mark it as syncing, and the abort would not
+  // reach its loop.
+  test("should not start the loop of a contract that the start did not mark as syncing", async () => {
+    storeSyncStatus.update((state: SyncStatusesChain) => {
+      contractInState(state).isSyncing = false;
+      return state;
+    });
+
+    await fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      null as unknown as NodeProvider,
+    );
+
+    expect(getEthersEventLogs).not.toHaveBeenCalled();
+  });
 
   test("should fetch the next blocks after the store value is replaced", async () => {
     registerAndAbortAfterThird();

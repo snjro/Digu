@@ -73,8 +73,10 @@ export async function fetchEventLogsContract(
   let maxBulkUnit: number = MAX_BULK_UNIT;
   let successCount: number = 0;
 
-  // Skip sync process for a contract that is not sync target.
-  if (!contractSyncStatus.isSyncTarget) {
+  // Only the contracts that the start marked as syncing, which it does from
+  // the DB: another tab may have changed the sync target since this tab read
+  // it, and a loop that the abort does not reach would never end.
+  if (!contractSyncStatus.isSyncing) {
     return;
   }
 

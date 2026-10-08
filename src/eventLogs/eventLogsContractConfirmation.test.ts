@@ -71,6 +71,7 @@ describe("fetchEventLogsContract with the latest block number from the RPC", () 
     storeSyncStatus.update((state: SyncStatusesChain) => {
       Object.assign(contractInState(state), {
         isSyncTarget: true,
+        isSyncing: true,
         isAbort: false,
         fetchedBlockNumber: creationBlockNumber,
       });

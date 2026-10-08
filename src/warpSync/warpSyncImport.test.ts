@@ -436,6 +436,7 @@ describe("importWarpSync and then the sync", () => {
     // As the DB has it.
     storeSyncStatus.updateState(contractIdentifier, {
       isSyncTarget: true,
+      isSyncing: true,
       isAbort: false,
       fetchedBlockNumber: CREATION,
     });
