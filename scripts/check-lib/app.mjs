@@ -141,10 +141,16 @@ export async function inPage(page, fn, ...args) {
 const ENABLED_TIMEOUT_MS = 30000;
 
 // Waits until `fn(lib, ...args)` (see inPage), the `what` of the page, is not
-// disabled, and gives its handle. It throws at once when there is none, and
-// after ENABLED_TIMEOUT_MS when it stays disabled, with `detail(lib, ...args)`
-// of the page when it is given.
-async function waitEnabled(page, what, fn, args, detail) {
+// disabled, and with `handle` gives its handle. It throws at once when there is
+// none, and after ENABLED_TIMEOUT_MS when it stays disabled, with
+// `detail(lib, ...args)` of the page when it is given.
+async function waitEnabled(
+  page,
+  what,
+  fn,
+  args,
+  { detail, handle = false } = {},
+) {
   const found = await page
     .waitForFunction(
       `((e) => (!e || !e.disabled) && { e })(${inPageSource(fn, args)})`,
@@ -157,11 +163,12 @@ async function waitEnabled(page, what, fn, args, detail) {
         : "";
       throw new Error(`The ${what} is disabled${seen}`);
     });
-  const e = await found.getProperty("e");
-  await found.dispose();
-  if (e.asElement()) return e.asElement();
-  await e.dispose();
-  throw new Error(`No ${what}`);
+  try {
+    if (!(await found.evaluate(({ e }) => !!e))) throw new Error(`No ${what}`);
+    if (handle) return (await found.getProperty("e")).asElement();
+  } finally {
+    await found.dispose();
+  }
 }
 
 // { checked, disabled, pulse, tooltip } of the sync toggle, or null. The
@@ -180,7 +187,7 @@ export async function clickToggle(page, { oldTexts = false } = {}) {
     "sync toggle",
     (lib, oldTexts) => lib.syncToggle(oldTexts),
     [oldTexts],
-    (lib, oldTexts) => lib.findToggle(oldTexts),
+    { detail: (lib, oldTexts) => lib.findToggle(oldTexts), handle: true },
   );
   try {
     await b.click();
@@ -217,15 +224,16 @@ export async function openSyncPanel(page) {
 // may change the value when it saves it).
 export async function typeInto(page, target, text, { clear = false } = {}) {
   const isSelector = typeof target === "string";
+  if (!isSelector && !target) throw new Error("No element to type into");
   const el = isSelector
     ? await waitEnabled(
         page,
         target,
         (lib, selector) => lib.visibleElement(selector),
         [target],
+        { handle: true },
       )
     : target;
-  if (!el) throw new Error("No element to type into");
   try {
     if (clear) await el.click({ clickCount: 3 });
     else await el.focus();
@@ -272,13 +280,12 @@ export async function clickCheckbox(
   { index = -1, after = async () => {} } = {},
 ) {
   const what = `checkbox ${label}`;
-  const box = await waitEnabled(
+  await waitEnabled(
     page,
     what,
     (lib, label, index) => lib.checkboxes(label).at(index),
     [label, index],
   );
-  await box.dispose();
   const h = await page.evaluateHandle(
     inPageSource(
       (lib, label, index) => lib.clickCheckbox(label, index),
