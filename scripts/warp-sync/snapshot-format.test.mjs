@@ -250,36 +250,22 @@ describe("writeWhole", () => {
     expect(fs.readdirSync(dir)).toEqual(["a.json"]);
   });
 
-  test.each([
-    ["resolves", (tmp) => fs.writeFileSync(tmp, "late")],
-    [
-      "rejects",
-      (tmp) => {
-        fs.writeFileSync(tmp, "late");
-        throw new Error("late");
-      },
-    ],
-  ])(
-    "throws for a write that returns a promise, and removes the .tmp file when it %s",
-    async (_, end) => {
-      const file = path.join(dir, "a.json");
-      fs.writeFileSync(file, "old");
-      let settled;
-      expect(() =>
-        writeWhole(file, (tmp) => {
-          settled = new Promise((resolve) => setTimeout(resolve, 10)).then(() =>
-            end(tmp),
-          );
-          return settled;
-        }),
-      ).toThrow("use writeWholeAsync");
-      await settled.catch(() => {});
-      // After the handlers of writeWhole, which ran first.
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      expect(read(file)).toBe("old");
-      expect(fs.readdirSync(dir)).toEqual(["a.json"]);
-    },
-  );
+  test("throws for a write that returns a promise, and catches its rejection", () => {
+    const file = path.join(dir, "a.json");
+    fs.writeFileSync(file, "old");
+    // A thenable that records the handlers that it gets.
+    const handlers = [];
+    expect(() =>
+      writeWhole(file, (tmp) => {
+        fs.writeFileSync(tmp, "new");
+        return { then: (...args) => handlers.push(...args) };
+      }),
+    ).toThrow("use writeWholeAsync");
+    expect(handlers.at(-1)).toBeTypeOf("function");
+    expect(read(file)).toBe("old");
+    // Left as it is: the write may still be running.
+    expect(read(`${file}.tmp`)).toBe("new");
+  });
 
   test.each([
     ["writeWhole", (file, write) => writeWhole(file, write)],

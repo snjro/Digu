@@ -370,14 +370,17 @@ test("keepLogsBefore keeps the file when its write fails", async () => {
   const file = path.join(outDir, "segment.jsonl");
   const content = `${JSON.stringify({ blockNumber: toHex(5) })}\n`;
   fs.writeFileSync(file, content);
-  const spy = vi.spyOn(fs, "createWriteStream").mockImplementationOnce(
-    () =>
-      new Writable({
+  // The write makes the .tmp file, and then fails.
+  const spy = vi
+    .spyOn(fs, "createWriteStream")
+    .mockImplementationOnce((tmp) => {
+      fs.writeFileSync(tmp, "partial");
+      return new Writable({
         write(_chunk, _encoding, callback) {
           callback(new Error("write failed"));
         },
-      }),
-  );
+      });
+    });
   try {
     await expect(keepLogsBefore(file, 7)).rejects.toThrow("write failed");
   } finally {
@@ -508,6 +511,14 @@ describe("loadChain", () => {
       "A",
       "B",
     ]);
+  });
+
+  test("reads an import on the first line after a byte order mark", () => {
+    writeChain(['import A from "./A.json";']);
+    const index = path.join(chainsDir, "c/p/v/_index.ts");
+    fs.writeFileSync(index, `\uFEFF${fs.readFileSync(index, "utf8")}`);
+    const chain = loadChain("c", chainsDir);
+    expect(chain.contracts.map((contract) => contract.name)).toEqual(["A"]);
   });
 
   test("reads files with CRLF", () => {

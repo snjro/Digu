@@ -77,7 +77,8 @@ function match(text, regex, what) {
 // and not a JSON file, are not data and are skipped.
 function importsOf(text, regex, what) {
   const paths = [];
-  for (const line of text.split(/\r?\n/)) {
+  // Without a byte order mark, which would hide the import on the first line.
+  for (const line of text.replace(/^\uFEFF/, "").split(/\r?\n/)) {
     if (!line.startsWith("import ") || line.startsWith("import type "))
       continue;
     if (/ from "[^."][^"]*(?<!\.json)";$/.test(line)) continue;
@@ -554,16 +555,17 @@ export async function keepLogsBefore(file, nextBlock) {
   };
   await writeWholeAsync(file, (tmp) =>
     pipeline(
-      fs.createReadStream(file, { encoding: "utf8" }),
-      async function* (chunks) {
-        let rest = "";
-        for await (const chunk of chunks) {
-          const lines = `${rest}${chunk}`.split("\n");
-          rest = lines.pop();
-          const kept = lines.filter(isKept);
-          if (kept.length > 0) yield `${kept.join("\n")}\n`;
+      fs.createReadStream(file),
+      async function* (input) {
+        // Like readLogs.
+        const lines = readline.createInterface({ input, crlfDelay: Infinity });
+        // pipeline gets the error of each stream. The interface gives the
+        // error of its input again, also after the loop ended, which would
+        // otherwise be an uncaught error.
+        lines.on("error", () => {});
+        for await (const line of lines) {
+          if (isKept(line)) yield `${line}\n`;
         }
-        if (isKept(rest)) yield `${rest}\n`;
       },
       fs.createWriteStream(tmp),
     ),

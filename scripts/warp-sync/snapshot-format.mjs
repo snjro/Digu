@@ -169,12 +169,9 @@ export function writeWhole(file, write) {
     throw error;
   }
   if (typeof written?.then === "function") {
-    // The write goes on and may make tmp again: remove it when the write
-    // settles, which may also be a rejection.
-    written.then(
-      () => discard(tmp),
-      () => discard(tmp),
-    );
+    // A misuse, which no caller makes: tmp is left as it is, since the write
+    // goes on. Only its rejection is caught, so that it is not unhandled.
+    written.then(undefined, () => {});
     throw new TypeError(
       "The write of writeWhole returned a promise: use writeWholeAsync.",
     );
