@@ -19,6 +19,7 @@ import {
   type EventLogEdges,
 } from "#db/dbEventLogsGetEventLogEdges.js";
 import { customLogger } from "#utils/logger.js";
+import { convertJsDateToIso8601 } from "#utils/utilsTime.js";
 import EventOverviewFetchedLogs from "./EventOverviewFetchedLogs.svelte";
 import { EVENT_LOGS_RELOAD_INTERVAL } from "./EventLogs.svelte";
 
@@ -112,6 +113,16 @@ function log(blockNumber: number): ConvertedEventLog {
   } as unknown as ConvertedEventLog;
 }
 
+// The dates shown, from the top: those of the latest and of the oldest edge.
+function shownDates(): string[] {
+  return screen
+    .getAllByText(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/)
+    .map((date) => date.textContent ?? "");
+}
+function datesOf(...logs: ConvertedEventLog[]): string[] {
+  return logs.map((eventLog) => convertJsDateToIso8601(eventLog.jsDate));
+}
+
 const load = vi.mocked(getEventLogEdges);
 const noLogs = { count: 0, oldest: undefined, latest: undefined };
 
@@ -178,17 +189,20 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     await vi.advanceTimersByTimeAsync(1);
     expect(screen.queryByText("No logs fetched yet.")).toBeNull();
   }
-  // Any change of the record count reloads. The saved one is neither count of
-  // the DB, so a shown count can only come from the DB.
-  async function saveAndWaitForTheReload(): Promise<void> {
+  // Any change of the record count reloads. Each call saves another count,
+  // and returns it: the test checks that the shown count is not the saved one.
+  let savedRecordCount: number = 100;
+  async function saveAndWaitForTheReload(): Promise<number> {
+    savedRecordCount += 1;
     await vi.advanceTimersByTimeAsync(sinceLoad);
-    await save(7);
+    await save(savedRecordCount);
     await vi.advanceTimersByTimeAsync(
       EVENT_LOGS_RELOAD_INTERVAL - sinceLoad - 1,
     );
     expect(load).toHaveBeenCalledTimes(1);
     await vi.advanceTimersByTimeAsync(1);
     expect(load).toHaveBeenCalledTimes(2);
+    return savedRecordCount;
   }
 
   test("reloads the logs when the record count of the event changes", async () => {
@@ -199,29 +213,26 @@ describe("EventOverviewFetchedLogs.svelte", () => {
       screen.getAllByTestId("stub").map((stub) => stub.textContent),
     ).toEqual(["block:6", "tx:0xtx6", "block:5", "tx:0xtx5"]);
 
-    load.mockResolvedValueOnce({ count: 3, oldest: log(10), latest: log(20) });
-    await saveAndWaitForTheReload();
+    const [oldest, latest] = [log(10), log(20)];
+    load.mockResolvedValueOnce({ count: 3, oldest, latest });
+    const saved: number = await saveAndWaitForTheReload();
     expect(screen.getByText("3")).toBeTruthy();
+    expect(screen.queryByText(String(saved))).toBeNull();
     expect(
       screen.getAllByTestId("stub").map((stub) => stub.textContent),
     ).toEqual(["block:20", "tx:0xtx20", "block:10", "tx:0xtx10"]);
+    expect(shownDates()).toEqual(datesOf(latest, oldest));
   });
 
   test("shows the count of the DB with the two edge logs", async () => {
-    load.mockResolvedValueOnce({
-      count: 100000,
-      oldest: log(10),
-      latest: log(20),
-    });
+    const [oldest, latest] = [log(10), log(20)];
+    load.mockResolvedValueOnce({ count: 100000, oldest, latest });
     renderSection();
     await waitFor(() => expect(screen.getByText("100,000")).toBeTruthy());
     expect(
       screen.getAllByTestId("stub").map((stub) => stub.textContent),
     ).toEqual(["block:20", "tx:0xtx20", "block:10", "tx:0xtx10"]);
-    // Latest, then oldest.
-    expect(
-      screen.getAllByText(/^2020-01-01T/).map((date) => date.textContent),
-    ).toEqual(["2020-01-01T00:00:20Z", "2020-01-01T00:00:10Z"]);
+    expect(shownDates()).toEqual(datesOf(latest, oldest));
   });
 
   test("logs a failed load and shows no logs, like the table", async () => {

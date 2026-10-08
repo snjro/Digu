@@ -35,7 +35,7 @@ vi.mock("#stores/storeSyncStatus.js", async () => {
 });
 vi.mock("#utils/logger.js", () => ({ customLogger: { error: vi.fn() } }));
 // BaseGrid is mocked, so no cell renders a link: this keeps the real one (and
-// ethers) from loading, and fails a test that renders one.
+// ethers) from loading, and throws when it is rendered.
 vi.mock("#lib/common/CommonChainExplorerLink.svelte", () => ({
   default: () => {
     throw new Error("No explorer link is rendered here.");
