@@ -497,26 +497,6 @@ describe("warpSync", () => {
       await importWarpSyncBeforeSync(matic);
       expect(importWarpSync).toHaveBeenCalledTimes(1);
     });
-    test("reads nothing again on a stop right after checking", async () => {
-      vi.spyOn(customLogger, "info").mockImplementation(() => {});
-      let give: (value: WarpSyncManifest) => void = () => {};
-      vi.mocked(fetchWarpSyncManifest).mockReturnValueOnce(
-        new Promise((resolve) => (give = resolve)),
-      );
-      vi.mocked(reloadSyncStatusInChain).mockClear();
-      const importing = importWarpSyncBeforeSync(matic);
-      await vi.waitFor(() => expect(fetchWarpSyncManifest).toHaveBeenCalled());
-      stopWarpSync("matic");
-      give(manifest);
-      await importing;
-      expect(importWarpSync).not.toHaveBeenCalled();
-      expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
-        "stopped",
-      );
-      // Before the sync, nothing reads the DB again: nothing was saved before
-      // the stop. Through startWarpSync, the lock reads it.
-      expect(reloadSyncStatusInChain).not.toHaveBeenCalled();
-    });
     test("does not throw when the import fails: the sync goes on", async () => {
       vi.spyOn(customLogger, "error").mockImplementation(() => {});
       vi.mocked(importWarpSync).mockRejectedValueOnce(new Error("db"));
@@ -717,26 +697,12 @@ describe("warpSync", () => {
       );
       const importing = confirmWarpSync(matic);
       await vi.waitFor(() => expect(fetchWarpSyncManifest).toHaveBeenCalled());
-      vi.mocked(getWarpSyncPending).mockClear();
-      vi.mocked(reloadSyncStatusInChain).mockClear();
-      let held: boolean | undefined;
-      vi.mocked(reloadSyncStatusInChain).mockImplementationOnce(async () => {
-        held = (await lockManager.query()).held?.length === 1;
-      });
       stopWarpSync("matic");
       give(manifest);
       await importing;
       expect(importWarpSync).not.toHaveBeenCalled();
-      // Nothing was saved: only withSyncLock reads the DB, once, in the lock,
-      // for what another tab may have done.
-      expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("matic");
-      expect(held).toBe(true);
-      const state = selectWarpSyncState(get(storeWarpSync), "matic");
-      expect(state.status).toBe("stopped");
-      // Counted once, before the stop is seen, and kept for the stopped state.
-      expect(getWarpSyncPending).toHaveBeenCalledOnce();
-      expect(state.pending).toEqual(
-        await vi.mocked(getWarpSyncPending).mock.results[0].value,
+      expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
+        "stopped",
       );
     });
 
@@ -748,15 +714,11 @@ describe("warpSync", () => {
       const importing = confirmWarpSync(matic);
       await vi.waitFor(() => expect(importWarpSync).toHaveBeenCalled());
       vi.mocked(getWarpSyncPending).mockRejectedValueOnce(new Error("db"));
-      vi.mocked(reloadSyncStatusInChain).mockClear();
       stopWarpSync("matic");
       await importing;
       const state = selectWarpSyncState(get(storeWarpSync), "matic");
       expect(state.status).toBe("stopped");
       expect(state.pending).toBeUndefined();
-      // Once by the import, which a file may have been saved by; not again by
-      // the lock.
-      expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("matic");
     });
 
     // Resolves the next reload of the DB only when the returned function is

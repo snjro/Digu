@@ -64,9 +64,9 @@ function startImport(targetChain: Chain): RunningImport {
   }
   let end: WarpSyncState | undefined = undefined;
   const ran: Promise<boolean> = withSyncLock(chainName, async () => {
-    const result: ImportResult = await runImport(targetChain, true);
-    end = result.state;
-    return result.reloaded;
+    end = await runImport(targetChain, true);
+    // After a stop or a failure, runImport read the DB in the lock already.
+    return end?.status === "stopped" || end?.status === "failed";
   }).finally(() => {
     runningImports.delete(chainName);
     // Only once the lock is released: Retry and Import, shown in the end
@@ -154,8 +154,8 @@ export async function importWarpSyncBeforeSync(
   const chainName: ChainName = targetChain.name;
   if (!isWarpSyncOn(chainName) || isDone(chainName)) return;
   if (heldChains.has(chainName)) return;
-  const { state } = await runImport(targetChain, false);
-  if (state) setWarpSyncState(chainName, state);
+  const end: WarpSyncState | undefined = await runImport(targetChain, false);
+  if (end) setWarpSyncState(chainName, end);
 }
 
 // Returns the state to set once it ends, and sets the states while it runs.
@@ -164,18 +164,18 @@ export async function importWarpSyncBeforeSync(
 async function runImport(
   targetChain: Chain,
   ask: boolean,
-): Promise<ImportResult> {
+): Promise<WarpSyncState | undefined> {
   const chainName: ChainName = targetChain.name;
   // The files are gzip. Nothing is fetched, and the sync fetches the logs.
   if (typeof DecompressionStream === "undefined") {
     customLogger.info("Skip the warp sync: no DecompressionStream.", {
       chainName,
     });
-    return { state: { status: "unsupported" }, reloaded: false };
+    return { status: "unsupported" };
   }
   const before: WarpSyncState = getState(chainName);
   // Turned off while waiting for the lock.
-  if (!isWarpSyncOn(chainName)) return { state: undefined, reloaded: false };
+  if (!isWarpSyncOn(chainName)) return;
   setWarpSyncState(chainName, { status: "checking" });
   const controller = new AbortController();
   setWarpSyncStopController(chainName, controller);
@@ -184,25 +184,20 @@ async function runImport(
   let failing: boolean = false;
   try {
     manifest = await fetchWarpSyncManifest(targetChain);
-    if (!manifest) return { state: { status: "none" }, reloaded: false };
+    if (!manifest) return { status: "none" };
     const pending: WarpSyncPending = await getWarpSyncPending(
       chainName,
       manifest,
     );
-    const about: WarpSyncAbout = { ...getLastRun(manifest), pending };
-    // Stopped while checking: nothing is saved, so the counts stand, and the
-    // import need not read the DB again. Through startWarpSync, withSyncLock
-    // still reads it, for what another tab may have done meanwhile.
-    if (controller.signal.aborted) {
-      const state = await endStopped(chainName, { about });
-      return { state, reloaded: false };
-    }
+    controller.signal.throwIfAborted();
+    const about = {
+      toBlock: manifest.runs.at(-1)?.toBlock,
+      createdAt: manifest.runs.at(-1)?.createdAt,
+      pending,
+    };
     const isLarge: boolean = needsConfirmation(pending);
     if (isLarge && !confirmedChains.has(chainName)) {
-      return {
-        state: ask ? { status: "confirm", ...about } : before,
-        reloaded: false,
-      };
+      return ask ? { status: "confirm", ...about } : before;
     }
     // Only a large import shows its progress and can be stopped from the nav.
     let doneLogCount: number = 0;
@@ -243,97 +238,63 @@ async function runImport(
       setWarpSyncState(chainName, { ...importing(), ending: "finishing" });
     }
     return {
-      state: {
-        status: toBlock === undefined ? "none" : "imported",
-        toBlock,
-        createdAt: about.createdAt,
-      },
-      reloaded: false,
+      status: toBlock === undefined ? "none" : "imported",
+      toBlock,
+      createdAt: manifest.runs.at(-1)?.createdAt,
     };
   } catch (error) {
     // Before the reload: a stop while it reads the DB does not turn a failure
     // into a stop.
-    if (controller.signal.aborted) {
-      const state = await endStopped(chainName, { manifest });
-      return { state, reloaded: true };
-    }
+    const stopped: boolean = controller.signal.aborted;
     // A large import hides Stop while it reads the DB again.
     const shown: WarpSyncState = getState(chainName);
-    if (shown.progress) {
+    if (!stopped && shown.progress) {
       failing = true;
       setWarpSyncState(chainName, { ...shown, ending: "failing" });
     }
-    // A file may have been saved before the failure reached this tab.
-    await reloadAfterImport(chainName);
+    // A file may have been saved after the stop or the timeout, before its
+    // result reached this tab: the stores follow the DB again.
+    await reloadSyncStatusInChain(chainName).catch((reloadError: unknown) => {
+      customLogger.error("Reload the sync status after the warp sync.", {
+        chainName,
+        errorObject: reloadError,
+      });
+    });
+    if (stopped) {
+      customLogger.info("Stopped the import of the warp sync snapshot.", {
+        chainName,
+      });
+      heldChains.add(chainName);
+      return {
+        status: "stopped",
+        toBlock: manifest?.runs.at(-1)?.toBlock,
+        createdAt: manifest?.runs.at(-1)?.createdAt,
+        pending: manifest
+          ? await getPendingOrUndefined(targetChain, manifest)
+          : undefined,
+      };
+    }
     customLogger.error("Import the warp sync snapshot.", {
       chainName,
       errorObject: error,
     });
-    return { state: { status: "failed" }, reloaded: true };
+    return { status: "failed" };
   } finally {
     setWarpSyncStopController(chainName, undefined);
   }
 }
 
-// The end state, and whether the DB was read into the stores again.
-type ImportResult = { state: WarpSyncState | undefined; reloaded: boolean };
-function getLastRun(
-  manifest: WarpSyncManifest | undefined,
-): Omit<WarpSyncAbout, "pending"> {
-  const lastRun = manifest?.runs.at(-1);
-  return { toBlock: lastRun?.toBlock, createdAt: lastRun?.createdAt };
-}
-// The stores follow the DB again.
-async function reloadAfterImport(chainName: ChainName): Promise<void> {
-  await reloadSyncStatusInChain(chainName).catch((reloadError: unknown) => {
-    customLogger.error("Reload the sync status after the warp sync.", {
-      chainName,
-      errorObject: reloadError,
-    });
-  });
-}
-// The last run of the snapshot and what is left of it.
-type WarpSyncAbout = Pick<WarpSyncState, "toBlock" | "createdAt" | "pending">;
-// Every stopped end. The chain is held before anything is awaited, so that
-// the warp sync turned on meanwhile is not undone. about: what was counted
-// before anything was saved. Without it, a file may have been saved after the
-// stop, before its result reached this tab: the DB is read again, and what is
-// left is counted after it.
-async function endStopped(
-  chainName: ChainName,
-  end: { about: WarpSyncAbout } | { manifest: WarpSyncManifest | undefined },
-): Promise<WarpSyncState> {
-  heldChains.add(chainName);
-  if ("manifest" in end) await reloadAfterImport(chainName);
-  customLogger.info("Stopped the import of the warp sync snapshot.", {
-    chainName,
-  });
-  const about: WarpSyncAbout =
-    "about" in end ? end.about : await countLeft(chainName, end.manifest);
-  return { status: "stopped", ...about };
-}
-async function countLeft(
-  chainName: ChainName,
-  manifest: WarpSyncManifest | undefined,
-): Promise<WarpSyncAbout> {
-  return {
-    ...getLastRun(manifest),
-    pending: manifest
-      ? await getPendingOrUndefined(chainName, manifest)
-      : undefined,
-  };
-}
 // What is left after a stop; undefined when it cannot be read, so that the
 // state still leaves "checking" or "importing".
 async function getPendingOrUndefined(
-  chainName: ChainName,
+  targetChain: Chain,
   manifest: WarpSyncManifest,
 ): Promise<WarpSyncPending | undefined> {
   try {
-    return await getWarpSyncPending(chainName, manifest);
+    return await getWarpSyncPending(targetChain.name, manifest);
   } catch (error) {
     customLogger.error("Count what is left of the warp sync snapshot.", {
-      chainName,
+      chainName: targetChain.name,
       errorObject: error,
     });
     return undefined;
@@ -357,7 +318,12 @@ async function withSyncLock(
         if (!navigator.locks || reloaded) return;
         // Another tab may have imported or synced since this tab read the
         // DB, and then this import skips everything.
-        await reloadAfterImport(chainName);
+        await reloadSyncStatusInChain(chainName).catch((error: unknown) => {
+          customLogger.error("Reload the sync status after the warp sync.", {
+            chainName,
+            errorObject: error,
+          });
+        });
       },
     );
     if (!ran) {
