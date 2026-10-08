@@ -156,17 +156,25 @@ export function readManifest(file, chain) {
 }
 
 // Writes file whole and then renames it, so that a stop does not leave half a
-// file: write(tmp) writes the file tmp. When write fails, tmp is removed and
-// file stays as it was; only a stop before the rename leaves <file>.tmp.
+// file: write(tmp) writes the file tmp. When the write or the rename fails, tmp
+// is removed, file stays as it was, and the error is thrown; only a stop (a
+// kill) before the rename leaves <file>.tmp.
 export function writeWhole(file, write) {
   const tmp = `${file}.tmp`;
+  let written;
   try {
-    write(tmp);
+    written = write(tmp);
   } catch (error) {
-    fs.rmSync(tmp, { force: true });
+    discard(tmp);
     throw error;
   }
-  fs.renameSync(tmp, file);
+  if (typeof written?.then === "function") {
+    discard(tmp);
+    throw new TypeError(
+      "The write of writeWhole returned a promise: use writeWholeAsync.",
+    );
+  }
+  replace(tmp, file);
 }
 // writeWhole for a write that returns a promise, which is waited for.
 export async function writeWholeAsync(file, write) {
@@ -174,10 +182,27 @@ export async function writeWholeAsync(file, write) {
   try {
     await write(tmp);
   } catch (error) {
-    fs.rmSync(tmp, { force: true });
+    discard(tmp);
     throw error;
   }
-  fs.renameSync(tmp, file);
+  replace(tmp, file);
+}
+// Removes tmp. A failure here is not thrown, so that it does not hide the
+// error that made the write stop.
+function discard(tmp) {
+  try {
+    fs.rmSync(tmp, { force: true });
+  } catch {
+    // The error of the write is thrown instead.
+  }
+}
+function replace(tmp, file) {
+  try {
+    fs.renameSync(tmp, file);
+  } catch (error) {
+    discard(tmp);
+    throw error;
+  }
 }
 
 export function writeManifest(file, manifest) {
