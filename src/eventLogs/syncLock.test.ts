@@ -12,7 +12,7 @@ import {
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain, Contract } from "#constants/chains/types.js";
 import type { EthersEventLog, SyncStatusContract } from "#db/dbTypes.js";
-import { getSyncLockName } from "#db/constants.js";
+import { DB_NAME, getSyncLockName } from "#db/constants.js";
 import { get } from "svelte/store";
 import type { SyncLockKind } from "./syncLock";
 import type {
@@ -155,6 +155,8 @@ beforeEach(() => {
   });
 });
 
+// The channel of the signal of a sync lock.
+const SYNC_LOCK_CHANNEL: string = `${DB_NAME.firstName}_syncLock`;
 const chain: Chain = TARGET_CHAINS[0];
 const project = chain.projects[0];
 const version = project.versions[0];
@@ -679,7 +681,7 @@ describe("sync with two tabs (issue #49)", () => {
       const a = await openTab();
       tabs.push(a);
       const received: unknown[] = [];
-      const other = new BroadcastChannel("Digu_syncLock");
+      const other = new BroadcastChannel(SYNC_LOCK_CHANNEL);
       try {
         other.addEventListener("message", (event: MessageEvent) =>
           received.push(event.data),
@@ -701,7 +703,7 @@ describe("sync with two tabs (issue #49)", () => {
       tabs.push(a);
       const received: unknown[] = [];
       const lockAtSignal: (string | undefined)[] = [];
-      const other = new BroadcastChannel("Digu_syncLock");
+      const other = new BroadcastChannel(SYNC_LOCK_CHANNEL);
       try {
         other.addEventListener("message", (event: MessageEvent) => {
           received.push(event.data);
@@ -735,7 +737,7 @@ describe("sync with two tabs (issue #49)", () => {
         .table("SyncStatus")
         .update(b.contract.name, { fetchedBlockNumber: 123_456_789 });
       expect(b.storeStatus().fetchedBlockNumber).not.toBe(123_456_789);
-      const signal = new BroadcastChannel("Digu_syncLock");
+      const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
       try {
         signal.postMessage({ chainName: chain.name });
       } finally {
@@ -847,7 +849,7 @@ describe("sync with two tabs (issue #49)", () => {
         { isSyncing: true },
       );
       expect(a.storeStatus().syncStateText).toBe("syncing");
-      const signal = new BroadcastChannel("Digu_syncLock");
+      const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
       try {
         signal.postMessage({ chainName: chain.name });
       } finally {
@@ -915,7 +917,7 @@ describe("sync with two tabs (issue #49)", () => {
         .update(a.contract.name, { isSyncing: true, isAbort: false });
       writes = 0;
       watching = true;
-      const signal = new BroadcastChannel("Digu_syncLock");
+      const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
       try {
         signal.postMessage({ chainName: chain.name });
       } finally {
@@ -951,7 +953,7 @@ describe("sync with two tabs (issue #49)", () => {
         .table("SyncStatus")
         .update(a.contract.name, { isAbort: undefined });
       expect((await dbStatus(a)).isAbort).toBeUndefined();
-      const signal = new BroadcastChannel("Digu_syncLock");
+      const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
       try {
         signal.postMessage({ chainName: chain.name });
       } finally {
@@ -1002,7 +1004,7 @@ describe("sync with two tabs (issue #49)", () => {
       const spyWarn = vi.spyOn(customLogger, "warn");
       const { held: heldLock, release } = holdSyncLockOfOtherTab();
       await a.db.table("SyncStatus").delete(a.contract.name);
-      const signal = new BroadcastChannel("Digu_syncLock");
+      const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
       try {
         signal.postMessage({ chainName: chain.name });
       } finally {
@@ -1028,7 +1030,7 @@ describe("sync with two tabs (issue #49)", () => {
       const { customLogger } = await import("#utils/logger.js");
       const spyError = vi.spyOn(customLogger, "error");
       const before = get(storeSyncLockedByOtherTab);
-      const signal = new BroadcastChannel("Digu_syncLock");
+      const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
       try {
         // As from a tab on another build.
         signal.postMessage(null);
@@ -1314,6 +1316,75 @@ describe("sync with two tabs (issue #49)", () => {
     ).toEqual([[chain.name, "startup"]]);
   }, 30_000);
 
+  test("reads a chain as at startup also before the startup watches the locks, and only once", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    let spyLoad: MockInstance | undefined;
+    const b = await openTab(async () => {
+      // Same module instances as tab B.
+      const load = await import("#db/dbEventLogsDataHandlersSyncStatusLoad.js");
+      spyLoad = vi.spyOn(load, "loadSyncStatusInChain");
+      // A reading that ends before the startup watches the locks.
+      const { waitForSyncLockRelease, storeSyncLockedByOtherTab } =
+        await import("./syncLock");
+      waitForSyncLockRelease(chain.name);
+      expect(
+        await waitFor(() => !get(storeSyncLockedByOtherTab)[chain.name]),
+      ).toBe(true);
+    });
+    tabs.push(b);
+
+    expect(
+      spyLoad!.mock.calls.filter(([chainName]) => chainName === chain.name),
+    ).toEqual([[chain.name, "startup"]]);
+  }, 30_000);
+
+  test.each([
+    ["busy", true],
+    ["free", false],
+  ])(
+    "reads a chain as at startup again after its first reading failed, when the chain is %s at startup",
+    async (_state, busy) => {
+      const a = await openTab();
+      tabs.push(a);
+      const otherTab = busy ? holdSyncLockOfOtherTab() : undefined;
+      let spyLoad: MockInstance | undefined;
+      const modes = (): unknown[] =>
+        spyLoad!.mock.calls
+          .filter(([chainName]) => chainName === chain.name)
+          .map(([, mode]) => mode);
+      const b = await openTab(async () => {
+        // Same module instances as tab B. The first reading of the chain fails.
+        const load =
+          await import("#db/dbEventLogsDataHandlersSyncStatusLoad.js");
+        const { loadSyncStatusInChain } = load;
+        spyLoad = vi
+          .spyOn(load, "loadSyncStatusInChain")
+          .mockImplementation(async (chainName, mode) => {
+            if (chainName === chain.name && modes().length === 1) {
+              throw new Error("DB error");
+            }
+            await loadSyncStatusInChain(chainName, mode);
+          });
+      });
+      tabs.push(b);
+      otherTab?.release();
+      await otherTab?.held;
+      expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
+
+      // The signal of another operation, which has ended.
+      const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
+      try {
+        signal.postMessage({ chainName: chain.name });
+      } finally {
+        signal.close();
+      }
+      expect(await waitFor(() => modes().length === 2)).toBe(true);
+      expect(modes()).toEqual(["startup", "startup"]);
+    },
+    30_000,
+  );
+
   test("reads at startup a chain that this tab's own operation waited for at startup", async () => {
     const a = await openTab();
     tabs.push(a);
@@ -1397,19 +1468,23 @@ describe("sync with two tabs (issue #49)", () => {
           this: BroadcastChannel,
           ...args: Parameters<BroadcastChannel["addEventListener"]>
         ) {
-          if (this.name === "Digu_syncLock") {
+          if (this.name === SYNC_LOCK_CHANNEL) {
             addEventListener.call(this, "message", (event: Event) =>
               received.push((event as MessageEvent).data),
             );
           }
           addEventListener.apply(this, args);
         });
-      const b = await openTab();
+      let b: Tab;
+      try {
+        b = await openTab();
+      } finally {
+        spyListen.mockRestore();
+      }
       tabs.push(b);
-      spyListen.mockRestore();
       // The signal of tab C, after the startup: it does not replace the
       // startup's reading.
-      const signal = new BroadcastChannel("Digu_syncLock");
+      const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
       try {
         signal.postMessage({ chainName: chain.name });
       } finally {
