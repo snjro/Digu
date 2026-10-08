@@ -9,7 +9,9 @@ import type { EthersEventLog, NodeStatus } from "#db/dbTypes.js";
 import { customLogger } from "./logger";
 import { getUrlObject } from "./utilsCommon";
 import { getTargetChain } from "./utilsDb";
+import { BlockTimestamps } from "./blockTimestamps";
 import {
+  FetchRequest,
   JsonRpcProvider,
   Network,
   WebSocketProvider,
@@ -43,30 +45,6 @@ export function extractEventContracts(targetContracts: Contract[]): Contract[] {
 }
 export type NodeProvider = JsonRpcProvider | WebSocketProvider;
 
-// The blocks of the current map when it becomes the previous one. The maps
-// hold only the blocks with logs. A block is read right after the eth_getLogs
-// answer that has it, and only the answers of the other contracts of the
-// chain, which share the provider, can come in between, which are far fewer
-// than 100,000 blocks with logs. A block that is no longer kept is read from
-// the DB or the RPC instead.
-export const MAX_BLOCK_TIMESTAMPS: number = 100000;
-// The timestamps by block number, in two maps, so that old blocks are dropped
-// without deleting them one by one: at most twice maxSize blocks.
-export class BlockTimestamps {
-  #current: Map<number, number> = new Map();
-  #previous: Map<number, number> = new Map();
-  constructor(private readonly maxSize: number = MAX_BLOCK_TIMESTAMPS) {}
-  set(blockNumber: number, timestamp: number): void {
-    this.#current.set(blockNumber, timestamp);
-    if (this.#current.size >= this.maxSize) {
-      this.#previous = this.#current;
-      this.#current = new Map();
-    }
-  }
-  get(blockNumber: number): number | undefined {
-    return this.#current.get(blockNumber) ?? this.#previous.get(blockNumber);
-  }
-}
 // The blockTimestamp that an RPC may put in each log, for each provider.
 // ethers does not keep it in a Log.
 const blockTimestampsOfProviders: WeakMap<NodeProvider, BlockTimestamps> =
@@ -90,17 +68,10 @@ export function getBlockTimestampFromLogs(
   return blockTimestampsOfProviders.get(provider)?.get(blockNumber);
 }
 // ethers calls _wrapLog with each log of eth_getLogs.
-export class JsonRpcProviderKeepingBlockTimestamps extends JsonRpcProvider {
-  constructor(
-    url: string,
-    options: JsonRpcApiProviderOptions,
-    maxBlockTimestamps: number = MAX_BLOCK_TIMESTAMPS,
-  ) {
-    super(url, undefined, options);
-    blockTimestampsOfProviders.set(
-      this,
-      new BlockTimestamps(maxBlockTimestamps),
-    );
+class JsonRpcProviderKeepingBlockTimestamps extends JsonRpcProvider {
+  constructor(request: FetchRequest, options: JsonRpcApiProviderOptions) {
+    super(request, undefined, options);
+    blockTimestampsOfProviders.set(this, new BlockTimestamps());
   }
   override _wrapLog(value: LogParams, network: Network): Log {
     keepBlockTimestamp(this, value);
@@ -111,12 +82,9 @@ class WebSocketProviderKeepingBlockTimestamps extends WebSocketProvider {
   // Rejects when the socket closes. ethers 6.17.0 does not set onclose, and
   // a request on a closed socket waits forever.
   readonly #closed: Promise<never>;
-  constructor(url: string, maxBlockTimestamps: number = MAX_BLOCK_TIMESTAMPS) {
+  constructor(url: string) {
     super(url);
-    blockTimestampsOfProviders.set(
-      this,
-      new BlockTimestamps(maxBlockTimestamps),
-    );
+    blockTimestampsOfProviders.set(this, new BlockTimestamps());
     this.#closed = new Promise<never>((_, reject) => {
       (this.websocket as WebSocket).onclose = () => {
         reject(makeError("WebSocket closed.", "NETWORK_ERROR"));
@@ -169,7 +137,7 @@ const skippedNodeStatuses: Record<
 // A WebSocket that never opens makes getNetwork wait forever.
 const GET_NETWORK_TIMEOUT_MS: number = 10000;
 // A WebSocket that stays open but does not answer makes a request wait forever.
-const RPC_REQUEST_TIMEOUT_MS: number = 60000;
+export const RPC_REQUEST_TIMEOUT_MS: number = 60000;
 
 // Shows CONNECTING. The number is taken before the write, so that an earlier
 // call cannot write its status after it.
@@ -234,8 +202,12 @@ export async function getNodeProvider(
           // each request. Do not pass targetNetwork: then it is never asked.
           staticNetwork: true,
         };
+        // The limit of a WebSocket request too, instead of the 5 minutes of
+        // ethers, so that a request that hangs is cancelled and fails.
+        const request: FetchRequest = new FetchRequest(rpc);
+        request.timeout = RPC_REQUEST_TIMEOUT_MS;
         nodeProvider = new JsonRpcProviderKeepingBlockTimestamps(
-          rpc,
+          request,
           jsonRpcApiProviderOptions,
         );
       } else {

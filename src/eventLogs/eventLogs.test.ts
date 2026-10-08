@@ -76,12 +76,15 @@ describe("syncEventLogs", () => {
   test("throws the error of the sync when destroying the provider fails too", async () => {
     const matic: Chain = TARGET_CHAINS.find((chain) => chain.name === "matic")!;
     const syncError: Error = new Error("sync error");
+    const destroy = vi.fn().mockRejectedValue(new Error("destroy error"));
     vi.mocked(getNodeProvider).mockResolvedValue({
-      destroy: vi.fn().mockRejectedValue(new Error("destroy error")),
+      destroy,
     } as unknown as NodeProvider);
     vi.mocked(startUpdateLatestBlockNumber).mockRejectedValue(syncError);
     vi.mocked(startAbortingInChain).mockResolvedValue();
-    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
     // The error that the sync throws to the lock.
     let syncing: Promise<unknown> = Promise.resolve();
     vi.mocked(requestSyncLock).mockImplementation(
@@ -97,5 +100,9 @@ describe("syncEventLogs", () => {
 
     expect(await fetchEventLogs(matic)).toBe(true);
     expect(await syncing).toBe(syncError);
+    expect(destroy).toHaveBeenCalledOnce();
+    expect(spyError).toHaveBeenCalledWith("nodeProvider.destroy().", {
+      name: "Error",
+    });
   });
 });

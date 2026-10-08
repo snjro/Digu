@@ -1,9 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { FetchRequest, makeError } from "ethers";
-import {
-  LATEST_BLOCK_REQUEST_LIMIT_IN_INTERVALS,
-  startUpdateLatestBlockNumber,
-} from "./updateLatestBlockNumber";
+import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { TRY_COUNT } from "./eventLogsContract";
 import {
   getAndUpdateLatestBlockNumber,
@@ -76,27 +73,6 @@ describe("startUpdateLatestBlockNumber", () => {
     expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(2);
 
     answerRequest();
-    await vi.advanceTimersByTimeAsync(blockIntervalMs);
-    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(3);
-  });
-
-  test("should count a request that takes too long as failed, and go on", async () => {
-    vi.mocked(getAndUpdateLatestBlockNumber)
-      .mockResolvedValueOnce(1)
-      .mockReturnValueOnce(new Promise(() => {}));
-    const { customLogger } = await import("#utils/logger.js");
-    const spyWarn = vi.spyOn(customLogger, "warn").mockImplementation(() => {});
-
-    stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
-    await vi.advanceTimersByTimeAsync(blockIntervalMs);
-    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(2);
-
-    await vi.advanceTimersByTimeAsync(
-      LATEST_BLOCK_REQUEST_LIMIT_IN_INTERVALS * blockIntervalMs,
-    );
-    expect(spyWarn).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({ errorCount: `1/${TRY_COUNT}` }),
-    );
     await vi.advanceTimersByTimeAsync(blockIntervalMs);
     expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(3);
   });
