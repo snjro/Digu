@@ -335,6 +335,24 @@ describe("BaseGridFunctionBar.svelte", () => {
       },
     );
 
+    // As EventLogs, whose quick search outlives the grid (an anonymous event
+    // removes the grid, and the next event makes a new one).
+    test("a new bar clears the quick search left by the grid before, at once", async () => {
+      vi.useFakeTimers();
+      const infiniteRows = infiniteRowsOf({ getRows: vi.fn() });
+      infiniteRows.quickSearch.text = "abc";
+      renderInfiniteBar(infiniteRows);
+      await tick();
+      expect(infiniteRows.quickSearch.text).toBe("");
+      expect(
+        (
+          screen.getByRole("textbox", {
+            name: "Quick search",
+          }) as HTMLInputElement
+        ).value,
+      ).toBe("");
+    });
+
     test("Reload resets the grid and reads the rows again", async () => {
       vi.useFakeTimers();
       const infiniteRows = infiniteRowsOf({ getRows: vi.fn() });
