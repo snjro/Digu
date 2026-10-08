@@ -70,20 +70,30 @@ function match(text, regex, what) {
   if (!found) throw new Error(`Cannot find ${what}.`);
   return found[1];
 }
-// Throws when nothing matches, so that an import of another form does not
-// leave the contracts out without a word.
-function matchAll(text, regex, what) {
-  const found = [...text.matchAll(regex)].map((m) => m[1]);
-  if (found.length === 0) throw new Error(`Cannot find ${what}.`);
-  return found;
+// The paths of the imports of an _index.ts. Every import must have the form of
+// regex, so that an import of another form does not leave its contracts out
+// without a word. Imports of types, and of modules that are not relative (#…),
+// are not data and are skipped.
+function importsOf(text, regex, what) {
+  const paths = [];
+  for (const line of text.split("\n")) {
+    if (!line.startsWith("import ") || line.startsWith("import type "))
+      continue;
+    if (/ from "[^."][^"]*";$/.test(line)) continue;
+    const found = line.match(regex);
+    if (!found) throw new Error(`Cannot read an import of ${what}: ${line}`);
+    paths.push(found[1]);
+  }
+  if (paths.length === 0) throw new Error(`Cannot find ${what}.`);
+  return paths;
 }
 
 // Reads the chain from the import lines of the _index.ts files and the JSON
 // files that they import.
 export function loadChain(chainName, chainsDir = CHAINS_DIR) {
-  const chainDirs = matchAll(
+  const chainDirs = importsOf(
     read(path.join(chainsDir, "_index.ts")),
-    /import \{ chain as \w+ \} from "\.\/([^"]+)\/_index";/g,
+    /^import \{ chain as \w+ \} from "\.\/([^"]+)\/_index";$/,
     `the chains of ${chainsDir}`,
   );
   for (const chainDir of chainDirs) {
@@ -108,9 +118,9 @@ export function loadChain(chainName, chainsDir = CHAINS_DIR) {
 }
 function loadContracts(chainDir, chainIndex) {
   const contracts = [];
-  for (const projectDir of matchAll(
+  for (const projectDir of importsOf(
     chainIndex,
-    /import \{ project as \w+ \} from "\.\/([^"]+)\/_index";/g,
+    /^import \{ project as \w+ \} from "\.\/([^"]+)\/_index";$/,
     `the projects of ${chainDir}`,
   )) {
     const dir = path.join(chainDir, projectDir);
@@ -120,9 +130,9 @@ function loadContracts(chainDir, chainIndex) {
       /export const project: Project = \{\s*name: "([^"]+)"/,
       `the name of ${dir}`,
     );
-    for (const versionDir of matchAll(
+    for (const versionDir of importsOf(
       index,
-      /import \{ version as \w+ \} from "\.\/([^"]+)\/_index";/g,
+      /^import \{ version as \w+ \} from "\.\/([^"]+)\/_index";$/,
       `the versions of ${dir}`,
     )) {
       const vDir = path.join(dir, versionDir);
@@ -132,9 +142,9 @@ function loadContracts(chainDir, chainIndex) {
         /export const version: Version = \{\s*name: "([^"]+)"/,
         `the name of ${vDir}`,
       );
-      for (const file of matchAll(
+      for (const file of importsOf(
         vIndex,
-        /import \w+ from "\.\/([^"]+\.json)";/g,
+        /^import \w+ from "\.\/([^"]+\.json)";$/,
         `the JSON files of ${vDir}`,
       )) {
         const json = JSON.parse(read(path.join(vDir, file)));

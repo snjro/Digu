@@ -427,3 +427,90 @@ describe("parsePositiveInteger", () => {
     expect(parsePositiveInteger(text)).toBeUndefined();
   });
 });
+
+describe("loadChain", () => {
+  let chainsDir;
+  beforeEach(() => {
+    chainsDir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-chains-"));
+  });
+  afterEach(() => fs.rmSync(chainsDir, { recursive: true, force: true }));
+
+  // A chain "c" with one version, whose _index.ts has versionImports.
+  function writeChain(versionImports) {
+    const files = {
+      "_index.ts": [
+        'import type { Chain } from "./types";',
+        'import { chain as c } from "./c/_index";',
+      ],
+      "c/_index.ts": [
+        'import type { Chain } from "#constants/chains/types.js";',
+        'import { project as p } from "./p/_index";',
+        "export const chain: Chain = {",
+        '  name: "c",',
+        "  chainId: 1,",
+        "  confirmationBlocks: 2,",
+      ],
+      "c/p/_index.ts": [
+        'import { version as v } from "./v/_index";',
+        "export const project: Project = {",
+        '  name: "p",',
+      ],
+      "c/p/v/_index.ts": [
+        ...versionImports,
+        "export const version: Version = {",
+        '  name: "v",',
+      ],
+    };
+    for (const [file, lines] of Object.entries(files)) {
+      fs.mkdirSync(path.dirname(path.join(chainsDir, file)), {
+        recursive: true,
+      });
+      fs.writeFileSync(path.join(chainsDir, file), `${lines.join("\n")}\n`);
+    }
+    for (const name of ["A", "B"]) {
+      fs.writeFileSync(
+        path.join(chainsDir, "c/p/v", `${name}.json`),
+        JSON.stringify({
+          name,
+          address: `0x${name.repeat(40)}`,
+          creation: { blockNumber: 5 },
+          abi: [
+            {
+              type: "event",
+              name: "E",
+              anonymous: false,
+              inputs: [{ type: "uint256", name: "x", indexed: false }],
+            },
+          ],
+        }),
+      );
+    }
+  }
+
+  test("reads the JSON files that a version imports", () => {
+    writeChain([
+      'import type { Contract, Version } from "#constants/chains/types.js";',
+      'import { convertJsonFilesContractToContracts } from "#constants/chains/convertJsonToABI.js";',
+      'import A from "./A.json";',
+      'import B from "./B.json";',
+    ]);
+    const chain = loadChain("c", chainsDir);
+    expect(chain.contracts.map((contract) => contract.name)).toEqual([
+      "A",
+      "B",
+    ]);
+  });
+
+  test.each([
+    [
+      "an import of another form",
+      'import B from "./B.json" with { type: "json" };',
+    ],
+    ["an import on more than one line", "import {"],
+  ])("stops at %s next to the imports it reads", (_, line) => {
+    writeChain(['import A from "./A.json";', line]);
+    expect(() => loadChain("c", chainsDir)).toThrow(
+      `Cannot read an import of the JSON files of ${path.join(chainsDir, "c/p/v")}: ${line}`,
+    );
+  });
+});
