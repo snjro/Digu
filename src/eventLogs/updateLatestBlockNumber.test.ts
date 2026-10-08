@@ -57,6 +57,26 @@ describe("startUpdateLatestBlockNumber", () => {
     expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(2);
   });
 
+  test("should not request the latest block number again until the last request ends", async () => {
+    let answerRequest: () => void = () => {};
+    vi.mocked(getAndUpdateLatestBlockNumber)
+      .mockResolvedValueOnce(1)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            answerRequest = () => resolve(2);
+          }),
+      );
+
+    stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
+    await vi.advanceTimersByTimeAsync(3 * blockIntervalMs);
+    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(2);
+
+    answerRequest();
+    await vi.advanceTimersByTimeAsync(blockIntervalMs);
+    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(3);
+  });
+
   test("should stop requesting the latest block number when the chain is not syncing", async () => {
     await startUpdateLatestBlockNumber(chainName, nodeProvider);
     storeSyncStatus.update((state: SyncStatusesChain) => {

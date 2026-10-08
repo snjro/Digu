@@ -199,6 +199,34 @@ describe("fetchEventLogsContract", () => {
     ).toEqual([[fetchedBlockNumber + 1, newLatestBlockNumber]]);
   });
 
+  test("should wait without fetching while the latest block is the creation block", async () => {
+    storeChainStatus.updateState(targetChain.name, {
+      latestBlockNumber: creationBlockNumber,
+    });
+    // A new block comes while waiting for the first time.
+    vi.mocked(sleep).mockImplementationOnce(async () => {
+      storeChainStatus.updateState(targetChain.name, {
+        latestBlockNumber: creationBlockNumber + 1,
+      });
+    });
+
+    await fetchEventLogsContract(
+      dbEventLogs,
+      targetContract,
+      null as unknown as NodeProvider,
+    );
+
+    expect(vi.mocked(sleep).mock.calls).toEqual([
+      [blockIntervalMs],
+      [blockIntervalMs],
+    ]);
+    expect(
+      vi
+        .mocked(getEthersEventLogs)
+        .mock.calls.map(([, , fromBlock, toBlock]) => [fromBlock, toBlock]),
+    ).toEqual([[creationBlockNumber, creationBlockNumber + 1]]);
+  });
+
   test("should not fetch after sleeping when it was aborted while sleeping", async () => {
     vi.mocked(sleep).mockImplementationOnce(async () => {
       storeSyncStatus.update((state: SyncStatusesChain) => {

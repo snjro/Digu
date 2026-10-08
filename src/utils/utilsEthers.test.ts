@@ -13,6 +13,7 @@ import {
   cancelNodeProviderCall,
   extractDecodedEventLogs,
   extractEventContracts,
+  forgetBlockTimestampsFromLogs,
   getAndUpdateLatestBlockNumber,
   getBlockTimestampFromLogs,
   getEthersEventLogs,
@@ -911,6 +912,23 @@ describe("getBlockTimestampFromLogs", () => {
     expect(getBlockTimestampFromLogs(otherProvider, 10)).toBeUndefined();
     await webSocketProvider.destroy();
     await otherProvider.destroy();
+  });
+
+  test("should forget only the blockTimestamp of the given blocks", async () => {
+    const nodeProvider = (await getNodeProvider(targetChain, "https://bar"))!;
+    for (const blockNumber of [10, 11, 12]) {
+      nodeProvider._wrapLog(
+        rawLog(blockNumber, blockNumber * 100) as unknown as LogParams,
+        Network.from(targetChain.chainId),
+      );
+    }
+
+    forgetBlockTimestampsFromLogs(nodeProvider, [10, 12]);
+
+    expect(getBlockTimestampFromLogs(nodeProvider, 10)).toBeUndefined();
+    expect(getBlockTimestampFromLogs(nodeProvider, 11)).toBe(1100);
+    expect(getBlockTimestampFromLogs(nodeProvider, 12)).toBeUndefined();
+    await nodeProvider.destroy();
   });
 });
 

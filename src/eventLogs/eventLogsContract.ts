@@ -25,6 +25,7 @@ import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { assertIsDefined, sleep } from "#utils/utilsCommon.js";
 import { getTargetChain } from "#utils/utilsDb.js";
+import { getNextBlock } from "#warpSync/warpSyncPlan.js";
 type FetchingTargetInfo = ContractIdentifier & {
   blocks: { from: number; to: number; latest: number };
 };
@@ -89,6 +90,7 @@ export async function fetchEventLogsContract(
   let fetchedBlockNumber: number;
   let fromBlockNumber: number;
   let latestBlockNumber: number;
+  let minToBlockNumber: number;
   let toBlockNumber: number;
   let fetchingTargetInfo: FetchingTargetInfo;
   let ethersEventLogs: EthersEventLog[];
@@ -104,19 +106,17 @@ export async function fetchEventLogsContract(
     // registering event logs.
     fetchedBlockNumber =
       syncStatusContract(contractIdentifier).fetchedBlockNumber;
-    fromBlockNumber =
-      fetchedBlockNumber === creationBlockNumber
-        ? fetchedBlockNumber
-        : fetchedBlockNumber + 1;
+    fromBlockNumber = getNextBlock(fetchedBlockNumber, creationBlockNumber);
 
     latestBlockNumber = get(storeChainStatus)[chainName].latestBlockNumber;
 
-    toBlockNumber = fromBlockNumber + bulkUnit - 1;
-    if (fetchedBlockNumber === creationBlockNumber) {
-      // At least 2 blocks: fetching only the creation block would leave
-      // fetchedBlockNumber unchanged and fetch it again.
-      toBlockNumber = Math.max(toBlockNumber, fromBlockNumber + 1);
-    }
+    // At least 2 blocks from the creation block: fetching only the creation
+    // block would leave fetchedBlockNumber unchanged and fetch it again.
+    minToBlockNumber =
+      fetchedBlockNumber === creationBlockNumber
+        ? fromBlockNumber + 1
+        : fromBlockNumber;
+    toBlockNumber = Math.max(fromBlockNumber + bulkUnit - 1, minToBlockNumber);
 
     if (toBlockNumber >= latestBlockNumber) {
       toBlockNumber = latestBlockNumber;
@@ -139,7 +139,7 @@ export async function fetchEventLogsContract(
       if (syncStatusContract(contractIdentifier).isAbort) {
         continue;
       }
-      if (toBlockNumber < fromBlockNumber) {
+      if (toBlockNumber < minToBlockNumber) {
         // If "fetchedBlockNumber" and "latestBlockNumber" have the same value,
         // the above condition is satisfied.
         // This can happen if "toBlockNumber" reaches "latestBlockNumber"

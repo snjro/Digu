@@ -12,7 +12,7 @@ import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { TRY_COUNT } from "./eventLogsContract";
 
-const functionName: string = "updateLatestBlockNumber";
+const functionName: string = "startUpdateLatestBlockNumber";
 
 // Resolves a function that stops the updates.
 export async function startUpdateLatestBlockNumber(
@@ -48,11 +48,19 @@ export async function startUpdateLatestBlockNumber(
   // To avoid this, get the latest blocknumber here.
   await tryGetAndUpdateLatestBlockNumber();
 
+  let timeoutId: number | undefined = undefined;
+  const stop = (): void => {
+    isStopped = true;
+    const log: string = `Stop ${functionName}(). timeoutId=${timeoutId}`;
+    customLogger.start(log);
+    window.clearTimeout(timeoutId);
+    customLogger.finished(log);
+  };
   // The requests and the aborting catch and log their errors. The rest
-  // (reading the store, logging, clearing the interval) is not in a try.
-  const updateInInterval = async (): Promise<void> => {
+  // (reading the store, logging, stopping) is not in a try.
+  const update = async (): Promise<void> => {
     if (!get(storeSyncStatus)[targetChainName].isSyncing) {
-      stopUpdateLatestBlockNumber(intervalId);
+      stop();
       return;
     }
 
@@ -76,20 +84,18 @@ export async function startUpdateLatestBlockNumber(
           error: error,
         });
       }
-      stopUpdateLatestBlockNumber(intervalId);
+      stop();
+      return;
     }
+    scheduleUpdate();
   };
-  const intervalId: number = window.setInterval(() => {
-    void updateInInterval();
-  }, targetChain.blockIntervalMs);
-  return () => {
-    isStopped = true;
-    stopUpdateLatestBlockNumber(intervalId);
+  // The next request after the last one ends, so that the requests do not
+  // pile up and an older answer does not overwrite a newer one.
+  const scheduleUpdate = (): void => {
+    timeoutId = window.setTimeout(() => {
+      void update();
+    }, targetChain.blockIntervalMs);
   };
-}
-function stopUpdateLatestBlockNumber(intervalId: number | undefined) {
-  const log: string = `Stop ${functionName}(). intervalId=${intervalId}`;
-  customLogger.start(log);
-  window.clearInterval(intervalId);
-  customLogger.finished(log);
+  scheduleUpdate();
+  return stop;
 }

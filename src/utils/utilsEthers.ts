@@ -71,6 +71,17 @@ export function getBlockTimestampFromLogs(
 ): number | undefined {
   return blockTimestampsOfProviders.get(provider)?.get(blockNumber);
 }
+// Only these blocks: the contracts of the chain share the provider.
+export function forgetBlockTimestampsFromLogs(
+  provider: NodeProvider,
+  blockNumbers: number[],
+): void {
+  const blockTimestamps: Map<number, number> | undefined =
+    blockTimestampsOfProviders.get(provider);
+  for (const blockNumber of blockNumbers) {
+    blockTimestamps?.delete(blockNumber);
+  }
+}
 // ethers calls _wrapLog with each log of eth_getLogs.
 class JsonRpcProviderKeepingBlockTimestamps extends JsonRpcProvider {
   override _wrapLog(value: LogParams, network: Network): Log {
@@ -257,12 +268,18 @@ export async function getNodeProvider(
     );
     nodeStatus = "INVALID_PROTOCOL";
   }
-  if (latestNodeProviderCalls[targetChain.name] === callNumber) {
-    await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
-  } else if (
-    callNumber > (skippedNodeStatuses[targetChain.name]?.callNumber ?? 0)
-  ) {
-    skippedNodeStatuses[targetChain.name] = { callNumber, nodeStatus };
+  try {
+    if (latestNodeProviderCalls[targetChain.name] === callNumber) {
+      await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
+    } else if (
+      callNumber > (skippedNodeStatuses[targetChain.name]?.callNumber ?? 0)
+    ) {
+      skippedNodeStatuses[targetChain.name] = { callNumber, nodeStatus };
+    }
+  } catch (error) {
+    // A WebSocket would stay open.
+    await nodeProvider?.destroy();
+    throw error;
   }
   if (nodeStatus !== "SUCCESS") {
     await nodeProvider?.destroy();

@@ -184,6 +184,36 @@ describe("getNodeProvider checks the chain of the node", () => {
   });
 });
 
+describe("getNodeProvider when the node status cannot be saved", () => {
+  test.each([
+    { rpc: "http://127.0.0.1:9", providerClass: JsonRpcProvider },
+    { rpc: "ws://127.0.0.1:9", providerClass: WebSocketProvider },
+  ])(
+    "should destroy the provider and throw: $rpc",
+    async ({ rpc, providerClass }) => {
+      fakeNode.chainId = targetChain.chainId;
+      fakeNode.socketOpens = true;
+      const dbError: Error = new Error("DB closed");
+      spyUpdateDbItemChainStatus.mockImplementation(
+        async (_chainName: ChainName, _key: string, value: unknown) => {
+          if (value === "SUCCESS") throw dbError;
+        },
+      );
+      const spyDestroy: MockInstance = vi.spyOn(
+        providerClass.prototype,
+        "destroy",
+      );
+      try {
+        await expect(getNodeProvider(targetChain, rpc)).rejects.toBe(dbError);
+        expect(spyDestroy).toHaveBeenCalledOnce();
+      } finally {
+        spyDestroy.mockRestore();
+        spyUpdateDbItemChainStatus.mockResolvedValue(undefined);
+      }
+    },
+  );
+});
+
 describe("getNodeProvider with an http RPC", () => {
   test("should not send eth_chainId for each getLogs", async () => {
     fakeNode.chainId = targetChain.chainId;
