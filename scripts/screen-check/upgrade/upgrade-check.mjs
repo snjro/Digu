@@ -65,14 +65,14 @@ let stepName = "start";
 const results = createResults({
   file: path.join(outDir, `results-${phase}.json`),
 });
-// Write a record and its [check] line in the log: check() OK or NG, info()
+// Write a record and its [check] line in the log: check() OK or NG, note()
 // INFO.
-function add(id, result, note) {
-  results.add(`${phase} ${id}`, result, note);
-  log.push(`[check] ${id}: ${result} ${note}`);
+function add(id, result, text) {
+  results.add(`${phase} ${id}`, result, text);
+  log.push(`[check] ${id}: ${result} ${text}`);
 }
-const check = (id, ok, note) => add(id, ok ? "OK" : "NG", note);
-const info = (id, note) => add(id, "INFO", note);
+const check = (id, ok, text) => add(id, ok ? "OK" : "NG", text);
+const note = (id, text) => add(id, "INFO", text);
 
 const server = serveBuild(buildDir, {
   headers: { "cache-control": "no-store" },
@@ -542,7 +542,7 @@ const browser = await puppeteer.launch({
   protocolTimeout: 60000,
   args: ["--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost"],
 });
-info(
+note(
   "open pages at launch",
   (await browser.pages()).map((p) => p.url()).join(", "),
 );
@@ -654,7 +654,7 @@ await results.guard(
         b.click();
         return b.outerHTML.slice(0, 200);
       });
-      info("sidebar close clicked", closed);
+      note("sidebar close clicked", closed);
       await settle(page, 1000);
       await record(page, "old-06-final", { dump: true });
     } else if (phase === "probe") {
@@ -736,7 +736,7 @@ await results.guard(
             r.innerText.replace(/\s+/g, " ").slice(0, 400),
           ),
         );
-        info(`${name} ag-row count`, `${rows.length}: ${JSON.stringify(rows)}`);
+        note(`${name} ag-row count`, `${rows.length}: ${JSON.stringify(rows)}`);
         // #509: sort by the datetime column (the Date), ascending then descending.
         if (name === "grid-TimestampSet") {
           for (const n of [1, 2]) {
@@ -767,7 +767,7 @@ await results.guard(
                 )
                 .map((c) => c.innerText.trim()),
             }));
-            info(`${name} datetime sort click ${n}`, JSON.stringify(sorted));
+            note(`${name} datetime sort click ${n}`, JSON.stringify(sorted));
             await page.screenshot({
               path: path.join(shotDir, `${name}-sort${n}.png`),
             });
@@ -796,7 +796,7 @@ await results.guard(
             };
           }),
       );
-      info("Augur_TimestampSet jsDate types", JSON.stringify(jsDateTypes));
+      note("Augur_TimestampSet jsDate types", JSON.stringify(jsDateTypes));
     } else {
       stepName = "new-00";
       // The Settings DB before the new build opens it, from a file of the
@@ -850,7 +850,7 @@ await results.guard(
           text: d.innerText.slice(0, 800),
         };
       });
-      info("sync panel (eth page)", JSON.stringify(dialogValues));
+      note("sync panel (eth page)", JSON.stringify(dialogValues));
       await record(page, "new-10-sync-panel");
       await page.keyboard.press("Escape");
       await settle(page);
