@@ -1,5 +1,6 @@
 // The mock of CommonChainExplorerLink.svelte: a stub that shows its value, and
-// follows it when it changes. For vi.mock(path, mockExplorerLink).
+// follows it when it changes. vi.mock is hoisted above the imports, so its
+// factory imports this file and returns mockExplorerLink().
 export async function mockExplorerLink(): Promise<{
   default: (anchor: unknown, props: Record<string, unknown>) => unknown;
 }> {
