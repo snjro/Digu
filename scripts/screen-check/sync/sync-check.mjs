@@ -1075,27 +1075,28 @@ if (want("S4")) {
       // tries. So B starts and stops a sync: A's lock was released.
       if (startSync(b3)) {
         await (await front(b), clickToggle)(b);
-        checkTransitions(
-          "B start after A closed",
-          await (await front(b), watchTransitions)(
-            b,
-            V1,
-            "Augur",
-            (t, s) => t?.tooltip === "stop sync" && s?.isSyncing === true,
-            15000,
-          ),
+        const bStart = await (await front(b), watchTransitions)(
+          b,
+          V1,
+          "Augur",
+          (t, s) => t?.tooltip === "stop sync" && s?.isSyncing === true,
+          15000,
         );
-        await (await front(b), clickToggle)(b);
-        checkTransitions(
-          "B stop after A closed",
-          await (await front(b), watchTransitions)(
-            b,
-            V1,
-            "Augur",
-            stopped,
-            30000,
-          ),
-        );
+        checkTransitions("B start after A closed", bStart);
+        // Without a start, there is nothing to stop.
+        if (bStart.met) {
+          await (await front(b), clickToggle)(b);
+          checkTransitions(
+            "B stop after A closed",
+            await (await front(b), watchTransitions)(
+              b,
+              V1,
+              "Augur",
+              stopped,
+              30000,
+            ),
+          );
+        }
       }
     },
     () => b?.screenshot({ path: path.join(outDir, "S4-error.png") }),

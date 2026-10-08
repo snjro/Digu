@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, test } from "vitest";
 import { readTryCount } from "./build-source.mjs";
 
@@ -34,6 +35,7 @@ describe("readTryCount", () => {
   });
 
   test("reads the TRY_COUNT of this repository", () => {
-    expect(readTryCount(process.cwd())).toBeGreaterThan(0);
+    const root = fileURLToPath(new URL("../..", import.meta.url));
+    expect(readTryCount(root)).toBeGreaterThan(0);
   });
 });
