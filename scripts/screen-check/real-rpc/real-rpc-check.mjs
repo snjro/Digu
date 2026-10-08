@@ -40,9 +40,9 @@ import {
   RPC_INPUT,
   clickCheckbox,
   clickToggle,
+  clickToggleIf,
   findToggle,
   openSyncPanel,
-  syncToggleHandle,
   typeInto,
 } from "../../check-lib/app.mjs";
 import { createChecks } from "../../check-lib/results.mjs";
@@ -486,22 +486,6 @@ async function navIn(page, p) {
     .catch(() => {});
   await settle(page);
 }
-// Clicks the sync toggle in the page while it is on, so that a sync that
-// stopped by itself in between is not started again. Returns whether it
-// clicked.
-async function clickStopSync(page) {
-  const el = await syncToggleHandle(page);
-  if (!el) return false;
-  try {
-    return await el.evaluate((b) => {
-      if (b.disabled || b.getAttribute("aria-checked") !== "true") return false;
-      b.click();
-      return true;
-    });
-  } finally {
-    await el.dispose();
-  }
-}
 // The helper text under the RPC input.
 async function helper(page) {
   return page.evaluate(() =>
@@ -736,7 +720,9 @@ for (const [id, chain, rpc] of RUNS) {
           refusalsOf(traffic.answers.slice(a0)).some((r) => r.complete))
       ) {
         const ms = Date.now() - t1;
-        if (await clickStopSync(page)) {
+        // Only while it is on: a sync that stopped by itself is not started
+        // again.
+        if (await clickToggleIf(page, { checked: true, disabled: false })) {
           stopClickedMs = ms;
           continue;
         }

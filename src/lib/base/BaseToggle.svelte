@@ -38,6 +38,12 @@
     ontogglechanged = undefined,
   }: Props = $props();
 
+  const tooltipId: string = $props.id();
+  // With a name of its own, the tooltip tells the state as the description.
+  let describedBy: string | undefined = $derived(
+    ariaLabel && tooltipText ? tooltipId : undefined,
+  );
+
   function onToggle(): void {
     toggleValue = !toggleValue;
     ontogglechanged?.();
@@ -143,11 +149,13 @@
     role="switch"
     aria-checked={toggleValue}
     aria-label={ariaLabel ?? tooltipText}
+    aria-describedby={describedBy}
     onclick={onToggle}
     {disabled}
   >
     <BaseTooltip
       text={tooltipText}
+      id={tooltipId}
       xPosition={tooltipXPosition}
       yPosition={tooltipYPosition}
     >

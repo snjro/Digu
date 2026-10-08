@@ -100,6 +100,26 @@ describe("BaseToggle.svelte", () => {
     expect(track.getAttribute("aria-label")).toBe("Sync");
   });
 
+  test("is described by the tooltip only when it has a name of its own", async () => {
+    const { container, rerender } = render(BaseToggle, {
+      ...baseProps,
+      toggleValue: false,
+      tooltipText: "start sync",
+    });
+    const { track } = getParts(container);
+    expect(track.hasAttribute("aria-describedby")).toBe(false);
+
+    await rerender({ ariaLabel: "Sync" });
+    const id = track.getAttribute("aria-describedby");
+    expect(id && document.getElementById(id)?.textContent.trim()).toBe(
+      "start sync",
+    );
+    expect(screen.getByRole("switch", { name: "Sync" })).toBe(track);
+
+    await rerender({ tooltipText: undefined });
+    expect(track.hasAttribute("aria-describedby")).toBe(false);
+  });
+
   test("keeps the same color classes in both themes", async () => {
     const { container } = render(BaseToggle, {
       ...baseProps,

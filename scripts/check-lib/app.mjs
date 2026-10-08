@@ -16,71 +16,126 @@ export const SYNC_TOGGLE = 'button[role="switch"][aria-label="Sync"]';
 // tooltips in v1.0.2, the oldest build the checks open.
 const OLD_SYNC_TOGGLE_TEXTS = ["start sync", "stop sync"];
 
-// Runs in the page.
-function syncToggleIn(selector, oldTexts) {
+// Runs in the page, and gives the functions that find and read the elements
+// there. inPage() hands them to one evaluate, so that a check reads the
+// toggle together with what else it reads.
+function pageLib(syncToggleSelector, oldSyncToggleTexts) {
   const visible = (e) => e.getClientRects().length > 0;
-  const named = [...document.querySelectorAll(selector)].find(visible);
-  if (named || !oldTexts) return named ?? null;
-  const labels = [...document.querySelectorAll("*")].filter(
-    (e) => e.children.length === 0 && oldTexts.includes(e.textContent.trim()),
-  );
-  for (const label of labels) {
-    for (let e = label; e; e = e.parentElement) {
-      const b = e.querySelector("button");
-      if (b && visible(b)) return b;
+  // The button next to a leaf element with one of `texts`: from the text, the
+  // first element around it that has a button. The search from that text
+  // stops there, also when the button is hidden.
+  function buttonNearText(texts) {
+    const labels = [...document.querySelectorAll("*")].filter(
+      (e) => e.children.length === 0 && texts.includes(e.textContent.trim()),
+    );
+    for (const label of labels) {
+      for (let e = label; e; e = e.parentElement) {
+        const b = e.querySelector("button");
+        if (b) {
+          if (visible(b)) return b;
+          break;
+        }
+      }
     }
+    return null;
   }
-  return null;
-}
-// Runs in the page. `checked` is null in a build without aria-checked.
-function readToggle(b) {
-  const checked = b.getAttribute("aria-checked");
-  return {
-    checked: checked === null ? null : checked === "true",
-    disabled: b.disabled,
-    pulse: !!b.closest('[class~="motion-safe:animate-pulse"]'),
-    tooltip: b.textContent.trim(),
-  };
+  // With `oldTexts`, a build without the name is searched by the tooltips of
+  // v1.0.2; only for the older builds.
+  function syncToggle(oldTexts) {
+    const named = [...document.querySelectorAll(syncToggleSelector)].find(
+      visible,
+    );
+    if (named || !oldTexts) return named ?? null;
+    return buttonNearText(oldSyncToggleTexts);
+  }
+  // `checked` is null in a build without aria-checked. The tooltip is the
+  // description of the toggle; a build before #661 has it only as the text
+  // of the button.
+  function readToggle(b) {
+    const checked = b.getAttribute("aria-checked");
+    const describedBy = b.getAttribute("aria-describedby");
+    return {
+      checked: checked === null ? null : checked === "true",
+      disabled: b.disabled,
+      pulse: !!b.closest('[class~="motion-safe:animate-pulse"]'),
+      tooltip: describedBy
+        ? (document.getElementById(describedBy)?.textContent.trim() ?? null)
+        : checked === null
+          ? b.textContent.trim()
+          : null,
+    };
+  }
+  function findToggle(oldTexts) {
+    const b = syncToggle(oldTexts);
+    return b && readToggle(b);
+  }
+  return { buttonNearText, syncToggle, readToggle, findToggle };
 }
 
-// The handle of the sync toggle, or null. With `oldTexts`, a build without
-// the name is searched by the tooltips of v1.0.2; only for the older builds.
-export async function syncToggleHandle(page, { oldTexts = false } = {}) {
-  const h = await page.evaluateHandle(
-    syncToggleIn,
-    SYNC_TOGGLE,
-    oldTexts ? OLD_SYNC_TOGGLE_TEXTS : null,
-  );
-  const el = h.asElement();
-  if (!el) await h.dispose();
-  return el;
+function pageLibHandle(page) {
+  return page.evaluateHandle(pageLib, SYNC_TOGGLE, OLD_SYNC_TOGGLE_TEXTS);
+}
+
+// Runs `fn(lib, ...args)` in the page, where `lib` has the functions of
+// pageLib().
+export async function inPage(page, fn, ...args) {
+  const lib = await pageLibHandle(page);
+  try {
+    return await page.evaluate(fn, lib, ...args);
+  } finally {
+    await lib.dispose();
+  }
 }
 
 // { checked, disabled, pulse, tooltip } of the sync toggle, or null. The
 // tooltip is for the records.
-export async function findToggle(page, options) {
-  const el = await syncToggleHandle(page, options);
-  if (!el) return null;
-  try {
-    return await el.evaluate(readToggle);
-  } finally {
-    await el.dispose();
-  }
+export async function findToggle(page, { oldTexts = false } = {}) {
+  return inPage(page, (lib, oldTexts) => lib.findToggle(oldTexts), oldTexts);
 }
 
-// Clicks the sync toggle. It throws when the toggle is not found or is
-// disabled, so the scenario ends as ERROR.
-export async function clickToggle(page, options) {
-  const el = await syncToggleHandle(page, options);
-  if (!el) throw new Error("No sync toggle");
+// Clicks the sync toggle with the mouse. It throws when the toggle is not
+// found or is disabled, so the scenario ends as ERROR. When the state can
+// change by itself before the click, use clickToggleIf().
+export async function clickToggle(page, { oldTexts = false } = {}) {
+  const lib = await pageLibHandle(page);
+  let h;
   try {
-    const toggle = await el.evaluate(readToggle);
+    h = await page.evaluateHandle(
+      (lib, oldTexts) => lib.syncToggle(oldTexts),
+      lib,
+      oldTexts,
+    );
+    const el = h.asElement();
+    if (!el) throw new Error("No sync toggle");
+    const toggle = await page.evaluate((lib, b) => lib.readToggle(b), lib, el);
     if (toggle.disabled)
       throw new Error(`The sync toggle is disabled: ${JSON.stringify(toggle)}`);
     await el.click();
   } finally {
-    await el.dispose();
+    await h?.dispose();
+    await lib.dispose();
   }
+}
+
+// Clicks the sync toggle in the page when each field of `state` (such as
+// { checked: true, disabled: false }) is the one of the toggle. The state is
+// read and the toggle clicked in one step, so a sync that stopped by itself
+// in between is not started again. Returns whether it clicked.
+export async function clickToggleIf(page, state, { oldTexts = false } = {}) {
+  return inPage(
+    page,
+    (lib, state, oldTexts) => {
+      const b = lib.syncToggle(oldTexts);
+      if (!b) return false;
+      const toggle = lib.readToggle(b);
+      if (!Object.entries(state).every(([k, v]) => toggle[k] === v))
+        return false;
+      b.click();
+      return true;
+    },
+    state,
+    oldTexts,
+  );
 }
 
 export async function openSyncPanel(page) {
@@ -92,10 +147,11 @@ export async function openSyncPanel(page) {
 // with Tab. Without `clear`, the text is selected and typed over. With it, the
 // input is clicked, emptied with Backspace, and `text` may be empty.
 export async function typeInto(page, target, text, { clear = false } = {}) {
-  const el = typeof target === "string" ? await page.$(target) : target;
-  if (!el) throw new Error(`No ${target}`);
-  if (clear) await el.click({ clickCount: 3 });
-  else await el.focus();
+  if (typeof target === "string") {
+    if (clear) await page.click(target, { clickCount: 3 });
+    else await page.focus(target);
+  } else if (clear) await target.click({ clickCount: 3 });
+  else await target.focus();
   await page.keyboard.down("Control");
   await page.keyboard.press("a");
   await page.keyboard.up("Control");
@@ -107,23 +163,15 @@ export async function typeInto(page, target, text, { clear = false } = {}) {
 // Clicks the visible button that has the tooltip `text`, in the page. The
 // same buttons are also in the "three dots" menu, which is hidden.
 export async function clickByTooltip(page, text) {
-  const clicked = await page.evaluate((text) => {
-    const isVisible = (e) => e.getClientRects().length > 0;
-    const labels = [...document.querySelectorAll("*")].filter(
-      (e) => e.children.length === 0 && e.textContent.trim() === text,
-    );
-    for (const label of labels) {
-      for (let e = label; e; e = e.parentElement) {
-        const button = e.querySelector("button");
-        if (button) {
-          if (!isVisible(button)) break;
-          button.click();
-          return true;
-        }
-      }
-    }
-    return false;
-  }, text);
+  const clicked = await inPage(
+    page,
+    (lib, text) => {
+      const b = lib.buttonNearText([text]);
+      b?.click();
+      return !!b;
+    },
+    text,
+  );
   if (!clicked) throw new Error(`No visible button with the tooltip "${text}"`);
 }
 

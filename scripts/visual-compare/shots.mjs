@@ -13,8 +13,8 @@ import {
   CLOSE_SIDEBAR,
   SYNC_PANEL_BUTTON,
   clickByTooltip,
+  clickToggleIf,
   openSyncPanel as openSyncPanelIn,
-  syncToggleHandle,
 } from "../check-lib/app.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
@@ -215,9 +215,8 @@ const STATES = [
     "sync-toggle",
     EVENTS,
     async (page) => {
-      const toggle = await syncToggleHandle(page, { oldTexts: true });
-      if (!toggle) throw new Error("No sync toggle");
-      await toggle.evaluate((b) => b.click());
+      if (!(await clickToggleIf(page, {}, { oldTexts: true })))
+        throw new Error("No sync toggle");
     },
   ],
 ];

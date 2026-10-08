@@ -13,9 +13,10 @@ import {
   serveBuild,
 } from "../../check-lib/browser.mjs";
 import {
+  RPC_INPUT,
   clickByTooltip,
   clickToggle,
-  findToggle,
+  inPage,
   openSyncPanel,
   typeInto,
 } from "../../check-lib/app.mjs";
@@ -276,41 +277,47 @@ async function dumpDb(page) {
   });
 }
 
+// The toggle is read in the same evaluate as the rest.
 async function pageInfo(page) {
-  return page.evaluate(() => {
-    const text = document.body.innerText;
-    return {
-      url: location.href,
-      title: document.title,
-      htmlClass: document.documentElement.className,
-      bodyBg: getComputedStyle(document.body).backgroundColor,
-      text: text.slice(0, 1500),
-      navRpc: (() => {
-        // develop: aria-label "RPC URL" (#394); v1.0.2: the placeholder.
-        const i =
-          document.querySelector('input[aria-label="RPC URL"]') ??
-          [...document.querySelectorAll("nav input, header input, input")].find(
-            (e) =>
-              e.placeholder === "https://localhost:8545" ||
-              /fake-rpc|polygon|http/.test(e.value),
-          );
-        return i ? { value: i.value, disabled: i.disabled } : null;
-      })(),
-      gridRows: document.querySelectorAll(
-        ".ag-center-cols-container [role=row]",
-      ).length,
-    };
-  });
+  return inPage(
+    page,
+    (lib, oldTexts, rpcInput) => {
+      const text = document.body.innerText;
+      return {
+        url: location.href,
+        title: document.title,
+        htmlClass: document.documentElement.className,
+        bodyBg: getComputedStyle(document.body).backgroundColor,
+        text: text.slice(0, 1500),
+        navRpc: (() => {
+          // develop: aria-label "RPC URL" (#394); v1.0.2: the placeholder.
+          const i =
+            document.querySelector(rpcInput) ??
+            [
+              ...document.querySelectorAll("nav input, header input, input"),
+            ].find(
+              (e) =>
+                e.placeholder === "https://localhost:8545" ||
+                /fake-rpc|polygon|http/.test(e.value),
+            );
+          return i ? { value: i.value, disabled: i.disabled } : null;
+        })(),
+        gridRows: document.querySelectorAll(
+          ".ag-center-cols-container [role=row]",
+        ).length,
+        toggle: lib.findToggle(oldTexts),
+      };
+    },
+    OLD_TEXTS.oldTexts,
+    RPC_INPUT,
+  );
 }
 
 async function record(page, name, { dump = false } = {}) {
   stepName = name;
   await settle(page);
   await page.screenshot({ path: path.join(shotDir, `${name}.png`) });
-  const info = {
-    ...(await pageInfo(page)),
-    toggle: await findToggle(page, OLD_TEXTS),
-  };
+  const info = await pageInfo(page);
   const entry = { step: name, ...info };
   if (dump) {
     const db = await dumpDb(page);
