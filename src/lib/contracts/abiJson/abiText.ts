@@ -1,4 +1,5 @@
 import type {
+  AbiFragmentParam,
   ContractInterface,
   EventAbiFragment,
   FunctionAbiFragment,
@@ -44,6 +45,17 @@ export function formatTargetAbi(
         ? targetAbi.format(true)
         : targetAbi.format("minimal");
   }
+}
+
+// The standard ABI JSON of the components of a param, without the fields that
+// only ethers has (baseType, arrayChildren, ...), like the "json" format above.
+export function formatComponentsJson(
+  components: readonly AbiFragmentParam[],
+): unknown[] {
+  return components.map(
+    (component: AbiFragmentParam): unknown =>
+      JSON.parse(component.format("json")) as unknown,
+  );
 }
 
 // Only the JSON format is JSON. The human readable formats are plain text.

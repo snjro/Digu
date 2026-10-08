@@ -8,7 +8,7 @@
   import type { BaseIconProps } from "#lib/base/BaseIcon.js";
   import type { AbiFragmentParam } from "#constants/chains/types.js";
   import { jsonStringifyFormatted } from "#utils/utilsCommon.js";
-  import { formatComponentsJson } from "#lib/gridColumnDefs/columnDefAbiParamsArgsChildren.js";
+  import { formatComponentsJson } from "#lib/contracts/abiJson/abiText.js";
 
   interface Props {
     dialogHeaderText: string;

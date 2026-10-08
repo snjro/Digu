@@ -9,6 +9,7 @@ import { NO_DATA } from "#utils/utilsConstants.js";
 import BaseLabel from "#lib/base/BaseLabel.svelte";
 import { capitalizeFirstLetter } from "#utils/utilsCommon.js";
 import AbiParamComponentsDetailsButton from "#lib/contracts/abiParams/AbiParamComponentsDetailsButton.svelte";
+import { formatComponentsJson } from "#lib/contracts/abiJson/abiText.js";
 import { cellAlign } from "./cellStyles";
 import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 import { getAbiParamsFromAbiRow } from "./getAbiParamsFromAbiRow";
@@ -125,16 +126,6 @@ function getComponents<T extends AbiRow>(
   const components: readonly AbiFragmentParam[] | undefined =
     getComponentsFromAbiFragmentParam(abiFragmentParam);
   return components;
-}
-// The standard ABI JSON of the components, without the fields that only ethers
-// has (baseType, arrayChildren, ...), like the ABI viewer (abiText.ts).
-export function formatComponentsJson(
-  components: readonly AbiFragmentParam[],
-): unknown[] {
-  return components.map(
-    (component: AbiFragmentParam): unknown =>
-      JSON.parse(component.format("json")) as unknown,
-  );
 }
 export function getComponentsFromAbiFragmentParam(
   abiFragmentParam: AbiFragmentParam,

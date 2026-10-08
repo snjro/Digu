@@ -2,9 +2,9 @@ import { EventFragment, FunctionFragment } from "ethers";
 import { describe, expect, test } from "vitest";
 import type { ColDef, ValueGetterParams } from "ag-grid-community";
 import { NO_DATA } from "#utils/utilsConstants.js";
+import { formatComponentsJson } from "#lib/contracts/abiJson/abiText.js";
 import {
   columnDefAbiParamsArgsChildren,
-  formatComponentsJson,
   getComponentsFromAbiFragmentParam,
 } from "./columnDefAbiParamsArgsChildren";
 import type { EventRow, FunctionRow } from "./rowTypes";
@@ -127,24 +127,5 @@ describe("getComponentsFromAbiFragmentParam", () => {
     expect(
       formatComponentsJson(getComponentsFromAbiFragmentParam(param)!),
     ).toEqual([{ type: "uint256", name: "a" }]);
-  });
-});
-
-describe("formatComponentsJson", () => {
-  test("keeps the nested tuples and their arrays", () => {
-    const [param] = FunctionFragment.from(
-      "function h((uint256 a, (address b, bool c)[2] d) p)",
-    ).inputs;
-    expect(formatComponentsJson(param.components!)).toEqual([
-      { type: "uint256", name: "a" },
-      {
-        type: "tuple[2]",
-        name: "d",
-        components: [
-          { type: "address", name: "b" },
-          { type: "bool", name: "c" },
-        ],
-      },
-    ]);
   });
 });

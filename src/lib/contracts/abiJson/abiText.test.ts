@@ -2,6 +2,7 @@ import { EventFragment, FunctionFragment, Interface } from "ethers";
 import { describe, expect, test } from "vitest";
 import type { AbiFormatType } from "#utils/utilsEthers.js";
 import {
+  formatComponentsJson,
   formatTargetAbi,
   getAbiExportTooltipText,
   getAbiFileExtension,
@@ -211,4 +212,23 @@ describe("getAbiExportTooltipText", () => {
       expect(getAbiExportTooltipText(abiFormat)).toBe("Export as text");
     },
   );
+});
+
+describe("formatComponentsJson", () => {
+  test("keeps the nested tuples and their arrays", () => {
+    const [param] = FunctionFragment.from(
+      "function h((uint256 a, (address b, bool c)[2] d) p)",
+    ).inputs;
+    expect(formatComponentsJson(param.components!)).toEqual([
+      { type: "uint256", name: "a" },
+      {
+        type: "tuple[2]",
+        name: "d",
+        components: [
+          { type: "address", name: "b" },
+          { type: "bool", name: "c" },
+        ],
+      },
+    ]);
+  });
 });
