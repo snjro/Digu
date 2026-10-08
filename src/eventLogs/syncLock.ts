@@ -7,6 +7,7 @@ import type { SyncStatusContract, VersionIdentifier } from "#db/dbTypes.js";
 import {
   DB_NAME,
   getSyncLockName,
+  getSyncPresenceLockName,
   SYNC_LOCK_TIMEOUT_MS,
 } from "#db/constants.js";
 import { getDbRecordChainStatus } from "#db/dbChainStatusDataHandlers.js";
@@ -17,6 +18,7 @@ import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { customLogger } from "#utils/logger.js";
+import { createTabChannel } from "./tabChannel";
 import {
   get,
   readonly,
@@ -72,8 +74,14 @@ export async function runWithSyncLock(
         { signal: AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS) },
         async (): Promise<void> => {
           granted = true;
-          postSyncLockChanged();
-          await run();
+          // Behind the tabs that read the chain again, which hold it shared.
+          await navigator.locks.request(
+            getSyncPresenceLockName(chainName),
+            async (): Promise<void> => {
+              postSyncLockTaken();
+              await run();
+            },
+          );
         },
       );
       return true;
@@ -88,9 +96,6 @@ export async function runWithSyncLock(
       }
       waitForSyncLockRelease(chainName);
       return false;
-    } finally {
-      // The request settles only after the lock is released.
-      if (granted) postSyncLockChanged();
     }
   } finally {
     chainsLockedByThisTab.update((state) => {
@@ -157,12 +162,14 @@ async function tryToStart(
 export async function watchSyncLocksOfOtherTabs(): Promise<void> {
   if (!navigator.locks) return;
   // Before the requests below, so that no lock taken in between is missed.
-  watchSyncLockSignals();
+  syncLockChannel.watch();
   await Promise.all(
     TARGET_CHAINS.map((targetChain: Chain) =>
+      // Not granted while an operation runs or waits for it. The tabs that
+      // read the chain again hold it shared too.
       navigator.locks.request(
-        getSyncLockName(targetChain.name),
-        { ifAvailable: true },
+        getSyncPresenceLockName(targetChain.name),
+        { mode: "shared", ifAvailable: true },
         async (lock: Lock | null): Promise<void> => {
           if (lock) {
             // A failure only leaves this chain's status stale; do not fail
@@ -184,16 +191,17 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
   );
 }
 
-// A tab tells the others when it takes or releases a sync lock, without the
+// A tab tells the others when an operation takes a sync lock, without the
 // state: the browser's lock manager keeps it, and releases the locks of a tab
-// that is closed or crashes, which sends no signal.
-const SYNC_LOCK_CHANNEL_NAME: string = `${DB_NAME.firstName}_syncLock`;
-let signalChannel: BroadcastChannel | undefined;
+// that is closed or crashes. The others learn of the release from the lock.
+const syncLockChannel = createTabChannel<null>(
+  `${DB_NAME.firstName}_syncLock`,
+  () => void findSyncLocksOfOtherTabs(),
+);
 
-// Only once this tab watches: the startup does it before any lock is taken.
-function postSyncLockChanged(): void {
+function postSyncLockTaken(): void {
   try {
-    signalChannel?.postMessage(null);
+    syncLockChannel.post(null);
   } catch (error) {
     customLogger.error("Tell the other tabs about the sync lock.", {
       errorObject: error,
@@ -201,28 +209,26 @@ function postSyncLockChanged(): void {
   }
 }
 
-function watchSyncLockSignals(): void {
-  if (typeof BroadcastChannel === "undefined" || signalChannel) return;
-  signalChannel = new BroadcastChannel(SYNC_LOCK_CHANNEL_NAME);
-  // The channel does not get the messages of this tab.
-  signalChannel.addEventListener("message", () => {
-    void findSyncLocksOfOtherTabs();
-  });
-}
-
-// A held lock that is not in the record of this tab is another tab's.
+// An operation holds the presence lock exclusive. A chain in the record of
+// this tab before or after the query is this tab's own.
 async function findSyncLocksOfOtherTabs(): Promise<void> {
   try {
+    const before = get(chainsLockedByThisTab);
     const { held } = await navigator.locks.query();
-    const heldNames: Set<string | undefined> = new Set(
-      held?.map((lock) => lock.name),
+    const after = get(chainsLockedByThisTab);
+    const operations: Set<string | undefined> = new Set(
+      held
+        ?.filter((lock: LockInfo) => lock.mode === "exclusive")
+        .map((lock: LockInfo) => lock.name),
     );
     for (const targetChain of TARGET_CHAINS) {
+      const chainName: ChainName = targetChain.name;
       if (
-        heldNames.has(getSyncLockName(targetChain.name)) &&
-        !get(chainsLockedByThisTab)[targetChain.name]
+        operations.has(getSyncPresenceLockName(chainName)) &&
+        !before[chainName] &&
+        !after[chainName]
       ) {
-        waitForSyncLockRelease(targetChain.name);
+        waitForSyncLockRelease(chainName);
       }
     }
   } catch (error) {
@@ -234,8 +240,7 @@ async function findSyncLocksOfOtherTabs(): Promise<void> {
 
 // For the tests.
 export function stopWatchingSyncLockSignals(): void {
-  signalChannel?.close();
-  signalChannel = undefined;
+  syncLockChannel.stop();
 }
 
 export function waitForSyncLockRelease(chainName: ChainName): void {
@@ -244,24 +249,30 @@ export function waitForSyncLockRelease(chainName: ChainName): void {
     ...state,
     [chainName]: true,
   }));
-  // Granted when the other tab releases the lock. Give it back right away.
+  // Granted once the operation releases the presence lock. The sync lock is
+  // not taken: a new operation waits only for this reading, which runs at the
+  // same time as that of the other tabs.
   navigator.locks
-    .request(getSyncLockName(chainName), async (): Promise<void> => {
-      try {
-        await reloadSyncStatusInChain(chainName);
-      } catch (error) {
-        // A failure only leaves this chain's status stale.
-        customLogger.error("Reset sync status after release.", {
-          chainName: chainName,
-          errorObject: error,
-        });
-      } finally {
-        storeSyncLockedByOtherTab.update((state) => ({
-          ...state,
-          [chainName]: false,
-        }));
-      }
-    })
+    .request(
+      getSyncPresenceLockName(chainName),
+      { mode: "shared" },
+      async (): Promise<void> => {
+        try {
+          await reloadSyncStatusInChain(chainName);
+        } catch (error) {
+          // A failure only leaves this chain's status stale.
+          customLogger.error("Reset sync status after release.", {
+            chainName: chainName,
+            errorObject: error,
+          });
+        } finally {
+          storeSyncLockedByOtherTab.update((state) => ({
+            ...state,
+            [chainName]: false,
+          }));
+        }
+      },
+    )
     .catch((error: unknown) => {
       customLogger.error("Wait for the sync lock release.", {
         chainName: chainName,
@@ -276,7 +287,8 @@ export function waitForSyncLockRelease(chainName: ChainName): void {
 }
 
 // Reads the chain from the DB into the stores, after another tab (or the warp
-// sync) changed it. Call only while holding the sync lock of the chain.
+// sync) changed it. Call only while holding the sync lock of the chain, or its
+// presence lock shared: no operation runs then.
 export async function reloadSyncStatusInChain(
   chainName: ChainName,
 ): Promise<void> {
@@ -286,7 +298,8 @@ export async function reloadSyncStatusInChain(
   storeChainStatus.updateState(chainName, { latestBlockNumber });
 }
 
-// Call only while holding the sync lock of the chain.
+// Call only while holding the sync lock of the chain, or its presence lock
+// shared.
 async function resetSyncStatusInChain(chainName: ChainName): Promise<void> {
   const targetChain: Chain = getTargetChain({ chainName: chainName });
   // The Worker counted the records at startup, and the syncing tab keeps the

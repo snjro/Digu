@@ -20,12 +20,12 @@ import {
   removeLockManager,
   type FakeLockManager,
 } from "../testUtils/fakeLockManager";
+import { holdOperationOfOtherTab } from "../testUtils/otherTabOperation";
 import {
   reloadSyncStatusInChain,
   runWithSyncLock,
   storeSyncLockedByOtherTab,
   storeSyncLockedByThisTab,
-  waitForSyncLockRelease,
 } from "./syncLock";
 import {
   resetSyncedData,
@@ -50,12 +50,11 @@ vi.mock("#db/dbEventLogsDataHandlersSyncStatusGetters.js", () => ({
 vi.mock("#db/dbChainStatusDataHandlers.js", () => ({
   getDbRecordChainStatus: vi.fn(async () => ({ latestBlockNumber: 0 })),
 }));
-// The lock is real. runWithSyncLock() calls the real waitForSyncLockRelease();
-// the mock is what syncReset.ts calls for the other tabs' resets.
+// The lock is real, and runWithSyncLock() calls the real
+// waitForSyncLockRelease().
 vi.mock("./syncLock", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./syncLock")>()),
   reloadSyncStatusInChain: vi.fn(async () => {}),
-  waitForSyncLockRelease: vi.fn(),
 }));
 
 const matic = { name: "matic" } as Chain;
@@ -73,7 +72,6 @@ describe("resetSyncedData", () => {
     vi.mocked(resetDbSyncedData).mockReset().mockResolvedValue(7);
     vi.mocked(startWarpSync).mockClear();
     vi.mocked(reloadSyncStatusInChain).mockClear();
-    vi.mocked(waitForSyncLockRelease).mockClear();
     storeSyncLockedByOtherTab.update((state) => ({ ...state, matic: false }));
   });
   afterEach(() => {
@@ -140,11 +138,7 @@ describe("resetSyncedData", () => {
 
   test("deletes nothing while another tab holds the lock", async () => {
     const spyInfo = vi.spyOn(customLogger, "info").mockImplementation(() => {});
-    let release: () => void = () => {};
-    void lockManager.request(
-      getSyncLockName("matic"),
-      () => new Promise<void>((resolve) => (release = resolve)),
-    );
+    const { release } = holdOperationOfOtherTab("matic");
     // Waits SYNC_LOCK_TIMEOUT_MS (1 s), as the sync does.
     expect((await resetSyncedData(matic)).result).toBe("busy");
     expect(spyInfo).toHaveBeenCalledWith("The sync lock was not granted.", {
@@ -262,24 +256,30 @@ describe("resetSyncedData", () => {
     vi.mocked(forgetWarpSyncConfirmation).mockImplementationOnce(() => {
       throw error;
     });
+    watchSyncResetsOfOtherTabs();
     const received: unknown[] = [];
     const other = new BroadcastChannel(`${DB_NAME.firstName}_syncReset`);
-    other.addEventListener("message", (event: MessageEvent) =>
-      received.push(event.data),
-    );
+    try {
+      other.addEventListener("message", (event: MessageEvent) =>
+        received.push(event.data),
+      );
 
-    expect(await resetSyncedData(matic)).toMatchObject({
-      result: "reset",
-      deletedLogCount: 7,
-    });
-    expect(spyError).toHaveBeenCalledWith(
-      "Forget the warp sync import after the reset.",
-      { chainName: "matic", errorObject: error },
-    );
-    expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("matic");
-    expect(startWarpSync).toHaveBeenCalledExactlyOnceWith(matic);
-    await vi.waitFor(() => expect(received).toEqual([{ chainName: "matic" }]));
-    other.close();
+      expect(await resetSyncedData(matic)).toMatchObject({
+        result: "reset",
+        deletedLogCount: 7,
+      });
+      expect(spyError).toHaveBeenCalledWith(
+        "Forget the warp sync import after the reset.",
+        { chainName: "matic", errorObject: error },
+      );
+      expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("matic");
+      expect(startWarpSync).toHaveBeenCalledExactlyOnceWith(matic);
+      await vi.waitFor(() =>
+        expect(received).toEqual([{ chainName: "matic" }]),
+      );
+    } finally {
+      other.close();
+    }
     expect((await lockManager.query()).held).toEqual([]);
   });
 
@@ -293,7 +293,7 @@ describe("resetSyncedData", () => {
 describe("watchSyncResetsOfOtherTabs", () => {
   beforeEach(() => {
     installFakeLockManager();
-    vi.mocked(waitForSyncLockRelease).mockClear();
+    vi.mocked(forgetWarpSyncConfirmation).mockClear();
   });
   afterEach(() => {
     stopWatchingSyncResets();
@@ -301,48 +301,90 @@ describe("watchSyncResetsOfOtherTabs", () => {
     setWarpSyncState("matic", { status: "idle" });
   });
 
-  test("forgets the import and reads the chain again when another tab resets it", async () => {
+  test("forgets the import when another tab resets the chain", async () => {
     watchSyncResetsOfOtherTabs();
     setWarpSyncState("matic", { status: "imported", toBlock: 30_000_000 });
     // The other tab.
     const other = new BroadcastChannel(`${DB_NAME.firstName}_syncReset`);
-    other.postMessage({ chainName: "matic" });
-    other.close();
+    try {
+      other.postMessage({ chainName: "matic" });
+    } finally {
+      other.close();
+    }
 
     await vi.waitFor(() =>
-      expect(waitForSyncLockRelease).toHaveBeenCalledExactlyOnceWith("matic"),
+      expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
+        "idle",
+      ),
     );
-    expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
-      "idle",
-    );
+    expect(forgetWarpSyncConfirmation).toHaveBeenCalledExactlyOnceWith("matic");
+    // The chain is read again from the signal of the sync lock.
+    expect(get(storeSyncLockedByOtherTab).matic).toBe(false);
   });
 
   test("tells the other tabs when it resets a chain", async () => {
+    watchSyncResetsOfOtherTabs();
     const received: unknown[] = [];
     const other = new BroadcastChannel(`${DB_NAME.firstName}_syncReset`);
-    other.addEventListener("message", (event: MessageEvent) =>
-      received.push(event.data),
-    );
-    await resetSyncedData(matic);
-    await vi.waitFor(() => expect(received).toEqual([{ chainName: "matic" }]));
-    other.close();
+    try {
+      other.addEventListener("message", (event: MessageEvent) =>
+        received.push(event.data),
+      );
+      await resetSyncedData(matic);
+      await vi.waitFor(() =>
+        expect(received).toEqual([{ chainName: "matic" }]),
+      );
+    } finally {
+      other.close();
+    }
+  });
+
+  test("tells nothing before it watches", async () => {
+    const received: unknown[] = [];
+    const other = new BroadcastChannel(`${DB_NAME.firstName}_syncReset`);
+    try {
+      other.addEventListener("message", (event: MessageEvent) =>
+        received.push(event.data),
+      );
+      await resetSyncedData(matic);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(received).toEqual([]);
+    } finally {
+      other.close();
+    }
   });
 
   test("does not take its own reset for one of another tab", async () => {
     watchSyncResetsOfOtherTabs();
     const received: unknown[] = [];
     const other = new BroadcastChannel(`${DB_NAME.firstName}_syncReset`);
-    other.addEventListener("message", (event: MessageEvent) =>
-      received.push(event.data),
-    );
-    await resetSyncedData(matic);
-    await vi.waitFor(() => expect(received).toHaveLength(1));
-    other.close();
-    expect(waitForSyncLockRelease).not.toHaveBeenCalled();
+    try {
+      other.addEventListener("message", (event: MessageEvent) =>
+        received.push(event.data),
+      );
+      await resetSyncedData(matic);
+      await vi.waitFor(() => expect(received).toHaveLength(1));
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    } finally {
+      other.close();
+    }
+    // Only by the reset itself.
+    expect(forgetWarpSyncConfirmation).toHaveBeenCalledOnce();
   });
 
-  test("watches only once", () => {
-    const channel = watchSyncResetsOfOtherTabs();
-    expect(watchSyncResetsOfOtherTabs()).toBe(channel);
+  test("watches only once", async () => {
+    watchSyncResetsOfOtherTabs();
+    watchSyncResetsOfOtherTabs();
+    const other = new BroadcastChannel(`${DB_NAME.firstName}_syncReset`);
+    try {
+      other.postMessage({ chainName: "matic" });
+    } finally {
+      other.close();
+    }
+    await vi.waitFor(() =>
+      expect(forgetWarpSyncConfirmation).toHaveBeenCalled(),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(forgetWarpSyncConfirmation).toHaveBeenCalledOnce();
   });
 });

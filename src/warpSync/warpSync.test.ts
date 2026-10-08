@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Chain } from "#constants/chains/types.js";
-import { getSyncLockName } from "#db/constants.js";
+import { getSyncLockName, getSyncPresenceLockName } from "#db/constants.js";
 import { initialDataRpcSetting } from "#db/dbTypes.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
 import { customLogger } from "#utils/logger.js";
@@ -10,6 +10,7 @@ import {
   removeLockManager,
   type FakeLockManager,
 } from "../testUtils/fakeLockManager";
+import { holdOperationOfOtherTab } from "../testUtils/otherTabOperation";
 import {
   confirmWarpSync,
   declineWarpSync,
@@ -294,11 +295,7 @@ describe("warpSync", () => {
 
   test("skips it while another tab holds the lock, and tries again next time", async () => {
     vi.spyOn(customLogger, "info").mockImplementation(() => {});
-    let release: () => void = () => {};
-    void lockManager.request(
-      getSyncLockName("matic"),
-      () => new Promise<void>((resolve) => (release = resolve)),
-    );
+    const { release } = holdOperationOfOtherTab("matic");
     // Waits SYNC_LOCK_TIMEOUT_MS (1 s), as the sync does.
     await startWarpSync(matic);
     expect(importWarpSync).not.toHaveBeenCalled();
@@ -317,13 +314,16 @@ describe("warpSync", () => {
   });
 
   test("reads the DB into the stores after it, while it holds the lock", async () => {
-    let held: boolean | undefined;
+    let held: (string | undefined)[] | undefined;
     vi.mocked(reloadSyncStatusInChain).mockImplementationOnce(async () => {
-      held = (await lockManager.query()).held?.length === 1;
+      held = (await lockManager.query()).held?.map((lock) => lock.name);
     });
     await startWarpSync(matic);
     expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("matic");
-    expect(held).toBe(true);
+    expect(held).toEqual([
+      getSyncLockName("matic"),
+      getSyncPresenceLockName("matic"),
+    ]);
   });
 
   test("works without Web Locks (insecure context)", async () => {
@@ -645,11 +645,7 @@ describe("warpSync", () => {
       vi.spyOn(customLogger, "info").mockImplementation(() => {});
       await startWarpSync(matic);
       declineWarpSync("matic");
-      let release: () => void = () => {};
-      void lockManager.request(
-        getSyncLockName("matic"),
-        () => new Promise<void>((resolve) => (release = resolve)),
-      );
+      const { release } = holdOperationOfOtherTab("matic");
       // Waits SYNC_LOCK_TIMEOUT_MS (1 s), as the sync does.
       await confirmWarpSync(matic);
       expect(importWarpSync).not.toHaveBeenCalled();

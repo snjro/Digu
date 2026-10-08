@@ -37,7 +37,14 @@ export function getSyncLockName(chainName: ChainName): string {
   return `${DB_NAME.firstName}_sync_${chainName}`;
 }
 
-// How long to wait for the sync lock. Other tabs hold it briefly to read the
-// sync status again, so do not give up at once. A sync, an import or a reset
-// holds it for longer.
+// Held exclusive by the same operation, inside the sync lock, for as long as it
+// runs. The tabs that wait for its release take it shared, so that a held
+// exclusive one is always an operation, also in navigator.locks.query().
+export function getSyncPresenceLockName(chainName: ChainName): string {
+  return `${DB_NAME.firstName}_syncPresence_${chainName}`;
+}
+
+// How long to wait for the sync lock. The Worker of a tab that opens holds it
+// briefly, so do not give up at once. A sync, an import or a reset holds it for
+// longer.
 export const SYNC_LOCK_TIMEOUT_MS: number = 1000;
