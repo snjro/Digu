@@ -119,10 +119,11 @@ export async function inPage(page, fn, ...args) {
   return page.evaluate(inPageSource(fn, args));
 }
 
-// How long a click waits for its control to be enabled. Opening a chain
-// starts the warp sync, which holds the sync lock (and so disables the sync
-// targets) while it fetches the manifest and reads the DB (warpSync.ts).
-// Where the checks click, the manifest gets 404, so that is short, but on a
+// How long a click or typing waits for its control to be enabled. Opening a
+// chain starts the warp sync, which holds the sync lock (and so disables the
+// sync targets and the RPC input) while it fetches the manifest and reads the
+// DB (warpSync.ts).
+// Where the checks use them, the manifest gets 404, so that is short, but on a
 // slow CI runner it outlasted the settle (#757); 30 s leaves a wide margin.
 const ENABLED_TIMEOUT_MS = 30000;
 
@@ -205,14 +206,23 @@ export async function openSyncPanel(page) {
 
 // Types `text` into `target` (a selector or an element handle) and leaves it
 // with Tab. Without `clear`, the text is selected and typed over. With it, the
-// input is clicked, emptied with Backspace, and `text` may be empty.
+// input is clicked, emptied with Backspace, and `text` may be empty. An input
+// given by a selector is typed into once it is enabled, and it throws when the
+// input stays disabled; one given by a handle is not waited for.
 export async function typeInto(page, target, text, { clear = false } = {}) {
-  const el = typeof target === "string" ? await page.$(target) : target;
-  if (!el)
-    throw new Error(
-      typeof target === "string" ? `No ${target}` : "No element to type into",
+  const isSelector = typeof target === "string";
+  if (isSelector)
+    await waitEnabled(
+      page,
+      (lib, selector) => document.querySelector(selector),
+      target,
     );
+  const el = isSelector ? await page.$(target) : target;
+  if (!el)
+    throw new Error(isSelector ? `No ${target}` : "No element to type into");
   try {
+    if (isSelector && (await el.evaluate((e) => e.disabled)))
+      throw new Error(`${target} is disabled`);
     if (clear) await el.click({ clickCount: 3 });
     else await el.focus();
   } finally {
