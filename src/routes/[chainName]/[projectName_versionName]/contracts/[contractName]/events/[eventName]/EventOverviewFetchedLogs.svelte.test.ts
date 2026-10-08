@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { Writable } from "svelte/store";
-import { render, screen, waitFor } from "@testing-library/svelte";
+import { get, type Writable } from "svelte/store";
+import { render, screen, waitFor, within } from "@testing-library/svelte";
 import type {
   Chain,
   Contract,
@@ -19,7 +19,6 @@ import {
   type EventLogEdges,
 } from "#db/dbEventLogsGetEventLogEdges.js";
 import { customLogger } from "#utils/logger.js";
-import { convertJsDateToIso8601 } from "#utils/utilsTime.js";
 import EventOverviewFetchedLogs from "./EventOverviewFetchedLogs.svelte";
 import { EVENT_LOGS_RELOAD_INTERVAL } from "./EventLogs.svelte";
 
@@ -113,14 +112,15 @@ function log(blockNumber: number): ConvertedEventLog {
   } as unknown as ConvertedEventLog;
 }
 
-// The dates shown, from the top: those of the latest and of the oldest edge.
-function shownDates(): string[] {
-  return screen
-    .getAllByText(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/)
-    .map((date) => date.textContent ?? "");
-}
-function datesOf(...logs: ConvertedEventLog[]): string[] {
-  return logs.map((eventLog) => convertJsDateToIso8601(eventLog.jsDate));
+// The date shown in the part of an edge: the nearest element around its title
+// that has a date.
+function shownDateOf(title: "Latest Log" | "Oldest Log"): string | null {
+  const isoDate: RegExp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+  let part: HTMLElement | null = screen.getByText(title).parentElement;
+  while (part && !within(part).queryByText(isoDate)) {
+    part = part.parentElement;
+  }
+  return part ? within(part).getByText(isoDate).textContent : null;
 }
 
 const load = vi.mocked(getEventLogEdges);
@@ -189,20 +189,20 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     await vi.advanceTimersByTimeAsync(1);
     expect(screen.queryByText("No logs fetched yet.")).toBeNull();
   }
-  // Any change of the record count reloads. Each call saves another count,
-  // and returns it: the test checks that the shown count is not the saved one.
-  let savedRecordCount: number = 100;
-  async function saveAndWaitForTheReload(): Promise<number> {
-    savedRecordCount += 1;
+  // Any change of the record count reloads: it saves the one in the store
+  // plus one.
+  async function saveAndWaitForTheReload(): Promise<void> {
+    const recordCount: number =
+      get(store).chain1.subSyncStatuses.project1.subSyncStatuses.version1
+        .subSyncStatuses.contract1!.events.Transfer!.recordCount;
     await vi.advanceTimersByTimeAsync(sinceLoad);
-    await save(savedRecordCount);
+    await save(recordCount + 1);
     await vi.advanceTimersByTimeAsync(
       EVENT_LOGS_RELOAD_INTERVAL - sinceLoad - 1,
     );
     expect(load).toHaveBeenCalledTimes(1);
     await vi.advanceTimersByTimeAsync(1);
     expect(load).toHaveBeenCalledTimes(2);
-    return savedRecordCount;
   }
 
   test("reloads the logs when the record count of the event changes", async () => {
@@ -213,26 +213,29 @@ describe("EventOverviewFetchedLogs.svelte", () => {
       screen.getAllByTestId("stub").map((stub) => stub.textContent),
     ).toEqual(["block:6", "tx:0xtx6", "block:5", "tx:0xtx5"]);
 
-    const [oldest, latest] = [log(10), log(20)];
-    load.mockResolvedValueOnce({ count: 3, oldest, latest });
-    const saved: number = await saveAndWaitForTheReload();
+    load.mockResolvedValueOnce({ count: 3, oldest: log(10), latest: log(20) });
+    await saveAndWaitForTheReload();
     expect(screen.getByText("3")).toBeTruthy();
-    expect(screen.queryByText(String(saved))).toBeNull();
     expect(
       screen.getAllByTestId("stub").map((stub) => stub.textContent),
     ).toEqual(["block:20", "tx:0xtx20", "block:10", "tx:0xtx10"]);
-    expect(shownDates()).toEqual(datesOf(latest, oldest));
+    expect(shownDateOf("Latest Log")).toBe("2020-01-01T00:00:20Z");
+    expect(shownDateOf("Oldest Log")).toBe("2020-01-01T00:00:10Z");
   });
 
   test("shows the count of the DB with the two edge logs", async () => {
-    const [oldest, latest] = [log(10), log(20)];
-    load.mockResolvedValueOnce({ count: 100000, oldest, latest });
+    load.mockResolvedValueOnce({
+      count: 100000,
+      oldest: log(10),
+      latest: log(20),
+    });
     renderSection();
     await waitFor(() => expect(screen.getByText("100,000")).toBeTruthy());
     expect(
       screen.getAllByTestId("stub").map((stub) => stub.textContent),
     ).toEqual(["block:20", "tx:0xtx20", "block:10", "tx:0xtx10"]);
-    expect(shownDates()).toEqual(datesOf(latest, oldest));
+    expect(shownDateOf("Latest Log")).toBe("2020-01-01T00:00:20Z");
+    expect(shownDateOf("Oldest Log")).toBe("2020-01-01T00:00:10Z");
   });
 
   test("logs a failed load and shows no logs, like the table", async () => {
