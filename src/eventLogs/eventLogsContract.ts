@@ -93,7 +93,6 @@ export async function fetchEventLogsContract(
   let minToBlockNumber: number;
   let toBlockNumber: number;
   let fetchingTargetInfo: FetchingTargetInfo;
-  let ethersEventLogs: EthersEventLog[];
 
   /*eslint no-constant-condition: ["error", { "checkLoops": false }]*/
   while (true) {
@@ -156,7 +155,9 @@ export async function fetchEventLogsContract(
       customLogger.start("Fetch eventLogs. targetBlocks:", {
         fetchingTarget: fetchingTargetInfo,
       });
-      ethersEventLogs = await getEthersEventLogs(
+      // In the loop, so that the logs of a range are not kept during the
+      // requests of the next one.
+      const ethersEventLogs: EthersEventLog[] = await getEthersEventLogs(
         targetContract.events.names,
         ethersContract,
         fromBlockNumber,

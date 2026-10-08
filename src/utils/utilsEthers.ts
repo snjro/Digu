@@ -43,19 +43,33 @@ export function extractEventContracts(targetContracts: Contract[]): Contract[] {
 }
 export type NodeProvider = JsonRpcProvider | WebSocketProvider;
 
-// The blocks kept for each provider. The oldest ones are dropped beyond it,
-// so that the map does not grow during the whole sync. A block is read right
-// after the eth_getLogs answer that has it, and the range of an answer has at
-// most MAX_BULK_UNIT (100,000) blocks, so the blocks of one answer fit in
-// it. A block dropped before it is read is read from the DB or the RPC
-// instead.
+// The blocks of the current map before it becomes the previous one. A block
+// is read right after the eth_getLogs answer that has it, and the range of an
+// answer has at most MAX_BULK_UNIT (100,000) blocks, so the blocks of one
+// answer are still kept when they are read. A block no longer kept is read
+// from the DB or the RPC instead.
 export const MAX_BLOCK_TIMESTAMPS: number = 100000;
-// The blockTimestamp that an RPC may put in each log, by block number, for
-// each provider. ethers does not keep it in a Log.
-const blockTimestampsOfProviders: WeakMap<
-  NodeProvider,
-  Map<number, number>
-> = new WeakMap();
+// The timestamps by block number, in two maps, so that old blocks are dropped
+// without deleting them one by one: at most twice maxSize blocks.
+export class BlockTimestamps {
+  #current: Map<number, number> = new Map();
+  #previous: Map<number, number> = new Map();
+  constructor(private readonly maxSize: number = MAX_BLOCK_TIMESTAMPS) {}
+  set(blockNumber: number, timestamp: number): void {
+    this.#current.set(blockNumber, timestamp);
+    if (this.#current.size > this.maxSize) {
+      this.#previous = this.#current;
+      this.#current = new Map();
+    }
+  }
+  get(blockNumber: number): number | undefined {
+    return this.#current.get(blockNumber) ?? this.#previous.get(blockNumber);
+  }
+}
+// The blockTimestamp that an RPC may put in each log, for each provider.
+// ethers does not keep it in a Log.
+const blockTimestampsOfProviders: WeakMap<NodeProvider, BlockTimestamps> =
+  new WeakMap();
 function keepBlockTimestamp(provider: NodeProvider, log: LogParams): void {
   // The raw log from the RPC, which ethers types as LogParams.
   const blockTimestamp: unknown = (log as { blockTimestamp?: unknown })
@@ -63,20 +77,13 @@ function keepBlockTimestamp(provider: NodeProvider, log: LogParams): void {
   if (!isHexString(blockTimestamp)) {
     return;
   }
-  let blockTimestamps: Map<number, number> | undefined =
+  let blockTimestamps: BlockTimestamps | undefined =
     blockTimestampsOfProviders.get(provider);
   if (blockTimestamps === undefined) {
-    blockTimestamps = new Map();
+    blockTimestamps = new BlockTimestamps();
     blockTimestampsOfProviders.set(provider, blockTimestamps);
   }
-  const blockNumber: number = getNumber(log.blockNumber);
-  // A Map keeps the order of insertion, so a block set again becomes the
-  // newest.
-  blockTimestamps.delete(blockNumber);
-  blockTimestamps.set(blockNumber, getNumber(blockTimestamp));
-  if (blockTimestamps.size > MAX_BLOCK_TIMESTAMPS) {
-    blockTimestamps.delete(blockTimestamps.keys().next().value!);
-  }
+  blockTimestamps.set(getNumber(log.blockNumber), getNumber(blockTimestamp));
 }
 // The blockTimestamp of a log that this provider has returned, if any.
 export function getBlockTimestampFromLogs(
@@ -297,7 +304,15 @@ async function destroyNodeProvider(
   try {
     await nodeProvider?.destroy();
   } catch (error) {
-    customLogger.error("nodeProvider.destroy().", getLoggableError(error));
+    const loggableError: unknown = getLoggableError(error);
+    // An error that is not from ethers may have the URL in the message, as in
+    // getNodeProvider.
+    customLogger.error(
+      "nodeProvider.destroy().",
+      loggableError instanceof Error
+        ? { name: loggableError.name }
+        : loggableError,
+    );
   }
 }
 // ethers puts the request URL, which may hold an API key, in the message and

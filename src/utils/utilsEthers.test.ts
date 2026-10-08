@@ -10,6 +10,7 @@ import {
   type MockInstance,
 } from "vitest";
 import {
+  BlockTimestamps,
   cancelNodeProviderCall,
   extractDecodedEventLogs,
   extractEventContracts,
@@ -19,7 +20,6 @@ import {
   getLoggableError,
   getNodeProvider,
   isErrorUnrelatedToRange,
-  MAX_BLOCK_TIMESTAMPS,
   startNodeProviderCall,
   type NodeProvider,
 } from "./utilsEthers";
@@ -913,45 +913,48 @@ describe("getBlockTimestampFromLogs", () => {
     await webSocketProvider.destroy();
     await otherProvider.destroy();
   });
+});
 
-  test("should drop the oldest blockTimestamp beyond MAX_BLOCK_TIMESTAMPS", async () => {
-    const nodeProvider = (await getNodeProvider(targetChain, "https://bar"))!;
-    const network: Network = Network.from(targetChain.chainId);
-    const log: Record<string, unknown> = rawLog(1, 0);
-    const keep = (blockNumber: number): void => {
-      nodeProvider._wrapLog(
-        {
-          ...log,
-          blockNumber: toQuantity(blockNumber),
-          blockTimestamp: toQuantity(blockNumber * 10),
-        } as unknown as LogParams,
-        network,
-      );
-    };
-    const timestampOf = (blockNumber: number): number | undefined =>
-      getBlockTimestampFromLogs(nodeProvider, blockNumber);
-    for (
-      let blockNumber = 1;
-      blockNumber <= MAX_BLOCK_TIMESTAMPS;
-      blockNumber++
-    ) {
-      keep(blockNumber);
+describe("BlockTimestamps", () => {
+  test("should keep the blocks of the current and the previous maps", () => {
+    const blockTimestamps = new BlockTimestamps(3);
+    for (const blockNumber of [1, 2, 3]) {
+      blockTimestamps.set(blockNumber, blockNumber * 10);
     }
-    // Within the bound.
-    expect(timestampOf(1)).toBe(10);
-    expect(timestampOf(MAX_BLOCK_TIMESTAMPS)).toBe(MAX_BLOCK_TIMESTAMPS * 10);
+    expect(blockTimestamps.get(1)).toBe(10);
+    expect(blockTimestamps.get(3)).toBe(30);
 
-    // Set again, block 1 becomes the newest, and block 2 the oldest.
-    keep(1);
-    keep(MAX_BLOCK_TIMESTAMPS + 1);
+    // The fourth block makes the current map the previous one.
+    blockTimestamps.set(4, 40);
+    blockTimestamps.set(5, 50);
+    expect([1, 2, 3, 4, 5].map((n) => blockTimestamps.get(n))).toEqual([
+      10, 20, 30, 40, 50,
+    ]);
+  });
 
-    expect(timestampOf(2)).toBeUndefined();
-    expect(timestampOf(1)).toBe(10);
-    expect(timestampOf(3)).toBe(30);
-    expect(timestampOf(MAX_BLOCK_TIMESTAMPS + 1)).toBe(
-      (MAX_BLOCK_TIMESTAMPS + 1) * 10,
-    );
-    await nodeProvider.destroy();
+  test("should drop the previous map when the current one is full again", () => {
+    const blockTimestamps = new BlockTimestamps(3);
+    for (let blockNumber = 1; blockNumber <= 8; blockNumber++) {
+      blockTimestamps.set(blockNumber, blockNumber * 10);
+    }
+    expect([1, 2, 3, 4].map((n) => blockTimestamps.get(n))).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    ]);
+    expect([5, 6, 7, 8].map((n) => blockTimestamps.get(n))).toEqual([
+      50, 60, 70, 80,
+    ]);
+  });
+
+  test("should read a block set again from the current map", () => {
+    const blockTimestamps = new BlockTimestamps(3);
+    for (const blockNumber of [1, 2, 3, 4]) {
+      blockTimestamps.set(blockNumber, blockNumber * 10);
+    }
+    blockTimestamps.set(1, 11);
+    expect(blockTimestamps.get(1)).toBe(11);
   });
 });
 

@@ -234,10 +234,10 @@ describe("getNodeProvider when the node status cannot be saved", () => {
       await expect(
         getNodeProvider(targetChain, "ws://127.0.0.1:9"),
       ).rejects.toBe(dbError);
-      expect(spyError).toHaveBeenCalledWith(
-        "nodeProvider.destroy().",
-        destroyError,
-      );
+      // Only the name: the message may have the URL.
+      expect(spyError).toHaveBeenCalledWith("nodeProvider.destroy().", {
+        name: "Error",
+      });
     } finally {
       spyDestroy.mockRestore();
       spyError.mockRestore();
@@ -260,10 +260,10 @@ describe("getNodeProvider when the node status cannot be saved", () => {
         await getNodeProvider(targetChain, "ws://127.0.0.1:9"),
       ).toBeUndefined();
       expectLastNodeStatus("WRONG_CHAIN");
-      expect(spyError).toHaveBeenCalledWith(
-        "nodeProvider.destroy().",
-        destroyError,
-      );
+      // Only the name: the message may have the URL.
+      expect(spyError).toHaveBeenCalledWith("nodeProvider.destroy().", {
+        name: "Error",
+      });
     } finally {
       spyDestroy.mockRestore();
       spyError.mockRestore();

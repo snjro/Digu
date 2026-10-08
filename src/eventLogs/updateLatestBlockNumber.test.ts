@@ -264,6 +264,59 @@ describe("startUpdateLatestBlockNumber", () => {
     );
   });
 
+  test("should stop when starting to abort throws", async () => {
+    vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
+      new Error("RPC error"),
+    );
+    const { customLogger } = await import("#utils/logger.js");
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation((...args: unknown[]) => {
+        const errorMessage = (args[0] as { errorMessage?: string })
+          .errorMessage;
+        if (errorMessage?.startsWith("errorCount exceeded")) {
+          throw new Error("logger error");
+        }
+      });
+
+    await startUpdateLatestBlockNumber(chainName, nodeProvider);
+    await vi.advanceTimersByTimeAsync((TRY_COUNT + 3) * blockIntervalMs);
+
+    expect(spyError).toHaveBeenCalledWith(
+      expect.objectContaining({ errorMessage: "Failed to start aborting." }),
+    );
+    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(TRY_COUNT + 1);
+  });
+
+  test("should log only the code and the short message of an error of aborting", async () => {
+    vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
+      new Error("RPC error"),
+    );
+    vi.mocked(startAbortingInChain).mockRejectedValueOnce(
+      makeError("server response 401 Unauthorized", "SERVER_ERROR", {
+        request: new FetchRequest("https://rpc.example/secret-key"),
+        info: { requestUrl: "https://rpc.example/secret-key" },
+      }),
+    );
+    const { customLogger } = await import("#utils/logger.js");
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+
+    await startUpdateLatestBlockNumber(chainName, nodeProvider);
+    await vi.advanceTimersByTimeAsync((TRY_COUNT + 3) * blockIntervalMs);
+
+    expect(spyError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        errorMessage: "Failed to start aborting.",
+        error: {
+          code: "SERVER_ERROR",
+          shortMessage: "server response 401 Unauthorized",
+        },
+      }),
+    );
+  });
+
   test("should not log the provider, which has the RPC URL", async () => {
     const { customLogger } = await import("#utils/logger.js");
     const spyStart = vi.spyOn(customLogger, "start");
