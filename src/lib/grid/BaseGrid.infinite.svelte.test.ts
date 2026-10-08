@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/svelte";
 import type { GridApi, IDatasource, IGetRowsParams } from "ag-grid-community";
 import { storeNoDbCurrentWidth } from "#stores/storeNoDb.js";
 import BaseGrid from "./BaseGrid.svelte";
+import BaseGridTestHost from "./BaseGrid.testHost.svelte";
 import type { InfiniteRows } from "./infiniteRows";
 
 // The real ag-grid with the function bar, as the event logs table.
@@ -35,17 +36,22 @@ function datasourceOf(quickSearch: {
   };
   return datasource;
 }
-function renderGrid(quickSearch: { text: string }, datasource: IDatasource) {
-  const infiniteRows: InfiniteRows<unknown> = {
+function infiniteRowsOf(
+  quickSearch: { text: string },
+  datasource: IDatasource,
+): InfiniteRows<unknown> {
+  return {
     datasource,
     getRowId: ({ data }) => String((data as Row).id),
     quickSearch,
     csv: undefined,
     rowCounts: { all: undefined, filteredAndSorted: undefined },
   };
+}
+function renderGrid(quickSearch: { text: string }, datasource: IDatasource) {
   return render(BaseGrid, {
     paramColumnDefs: [{ colId: "name", field: "name" }],
-    infiniteRows,
+    infiniteRows: infiniteRowsOf(quickSearch, datasource),
     exportFilePrefix: "eventLogs",
     hasMultipleTabs: false,
   });
@@ -155,5 +161,35 @@ describe("BaseGrid.svelte with the Infinite Row Model", () => {
     );
     await settle();
     expect(datasource.texts).toEqual([""]);
+  });
+
+  test("a grid made again does not call the destroyed grid from before", async () => {
+    const warnings: string[] = [];
+    for (const method of ["warn", "error"] as const) {
+      vi.spyOn(console, method).mockImplementation((...args: unknown[]) => {
+        warnings.push(args.map(String).join(" "));
+      });
+    }
+    const quickSearch = { text: "" };
+    const datasource = datasourceOf(quickSearch);
+    const { rerender } = render(BaseGridTestHost, {
+      infiniteRows: infiniteRowsOf(quickSearch, datasource),
+      shown: true,
+    });
+    await settle();
+    expect(screen.getByTestId("gridApi").textContent).toBe("live");
+    // A text left in the quick search makes the new bar read the rows again.
+    await typeQuickSearch("app");
+    await waitFor(() => expect(quickSearch.text).toBe("app"));
+    await settle();
+
+    await rerender({ shown: false });
+    expect(screen.getByTestId("gridApi").textContent).toBe("none");
+    await rerender({ shown: true });
+    await settle();
+    expect(screen.getByTestId("gridApi").textContent).toBe("live");
+    expect(warnings.filter((warning) => warning.includes("#26"))).toEqual([]);
+    // The new grid reads its rows without the text of the grid before.
+    expect(datasource.texts.at(-1)).toBe("");
   });
 });
