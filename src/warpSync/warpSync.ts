@@ -64,9 +64,9 @@ function startImport(targetChain: Chain): RunningImport {
   }
   let end: WarpSyncState | undefined = undefined;
   const ran: Promise<boolean> = withSyncLock(chainName, async () => {
-    end = await runImport(targetChain, true);
-    // After a stop or a failure, runImport read the DB in the lock already.
-    return end?.status === "stopped" || end?.status === "failed";
+    const result: ImportResult = await runImport(targetChain, true);
+    end = result.state;
+    return result.reloaded;
   }).finally(() => {
     runningImports.delete(chainName);
     // Only once the lock is released: Retry and Import, shown in the end
@@ -154,8 +154,8 @@ export async function importWarpSyncBeforeSync(
   const chainName: ChainName = targetChain.name;
   if (!isWarpSyncOn(chainName) || isDone(chainName)) return;
   if (heldChains.has(chainName)) return;
-  const end: WarpSyncState | undefined = await runImport(targetChain, false);
-  if (end) setWarpSyncState(chainName, end);
+  const { state } = await runImport(targetChain, false);
+  if (state) setWarpSyncState(chainName, state);
 }
 
 // Returns the state to set once it ends, and sets the states while it runs.
@@ -164,45 +164,44 @@ export async function importWarpSyncBeforeSync(
 async function runImport(
   targetChain: Chain,
   ask: boolean,
-): Promise<WarpSyncState | undefined> {
+): Promise<ImportResult> {
   const chainName: ChainName = targetChain.name;
   // The files are gzip. Nothing is fetched, and the sync fetches the logs.
   if (typeof DecompressionStream === "undefined") {
     customLogger.info("Skip the warp sync: no DecompressionStream.", {
       chainName,
     });
-    return { status: "unsupported" };
+    return { state: { status: "unsupported" }, reloaded: false };
   }
   const before: WarpSyncState = getState(chainName);
   // Turned off while waiting for the lock.
-  if (!isWarpSyncOn(chainName)) return;
+  if (!isWarpSyncOn(chainName)) return { state: undefined, reloaded: false };
   setWarpSyncState(chainName, { status: "checking" });
   const controller = new AbortController();
   setWarpSyncStopController(chainName, controller);
   let manifest: WarpSyncManifest | undefined = undefined;
-  // The last run of the snapshot, once the manifest is read.
-  let snapshot: Pick<WarpSyncState, "toBlock" | "createdAt"> = {};
   // Once a large import failed, while it reads the DB again.
   let failing: boolean = false;
   try {
     manifest = await fetchWarpSyncManifest(targetChain);
-    if (!manifest) return { status: "none" };
-    snapshot = {
-      toBlock: manifest.runs.at(-1)?.toBlock,
-      createdAt: manifest.runs.at(-1)?.createdAt,
-    };
+    if (!manifest) return { state: { status: "none" }, reloaded: false };
     const pending: WarpSyncPending = await getWarpSyncPending(
       chainName,
       manifest,
     );
-    const about = { ...snapshot, pending };
-    // Stopped while checking: nothing is saved, so the counts stand.
+    const about = { ...getLastRun(manifest), pending };
+    // Stopped while checking: nothing is saved, so the counts stand and the
+    // DB need not be read again.
     if (controller.signal.aborted) {
-      return await endStopped(chainName, snapshot, async () => pending);
+      const state = await endStopped(chainName, manifest, { pending });
+      return { state, reloaded: false };
     }
     const isLarge: boolean = needsConfirmation(pending);
     if (isLarge && !confirmedChains.has(chainName)) {
-      return ask ? { status: "confirm", ...about } : before;
+      return {
+        state: ask ? { status: "confirm", ...about } : before,
+        reloaded: false,
+      };
     }
     // Only a large import shows its progress and can be stopped from the nav.
     let doneLogCount: number = 0;
@@ -243,18 +242,19 @@ async function runImport(
       setWarpSyncState(chainName, { ...importing(), ending: "finishing" });
     }
     return {
-      status: toBlock === undefined ? "none" : "imported",
-      toBlock,
-      createdAt: snapshot.createdAt,
+      state: {
+        status: toBlock === undefined ? "none" : "imported",
+        toBlock,
+        createdAt: getLastRun(manifest).createdAt,
+      },
+      reloaded: false,
     };
   } catch (error) {
     // Before the reload: a stop while it reads the DB does not turn a failure
     // into a stop.
     if (controller.signal.aborted) {
-      const read: WarpSyncManifest | undefined = manifest;
-      return await endStopped(chainName, snapshot, async () =>
-        read ? await getPendingOrUndefined(chainName, read) : undefined,
-      );
+      const state = await endStopped(chainName, manifest, { reload: true });
+      return { state, reloaded: true };
     }
     // A large import hides Stop while it reads the DB again.
     const shown: WarpSyncState = getState(chainName);
@@ -262,19 +262,27 @@ async function runImport(
       failing = true;
       setWarpSyncState(chainName, { ...shown, ending: "failing" });
     }
+    // A file may have been saved before the failure reached this tab.
     await reloadAfterImport(chainName);
     customLogger.error("Import the warp sync snapshot.", {
       chainName,
       errorObject: error,
     });
-    return { status: "failed" };
+    return { state: { status: "failed" }, reloaded: true };
   } finally {
     setWarpSyncStopController(chainName, undefined);
   }
 }
 
-// A file may have been saved after a stop or a failure, before its result
-// reached this tab: the stores follow the DB again.
+// The end state, and whether the DB was read into the stores again.
+type ImportResult = { state: WarpSyncState | undefined; reloaded: boolean };
+function getLastRun(
+  manifest: WarpSyncManifest | undefined,
+): Pick<WarpSyncState, "toBlock" | "createdAt"> {
+  const lastRun = manifest?.runs.at(-1);
+  return { toBlock: lastRun?.toBlock, createdAt: lastRun?.createdAt };
+}
+// The stores follow the DB again.
 async function reloadAfterImport(chainName: ChainName): Promise<void> {
   await reloadSyncStatusInChain(chainName).catch((reloadError: unknown) => {
     customLogger.error("Reload the sync status after the warp sync.", {
@@ -283,19 +291,27 @@ async function reloadAfterImport(chainName: ChainName): Promise<void> {
     });
   });
 }
-// Every stopped end: reads the DB again, which startImport counts on, holds
-// the chain, and counts what is left after the reload.
+// Every stopped end. The chain is held before anything is awaited, so that
+// the warp sync turned on meanwhile is not undone. reload: a file may have
+// been saved after the stop, before its result reached this tab. Counts what
+// is left, after the reload, unless the counts are given.
 async function endStopped(
   chainName: ChainName,
-  snapshot: Pick<WarpSyncState, "toBlock" | "createdAt">,
-  countPending: () => Promise<WarpSyncPending | undefined>,
+  manifest: WarpSyncManifest | undefined,
+  { pending, reload = false }: { pending?: WarpSyncPending; reload?: boolean },
 ): Promise<WarpSyncState> {
-  await reloadAfterImport(chainName);
+  heldChains.add(chainName);
+  if (reload) await reloadAfterImport(chainName);
   customLogger.info("Stopped the import of the warp sync snapshot.", {
     chainName,
   });
-  heldChains.add(chainName);
-  return { status: "stopped", ...snapshot, pending: await countPending() };
+  return {
+    status: "stopped",
+    ...getLastRun(manifest),
+    pending:
+      pending ??
+      (manifest ? await getPendingOrUndefined(chainName, manifest) : undefined),
+  };
 }
 // What is left after a stop; undefined when it cannot be read, so that the
 // state still leaves "checking" or "importing".
@@ -331,12 +347,7 @@ async function withSyncLock(
         if (!navigator.locks || reloaded) return;
         // Another tab may have imported or synced since this tab read the
         // DB, and then this import skips everything.
-        await reloadSyncStatusInChain(chainName).catch((error: unknown) => {
-          customLogger.error("Reload the sync status after the warp sync.", {
-            chainName,
-            errorObject: error,
-          });
-        });
+        await reloadAfterImport(chainName);
       },
     );
     if (!ran) {
