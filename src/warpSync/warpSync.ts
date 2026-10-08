@@ -180,6 +180,8 @@ async function runImport(
   const controller = new AbortController();
   setWarpSyncStopController(chainName, controller);
   let manifest: WarpSyncManifest | undefined = undefined;
+  // What is left, as read before the import saves anything.
+  let pendingBeforeImport: WarpSyncPending | undefined = undefined;
   // Once a large import failed, while it reads the DB again.
   let failing: boolean = false;
   try {
@@ -189,6 +191,7 @@ async function runImport(
       targetChain,
       manifest,
     );
+    pendingBeforeImport = pending;
     controller.signal.throwIfAborted();
     const about = {
       toBlock: manifest.runs.at(-1)?.toBlock,
@@ -222,6 +225,8 @@ async function runImport(
         { once: true },
       );
     }
+    // The import may save files, after which the counts are read again.
+    pendingBeforeImport = undefined;
     const toBlock: number | undefined = await importWarpSync(
       targetChain,
       manifest,
@@ -269,9 +274,11 @@ async function runImport(
         status: "stopped",
         toBlock: manifest?.runs.at(-1)?.toBlock,
         createdAt: manifest?.runs.at(-1)?.createdAt,
-        pending: manifest
-          ? await getPendingOrUndefined(targetChain, manifest)
-          : undefined,
+        pending:
+          pendingBeforeImport ??
+          (manifest
+            ? await getPendingOrUndefined(targetChain, manifest)
+            : undefined),
       };
     }
     customLogger.error("Import the warp sync snapshot.", {

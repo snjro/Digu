@@ -30,7 +30,7 @@ export async function getWarpSyncPending(
   manifest: WarpSyncManifest,
 ): Promise<WarpSyncPending> {
   const targets: Map<string, WarpSyncTarget> = matchWarpSyncContracts(
-    targetChain,
+    targetChain.name,
     manifest,
   );
   const pending: WarpSyncPending = {
@@ -88,7 +88,7 @@ export async function importWarpSync(
   options: ImportWarpSyncOptions = {},
 ): Promise<number | undefined> {
   const targets: Map<string, WarpSyncTarget> = matchWarpSyncContracts(
-    targetChain,
+    targetChain.name,
     manifest,
   );
   // A contract whose logs would have a gap is not imported any more.

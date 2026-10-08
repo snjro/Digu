@@ -1,4 +1,4 @@
-import type { Chain, Contract } from "#constants/chains/types.js";
+import type { ChainName, Contract } from "#constants/chains/types.js";
 import type { VersionIdentifier } from "#db/dbTypes.js";
 import { getTargetContract, TargetNotFoundError } from "#utils/utilsDb.js";
 import { hasSyncTargetEvents } from "#utils/utilsEthers.js";
@@ -25,13 +25,13 @@ export function getWarpSyncKey(key: {
 // creation block. The others are skipped, so that a contract added to the app
 // or to the snapshot does not stop the rest.
 export function matchWarpSyncContracts(
-  targetChain: Chain,
+  chainName: ChainName,
   manifest: WarpSyncManifest,
 ): Map<string, WarpSyncTarget> {
   const targets: Map<string, WarpSyncTarget> = new Map();
   for (const manifestContract of manifest.contracts) {
     const target: WarpSyncTarget | undefined = findTarget(
-      targetChain,
+      chainName,
       manifestContract,
     );
     if (target) targets.set(getWarpSyncKey(manifestContract), target);
@@ -39,11 +39,11 @@ export function matchWarpSyncContracts(
   return targets;
 }
 function findTarget(
-  targetChain: Chain,
+  chainName: ChainName,
   manifestContract: WarpSyncManifestContract,
 ): WarpSyncTarget | undefined {
   const versionIdentifier: VersionIdentifier = {
-    chainName: targetChain.name,
+    chainName,
     projectName: manifestContract.project,
     versionName: manifestContract.version,
   };

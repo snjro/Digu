@@ -697,12 +697,17 @@ describe("warpSync", () => {
       );
       const importing = confirmWarpSync(matic);
       await vi.waitFor(() => expect(fetchWarpSyncManifest).toHaveBeenCalled());
+      vi.mocked(getWarpSyncPending).mockClear();
       stopWarpSync("matic");
       give(manifest);
       await importing;
       expect(importWarpSync).not.toHaveBeenCalled();
-      expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
-        "stopped",
+      const state = selectWarpSyncState(get(storeWarpSync), "matic");
+      expect(state.status).toBe("stopped");
+      // Counted once, before the stop is seen, and kept for the stopped state.
+      expect(getWarpSyncPending).toHaveBeenCalledOnce();
+      expect(state.pending).toEqual(
+        await vi.mocked(getWarpSyncPending).mock.results[0].value,
       );
     });
 

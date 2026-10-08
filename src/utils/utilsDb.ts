@@ -17,15 +17,19 @@ import type {
   VersionIdentifier,
 } from "#db/dbTypes.js";
 
-// The names of an identifier, from the chain down.
-const IDENTIFIER_KEYS = [
-  "chainName",
-  "projectName",
-  "versionName",
-  "contractName",
-  "abiFragmentName",
-  "functionSelector",
-] as const;
+// The place of each name of an identifier, from the chain down. A key of
+// AbiFragmentIdentifier that is missing here does not compile.
+const IDENTIFIER_KEY_ORDER: Record<keyof AbiFragmentIdentifier, number> = {
+  chainName: 0,
+  projectName: 1,
+  versionName: 2,
+  contractName: 3,
+  abiFragmentName: 4,
+  functionSelector: 5,
+};
+const IDENTIFIER_KEYS = (
+  Object.keys(IDENTIFIER_KEY_ORDER) as (keyof AbiFragmentIdentifier)[]
+).sort((a, b) => IDENTIFIER_KEY_ORDER[a] - IDENTIFIER_KEY_ORDER[b]);
 export class TargetNotFoundError extends Error {
   constructor(target: string, identifier: Partial<AbiFragmentIdentifier>) {
     // A key that is there without a value is an empty name, as the URL has it.

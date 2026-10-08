@@ -50,7 +50,10 @@ describe("fetchWarpSyncManifest", () => {
     );
     try {
       const fetching = fetchWarpSyncManifest(chain);
-      expect(spyTimeout).toHaveBeenCalledExactlyOnceWith(30_000);
+      expect(spyTimeout).toHaveBeenCalledOnce();
+      expect(fetchMock).toHaveBeenCalledWith(expect.any(String), {
+        signal: limit.signal,
+      });
 
       limit.abort(new DOMException("timed out", "TimeoutError"));
       await expect(fetching).rejects.toThrow("timed out");
