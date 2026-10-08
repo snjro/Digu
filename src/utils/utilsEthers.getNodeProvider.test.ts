@@ -11,6 +11,7 @@ import {
 } from "vitest";
 import { getNodeProvider, type NodeProvider } from "./utilsEthers";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
+import { customLogger } from "./logger";
 import * as dbChainStatusDataHandlers from "#db/dbChainStatusDataHandlers.js";
 import {
   JsonRpcProvider,
@@ -181,6 +182,92 @@ describe("getNodeProvider checks the chain of the node", () => {
       await getNodeProvider(targetChain, "ws://127.0.0.1:9"),
     ).toBeUndefined();
     expectLastNodeStatus("NETWORK_ERROR");
+  });
+});
+
+describe("getNodeProvider when the node status cannot be saved", () => {
+  test.each([
+    { rpc: "http://127.0.0.1:9", providerClass: JsonRpcProvider },
+    { rpc: "ws://127.0.0.1:9", providerClass: WebSocketProvider },
+  ])(
+    "should destroy the provider and throw: $rpc",
+    async ({ rpc, providerClass }) => {
+      fakeNode.chainId = targetChain.chainId;
+      fakeNode.socketOpens = true;
+      const dbError: Error = new Error("DB closed");
+      spyUpdateDbItemChainStatus.mockImplementation(
+        async (_chainName: ChainName, _key: string, value: unknown) => {
+          if (value === "SUCCESS") throw dbError;
+        },
+      );
+      const spyDestroy: MockInstance = vi.spyOn(
+        providerClass.prototype,
+        "destroy",
+      );
+      try {
+        await expect(getNodeProvider(targetChain, rpc)).rejects.toBe(dbError);
+        expect(spyDestroy).toHaveBeenCalledOnce();
+      } finally {
+        spyDestroy.mockRestore();
+        spyUpdateDbItemChainStatus.mockResolvedValue(undefined);
+      }
+    },
+  );
+
+  test("should throw the error of the write when destroying fails too", async () => {
+    fakeNode.chainId = targetChain.chainId;
+    fakeNode.socketOpens = true;
+    const dbError: Error = new Error("DB closed");
+    spyUpdateDbItemChainStatus.mockImplementation(
+      async (_chainName: ChainName, _key: string, value: unknown) => {
+        if (value === "SUCCESS") throw dbError;
+      },
+    );
+    const destroyError: Error = new Error("destroy failed");
+    const spyDestroy: MockInstance = vi
+      .spyOn(WebSocketProvider.prototype, "destroy")
+      .mockRejectedValue(destroyError);
+    const spyError: MockInstance = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    try {
+      await expect(
+        getNodeProvider(targetChain, "ws://127.0.0.1:9"),
+      ).rejects.toBe(dbError);
+      // Only the name: the message may have the URL.
+      expect(spyError).toHaveBeenCalledWith("nodeProvider.destroy().", {
+        name: "Error",
+      });
+    } finally {
+      spyDestroy.mockRestore();
+      spyError.mockRestore();
+      spyUpdateDbItemChainStatus.mockResolvedValue(undefined);
+    }
+  });
+
+  test("should return undefined and log when destroying a provider on another chain fails", async () => {
+    fakeNode.chainId = otherChainId;
+    fakeNode.socketOpens = true;
+    const destroyError: Error = new Error("destroy failed");
+    const spyDestroy: MockInstance = vi
+      .spyOn(WebSocketProvider.prototype, "destroy")
+      .mockRejectedValue(destroyError);
+    const spyError: MockInstance = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    try {
+      expect(
+        await getNodeProvider(targetChain, "ws://127.0.0.1:9"),
+      ).toBeUndefined();
+      expectLastNodeStatus("WRONG_CHAIN");
+      // Only the name: the message may have the URL.
+      expect(spyError).toHaveBeenCalledWith("nodeProvider.destroy().", {
+        name: "Error",
+      });
+    } finally {
+      spyDestroy.mockRestore();
+      spyError.mockRestore();
+    }
   });
 });
 

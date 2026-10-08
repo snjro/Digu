@@ -4,11 +4,15 @@ import type {
   Contract,
   EventAbiFragment,
 } from "#constants/chains/types.js";
-import { updateDbItemChainStatus } from "#db/dbChainStatusDataHandlers.js";
+import {
+  raiseDbLatestBlockNumber,
+  updateDbItemChainStatus,
+} from "#db/dbChainStatusDataHandlers.js";
 import type { EthersEventLog, NodeStatus } from "#db/dbTypes.js";
 import { customLogger } from "./logger";
 import { getUrlObject } from "./utilsCommon";
 import { getTargetChain } from "./utilsDb";
+import { BlockTimestamps } from "./blockTimestamps";
 import {
   JsonRpcProvider,
   Network,
@@ -43,12 +47,10 @@ export function extractEventContracts(targetContracts: Contract[]): Contract[] {
 }
 export type NodeProvider = JsonRpcProvider | WebSocketProvider;
 
-// The blockTimestamp that an RPC may put in each log, by block number, for
-// each provider. ethers does not keep it in a Log.
-const blockTimestampsOfProviders: WeakMap<
-  NodeProvider,
-  Map<number, number>
-> = new WeakMap();
+// The blockTimestamp that an RPC may put in each log, for each provider.
+// ethers does not keep it in a Log.
+const blockTimestampsOfProviders: WeakMap<NodeProvider, BlockTimestamps> =
+  new WeakMap();
 function keepBlockTimestamp(provider: NodeProvider, log: LogParams): void {
   // The raw log from the RPC, which ethers types as LogParams.
   const blockTimestamp: unknown = (log as { blockTimestamp?: unknown })
@@ -56,13 +58,9 @@ function keepBlockTimestamp(provider: NodeProvider, log: LogParams): void {
   if (!isHexString(blockTimestamp)) {
     return;
   }
-  let blockTimestamps: Map<number, number> | undefined =
-    blockTimestampsOfProviders.get(provider);
-  if (blockTimestamps === undefined) {
-    blockTimestamps = new Map();
-    blockTimestampsOfProviders.set(provider, blockTimestamps);
-  }
-  blockTimestamps.set(getNumber(log.blockNumber), getNumber(blockTimestamp));
+  blockTimestampsOfProviders
+    .get(provider)
+    ?.set(getNumber(log.blockNumber), getNumber(blockTimestamp));
 }
 // The blockTimestamp of a log that this provider has returned, if any.
 export function getBlockTimestampFromLogs(
@@ -73,6 +71,10 @@ export function getBlockTimestampFromLogs(
 }
 // ethers calls _wrapLog with each log of eth_getLogs.
 class JsonRpcProviderKeepingBlockTimestamps extends JsonRpcProvider {
+  constructor(url: string, options: JsonRpcApiProviderOptions) {
+    super(url, undefined, options);
+    blockTimestampsOfProviders.set(this, new BlockTimestamps());
+  }
   override _wrapLog(value: LogParams, network: Network): Log {
     keepBlockTimestamp(this, value);
     return super._wrapLog(value, network);
@@ -84,6 +86,7 @@ class WebSocketProviderKeepingBlockTimestamps extends WebSocketProvider {
   readonly #closed: Promise<never>;
   constructor(url: string) {
     super(url);
+    blockTimestampsOfProviders.set(this, new BlockTimestamps());
     this.#closed = new Promise<never>((_, reject) => {
       (this.websocket as WebSocket).onclose = () => {
         reject(makeError("WebSocket closed.", "NETWORK_ERROR"));
@@ -203,7 +206,6 @@ export async function getNodeProvider(
         };
         nodeProvider = new JsonRpcProviderKeepingBlockTimestamps(
           rpc,
-          undefined,
           jsonRpcApiProviderOptions,
         );
       } else {
@@ -237,14 +239,9 @@ export async function getNodeProvider(
         nodeStatus = "WRONG_CHAIN";
       }
     } catch (error) {
-      const loggableError: unknown = getLoggableError(error);
       customLogger.error(
         "nodeProvider.getNetwork().",
-        // Other errors, such as the DOMException of a WebSocket that cannot
-        // be made, may have the URL in the message.
-        loggableError instanceof Error && loggableError !== timeoutError
-          ? { name: loggableError.name }
-          : loggableError,
+        error === timeoutError ? error : getLoggableErrorName(error),
       );
       nodeStatus = "NETWORK_ERROR";
     } finally {
@@ -257,18 +254,42 @@ export async function getNodeProvider(
     );
     nodeStatus = "INVALID_PROTOCOL";
   }
-  if (latestNodeProviderCalls[targetChain.name] === callNumber) {
-    await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
-  } else if (
-    callNumber > (skippedNodeStatuses[targetChain.name]?.callNumber ?? 0)
-  ) {
-    skippedNodeStatuses[targetChain.name] = { callNumber, nodeStatus };
+  try {
+    if (latestNodeProviderCalls[targetChain.name] === callNumber) {
+      await updateDbItemChainStatus(targetChain.name, "nodeStatus", nodeStatus);
+    } else if (
+      callNumber > (skippedNodeStatuses[targetChain.name]?.callNumber ?? 0)
+    ) {
+      skippedNodeStatuses[targetChain.name] = { callNumber, nodeStatus };
+    }
+  } catch (error) {
+    // A WebSocket would stay open.
+    await destroyNodeProvider(nodeProvider);
+    throw error;
   }
   if (nodeStatus !== "SUCCESS") {
-    await nodeProvider?.destroy();
+    await destroyNodeProvider(nodeProvider);
     return undefined;
   }
   return nodeProvider;
+}
+// Does not throw, so that the caller goes on with its own result or error.
+export async function destroyNodeProvider(
+  nodeProvider: NodeProvider | undefined,
+): Promise<void> {
+  try {
+    await nodeProvider?.destroy();
+  } catch (error) {
+    customLogger.error("nodeProvider.destroy().", getLoggableErrorName(error));
+  }
+}
+// Only the name of an error that is not from ethers, whose message may have
+// the URL too, such as the DOMException of a WebSocket that cannot be made.
+function getLoggableErrorName(error: unknown): unknown {
+  const loggableError: unknown = getLoggableError(error);
+  return loggableError instanceof Error
+    ? { name: loggableError.name }
+    : loggableError;
 }
 // ethers puts the request URL, which may hold an API key, in the message and
 // the properties of its errors.
@@ -325,10 +346,12 @@ function isJsonRpcError(
     typeof value.message === "string"
   );
 }
-export async function getAndUpdateLatestBlockNumber(
+// Written only when it is higher than the one stored: the requests may
+// overlap, and an older answer that comes later does not move it back.
+export async function fetchAndRaiseLatestBlockNumber(
   nodeProvider: NodeProvider,
   chainName: ChainName,
-): Promise<number> {
+): Promise<void> {
   // Blocks within the confirmation depth can still be replaced by a chain
   // reorganization, so the sync does not go past them.
   const latestBlockNumber: number = Math.max(
@@ -336,12 +359,7 @@ export async function getAndUpdateLatestBlockNumber(
     (await nodeProvider.getBlockNumber()) -
       getTargetChain({ chainName }).confirmationBlocks,
   );
-  await updateDbItemChainStatus(
-    chainName,
-    "latestBlockNumber",
-    latestBlockNumber,
-  );
-  return latestBlockNumber;
+  await raiseDbLatestBlockNumber(chainName, latestBlockNumber);
 }
 
 export async function getEthersEventLogs(

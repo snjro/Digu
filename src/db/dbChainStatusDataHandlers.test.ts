@@ -5,11 +5,13 @@ import {
   test,
   expect,
   beforeEach,
+  afterEach,
 } from "vitest";
 import type { Chain } from "#constants/chains/types.js";
 import type { ChainStatus } from "./dbTypes";
 import {
   getDbRecordChainStatus,
+  raiseDbLatestBlockNumber,
   updateDbItemChainStatus,
 } from "./dbChainStatusDataHandlers";
 import { dbChainStatus } from "./dbChainStatus";
@@ -90,5 +92,88 @@ describe("getDbRecordChainStatus", () => {
     );
     expect(spyTableGet).toBeCalledWith(dummyChainName);
     expect(result).toEqual(dummyChainStatus);
+  });
+});
+
+describe("raiseDbLatestBlockNumber", () => {
+  // The latest block of the chain in the store: 0 unless a test sets it.
+  let spySubscribe: MockInstance;
+  function setStoreAt(latestBlockNumber: number): void {
+    spySubscribe.mockImplementation((run: (value: unknown) => void) => {
+      run({ [dummyChainName]: { latestBlockNumber } });
+      return () => {};
+    });
+  }
+  beforeEach(() => {
+    spySubscribe = vi.spyOn(storeChainStatus, "subscribe");
+    setStoreAt(0);
+  });
+  afterEach(() => {
+    spySubscribe.mockRestore();
+  });
+
+  test("should write a higher latest block to the DB and the store", async () => {
+    await raiseDbLatestBlockNumber(dummyChainName, 2);
+
+    expect(spyTableUpdate).toHaveBeenCalledExactlyOnceWith(dummyChainName, {
+      latestBlockNumber: 2,
+    });
+    expect(spyStoreChainStatus).toHaveBeenCalledExactlyOnceWith(
+      dummyChainName,
+      { latestBlockNumber: 2 },
+    );
+  });
+
+  test("should write a higher latest block to the DB, and leave a store that is higher still", async () => {
+    // The DB has 1.
+    setStoreAt(3);
+
+    await raiseDbLatestBlockNumber(dummyChainName, 2);
+
+    expect(spyTableUpdate).toHaveBeenCalledExactlyOnceWith(dummyChainName, {
+      latestBlockNumber: 2,
+    });
+    expect(spyStoreChainStatus).not.toHaveBeenCalled();
+  });
+
+  test.each([1, 0])(
+    "should not write %s to the DB, and raise a store behind the DB to the one of the DB",
+    async (latestBlockNumber: number) => {
+      await raiseDbLatestBlockNumber(dummyChainName, latestBlockNumber);
+
+      expect(spyTableUpdate).not.toHaveBeenCalled();
+      expect(spyStoreChainStatus).toHaveBeenCalledExactlyOnceWith(
+        dummyChainName,
+        { latestBlockNumber: dummyChainStatus.latestBlockNumber },
+      );
+    },
+  );
+
+  test.each([1, 2])(
+    "should not lower or set again a store at %s",
+    async (inStore: number) => {
+      setStoreAt(inStore);
+
+      // The DB has 1.
+      await raiseDbLatestBlockNumber(dummyChainName, 0);
+
+      expect(spyStoreChainStatus).not.toHaveBeenCalled();
+    },
+  );
+
+  test("should change nothing for a chain without a row", async () => {
+    spyTableGet.mockResolvedValueOnce(undefined);
+
+    await raiseDbLatestBlockNumber(dummyChainName, 2);
+
+    expect(spyTableUpdate).not.toHaveBeenCalled();
+    expect(spyStoreChainStatus).not.toHaveBeenCalled();
+  });
+
+  test("should read and write in one transaction", async () => {
+    await raiseDbLatestBlockNumber(dummyChainName, 2);
+
+    expect(spyDbChainStatusTransaction).toHaveBeenCalledOnce();
+    expect(spyDbChainStatusTransaction.mock.calls[0][0]).toBe("rw");
   });
 });

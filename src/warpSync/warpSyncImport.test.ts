@@ -18,6 +18,8 @@ import type {
 } from "#db/dbTypes.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+import { fetchEventLogsContract } from "#eventLogs/eventLogsContract.js";
+import { providerAnsweringGetLogs } from "#utils/testCommon.js";
 import Dexie from "dexie";
 import { toBeHex } from "ethers";
 import { get } from "svelte/store";
@@ -418,5 +420,65 @@ describe("anySignal", () => {
     } finally {
       AbortSignal.any = any;
     }
+  });
+});
+
+describe("importWarpSync and then the sync", () => {
+  const contractIdentifier = { ...versionIdentifier, contractName: "FeePot" };
+  beforeEach(async () => {
+    await Dexie.delete(db().name);
+    await updateDbItemChainStatus("matic", "latestBlockNumber", 0);
+    fetchMock.mockReset();
+    fetchMock.mockImplementation(
+      async (url: string) =>
+        new Response(files.get(url.split("/").at(-1)!)! as BodyInit),
+    );
+    // As the DB has it.
+    storeSyncStatus.updateState(contractIdentifier, {
+      isSyncTarget: true,
+      isAbort: false,
+      fetchedBlockNumber: CREATION,
+    });
+  });
+
+  // The sync fetches the first range and stops at the second one.
+  async function syncAfterImport(): Promise<number[][]> {
+    storeChainStatus.updateState("matic", { latestBlockNumber: 30_001_000 });
+    const { provider, getLogsRanges } = providerAnsweringGetLogs(
+      matic.chainId,
+      (requestNumber: number) => {
+        if (requestNumber === 2) {
+          storeSyncStatus.updateState(contractIdentifier, { isAbort: true });
+        }
+        return undefined;
+      },
+    );
+    await fetchEventLogsContract(db(), feePot, provider);
+    await provider.destroy();
+    return getLogsRanges();
+  }
+
+  test("goes on from the block after the snapshot", async () => {
+    await importWarpSync(matic, manifest());
+
+    const ranges: number[][] = await syncAfterImport();
+
+    expect(ranges[0]).toEqual([30_000_001, 30_000_100]);
+    expect((await syncStatus()).fetchedBlockNumber).toBe(30_000_100);
+    expect((await rows("Transfer")).map((row) => row.blockNumber)).toEqual([
+      CREATION + 10,
+      19_000_000,
+      26_000_000,
+    ]);
+    expect((await syncStatus()).events.Transfer?.recordCount).toBe(3);
+  });
+
+  test("starts from the creation block when the snapshot is skipped", async () => {
+    await importWarpSync(matic, manifest({}, CREATION + 100));
+
+    const ranges: number[][] = await syncAfterImport();
+
+    expect(ranges[0]).toEqual([CREATION, CREATION + 99]);
+    expect((await syncStatus()).fetchedBlockNumber).toBe(CREATION + 99);
   });
 });

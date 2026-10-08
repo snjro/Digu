@@ -1,8 +1,5 @@
-import type { Chain, ChainName } from "#constants/chains/types.js";
-import {
-  getDbRecordChainStatus,
-  updateDbItemChainStatus,
-} from "#db/dbChainStatusDataHandlers.js";
+import type { Chain } from "#constants/chains/types.js";
+import { raiseDbLatestBlockNumber } from "#db/dbChainStatusDataHandlers.js";
 import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
 import { addEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
 import { getDbItemSyncStatus } from "#db/dbEventLogsDataHandlersSyncStatusGetters.js";
@@ -119,7 +116,11 @@ export async function importWarpSync(
     }
   }
   const end: number | undefined = getWarpSyncEnd(manifest, targets);
-  if (end !== undefined) await raiseLatestBlockNumber(targetChain.name, end);
+  // Without an RPC, the latest block is 0 and the progress stays at 0%. The end
+  // of the snapshot is a block that exists and is at most latest -
+  // confirmationBlocks when it was made, so it can be the latest block until
+  // the sync gets the real one.
+  if (end !== undefined) await raiseDbLatestBlockNumber(targetChain.name, end);
   return end;
 }
 
@@ -211,17 +212,3 @@ export function anySignal(
 // desktop computer imports one in a few seconds with the download (#695), so
 // the limit leaves room for slower devices and networks.
 export const FILE_TIMEOUT_MS = 120_000;
-
-// Without an RPC, the latest block is 0 and the progress stays at 0%. The end
-// of the snapshot is a block that exists and is at most latest -
-// confirmationBlocks when it was made, so it can be the latest block until
-// the sync gets the real one.
-async function raiseLatestBlockNumber(
-  chainName: ChainName,
-  end: number,
-): Promise<void> {
-  // From the DB: the store may lag behind another tab that synced.
-  const { latestBlockNumber } = await getDbRecordChainStatus(chainName);
-  if (end <= latestBlockNumber) return;
-  await updateDbItemChainStatus(chainName, "latestBlockNumber", end);
-}
