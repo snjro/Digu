@@ -191,13 +191,13 @@ contract that has events, fetch that contract's snapshot again from an RPC.
     (`RATE_WAIT_MAX_MS`), or the `Retry-After` of the answer (seconds) when
     that is longer, up to 60 seconds (`RETRY_AFTER_MAX_MS`). The wait ends
     early when another part stops (Parts, below). Any other answer makes the
-    wait a second again. A 429 is not a failure: it does not
-    halve the range and does not count toward the 10 failures below, and the
-    failures before it stay counted. After 30 429s in a row
-    (`MAX_RATE_ERRORS`; of one part, or of one other request), the script
-    stops, so that it does not wait for hours at a daily limit. The requests
-    other than `eth_getLogs` (`eth_chainId`, `eth_blockNumber`,
-    `eth_getBlockByNumber`) are asked again after a 429 in the same way.
+    wait a second again. A 429 is not a failure: it does not halve the range
+    and does not count toward the 10 failures below, and the failures before
+    it stay counted. After 30 429s in a row (`MAX_RATE_ERRORS`; of one part,
+    or of one other request), the script stops, so that it does not wait for
+    hours at a daily limit. The requests other than `eth_getLogs`
+    (`eth_chainId`, `eth_blockNumber`, `eth_getBlockByNumber`) are asked
+    again after a 429 in the same way, but their wait does not end early.
   - HTTP 500 or 504, and the errors of a node without old blocks
     (`unrelated`; "historical state is not available", "pruned history
     unavailable", "old data not available due to pruning"): the same range,

@@ -16,6 +16,7 @@ import {
   readManifest,
   writeContractChunks,
   writeManifest,
+  writeWhole,
 } from "./snapshot-format.mjs";
 import { eventsByTopic0, toSnapshotLog } from "./snapshot-log.mjs";
 
@@ -524,35 +525,35 @@ function readStates(partialDir) {
   return states;
 }
 function writeState(file, state) {
-  // Written whole and then renamed, so that a stop does not leave half a file.
-  fs.writeFileSync(`${file}.tmp`, JSON.stringify(state));
-  fs.renameSync(`${file}.tmp`, file);
+  writeWhole(file, (tmp) => fs.writeFileSync(tmp, JSON.stringify(state)));
 }
 // Keeps the lines of the blocks before nextBlock. A line that a stop left
 // half written is dropped too. It streams the file, which can be larger than
 // a string can hold.
 export async function keepLogsBefore(file, nextBlock) {
   if (!fs.existsSync(file)) return;
-  const tmp = `${file}.tmp`;
-  const out = fs.openSync(tmp, "w");
-  try {
-    const lines = readline.createInterface({
-      input: fs.createReadStream(file),
-      crlfDelay: Infinity,
-    });
-    for await (const line of lines) {
-      let raw;
-      try {
-        raw = JSON.parse(line);
-      } catch {
-        continue;
+  await writeWhole(file, async (tmp) => {
+    const out = fs.openSync(tmp, "w");
+    try {
+      const lines = readline.createInterface({
+        input: fs.createReadStream(file),
+        crlfDelay: Infinity,
+      });
+      for await (const line of lines) {
+        let raw;
+        try {
+          raw = JSON.parse(line);
+        } catch {
+          continue;
+        }
+        if (Number(raw.blockNumber) < nextBlock) {
+          fs.writeSync(out, `${line}\n`);
+        }
       }
-      if (Number(raw.blockNumber) < nextBlock) fs.writeSync(out, `${line}\n`);
+    } finally {
+      fs.closeSync(out);
     }
-  } finally {
-    fs.closeSync(out);
-  }
-  fs.renameSync(tmp, file);
+  });
 }
 async function* readLogs(file) {
   if (!fs.existsSync(file)) return;
