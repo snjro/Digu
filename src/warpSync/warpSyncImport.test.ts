@@ -329,7 +329,7 @@ describe("getWarpSyncPending", () => {
     chunks[index] as Extract<WarpSyncManifestChunk, { file: string }>;
 
   test("counts every range for a DB that has nothing", async () => {
-    expect(await getWarpSyncPending(matic, manifest())).toEqual({
+    expect(await getWarpSyncPending(matic.name, manifest())).toEqual({
       logCount: 4,
       snapshotLogCount: 4,
       bytes: file(0).bytes + file(2).bytes,
@@ -339,7 +339,7 @@ describe("getWarpSyncPending", () => {
   });
   test("counts only the ranges after the fetched block", async () => {
     await setFetchedBlockNumber(20_000_000);
-    expect(await getWarpSyncPending(matic, manifest())).toEqual({
+    expect(await getWarpSyncPending(matic.name, manifest())).toEqual({
       logCount: 1,
       snapshotLogCount: 4,
       bytes: file(2).bytes,
@@ -347,11 +347,11 @@ describe("getWarpSyncPending", () => {
       files: 1,
     });
     await setFetchedBlockNumber(31_000_000);
-    expect((await getWarpSyncPending(matic, manifest())).files).toBe(0);
+    expect((await getWarpSyncPending(matic.name, manifest())).files).toBe(0);
   });
   test("counts nothing after a gap, like the import", async () => {
     expect(
-      await getWarpSyncPending(matic, manifest({}, CREATION + 100)),
+      await getWarpSyncPending(matic.name, manifest({}, CREATION + 100)),
     ).toEqual({
       logCount: 0,
       snapshotLogCount: 4,

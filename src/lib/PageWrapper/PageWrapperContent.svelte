@@ -1,20 +1,3 @@
-<script lang="ts" module>
-  export type TabsDefinition = {
-    selectedTabName: TabContent["name"];
-    tabContents: TabContent[];
-    groupName: string;
-  };
-  type TabContent = {
-    name: TabNameContract | TabNameEvent | TabNameFunction;
-    isAgGrid: boolean;
-    gridCols: "grid-cols-1" | "grid-cols-2" | "grid-cols-6" | undefined;
-  };
-  type TabNameCommon = "Overview" | "ABI";
-  type TabNameContract = TabNameCommon;
-  type TabNameEvent = TabNameCommon | "Event Logs";
-  type TabNameFunction = TabNameCommon;
-</script>
-
 <script lang="ts">
   import { colorClasses } from "#lib/appearanceConfig/color/colorVariables.js";
 

@@ -27,7 +27,7 @@ export type ContractRow = {
     FunctionAbiFragment["stateMutability"] | typeof NO_DATA;
   contractConstructorInputs: FunctionAbiFragment["inputs"];
 
-  contractHasEvent: boolean;
+  contractHasSyncTargetEvents: boolean;
 };
 
 export type EventRow = {

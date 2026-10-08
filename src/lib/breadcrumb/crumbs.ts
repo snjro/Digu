@@ -1,12 +1,7 @@
-import {
-  TAB_VALUES_CONTRACT,
-  TAB_VALUES_EVENT,
-  TAB_VALUES_FUNCTION,
-} from "#lib/PageWrapper/tabs.js";
+import { getFirstTabUrlHash } from "#lib/PageWrapper/tabs.js";
 import type { BaseIconProps } from "#lib/base/BaseIcon.js";
 import { getChainRootUrl } from "#lib/common/chainRootUrl.js";
 import { getSplittedFunctionNameAndSelector } from "#lib/leftSidebar/Body/functionNameHandler.js";
-import { convertToKebabCase } from "#utils/utilsCommon.js";
 import {
   DIR_NAME_CONTRACTS,
   DIR_NAME_EVENTS,
@@ -27,25 +22,14 @@ function getPathNameWithUrlHash(
   previousPathName: string,
   currentPathName: string,
 ): string {
-  let urlHash: string;
   switch (previousPathName) {
     case DIR_NAME_CONTRACTS:
-      urlHash = TAB_VALUES_CONTRACT[0];
-      break;
     case DIR_NAME_EVENTS:
-      urlHash = TAB_VALUES_EVENT[0];
-      break;
     case DIR_NAME_FUNCTIONS:
-      urlHash = TAB_VALUES_FUNCTION[0];
-      break;
+      return `${currentPathName}#${getFirstTabUrlHash(previousPathName)}`;
     default:
-      urlHash = "";
-      break;
+      return currentPathName;
   }
-  if (urlHash) {
-    urlHash = `#${convertToKebabCase(urlHash)}`;
-  }
-  return currentPathName + urlHash;
 }
 function convertUrlTextToLabelText(path: string): string {
   return path.replaceAll("-", " ");

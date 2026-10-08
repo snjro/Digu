@@ -35,7 +35,7 @@ export function gridRows(contracts: Contract[]): ContractRow[] {
         : NO_DATA,
       contractConstructorInputs: targetContract.construction.abiFragment.inputs,
 
-      contractHasEvent: hasSyncTargetEvents(targetContract),
+      contractHasSyncTargetEvents: hasSyncTargetEvents(targetContract),
     };
     contractRows.push(contractRow);
   }

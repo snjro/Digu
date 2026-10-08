@@ -17,9 +17,26 @@ import type {
   VersionIdentifier,
 } from "#db/dbTypes.js";
 
+// The names of an identifier, from the chain down, in the order written here.
+// A key of AbiFragmentIdentifier that is missing here does not compile.
+const IDENTIFIER_KEYS = Object.keys({
+  chainName: true,
+  projectName: true,
+  versionName: true,
+  contractName: true,
+  abiFragmentName: true,
+  functionSelector: true,
+} satisfies Record<
+  keyof AbiFragmentIdentifier,
+  true
+>) as (keyof AbiFragmentIdentifier)[];
 export class TargetNotFoundError extends Error {
-  constructor(target: string, identifier: object) {
-    super(`${target} not found: ${Object.values(identifier).join("/")}`);
+  constructor(target: string, identifier: Partial<AbiFragmentIdentifier>) {
+    // A key that is there without a value is an empty name, as the URL has it.
+    const names: string[] = IDENTIFIER_KEYS.flatMap((key) =>
+      key in identifier ? [identifier[key] ?? ""] : [],
+    );
+    super(`${target} not found: ${names.join("/")}`);
     this.name = "TargetNotFoundError";
   }
 }

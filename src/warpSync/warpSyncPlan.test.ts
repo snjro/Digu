@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain, Contract } from "#constants/chains/types.js";
 import {
@@ -12,6 +12,16 @@ import type {
   WarpSyncManifest,
   WarpSyncManifestContract,
 } from "./warpSyncTypes";
+import { getTargetContract } from "#utils/utilsDb.js";
+
+// The real one, which a test makes fail once.
+vi.mock("#utils/utilsDb.js", async (importOriginal) => {
+  const original = await importOriginal<typeof import("#utils/utilsDb.js")>();
+  return {
+    ...original,
+    getTargetContract: vi.fn(original.getTargetContract),
+  };
+});
 
 const matic: Chain = TARGET_CHAINS.find((chain) => chain.name === "matic")!;
 const turbo = matic.projects[0].versions[0];
@@ -41,7 +51,7 @@ function manifest(contracts: WarpSyncManifestContract[]): WarpSyncManifest {
 describe("matchWarpSyncContracts", () => {
   test("matches the contracts with the same names, address and creation block", () => {
     const targets = matchWarpSyncContracts(
-      matic,
+      matic.name,
       manifest([manifestContract(first), manifestContract(second)]),
     );
     const target = targets.get(getWarpSyncKey(manifestContract(first)));
@@ -56,7 +66,7 @@ describe("matchWarpSyncContracts", () => {
   test("matches an address in another case", () => {
     const contract = manifestContract(first);
     const targets = matchWarpSyncContracts(
-      matic,
+      matic.name,
       manifest([
         {
           ...contract,
@@ -74,9 +84,10 @@ describe("matchWarpSyncContracts", () => {
     ["another creation block", { creationBlock: 1 }],
     ["an unknown contract", { name: "Unknown" }],
     ["an unknown version", { version: "unknown" }],
+    ["an unknown project", { project: "unknown" }],
   ])("skips %s and keeps the others", (_, change) => {
     const targets = matchWarpSyncContracts(
-      matic,
+      matic.name,
       manifest([
         { ...manifestContract(first), ...change } as WarpSyncManifestContract,
         manifestContract(second),
@@ -85,6 +96,22 @@ describe("matchWarpSyncContracts", () => {
     expect([...targets.values()].map((target) => target.contract)).toEqual([
       second,
     ]);
+  });
+});
+
+describe("matchWarpSyncContracts when finding a contract fails otherwise", () => {
+  afterEach(() => {
+    vi.mocked(getTargetContract).mockReset();
+  });
+  test("throws the error", () => {
+    const error: Error = new Error("broken");
+    vi.mocked(getTargetContract).mockImplementationOnce(() => {
+      throw error;
+    });
+
+    expect(() =>
+      matchWarpSyncContracts(matic.name, manifest([manifestContract(first)])),
+    ).toThrow(error);
   });
 });
 
@@ -146,7 +173,7 @@ describe("getWarpSyncEnd", () => {
   test("is the last block of the contracts of the app", () => {
     const key = manifestContract(first);
     const other = { ...manifestContract(second), name: "Unknown" };
-    const targets = matchWarpSyncContracts(matic, manifest([key]));
+    const targets = matchWarpSyncContracts(matic.name, manifest([key]));
     const range = (name: string, toBlock: number) => ({
       project: key.project,
       version: key.version,

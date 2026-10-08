@@ -224,6 +224,16 @@ describe("not found", () => {
         "function not found: eth/Augur/version1/Augur/disputeCrowdsourcerCreated/disputeCrowdsourcerCreated",
     },
     {
+      name: "getTargetVersion given the names in another order",
+      call: () =>
+        getTargetVersion({
+          versionName: "foo",
+          projectName: "Augur",
+          chainName: "eth",
+        }),
+      message: "version not found: eth/Augur/foo",
+    },
+    {
       name: "getTargetContract when the chain is missing",
       call: () =>
         getTargetContract({ ...contractIdentifier, chainName: "foo" }),

@@ -84,14 +84,14 @@ describe("extractEventContracts", () => {
 });
 
 describe("gridRows", () => {
-  test("contractHasEvent should be false for a contract that has only anonymous events", () => {
+  test("contractHasSyncTargetEvents should be false for a contract that has only anonymous events", () => {
     const [anonymousOnlyRow, namedAndAnonymousRow] = gridRows([
       anonymousOnlyContract,
       namedAndAnonymousContract,
     ]);
-    expect(anonymousOnlyRow.contractHasEvent).toBe(false);
+    expect(anonymousOnlyRow.contractHasSyncTargetEvents).toBe(false);
     expect(anonymousOnlyRow.contractEventsTotalNumber).toBe(1);
-    expect(namedAndAnonymousRow.contractHasEvent).toBe(true);
+    expect(namedAndAnonymousRow.contractHasSyncTargetEvents).toBe(true);
   });
 });
 

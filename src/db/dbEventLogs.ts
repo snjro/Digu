@@ -21,10 +21,9 @@ export class DbEventLogs extends dbBase {
       targetVersion.contracts,
     );
 
-    //define DB name
-    const dbNameElement: string[] = Object.values(versionIdentifier);
-    dbNameElement.unshift(DB_NAME.secondNames.eventLog);
-    super(dbNameElement);
+    // The names in this order, not in the order of the keys, and no other key.
+    const { chainName, projectName, versionName } = versionIdentifier;
+    super([DB_NAME.secondNames.eventLog, chainName, projectName, versionName]);
 
     //define DB schema
     const schemaDefinition = this.getSchemaDefinition(targetContracts);
@@ -49,7 +48,7 @@ export class DbEventLogs extends dbBase {
     this.on("populate", async (tx: Transaction) => {
       await this.addInitialData(tx, targetContracts);
     });
-    this.versionIdentifier = versionIdentifier;
+    this.versionIdentifier = { chainName, projectName, versionName };
   }
   protected getSchemaDefinition(targetContracts: Contract[]): SchemaDefinition {
     const schemaDefinition: SchemaDefinition = {};
@@ -95,7 +94,6 @@ export function getDbEventLogs(
   let dbEventLogs: DbEventLogs | undefined = dbEventLogsByVersion.get(key);
   // Dexie does not open an instance again after it failed to open.
   if (!dbEventLogs || dbEventLogs.hasFailed()) {
-    // Only the three names: the DB name is made from the values.
     dbEventLogs = new DbEventLogs({ chainName, projectName, versionName });
     dbEventLogsByVersion.set(key, dbEventLogs);
   }

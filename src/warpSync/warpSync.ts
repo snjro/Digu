@@ -186,7 +186,7 @@ async function runImport(
     manifest = await fetchWarpSyncManifest(targetChain);
     if (!manifest) return { status: "none" };
     const pending: WarpSyncPending = await getWarpSyncPending(
-      targetChain,
+      chainName,
       manifest,
     );
     controller.signal.throwIfAborted();
@@ -291,7 +291,7 @@ async function getPendingOrUndefined(
   manifest: WarpSyncManifest,
 ): Promise<WarpSyncPending | undefined> {
   try {
-    return await getWarpSyncPending(targetChain, manifest);
+    return await getWarpSyncPending(targetChain.name, manifest);
   } catch (error) {
     customLogger.error("Count what is left of the warp sync snapshot.", {
       chainName: targetChain.name,

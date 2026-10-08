@@ -1,5 +1,6 @@
-import type { Chain, Contract } from "#constants/chains/types.js";
+import type { ChainName, Contract } from "#constants/chains/types.js";
 import type { VersionIdentifier } from "#db/dbTypes.js";
+import { getTargetContract, TargetNotFoundError } from "#utils/utilsDb.js";
 import { hasSyncTargetEvents } from "#utils/utilsEthers.js";
 import type {
   WarpSyncChunkRange,
@@ -24,13 +25,13 @@ export function getWarpSyncKey(key: {
 // creation block. The others are skipped, so that a contract added to the app
 // or to the snapshot does not stop the rest.
 export function matchWarpSyncContracts(
-  targetChain: Chain,
+  chainName: ChainName,
   manifest: WarpSyncManifest,
 ): Map<string, WarpSyncTarget> {
   const targets: Map<string, WarpSyncTarget> = new Map();
   for (const manifestContract of manifest.contracts) {
     const target: WarpSyncTarget | undefined = findTarget(
-      targetChain,
+      chainName,
       manifestContract,
     );
     if (target) targets.set(getWarpSyncKey(manifestContract), target);
@@ -38,36 +39,32 @@ export function matchWarpSyncContracts(
   return targets;
 }
 function findTarget(
-  targetChain: Chain,
+  chainName: ChainName,
   manifestContract: WarpSyncManifestContract,
 ): WarpSyncTarget | undefined {
-  const project = targetChain.projects.find(
-    (project) => project.name === manifestContract.project,
-  );
-  const version = project?.versions.find(
-    (version) => version.name === manifestContract.version,
-  );
-  const contract = version?.contracts.find(
-    (contract) => contract.name === manifestContract.name,
-  );
+  const versionIdentifier: VersionIdentifier = {
+    chainName,
+    projectName: manifestContract.project,
+    versionName: manifestContract.version,
+  };
+  let contract: Contract;
+  try {
+    contract = getTargetContract({
+      ...versionIdentifier,
+      contractName: manifestContract.name,
+    });
+  } catch (error) {
+    if (error instanceof TargetNotFoundError) return undefined;
+    throw error;
+  }
   if (
-    !project ||
-    !version ||
-    !contract ||
     !hasSyncTargetEvents(contract) ||
     contract.address.toLowerCase() !== manifestContract.address.toLowerCase() ||
     contract.creation.blockNumber !== manifestContract.creationBlock
   ) {
     return undefined;
   }
-  return {
-    versionIdentifier: {
-      chainName: targetChain.name,
-      projectName: project.name,
-      versionName: version.name,
-    },
-    contract,
-  };
+  return { versionIdentifier, contract };
 }
 
 // The first block that the DB does not have. fetchedBlockNumber is the

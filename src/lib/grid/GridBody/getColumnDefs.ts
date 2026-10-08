@@ -1,19 +1,8 @@
-import type { ColDef, ColGroupDef, ValueGetterParams } from "ag-grid-community";
-import classNames from "classnames";
+import type { ValueGetterParams } from "ag-grid-community";
 import type { ColumnDef } from "../types";
-export function getColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
-  const editedColumnDefs: ColumnDef[] = addRowNumberColumnDefs(paramColumnDefs);
-  for (const targetColumnDef of editedColumnDefs) {
-    if (Object.prototype.hasOwnProperty.call(targetColumnDef, "children")) {
-      setGroupColumnClass(targetColumnDef as ColGroupDef);
-    } else {
-      setSingleColumnClass(targetColumnDef);
-    }
-  }
-  return editedColumnDefs;
-}
 export const ColIdRowSequenceNumber = "rowSequenceNumber";
-function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
+// The column of the row numbers first.
+export function getColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
   const columnDefRowNumber: ColumnDef = {
     colId: ColIdRowSequenceNumber,
     headerName: "#",
@@ -22,14 +11,9 @@ function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
     // The position on the screen, which the earlier searches change.
     getQuickFilterText: (): string => "",
     filter: false,
-    cellClass: classNames(
-      "tabular-nums",
-      "grid",
-      "justify-end",
-      "text-right",
-      "",
-    ),
-    type: "numericColumn",
+    // Aligned to the right by its own classes: the type numericColumn would
+    // align the header "#" to the right too.
+    cellClass: "tabular-nums grid justify-end text-right",
     maxWidth: 70,
     pinned: "left",
     suppressHeaderMenuButton: true,
@@ -37,37 +21,5 @@ function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
     suppressSizeToFit: true,
     suppressMovable: true,
   };
-  const concattedColumnDefs: ColumnDef[] = [columnDefRowNumber].concat(
-    paramColumnDefs,
-  );
-  return concattedColumnDefs;
-}
-
-function setGroupColumnClass(groupColumnDef: ColGroupDef): void {
-  setGroupColumnClassHeader(groupColumnDef);
-  setGroupColumnClassCell(groupColumnDef);
-}
-function setSingleColumnClass(singleColumnDef: ColDef): void {
-  setSingleColumnClassHeader(singleColumnDef);
-  setSingleColumnClassCell(singleColumnDef);
-}
-function setGroupColumnClassHeader(groupColumnDef: ColGroupDef): void {
-  groupColumnDef.headerClass = classNames(
-    groupColumnDef.headerClass?.toString(),
-  );
-}
-function setGroupColumnClassCell(groupColumnDef: ColGroupDef): void {
-  for (let i = 0; i < groupColumnDef.children.length; i++) {
-    setSingleColumnClass(groupColumnDef.children[i]);
-  }
-}
-function setSingleColumnClassHeader(singleColumnDef: ColDef): void {
-  singleColumnDef.headerClass = classNames(
-    singleColumnDef.headerClass?.toString(),
-  );
-}
-function setSingleColumnClassCell(singleColumnDef: ColDef): void {
-  singleColumnDef.cellClass = classNames(
-    singleColumnDef.cellClass ? singleColumnDef.cellClass.toString() : "",
-  );
+  return [columnDefRowNumber, ...paramColumnDefs];
 }

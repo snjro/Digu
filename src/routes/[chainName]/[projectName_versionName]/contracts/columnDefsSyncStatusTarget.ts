@@ -37,7 +37,10 @@ export const columnDefsSyncStatusTarget = <T extends ContractRow>(
     sortable: true,
     editable: false,
     cellStyle: (cellClassParams: CellClassParams<T>): CellStyle | undefined => {
-      if (cellClassParams.data && cellClassParams.data.contractHasEvent) {
+      if (
+        cellClassParams.data &&
+        cellClassParams.data.contractHasSyncTargetEvents
+      ) {
         return cellAlign("start");
       } else {
         return cellAlign("center");

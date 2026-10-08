@@ -11,14 +11,6 @@ export async function setDbBlockTime(
   });
 }
 
-export async function getDbRecordBlockTime(
-  chainName: ChainName,
-  blockNumber: BlockTime["blockNumber"],
-): Promise<BlockTime | undefined> {
-  return await dbBlockTimes.transaction("r", chainName, async () => {
-    return await dbBlockTimes.table(chainName).get(blockNumber);
-  });
-}
 export async function getDbRecordsBlockTime(
   chainName: ChainName,
   blockNumbers: BlockTime["blockNumber"][],

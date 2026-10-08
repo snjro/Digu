@@ -10,10 +10,7 @@ import { dbBlockTimes } from "./dbBlockTimes";
 import Dexie from "dexie";
 import type { Chain } from "#constants/chains/types.js";
 import type { BlockTime } from "./dbTypes";
-import {
-  getDbRecordBlockTime,
-  setDbBlockTime,
-} from "./dbBlockTimesDataHandlers";
+import { setDbBlockTime } from "./dbBlockTimesDataHandlers";
 const dummyBlockNumber: number = 1;
 // a chain that has a table in dbBlockTimes
 const dummyChainName: Chain["name"] = "eth";
@@ -30,9 +27,6 @@ const spyDbBlockTimeTransaction: MockInstance = vi.spyOn(
 const spyTableBulkPut: MockInstance = vi
   .spyOn(dbBlockTimes.table(dummyChainName), "bulkPut")
   .mockResolvedValue(dummyBlockNumber);
-const spyTableGet: MockInstance = vi
-  .spyOn(dbBlockTimes.table(dummyChainName), "get")
-  .mockResolvedValue(dummyBlockTime);
 // run the callback passed to transaction without opening the DB
 const runCallback = (
   _mode: string,
@@ -44,7 +38,6 @@ const runCallback = (
 beforeEach(() => {
   spyDbBlockTimeTransaction.mockClear();
   spyTableBulkPut.mockClear();
-  spyTableGet.mockClear();
 });
 
 describe("setDbBlockTime", () => {
@@ -58,21 +51,5 @@ describe("setDbBlockTime", () => {
     );
     expect(spyTableBulkPut).toBeCalledTimes(1);
     expect(spyTableBulkPut).toBeCalledWith([dummyBlockTime]);
-  });
-});
-describe("getDbRecordBlockTime", () => {
-  test("should get record block time correctly", async () => {
-    spyDbBlockTimeTransaction.mockImplementation(runCallback);
-    const result: BlockTime | undefined = await getDbRecordBlockTime(
-      dummyChainName,
-      dummyBlockNumber,
-    );
-    expect(spyDbBlockTimeTransaction).toHaveBeenCalledWith(
-      "r",
-      dummyChainName,
-      expect.any(Function),
-    );
-    expect(spyTableGet).toBeCalledWith(dummyBlockNumber);
-    expect(result).toEqual(dummyBlockTime);
   });
 });

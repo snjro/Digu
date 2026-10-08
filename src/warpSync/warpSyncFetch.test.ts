@@ -33,7 +33,33 @@ describe("fetchWarpSyncManifest", () => {
     expect(await fetchWarpSyncManifest(chain)).toEqual(manifest);
     expect(fetchMock).toHaveBeenCalledWith(
       "/Digu/warp-sync/matic/manifest.json",
+      { signal: expect.any(AbortSignal) },
     );
+  });
+  test("gives up the request after its time limit", async () => {
+    // The timer of AbortSignal.timeout is not one of the fake timers.
+    const limit = new AbortController();
+    const spyTimeout = vi
+      .spyOn(AbortSignal, "timeout")
+      .mockReturnValue(limit.signal);
+    fetchMock.mockImplementationOnce(
+      (_url: string, { signal }: { signal: AbortSignal }) =>
+        new Promise((_resolve, reject) =>
+          signal.addEventListener("abort", () => reject(signal.reason)),
+        ),
+    );
+    try {
+      const fetching = fetchWarpSyncManifest(chain);
+      expect(spyTimeout).toHaveBeenCalledOnce();
+      expect(fetchMock).toHaveBeenCalledWith(expect.any(String), {
+        signal: limit.signal,
+      });
+
+      limit.abort(new DOMException("timed out", "TimeoutError"));
+      await expect(fetching).rejects.toThrow("timed out");
+    } finally {
+      spyTimeout.mockRestore();
+    }
   });
   test("is undefined when the chain has no snapshot", async () => {
     fetchMock.mockResolvedValueOnce(reply(404, "Not Found"));
