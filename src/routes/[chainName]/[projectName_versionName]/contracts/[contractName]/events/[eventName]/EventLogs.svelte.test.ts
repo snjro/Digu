@@ -35,12 +35,9 @@ vi.mock("#stores/storeSyncStatus.js", async () => {
 });
 vi.mock("#utils/logger.js", () => ({ customLogger: { error: vi.fn() } }));
 vi.mock("#lib/common/CommonChainExplorerLink.svelte", async () => {
-  const { default: Stub } =
-    await import("../../functions/[functionName]/pageTabs.testStub.svelte");
-  return {
-    default: (anchor: unknown, props: Record<string, unknown>) =>
-      Stub(anchor as never, { stubName: String(props.value) }),
-  };
+  const { mockExplorerLink } =
+    await import("../../../../../../../testUtils/explorerLinkStub");
+  return mockExplorerLink();
 });
 
 // Stands in for the table worker. The test decides what each request gives.
