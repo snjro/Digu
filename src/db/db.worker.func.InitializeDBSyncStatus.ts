@@ -2,7 +2,7 @@ import { getDbEventLogs, type DbEventLogs } from "./dbEventLogs";
 import type { VersionIdentifier } from "./dbTypes";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain } from "#constants/chains/types.js";
-import { getSyncLockName } from "./constants";
+import { getSyncLockName, SYNC_LOCK_TIMEOUT_MS } from "./constants";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { initializeDBSyncStatusForContract } from "./db.worker.func.InitializeDBSyncStatusForContract";
 
@@ -17,17 +17,25 @@ export async function dbWorkerFuncInitializeDBSyncStatus(): Promise<void> {
     return;
   }
   await Promise.all(
-    TARGET_CHAINS.map((targetChain: Chain) =>
-      // Skip the chain while another tab syncs it, or reads it again with the
-      // lock shared.
-      navigator.locks.request(
-        getSyncLockName(targetChain.name),
-        { ifAvailable: true },
-        async (lock: Lock | null): Promise<void> => {
-          if (lock) await initializeDBSyncStatusInChain(targetChain);
-        },
-      ),
-    ),
+    TARGET_CHAINS.map(async (targetChain: Chain): Promise<void> => {
+      // Wait for the readings of other tabs, which are short, and skip the
+      // chain while another tab syncs it.
+      let granted: boolean = false;
+      try {
+        await navigator.locks.request(
+          getSyncLockName(targetChain.name),
+          { signal: AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS) },
+          async (): Promise<void> => {
+            granted = true;
+            await initializeDBSyncStatusInChain(targetChain);
+          },
+        );
+      } catch (error) {
+        const timedOut: boolean =
+          error instanceof Error && error.name === "TimeoutError";
+        if (granted || !timedOut) throw error;
+      }
+    }),
   );
 }
 export async function initializeDBSyncStatusInChain(

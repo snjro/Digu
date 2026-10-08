@@ -16,13 +16,18 @@ const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 
 // How the sync status of a chain is loaded into the store. Call only while
 // holding the sync lock of the chain, when no sync runs.
-// - "repair" (with the lock shared or exclusive): clears the flags of a sync
-//   that a tab closed while it synced left set. A row is written only when
-//   it needs it, in a read-write transaction that checks it again, so that
-//   of the tabs that read at the same time only the first writes.
+// - "release" (after another tab's operation, with the lock shared): clears
+//   the flags of a sync that a tab closed while it synced left set.
+// - "startup" (with the lock shared): also writes the creation block of this
+//   build where it differs, as the startup did, for a chain whose recount the
+//   Worker skipped. Not after a release: two builds would write it back and
+//   forth.
+// In both, a row is written only when it needs it, in a read-write
+// transaction that checks it again, so that of the tabs that read at the same
+// time only the first writes.
 // - "reset" (for an operation of this tab, with the lock exclusive): writes
 //   the cleared flags and the creation block of this build to every row.
-export type SyncStatusLoad = "repair" | "reset";
+export type SyncStatusLoad = "release" | "startup" | "reset";
 
 type Row = { contract: Contract; row: SyncStatusContract | undefined };
 
@@ -54,16 +59,18 @@ async function loadVersion(
   contracts: Contract[],
   load: SyncStatusLoad,
 ): Promise<void> {
+  const changeOf: ChangeOf = getChangeOf(load);
   let rows: Row[];
   switch (load) {
-    case "repair":
-      rows = await readRows(dbEventLogs, contracts, "r");
-      if (rows.some(({ row }) => row && getRepair(row))) {
-        rows = await readRows(dbEventLogs, contracts, "rw");
+    case "release":
+    case "startup":
+      rows = await readRows(dbEventLogs, contracts);
+      if (rows.some(({ contract, row }) => row && changeOf(contract, row))) {
+        rows = await writeRows(dbEventLogs, contracts, changeOf);
       }
       break;
     case "reset":
-      rows = await resetRows(dbEventLogs, contracts);
+      rows = await writeRows(dbEventLogs, contracts, changeOf);
       break;
   }
   // Only after the commit. Each row as it is in the DB, as before.
@@ -91,54 +98,62 @@ async function loadVersion(
   }
 }
 
-// Every contract with its row, or undefined. In "rw", also clears the flags
-// that are set, in the same transaction.
+// What a row needs, or undefined.
+type ChangeOf = (
+  contract: Contract,
+  row: SyncStatusContract,
+) => Partial<SyncStatusContract> | undefined;
+
+function getChangeOf(load: SyncStatusLoad): ChangeOf {
+  switch (load) {
+    case "release":
+      return (_contract, row) => getRepair(row);
+    case "startup":
+      return (contract, row) => {
+        const change: Partial<SyncStatusContract> = { ...getRepair(row) };
+        if (row.creationBlockNumber !== contract.creation.blockNumber) {
+          change.creationBlockNumber = contract.creation.blockNumber;
+        }
+        return Object.keys(change).length > 0 ? change : undefined;
+      };
+    case "reset":
+      return (contract) => getSyncStatusReset(contract);
+  }
+}
+
 async function readRows(
   dbEventLogs: DbEventLogs,
   contracts: Contract[],
-  mode: "r" | "rw",
 ): Promise<Row[]> {
-  return await dbEventLogs.transaction(mode, tableNameSyncStatus, async () => {
-    const table = dbEventLogs.table(tableNameSyncStatus);
-    const rows: Row[] = await getRows(dbEventLogs, contracts);
-    if (mode === "r") return rows;
-    const repaired = rows.map(({ contract, row }) => ({
-      contract,
-      row,
-      repair: row && getRepair(row),
-    }));
-    const changes = repaired.flatMap(({ contract, repair }) =>
-      repair ? [{ key: contract.name, changes: repair }] : [],
-    );
-    if (changes.length > 0) await table.bulkUpdate(changes);
-    return repaired.map(({ contract, row, repair }) => ({
-      contract,
-      row: row && { ...row, ...repair },
-    }));
-  });
+  return await dbEventLogs.transaction("r", tableNameSyncStatus, () =>
+    getRows(dbEventLogs, contracts),
+  );
 }
 
-// Writes the reset to every row, and reads it back, in one transaction.
-async function resetRows(
+// Reads the rows again and writes the change of each row that needs one, in
+// one read-write transaction, and gives the rows as written.
+async function writeRows(
   dbEventLogs: DbEventLogs,
   contracts: Contract[],
+  changeOf: ChangeOf,
 ): Promise<Row[]> {
   return await dbEventLogs.transaction("rw", tableNameSyncStatus, async () => {
-    const table = dbEventLogs.table(tableNameSyncStatus);
-    const reset = (await getRows(dbEventLogs, contracts)).map(
+    const changed = (await getRows(dbEventLogs, contracts)).map(
       ({ contract, row }) => ({
         contract,
         row,
-        changes: row && getSyncStatusReset(contract),
+        change: row && changeOf(contract, row),
       }),
     );
-    const changes = reset.flatMap(({ contract, changes }) =>
-      changes ? [{ key: contract.name, changes }] : [],
+    const changes = changed.flatMap(({ contract, change }) =>
+      change ? [{ key: contract.name, changes: change }] : [],
     );
-    if (changes.length > 0) await table.bulkUpdate(changes);
-    return reset.map(({ contract, row, changes }) => ({
+    if (changes.length > 0) {
+      await dbEventLogs.table(tableNameSyncStatus).bulkUpdate(changes);
+    }
+    return changed.map(({ contract, row, change }) => ({
       contract,
-      row: row && { ...row, ...changes },
+      row: row && { ...row, ...change },
     }));
   });
 }
