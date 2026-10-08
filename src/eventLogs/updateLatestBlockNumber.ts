@@ -80,21 +80,18 @@ export async function startUpdateLatestBlockNumber(
     // A request in flight fails when the provider is destroyed after stopping.
     if (isStopped) return;
     if (errorCount > TRY_COUNT) {
-      try {
-        await abortChainWithReason(
-          targetChainName,
-          "RPC_ERRORS",
-          "errorCount exceeded the limit. Start aborting.",
-          {
-            details: {
-              errorOn: functionName,
-              errorCount: `${errorCount}/${TRY_COUNT}`,
-            },
+      await abortChainWithReason(
+        targetChainName,
+        "RPC_ERRORS",
+        "errorCount exceeded the limit. Start aborting.",
+        {
+          details: {
+            errorOn: functionName,
+            errorCount: `${errorCount}/${TRY_COUNT}`,
           },
-        );
-      } finally {
-        stop();
-      }
+        },
+      );
+      stop();
       return;
     }
     scheduleUpdate();

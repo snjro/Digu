@@ -4,12 +4,31 @@ import { vi } from "vitest";
 import {
   FetchRequest,
   JsonRpcProvider,
+  makeError,
   Network,
   toUtf8Bytes,
   toUtf8String,
   type GetUrlResponse,
   type JsonRpcPayload,
 } from "ethers";
+
+// An ethers error of an RPC that refused the key, with the RPC URL in its
+// request, its info and its error.
+export function makeEthersErrorWithRpcUrl(): Error {
+  return makeError("server response 401 Unauthorized", "SERVER_ERROR", {
+    request: new FetchRequest("https://rpc.example/secret-key"),
+    error: new Error("https://rpc.example/secret-key"),
+    info: {
+      requestUrl: "https://rpc.example/secret-key",
+      responseBody: "invalid key",
+    },
+  });
+}
+// What of that error may be logged.
+export const LOGGABLE_ETHERS_ERROR = {
+  code: "SERVER_ERROR",
+  shortMessage: "server response 401 Unauthorized",
+};
 
 const jsonFileContract1EventOnly: JsonFileContract = {
   name: "contractName1",

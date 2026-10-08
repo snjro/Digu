@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
-import { FetchRequest, makeError } from "ethers";
+import {
+  LOGGABLE_ETHERS_ERROR,
+  makeEthersErrorWithRpcUrl,
+} from "#utils/testCommon.js";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain } from "#constants/chains/types.js";
 import {
@@ -77,13 +80,21 @@ describe("fetchEventLogs stops the chain by itself", () => {
   const matic: Chain = TARGET_CHAINS.find((chain) => chain.name === "matic")!;
   const nodeProvider = { destroy: vi.fn() } as unknown as NodeProvider;
   let spyLogs: Record<"error" | "fail", ReturnType<typeof vi.spyOn>>;
+  // The sync that the lock runs after it resolves.
+  let syncing: Promise<void>;
   beforeEach(() => {
     vi.clearAllMocks();
-    // Start, then sync, as the lock does.
+    // As the lock does: resolves once started, then syncs, and logs a sync
+    // that fails instead of passing it on.
     vi.mocked(requestSyncLock).mockImplementation(
-      async (_chainName, start, sync) => {
+      async (chainName, start, sync) => {
         await start();
-        await sync();
+        syncing = sync().catch((error: unknown) => {
+          customLogger.error("Sync event logs.", {
+            chainName: chainName,
+            errorObject: error,
+          });
+        });
         return true;
       },
     );
@@ -97,13 +108,22 @@ describe("fetchEventLogs stops the chain by itself", () => {
   });
   afterEach(() => {
     vi.restoreAllMocks();
+    for (const mock of [
+      requestSyncLock,
+      getNodeProvider,
+      startUpdateLatestBlockNumber,
+      fetchEventLogsContract,
+    ]) {
+      vi.mocked(mock).mockReset();
+    }
     storeSyncStoppedReason.clear("matic");
   });
 
   test("when it cannot get a provider", async () => {
     vi.mocked(getNodeProvider).mockResolvedValue(undefined);
 
-    await fetchEventLogs(matic);
+    expect(await fetchEventLogs(matic)).toBe(true);
+    await syncing;
 
     expect(spyLogs.fail).toHaveBeenCalledExactlyOnceWith(
       "Get provider.",
@@ -119,15 +139,18 @@ describe("fetchEventLogs stops the chain by itself", () => {
     const error: Error = new Error("unexpected");
     vi.mocked(startUpdateLatestBlockNumber).mockRejectedValue(error);
 
-    await expect(fetchEventLogs(matic)).rejects.toBe(error);
+    expect(await fetchEventLogs(matic)).toBe(true);
+    await syncing;
 
     expect(spyLogs.error).toHaveBeenCalledWith(
       "Fetch event logs. Stop syncing the chain after an error.",
-      expect.objectContaining({
-        chainName: "matic",
-        reason: "UNEXPECTED_ERROR",
-      }),
+      { chainName: "matic", reason: "UNEXPECTED_ERROR", error: error },
     );
+    // Thrown again, and logged by the lock.
+    expect(spyLogs.error).toHaveBeenCalledWith("Sync event logs.", {
+      chainName: "matic",
+      errorObject: error,
+    });
     expect(get(storeSyncStoppedReason).matic).toBe("UNEXPECTED_ERROR");
     expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith("matic");
     expect(stopSyncingInChain).toHaveBeenCalledWith("matic");
@@ -135,13 +158,11 @@ describe("fetchEventLogs stops the chain by itself", () => {
 
   test("when a contract ends with an error", async () => {
     vi.mocked(fetchEventLogsContract).mockRejectedValueOnce(
-      makeError("server response 401 Unauthorized", "SERVER_ERROR", {
-        request: new FetchRequest("https://rpc.example/secret-key"),
-        info: { requestUrl: "https://rpc.example/secret-key" },
-      }),
+      makeEthersErrorWithRpcUrl(),
     );
 
-    await fetchEventLogs(matic);
+    expect(await fetchEventLogs(matic)).toBe(true);
+    await syncing;
 
     // Without the request URL of the ethers error.
     expect(spyLogs.error).toHaveBeenCalledExactlyOnceWith(
@@ -150,10 +171,7 @@ describe("fetchEventLogs stops the chain by itself", () => {
         chainName: "matic",
         reason: "UNEXPECTED_ERROR",
         contractName: expect.any(String),
-        error: {
-          code: "SERVER_ERROR",
-          shortMessage: "server response 401 Unauthorized",
-        },
+        error: LOGGABLE_ETHERS_ERROR,
       },
     );
     expect(get(storeSyncStoppedReason).matic).toBe("UNEXPECTED_ERROR");

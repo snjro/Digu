@@ -229,9 +229,12 @@ export async function fetchEventLogsContract(
           logAbortError: false,
         },
       );
-      // End the contract, which then aborts the chain again as for an
-      // unexpected error, and logs it.
+      // Stop this contract and end it with the error, so that the abort of
+      // the chain is tried again as for an unexpected error. The error is
+      // logged there as the cause, and a second failure of the abort as its
+      // own entry.
       if (!abortResult.aborted) {
+        await stopSyncingInContract(dbEventLogs, targetContract.name);
         throw new Error("Failed to start aborting.", {
           cause: abortResult.error,
         });

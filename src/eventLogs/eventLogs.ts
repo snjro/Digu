@@ -100,6 +100,7 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
       targetChain.name,
       "UNEXPECTED_ERROR",
       "Fetch event logs. Stop syncing the chain after an error.",
+      { error: error },
     );
     throw error;
   } finally {

@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
-import { FetchRequest, makeError } from "ethers";
+import {
+  LOGGABLE_ETHERS_ERROR,
+  makeEthersErrorWithRpcUrl,
+} from "#utils/testCommon.js";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { ChainName } from "#constants/chains/types.js";
 import type { SyncStatusesChain } from "#db/dbTypes.js";
@@ -50,15 +53,6 @@ describe("abortChainWithReason", () => {
     vi.restoreAllMocks();
     storeSyncStoppedReason.clear(chainName);
   });
-  const ethersError = (): Error =>
-    makeError("server response 401 Unauthorized", "SERVER_ERROR", {
-      request: new FetchRequest("https://rpc.example/secret-key"),
-      info: { requestUrl: "https://rpc.example/secret-key" },
-    });
-  const loggableEthersError = {
-    code: "SERVER_ERROR",
-    shortMessage: "server response 401 Unauthorized",
-  };
 
   test("should log why at the level, record the reason and start to abort", async () => {
     const spyFatal = vi
@@ -69,7 +63,7 @@ describe("abortChainWithReason", () => {
       await abortChainWithReason(chainName, "RPC_ERRORS", "Too many errors.", {
         level: "fatal",
         details: { errorCount: "11/10" },
-        error: ethersError(),
+        error: makeEthersErrorWithRpcUrl(),
       }),
     ).toEqual({ aborted: true });
 
@@ -77,10 +71,32 @@ describe("abortChainWithReason", () => {
       chainName,
       reason: "RPC_ERRORS",
       errorCount: "11/10",
-      error: loggableEthersError,
+      error: LOGGABLE_ETHERS_ERROR,
     });
     expect(get(storeSyncStoppedReason)[chainName]).toBe("RPC_ERRORS");
     expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(chainName);
+  });
+
+  test("should log an ethers error in the cause without what ethers adds", async () => {
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+
+    await abortChainWithReason(chainName, "UNEXPECTED_ERROR", "Stopped.", {
+      error: new Error("Failed to start aborting.", {
+        cause: makeEthersErrorWithRpcUrl(),
+      }),
+    });
+
+    expect(spyError).toHaveBeenCalledExactlyOnceWith("Stopped.", {
+      chainName,
+      reason: "UNEXPECTED_ERROR",
+      error: {
+        name: "Error",
+        message: "Failed to start aborting.",
+        cause: LOGGABLE_ETHERS_ERROR,
+      },
+    });
   });
 
   test("should record the reason and start to abort when the log throws", async () => {
@@ -115,7 +131,7 @@ describe("abortChainWithReason", () => {
     const spyError = vi
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});
-    const abortError: Error = ethersError();
+    const abortError: Error = makeEthersErrorWithRpcUrl();
     vi.mocked(startAbortingInChain).mockRejectedValueOnce(abortError);
 
     expect(
@@ -124,7 +140,7 @@ describe("abortChainWithReason", () => {
 
     expect(spyError).toHaveBeenCalledWith("Failed to start aborting.", {
       chainName,
-      error: loggableEthersError,
+      error: LOGGABLE_ETHERS_ERROR,
     });
   });
 

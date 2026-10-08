@@ -30,7 +30,6 @@ import * as dbChainStatusDataHandlers from "#db/dbChainStatusDataHandlers.js";
 import type { ChainStatus, EthersEventLog } from "#db/dbTypes.js";
 import {
   EventLog,
-  FetchRequest,
   JsonRpcProvider,
   Log,
   Network,
@@ -52,6 +51,8 @@ import {
 import { customLogger } from "./logger";
 import {
   jsonFileContracts,
+  LOGGABLE_ETHERS_ERROR,
+  makeEthersErrorWithRpcUrl,
   providerAnsweringGetLogs,
   type GetLogsAnswer,
 } from "./testCommon";
@@ -478,12 +479,7 @@ describe("getNodeProvider logs", () => {
   test("should log only the code and the short message of an ethers error", async () => {
     const spyGetNetwork = vi
       .spyOn(JsonRpcProvider.prototype, "getNetwork")
-      .mockRejectedValueOnce(
-        makeError("server response 401 Unauthorized", "SERVER_ERROR", {
-          request: new FetchRequest("https://rpc.example/secret-key"),
-          info: { requestUrl: "https://rpc.example/secret-key" },
-        }),
-      );
+      .mockRejectedValueOnce(makeEthersErrorWithRpcUrl());
     const spyError = vi
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});
@@ -492,10 +488,7 @@ describe("getNodeProvider logs", () => {
 
     expect(spyError).toHaveBeenCalledExactlyOnceWith(
       "nodeProvider.getNetwork().",
-      {
-        code: "SERVER_ERROR",
-        shortMessage: "server response 401 Unauthorized",
-      },
+      LOGGABLE_ETHERS_ERROR,
     );
     spyGetNetwork.mockRestore();
     spyError.mockRestore();
@@ -583,22 +576,9 @@ describe("getLoggableError", () => {
   });
 
   test("should keep only the code and the short message of an HTTP error", () => {
-    const error: Error = makeError(
-      "server response 401 Unauthorized",
-      "SERVER_ERROR",
-      {
-        request: new FetchRequest("https://rpc.example/secret-key"),
-        error: new Error("https://rpc.example/secret-key"),
-        info: {
-          requestUrl: "https://rpc.example/secret-key",
-          responseBody: "invalid key",
-        },
-      },
+    expect(getLoggableError(makeEthersErrorWithRpcUrl())).toStrictEqual(
+      LOGGABLE_ETHERS_ERROR,
     );
-    expect(getLoggableError(error)).toStrictEqual({
-      code: "SERVER_ERROR",
-      shortMessage: "server response 401 Unauthorized",
-    });
   });
 
   test.each([new Error("DB error"), "text", undefined])(
