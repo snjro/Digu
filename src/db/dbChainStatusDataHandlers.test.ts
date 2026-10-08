@@ -107,37 +107,51 @@ describe("raiseDbLatestBlockNumber", () => {
     );
   });
 
-  test.each([1, 0])(
-    "should not write %s to the DB, and give the store the one of the DB",
-    async (latestBlockNumber: number) => {
-      await raiseDbLatestBlockNumber(dummyChainName, latestBlockNumber);
-
-      expect(spyTableUpdate).not.toHaveBeenCalled();
-      // A store behind the DB catches up.
-      expect(spyStoreChainStatus).toHaveBeenCalledExactlyOnceWith(
-        dummyChainName,
-        { latestBlockNumber: dummyChainStatus.latestBlockNumber },
-      );
-    },
-  );
-
-  test("should leave the store as it is when it has the value", async () => {
-    const spyGetStore = vi
+  // The latest block of the chain in the store, for a test.
+  function withStoreAt(latestBlockNumber: number): () => void {
+    const spySubscribe = vi
       .spyOn(storeChainStatus, "subscribe")
       .mockImplementation((run) => {
         run({
-          [dummyChainName]: { latestBlockNumber: 1 },
+          [dummyChainName]: { latestBlockNumber },
         } as unknown as Parameters<typeof run>[0]);
         return () => {};
       });
-    try {
-      await raiseDbLatestBlockNumber(dummyChainName, 1);
+    return () => spySubscribe.mockRestore();
+  }
 
-      expect(spyStoreChainStatus).not.toHaveBeenCalled();
-    } finally {
-      spyGetStore.mockRestore();
-    }
-  });
+  test.each([1, 0])(
+    "should not write %s to the DB, and raise a store behind the DB to the one of the DB",
+    async (latestBlockNumber: number) => {
+      const restore = withStoreAt(0);
+      try {
+        await raiseDbLatestBlockNumber(dummyChainName, latestBlockNumber);
+
+        expect(spyTableUpdate).not.toHaveBeenCalled();
+        expect(spyStoreChainStatus).toHaveBeenCalledExactlyOnceWith(
+          dummyChainName,
+          { latestBlockNumber: dummyChainStatus.latestBlockNumber },
+        );
+      } finally {
+        restore();
+      }
+    },
+  );
+
+  test.each([1, 2])(
+    "should not lower or set again a store at %s",
+    async (inStore: number) => {
+      const restore = withStoreAt(inStore);
+      try {
+        // The DB has 1.
+        await raiseDbLatestBlockNumber(dummyChainName, 0);
+
+        expect(spyStoreChainStatus).not.toHaveBeenCalled();
+      } finally {
+        restore();
+      }
+    },
+  );
 
   test("should change nothing for a chain without a row", async () => {
     spyTableGet.mockResolvedValueOnce(undefined);

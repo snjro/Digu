@@ -32,7 +32,7 @@ describe("startUpdateLatestBlockNumber", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    vi.mocked(getAndUpdateLatestBlockNumber).mockResolvedValue(1);
+    vi.mocked(getAndUpdateLatestBlockNumber).mockResolvedValue();
     storeSyncStatus.update((state: SyncStatusesChain) => {
       state[chainName].isSyncing = true;
       state[chainName].isAbort = false;
@@ -141,7 +141,7 @@ describe("startUpdateLatestBlockNumber", () => {
   test("should not warn when a request fails after it is stopped", async () => {
     let failRequest: () => void = () => {};
     vi.mocked(getAndUpdateLatestBlockNumber)
-      .mockResolvedValueOnce(1)
+      .mockResolvedValueOnce()
       .mockImplementationOnce(
         () =>
           new Promise((_resolve, reject) => {
@@ -163,7 +163,7 @@ describe("startUpdateLatestBlockNumber", () => {
 
   test("should warn when a request fails while it is not stopped", async () => {
     vi.mocked(getAndUpdateLatestBlockNumber)
-      .mockResolvedValueOnce(1)
+      .mockResolvedValueOnce()
       .mockRejectedValueOnce(new Error("RPC error"));
     const { customLogger } = await import("#utils/logger.js");
     const spyWarn = vi.spyOn(customLogger, "warn");

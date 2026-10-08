@@ -678,26 +678,17 @@ describe("getAndUpdateLatestBlockNumber", () => {
   test("should get latestBlockNumber, and only raise it", async () => {
     const expectedLatestBlockNumber: number =
       rpcLatestBlockNumber - targetChain.confirmationBlocks;
-    const actualLatestBlockNumber: number = await getAndUpdateLatestBlockNumber(
-      nodeProvider!,
-      targetChainName,
-    );
+    await getAndUpdateLatestBlockNumber(nodeProvider!, targetChainName);
     expect(spyRaise).toHaveBeenCalledExactlyOnceWith(
       targetChainName,
       expectedLatestBlockNumber,
     );
     expect(spyUpdateDbItemChainStatus).not.toHaveBeenCalled();
-
-    expect(actualLatestBlockNumber).toBe(expectedLatestBlockNumber);
   });
   test("should not go below 0 when the chain is shorter than the confirmation depth", async () => {
     spyGetBlockNumber.mockResolvedValueOnce(targetChain.confirmationBlocks - 1);
-    const actualLatestBlockNumber: number = await getAndUpdateLatestBlockNumber(
-      nodeProvider!,
-      targetChainName,
-    );
+    await getAndUpdateLatestBlockNumber(nodeProvider!, targetChainName);
     expect(spyRaise).toHaveBeenCalledExactlyOnceWith(targetChainName, 0);
-    expect(actualLatestBlockNumber).toBe(0);
   });
 });
 describe("getEthersEventLogs", async () => {

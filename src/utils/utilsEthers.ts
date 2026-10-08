@@ -351,7 +351,7 @@ function isJsonRpcError(
 export async function getAndUpdateLatestBlockNumber(
   nodeProvider: NodeProvider,
   chainName: ChainName,
-): Promise<number> {
+): Promise<void> {
   // Blocks within the confirmation depth can still be replaced by a chain
   // reorganization, so the sync does not go past them.
   const latestBlockNumber: number = Math.max(
@@ -360,7 +360,6 @@ export async function getAndUpdateLatestBlockNumber(
       getTargetChain({ chainName }).confirmationBlocks,
   );
   await raiseDbLatestBlockNumber(chainName, latestBlockNumber);
-  return latestBlockNumber;
 }
 
 export async function getEthersEventLogs(

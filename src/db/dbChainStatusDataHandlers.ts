@@ -36,8 +36,8 @@ export async function updateDbItemChainStatus<T extends keyof ChainStatus>(
 }
 // Only a higher block, read and written in one transaction, so that a late or
 // older answer, or another tab, does not move the latest block back. The
-// store gets the higher one when it has another value, so that a store behind
-// the DB catches up without waking its subscribers on each tick. A chain
+// store is raised the same way to the higher one, so that a store behind the
+// DB catches up, and a raise that ends late does not lower it. A chain
 // without a row changes nothing.
 export async function raiseDbLatestBlockNumber(
   chainName: ChainName,
@@ -60,10 +60,10 @@ export async function raiseDbLatestBlockNumber(
       return latestBlockNumber;
     },
   );
-  if (
-    higher !== undefined &&
-    get(storeChainStatus)[chainName]?.latestBlockNumber !== higher
-  ) {
+  if (higher === undefined) return;
+  const inStore: number | undefined =
+    get(storeChainStatus)[chainName]?.latestBlockNumber;
+  if (inStore === undefined || inStore < higher) {
     storeChainStatus.updateState(chainName, { latestBlockNumber: higher });
   }
 }
