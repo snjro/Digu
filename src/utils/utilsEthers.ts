@@ -265,14 +265,11 @@ export async function getNodeProvider(
         nodeStatus = "WRONG_CHAIN";
       }
     } catch (error) {
-      const loggableError: unknown = getLoggableError(error);
       customLogger.error(
         "nodeProvider.getNetwork().",
-        // Other errors, such as the DOMException of a WebSocket that cannot
-        // be made, may have the URL in the message.
-        loggableError instanceof Error && loggableError !== timeoutError
-          ? { name: loggableError.name }
-          : loggableError,
+        error === timeoutError
+          ? error
+          : getLoggableError(error, { onlyNames: true }),
       );
       nodeStatus = "NETWORK_ERROR";
     } finally {
@@ -311,38 +308,46 @@ async function destroyNodeProvider(
   try {
     await nodeProvider?.destroy();
   } catch (error) {
-    const loggableError: unknown = getLoggableError(error);
-    // An error that is not from ethers may have the URL in the message, as in
-    // getNodeProvider.
     customLogger.error(
       "nodeProvider.destroy().",
-      loggableError instanceof Error
-        ? { name: loggableError.name }
-        : loggableError,
+      getLoggableError(error, { onlyNames: true }),
     );
   }
 }
 // The causes followed, so that a cause that loops also ends.
 const MAX_CAUSE_DEPTH: number = 5;
 // ethers puts the request URL, which may hold an API key, in the message and
-// the properties of its errors.
-export function getLoggableError(error: unknown): unknown {
-  return getLoggableErrorAt(error, 0);
+// the properties of its errors. The causes are cleaned too. onlyNames keeps
+// only the names of an error that is not from ethers and of its causes, for
+// an error whose message may have the URL, such as the DOMException of a
+// WebSocket that cannot be made.
+export function getLoggableError(
+  error: unknown,
+  { onlyNames = false }: { onlyNames?: boolean } = {},
+): unknown {
+  return getLoggableErrorAt(error, 0, onlyNames);
 }
-function getLoggableErrorAt(error: unknown, depth: number): unknown {
-  if (!(error instanceof Error && "code" in error && "shortMessage" in error)) {
-    if (!(error instanceof Error) || error.cause === undefined) {
-      return error;
-    }
-    // The cause may be an ethers error.
+function getLoggableErrorAt(
+  error: unknown,
+  depth: number,
+  onlyNames: boolean,
+): unknown {
+  if (!(error instanceof Error)) return error;
+  if (depth > MAX_CAUSE_DEPTH) return "(more causes)";
+  if (!("code" in error && "shortMessage" in error)) {
+    const cleanedCause: { cause?: unknown } =
+      error.cause === undefined
+        ? {}
+        : { cause: getLoggableErrorAt(error.cause, depth + 1, onlyNames) };
+    if (onlyNames) return { name: error.name, ...cleanedCause };
+    if (error.cause === undefined) return error;
+    // Its own fields too, such as the inner error of Dexie.
     return {
+      ...error,
       name: error.name,
       message: error.message,
       stack: error.stack,
-      cause:
-        depth < MAX_CAUSE_DEPTH
-          ? getLoggableErrorAt(error.cause, depth + 1)
-          : "(more causes)",
+      ...cleanedCause,
     };
   }
   const loggableError = { code: error.code, shortMessage: error.shortMessage };

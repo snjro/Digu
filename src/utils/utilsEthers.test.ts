@@ -535,6 +535,28 @@ describe("getNodeProvider logs", () => {
     spyError.mockRestore();
   });
 
+  test("should log only the names of an error with a cause that is not from ethers", async () => {
+    const spyGetNetwork = vi
+      .spyOn(JsonRpcProvider.prototype, "getNetwork")
+      .mockRejectedValueOnce(
+        new Error("https://rpc.example/secret-key", {
+          cause: new TypeError("https://rpc.example/secret-key"),
+        }),
+      );
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+
+    await getNodeProvider(targetChain, "https://rpc.example/secret-key");
+
+    expect(spyError).toHaveBeenCalledExactlyOnceWith(
+      "nodeProvider.getNetwork().",
+      { name: "Error", cause: { name: "TypeError" } },
+    );
+    spyGetNetwork.mockRestore();
+    spyError.mockRestore();
+  });
+
   test("should log the timeout of getNetwork as it is", async () => {
     vi.useFakeTimers();
     const spyGetNetwork = vi
@@ -591,6 +613,46 @@ describe("getLoggableError", () => {
       stack: error.stack,
       cause: LOGGABLE_ETHERS_ERROR,
     });
+  });
+
+  test("should keep the own fields of an error with a cause", () => {
+    const error = Object.assign(
+      new Error("Failed to save.", { cause: makeEthersErrorWithRpcUrl() }),
+      { name: "BulkError", inner: { name: "ConstraintError" } },
+    );
+    expect(getLoggableError(error)).toStrictEqual({
+      name: "BulkError",
+      message: "Failed to save.",
+      stack: error.stack,
+      inner: { name: "ConstraintError" },
+      cause: LOGGABLE_ETHERS_ERROR,
+    });
+  });
+
+  test("should keep only the names of an error and its causes when asked", () => {
+    const error: Error = new Error("wss://rpc.example/secret-key", {
+      cause: new TypeError("wss://rpc.example/secret-key"),
+    });
+    expect(getLoggableError(error, { onlyNames: true })).toStrictEqual({
+      name: "Error",
+      cause: { name: "TypeError" },
+    });
+    expect(
+      getLoggableError(makeEthersErrorWithRpcUrl(), { onlyNames: true }),
+    ).toStrictEqual(LOGGABLE_ETHERS_ERROR);
+  });
+
+  test("should keep a cause that is not an error after the last error it follows", () => {
+    // Six errors, the most it follows, and a text as the last cause.
+    let error: unknown = "the first cause";
+    for (let i = 0; i < 6; i++) {
+      error = new Error(`level ${i}`, { cause: error });
+    }
+    let loggableError: unknown = getLoggableError(error);
+    for (let i = 0; i < 10 && typeof loggableError === "object"; i++) {
+      loggableError = (loggableError as { cause: unknown }).cause;
+    }
+    expect(loggableError).toBe("the first cause");
   });
 
   test("should stop following the causes of an error whose cause loops", () => {

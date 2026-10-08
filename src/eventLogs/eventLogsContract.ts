@@ -230,10 +230,10 @@ export async function fetchEventLogsContract(
         },
       );
       // End the contract with the error, so that the abort of the chain is
-      // tried again as for an unexpected error, and the rows of every
-      // contract are cleared when the sync of the chain ends. The error is
-      // logged there as the cause, and a second failure of the abort as its
-      // own entry.
+      // tried again as for an unexpected error. The error is logged there as
+      // the cause, and a second failure of the abort as its own entry. When
+      // that abort fails too, the other contracts go on, and the rows are
+      // cleared only when the sync of the chain ends after them.
       if (!abortResult.aborted) {
         throw new Error("Failed to start aborting.", {
           cause: abortResult.error,

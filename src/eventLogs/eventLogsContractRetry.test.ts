@@ -196,8 +196,8 @@ describe("fetchEventLogsContract", () => {
     await vi.runAllTimersAsync();
     await ended;
 
+    // It writes neither the logs nor its row.
     expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
-    // The sync of the chain clears the row when it ends.
     expect(stopSyncingInContract).not.toHaveBeenCalled();
     expect(spyError).not.toHaveBeenCalledWith(
       "Failed to start aborting.",

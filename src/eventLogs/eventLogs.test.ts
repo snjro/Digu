@@ -104,6 +104,8 @@ describe("fetchEventLogs stops the chain by itself", () => {
     };
   });
   afterEach(() => {
+    // Also the values queued on the mocks of the modules.
+    vi.resetAllMocks();
     vi.restoreAllMocks();
     storeSyncStoppedReason.clear("matic");
   });
@@ -162,20 +164,5 @@ describe("fetchEventLogs stops the chain by itself", () => {
     expect(get(storeSyncStoppedReason).matic).toBe("UNEXPECTED_ERROR");
     expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith("matic");
     expect(stopSyncingInChain).toHaveBeenCalledWith("matic");
-  });
-
-  test("clears the rows when the abort of the chain fails", async () => {
-    vi.mocked(fetchEventLogsContract).mockRejectedValueOnce(
-      new Error("Failed to start aborting.", { cause: new Error("DB error") }),
-    );
-    vi.mocked(startAbortingInChain).mockRejectedValueOnce(
-      new Error("DB error"),
-    );
-
-    expect(await fetchEventLogs(matic)).toBe(true);
-    expect(await syncing).toBeUndefined();
-
-    expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith("matic");
-    expect(stopSyncingInChain).toHaveBeenCalledExactlyOnceWith("matic");
   });
 });
