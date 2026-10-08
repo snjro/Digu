@@ -490,6 +490,8 @@ const TOGGLE_TEXTS = [
   "stop sync",
   "starting sync",
   "stopping sync",
+  "in use in another tab",
+  // Before #656.
   "syncing in another tab",
   // SYNC_WAITS_FOR_IMPORT and SYNC_WAITS_FOR_IMPORT_STOPPING, _FINISHING and
   // _FAILING of src/warpSync/warpSyncTexts.ts.
@@ -504,6 +506,8 @@ const CLICK_TEXTS = [
   "start sync",
   "stop sync",
   "starting sync",
+  "in use in another tab",
+  // Before #656.
   "syncing in another tab",
 ];
 async function toggleButton(page, texts) {

@@ -51,9 +51,9 @@ export function getResetDisabledReason(
       return undefined;
     case "resetting":
       return "Resetting…";
-    // The panel says that the chain is synced in another tab.
+    // The panel says that the chain is in use in another tab.
     case "otherTab":
-      return "Stop the sync in the other tab first.";
+      return "Wait until the other tab is done.";
     case "syncing":
       return STOP_THE_SYNC_FIRST;
     // "stop sync" was pressed: the contracts end what they are doing first.

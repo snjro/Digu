@@ -371,7 +371,7 @@ describe("SyncStatusToggle.svelte", () => {
     // Another tab first, as in the chain activity.
     lockedByOtherTab.update((state) => ({ ...state, eth: true }));
     await tick();
-    expect(screen.getByText("syncing in another tab")).toBeTruthy();
+    expect(screen.getByText("in use in another tab")).toBeTruthy();
     lockedByOtherTab.update((state) => ({ ...state, eth: false }));
     lockedByThisTab.set({});
     await tick();
@@ -393,7 +393,7 @@ describe("SyncStatusToggle.svelte", () => {
     lockedByOtherTab.update((state) => ({ ...state, eth: true }));
     await tick();
     expect(getToggle().disabled).toBe(true);
-    expect(screen.getByText("syncing in another tab")).toBeTruthy();
+    expect(screen.getByText("in use in another tab")).toBeTruthy();
   });
 
   test.each([

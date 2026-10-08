@@ -108,7 +108,7 @@
 
   let tooltipText: string = $derived(
     activity === "otherTab"
-      ? "syncing in another tab"
+      ? "in use in another tab"
       : isStarting
         ? "starting sync"
         : // The toggle is already off: the contracts end what they do first.

@@ -37,7 +37,7 @@ export function getSyncPanelStateText(
 ): SyncPanelStateText | undefined {
   // This tab's syncStateText may be read from the DB while another tab syncs.
   if (activity === "otherTab") {
-    return { text: "Syncing in another tab.", isError: false };
+    return { text: "In use in another tab.", isError: false };
   }
   switch (syncStateText) {
     case "syncing":

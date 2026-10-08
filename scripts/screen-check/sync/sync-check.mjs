@@ -223,6 +223,8 @@ const TOGGLE_TEXTS = [
   "stop sync",
   "starting sync",
   "stopping sync",
+  "in use in another tab",
+  // Before #656.
   "syncing in another tab",
   // SYNC_WAITS_FOR_IMPORT and SYNC_WAITS_FOR_IMPORT_STOPPING, _FINISHING and
   // _FAILING of src/warpSync/warpSyncTexts.ts.
@@ -237,6 +239,8 @@ const CLICK_TEXTS = [
   "start sync",
   "stop sync",
   "starting sync",
+  "in use in another tab",
+  // Before #656.
   "syncing in another tab",
 ];
 async function toggleInfo(page) {
@@ -998,7 +1002,7 @@ if (want("S4")) {
       const bInfo = await (await front(b), toggleInfo)(b);
       check(
         "B toggle before click",
-        bInfo?.tooltip === "syncing in another tab" && bInfo.disabled === true,
+        bInfo?.tooltip === "in use in another tab" && bInfo.disabled === true,
         { toggle: bInfo },
       );
       // C opens while A syncs.

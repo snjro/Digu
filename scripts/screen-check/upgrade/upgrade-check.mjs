@@ -292,7 +292,7 @@ async function pageInfo(page) {
         .filter(
           (e) =>
             e.children.length === 0 &&
-            /^(start sync|stop sync|starting sync|stopping sync|syncing in another tab|Importing the published logs\. Stop it to sync from your RPC now\.|Stopping the import of the published logs\.|Finishing the import of the published logs\.|Importing the published logs\.)$/.test(
+            /^(start sync|stop sync|starting sync|stopping sync|in use in another tab|syncing in another tab|Importing the published logs\. Stop it to sync from your RPC now\.|Stopping the import of the published logs\.|Finishing the import of the published logs\.|Importing the published logs\.)$/.test(
               e.textContent.trim(),
             ),
         )
