@@ -513,7 +513,8 @@ describe("warpSync", () => {
       expect(selectWarpSyncState(get(storeWarpSync), "matic").status).toBe(
         "stopped",
       );
-      // Nothing was saved before the stop, so the DB need not be read again.
+      // Before the sync, nothing reads the DB again: nothing was saved before
+      // the stop. Through startWarpSync, the lock reads it.
       expect(reloadSyncStatusInChain).not.toHaveBeenCalled();
     });
     test("does not throw when the import fails: the sync goes on", async () => {

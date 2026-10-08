@@ -189,7 +189,7 @@ async function runImport(
       chainName,
       manifest,
     );
-    const about = { ...getLastRun(manifest), pending };
+    const about: WarpSyncAbout = { ...getLastRun(manifest), pending };
     // Stopped while checking: nothing is saved, so the counts stand and the
     // DB need not be read again.
     if (controller.signal.aborted) {
@@ -291,34 +291,38 @@ async function reloadAfterImport(chainName: ChainName): Promise<void> {
     });
   });
 }
+// The last run of the snapshot and what is left of it.
+type WarpSyncAbout = Pick<WarpSyncState, "toBlock" | "createdAt" | "pending">;
 // Every stopped end. The chain is held before anything is awaited, so that
 // the warp sync turned on meanwhile is not undone. about: what was counted
 // before anything was saved. Without it, a file may have been saved after the
-// stop, before its result reached this tab: the DB is read again, and what is
-// left is counted after it.
+// stop, before its result reached this tab.
 async function endStopped(
   chainName: ChainName,
-  end:
-    | { about: Pick<WarpSyncState, "toBlock" | "createdAt" | "pending"> }
-    | { manifest: WarpSyncManifest | undefined },
+  end: { about: WarpSyncAbout } | { manifest: WarpSyncManifest | undefined },
 ): Promise<WarpSyncState> {
   heldChains.add(chainName);
-  let about: Pick<WarpSyncState, "toBlock" | "createdAt" | "pending">;
-  if ("about" in end) {
-    about = end.about;
-  } else {
-    await reloadAfterImport(chainName);
-    about = {
-      ...getLastRun(end.manifest),
-      pending: end.manifest
-        ? await getPendingOrUndefined(chainName, end.manifest)
-        : undefined,
-    };
-  }
   customLogger.info("Stopped the import of the warp sync snapshot.", {
     chainName,
   });
+  const about: WarpSyncAbout =
+    "about" in end
+      ? end.about
+      : await countAfterReload(chainName, end.manifest);
   return { status: "stopped", ...about };
+}
+// Reads the DB again, and then counts what is left.
+async function countAfterReload(
+  chainName: ChainName,
+  manifest: WarpSyncManifest | undefined,
+): Promise<WarpSyncAbout> {
+  await reloadAfterImport(chainName);
+  return {
+    ...getLastRun(manifest),
+    pending: manifest
+      ? await getPendingOrUndefined(chainName, manifest)
+      : undefined,
+  };
 }
 // What is left after a stop; undefined when it cannot be read, so that the
 // state still leaves "checking" or "importing".
