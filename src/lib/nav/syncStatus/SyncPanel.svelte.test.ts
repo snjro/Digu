@@ -2,7 +2,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
 import type { Writable } from "svelte/store";
-import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+import {
+  storeSyncLockedByOtherTab,
+  storeSyncLockedByThisTab,
+  type SyncLockKind,
+} from "#eventLogs/syncLock.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import SyncPanelTestHost from "./SyncPanel.testHost.svelte";
@@ -48,6 +52,9 @@ const syncStatus = storeSyncStatus as unknown as Writable<unknown>;
 const lockedByOtherTab = storeSyncLockedByOtherTab as unknown as Writable<
   Record<string, boolean>
 >;
+const lockedByThisTab = storeSyncLockedByThisTab as unknown as Writable<
+  Record<string, SyncLockKind>
+>;
 function setChain(syncStateText: string): void {
   syncStatus.set({ matic: { syncStateText, subSyncStatuses: {} } });
 }
@@ -71,6 +78,7 @@ describe("SyncPanel.svelte", () => {
   });
   afterEach(() => {
     lockedByOtherTab.set({ matic: false });
+    lockedByThisTab.set({});
     storeSyncStoppedReason.clear("matic");
     vi.clearAllMocks();
   });
@@ -222,6 +230,24 @@ describe("SyncPanel.svelte", () => {
     await tick();
     expect(status().textContent?.trim()).toBe(
       "Sync stopped: unexpected error.",
+    );
+  });
+
+  test("tells why the sync stopped at once, before the sync releases the lock", async () => {
+    lockedByThisTab.set({ matic: "sync" });
+    setChain("syncing");
+    render(SyncPanelTestHost);
+    await openPanel();
+    storeSyncStoppedReason.record("matic", "RPC_ERRORS");
+    setChain("stopped");
+    await tick();
+    expect(status().textContent?.trim()).toBe(
+      "Sync stopped: RPC errors. Try another RPC.",
+    );
+    lockedByThisTab.set({});
+    await tick();
+    expect(status().textContent?.trim()).toBe(
+      "Sync stopped: RPC errors. Try another RPC.",
     );
   });
 });

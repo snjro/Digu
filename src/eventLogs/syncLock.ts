@@ -13,7 +13,13 @@ import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { customLogger } from "#utils/logger.js";
-import { get, writable, type Readable, type Writable } from "svelte/store";
+import {
+  get,
+  readonly,
+  writable,
+  type Readable,
+  type Writable,
+} from "svelte/store";
 
 // true while another tab holds the sync lock of the chain (its sync, import or
 // reset).
@@ -36,7 +42,7 @@ const chainsLockedByThisTab: Writable<
 > = writable({});
 export const storeSyncLockedByThisTab: Readable<
   Partial<Record<ChainName, SyncLockKind>>
-> = { subscribe: chainsLockedByThisTab.subscribe };
+> = readonly(chainsLockedByThisTab);
 
 // Runs `run` while holding the sync lock of the chain. Resolves true once
 // `run` has finished, or false without running it when this tab holds or

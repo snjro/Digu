@@ -59,7 +59,10 @@ function getImportActivity(state: WarpSyncState): ChainActivity {
     : "smallImport";
 }
 
-// storeSyncStatus has every chain.
+let shownActivities: Record<ChainName, ChainActivity> = {};
+
+// storeSyncStatus has every chain. Set only when an activity changes:
+// storeSyncStatus changes with each range that a sync saves.
 export const storeChainActivity: Readable<Record<ChainName, ChainActivity>> =
   derived(
     [
@@ -68,8 +71,8 @@ export const storeChainActivity: Readable<Record<ChainName, ChainActivity>> =
       storeSyncStatus,
       storeWarpSync,
     ],
-    ([lockedByThisTab, lockedByOtherTab, syncStatus, warpSync]) =>
-      Object.fromEntries(
+    ([lockedByThisTab, lockedByOtherTab, syncStatus, warpSync], set) => {
+      const activities: Record<ChainName, ChainActivity> = Object.fromEntries(
         Object.keys(syncStatus).map((chainName: ChainName) => [
           chainName,
           getChainActivity({
@@ -79,5 +82,21 @@ export const storeChainActivity: Readable<Record<ChainName, ChainActivity>> =
             warpSyncState: selectWarpSyncState(warpSync, chainName),
           }),
         ]),
-      ),
+      );
+      if (isSameActivities(shownActivities, activities)) return;
+      shownActivities = activities;
+      set(activities);
+    },
+    shownActivities,
   );
+
+function isSameActivities(
+  a: Record<ChainName, ChainActivity>,
+  b: Record<ChainName, ChainActivity>,
+): boolean {
+  const chainNames: ChainName[] = Object.keys(a);
+  return (
+    chainNames.length === Object.keys(b).length &&
+    chainNames.every((chainName: ChainName) => a[chainName] === b[chainName])
+  );
+}

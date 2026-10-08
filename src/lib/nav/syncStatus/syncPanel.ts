@@ -5,19 +5,20 @@ import { SYNC_STOPPED_TEXTS } from "../rpcInputHelperLabel";
 
 export const SYNC_PANEL_ID = "sync-panel";
 
-// The reason is shown only while the sync is stopped, and not while a sync
-// holds the chain, in this tab or in another one.
+// The reason is shown only while the sync is stopped, and not while another
+// tab syncs the chain. Also while this tab's sync still holds the lock after
+// it stopped.
 export function getShownSyncStoppedReason(
   activity: ChainActivity,
   syncStateText: SyncStateText,
   syncStoppedReason: SyncStoppedReason | undefined,
 ): SyncStoppedReason | undefined {
   switch (activity) {
-    case "syncing":
-    case "stopping":
     case "otherTab":
       return undefined;
     case "free":
+    case "syncing":
+    case "stopping":
     case "smallImport":
     case "largeImport":
     case "resetting":

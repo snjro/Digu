@@ -87,14 +87,9 @@
   });
 
   let activity: ChainActivity = $derived($storeChainActivity[targetChainName]);
-  let isStopping: boolean = $derived(activity === "stopping");
-  let isSyncingInOtherTab: boolean = $derived(activity === "otherTab");
   let warpState: WarpSyncState = $derived(
     selectWarpSyncState($storeWarpSync, targetChainName),
   );
-  // A large import of this tab, which shows its progress and has Stop. A
-  // small one takes seconds, and the sync waits for it as before.
-  let isWarpSyncImporting: boolean = $derived(activity === "largeImport");
   let disabled: boolean = $derived(
     isSyncToggleDisabled(activity, {
       nodeStatus,
@@ -112,24 +107,27 @@
   });
 
   let tooltipText: string = $derived(
-    isSyncingInOtherTab
+    activity === "otherTab"
       ? "syncing in another tab"
       : isStarting
         ? "starting sync"
         : // The toggle is already off: the contracts end what they do first.
-          isStopping
+          activity === "stopping"
           ? "stopping sync"
           : activity === "resetting"
             ? "resetting"
             : toggleOn
               ? "stop sync"
-              : isWarpSyncImporting
+              : // A large import of this tab, which shows its progress and
+                // has Stop. A small one takes seconds, and the sync waits
+                // for it as before.
+                activity === "largeImport"
                 ? getSyncWaitsForImportText(warpState)
                 : "start sync",
   );
 </script>
 
-<div class={classNames(isStopping && "motion-safe:animate-pulse")}>
+<div class={classNames(activity === "stopping" && "motion-safe:animate-pulse")}>
   <BaseToggle
     toggleValue={toggleOn}
     size={sizeSettings.navToggle}
