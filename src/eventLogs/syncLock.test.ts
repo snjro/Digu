@@ -906,10 +906,14 @@ describe("sync with two tabs (issue #49)", () => {
         .table("SyncStatus")
         .update(a.contract.name, { isAbort: undefined });
       expect((await dbStatus(a)).isAbort).toBeUndefined();
-      // The store still has it set, as from before.
+      // And a field that the row does not have.
+      await a.db
+        .table("SyncStatus")
+        .update(a.contract.name, { isSyncTarget: undefined });
+      // The store still has them, as from before.
       storeSyncStatus.updateState(
         { ...versionIdentifier, contractName: a.contract.name },
-        { isAbort: true },
+        { isAbort: true, isSyncTarget: false },
       );
       const signal = new BroadcastChannel("Digu_syncLock");
       try {
@@ -924,9 +928,11 @@ describe("sync with two tabs (issue #49)", () => {
       expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
       expect(spyWrite).not.toHaveBeenCalled();
       expect(a.storeStatus().isAbort).toBe(false);
+      // The initial value of the field.
+      expect(a.storeStatus().isSyncTarget).toBe(true);
     }, 30_000);
 
-    test("clears the store of a contract without a row when it resets the chain", async () => {
+    test("gives the store the initial value of a contract without a row when it resets the chain", async () => {
       const a = await openTab();
       tabs.push(a);
       // Tab A's module instances.
@@ -938,31 +944,39 @@ describe("sync with two tabs (issue #49)", () => {
       await a.db.table("SyncStatus").delete(a.contract.name);
       storeSyncStatus.updateState(
         { ...versionIdentifier, contractName: a.contract.name },
-        { isSyncing: true, isAbort: true },
+        { isSyncing: true, isAbort: true, isSyncTarget: false },
       );
 
       // As at the start of an operation, which holds the lock.
       await loadSyncStatusInChain(chain.name, "reset");
+      // Nothing of before is kept.
       expect(a.storeStatus()).toMatchObject({
         isSyncing: false,
         isAbort: false,
+        isSyncTarget: true,
+        fetchedBlockNumber: 0,
         creationBlockNumber: a.contract.creation.blockNumber,
       });
       expect(spyWarn).toHaveBeenCalledWith(
-        "Skip a contract without a sync status in the DB.",
+        "No sync status of the contract in the DB: the store gets its initial value.",
         { ...versionIdentifier, contractName: a.contract.name },
       );
     }, 30_000);
 
-    test("skips a contract without a row when it reads the chain again", async () => {
+    test("gives the store the initial value of a contract without a row when it reads the chain again", async () => {
       const a = await openTab();
       tabs.push(a);
-      // Tab A's module instance.
+      // Tab A's module instances.
       const { customLogger } = await import("#utils/logger.js");
       const spyError = vi.spyOn(customLogger, "error");
       const spyWarn = vi.spyOn(customLogger, "warn");
+      const { storeSyncStatus } = await import("#stores/storeSyncStatus.js");
       const { held: heldLock, release } = holdSyncLockOfOtherTab();
       await a.db.table("SyncStatus").delete(a.contract.name);
+      storeSyncStatus.updateState(
+        { ...versionIdentifier, contractName: a.contract.name },
+        { isSyncTarget: false, fetchedBlockNumber: 123 },
+      );
       const signal = new BroadcastChannel("Digu_syncLock");
       try {
         signal.postMessage({ chainName: chain.name });
@@ -975,8 +989,13 @@ describe("sync with two tabs (issue #49)", () => {
       await heldLock;
       expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
       expect(spyError).not.toHaveBeenCalled();
+      expect(a.storeStatus()).toMatchObject({
+        isSyncTarget: true,
+        fetchedBlockNumber: 0,
+        creationBlockNumber: a.contract.creation.blockNumber,
+      });
       expect(spyWarn).toHaveBeenCalledExactlyOnceWith(
-        "Skip a contract without a sync status in the DB.",
+        "No sync status of the contract in the DB: the store gets its initial value.",
         { ...versionIdentifier, contractName: a.contract.name },
       );
     }, 30_000);
