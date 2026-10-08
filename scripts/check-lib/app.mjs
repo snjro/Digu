@@ -17,8 +17,8 @@ export const SYNC_TOGGLE = 'button[role="switch"][aria-label="Sync"]';
 const OLD_SYNC_TOGGLE_TEXTS = ["start sync", "stop sync"];
 
 // Runs in the page, and gives the functions that find and read the elements
-// there. inPage() hands them to one evaluate, so that a check reads the
-// toggle together with what else it reads.
+// there. inPage() runs them in one evaluate with the caller's function, so
+// that a check reads the toggle together with what else it reads.
 function pageLib(syncToggleSelector, oldSyncToggleTexts) {
   const visible = (e) => e.getClientRects().length > 0;
   // The button next to a leaf element with one of `texts`: from the text, the
@@ -49,8 +49,8 @@ function pageLib(syncToggleSelector, oldSyncToggleTexts) {
     return buttonNearText(oldSyncToggleTexts);
   }
   // `checked` is null in a build without aria-checked. The tooltip is the
-  // description of the toggle; a build before #661 has it only as the text
-  // of the button.
+  // description of the toggle, or the text of the button in a build without
+  // the description.
   function readToggle(b) {
     const checked = b.getAttribute("aria-checked");
     const describedBy = b.getAttribute("aria-describedby");
@@ -58,11 +58,11 @@ function pageLib(syncToggleSelector, oldSyncToggleTexts) {
       checked: checked === null ? null : checked === "true",
       disabled: b.disabled,
       pulse: !!b.closest('[class~="motion-safe:animate-pulse"]'),
-      tooltip: describedBy
-        ? (document.getElementById(describedBy)?.textContent.trim() ?? null)
-        : checked === null
-          ? b.textContent.trim()
-          : null,
+      tooltip:
+        (describedBy
+          ? document.getElementById(describedBy)
+          : b
+        )?.textContent.trim() ?? null,
     };
   }
   function findToggle(oldTexts) {
@@ -72,19 +72,20 @@ function pageLib(syncToggleSelector, oldSyncToggleTexts) {
   return { buttonNearText, syncToggle, readToggle, findToggle };
 }
 
-function pageLibHandle(page) {
-  return page.evaluateHandle(pageLib, SYNC_TOGGLE, OLD_SYNC_TOGGLE_TEXTS);
+// The source of `fn(lib, ...args)`, where `lib` has the functions of
+// pageLib(). The page runs both in one evaluate, so a navigation cannot come
+// in between. The args are JSON.
+function inPageSource(fn, args) {
+  const lib = `(${pageLib})(${JSON.stringify(SYNC_TOGGLE)}, ${JSON.stringify(OLD_SYNC_TOGGLE_TEXTS)})`;
+  const values = args.map((a) =>
+    a === undefined ? "undefined" : JSON.stringify(a),
+  );
+  return `(${fn})(${[lib, ...values].join(", ")})`;
 }
 
-// Runs `fn(lib, ...args)` in the page, where `lib` has the functions of
-// pageLib().
+// Runs `fn(lib, ...args)` in the page (see inPageSource) and gives its value.
 export async function inPage(page, fn, ...args) {
-  const lib = await pageLibHandle(page);
-  try {
-    return await page.evaluate(fn, lib, ...args);
-  } finally {
-    await lib.dispose();
-  }
+  return page.evaluate(inPageSource(fn, args));
 }
 
 // { checked, disabled, pulse, tooltip } of the sync toggle, or null. The
@@ -93,49 +94,68 @@ export async function findToggle(page, { oldTexts = false } = {}) {
   return inPage(page, (lib, oldTexts) => lib.findToggle(oldTexts), oldTexts);
 }
 
+// Clicks the sync toggle when each field of `state` (such as
+// { checked: true, disabled: false }) is the one of the toggle. Without
+// `mouse`, the state is read and the toggle clicked in one step in the page,
+// so a sync that stopped by itself in between is not started again. With
+// `mouse`, it is clicked with the mouse, as a person does. Gives the state
+// of the toggle (null when it is not found) and whether it clicked.
+async function clickToggleWhen(
+  page,
+  state,
+  { oldTexts = false, mouse = false },
+) {
+  const h = await page.evaluateHandle(
+    inPageSource(
+      (lib, state, oldTexts, click) => {
+        const b = lib.syncToggle(oldTexts);
+        const toggle = b && lib.readToggle(b);
+        const ok =
+          !!toggle && Object.entries(state).every(([k, v]) => toggle[k] === v);
+        if (ok && click) b.click();
+        return { b: ok ? b : null, toggle, ok };
+      },
+      [state, oldTexts, !mouse],
+    ),
+  );
+  try {
+    const { toggle, ok } = await h.evaluate(({ toggle, ok }) => ({
+      toggle,
+      ok,
+    }));
+    if (ok && mouse) {
+      const b = await h.getProperty("b");
+      try {
+        await b.asElement().click();
+      } finally {
+        await b.dispose();
+      }
+    }
+    return { toggle, clicked: ok };
+  } finally {
+    await h.dispose();
+  }
+}
+
 // Clicks the sync toggle with the mouse. It throws when the toggle is not
 // found or is disabled, so the scenario ends as ERROR. When the state can
 // change by itself before the click, use clickToggleIf().
 export async function clickToggle(page, { oldTexts = false } = {}) {
-  const lib = await pageLibHandle(page);
-  let h;
-  try {
-    h = await page.evaluateHandle(
-      (lib, oldTexts) => lib.syncToggle(oldTexts),
-      lib,
-      oldTexts,
-    );
-    const el = h.asElement();
-    if (!el) throw new Error("No sync toggle");
-    const toggle = await page.evaluate((lib, b) => lib.readToggle(b), lib, el);
-    if (toggle.disabled)
-      throw new Error(`The sync toggle is disabled: ${JSON.stringify(toggle)}`);
-    await el.click();
-  } finally {
-    await h?.dispose();
-    await lib.dispose();
-  }
+  const { toggle, clicked } = await clickToggleWhen(
+    page,
+    { disabled: false },
+    { oldTexts, mouse: true },
+  );
+  if (!toggle) throw new Error("No sync toggle");
+  if (!clicked)
+    throw new Error(`The sync toggle is disabled: ${JSON.stringify(toggle)}`);
 }
 
-// Clicks the sync toggle in the page when each field of `state` (such as
-// { checked: true, disabled: false }) is the one of the toggle. The state is
-// read and the toggle clicked in one step, so a sync that stopped by itself
-// in between is not started again. Returns whether it clicked.
+// Clicks the sync toggle in the page when each field of `state` is the one
+// of the toggle, in one step (see clickToggleWhen). Returns whether it
+// clicked.
 export async function clickToggleIf(page, state, { oldTexts = false } = {}) {
-  return inPage(
-    page,
-    (lib, state, oldTexts) => {
-      const b = lib.syncToggle(oldTexts);
-      if (!b) return false;
-      const toggle = lib.readToggle(b);
-      if (!Object.entries(state).every(([k, v]) => toggle[k] === v))
-        return false;
-      b.click();
-      return true;
-    },
-    state,
-    oldTexts,
-  );
+  return (await clickToggleWhen(page, state, { oldTexts })).clicked;
 }
 
 export async function openSyncPanel(page) {
@@ -147,11 +167,14 @@ export async function openSyncPanel(page) {
 // with Tab. Without `clear`, the text is selected and typed over. With it, the
 // input is clicked, emptied with Backspace, and `text` may be empty.
 export async function typeInto(page, target, text, { clear = false } = {}) {
-  if (typeof target === "string") {
-    if (clear) await page.click(target, { clickCount: 3 });
-    else await page.focus(target);
-  } else if (clear) await target.click({ clickCount: 3 });
-  else await target.focus();
+  const el = typeof target === "string" ? await page.$(target) : target;
+  if (!el) throw new Error(`No ${target}`);
+  try {
+    if (clear) await el.click({ clickCount: 3 });
+    else await el.focus();
+  } finally {
+    if (el !== target) await el.dispose();
+  }
   await page.keyboard.down("Control");
   await page.keyboard.press("a");
   await page.keyboard.up("Control");
