@@ -6,3 +6,4 @@ coverage
 # Left by scripts/warp-sync when a run stops
 static/warp-sync/*/.partial/
 static/warp-sync/*/.convert/
+static/warp-sync/*/manifest.json.tmp

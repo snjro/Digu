@@ -189,8 +189,9 @@ contract that has events, fetch that contract's snapshot again from an RPC.
     even to one request at a time): the same range, after a wait that is
     doubled at each 429 in a row, from a second up to 30 seconds
     (`RATE_WAIT_MAX_MS`), or the `Retry-After` of the answer (seconds) when
-    that is longer, up to 60 seconds (`RETRY_AFTER_MAX_MS`). Any other
-    answer makes the wait a second again. A 429 is not a failure: it does not
+    that is longer, up to 60 seconds (`RETRY_AFTER_MAX_MS`). The wait ends
+    early when another part stops (Parts, below). Any other answer makes the
+    wait a second again. A 429 is not a failure: it does not
     halve the range and does not count toward the 10 failures below, and the
     failures before it stay counted. After 30 429s in a row
     (`MAX_RATE_ERRORS`; of one part, or of one other request), the script

@@ -157,7 +157,8 @@ export function readManifest(file, chain) {
 
 export function writeManifest(file, manifest) {
   manifest.totals = totalsOf(manifest.chunks);
-  // Written whole and then renamed, like the state of build-snapshot.mjs.
+  // Written whole and then renamed, like the state of build-snapshot.mjs. A
+  // stop before the rename leaves the .tmp file, which git ignores.
   fs.writeFileSync(`${file}.tmp`, `${JSON.stringify(manifest, null, 2)}\n`);
   fs.renameSync(`${file}.tmp`, file);
 }

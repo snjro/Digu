@@ -335,7 +335,8 @@ export function createFetchStats() {
 // Fetches the logs of [fromBlock, toBlock] in ranges, like the sync (#549,
 // #554, #591). How the ranges are widened and halved, and what each kind of
 // failure ("rate", "results", "unrelated", "range") and an empty result do,
-// is in "Widths", "Failures" and "Empty results (#576)" of README.md.
+// and how a stop of another part ends a wait, is in "Widths", "Failures",
+// "Empty results (#576)" and "Parts (#586)" of README.md.
 // Each range that works goes to onRange(from, to, logs), with its logs by
 // block and log index, so that the logs are not all kept in memory. Returns
 // the number of logs. It stops before the next request when signal is
@@ -832,6 +833,9 @@ function positiveInteger(values, name) {
   }
   return value;
 }
+function optionalPositiveInteger(values, name) {
+  return values[name] === undefined ? undefined : positiveInteger(values, name);
+}
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const { values } = parseArgs({
@@ -857,15 +861,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     chainName: values.chain,
     rpcUrl: withKey(values.rpc, values["rpc-key-file"]),
     outDir: values.out,
-    toBlock:
-      values.to === undefined ? undefined : positiveInteger(values, "to"),
+    toBlock: optionalPositiveInteger(values, "to"),
     maxRequests: positiveInteger(values, "max-requests"),
     concurrency: positiveInteger(values, "concurrency"),
     partBlocks: positiveInteger(values, "part-blocks"),
-    maxWidth:
-      values["max-width"] === undefined
-        ? undefined
-        : positiveInteger(values, "max-width"),
+    maxWidth: optionalPositiveInteger(values, "max-width"),
     log: (message) => console.log(message),
   });
 }

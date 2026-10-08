@@ -34,7 +34,7 @@ class CheckSnapshot(unittest.TestCase):
         self.add_chain("ethereum-mainnet", "eth")
         self.add_chain("matic", "matic")
         self.write_manifest("eth", runs=[run("2026-10-01T00:00:00Z"), run("2026-10-08T00:30:00Z")])
-        self.write_manifest("matic", runs=[run("2026-10-08T23:59:00Z", 77000000)])
+        self.write_manifest("matic", runs=[run("2026-10-08T11:00:00Z", 77000000)])
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -54,9 +54,9 @@ class CheckSnapshot(unittest.TestCase):
         with open(path, "w") as f:
             json.dump({"formatVersion": formatVersion, "runs": runs}, f)
 
-    def check(self, *args):
+    def check(self, at=AT):
         return subprocess.run(
-            [sys.executable, self.script, "--at", AT, *args],
+            [sys.executable, self.script, "--at", at],
             capture_output=True,
             text=True,
             env=self.env,
@@ -69,7 +69,9 @@ class CheckSnapshot(unittest.TestCase):
         self.assertIn(
             "| eth | run 2 | 2026-10-08 00:30 UTC | 26,138,967 | 0.5 |", p.stdout
         )
-        self.assertIn("| matic | run 1 | 2026-10-08 23:59 UTC | 77,000,000 |", p.stdout)
+        self.assertIn(
+            "| matic | run 1 | 2026-10-08 11:00 UTC | 77,000,000 | 0.0 |", p.stdout
+        )
 
     def test_a_snapshot_of_another_day_fails(self):
         self.write_manifest("eth", runs=[run("2026-10-07T23:59:00Z")])
@@ -85,10 +87,10 @@ class CheckSnapshot(unittest.TestCase):
         )
 
     def test_the_day_is_in_utc(self):
-        p = self.check("--at", "2026-10-09T08:00:00+09:00")
+        p = self.check("2026-10-09T08:00:00+09:00")
         self.assertEqual(p.returncode, 0, p.stdout)
         self.assertIn("release on 2026-10-08", p.stdout)
-        p = self.check("--at", "2026-10-09T09:00:00+09:00")
+        p = self.check("2026-10-09T09:00:00+09:00")
         self.assertEqual(p.returncode, 1)
         self.assertIn("release on 2026-10-09", p.stdout)
 
