@@ -40,10 +40,19 @@ vi.mock("./EventLogs.svelte", () => ({
   EVENT_LOGS_RELOAD_INTERVAL: 3000,
   MESSAGE_ANONYMOUS_EVENT_LOGS: "Logs of anonymous events are not fetched.",
 }));
+// Shows "<subdirectory>:<value>" of each link, and follows the edges when
+// they change (a getter).
 vi.mock("#lib/common/CommonChainExplorerLink.svelte", async () => {
-  const { mockExplorerLink } =
-    await import("../../../../../../../testUtils/explorerLinkStub");
-  return mockExplorerLink();
+  const { default: Stub } =
+    await import("../../functions/[functionName]/pageTabs.testStub.svelte");
+  return {
+    default: (anchor: unknown, props: Record<string, unknown>) =>
+      Stub(anchor as never, {
+        get stubName() {
+          return `${String(props.subdirectory)}:${String(props.value)}`;
+        },
+      }),
+  };
 });
 
 const targetChain = { name: "chain1" } as Chain;
@@ -145,12 +154,15 @@ describe("EventOverviewFetchedLogs.svelte", () => {
   // them gives the same time.
   const loadTime: number = EVENT_LOGS_RELOAD_INTERVAL / 4;
   const sinceLoad: number = EVENT_LOGS_RELOAD_INTERVAL / 2;
-  // The first load gives one log of blockNumber, so that its end is seen.
-  async function renderWithASlowFirstLoad(blockNumber: number): Promise<void> {
+  // The first load gives two logs, so that its end is seen.
+  async function renderWithASlowFirstLoad(
+    oldestBlock: number,
+    latestBlock: number,
+  ): Promise<void> {
     const edges: EventLogEdges = {
-      count: 1,
-      oldest: log(blockNumber),
-      latest: log(blockNumber),
+      count: 2,
+      oldest: log(oldestBlock),
+      latest: log(latestBlock),
     };
     load.mockImplementationOnce(
       () =>
@@ -177,19 +189,19 @@ describe("EventOverviewFetchedLogs.svelte", () => {
   }
 
   test("reloads the logs when the record count of the event changes", async () => {
-    await renderWithASlowFirstLoad(5);
-    expect(screen.getByText("1")).toBeTruthy();
-    expect(
-      screen.getAllByTestId("stub").map((stub) => stub.textContent),
-    ).toEqual(["5", "0xtx5", "5", "0xtx5"]);
-
-    load.mockResolvedValueOnce({ count: 2, oldest: log(10), latest: log(20) });
-    await saveAndWaitForTheReload(2);
+    await renderWithASlowFirstLoad(5, 6);
     expect(screen.getByText("2")).toBeTruthy();
     // Latest, then oldest: block number and tx hash of each.
     expect(
       screen.getAllByTestId("stub").map((stub) => stub.textContent),
-    ).toEqual(["20", "0xtx20", "10", "0xtx10"]);
+    ).toEqual(["block:6", "tx:0xtx6", "block:5", "tx:0xtx5"]);
+
+    load.mockResolvedValueOnce({ count: 3, oldest: log(10), latest: log(20) });
+    await saveAndWaitForTheReload(3);
+    expect(screen.getByText("3")).toBeTruthy();
+    expect(
+      screen.getAllByTestId("stub").map((stub) => stub.textContent),
+    ).toEqual(["block:20", "tx:0xtx20", "block:10", "tx:0xtx10"]);
   });
 
   test("shows the count of the DB with the two edge logs", async () => {
@@ -202,17 +214,17 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     await waitFor(() => expect(screen.getByText("100,000")).toBeTruthy());
     expect(
       screen.getAllByTestId("stub").map((stub) => stub.textContent),
-    ).toEqual(["20", "0xtx20", "10", "0xtx10"]);
+    ).toEqual(["block:20", "tx:0xtx20", "block:10", "tx:0xtx10"]);
     expect(screen.getAllByText("2020-01-01T00:00:00Z")).toHaveLength(2);
   });
 
   test("logs a failed load and shows no logs, like the table", async () => {
-    await renderWithASlowFirstLoad(10);
-    expect(screen.getByText("1")).toBeTruthy();
+    await renderWithASlowFirstLoad(10, 11);
+    expect(screen.getByText("2")).toBeTruthy();
 
     const error = new Error("test error");
     load.mockRejectedValueOnce(error);
-    await saveAndWaitForTheReload(2);
+    await saveAndWaitForTheReload(3);
     expect(screen.getByText("No logs fetched yet.")).toBeTruthy();
     expect(customLogger.error).toHaveBeenCalledWith("Get event logs.", {
       eventIdentifier: {

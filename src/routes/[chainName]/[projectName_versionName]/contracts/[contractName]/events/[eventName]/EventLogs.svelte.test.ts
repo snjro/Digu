@@ -34,11 +34,11 @@ vi.mock("#stores/storeSyncStatus.js", async () => {
   return { storeSyncStatus: writable({}) };
 });
 vi.mock("#utils/logger.js", () => ({ customLogger: { error: vi.fn() } }));
-vi.mock("#lib/common/CommonChainExplorerLink.svelte", async () => {
-  const { mockExplorerLink } =
-    await import("../../../../../../../testUtils/explorerLinkStub");
-  return mockExplorerLink();
-});
+// BaseGrid is mocked, so no cell renders a link: this only keeps the real one
+// (and ethers) from loading.
+vi.mock("#lib/common/CommonChainExplorerLink.svelte", () => ({
+  default: () => {},
+}));
 
 // Stands in for the table worker. The test decides what each request gives.
 const fakeClients = vi.hoisted(() => {
