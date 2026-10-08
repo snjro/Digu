@@ -1,14 +1,12 @@
-import { afterEach, describe, expect, onTestFinished, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
-import type { Chain, Version } from "#constants/chains/types.js";
+import type { Chain } from "#constants/chains/types.js";
 import {
   startAbortingInChain,
   startSyncingInChain,
   stopSyncingInChain,
 } from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
-import { storeSyncStatus } from "#stores/storeSyncStatus.js";
-import { get } from "svelte/store";
 import { customLogger } from "#utils/logger.js";
 import {
   extractEventContracts,
@@ -76,44 +74,13 @@ describe("fetchEventLogs", () => {
   });
 });
 
-// Sets every event contract of the versions as a sync target in the store,
-// and returns a function that sets them back.
-function setSyncTargetsInStore(
-  chainName: string,
-  projectName: string,
-  versions: Version[],
-): () => void {
-  const identifiers = versions.flatMap((version) =>
-    extractEventContracts(version.contracts).map((contract) => ({
-      chainName,
-      projectName,
-      versionName: version.name,
-      contractName: contract.name,
-    })),
-  );
-  const contracts =
-    get(storeSyncStatus)[chainName].subSyncStatuses[projectName]
-      .subSyncStatuses;
-  const before = identifiers.map(
-    (identifier) =>
-      contracts[identifier.versionName].subSyncStatuses[
-        identifier.contractName
-      ]!.isSyncTarget,
-  );
-  for (const identifier of identifiers) {
-    storeSyncStatus.updateState(identifier, { isSyncTarget: true });
-  }
-  return () =>
-    identifiers.forEach((identifier, index) =>
-      storeSyncStatus.updateState(identifier, { isSyncTarget: before[index] }),
-    );
-}
-
 describe("syncEventLogs", () => {
   afterEach(() => {
     vi.resetAllMocks();
     vi.restoreAllMocks();
-    for (const chain of TARGET_CHAINS) storeSyncStoppedReason.clear(chain.name);
+    for (const targetChain of TARGET_CHAINS) {
+      storeSyncStoppedReason.clear(targetChain.name);
+    }
   });
 
   test("throws the error of the sync when destroying the provider fails too", async () => {
@@ -165,13 +132,8 @@ describe("syncEventLogs", () => {
       projectName: project.name,
       versionName,
     });
-    // Every contract of both versions is a sync target in the store of this
-    // tab; another tab took the others out of the sync target in the DB.
-    const restoreStore = setSyncTargetsInStore(eth.name, project.name, [
-      version1,
-      version2,
-    ]);
-    onTestFinished(restoreStore);
+    // The store does not decide: every event contract is a sync target in the
+    // store of this tab, and only those that the start returns are synced.
     vi.mocked(startSyncingInChain).mockResolvedValue([
       { ...identifierIn(version1.name), contractName: name },
       { ...identifierIn(version2.name), contractName: name },

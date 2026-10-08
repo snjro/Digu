@@ -29,7 +29,7 @@ describe("startSyncingInChain", () => {
     "updateSyncStatusInChain",
   );
   beforeEach(() => {
-    spyUpdateSyncStatusInChain.mockClear().mockResolvedValue(undefined);
+    spyUpdateSyncStatusInChain.mockClear().mockResolvedValue([]);
   });
   for (const targetChain of TARGET_CHAINS) {
     const chainName: Chain["name"] = targetChain.name;

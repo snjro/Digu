@@ -13,8 +13,10 @@ import { extractEventContracts } from "#utils/utilsEthers.js";
 import { updateSyncStatusInChain } from "./dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain";
 import {
   startAbortingInChain,
+  startSyncingInChain,
   stopSyncingInChain,
 } from "./dbEventLogsDataHandlersSyncStatus";
+import { customLogger } from "#utils/logger.js";
 import { DbEventLogs } from "./dbEventLogs";
 import { DB_TABLE_NAMES } from "./constants";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
@@ -31,48 +33,6 @@ function getStoreSyncStatusContract(
 }
 
 describe("updateSyncStatusInChain", () => {
-  test("should write but not return a row of a contract that this build does not know", async () => {
-    const targetChain = TARGET_CHAINS[0];
-    const version = targetChain.projects[0].versions[0];
-    const versionIdentifier: VersionIdentifier = {
-      chainName: targetChain.name,
-      projectName: targetChain.projects[0].name,
-      versionName: version.name,
-    };
-    const dbEventLogs = new DbEventLogs(versionIdentifier);
-    try {
-      const knownRow: SyncStatusContract | undefined = await dbEventLogs
-        .table(tableNameSyncStatus)
-        .get(extractEventContracts(version.contracts)[0].name);
-      expect(knownRow?.isSyncTarget).toBe(true);
-      // As a tab of another build left it.
-      await dbEventLogs
-        .table(tableNameSyncStatus)
-        .put({ ...knownRow!, name: "UnknownContract", isAbort: true });
-
-      const contracts: ContractIdentifier[] = await updateSyncStatusInChain(
-        targetChain.name,
-        "isAbort",
-        true,
-        { isAbort: false },
-      );
-
-      expect(contracts.map((contract) => contract.contractName)).not.toContain(
-        "UnknownContract",
-      );
-      const unknownRow: SyncStatusContract | undefined = await dbEventLogs
-        .table(tableNameSyncStatus)
-        .get("UnknownContract");
-      expect(unknownRow?.isAbort).toBe(false);
-    } finally {
-      try {
-        await dbEventLogs.table(tableNameSyncStatus).delete("UnknownContract");
-      } finally {
-        dbEventLogs.close();
-      }
-    }
-  });
-
   test("should return the contracts whose rows it changed", async () => {
     const targetChain = TARGET_CHAINS[0];
     const version = targetChain.projects[0].versions[0];
@@ -83,29 +43,89 @@ describe("updateSyncStatusInChain", () => {
     };
     const [changed, other] = extractEventContracts(version.contracts);
     const dbEventLogs = new DbEventLogs(versionIdentifier);
-    // Only one row matches.
-    await dbEventLogs
-      .table(tableNameSyncStatus)
-      .update(changed.name, { isAbort: true });
-    await dbEventLogs
-      .table(tableNameSyncStatus)
-      .update(other.name, { isAbort: false });
+    try {
+      // Only one row matches.
+      await dbEventLogs
+        .table(tableNameSyncStatus)
+        .update(changed.name, { isAbort: true });
+      await dbEventLogs
+        .table(tableNameSyncStatus)
+        .update(other.name, { isAbort: false });
 
-    const contracts: ContractIdentifier[] = await updateSyncStatusInChain(
-      targetChain.name,
-      "isAbort",
-      true,
-      { isAbort: false },
-    );
+      const contracts: ContractIdentifier[] = await updateSyncStatusInChain(
+        targetChain.name,
+        "isAbort",
+        true,
+        { isAbort: false },
+      );
 
-    expect(contracts).toContainEqual({
-      ...versionIdentifier,
-      contractName: changed.name,
-    });
-    expect(contracts).not.toContainEqual({
-      ...versionIdentifier,
-      contractName: other.name,
-    });
+      expect(contracts).toContainEqual({
+        ...versionIdentifier,
+        contractName: changed.name,
+      });
+      expect(contracts).not.toContainEqual({
+        ...versionIdentifier,
+        contractName: other.name,
+      });
+    } finally {
+      dbEventLogs.close();
+    }
+  });
+});
+
+describe("startSyncingInChain and stopSyncingInChain with a row of a contract that this build does not know", () => {
+  test("the start marks it but does not return it, and the stop clears it", async () => {
+    const targetChain = TARGET_CHAINS[0];
+    const version = targetChain.projects[0].versions[0];
+    const versionIdentifier: VersionIdentifier = {
+      chainName: targetChain.name,
+      projectName: targetChain.projects[0].name,
+      versionName: version.name,
+    };
+    const dbEventLogs = new DbEventLogs(versionIdentifier);
+    const unknownRow = async (): Promise<SyncStatusContract | undefined> =>
+      await dbEventLogs.table(tableNameSyncStatus).get("UnknownContract");
+    // The store of this tab has no such contract.
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    try {
+      const knownRow: SyncStatusContract | undefined = await dbEventLogs
+        .table(tableNameSyncStatus)
+        .get(extractEventContracts(version.contracts)[0].name);
+      expect(knownRow?.isSyncTarget).toBe(true);
+      // As a tab of another build left it.
+      await dbEventLogs.table(tableNameSyncStatus).put({
+        ...knownRow!,
+        name: "UnknownContract",
+        isSyncTarget: true,
+        isSyncing: false,
+      });
+
+      const syncing: ContractIdentifier[] = await startSyncingInChain(
+        targetChain.name,
+      );
+
+      expect((await unknownRow())?.isSyncing).toBe(true);
+      expect(syncing.map((contract) => contract.contractName)).not.toContain(
+        "UnknownContract",
+      );
+      expect(syncing).toContainEqual({
+        ...versionIdentifier,
+        contractName: knownRow!.name,
+      });
+
+      await stopSyncingInChain(targetChain.name);
+
+      expect((await unknownRow())?.isSyncing).toBe(false);
+    } finally {
+      spyError.mockRestore();
+      try {
+        await dbEventLogs.table(tableNameSyncStatus).delete("UnknownContract");
+      } finally {
+        dbEventLogs.close();
+      }
+    }
   });
 
   for (const targetChain of TARGET_CHAINS) {
