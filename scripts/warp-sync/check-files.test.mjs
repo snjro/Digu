@@ -12,22 +12,22 @@ import {
 } from "./snapshot-format.mjs";
 
 const chain = loadChain("matic");
-const contracts = [
-  {
-    project: "Augur",
-    version: "v",
-    name: "A",
-    address: "0xA",
-    creationBlock: 1,
-  },
-  {
-    project: "Augur",
-    version: "v",
-    name: "B",
-    address: "0xB",
-    creationBlock: 5,
-  },
-];
+// The contracts of matic, as build-snapshot.mjs writes them in the manifest.
+const contracts = chain.contracts.map(
+  ({ project, version, name, address, creationBlock }) => ({
+    project,
+    version,
+    name,
+    address,
+    creationBlock,
+  }),
+);
+// The two that have logs in the sample snapshot, and their creation blocks.
+const [A, B] = [contracts[0], contracts[2]];
+const a = A.creationBlock;
+const b = B.creationBlock;
+const labelOf = (contract, from, to) =>
+  `${contract.project}/${contract.version}/${contract.name} ${from}-${to}`;
 const logOf = (block, index) => ({
   blockNumber: `0x${block.toString(16)}`,
   logIndex: `0x${index.toString(16)}`,
@@ -38,23 +38,26 @@ const logOf = (block, index) => ({
 let dir;
 let chainDir;
 let manifestFile;
-// A snapshot of matic without problems: A has the logs of blocks 1 to 4 in
-// two files and no log after; B has one file.
+// A snapshot of matic without problems: A has the logs of its first three
+// blocks in two files and no log after; B has one file.
 beforeEach(async () => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-files-"));
   chainDir = path.join(dir, "matic");
   manifestFile = path.join(chainDir, "manifest.json");
   const manifest = emptyManifest(chain);
   manifest.contracts = contracts;
-  const logs = { A: [logOf(1, 0), logOf(2, 0), logOf(3, 0)], B: [logOf(6, 0)] };
-  for (const contract of contracts) {
+  const ranges = [
+    [A, a + 9, [logOf(a, 0), logOf(a + 1, 0), logOf(a + 2, 0)]],
+    [B, b + 5, [logOf(b + 1, 0)]],
+  ];
+  for (const [contract, toBlock, logs] of ranges) {
     manifest.chunks.push(
       ...(await writeContractChunks({
         chainId: chain.chainId,
         contract,
         fromBlock: contract.creationBlock,
-        toBlock: 10,
-        logs: logs[contract.name],
+        toBlock,
+        logs,
         outDir: chainDir,
         maxLogs: 2,
       })),
@@ -85,9 +88,9 @@ describe("checkSnapshotFiles", () => {
     const { chunks } = readManifest(manifestFile, chain);
     // Two files of A, a range of A without logs, and one file of B.
     expect(chunks.map((c) => [c.name, c.fromBlock, c.toBlock])).toEqual([
-      ["A", 1, 2],
-      ["A", 3, 10],
-      ["B", 5, 10],
+      [A.name, a, a + 1],
+      [A.name, a + 2, a + 9],
+      [B.name, b, b + 5],
     ]);
     expect(check()).toEqual([]);
   });
@@ -109,7 +112,7 @@ describe("checkSnapshotFiles", () => {
   test("a missing file", () => {
     const file = path.join(chainDir, firstFile());
     fs.rmSync(file);
-    expect(check()).toEqual([`matic: Augur/v/A 1-2: no ${file}.`]);
+    expect(check()).toEqual([`matic: ${labelOf(A, a, a + 1)}: no ${file}.`]);
   });
 
   test("another size", () => {
@@ -130,7 +133,7 @@ describe("checkSnapshotFiles", () => {
     const { chunks } = readManifest(manifestFile, chain);
     change((m) => (m.chunks[1].file = chunks[0].file));
     expect(check()).toEqual([
-      `matic: Augur/v/A 3-10: ${chunks[0].file} is the file of another chunk.`,
+      `matic: ${labelOf(A, a + 2, a + 9)}: ${chunks[0].file} is the file of another chunk.`,
       `matic: ${path.join(chainDir, chunks[1].file)} is not in the manifest.`,
     ]);
   });
@@ -143,39 +146,42 @@ describe("checkSnapshotFiles", () => {
     });
     const problems = check();
     expect(problems).toContain(
-      "matic: Augur/v/A 3-10 has 0 logs and file x.json.gz.",
+      `matic: ${labelOf(A, a + 2, a + 9)} has 0 logs and file x.json.gz.`,
     );
     expect(problems).toContain(
-      "matic: Augur/v/B 5-10 has 1 logs and file null.",
+      `matic: ${labelOf(B, b, b + 5)} has 1 logs and file null.`,
     );
   });
 
   test("a gap", () => {
-    change((m) => (m.chunks[1].fromBlock = 4));
+    change((m) => (m.chunks[1].fromBlock = a + 3));
     expect(check()).toEqual([
-      "matic: Augur/v/A 4-10 does not start at block 3.",
+      `matic: ${labelOf(A, a + 3, a + 9)} does not start at block ${a + 2}.`,
     ]);
   });
 
   test("a first fromBlock that is not the creationBlock", () => {
-    change((m) => (m.contracts[1].creationBlock = 4));
+    change((m) => (m.contracts[2].creationBlock = b - 1));
     expect(check()).toEqual([
-      "matic: Augur/v/B 5-10 does not start at block 4.",
+      `matic: ${labelOf(B, b, b + 5)} does not start at block ${b - 1}.`,
     ]);
   });
 
   test("a range without blocks", () => {
     change((m) => {
-      m.chunks[1].toBlock = 2;
-      m.chunks[1].fromBlock = 3;
+      m.chunks[1].toBlock = a + 1;
+      m.chunks[1].fromBlock = a + 2;
     });
-    expect(check()).toEqual(["matic: Augur/v/A 3-2 has no block."]);
+    expect(check()).toEqual([
+      `matic: ${labelOf(A, a + 2, a + 1)} has no block.`,
+    ]);
   });
 
   test("a chunk of a contract that is not in manifest.contracts", () => {
-    change((m) => m.contracts.pop());
+    change((m) => m.contracts.splice(2, 1));
+    const key = labelOf(B, b, b + 5).split(" ")[0];
     expect(check()).toEqual([
-      "matic: Augur/v/B 5-10: Augur/v/B is not in manifest.contracts.",
+      `matic: ${labelOf(B, b, b + 5)}: ${key} is not in manifest.contracts.`,
     ]);
   });
 
