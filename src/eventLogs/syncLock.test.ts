@@ -174,9 +174,9 @@ async function waitFor(
   return false;
 }
 
-// Stops each opened tab from watching the resets of other tabs. Otherwise the
-// tabs of the earlier tests read the DB in the lock after a reset, and the
-// lock is still held when the test ends.
+// Stops each opened tab from watching the resets and the sync locks of other
+// tabs. Otherwise the tabs of the earlier tests read the DB in the lock after
+// a reset or a signal, and the lock is still held when the test ends.
 const stopWatchingSyncResetsOfTabs: (() => void)[] = [];
 
 // Opens a tab with initialize(). `beforeWatch` runs just before the tab
@@ -204,7 +204,10 @@ async function openTab(beforeWatch?: () => Promise<void>) {
   const { fetchEventLogs } = await import("./eventLogs");
   const { resetSyncedData, stopWatchingSyncResets } =
     await import("./syncReset");
-  stopWatchingSyncResetsOfTabs.push(stopWatchingSyncResets);
+  stopWatchingSyncResetsOfTabs.push(
+    stopWatchingSyncResets,
+    syncLock.stopWatchingSyncLockSignals,
+  );
   const { startAbortingInChain } =
     await import("#db/dbEventLogsDataHandlersSyncStatus.js");
   const { syncStatusContract } = await import("./eventLogsContract");
@@ -364,11 +367,91 @@ describe("sync with two tabs (issue #49)", () => {
     tabs.push(b);
 
     await stopAndWait(a);
+    expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
     expect(await a.fetchEventLogs()).toBe(true);
-    expect(b.isLockedByOtherTab()).toBe(false);
     expect(await waitFor(() => a.storeStatus().isSyncing)).toBe(true);
+    // Told by the signal of tab A.
+    expect(await waitFor(() => b.isLockedByOtherTab())).toBe(true);
     await stopAndWait(a);
+    expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
   }, 30_000);
+
+  describe("the signal of a sync lock", () => {
+    test("tells tab B, open before tab A syncs, without any action of B", async () => {
+      const a = await openTab();
+      tabs.push(a);
+      const b = await openTab();
+      tabs.push(b);
+      expect(b.isLockedByOtherTab()).toBe(false);
+
+      expect(await a.fetchEventLogs()).toBe(true);
+      expect(await waitFor(() => b.isLockedByOtherTab())).toBe(true);
+      // Tab A does not take its own lock for another tab's.
+      expect(a.isLockedByOtherTab()).toBe(false);
+
+      await stopAndWait(a);
+      expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
+      expect(b.storeStatus().syncStateText).toBe("stopped");
+    }, 30_000);
+
+    test("tells tab B about a reset of tab A too", async () => {
+      const a = await openTab();
+      tabs.push(a);
+      // Tab A's module instance: opening tab B resets the modules.
+      const dbResetSyncedData = await import("#db/dbResetSyncedData.js");
+      let finishReset: () => void = () => {};
+      vi.spyOn(dbResetSyncedData, "resetDbSyncedData").mockImplementationOnce(
+        () =>
+          new Promise<number>((resolve) => (finishReset = () => resolve(0))),
+      );
+      const b = await openTab();
+      tabs.push(b);
+
+      const resetting = a.resetSyncedData();
+      expect(await waitFor(() => b.isLockedByOtherTab())).toBe(true);
+      finishReset();
+      const outcome = await resetting;
+      expect(outcome.result).toBe("reset");
+      await outcome.warpSyncImport;
+      expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
+    }, 30_000);
+
+    test("is not sent without Web Locks", async () => {
+      removeLockManager();
+      const a = await openTab();
+      tabs.push(a);
+      const received: unknown[] = [];
+      const other = new BroadcastChannel("Digu_syncLock");
+      other.addEventListener("message", (event: MessageEvent) =>
+        received.push(event.data),
+      );
+      expect(await a.fetchEventLogs()).toBe(true);
+      expect(await waitFor(() => a.storeStatus().isSyncing)).toBe(true);
+      await a.stop();
+      // No lock to wait for: wait until every contract loop has ended.
+      expect(await waitFor(() => !a.isChainSyncing())).toBe(true);
+      await sleep(50);
+      other.close();
+      expect(received).toEqual([]);
+    }, 30_000);
+
+    test("is sent when the lock is taken and when it is released", async () => {
+      const a = await openTab();
+      tabs.push(a);
+      const received: unknown[] = [];
+      const other = new BroadcastChannel("Digu_syncLock");
+      other.addEventListener("message", (event: MessageEvent) =>
+        received.push(event.data),
+      );
+      expect(await a.fetchEventLogs()).toBe(true);
+      expect(await waitFor(() => received.length === 1)).toBe(true);
+      await stopAndWait(a);
+      expect(await waitFor(() => received.length === 2)).toBe(true);
+      other.close();
+      // Only that it changed: the lock manager keeps the state.
+      expect(received).toEqual([null, null]);
+    }, 30_000);
+  });
 
   test("tab B cannot sync while tab A syncs", async () => {
     const a = await openTab();

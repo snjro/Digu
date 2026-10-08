@@ -4,7 +4,11 @@ import { initializeDBSyncStatusInChain } from "#db/db.worker.func.InitializeDBSy
 import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
 import { getDbRecordSyncStatusContract } from "#db/dbEventLogsDataHandlersSyncStatusGetters.js";
 import type { SyncStatusContract, VersionIdentifier } from "#db/dbTypes.js";
-import { getSyncLockName, SYNC_LOCK_TIMEOUT_MS } from "#db/constants.js";
+import {
+  DB_NAME,
+  getSyncLockName,
+  SYNC_LOCK_TIMEOUT_MS,
+} from "#db/constants.js";
 import { getDbRecordChainStatus } from "#db/dbChainStatusDataHandlers.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
@@ -68,6 +72,7 @@ export async function runWithSyncLock(
         { signal: AbortSignal.timeout(SYNC_LOCK_TIMEOUT_MS) },
         async (): Promise<void> => {
           granted = true;
+          postSyncLockChanged();
           await run();
         },
       );
@@ -83,6 +88,9 @@ export async function runWithSyncLock(
       }
       waitForSyncLockRelease(chainName);
       return false;
+    } finally {
+      // The request settles only after the lock is released.
+      if (granted) postSyncLockChanged();
     }
   } finally {
     chainsLockedByThisTab.update((state) => {
@@ -148,6 +156,8 @@ async function tryToStart(
 // may have been closed since then.
 export async function watchSyncLocksOfOtherTabs(): Promise<void> {
   if (!navigator.locks) return;
+  // Before the requests below, so that no lock taken in between is missed.
+  watchSyncLockSignals();
   await Promise.all(
     TARGET_CHAINS.map((targetChain: Chain) =>
       navigator.locks.request(
@@ -172,6 +182,60 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
       ),
     ),
   );
+}
+
+// A tab tells the others when it takes or releases a sync lock, without the
+// state: the browser's lock manager keeps it, and releases the locks of a tab
+// that is closed or crashes, which sends no signal.
+const SYNC_LOCK_CHANNEL_NAME: string = `${DB_NAME.firstName}_syncLock`;
+let signalChannel: BroadcastChannel | undefined;
+
+// Only once this tab watches: the startup does it before any lock is taken.
+function postSyncLockChanged(): void {
+  try {
+    signalChannel?.postMessage(null);
+  } catch (error) {
+    customLogger.error("Tell the other tabs about the sync lock.", {
+      errorObject: error,
+    });
+  }
+}
+
+function watchSyncLockSignals(): void {
+  if (typeof BroadcastChannel === "undefined" || signalChannel) return;
+  signalChannel = new BroadcastChannel(SYNC_LOCK_CHANNEL_NAME);
+  // The channel does not get the messages of this tab.
+  signalChannel.addEventListener("message", () => {
+    void findSyncLocksOfOtherTabs();
+  });
+}
+
+// A held lock that is not in the record of this tab is another tab's.
+async function findSyncLocksOfOtherTabs(): Promise<void> {
+  try {
+    const { held } = await navigator.locks.query();
+    const heldNames: Set<string | undefined> = new Set(
+      held?.map((lock) => lock.name),
+    );
+    for (const targetChain of TARGET_CHAINS) {
+      if (
+        heldNames.has(getSyncLockName(targetChain.name)) &&
+        !get(chainsLockedByThisTab)[targetChain.name]
+      ) {
+        waitForSyncLockRelease(targetChain.name);
+      }
+    }
+  } catch (error) {
+    customLogger.error("Find the sync locks of other tabs.", {
+      errorObject: error,
+    });
+  }
+}
+
+// For the tests.
+export function stopWatchingSyncLockSignals(): void {
+  signalChannel?.close();
+  signalChannel = undefined;
 }
 
 export function waitForSyncLockRelease(chainName: ChainName): void {
