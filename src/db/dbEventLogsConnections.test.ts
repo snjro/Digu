@@ -70,7 +70,7 @@ describe("the connections to the DB of a version", () => {
   test("initializeDBSyncStatusInChain() does not open more each time", async () => {
     await expectNoNewConnection(() => initializeDBSyncStatusInChain(chain));
   });
-  test.each(["release", "startup", "reset"] as const)(
+  test.each(["release", "reset"] as const)(
     "loadSyncStatusInChain(%s) does not open more each time",
     async (load) => {
       await expectNoNewConnection(() =>

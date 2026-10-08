@@ -834,8 +834,8 @@ describe("sync with two tabs (issue #49)", () => {
       // Tab C syncs, and is closed while it holds the lock: its rows stay
       // syncing.
       const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
-      // A creation block of another build stays: it is written only at
-      // startup.
+      // A creation block of another build stays: the reading after a release
+      // clears only the flags.
       await a.db.table("SyncStatus").update(a.contract.name, {
         isSyncing: true,
         isAbort: false,
@@ -1242,218 +1242,15 @@ describe("sync with two tabs (issue #49)", () => {
     expect((await dbStatus(b)).isSyncing).toBe(false);
   }, 30_000);
 
-  test("writes the creation block of this build at startup when the Worker skipped the chain", async () => {
-    const a = await openTab();
-    tabs.push(a);
-    // Written by another build. Tab C syncs while tab B starts, so B's Worker
-    // skips the chain, and stops before B watches the locks.
-    await a.db
-      .table("SyncStatus")
-      .update(a.contract.name, { creationBlockNumber: 1 });
-    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
-
-    const b = await openTab(async () => {
-      expect((await dbStatus(a)).creationBlockNumber).toBe(1);
-      closeTabC();
-      await heldLock;
-    });
-    tabs.push(b);
-
-    expect((await dbStatus(b)).creationBlockNumber).toBe(
-      b.contract.creation.blockNumber,
-    );
-  }, 30_000);
-
-  test("writes the creation block of this build once a chain busy at startup is released", async () => {
-    const a = await openTab();
-    tabs.push(a);
-    // Tab C syncs while tab B starts and after: B's Worker skips the chain,
-    // and B reads it once C is done.
-    await a.db
-      .table("SyncStatus")
-      .update(a.contract.name, { creationBlockNumber: 1 });
-    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
-    const b = await openTab();
-    tabs.push(b);
-    expect(b.isLockedByOtherTab()).toBe(true);
-    expect((await dbStatus(b)).creationBlockNumber).toBe(1);
-
-    closeTabC();
-    await heldLock;
-    expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
-    expect((await dbStatus(b)).creationBlockNumber).toBe(
-      b.contract.creation.blockNumber,
-    );
-  }, 30_000);
-
-  test("writes the creation block at startup also when a reading after a release waits already", async () => {
-    const a = await openTab();
-    tabs.push(a);
-    await a.db
-      .table("SyncStatus")
-      .update(a.contract.name, { creationBlockNumber: 1 });
-    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
-    let spyLoad: MockInstance | undefined;
-    const b = await openTab(async () => {
-      // Same module instances as tab B.
-      const load = await import("#db/dbEventLogsDataHandlersSyncStatusLoad.js");
-      spyLoad = vi.spyOn(load, "loadSyncStatusInChain");
-      // As when the signal of tab C comes before the startup's request.
-      const { waitForSyncLockRelease } = await import("./syncLock");
-      waitForSyncLockRelease(chain.name);
-    });
-    tabs.push(b);
-
-    closeTabC();
-    await heldLock;
-    expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
-    expect((await dbStatus(b)).creationBlockNumber).toBe(
-      b.contract.creation.blockNumber,
-    );
-    // One reading: the startup's took the place of the queued one.
-    expect(
-      spyLoad!.mock.calls.filter(([chainName]) => chainName === chain.name),
-    ).toEqual([[chain.name, "startup"]]);
-  }, 30_000);
-
-  test("reads a chain as at startup also before the startup watches the locks, and only once", async () => {
-    const a = await openTab();
-    tabs.push(a);
-    let spyLoad: MockInstance | undefined;
-    const b = await openTab(async () => {
-      // Same module instances as tab B.
-      const load = await import("#db/dbEventLogsDataHandlersSyncStatusLoad.js");
-      spyLoad = vi.spyOn(load, "loadSyncStatusInChain");
-      // A reading that ends before the startup watches the locks.
-      const { waitForSyncLockRelease, storeSyncLockedByOtherTab } =
-        await import("./syncLock");
-      waitForSyncLockRelease(chain.name);
-      expect(
-        await waitFor(() => !get(storeSyncLockedByOtherTab)[chain.name]),
-      ).toBe(true);
-    });
-    tabs.push(b);
-
-    expect(
-      spyLoad!.mock.calls.filter(([chainName]) => chainName === chain.name),
-    ).toEqual([[chain.name, "startup"]]);
-  }, 30_000);
-
-  test.each([
-    ["busy", true],
-    ["free", false],
-  ])(
-    "reads a chain as at startup again after its first reading failed, when the chain is %s at startup",
-    async (_state, busy) => {
-      const a = await openTab();
-      tabs.push(a);
-      const otherTab = busy ? holdSyncLockOfOtherTab() : undefined;
-      let spyLoad: MockInstance | undefined;
-      const modes = (): unknown[] =>
-        spyLoad!.mock.calls
-          .filter(([chainName]) => chainName === chain.name)
-          .map(([, mode]) => mode);
-      const b = await openTab(async () => {
-        // Same module instances as tab B. The first reading of the chain fails.
-        const load =
-          await import("#db/dbEventLogsDataHandlersSyncStatusLoad.js");
-        const { loadSyncStatusInChain } = load;
-        spyLoad = vi
-          .spyOn(load, "loadSyncStatusInChain")
-          .mockImplementation(async (chainName, mode) => {
-            if (chainName === chain.name && modes().length === 1) {
-              throw new Error("DB error");
-            }
-            await loadSyncStatusInChain(chainName, mode);
-          });
-      });
-      tabs.push(b);
-      otherTab?.release();
-      await otherTab?.held;
-      expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
-
-      // The signal of another operation, which has ended.
-      const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
-      try {
-        signal.postMessage({ chainName: chain.name });
-      } finally {
-        signal.close();
-      }
-      expect(await waitFor(() => modes().length === 2)).toBe(true);
-      expect(modes()).toEqual(["startup", "startup"]);
-    },
-    30_000,
-  );
-
-  test("reads at startup a chain that this tab's own operation waited for at startup", async () => {
-    const a = await openTab();
-    tabs.push(a);
-    await a.db
-      .table("SyncStatus")
-      .update(a.contract.name, { creationBlockNumber: 1 });
-    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
-    let operation: Promise<boolean> | undefined;
-    const b = await openTab(async () => {
-      // Same module instances as tab B. It waits behind tab C, so the
-      // startup does not wait for the release itself.
-      const { runWithSyncLock } = await import("./syncLock");
-      operation = runWithSyncLock(chain.name, "sync", async () => {});
-    });
-    tabs.push(b);
-    // Not granted within SYNC_LOCK_TIMEOUT_MS: it waits for the release.
-    expect(await operation).toBe(false);
-
-    closeTabC();
-    await heldLock;
-    expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
-    expect((await dbStatus(b)).creationBlockNumber).toBe(
-      b.contract.creation.blockNumber,
-    );
-  }, 30_000);
-
-  test("reads a chain that this tab reset after the startup as after a release", async () => {
-    const a = await openTab();
-    tabs.push(a);
-    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
-    const spyVisibility = vi
-      .spyOn(document, "visibilityState", "get")
-      .mockReturnValue("hidden");
-    try {
-      let spyLoad: MockInstance | undefined;
-      const b = await openTab(async () => {
-        const load =
-          await import("#db/dbEventLogsDataHandlersSyncStatusLoad.js");
-        spyLoad = vi.spyOn(load, "loadSyncStatusInChain");
-      });
-      tabs.push(b);
-      closeTabC();
-      await heldLock;
-      // Its reset at the start writes all that the startup's reading writes.
-      expect(await b.fetchEventLogs()).toBe(true);
-      await stopAndWait(b);
-
-      spyVisibility.mockReturnValue("visible");
-      document.dispatchEvent(new Event("visibilitychange"));
-      expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
-      const modes = (): unknown[] =>
-        spyLoad!.mock.calls
-          .filter(([chainName]) => chainName === chain.name)
-          .map(([, mode]) => mode);
-      expect(await waitFor(() => modes().includes("release"))).toBe(true);
-      expect(modes()).toContain("reset");
-      expect(modes()).not.toContain("startup");
-    } finally {
-      spyVisibility.mockRestore();
-    }
-  }, 30_000);
-
   test("lets a tab opened hidden read a chain busy at startup once it is shown", async () => {
     const a = await openTab();
     tabs.push(a);
+    // Tab C syncs while tab B starts, and is closed while it holds the lock:
+    // its rows stay syncing.
+    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
     await a.db
       .table("SyncStatus")
-      .update(a.contract.name, { creationBlockNumber: 1 });
-    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
+      .update(a.contract.name, { isSyncing: true, isAbort: false });
     // The tabs share the document of the test.
     const spyVisibility = vi
       .spyOn(document, "visibilityState", "get")
@@ -1482,8 +1279,7 @@ describe("sync with two tabs (issue #49)", () => {
         spyListen.mockRestore();
       }
       tabs.push(b);
-      // The signal of tab C, after the startup: it does not replace the
-      // startup's reading.
+      // A signal while tab B is hidden: B does not read yet.
       const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
       try {
         signal.postMessage({ chainName: chain.name });
@@ -1495,18 +1291,15 @@ describe("sync with two tabs (issue #49)", () => {
       await heldLock;
       await sleep(300);
       expect(b.isLockedByOtherTab()).toBe(false);
-      expect((await dbStatus(b)).creationBlockNumber).toBe(1);
+      expect((await dbStatus(b)).isSyncing).toBe(true);
 
       spyVisibility.mockReturnValue("visible");
       document.dispatchEvent(new Event("visibilitychange"));
-      expect(
-        await waitFor(
-          async () =>
-            (await dbStatus(b)).creationBlockNumber ===
-            b.contract.creation.blockNumber,
-        ),
-      ).toBe(true);
+      expect(await waitFor(async () => !(await dbStatus(b)).isSyncing)).toBe(
+        true,
+      );
       expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
+      expect(b.storeStatus().syncStateText).toBe("stopped");
     } finally {
       spyVisibility.mockRestore();
     }

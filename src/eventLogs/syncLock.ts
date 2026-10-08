@@ -110,7 +110,7 @@ export async function requestSyncLock(
         // was opened, or left flags behind when it was closed. The Worker
         // counted the records at startup, and the syncing tab keeps the
         // counts in the DB up to date.
-        if (navigator.locks) await resetSyncStatusInChain(chainName);
+        if (navigator.locks) await loadSyncStatusInChain(chainName, "reset");
         await start();
       });
       resolve(started);
@@ -147,10 +147,10 @@ async function tryToStart(
   }
 }
 
-// Reads each chain at startup ("startup"): at once if it is free, or else
-// once it is released, and in a hidden tab once the tab is shown. The
-// recount in the Worker skips a chain another tab syncs, and that tab may
-// have been closed since then.
+// Reads each chain at startup: at once if it is free, or else once it is
+// released, and in a hidden tab once the tab is shown. The recount in the
+// Worker skips a chain another tab syncs, and that tab may have been closed
+// since then.
 export async function watchSyncLocksOfOtherTabs(): Promise<void> {
   if (!navigator.locks) return;
   // Before the requests below, so that no lock taken in between is missed.
@@ -165,19 +165,16 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
         { mode: "shared", ifAvailable: true },
         async (lock: Lock | null): Promise<void> => {
           if (lock) {
-            // Read already after a signal.
-            if (!chainsNotReadAtStartup.has(targetChain.name)) return;
-            try {
-              await loadSyncStatusInChain(targetChain.name, "startup");
-              chainsNotReadAtStartup.delete(targetChain.name);
-            } catch (error) {
-              // A failure only leaves this chain's status stale; do not fail
-              // the startup.
-              customLogger.error("Read the sync status at startup.", {
-                chainName: targetChain.name,
-                errorObject: error,
-              });
-            }
+            // A failure only leaves this chain's status stale; do not fail
+            // the startup.
+            await loadSyncStatusInChain(targetChain.name, "release").catch(
+              (error: unknown) => {
+                customLogger.error("Read the sync status at startup.", {
+                  chainName: targetChain.name,
+                  errorObject: error,
+                });
+              },
+            );
           } else {
             readChainWhenFree(targetChain.name);
           }
@@ -196,14 +193,6 @@ const syncLockChannel = createTabChannel(
   (chainName: ChainName) => {
     readChainWhenFree(chainName);
   },
-);
-
-// The chains that this tab has not read since the page was loaded: their
-// next reading runs as "startup". This tab's own reset writes all that it
-// writes. Filled once, before any reading: initialize() may run the startup
-// again.
-const chainsNotReadAtStartup: Set<ChainName> = new Set(
-  TARGET_CHAINS.map((chain: Chain) => chain.name),
 );
 
 // The chains that a hidden tab reads once it is shown.
@@ -314,25 +303,15 @@ export function waitForSyncLockRelease(chainName: ChainName): void {
 export async function reloadSyncStatusInChain(
   chainName: ChainName,
 ): Promise<void> {
-  await resetSyncStatusInChain(chainName);
-  await readLatestBlockNumber(chainName);
-}
-
-// For an operation of this tab, holding the sync lock exclusive.
-async function resetSyncStatusInChain(chainName: ChainName): Promise<void> {
   await loadSyncStatusInChain(chainName, "reset");
-  chainsNotReadAtStartup.delete(chainName);
+  await readLatestBlockNumber(chainName);
 }
 
 // After another tab's operation, with the lock shared. It writes only the
 // rows that need it, once of all the tabs that read: their writes would run
 // one after another, and hold the lock longer than a new operation waits.
 async function readChainAfterRelease(chainName: ChainName): Promise<void> {
-  await loadSyncStatusInChain(
-    chainName,
-    chainsNotReadAtStartup.has(chainName) ? "startup" : "release",
-  );
-  chainsNotReadAtStartup.delete(chainName);
+  await loadSyncStatusInChain(chainName, "release");
   await readLatestBlockNumber(chainName);
 }
 

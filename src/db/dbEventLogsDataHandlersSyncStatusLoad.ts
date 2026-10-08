@@ -16,18 +16,14 @@ const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 
 // How the sync status of a chain is loaded into the store. Call only while
 // holding the sync lock of the chain, when no sync runs.
-// - "release" (after another tab's operation, with the lock shared): clears
-//   the flags of a sync that a tab closed while it synced left set.
-// - "startup" (with the lock shared): also writes the creation block of this
-//   build where it differs, as the startup did, for a chain whose recount the
-//   Worker skipped. Not after a release: two builds would write it back and
-//   forth.
-// In both, a row is written only when it needs it, in a read-write
-// transaction that checks it again, so that of the tabs that read at the same
-// time only the first writes.
+// - "release" (at startup and after another tab's operation, with the lock
+//   shared): clears the flags of a sync that a tab closed while it synced
+//   left set. A row is written only when it needs it, in a read-write
+//   transaction that checks it again, so that of the tabs that read at the
+//   same time only the first writes.
 // - "reset" (for an operation of this tab, with the lock exclusive): writes
 //   the cleared flags and the creation block of this build to every row.
-export type SyncStatusLoad = "release" | "startup" | "reset";
+export type SyncStatusLoad = "release" | "reset";
 
 type Row = { contract: Contract; row: SyncStatusContract | undefined };
 
@@ -63,7 +59,6 @@ async function loadVersion(
   let rows: Row[];
   switch (load) {
     case "release":
-    case "startup":
       rows = await readRows(dbEventLogs, contracts);
       if (rows.some(({ contract, row }) => row && changeOf(contract, row))) {
         rows = await writeRows(dbEventLogs, contracts, changeOf);
@@ -108,14 +103,6 @@ function getChangeOf(load: SyncStatusLoad): ChangeOf {
   switch (load) {
     case "release":
       return (_contract, row) => getRepair(row);
-    case "startup":
-      return (contract, row) => {
-        const change: Partial<SyncStatusContract> = { ...getRepair(row) };
-        if (row.creationBlockNumber !== contract.creation.blockNumber) {
-          change.creationBlockNumber = contract.creation.blockNumber;
-        }
-        return Object.keys(change).length > 0 ? change : undefined;
-      };
     case "reset":
       return (contract) => getSyncStatusReset(contract);
   }
