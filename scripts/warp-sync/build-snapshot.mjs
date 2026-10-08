@@ -68,16 +68,21 @@ function match(text, regex, what) {
   if (!found) throw new Error(`Cannot find ${what}.`);
   return found[1];
 }
-function matchAll(text, regex) {
-  return [...text.matchAll(regex)].map((found) => found[1]);
+// Throws when nothing matches, so that an import of another form does not
+// leave the contracts out without a word.
+function matchAll(text, regex, what) {
+  const found = [...text.matchAll(regex)].map((m) => m[1]);
+  if (found.length === 0) throw new Error(`Cannot find ${what}.`);
+  return found;
 }
 
-// Reads the chain like fake-rpc.mjs of screen-check: from the _index.ts files
-// and the JSON files they import.
+// Reads the chain from the import lines of the _index.ts files and the JSON
+// files that they import.
 export function loadChain(chainName, chainsDir = CHAINS_DIR) {
   const chainDirs = matchAll(
     read(path.join(chainsDir, "_index.ts")),
     /import \{ chain as \w+ \} from "\.\/([^"]+)\/_index";/g,
+    `the chains of ${chainsDir}`,
   );
   for (const chainDir of chainDirs) {
     const dir = path.join(chainsDir, chainDir);
@@ -104,6 +109,7 @@ function loadContracts(chainDir, chainIndex) {
   for (const projectDir of matchAll(
     chainIndex,
     /import \{ project as \w+ \} from "\.\/([^"]+)\/_index";/g,
+    `the projects of ${chainDir}`,
   )) {
     const dir = path.join(chainDir, projectDir);
     const index = read(path.join(dir, "_index.ts"));
@@ -115,6 +121,7 @@ function loadContracts(chainDir, chainIndex) {
     for (const versionDir of matchAll(
       index,
       /import \{ version as \w+ \} from "\.\/([^"]+)\/_index";/g,
+      `the versions of ${dir}`,
     )) {
       const vDir = path.join(dir, versionDir);
       const vIndex = read(path.join(vDir, "_index.ts"));
@@ -126,6 +133,7 @@ function loadContracts(chainDir, chainIndex) {
       for (const file of matchAll(
         vIndex,
         /import \w+ from "\.\/([^"]+\.json)";/g,
+        `the JSON files of ${vDir}`,
       )) {
         const json = JSON.parse(read(path.join(vDir, file)));
         const iface = new Interface(json.abi);
@@ -325,32 +333,13 @@ export function createFetchStats() {
 }
 
 // Fetches the logs of [fromBlock, toBlock] in ranges, like the sync (#549,
-// #554, #591). A full range that works doubles the next one, up to maxWidth.
-// A failure is tried again after a wait:
-// - "rate" (HTTP 429): the same range, after a wait doubled at each 429 in a
-//   row (rateWaitMs), which ends early when signal is aborted. Not a failure:
-//   it neither halves the range nor counts toward MAX_FAILURES, and the
-//   failures before it stay counted. The script stops after MAX_RATE_ERRORS
-//   in a row.
-// - "results" (too many logs): the range is halved at once, without a wait
-//   and without counting a failure.
-// - "unrelated" (HTTP 500, 504, a node without old blocks): the same range.
-// - "range": halved after two in a row, and the half becomes the widest
-//   range until SUCCESSES_TO_RAISE_LIMIT full ranges work in a row.
-// - Any kind but "rate": halved after ERRORS_TO_HALVE_ANYWAY in a row; the
-//   script stops after MAX_FAILURES in a row.
-// A halving halves the shared widths and gives the part its own widths, the
-// half of the range that failed (#601): its width is the narrower of the two,
-// so that the other parts may narrow it but not raise it. A full range that
-// works raises the own widths when it had their width, and the shared ones
-// when it has their width after the answer (another part may have changed
-// them meanwhile). When that raises the own width to the shared one, the part
-// uses the shared widths again.
-// An empty result is asked again until EMPTY_ANSWERS_TO_KEEP empty answers in
-// a row (#576): an RPC may return no logs for a range that has some. Each
-// range that works goes to onRange(from, to, logs), with its logs by block and
-// log index, so that the logs are not all kept in memory. Returns the number of logs. It stops before the next
-// request when signal is aborted (another part stopped).
+// #554, #591). How the ranges are widened and halved, and what each kind of
+// failure ("rate", "results", "unrelated", "range") and an empty result do,
+// is in "Widths", "Failures" and "Empty results (#576)" of README.md.
+// Each range that works goes to onRange(from, to, logs), with its logs by
+// block and log index, so that the logs are not all kept in memory. Returns
+// the number of logs. It stops before the next request when signal is
+// aborted (another part stopped).
 export async function fetchLogs(
   rpc,
   contract,
@@ -868,7 +857,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     chainName: values.chain,
     rpcUrl: withKey(values.rpc, values["rpc-key-file"]),
     outDir: values.out,
-    toBlock: values.to === undefined ? undefined : Number(values.to),
+    toBlock:
+      values.to === undefined ? undefined : positiveInteger(values, "to"),
     maxRequests: positiveInteger(values, "max-requests"),
     concurrency: positiveInteger(values, "concurrency"),
     partBlocks: positiveInteger(values, "part-blocks"),

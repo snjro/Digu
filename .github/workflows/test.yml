@@ -48,6 +48,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 -B -m unittest discover -s scripts/screen-check -p "*_test.py"
 
+      - name: Run the tests of check-snapshot.py
+        if: ${{ !cancelled() }}
+        run: python3 -B -m unittest discover -s scripts/warp-sync -p "*_test.py"
+
       - name: "Report Coverage"
         if: always() # Also generate the report if tests are failing
         uses: davelosert/vitest-coverage-report-action@c4bbc33a89b7ace0e63d35f1f7d4bcee31155a73 # v2.13.0

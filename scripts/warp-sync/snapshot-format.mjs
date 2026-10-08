@@ -157,7 +157,9 @@ export function readManifest(file, chain) {
 
 export function writeManifest(file, manifest) {
   manifest.totals = totalsOf(manifest.chunks);
-  fs.writeFileSync(file, `${JSON.stringify(manifest, null, 2)}\n`);
+  // Written whole and then renamed, like the state of build-snapshot.mjs.
+  fs.writeFileSync(`${file}.tmp`, `${JSON.stringify(manifest, null, 2)}\n`);
+  fs.renameSync(`${file}.tmp`, file);
 }
 
 // Moves the files written in fromDir to dir, after checking that none of them

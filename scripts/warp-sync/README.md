@@ -12,16 +12,16 @@ users of the app do not run it.
 ## The snapshots
 
 - `matic`: made by this script with the public RPC of pocket.
-- `eth`: 2,641,099 logs of 16 contracts to block 26,104,938, in 146 files
-  (156 MB of gzip, 1.1 GB of JSON). Its first run (2,640,510 logs to block
-  26,075,462) was not made by this script: pocket dropped logs (#576), so
-  the logs were fetched from Infura with all the contracts in one
-  `eth_getLogs` for each range of 10,000 blocks
-  (2,293 requests, the `requests` of the run), and written with
-  `writeContractChunks` of `snapshot-format.mjs`. They were checked against
-  two runs of this script with pocket (every log of both is in the snapshot,
-  with the same fields) and the sample of 539 ranges of the estimate (the same
-  counts). Later runs are made by this script.
+- `eth`: its first run (2,640,510 logs of 16 contracts to block 26,075,462)
+  was not made by this script: pocket dropped logs (#576), so the logs were
+  fetched from Infura with all the contracts in one `eth_getLogs` for each
+  range of 10,000 blocks (2,293 requests, the `requests` of the run), and
+  written with `writeContractChunks` of `snapshot-format.mjs`. They were
+  checked against two runs of this script with pocket (every log of both is in
+  the snapshot, with the same fields) and the sample of 539 ranges of the
+  estimate (the same counts). Later runs are made by this script. The logs and
+  bytes it has now are the `totals` of `eth/manifest.json`, and its last block
+  is the `toBlock` of the last run there.
 
 ## Before a release
 
@@ -41,6 +41,12 @@ this check off.
 
 ```sh
 python3 scripts/warp-sync/check-snapshot.py [--at <ISO time>]   # the default is now
+```
+
+Tests of `check-snapshot.py` (`test.yml` runs them on every PR):
+
+```sh
+python3 -B -m unittest discover -s scripts/warp-sync -p "*_test.py"
 ```
 
 When the snapshot cannot be made on that day (for example, the RPC is down)
@@ -165,9 +171,9 @@ topic 0): the ABI does not fit the log. The snapshot has only the args
 decoded with the ABI of the time it was made, so after a fix to the ABI of a
 contract that has events, fetch that contract's snapshot again from an RPC.
 
-- **Widths:** the ranges start at 100,000 blocks (or `--max-width`, if
-  narrower) and are doubled after each full range that works, up to
-  `--max-width`. The parts of a contract share their widths, so that what
+- **Widths:** the ranges start at 100,000 blocks (`FIRST_WIDTH`; or
+  `--max-width`, if narrower) and are doubled after each full range that
+  works, up to `--max-width`. The parts of a contract share their widths, so that what
   one part learns, the others use. A part whose range is halved keeps its own
   widths too, the half of the range that failed (#601). It asks the narrower
   of its own width and the shared one: the other parts may narrow it, but
@@ -177,37 +183,42 @@ contract that has events, fetch that contract's snapshot again from an RPC.
   them meanwhile). When its own width is raised to the shared one, the part
   uses the shared widths again.
 - **Failures** (like #549, #554 and #591 in the sync: the RPC may pass each
-  request to another node). The script waits a second and tries again:
-  - HTTP 429 (too many requests, #632; Infura answers it for a while, even to
-    one request at a time): the same range, after a wait that is doubled at
-    each 429 in a row, from a second up to 30 seconds, or the `Retry-After`
-    of the answer (seconds) when that is longer, up to 60 seconds. Any other
+  request to another node). The script waits a second (`RETRY_WAIT_MS`) and
+  tries again:
+  - HTTP 429 (`rate`; too many requests, #632; Infura answers it for a while,
+    even to one request at a time): the same range, after a wait that is
+    doubled at each 429 in a row, from a second up to 30 seconds
+    (`RATE_WAIT_MAX_MS`), or the `Retry-After` of the answer (seconds) when
+    that is longer, up to 60 seconds (`RETRY_AFTER_MAX_MS`). Any other
     answer makes the wait a second again. A 429 is not a failure: it does not
     halve the range and does not count toward the 10 failures below, and the
-    failures before it stay counted. After 30 429s in a row (of one part, or
-    of one other request), the script stops, so that it does not wait for
-    hours at a daily limit. The requests other than
-    `eth_getLogs` (`eth_chainId`, `eth_blockNumber`, `eth_getBlockByNumber`)
-    are asked again after a 429 in the same way.
+    failures before it stay counted. After 30 429s in a row
+    (`MAX_RATE_ERRORS`; of one part, or of one other request), the script
+    stops, so that it does not wait for hours at a daily limit. The requests
+    other than `eth_getLogs` (`eth_chainId`, `eth_blockNumber`,
+    `eth_getBlockByNumber`) are asked again after a 429 in the same way.
   - HTTP 500 or 504, and the errors of a node without old blocks
-    ("historical state is not available", "pruned history unavailable", "old
-    data not available due to pruning"): the same range, since they come for
-    any width.
-  - Any other error: the range is halved after two in a row, and the half
-    becomes the widest range until 10 ranges in a row work; then it is
-    doubled again.
-  - After three errors in a row of any kind but 429, the range is halved
-    too, in case a node answers a range that is too wide with HTTP 500.
-  - Too many logs for one answer ("max results", 20,000 with pocket; "more
-    than 10000 results" with Infura): the range is halved at once, without a
-    wait and without counting a failure.
-  - A request that does not answer in 60 seconds is a failure. After 10
-    failures in a row of one part, the script stops.
+    (`unrelated`; "historical state is not available", "pruned history
+    unavailable", "old data not available due to pruning"): the same range,
+    since they come for any width.
+  - Any other error (`range`): the range is halved after two in a row, and
+    the half becomes the widest range until 10 ranges in a row work
+    (`SUCCESSES_TO_RAISE_LIMIT`); then it is doubled again.
+  - After three errors in a row of any kind but 429
+    (`ERRORS_TO_HALVE_ANYWAY`), the range is halved too, in case a node
+    answers a range that is too wide with HTTP 500.
+  - Too many logs for one answer (`results`; "max results", 20,000 with
+    pocket; "more than 10000 results" with Infura): the range is halved at
+    once, without a wait and without counting a failure.
+  - A request that does not answer in 60 seconds (`REQUEST_TIMEOUT_MS`) is a
+    failure. After 10 failures in a row of one part (`MAX_FAILURES`), the
+    script stops.
 - **Empty results (#576):** an RPC may return no logs, without an error, for a
   range that has some, even twice in a row. Every range that returns no logs
-  is asked again until it returns logs or three empty answers in a row. This
-  almost triples the requests where the logs are sparse. It makes a lost range
-  less likely, not impossible: check the snapshot with another source.
+  is asked again until it returns logs or three empty answers in a row
+  (`EMPTY_ANSWERS_TO_KEEP`). This almost triples the requests where the logs
+  are sparse. It makes a lost range less likely, not impossible: check the
+  snapshot with another source.
 - **Parts (#586):** the blocks of each contract are split into parts of
   `--part-blocks`, which wait in a queue, the first part of each contract
   first. `--concurrency` workers take the next part when they finish one, so
@@ -218,7 +229,8 @@ contract that has events, fetch that contract's snapshot again from an RPC.
 The logs of each range are sorted by block and log index, and the parts of a
 contract are read in the order of the blocks. The run in the manifest has
 `checks`: the empty ranges asked again, those that had logs the second time,
-and the errors of each kind (`rate`: the HTTP 429s, of all the methods).
+and the errors of each kind (`rate`: the HTTP 429s, of all the methods). Like
+`requests`, they are of the invocation that finished the run.
 
 ## Format (formatVersion 3)
 
@@ -250,7 +262,8 @@ and the errors of each kind (`rate`: the HTTP 429s, of all the methods).
       // By method, of the invocation that finished the run (not those that
       // stopped before it). Not in a run converted from formatVersion 1.
       "requests": { "eth_getLogs": 21000 },
-      // What the fetching met. Not in a converted run.
+      // What the fetching met, of the invocation that finished the run, like
+      // requests. Not in a converted run.
       "checks": {
         "emptyRangesAskedAgain": 18000,
         "emptyRangesWithLogs": 3,
