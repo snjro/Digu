@@ -4,6 +4,7 @@ import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import path from "node:path";
+import { Readable } from "node:stream";
 import zlib from "node:zlib";
 import {
   afterAll,
@@ -13,9 +14,11 @@ import {
   describe,
   expect,
   test,
+  vi,
 } from "vitest";
 import {
   buildSnapshot,
+  KEEP_WRITE_LENGTH,
   keepLogsBefore,
   loadChain,
   RequestLimitError,
@@ -340,4 +343,58 @@ test("keepLogsBefore drops the lines from the next block on", async () => {
   );
   await keepLogsBefore(file, 7);
   expect(fs.readFileSync(file, "utf8")).toBe(`${line(5)}\n${line(6)}\n`);
+});
+
+test("keepLogsBefore keeps the file when its read fails", async () => {
+  const file = path.join(outDir, "segment.jsonl");
+  const line = (block) => JSON.stringify({ blockNumber: toHex(block) });
+  const content = `${line(5)}\n${line(6)}\n`;
+  fs.writeFileSync(file, content);
+  // The read gives the first line, and then fails.
+  const spy = vi.spyOn(fs, "createReadStream").mockImplementationOnce(() => {
+    const stream = new Readable({ read() {} });
+    stream.push(`${line(5)}\n`);
+    setTimeout(() => stream.destroy(new Error("read failed")), 10);
+    return stream;
+  });
+  try {
+    await expect(keepLogsBefore(file, 7)).rejects.toThrow("read failed");
+  } finally {
+    spy.mockRestore();
+  }
+  expect(fs.readFileSync(file, "utf8")).toBe(content);
+  expect(fs.existsSync(`${file}.tmp`)).toBe(false);
+});
+
+test("keepLogsBefore throws the error of the read when the close fails too", async () => {
+  const file = path.join(outDir, "segment.jsonl");
+  const content = `${JSON.stringify({ blockNumber: toHex(5) })}\n`;
+  fs.writeFileSync(file, content);
+  const read = vi.spyOn(fs, "createReadStream").mockImplementationOnce(() => {
+    const stream = new Readable({ read() {} });
+    setTimeout(() => stream.destroy(new Error("read failed")), 10);
+    return stream;
+  });
+  const close = vi.spyOn(fs, "closeSync").mockImplementationOnce(() => {
+    throw new Error("close failed");
+  });
+  try {
+    await expect(keepLogsBefore(file, 7)).rejects.toThrow("read failed");
+  } finally {
+    read.mockRestore();
+    close.mockRestore();
+  }
+  expect(fs.readFileSync(file, "utf8")).toBe(content);
+});
+
+test("keepLogsBefore keeps a file of more than one piece", async () => {
+  const file = path.join(outDir, "segment.jsonl");
+  const line = (block) =>
+    JSON.stringify({ blockNumber: toHex(block), data: "0".repeat(100) });
+  const blocks = Array.from({ length: 30_000 }, (_, i) => i + 1);
+  const kept = blocks.slice(0, 25_000).map((block) => `${line(block)}\n`);
+  expect(kept.join("").length).toBeGreaterThan(2 * KEEP_WRITE_LENGTH);
+  fs.writeFileSync(file, blocks.map((block) => `${line(block)}\n`).join(""));
+  await keepLogsBefore(file, 25_001);
+  expect(fs.readFileSync(file, "utf8")).toBe(kept.join(""));
 });

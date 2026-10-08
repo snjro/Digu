@@ -528,6 +528,8 @@ function readStates(partialDir) {
 function writeState(file, state) {
   writeWhole(file, (tmp) => fs.writeFileSync(tmp, JSON.stringify(state)));
 }
+// The kept lines are written in pieces of about this many characters.
+export const KEEP_WRITE_LENGTH = 1 << 20;
 // Keeps the lines of the blocks before nextBlock. A line that a stop left
 // half written is dropped too. It streams the file, which can be larger than
 // a string can hold.
@@ -535,11 +537,14 @@ export async function keepLogsBefore(file, nextBlock) {
   if (!fs.existsSync(file)) return;
   await writeWholeAsync(file, async (tmp) => {
     const out = fs.openSync(tmp, "w");
+    let failed = false;
     try {
+      // A failed read ends the loop with its error (Node 24).
       const lines = readline.createInterface({
         input: fs.createReadStream(file),
         crlfDelay: Infinity,
       });
+      let kept = "";
       for await (const line of lines) {
         let raw;
         try {
@@ -548,11 +553,24 @@ export async function keepLogsBefore(file, nextBlock) {
           continue;
         }
         if (Number(raw.blockNumber) < nextBlock) {
-          fs.writeSync(out, `${line}\n`);
+          kept += `${line}\n`;
+          if (kept.length >= KEEP_WRITE_LENGTH) {
+            fs.writeSync(out, kept);
+            kept = "";
+          }
         }
       }
+      fs.writeSync(out, kept);
+    } catch (error) {
+      failed = true;
+      throw error;
     } finally {
-      fs.closeSync(out);
+      try {
+        fs.closeSync(out);
+      } catch (error) {
+        // Not in place of the error that stopped the write.
+        if (!failed) throw error;
+      }
     }
   });
 }
