@@ -1,13 +1,6 @@
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain, ChainName } from "#constants/chains/types.js";
 import { initializeDBSyncStatusInChain } from "#db/db.worker.func.InitializeDBSyncStatus.js";
-import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
-import { getDbRecordSyncStatusContract } from "#db/dbEventLogsDataHandlersSyncStatusGetters.js";
-import type {
-  ContractIdentifier,
-  SyncStatusContract,
-  VersionIdentifier,
-} from "#db/dbTypes.js";
 import {
   DB_NAME,
   getSyncLockName,
@@ -15,12 +8,11 @@ import {
 } from "#db/constants.js";
 import { getDbRecordChainStatus } from "#db/dbChainStatusDataHandlers.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
-import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { recordSyncStoppedReason } from "./syncStoppedReason";
-import { extractEventContracts } from "#utils/utilsEthers.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { customLogger } from "#utils/logger.js";
+import { repairSyncStatusInChain } from "#db/dbEventLogsDataHandlersSyncStatusRepair.js";
 import { createTabChannel } from "./tabChannel";
 import {
   get,
@@ -173,9 +165,9 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
           if (lock) {
             // A failure only leaves this chain's status stale; do not fail
             // the startup.
-            await resetSyncStatusInChain(targetChain.name).catch(
+            await repairSyncStatusInChain(targetChain.name).catch(
               (error: unknown) => {
-                customLogger.error("Reset sync status at startup.", {
+                customLogger.error("Read the sync status at startup.", {
                   chainName: targetChain.name,
                   errorObject: error,
                 });
@@ -194,12 +186,9 @@ export async function watchSyncLocksOfOtherTabs(): Promise<void> {
 // browser's lock manager keeps it, and releases the locks of a tab that is
 // closed or crashes. The others wait for the lock shared, so they read the
 // chain again once the operation ends, or at once if it has ended already.
-type SyncLockMessage = { chainName: ChainName };
-const syncLockChannel = createTabChannel<SyncLockMessage>(
+const syncLockChannel = createTabChannel(
   `${DB_NAME.firstName}_syncLock`,
-  (message: unknown) => {
-    const chainName: ChainName | undefined = getChainNameOfMessage(message);
-    if (chainName === undefined) return;
+  (chainName: ChainName) => {
     // Waiting for the sync lock: it waits for the release itself if it is
     // not granted.
     if (!get(chainsLockedByThisTab)[chainName]) {
@@ -208,19 +197,9 @@ const syncLockChannel = createTabChannel<SyncLockMessage>(
   },
 );
 
-// The chain that a message of another tab names, or undefined when it names
-// no chain of the app, as from a tab on another build.
-export function getChainNameOfMessage(message: unknown): ChainName | undefined {
-  const chainName: unknown = (message as { chainName?: unknown } | null)
-    ?.chainName;
-  return TARGET_CHAINS.some((chain: Chain) => chain.name === chainName)
-    ? (chainName as ChainName)
-    : undefined;
-}
-
 function postSyncLockTaken(chainName: ChainName): void {
   try {
-    syncLockChannel.post({ chainName });
+    syncLockChannel.post(chainName);
   } catch (error) {
     customLogger.error("Tell the other tabs about the sync lock.", {
       chainName,
@@ -251,7 +230,7 @@ export function waitForSyncLockRelease(chainName: ChainName): void {
           await readChainAfterRelease(chainName);
         } catch (error) {
           // A failure only leaves this chain's status stale.
-          customLogger.error("Reset sync status after release.", {
+          customLogger.error("Read the chain again after the release.", {
             chainName: chainName,
             errorObject: error,
           });
@@ -286,23 +265,11 @@ export async function reloadSyncStatusInChain(
   await readLatestBlockNumber(chainName);
 }
 
-// After another tab's operation, with the lock shared. It writes only when a
-// row was left syncing or aborting (a tab closed while it synced): the writes
-// of every waiting tab would run one after another, and hold the lock longer
-// than a new operation waits.
+// After another tab's operation, with the lock shared. It writes only the
+// rows that need it, once of all the tabs that read: their writes would run
+// one after another, and hold the lock longer than a new operation waits.
 async function readChainAfterRelease(chainName: ChainName): Promise<void> {
-  const syncStatuses: ContractSyncStatus[] =
-    await readSyncStatusesInChain(chainName);
-  if (
-    syncStatuses.some(
-      ({ syncStatusContract }) =>
-        syncStatusContract.isSyncing || syncStatusContract.isAbort,
-    )
-  ) {
-    await reloadSyncStatusInChain(chainName);
-    return;
-  }
-  setSyncStatuses(syncStatuses);
+  await repairSyncStatusInChain(chainName);
   await readLatestBlockNumber(chainName);
 }
 
@@ -312,56 +279,13 @@ async function readLatestBlockNumber(chainName: ChainName): Promise<void> {
   storeChainStatus.updateState(chainName, { latestBlockNumber });
 }
 
-// Call only while holding the sync lock of the chain, exclusive or shared.
+// For an operation of this tab, holding the sync lock exclusive: it writes
+// every row, as a tab that synced may have been closed since this tab read
+// the chain.
 async function resetSyncStatusInChain(chainName: ChainName): Promise<void> {
   const targetChain: Chain = getTargetChain({ chainName: chainName });
   // The Worker counted the records at startup, and the syncing tab keeps the
   // counts in the DB up to date.
   await initializeDBSyncStatusInChain(targetChain, false);
-  setSyncStatuses(await readSyncStatusesInChain(chainName));
-}
-
-type ContractSyncStatus = {
-  contractIdentifier: ContractIdentifier;
-  syncStatusContract: SyncStatusContract;
-};
-
-// The whole records, including fetchedBlockNumber.
-async function readSyncStatusesInChain(
-  chainName: ChainName,
-): Promise<ContractSyncStatus[]> {
-  const targetChain: Chain = getTargetChain({ chainName: chainName });
-  const promises: Promise<ContractSyncStatus>[] = [];
-  for (const targetProject of targetChain.projects) {
-    for (const targetVersion of targetProject.versions) {
-      const versionIdentifier: VersionIdentifier = {
-        chainName: chainName,
-        projectName: targetProject.name,
-        versionName: targetVersion.name,
-      };
-      const dbEventLogs: DbEventLogs = getDbEventLogs(versionIdentifier);
-      for (const targetContract of extractEventContracts(
-        targetVersion.contracts,
-      )) {
-        promises.push(
-          getDbRecordSyncStatusContract(dbEventLogs, targetContract.name).then(
-            (syncStatusContract: SyncStatusContract) => ({
-              contractIdentifier: {
-                ...versionIdentifier,
-                contractName: targetContract.name,
-              },
-              syncStatusContract,
-            }),
-          ),
-        );
-      }
-    }
-  }
-  return await Promise.all(promises);
-}
-
-function setSyncStatuses(syncStatuses: ContractSyncStatus[]): void {
-  for (const { contractIdentifier, syncStatusContract } of syncStatuses) {
-    storeSyncStatus.updateState(contractIdentifier, syncStatusContract);
-  }
+  await repairSyncStatusInChain(chainName);
 }

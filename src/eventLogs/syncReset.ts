@@ -9,11 +9,7 @@ import {
 } from "#warpSync/warpSync.js";
 import { hasWarpSync, setWarpSyncState } from "#warpSync/warpSyncState.js";
 import { get } from "svelte/store";
-import {
-  getChainNameOfMessage,
-  reloadSyncStatusInChain,
-  runWithSyncLock,
-} from "./syncLock";
+import { reloadSyncStatusInChain, runWithSyncLock } from "./syncLock";
 import { createTabChannel } from "./tabChannel";
 
 // "busy": the chain is synced or imported now, and nothing was deleted.
@@ -25,8 +21,6 @@ export type SyncResetOutcome = {
   // The import of the warp sync snapshot that starts after the reset.
   warpSyncImport?: Promise<void>;
 };
-
-type SyncResetMessage = { chainName: ChainName };
 
 // Deletes the synced data of the chain while holding its sync lock, and then
 // imports the warp sync snapshot again when it is on.
@@ -108,16 +102,13 @@ function forgetWarpSyncImport(chainName: ChainName): void {
 
 // The other tabs import the snapshot again the next time. They read the chain
 // again from the signal of the sync lock, which the reset holds.
-const syncResetChannel = createTabChannel<SyncResetMessage>(
+const syncResetChannel = createTabChannel(
   `${DB_NAME.firstName}_syncReset`,
-  (message: unknown) => {
-    const chainName: ChainName | undefined = getChainNameOfMessage(message);
-    if (chainName !== undefined) forgetWarpSyncImport(chainName);
-  },
+  forgetWarpSyncImport,
 );
 
 function postSyncReset(chainName: ChainName): void {
-  syncResetChannel.post({ chainName });
+  syncResetChannel.post(chainName);
 }
 
 export function watchSyncResetsOfOtherTabs(): void {
