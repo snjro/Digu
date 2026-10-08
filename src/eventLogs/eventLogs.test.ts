@@ -8,10 +8,13 @@ import {
 } from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { customLogger } from "#utils/logger.js";
-import { getNodeProvider, type NodeProvider } from "#utils/utilsEthers.js";
+import {
+  extractEventContracts,
+  getNodeProvider,
+  type NodeProvider,
+} from "#utils/utilsEthers.js";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { fetchEventLogsContract } from "./eventLogsContract";
-import { extractEventContracts } from "#utils/utilsEthers.js";
 import {
   importWarpSyncBeforeSync,
   waitForWarpSync,
@@ -143,11 +146,25 @@ describe("syncEventLogs", () => {
     expect(await fetchEventLogs(matic)).toBe(true);
     await syncing;
 
+    // The DB of its version too: the names of the contracts repeat across
+    // versions.
     expect(
       vi
         .mocked(fetchEventLogsContract)
-        .mock.calls.map(([, contract]) => contract.name),
-    ).toEqual([marked.name]);
+        .mock.calls.map(([dbEventLogs, contract]) => [
+          dbEventLogs.versionIdentifier,
+          contract.name,
+        ]),
+    ).toEqual([
+      [
+        {
+          chainName: matic.name,
+          projectName: matic.projects[0].name,
+          versionName: version.name,
+        },
+        marked.name,
+      ],
+    ]);
     // The run ends with the loops that the abort reaches.
     expect(stopSyncingInChain).toHaveBeenCalledWith("matic");
   });

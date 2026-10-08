@@ -31,6 +31,37 @@ function getStoreSyncStatusContract(
 }
 
 describe("updateSyncStatusInChain", () => {
+  test("should not return a row of a contract that this build does not know", async () => {
+    const targetChain = TARGET_CHAINS[0];
+    const version = targetChain.projects[0].versions[0];
+    const versionIdentifier: VersionIdentifier = {
+      chainName: targetChain.name,
+      projectName: targetChain.projects[0].name,
+      versionName: version.name,
+    };
+    const dbEventLogs = new DbEventLogs(versionIdentifier);
+    // As a tab of another build left it.
+    await dbEventLogs.table(tableNameSyncStatus).put({
+      ...(await dbEventLogs
+        .table(tableNameSyncStatus)
+        .get(extractEventContracts(version.contracts)[0].name)),
+      name: "UnknownContract",
+      isAbort: true,
+    });
+
+    const contracts: ContractIdentifier[] = await updateSyncStatusInChain(
+      targetChain.name,
+      "isAbort",
+      true,
+      { isAbort: false },
+    );
+
+    expect(contracts.map((contract) => contract.contractName)).not.toContain(
+      "UnknownContract",
+    );
+    await dbEventLogs.table(tableNameSyncStatus).delete("UnknownContract");
+  });
+
   test("should return the contracts whose rows it changed", async () => {
     const targetChain = TARGET_CHAINS[0];
     const version = targetChain.projects[0].versions[0];

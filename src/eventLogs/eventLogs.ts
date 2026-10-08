@@ -76,12 +76,7 @@ async function syncEventLogs(
     );
 
     for (const contractIdentifier of syncingContracts) {
-      const { chainName, projectName, versionName } = contractIdentifier;
-      const dbEventLogs: DbEventLogs = getDbEventLogs({
-        chainName,
-        projectName,
-        versionName,
-      });
+      const dbEventLogs: DbEventLogs = getDbEventLogs(contractIdentifier);
       const targetContract: Contract = getTargetContract(contractIdentifier);
       promiseFetchAndInsertEthersEvents.push(
         fetchEventLogsContract(dbEventLogs, targetContract, nodeProvider).catch(

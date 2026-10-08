@@ -1,4 +1,4 @@
-import type { Chain, ChainName } from "#constants/chains/types.js";
+import type { Chain, ChainName, Contract } from "#constants/chains/types.js";
 import { DB_TABLE_NAMES } from "./constants";
 import { getDbEventLogs, type DbEventLogs } from "./dbEventLogs";
 import type {
@@ -6,13 +6,16 @@ import type {
   SyncStatusContract,
   VersionIdentifier,
 } from "./dbTypes";
-import { getTargetChain } from "#utils/utilsDb.js";
+import { getTargetChain, getTargetVersion } from "#utils/utilsDb.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import { getDbRecordsSyncStatusContractByKeyValue } from "./dbEventLogsDataHandlersSyncStatusGetters";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 
 const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 
-// Returns the contracts whose rows it changed.
+// Returns the contracts whose rows it changed, among the event contracts of
+// this build: the DB may have a row of a contract that it does not know (from
+// a tab of another build).
 export async function updateSyncStatusInChain<
   T extends keyof SyncStatusContract,
 >(
@@ -69,13 +72,19 @@ async function updateSyncStatusInVersion<T extends keyof SyncStatusContract>(
       );
       return syncStatusesContract;
     });
-  const contractIdentifiers: ContractIdentifier[] =
-    targetSyncStatusesContract.map(
-      (syncStatusContract: SyncStatusContract) => ({
-        ...dbEventLogs.versionIdentifier,
-        contractName: syncStatusContract.name,
-      }),
-    );
+  const eventContractNames: Set<string> = new Set(
+    extractEventContracts(
+      getTargetVersion(dbEventLogs.versionIdentifier).contracts,
+    ).map((contract: Contract) => contract.name),
+  );
+  const contractIdentifiers: ContractIdentifier[] = targetSyncStatusesContract
+    .filter((syncStatusContract: SyncStatusContract) =>
+      eventContractNames.has(syncStatusContract.name),
+    )
+    .map((syncStatusContract: SyncStatusContract) => ({
+      ...dbEventLogs.versionIdentifier,
+      contractName: syncStatusContract.name,
+    }));
   // Update the store only after the commit.
   for (const contractIdentifier of contractIdentifiers) {
     storeSyncStatus.updateState(contractIdentifier, newSyncStatusContract);
