@@ -277,13 +277,25 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(after.contracts.map(keyOf).sort()).toEqual(
       chain.contracts.map(keyOf).sort(),
     );
-    // A run without logs, like any run.
-    expect(after.runs.map((run) => [run.toBlock, run.logCount])).toEqual([
-      [15_000_000, manifest.runs[0].logCount],
-      [15_000_000, 0],
-    ]);
+    // No run: the last one still tells how far the snapshot reaches.
+    expect(after.runs).toEqual(manifest.runs);
     expect(after.chunks).toEqual(manifest.chunks);
     await expect(build({ toBlock: 15_000_000 })).resolves.toBeUndefined();
+  });
+
+  test("a run with no logs to add compares the fields of the contracts too", async () => {
+    await build({ toBlock: 15_000_000 });
+    const manifest = readManifest();
+    // The same address in other letters, which the script accepts.
+    manifest.contracts[0].address = manifest.contracts[0].address.toLowerCase();
+    writeManifest(path.join(dir(), "manifest.json"), manifest);
+    await build({ toBlock: 15_000_000 });
+    const after = readManifest();
+    const contract = chain.contracts.find(
+      (c) => keyOf(c) === keyOf(manifest.contracts[0]),
+    );
+    expect(after.contracts[0].address).toBe(contract.address);
+    expect(after.runs).toEqual(manifest.runs);
   });
 
   test("a first run before every contract writes their contracts into a new folder", async () => {
@@ -295,7 +307,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       chain.contracts.map(keyOf).sort(),
     );
     expect(manifest.chunks).toEqual([]);
-    expect(manifest.runs).toHaveLength(1);
+    expect(manifest.runs).toEqual([]);
   });
 
   test("gets blockTimestamp from the block when the RPC does not return it", async () => {

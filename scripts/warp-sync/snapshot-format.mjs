@@ -31,10 +31,12 @@ export const sha256 = (data) =>
   crypto.createHash("sha256").update(data).digest("hex");
 
 // The block and the log index of a log, as numbers, or undefined when one is
-// not a whole number.
+// not a hex quantity: the form of the RPC, which toSnapshotLog keeps.
 export function logPositionOf(log) {
-  const position = [Number(log?.blockNumber), Number(log?.logIndex)];
-  return position.every(Number.isInteger) ? position : undefined;
+  const hex = /^0x[0-9a-fA-F]+$/;
+  return hex.test(log?.blockNumber) && hex.test(log?.logIndex)
+    ? [Number(log.blockNumber), Number(log.logIndex)]
+    : undefined;
 }
 // Whether a log at position comes after the one at last in a file of the
 // snapshot: by block and log index, each log once.
@@ -103,7 +105,7 @@ export async function writeContractChunks({
     const position = logPositionOf(log);
     if (!position) {
       throw new Error(
-        `${keyOf(contract)}: a log with block ${log.blockNumber} and log index ${log.logIndex}.`,
+        `${keyOf(contract)}: a log with block ${log?.blockNumber} and log index ${log?.logIndex}.`,
       );
     }
     const [block, index] = position;

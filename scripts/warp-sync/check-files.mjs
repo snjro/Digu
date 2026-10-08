@@ -69,31 +69,37 @@ function contentProblems(data, chunk, chainId, contract) {
     problems.push(`has ${file.logs?.length} logs, not ${chunk.logCount}.`);
     return problems;
   }
-  // In the range and in the order that writeContractChunks writes them. The
-  // first log that is not stops the check of the file.
+  // In the range and in the order that writeContractChunks writes them: the
+  // first log of each kind of problem.
+  const found = new Map();
   let last;
   for (const log of file.logs) {
     const position = logPositionOf(log);
     if (!position) {
-      problems.push(
-        `has a log with block ${log?.blockNumber} and log index ${log?.logIndex}.`,
-      );
-      break;
+      if (!found.has("position")) {
+        found.set(
+          "position",
+          `has a log with block ${log?.blockNumber} and log index ${log?.logIndex}.`,
+        );
+      }
+      continue;
     }
     const [block, index] = position;
-    if (block < chunk.fromBlock || block > chunk.toBlock) {
-      problems.push(`has a log of block ${block}.`);
-      break;
+    if (
+      (block < chunk.fromBlock || block > chunk.toBlock) &&
+      !found.has("range")
+    ) {
+      found.set("range", `has a log of block ${block}.`);
     }
-    if (!isAfter(position, last)) {
-      problems.push(
+    if (!isAfter(position, last) && !found.has("order")) {
+      found.set(
+        "order",
         `has a log out of order at block ${block}, log index ${index}.`,
       );
-      break;
     }
     last = position;
   }
-  return problems;
+  return [...problems, ...found.values()];
 }
 
 // Returns the problems of the snapshot of each chain under dir.

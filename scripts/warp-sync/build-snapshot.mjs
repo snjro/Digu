@@ -693,113 +693,118 @@ async function build(chain, rpc, outDir, toBlock, options) {
       files: [],
     });
   }
-  // A contract created after the end has no range to fetch, but goes into
-  // manifest.contracts, which check-files.mjs compares with the chain.
   const contracts = contractsOf(known, chain);
-  const addsContracts = contracts.some((c) => !known.has(keyOf(c)));
-  if (plans.length === 0 && !addsContracts) {
+  if (plans.length === 0) {
     fs.rmSync(partialDir, { recursive: true, force: true });
-    log(`Nothing to add: the snapshot already reaches block ${end}.`);
-    return undefined;
+    if (JSON.stringify(contracts) === JSON.stringify(manifest.contracts)) {
+      log(`Nothing to add: the snapshot already reaches block ${end}.`);
+      return undefined;
+    }
+    // A contract created after the end has no range to fetch, but goes into
+    // manifest.contracts, which check-files.mjs compares with the chain. No
+    // run is added: the snapshot has no new logs, and its last run still
+    // tells how far it reaches and when it was made.
+    fs.mkdirSync(dir, { recursive: true });
+    manifest.contracts = contracts;
+    writeManifest(manifestFile, manifest);
+    log(
+      `No logs to add to block ${end}: wrote the contracts to ${manifestFile}.`,
+    );
+    return manifest;
   }
 
   const rows = [];
-  if (plans.length > 0) {
-    // The parts wait in a queue, the first part of each contract first, and
-    // `concurrency` workers take the next part when they finish one, so that
-    // the requests at a time stay the same until the end (#586). When one part
-    // stops (at --max-requests, or after failures), the others stop before
-    // their next request, and all keep what they fetched in .partial/.
-    fs.mkdirSync(partialDir, { recursive: true });
-    const controller = new AbortController();
-    const queue = [];
-    const most = Math.max(...plans.map((plan) => plan.parts.length));
-    for (let i = 0; i < most; i++) {
-      for (const plan of plans) {
-        if (i < plan.parts.length) queue.push({ plan, index: i });
-      }
+  // The parts wait in a queue, the first part of each contract first, and
+  // `concurrency` workers take the next part when they finish one, so that
+  // the requests at a time stay the same until the end (#586). When one part
+  // stops (at --max-requests, or after failures), the others stop before
+  // their next request, and all keep what they fetched in .partial/.
+  fs.mkdirSync(partialDir, { recursive: true });
+  const controller = new AbortController();
+  const queue = [];
+  const most = Math.max(...plans.map((plan) => plan.parts.length));
+  for (let i = 0; i < most; i++) {
+    for (const plan of plans) {
+      if (i < plan.parts.length) queue.push({ plan, index: i });
     }
-    const fetchPart = async ({ plan, index }) => {
-      const { contract, from, widths } = plan;
-      const [partFrom, partTo] = plan.parts[index];
-      const part = {
-        project: contract.project,
-        version: contract.version,
-        name: contract.name,
-        end,
-        fromBlock: from,
-        partFrom,
-        partTo,
-      };
-      const files = partFiles(partialDir, part);
-      plan.files[index] = files.logs;
-      const saved = states.get(partKeyOf(part));
-      const resumed = saved?.fromBlock === from ? saved : undefined;
-      const nextBlock = resumed?.nextBlock ?? partFrom;
-      await keepLogsBefore(files.logs, nextBlock);
-      if (resumed && nextBlock <= partTo) {
-        log(
-          `${keyOf(contract)} ${partFrom}-${partTo}: go on from ${nextBlock}.`,
-        );
-      }
-      await fetchLogs(rpc, contract, nextBlock, partTo, {
-        log,
-        onRange: (_from, to, logs) => {
-          // Stops at once at a log that toSnapshotLog does not take. .partial/
-          // keeps the logs as the RPC returned them; they are checked and
-          // decoded again when the files are written.
-          for (const raw of logs)
-            toSnapshotLog(contract, raw, raw.blockTimestamp);
-          fs.appendFileSync(
-            files.logs,
-            logs.map((raw) => `${JSON.stringify(raw)}\n`).join(""),
-          );
-          writeState(files.state, { ...part, nextBlock: to + 1 });
-        },
-        signal: controller.signal,
-        widths,
-        stats,
-      });
-    };
-    const worker = async () => {
-      while (queue.length > 0 && !controller.signal.aborted) {
-        await fetchPart(queue.shift());
-      }
-    };
-    const results = await Promise.allSettled(
-      Array.from({ length: Math.min(concurrency, queue.length) }, () =>
-        worker().catch((error) => {
-          controller.abort(error);
-          throw error;
-        }),
-      ),
-    );
-    if (results.some((result) => result.status === "rejected")) {
-      // The error of the part that stopped first.
-      throw controller.signal.reason;
-    }
-    log(`Checks: ${JSON.stringify(stats)}`);
-
-    // Writes the files one contract at a time, reading the logs of its parts
-    // in the order of the blocks, so that the logs are not all in memory.
-    const tmpDir = path.join(partialDir, OUT_DIR);
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-    for (const { contract, from, files } of plans) {
-      rows.push(
-        ...(await writeContractChunks({
-          chainId: chain.chainId,
-          contract,
-          fromBlock: from,
-          toBlock: end,
-          logs: toSnapshotLogs(ask, contract, readParts(files)),
-          outDir: tmpDir,
-          maxLogs: chunkLogs,
-        })),
-      );
-    }
-    moveChunkFiles(rows, tmpDir, dir, manifest);
   }
-  fs.mkdirSync(dir, { recursive: true });
+  const fetchPart = async ({ plan, index }) => {
+    const { contract, from, widths } = plan;
+    const [partFrom, partTo] = plan.parts[index];
+    const part = {
+      project: contract.project,
+      version: contract.version,
+      name: contract.name,
+      end,
+      fromBlock: from,
+      partFrom,
+      partTo,
+    };
+    const files = partFiles(partialDir, part);
+    plan.files[index] = files.logs;
+    const saved = states.get(partKeyOf(part));
+    const resumed = saved?.fromBlock === from ? saved : undefined;
+    const nextBlock = resumed?.nextBlock ?? partFrom;
+    await keepLogsBefore(files.logs, nextBlock);
+    if (resumed && nextBlock <= partTo) {
+      log(`${keyOf(contract)} ${partFrom}-${partTo}: go on from ${nextBlock}.`);
+    }
+    await fetchLogs(rpc, contract, nextBlock, partTo, {
+      log,
+      onRange: (_from, to, logs) => {
+        // Stops at once at a log that toSnapshotLog does not take. .partial/
+        // keeps the logs as the RPC returned them; they are checked and
+        // decoded again when the files are written.
+        for (const raw of logs)
+          toSnapshotLog(contract, raw, raw.blockTimestamp);
+        fs.appendFileSync(
+          files.logs,
+          logs.map((raw) => `${JSON.stringify(raw)}\n`).join(""),
+        );
+        writeState(files.state, { ...part, nextBlock: to + 1 });
+      },
+      signal: controller.signal,
+      widths,
+      stats,
+    });
+  };
+  const worker = async () => {
+    while (queue.length > 0 && !controller.signal.aborted) {
+      await fetchPart(queue.shift());
+    }
+  };
+  const results = await Promise.allSettled(
+    Array.from({ length: Math.min(concurrency, queue.length) }, () =>
+      worker().catch((error) => {
+        controller.abort(error);
+        throw error;
+      }),
+    ),
+  );
+  if (results.some((result) => result.status === "rejected")) {
+    // The error of the part that stopped first.
+    throw controller.signal.reason;
+  }
+  log(`Checks: ${JSON.stringify(stats)}`);
+
+  // Writes the files one contract at a time, reading the logs of its parts
+  // in the order of the blocks, so that the logs are not all in memory.
+  const tmpDir = path.join(partialDir, OUT_DIR);
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  for (const { contract, from, files } of plans) {
+    rows.push(
+      ...(await writeContractChunks({
+        chainId: chain.chainId,
+        contract,
+        fromBlock: from,
+        toBlock: end,
+        logs: toSnapshotLogs(ask, contract, readParts(files)),
+        outDir: tmpDir,
+        maxLogs: chunkLogs,
+      })),
+    );
+  }
+  moveChunkFiles(rows, tmpDir, dir, manifest);
 
   manifest.contracts = contracts;
   manifest.runs.push({

@@ -330,6 +330,17 @@ describe("checkSnapshotFiles", () => {
     ]);
   });
 
+  test("a file with a log out of the range and logs out of order", () => {
+    writeFirstFile((d) => {
+      d.logs.reverse();
+      d.logs[0].blockNumber = `0x${(a + 5).toString(16)}`;
+    });
+    expect(check()).toEqual([
+      fileProblem(0, `has a log of block ${a + 5}.`),
+      fileProblem(0, `has a log out of order at block ${a}, log index 0.`),
+    ]);
+  });
+
   test("a file that is not gzip", () => {
     const manifest = readManifest(manifestFile, chain);
     const chunk = manifest.chunks[0];
