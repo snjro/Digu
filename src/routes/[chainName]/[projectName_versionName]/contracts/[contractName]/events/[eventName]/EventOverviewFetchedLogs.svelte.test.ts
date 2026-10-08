@@ -100,8 +100,8 @@ function contractOf(state: SyncStatusesChain): SyncStatusContract {
   if (!contract) throw new Error("contract1 is not in the store.");
   return contract;
 }
-// The record count of the event of the section. Throws when the store has
-// none.
+// The record count of the event of the section. Throws when the store has no
+// such contract or event.
 function recordCountOfTheEvent(): number {
   const event = contractOf(get(store)).events[EVENT];
   if (!event) throw new Error(`${EVENT} of contract1 is not in the store.`);
