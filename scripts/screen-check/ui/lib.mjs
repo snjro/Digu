@@ -9,6 +9,7 @@ import {
   logPageProblems,
   serveBuild,
 } from "../../check-lib/browser.mjs";
+import { createResults } from "../../check-lib/results.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
 export const puppeteer = require("puppeteer");
@@ -281,24 +282,17 @@ export async function idb(page) {
   });
 }
 
-export const results = [];
+// Written to results-<name>.json by finish(name).
+const results = createResults({
+  extra: () => ({ log, blocked: [...blocked], rpcLog: rpcLog.slice(-50) }),
+});
 export function rec(id, result, note, shots = [], extra = {}) {
-  results.push({ id, result, note, shots, ...extra });
+  results.add(id, result, note, { shots, ...extra });
   console.log(`[${id}] ${result} ${note} ${shots.join(",")}`);
 }
 
-export function save(name) {
-  fs.writeFileSync(
-    path.join(OUT, `results-${name}.json`),
-    JSON.stringify(
-      { results, log, blocked: [...blocked], rpcLog: rpcLog.slice(-50) },
-      null,
-      2,
-    ),
-  );
-}
 export async function finish(name) {
-  save(name);
+  results.writeTo(path.join(OUT, `results-${name}.json`));
   const count = {};
   for (const l of log) count[l.type] = (count[l.type] ?? 0) + 1;
   console.log(`[summary] ${JSON.stringify(count)} blocked=${blocked.size}`);
@@ -310,7 +304,7 @@ export async function finish(name) {
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Run a step; record NG with the exception if it throws.
+// Run a step; record ERROR with the exception if it throws.
 const ONLY = process.argv
   .find((a) => a.startsWith("--only="))
   ?.slice(7)
@@ -319,17 +313,12 @@ export async function step(id, page, fn) {
   if (ONLY && !ONLY.some((o) => id.startsWith(o))) return;
   setStep(id);
   const before = log.length;
-  try {
-    await fn();
-  } catch (e) {
-    let s = [];
-    try {
-      s = [await shot(page, `${id}-exception`)];
-    } catch {
-      // no screenshot
-    }
-    rec(id, "ERROR", `script exception: ${String(e.message).slice(0, 300)}`, s);
-  }
+  await results.guard(id, fn, {
+    onError: async (e) => {
+      console.log(`[${id}] ERROR script exception: ${e?.message}`);
+      return { shots: [await shot(page, `${id}-exception`)] };
+    },
+  });
   const errs = log
     .slice(before)
     .filter(

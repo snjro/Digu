@@ -10,6 +10,7 @@ import {
   logPageProblems,
   serveBuild,
 } from "../../check-lib/browser.mjs";
+import { createChecks } from "../../check-lib/results.mjs";
 import {
   handle,
   makeState,
@@ -34,6 +35,7 @@ const FAKE_RPC = `http://fake-rpc.invalid/v3/${FAKE_KEY}`;
 const CONF = CONFIRMATION_BLOCKS;
 const V1_CREATION = 5926229;
 
+// results.json is for a person; judge.py reads results-sync.json.
 const results = {};
 const consoleLog = []; // {scenario, page, type, text}
 const blocked = [];
@@ -62,16 +64,17 @@ function saveResults() {
 function r() {
   return (results[scenario] ??= { steps: [] });
 }
-function note(key, value) {
-  r()[key] = value;
-  console.log(`[${scenario}] ${key}:`, JSON.stringify(value).slice(0, 400));
-  saveResults();
-}
-// `judge.py` judges only `ok`. A record written with `note()` alone is not
-// judged. Write pass or fail with `check()`.
-function check(key, ok, value = {}) {
-  note(key, { ok, ...value });
-}
+// note() writes INFO, check() OK or NG, and guard() turns an exception of a
+// scenario into ERROR (scripts/check-lib/results.mjs).
+const { note, check, guard } = createChecks({
+  file: path.join(outDir, "results-sync.json"),
+  prefix: () => scenario,
+  keep(key, value) {
+    r()[key] = value;
+    console.log(`[${scenario}] ${key}:`, JSON.stringify(value).slice(0, 400));
+    saveResults();
+  },
+});
 
 const server = serveBuild(buildDir);
 
@@ -554,258 +557,267 @@ if (want("S1")) {
   rpcState = makeState({ latest: V1_CREATION + 250 + CONF, delayMs: 100 });
   const context = await browser.createBrowserContext();
   const page = await newPage(context, "A");
-  try {
-    await gotoApp(page, "/eth/");
-    note("locks", await page.evaluate(() => !!navigator.locks));
-    await setupRpc(page);
-    // 6-1: sync targets
-    await snap(page, "S1-6-1-a-chain-initial", {
-      checkboxes: await checkboxes(page),
-    });
-    note("chainCheckboxes", await checkboxes(page));
-    // chain page: the version groups. Turn off Augur version2.
-    note("click v2", await clickCheckbox(page, "Sync target: Augur version2"));
-    await snap(page, "S1-6-1-b-v2-off", { checkboxes: await checkboxes(page) });
-    // version1: all off, then Augur on (contract page, Target).
-    note("click v1", await clickCheckbox(page, "Sync target: Augur version1"));
-    await snap(page, "S1-6-1-c-v1-off", { checkboxes: await checkboxes(page) });
-    await navIn(page, "/eth/Augur-version1/contracts/Augur/");
-    note("contractPageCheckboxes", await checkboxes(page));
-    await clickCheckbox(page, "Sync target: Augur", -1);
-    await snap(page, "S1-6-1-d-augur-on", {
-      checkboxes: await checkboxes(page),
-    });
-    await navIn(page, "/eth/Augur-version1/");
-    await snap(page, "S1-6-1-e-version-page", {
-      checkboxes: await checkboxes(page),
-    });
-    await navIn(page, "/eth/");
-    await snap(page, "S1-6-1-f-chain-page", {
-      checkboxes: await checkboxes(page),
-    });
-    // saved: reload
-    await page.reload({ waitUntil: "load" });
-    await waitSpinner(page);
-    await settle(page);
-    await snap(page, "S1-6-1-g-after-reload", {
-      checkboxes: await checkboxes(page),
-    });
-
-    // 6-2: start
-    rpcState.calls.length = 0;
-    await navIn(page, EV);
-    await clickToggle(page);
-    const tr = await watchTransitions(
-      page,
-      V1,
-      "Augur",
-      (t, s) => s?.fetched > V1_CREATION,
-      20000,
-    );
-    note("6-2 start transitions", tr);
-    await snap(page, "S1-6-2-a-syncing-early", {
-      checkboxes: await checkboxes(page),
-    });
-    // 6-3 mid-sync event overview. The first range ends below the Goal, and
-    // the sync waits the block interval of eth (20 s) before the last one.
-    await page
-      .waitForFunction(() => /MarketCreated/.test(document.body.innerText), {
-        timeout: 5000,
-      })
-      .catch(() => {});
-    const t1 = Date.now();
-    await page
-      .waitForFunction(
-        async (db, target) => {
-          const o = await new Promise((res) => {
-            const x = indexedDB.open(db);
-            x.onsuccess = () => res(x.result);
-          });
-          const row = await new Promise((res) => {
-            const q = o
-              .transaction("SyncStatus")
-              .objectStore("SyncStatus")
-              .get("Augur");
-            q.onsuccess = () => res(q.result);
-          });
-          o.close();
-          return row.fetchedBlockNumber >= target;
-        },
-        { timeout: 60000, polling: 300 },
-        V1,
-        V1_CREATION + 1,
-      )
-      .catch((e) => note("waitMid error", String(e)));
-    await snap(page, "S1-6-3-a-event-overview-mid", {
-      sinceStartMs: Date.now() - t1,
-    });
-    let latestError;
-    const reachedLatest = await page
-      .waitForFunction(
-        async (db, target) => {
-          const o = await new Promise((res) => {
-            const x = indexedDB.open(db);
-            x.onsuccess = () => res(x.result);
-          });
-          const row = await new Promise((res) => {
-            const q = o
-              .transaction("SyncStatus")
-              .objectStore("SyncStatus")
-              .get("Augur");
-            q.onsuccess = () => res(q.result);
-          });
-          o.close();
-          return row.fetchedBlockNumber >= target;
-        },
-        { timeout: 90000, polling: 300 },
-        V1,
-        V1_CREATION + 250,
-      )
-      .then(
-        () => true,
-        (e) => {
-          latestError = String(e);
-          return false;
-        },
+  await guard(
+    async () => {
+      await gotoApp(page, "/eth/");
+      note("locks", await page.evaluate(() => !!navigator.locks));
+      await setupRpc(page);
+      // 6-1: sync targets
+      await snap(page, "S1-6-1-a-chain-initial", {
+        checkboxes: await checkboxes(page),
+      });
+      note("chainCheckboxes", await checkboxes(page));
+      // chain page: the version groups. Turn off Augur version2.
+      note(
+        "click v2",
+        await clickCheckbox(page, "Sync target: Augur version2"),
       );
-    check("6-2 reached latest", reachedLatest, { error: latestError });
-    note("rpc until latest", rpcSummary(rpcState));
-    note("6-2 goal (#498)", await goalCheck(page));
-    await snap(page, "S1-6-3-b-event-overview-latest");
-    await page.evaluate(() => (location.hash = "#event-logs"));
-    await settle(page);
-    await new Promise((res) => setTimeout(res, 1500));
-    const gridText = async () =>
-      page.evaluate(() =>
-        [
-          ...document.querySelectorAll(
-            ".ag-center-cols-container .ag-row, .ag-row",
-          ),
-        ]
-          .slice(0, 20)
-          .map((row) => row.innerText.replace(/\s+/g, " | ").slice(0, 900)),
+      await snap(page, "S1-6-1-b-v2-off", {
+        checkboxes: await checkboxes(page),
+      });
+      // version1: all off, then Augur on (contract page, Target).
+      note(
+        "click v1",
+        await clickCheckbox(page, "Sync target: Augur version1"),
       );
-    const headers = async () =>
-      page.evaluate(() =>
-        [...document.querySelectorAll(".ag-header-cell-text")].map((e) =>
-          e.textContent.trim(),
-        ),
-      );
-    await snap(page, "S1-6-3-c-event-logs", {
-      grid: await gridText(),
-      headers: await headers(),
-    });
-    await navIn(
-      page,
-      "/eth/Augur-version1/contracts/Augur/events/UniverseCreated/",
-    );
-    await page.evaluate(() => (location.hash = "#event-logs"));
-    await settle(page);
-    await new Promise((res) => setTimeout(res, 1500));
-    await snap(page, "S1-6-3-e-universe-logs", {
-      grid: await gridText(),
-      headers: await headers(),
-    });
-    await navIn(page, "/eth/Augur-version1/contracts/");
-    await new Promise((res) => setTimeout(res, 1000));
-    await snap(page, "S1-6-3-f-contracts-grid", {
-      grid: await gridText(),
-      headers: await headers(),
-    });
-    await navIn(page, "/eth/Augur-version1/contracts/Augur/");
-    await snap(page, "S1-6-3-g-contract-overview");
+      await snap(page, "S1-6-1-c-v1-off", {
+        checkboxes: await checkboxes(page),
+      });
+      await navIn(page, "/eth/Augur-version1/contracts/Augur/");
+      note("contractPageCheckboxes", await checkboxes(page));
+      await clickCheckbox(page, "Sync target: Augur", -1);
+      await snap(page, "S1-6-1-d-augur-on", {
+        checkboxes: await checkboxes(page),
+      });
+      await navIn(page, "/eth/Augur-version1/");
+      await snap(page, "S1-6-1-e-version-page", {
+        checkboxes: await checkboxes(page),
+      });
+      await navIn(page, "/eth/");
+      await snap(page, "S1-6-1-f-chain-page", {
+        checkboxes: await checkboxes(page),
+      });
+      // saved: reload
+      await page.reload({ waitUntil: "load" });
+      await waitSpinner(page);
+      await settle(page);
+      await snap(page, "S1-6-1-g-after-reload", {
+        checkboxes: await checkboxes(page),
+      });
 
-    // 6-5: move between pages and chains while syncing
-    await navIn(page, "/eth/Augur-version1/");
-    await snap(page, "S1-6-5-a-version-page-syncing");
-    await page.select('select[aria-label="Chain"]', "matic");
-    await page
-      .waitForFunction(() => location.pathname.startsWith("/matic"), {
-        timeout: 15000,
-      })
-      .catch(() => {});
-    await waitSpinner(page);
-    await settle(page);
-    await new Promise((res) => setTimeout(res, 1500));
-    await snap(page, "S1-6-5-b-matic-while-eth-syncing");
-    const ethStillSyncing = await syncStateOf(page, V1, "Augur");
-    note("6-5 eth while on matic", ethStillSyncing);
-    await page.select('select[aria-label="Chain"]', "eth");
-    await page
-      .waitForFunction(() => location.pathname.startsWith("/eth"), {
-        timeout: 15000,
-      })
-      .catch(() => {});
-    await waitSpinner(page);
-    await settle(page);
-    await new Promise((res) => setTimeout(res, 1000));
-    await snap(page, "S1-6-5-c-back-to-eth");
-
-    // 6-6: stop
-    await navIn(page, EV);
-    await clickToggle(page);
-    const stopTr = await watchTransitions(
-      page,
-      V1,
-      "Augur",
-      (t, s) => t?.tooltip === "start sync" && s?.isSyncing === false,
-      30000,
-    );
-    note("6-6 stop transitions", stopTr);
-    await snap(page, "S1-6-6-stopped");
-    note("rpc S1 total", rpcSummary(rpcState));
-
-    // 6-9: reload after stop
-    const before = await dbDump(page, ["Augur"]);
-    await page.reload({ waitUntil: "load" });
-    await waitSpinner(page);
-    await settle(page);
-    await snap(page, "S1-6-9-a-reload-after-stop", { before });
-    await navIn(page, "/eth/Augur-version1/contracts/Augur/");
-    await snap(page, "S1-6-9-b-contract-after-reload");
-    // 6-9 (extra): reload while syncing
-    rpcState.latest = V1_CREATION + 400 + CONF;
-    await navIn(page, EV);
-    await clickToggle(page);
-    await waitTooltip(page, "stop sync", 15000).catch(() => {});
-    await new Promise((res) => setTimeout(res, 1500));
-    await snap(page, "S1-6-9-c-syncing-again");
-    await page.reload({ waitUntil: "load" });
-    await waitSpinner(page);
-    await settle(page);
-    await new Promise((res) => setTimeout(res, 1500));
-    await snap(page, "S1-6-9-d-reload-while-syncing");
-    // can it start again?
-    const tInfo = await toggleInfo(page);
-    if (tInfo && !tInfo.disabled && tInfo.tooltip === "start sync") {
+      // 6-2: start
+      rpcState.calls.length = 0;
+      await navIn(page, EV);
       await clickToggle(page);
-      await watchTransitions(
+      const tr = await watchTransitions(
         page,
         V1,
         "Augur",
-        (t, s) => s?.fetched >= V1_CREATION + 400,
-        60000,
+        (t, s) => s?.fetched > V1_CREATION,
+        20000,
       );
-      await snap(page, "S1-6-9-e-restarted-to-latest");
+      note("6-2 start transitions", tr);
+      await snap(page, "S1-6-2-a-syncing-early", {
+        checkboxes: await checkboxes(page),
+      });
+      // 6-3 mid-sync event overview. The first range ends below the Goal, and
+      // the sync waits the block interval of eth (20 s) before the last one.
+      await page
+        .waitForFunction(() => /MarketCreated/.test(document.body.innerText), {
+          timeout: 5000,
+        })
+        .catch(() => {});
+      const t1 = Date.now();
+      await page
+        .waitForFunction(
+          async (db, target) => {
+            const o = await new Promise((res) => {
+              const x = indexedDB.open(db);
+              x.onsuccess = () => res(x.result);
+            });
+            const row = await new Promise((res) => {
+              const q = o
+                .transaction("SyncStatus")
+                .objectStore("SyncStatus")
+                .get("Augur");
+              q.onsuccess = () => res(q.result);
+            });
+            o.close();
+            return row.fetchedBlockNumber >= target;
+          },
+          { timeout: 60000, polling: 300 },
+          V1,
+          V1_CREATION + 1,
+        )
+        .catch((e) => note("waitMid error", String(e)));
+      await snap(page, "S1-6-3-a-event-overview-mid", {
+        sinceStartMs: Date.now() - t1,
+      });
+      let latestError;
+      const reachedLatest = await page
+        .waitForFunction(
+          async (db, target) => {
+            const o = await new Promise((res) => {
+              const x = indexedDB.open(db);
+              x.onsuccess = () => res(x.result);
+            });
+            const row = await new Promise((res) => {
+              const q = o
+                .transaction("SyncStatus")
+                .objectStore("SyncStatus")
+                .get("Augur");
+              q.onsuccess = () => res(q.result);
+            });
+            o.close();
+            return row.fetchedBlockNumber >= target;
+          },
+          { timeout: 90000, polling: 300 },
+          V1,
+          V1_CREATION + 250,
+        )
+        .then(
+          () => true,
+          (e) => {
+            latestError = String(e);
+            return false;
+          },
+        );
+      check("6-2 reached latest", reachedLatest, { error: latestError });
+      note("rpc until latest", rpcSummary(rpcState));
+      const goal = await goalCheck(page);
+      check("6-2 goal (#498)", goal.ok, goal);
+      await snap(page, "S1-6-3-b-event-overview-latest");
+      await page.evaluate(() => (location.hash = "#event-logs"));
+      await settle(page);
+      await new Promise((res) => setTimeout(res, 1500));
+      const gridText = async () =>
+        page.evaluate(() =>
+          [
+            ...document.querySelectorAll(
+              ".ag-center-cols-container .ag-row, .ag-row",
+            ),
+          ]
+            .slice(0, 20)
+            .map((row) => row.innerText.replace(/\s+/g, " | ").slice(0, 900)),
+        );
+      const headers = async () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll(".ag-header-cell-text")].map((e) =>
+            e.textContent.trim(),
+          ),
+        );
+      await snap(page, "S1-6-3-c-event-logs", {
+        grid: await gridText(),
+        headers: await headers(),
+      });
+      await navIn(
+        page,
+        "/eth/Augur-version1/contracts/Augur/events/UniverseCreated/",
+      );
+      await page.evaluate(() => (location.hash = "#event-logs"));
+      await settle(page);
+      await new Promise((res) => setTimeout(res, 1500));
+      await snap(page, "S1-6-3-e-universe-logs", {
+        grid: await gridText(),
+        headers: await headers(),
+      });
+      await navIn(page, "/eth/Augur-version1/contracts/");
+      await new Promise((res) => setTimeout(res, 1000));
+      await snap(page, "S1-6-3-f-contracts-grid", {
+        grid: await gridText(),
+        headers: await headers(),
+      });
+      await navIn(page, "/eth/Augur-version1/contracts/Augur/");
+      await snap(page, "S1-6-3-g-contract-overview");
+
+      // 6-5: move between pages and chains while syncing
+      await navIn(page, "/eth/Augur-version1/");
+      await snap(page, "S1-6-5-a-version-page-syncing");
+      await page.select('select[aria-label="Chain"]', "matic");
+      await page
+        .waitForFunction(() => location.pathname.startsWith("/matic"), {
+          timeout: 15000,
+        })
+        .catch(() => {});
+      await waitSpinner(page);
+      await settle(page);
+      await new Promise((res) => setTimeout(res, 1500));
+      await snap(page, "S1-6-5-b-matic-while-eth-syncing");
+      const ethStillSyncing = await syncStateOf(page, V1, "Augur");
+      note("6-5 eth while on matic", ethStillSyncing);
+      await page.select('select[aria-label="Chain"]', "eth");
+      await page
+        .waitForFunction(() => location.pathname.startsWith("/eth"), {
+          timeout: 15000,
+        })
+        .catch(() => {});
+      await waitSpinner(page);
+      await settle(page);
+      await new Promise((res) => setTimeout(res, 1000));
+      await snap(page, "S1-6-5-c-back-to-eth");
+
+      // 6-6: stop
+      await navIn(page, EV);
       await clickToggle(page);
-      note(
-        "6-9 restart stop",
+      const stopTr = await watchTransitions(
+        page,
+        V1,
+        "Augur",
+        (t, s) => t?.tooltip === "start sync" && s?.isSyncing === false,
+        30000,
+      );
+      note("6-6 stop transitions", stopTr);
+      await snap(page, "S1-6-6-stopped");
+      note("rpc S1 total", rpcSummary(rpcState));
+
+      // 6-9: reload after stop
+      const before = await dbDump(page, ["Augur"]);
+      await page.reload({ waitUntil: "load" });
+      await waitSpinner(page);
+      await settle(page);
+      await snap(page, "S1-6-9-a-reload-after-stop", { before });
+      await navIn(page, "/eth/Augur-version1/contracts/Augur/");
+      await snap(page, "S1-6-9-b-contract-after-reload");
+      // 6-9 (extra): reload while syncing
+      rpcState.latest = V1_CREATION + 400 + CONF;
+      await navIn(page, EV);
+      await clickToggle(page);
+      await waitTooltip(page, "stop sync", 15000).catch(() => {});
+      await new Promise((res) => setTimeout(res, 1500));
+      await snap(page, "S1-6-9-c-syncing-again");
+      await page.reload({ waitUntil: "load" });
+      await waitSpinner(page);
+      await settle(page);
+      await new Promise((res) => setTimeout(res, 1500));
+      await snap(page, "S1-6-9-d-reload-while-syncing");
+      // can it start again?
+      const tInfo = await toggleInfo(page);
+      if (tInfo && !tInfo.disabled && tInfo.tooltip === "start sync") {
+        await clickToggle(page);
         await watchTransitions(
           page,
           V1,
           "Augur",
-          (t, s) => s?.isSyncing === false,
-          30000,
-        ),
-      );
-      await snap(page, "S1-6-9-f-stopped");
-    }
-  } catch (e) {
-    note("error", String(e.stack ?? e));
-    await page
-      .screenshot({ path: path.join(outDir, "S1-error.png") })
-      .catch(() => {});
-  }
+          (t, s) => s?.fetched >= V1_CREATION + 400,
+          60000,
+        );
+        await snap(page, "S1-6-9-e-restarted-to-latest");
+        await clickToggle(page);
+        note(
+          "6-9 restart stop",
+          await watchTransitions(
+            page,
+            V1,
+            "Augur",
+            (t, s) => s?.isSyncing === false,
+            30000,
+          ),
+        );
+        await snap(page, "S1-6-9-f-stopped");
+      }
+    },
+    () => page.screenshot({ path: path.join(outDir, "S1-error.png") }),
+  );
   note("rpc S1 all", rpcSummary(rpcState));
   await context.close();
 }
@@ -830,71 +842,69 @@ for (const [mode, stopTimeoutMs] of S3_MODES) {
   rpcState = makeState({ latest: V1_CREATION + 250 + CONF });
   const context = await browser.createBrowserContext();
   const page = await newPage(context, "A");
-  try {
-    await gotoApp(page, "/eth/");
-    await setupRpc(page);
-    await clickCheckbox(page, "Sync target: Augur version1");
-    await clickCheckbox(page, "Sync target: Augur version2");
-    await navIn(page, "/eth/Augur-version1/contracts/Augur/");
-    await clickCheckbox(page, "Sync target: Augur", -1);
-    rpcState.mode = mode;
-    rpcState.calls.length = 0;
-    await clickToggle(page);
-    const tr = await watchTransitions(
-      page,
-      V1,
-      "Augur",
-      (t, s) =>
-        (t?.tooltip === "start sync" && s?.isSyncing === false) ||
-        s?.fetched >= V1_CREATION + 250,
-      stopTimeoutMs,
-    );
-    note("transitions", tr);
-    note("rpc", rpcSummary(rpcState));
-    await snap(page, `S3-6-7-${mode}`);
-    // wait a bit more: does anything keep calling the RPC?
-    const n0 = rpcState.calls.length;
-    await new Promise((res) => setTimeout(res, 3000));
-    const calls = rpcState.calls.slice(n0).map((c) => c.method);
-    const t = await toggleInfo(page);
-    const s = await syncStateOf(page, V1, "Augur");
-    const end = {
-      tooltip: t?.tooltip,
-      isSyncing: s?.isSyncing,
-      fetched: s?.fetched,
-      callsBeforeWait: n0,
-    };
-    if (mode === "errorOnce") {
-      // The sync does not stop in this mode.
-      note("calls in 3 s after stop", { calls });
-      check("reached latest", s?.fetched >= V1_CREATION + 250, end);
-    } else {
-      const stopped = t?.tooltip === "start sync" && s?.isSyncing === false;
-      check(
-        "calls in 3 s after stop",
-        n0 > 0 && stopped && calls.length === 0,
-        { calls, ...end },
+  await guard(
+    async () => {
+      await gotoApp(page, "/eth/");
+      await setupRpc(page);
+      await clickCheckbox(page, "Sync target: Augur version1");
+      await clickCheckbox(page, "Sync target: Augur version2");
+      await navIn(page, "/eth/Augur-version1/contracts/Augur/");
+      await clickCheckbox(page, "Sync target: Augur", -1);
+      rpcState.mode = mode;
+      rpcState.calls.length = 0;
+      await clickToggle(page);
+      const tr = await watchTransitions(
+        page,
+        V1,
+        "Augur",
+        (t, s) =>
+          (t?.tooltip === "start sync" && s?.isSyncing === false) ||
+          s?.fetched >= V1_CREATION + 250,
+        stopTimeoutMs,
       );
-    }
-    // #519/#520: one failure log with "returned no block".
-    if (mode === "nullBlock") {
-      note(
-        "noBlockMessages",
-        consoleLog
-          .filter(
-            (x) =>
-              x.scenario === scenario &&
-              `${x.text} ${x.detail ?? ""}`.includes("returned no block"),
-          )
-          .map((x) => `${x.type} ${(x.detail ?? x.text).slice(0, 300)}`),
-      );
-    }
-  } catch (e) {
-    note("error", String(e.stack ?? e));
-    await page
-      .screenshot({ path: path.join(outDir, `S3-${mode}-error.png`) })
-      .catch(() => {});
-  }
+      note("transitions", tr);
+      note("rpc", rpcSummary(rpcState));
+      await snap(page, `S3-6-7-${mode}`);
+      // wait a bit more: does anything keep calling the RPC?
+      const n0 = rpcState.calls.length;
+      await new Promise((res) => setTimeout(res, 3000));
+      const calls = rpcState.calls.slice(n0).map((c) => c.method);
+      const t = await toggleInfo(page);
+      const s = await syncStateOf(page, V1, "Augur");
+      const end = {
+        tooltip: t?.tooltip,
+        isSyncing: s?.isSyncing,
+        fetched: s?.fetched,
+        callsBeforeWait: n0,
+      };
+      if (mode === "errorOnce") {
+        // The sync does not stop in this mode.
+        note("calls in 3 s after stop", { calls });
+        check("reached latest", s?.fetched >= V1_CREATION + 250, end);
+      } else {
+        const stopped = t?.tooltip === "start sync" && s?.isSyncing === false;
+        check(
+          "calls in 3 s after stop",
+          n0 > 0 && stopped && calls.length === 0,
+          { calls, ...end },
+        );
+      }
+      // #519/#520: one failure log with "returned no block".
+      if (mode === "nullBlock") {
+        note(
+          "noBlockMessages",
+          consoleLog
+            .filter(
+              (x) =>
+                x.scenario === scenario &&
+                `${x.text} ${x.detail ?? ""}`.includes("returned no block"),
+            )
+            .map((x) => `${x.type} ${(x.detail ?? x.text).slice(0, 300)}`),
+        );
+      }
+    },
+    () => page.screenshot({ path: path.join(outDir, `S3-${mode}-error.png`) }),
+  );
   await context.close();
 }
 
@@ -906,97 +916,100 @@ if (want("S4")) {
   const a = await newPage(context, "A");
   const front = async (p) => p.bringToFront().catch(() => {});
   let b;
-  try {
-    await (await front(a), gotoApp)(a, "/eth/");
-    note("locks", await a.evaluate(() => !!navigator.locks));
-    await (await front(a), setupRpc)(a);
-    await (await front(a), clickCheckbox)(a, "Sync target: Augur version1");
-    await (await front(a), clickCheckbox)(a, "Sync target: Augur version2");
-    await (await front(a), navIn)(a, "/eth/Augur-version1/contracts/Augur/");
-    await (await front(a), clickCheckbox)(a, "Sync target: Augur", -1);
-    // B is open before A starts.
-    b = await newPage(context, "B");
-    await (await front(b), gotoApp)(b, EV);
-    await (await front(b), snap)(b, "S4-6-8-a-B-before");
-    await (await front(a), navIn)(a, EV);
-    await (await front(a), clickToggle)(a);
-    await (await front(a), waitTooltip)(a, "stop sync", 15000);
-    await (await front(a), snap)(a, "S4-6-8-b-A-syncing");
-    await new Promise((res) => setTimeout(res, 500));
-    await (await front(b), snap)(b, "S4-6-8-c-B-while-A-syncing-no-click");
-    // B tries to start.
-    const bInfo = await (await front(b), toggleInfo)(b);
-    note("B toggle before click", bInfo);
-    if (bInfo && !bInfo.disabled) {
-      await (await front(b), clickToggle)(b);
-      note(
-        "B after click",
-        await (await front(b), watchTransitions)(
-          b,
-          V1,
-          "Augur",
-          (t) => t?.tooltip === "syncing in another tab",
-          5000,
-        ),
-      );
-    }
-    await (await front(b), snap)(b, "S4-6-8-d-B-after-click");
-    // C opens while A syncs.
-    const c = await newPage(context, "C");
-    await (await front(c), gotoApp)(c, EV);
-    await new Promise((res) => setTimeout(res, 1000));
-    await (await front(c), snap)(c, "S4-6-8-e-C-opened-while-A-syncing");
-    // A stops.
-    await (await front(a), clickToggle)(a);
-    note(
-      "A stop",
-      await (await front(a), watchTransitions)(
-        a,
-        V1,
-        "Augur",
-        (t, s) => s?.isSyncing === false && t?.tooltip === "start sync",
-        30000,
-      ),
-    );
-    await new Promise((res) => setTimeout(res, 1500));
-    await (await front(b), snap)(b, "S4-6-8-f-B-after-A-stopped");
-    await (await front(c), snap)(c, "S4-6-8-g-C-after-A-stopped");
-    // B starts now.
-    const b2 = await (await front(b), toggleInfo)(b);
-    note("B toggle after A stopped", b2);
-    if (b2 && !b2.disabled && b2.tooltip === "start sync") {
-      await (await front(b), clickToggle)(b);
-      await (await front(b), waitTooltip)(b, "stop sync", 15000).catch(
-        () => {},
-      );
+  await guard(
+    async () => {
+      await (await front(a), gotoApp)(a, "/eth/");
+      note("locks", await a.evaluate(() => !!navigator.locks));
+      await (await front(a), setupRpc)(a);
+      await (await front(a), clickCheckbox)(a, "Sync target: Augur version1");
+      await (await front(a), clickCheckbox)(a, "Sync target: Augur version2");
+      await (await front(a), navIn)(a, "/eth/Augur-version1/contracts/Augur/");
+      await (await front(a), clickCheckbox)(a, "Sync target: Augur", -1);
+      // B is open before A starts.
+      b = await newPage(context, "B");
+      await (await front(b), gotoApp)(b, EV);
+      await (await front(b), snap)(b, "S4-6-8-a-B-before");
+      await (await front(a), navIn)(a, EV);
+      await (await front(a), clickToggle)(a);
+      await (await front(a), waitTooltip)(a, "stop sync", 15000);
+      await (await front(a), snap)(a, "S4-6-8-b-A-syncing");
+      await new Promise((res) => setTimeout(res, 500));
+      await (await front(b), snap)(b, "S4-6-8-c-B-while-A-syncing-no-click");
+      // B tries to start.
+      const bInfo = await (await front(b), toggleInfo)(b);
+      note("B toggle before click", bInfo);
+      if (bInfo && !bInfo.disabled) {
+        await (await front(b), clickToggle)(b);
+        note(
+          "B after click",
+          await (await front(b), watchTransitions)(
+            b,
+            V1,
+            "Augur",
+            (t) => t?.tooltip === "syncing in another tab",
+            5000,
+          ),
+        );
+      }
+      await (await front(b), snap)(b, "S4-6-8-d-B-after-click");
+      // C opens while A syncs.
+      const c = await newPage(context, "C");
+      await (await front(c), gotoApp)(c, EV);
       await new Promise((res) => setTimeout(res, 1000));
-      await (await front(b), snap)(b, "S4-6-8-h-B-syncing");
-      await (await front(a), snap)(a, "S4-6-8-i-A-while-B-syncing");
-      await (await front(b), clickToggle)(b);
+      await (await front(c), snap)(c, "S4-6-8-e-C-opened-while-A-syncing");
+      // A stops.
+      await (await front(a), clickToggle)(a);
       note(
-        "B stop",
-        await (await front(b), watchTransitions)(
-          b,
+        "A stop",
+        await (await front(a), watchTransitions)(
+          a,
           V1,
           "Augur",
-          (t, s) => s?.isSyncing === false,
+          (t, s) => s?.isSyncing === false && t?.tooltip === "start sync",
           30000,
         ),
       );
-    }
-    // A closes while syncing: B should take over.
-    await (await front(a), clickToggle)(a);
-    await (await front(a), waitTooltip)(a, "stop sync", 15000).catch(() => {});
-    await new Promise((res) => setTimeout(res, 500));
-    await a.close();
-    await new Promise((res) => setTimeout(res, 2000));
-    await (await front(b), snap)(b, "S4-6-8-j-B-after-A-closed-while-syncing");
-  } catch (e) {
-    note("error", String(e.stack ?? e));
-    await b
-      ?.screenshot({ path: path.join(outDir, "S4-error.png") })
-      .catch(() => {});
-  }
+      await new Promise((res) => setTimeout(res, 1500));
+      await (await front(b), snap)(b, "S4-6-8-f-B-after-A-stopped");
+      await (await front(c), snap)(c, "S4-6-8-g-C-after-A-stopped");
+      // B starts now.
+      const b2 = await (await front(b), toggleInfo)(b);
+      note("B toggle after A stopped", b2);
+      if (b2 && !b2.disabled && b2.tooltip === "start sync") {
+        await (await front(b), clickToggle)(b);
+        await (await front(b), waitTooltip)(b, "stop sync", 15000).catch(
+          () => {},
+        );
+        await new Promise((res) => setTimeout(res, 1000));
+        await (await front(b), snap)(b, "S4-6-8-h-B-syncing");
+        await (await front(a), snap)(a, "S4-6-8-i-A-while-B-syncing");
+        await (await front(b), clickToggle)(b);
+        note(
+          "B stop",
+          await (await front(b), watchTransitions)(
+            b,
+            V1,
+            "Augur",
+            (t, s) => s?.isSyncing === false,
+            30000,
+          ),
+        );
+      }
+      // A closes while syncing: B should take over.
+      await (await front(a), clickToggle)(a);
+      await (await front(a), waitTooltip)(a, "stop sync", 15000).catch(
+        () => {},
+      );
+      await new Promise((res) => setTimeout(res, 500));
+      await a.close();
+      await new Promise((res) => setTimeout(res, 2000));
+      await (await front(b), snap)(
+        b,
+        "S4-6-8-j-B-after-A-closed-while-syncing",
+      );
+    },
+    () => b?.screenshot({ path: path.join(outDir, "S4-error.png") }),
+  );
   note("rpc", rpcSummary(rpcState));
   await context.close();
 }
@@ -1007,7 +1020,7 @@ if (want("S5")) {
   rpcState = makeState();
   const context = await browser.createBrowserContext();
   const page = await newPage(context, "A");
-  try {
+  await guard(async () => {
     await gotoApp(page, "/eth/Augur-version1/");
     for (const [label, suffix] of [
       ["contract link", "/contracts/Augur"],
@@ -1059,9 +1072,7 @@ if (want("S5")) {
         newPageErrors: n1 - n0,
       });
     }
-  } catch (e) {
-    note("error", String(e.stack ?? e));
-  }
+  });
   await context.close();
 }
 

@@ -35,6 +35,7 @@ import {
   logPageProblems,
   serveBuild,
 } from "../../check-lib/browser.mjs";
+import { createChecks } from "../../check-lib/results.mjs";
 
 const require = createRequire(path.join(process.cwd(), "package.json"));
 const puppeteer = require("puppeteer");
@@ -107,10 +108,13 @@ const RUNS = [
   ["matic-wss", "matic", `wss://${HOSTS.matic}`],
 ].filter(([id]) => !ONLY || ONLY.includes(id));
 
+// results.json is for a person; judge.py reads results-real-rpc.json.
 const results = {};
 const consoleLog = [];
 const blocked = [];
 let run = "";
+// With --fake, a wss run ends in an error (see the top), so it is not judged.
+let judged = true;
 function save() {
   fs.writeFileSync(
     path.join(outDir, "results.json"),
@@ -129,11 +133,19 @@ function save() {
     JSON.stringify(blocked, null, 2),
   );
 }
-function note(key, value) {
-  (results[run] ??= {})[key] = value;
-  console.log(`[${run}] ${key}: ${JSON.stringify(value).slice(0, 500)}`);
-  save();
-}
+// note() writes INFO, check() OK or NG, and guard() turns an exception of a
+// run into ERROR; INFO in a run that is not judged
+// (scripts/check-lib/results.mjs).
+const { note, check, guard } = createChecks({
+  file: path.join(outDir, "results-real-rpc.json"),
+  prefix: () => run,
+  keep(key, value) {
+    (results[run] ??= {})[key] = value;
+    console.log(`[${run}] ${key}: ${JSON.stringify(value).slice(0, 500)}`);
+    save();
+  },
+  judged: () => judged,
+});
 
 // ---- the build, served like GitHub Pages ----
 const server = serveBuild(buildDir);
@@ -676,11 +688,12 @@ const browser = await puppeteer.launch({
 
 for (const [id, chain, rpc] of RUNS) {
   run = id;
+  judged = !(FAKE && rpc.startsWith("wss:"));
   traffic = newTraffic();
   const t = TARGET[chain];
   const context = await browser.createBrowserContext();
   const page = await newPage(context);
-  try {
+  const scenario = async () => {
     note("rpc", {
       url: rpc,
       fake: FAKE,
@@ -692,11 +705,11 @@ for (const [id, chain, rpc] of RUNS) {
     await gotoApp(page, `/${chain}/`);
     if (holdWarpSync) {
       const off = await turnOffWarpSync(page, chain);
-      note("warpSync", {
-        ...off,
-        ok: off.warpSync === false && off.checkedAfterClick === false,
-        requestsWhileHeld: warpSyncRequests,
-      });
+      check(
+        "warpSync",
+        off.warpSync === false && off.checkedAfterClick === false,
+        { ...off, requestsWhileHeld: warpSyncRequests },
+      );
       holdWarpSync = null;
       warpSyncRequests = 0;
       if (off.warpSync !== false)
@@ -732,7 +745,7 @@ for (const [id, chain, rpc] of RUNS) {
       await new Promise((r) => setTimeout(r, 100));
     }
     const connected = seen.at(-1) === "Connected.";
-    note("1 helper", { ok: connected, seen, ms: Date.now() - t0 });
+    check("1 helper", connected, { seen, ms: Date.now() - t0 });
     await page.screenshot({ path: path.join(outDir, `${id}-1-connected.png`) });
     note("traffic after connect", summary());
     if (!connected) throw new Error("not connected; the sync is not started");
@@ -822,8 +835,7 @@ for (const [id, chain, rpc] of RUNS) {
       ),
     ];
     const goal = after.chainStatus?.latestBlockNumber;
-    note("2 goal", {
-      ok: latestSeen.includes(goal + CONFIRMATION[chain]),
+    check("2 goal", latestSeen.includes(goal + CONFIRMATION[chain]), {
       goal,
       goalBeforeSync: before.chainStatus?.latestBlockNumber,
       latestSeen: latestSeen.slice(-5),
@@ -863,42 +875,42 @@ for (const [id, chain, rpc] of RUNS) {
       : stopped &&
         getLogs.length === TRY_COUNT + 1 &&
         refused.length === getLogs.length;
-    note("3 sync", {
-      ok:
-        synced &&
+    check(
+      "3 sync",
+      synced &&
         urlInConsole.length === 0 &&
         after.leftFlags.length === 0 &&
         / stopped /.test(` ${nav} `) &&
         !!gridRow?.includes("stopped"),
-      stopped,
-      ...(scriptStop
-        ? {
-            stoppedByItself,
-            stopClickedMs,
-            getLogsAfterStop,
-            fetchedBlockNumber: fetched,
-            refusals: refusals.slice(0, 10),
-          }
-        : { expected: TRY_COUNT + 1 }),
-      eth_getLogs: getLogs.length,
-      refused: refused.length,
-      refusedCodes,
-      firstGetLogs: getLogs[0]?.params,
-      warpSyncRequestsAfterOff: WARP_SYNC_OFF.has(chain)
-        ? warpSyncRequests
-        : undefined,
-      rpcUrlInConsole: urlInConsole,
-      leftFlags: after.leftFlags,
-      row: after.row,
-      nav,
-      contractsGridRow: gridRow,
-    });
-  } catch (e) {
-    note("error", String(e.stack ?? e));
-    await page
-      .screenshot({ path: path.join(outDir, `${id}-error.png`) })
-      .catch(() => {});
-  }
+      {
+        stopped,
+        ...(scriptStop
+          ? {
+              stoppedByItself,
+              stopClickedMs,
+              getLogsAfterStop,
+              fetchedBlockNumber: fetched,
+              refusals: refusals.slice(0, 10),
+            }
+          : { expected: TRY_COUNT + 1 }),
+        eth_getLogs: getLogs.length,
+        refused: refused.length,
+        refusedCodes,
+        firstGetLogs: getLogs[0]?.params,
+        warpSyncRequestsAfterOff: WARP_SYNC_OFF.has(chain)
+          ? warpSyncRequests
+          : undefined,
+        rpcUrlInConsole: urlInConsole,
+        leftFlags: after.leftFlags,
+        row: after.row,
+        nav,
+        contractsGridRow: gridRow,
+      },
+    );
+  };
+  await guard(scenario, () =>
+    page.screenshot({ path: path.join(outDir, `${id}-error.png`) }),
+  );
   // 4 and 5.
   const own = consoleLog.filter((x) => x.run === id);
   const byType = {};

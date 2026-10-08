@@ -733,5 +733,5 @@ await L.step("4-logs", page, async () => {
   );
 });
 
-L.results.push({ id: "downloads", downloads });
+L.rec("downloads", "INFO", `${downloads.length} files`, [], { downloads });
 await L.finish("sec4");

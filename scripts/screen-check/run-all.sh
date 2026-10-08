@@ -15,8 +15,8 @@
 # Each check goes on after a failure. Every step writes log-<step>.txt; at the
 # end, exit-codes.txt and times.txt list the steps. Exits 1 when a step failed.
 # A new lane needs a branch in lane(), its name in both lanes lists and its
-# steps in steps; a missing one fails the run. A new kind of check also needs a
-# reader in judge.py, or an ok. See README.md in this folder.
+# steps in steps; a missing one fails the run. A new step also needs its
+# results file in judge.py. See README.md in this folder.
 set -uo pipefail
 
 # wait -n needs bash 4.3.

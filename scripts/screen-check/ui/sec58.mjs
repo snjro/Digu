@@ -429,5 +429,5 @@ await L.step("8-4", page, async () => {
   );
 });
 
-L.results.push({ id: "downloads58", downloads });
+L.rec("downloads58", "INFO", `${downloads.length} files`, [], { downloads });
 await L.finish("sec58");
