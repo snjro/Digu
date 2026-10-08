@@ -14,7 +14,10 @@ import type {
   SyncStatusesChain,
 } from "#db/dbTypes.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
-import { getEventLogEdges } from "#db/dbEventLogsGetEventLogEdges.js";
+import {
+  getEventLogEdges,
+  type EventLogEdges,
+} from "#db/dbEventLogsGetEventLogEdges.js";
 import { customLogger } from "#utils/logger.js";
 import EventOverviewFetchedLogs from "./EventOverviewFetchedLogs.svelte";
 import { EVENT_LOGS_RELOAD_INTERVAL } from "./EventLogs.svelte";
@@ -139,10 +142,23 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     await vi.advanceTimersByTimeAsync(0);
   }
 
-  // Saves a while after the first load ended, and checks that the reload
-  // starts the interval after that load ended, not after the save.
+  // The first load takes loadTime, and the save comes sinceLoad after it
+  // ended: the reload starts the interval after the first load ended, not
+  // after it started or after the save.
+  const loadTime: number = EVENT_LOGS_RELOAD_INTERVAL / 4;
+  const sinceLoad: number = EVENT_LOGS_RELOAD_INTERVAL / 4;
+  async function renderWithASlowFirstLoad(edges: EventLogEdges): Promise<void> {
+    load.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => resolve(edges), loadTime);
+        }),
+    );
+    await renderWithFakeTimers();
+    expect(load).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(loadTime);
+  }
   async function saveAndWaitForTheReload(recordCount: number): Promise<void> {
-    const sinceLoad: number = 1000;
     await vi.advanceTimersByTimeAsync(sinceLoad);
     await save(recordCount);
     await vi.advanceTimersByTimeAsync(
@@ -154,10 +170,8 @@ describe("EventOverviewFetchedLogs.svelte", () => {
   }
 
   test("reloads the logs when the record count of the event changes", async () => {
-    load.mockResolvedValueOnce(noLogs);
-    await renderWithFakeTimers();
+    await renderWithASlowFirstLoad(noLogs);
     expect(screen.getByText("No logs fetched yet.")).toBeTruthy();
-    expect(load).toHaveBeenCalledTimes(1);
 
     load.mockResolvedValueOnce({ count: 2, oldest: log(10), latest: log(20) });
     await saveAndWaitForTheReload(2);
@@ -184,8 +198,11 @@ describe("EventOverviewFetchedLogs.svelte", () => {
   });
 
   test("logs a failed load and shows no logs, like the table", async () => {
-    load.mockResolvedValueOnce({ count: 1, oldest: log(10), latest: log(10) });
-    await renderWithFakeTimers();
+    await renderWithASlowFirstLoad({
+      count: 1,
+      oldest: log(10),
+      latest: log(10),
+    });
     expect(screen.getByText("1")).toBeTruthy();
 
     const error = new Error("test error");
