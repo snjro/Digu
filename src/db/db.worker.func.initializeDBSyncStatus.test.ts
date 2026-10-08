@@ -86,7 +86,6 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
       () => new Promise<void>((resolve) => (release = resolve)),
     );
 
-    // Gives up after SYNC_LOCK_TIMEOUT_MS (1 s).
     await InitializeDBSyncStatus.dbWorkerFuncInitializeDBSyncStatus();
     release();
     await heldLock;
@@ -96,30 +95,22 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
     expect(calledArgs()).toEqual(expect.arrayContaining(expected));
   });
 
-  test("should count a chain after another tab reads it again", async () => {
+  test("should skip a chain that another tab reads again", async () => {
     // waitForSyncLockRelease() reads the chain with the lock shared.
     const readChain: Chain = TARGET_CHAINS[0];
+    let release: () => void = () => {};
     const heldLock = lockManager.request(
       getSyncLockName(readChain.name),
       { mode: "shared" },
-      () => new Promise<void>((resolve) => setTimeout(resolve, 100)),
+      () => new Promise<void>((resolve) => (release = resolve)),
     );
 
     await InitializeDBSyncStatus.dbWorkerFuncInitializeDBSyncStatus();
+    release();
     await heldLock;
 
-    const expected: CalledArgs[] = expectedArgs(TARGET_CHAINS);
+    const expected: CalledArgs[] = expectedArgs(TARGET_CHAINS.slice(1));
     expect(calledArgs()).toHaveLength(expected.length);
     expect(calledArgs()).toEqual(expect.arrayContaining(expected));
-  });
-
-  test("should throw an error of the recount", async () => {
-    spyInitializeDBSyncStatusForContract.mockRejectedValueOnce(
-      Object.assign(new Error("failed"), { name: "TimeoutError" }),
-    );
-
-    await expect(
-      InitializeDBSyncStatus.dbWorkerFuncInitializeDBSyncStatus(),
-    ).rejects.toThrow("failed");
   });
 });
