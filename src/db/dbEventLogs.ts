@@ -48,7 +48,7 @@ export class DbEventLogs extends dbBase {
     this.on("populate", async (tx: Transaction) => {
       await this.addInitialData(tx, targetContracts);
     });
-    this.versionIdentifier = versionIdentifier;
+    this.versionIdentifier = { chainName, projectName, versionName };
   }
   protected getSchemaDefinition(targetContracts: Contract[]): SchemaDefinition {
     const schemaDefinition: SchemaDefinition = {};
@@ -94,7 +94,6 @@ export function getDbEventLogs(
   let dbEventLogs: DbEventLogs | undefined = dbEventLogsByVersion.get(key);
   // Dexie does not open an instance again after it failed to open.
   if (!dbEventLogs || dbEventLogs.hasFailed()) {
-    // Only the three names, which the DB keeps as its versionIdentifier.
     dbEventLogs = new DbEventLogs({ chainName, projectName, versionName });
     dbEventLogsByVersion.set(key, dbEventLogs);
   }

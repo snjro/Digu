@@ -17,9 +17,22 @@ import type {
   VersionIdentifier,
 } from "#db/dbTypes.js";
 
+// The names of an identifier, from the chain down.
+const IDENTIFIER_KEYS = [
+  "chainName",
+  "projectName",
+  "versionName",
+  "contractName",
+  "abiFragmentName",
+  "functionSelector",
+] as const;
 export class TargetNotFoundError extends Error {
-  constructor(target: string, identifier: object) {
-    super(`${target} not found: ${Object.values(identifier).join("/")}`);
+  constructor(target: string, identifier: Partial<AbiFragmentIdentifier>) {
+    // A key that is there without a value is an empty name, as the URL has it.
+    const names: string[] = IDENTIFIER_KEYS.flatMap((key) =>
+      key in identifier ? [identifier[key] ?? ""] : [],
+    );
+    super(`${target} not found: ${names.join("/")}`);
     this.name = "TargetNotFoundError";
   }
 }

@@ -1,5 +1,6 @@
 import type { Chain, Contract } from "#constants/chains/types.js";
 import type { VersionIdentifier } from "#db/dbTypes.js";
+import { getTargetContract, TargetNotFoundError } from "#utils/utilsDb.js";
 import { hasSyncTargetEvents } from "#utils/utilsEthers.js";
 import type {
   WarpSyncChunkRange,
@@ -41,33 +42,29 @@ function findTarget(
   targetChain: Chain,
   manifestContract: WarpSyncManifestContract,
 ): WarpSyncTarget | undefined {
-  const project = targetChain.projects.find(
-    (project) => project.name === manifestContract.project,
-  );
-  const version = project?.versions.find(
-    (version) => version.name === manifestContract.version,
-  );
-  const contract = version?.contracts.find(
-    (contract) => contract.name === manifestContract.name,
-  );
+  const versionIdentifier: VersionIdentifier = {
+    chainName: targetChain.name,
+    projectName: manifestContract.project,
+    versionName: manifestContract.version,
+  };
+  let contract: Contract;
+  try {
+    contract = getTargetContract({
+      ...versionIdentifier,
+      contractName: manifestContract.name,
+    });
+  } catch (error) {
+    if (error instanceof TargetNotFoundError) return undefined;
+    throw error;
+  }
   if (
-    !project ||
-    !version ||
-    !contract ||
     !hasSyncTargetEvents(contract) ||
     contract.address.toLowerCase() !== manifestContract.address.toLowerCase() ||
     contract.creation.blockNumber !== manifestContract.creationBlock
   ) {
     return undefined;
   }
-  return {
-    versionIdentifier: {
-      chainName: targetChain.name,
-      projectName: project.name,
-      versionName: version.name,
-    },
-    contract,
-  };
+  return { versionIdentifier, contract };
 }
 
 // The first block that the DB does not have. fetchedBlockNumber is the

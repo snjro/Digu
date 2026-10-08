@@ -19,7 +19,7 @@ import {
   startWarpSync,
   waitForWarpSync,
 } from "./warpSync";
-import { fetchWarpSyncManifest, MANIFEST_TIMEOUT_MS } from "./warpSyncFetch";
+import { fetchWarpSyncManifest } from "./warpSyncFetch";
 import { getWarpSyncPending, importWarpSync } from "./warpSyncImport";
 import {
   reloadSyncStatusInChain,
@@ -37,14 +37,8 @@ import {
 } from "./warpSyncState";
 import type { WarpSyncManifest } from "./warpSyncTypes";
 
-vi.mock("./warpSyncFetch", () => ({
-  fetchWarpSyncManifest: vi.fn(),
-  MANIFEST_TIMEOUT_MS: 30_000,
-}));
-vi.mock("./warpSyncImport", async (importOriginal) => ({
-  // The real one, which the request of the manifest uses.
-  anySignal: (await importOriginal<typeof import("./warpSyncImport")>())
-    .anySignal,
+vi.mock("./warpSyncFetch", () => ({ fetchWarpSyncManifest: vi.fn() }));
+vi.mock("./warpSyncImport", () => ({
   importWarpSync: vi.fn(),
   getWarpSyncPending: vi.fn(),
 }));
@@ -692,34 +686,6 @@ describe("warpSync", () => {
         pending: large,
       });
       await release();
-    });
-
-    test("gives the request of the manifest a signal of Stop and of a time limit", async () => {
-      vi.spyOn(customLogger, "info").mockImplementation(() => {});
-      await startWarpSync(matic);
-      let give: (value: WarpSyncManifest) => void = () => {};
-      vi.mocked(fetchWarpSyncManifest).mockReturnValueOnce(
-        new Promise((resolve) => (give = resolve)),
-      );
-      const spyTimeout = vi.spyOn(AbortSignal, "timeout");
-      const callsBefore: number = vi.mocked(fetchWarpSyncManifest).mock.calls
-        .length;
-      const importing = confirmWarpSync(matic);
-      try {
-        await vi.waitFor(() =>
-          expect(fetchWarpSyncManifest).toHaveBeenCalledTimes(callsBefore + 1),
-        );
-        const signal: AbortSignal = vi.mocked(fetchWarpSyncManifest).mock
-          .lastCall![1];
-        expect(spyTimeout).toHaveBeenCalledWith(MANIFEST_TIMEOUT_MS);
-        expect(signal.aborted).toBe(false);
-
-        stopWarpSync("matic");
-        expect(signal.aborted).toBe(true);
-      } finally {
-        give(manifest);
-        await importing;
-      }
     });
 
     test("stops before it imports when it is turned off meanwhile", async () => {

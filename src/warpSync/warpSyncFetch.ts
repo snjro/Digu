@@ -12,14 +12,14 @@ export function getWarpSyncFileUrl(targetChain: Chain, file: string): string {
 }
 
 // The manifest is a small file of the same origin.
-export const MANIFEST_TIMEOUT_MS = 30_000;
+const MANIFEST_TIMEOUT_MS = 30_000;
 // undefined when the chain has no snapshot.
 export async function fetchWarpSyncManifest(
   targetChain: Chain,
-  signal: AbortSignal,
 ): Promise<WarpSyncManifest | undefined> {
+  // A fetch that never ends would keep the sync lock of the chain.
   const response: Response = await fetch(getUrl(targetChain, "manifest.json"), {
-    signal,
+    signal: AbortSignal.timeout(MANIFEST_TIMEOUT_MS),
   });
   if (response.status === 404) return undefined;
   if (!response.ok) {

@@ -43,7 +43,9 @@ describe("DbEventLogs", () => {
             [
               DB_NAME.firstName,
               DB_NAME.secondNames.eventLog,
-              ...Object.values(versionIdentifier),
+              versionIdentifier.chainName,
+              versionIdentifier.projectName,
+              versionIdentifier.versionName,
             ].join("_"),
           );
         });
@@ -275,6 +277,16 @@ describe("getDbEventLogs", () => {
     } as VersionIdentifier);
     expect(dbEventLogs).toBe(getDbEventLogs(versionIdentifier));
     expect(dbEventLogs.name).toBe(new DbEventLogs(versionIdentifier).name);
+  });
+  test("keeps only the chain, the project and the version", () => {
+    const { chainName, projectName, versionName } = versionIdentifier;
+
+    expect(
+      new DbEventLogs({
+        ...versionIdentifier,
+        contractName: "Augur",
+      } as VersionIdentifier).versionIdentifier,
+    ).toStrictEqual({ chainName, projectName, versionName });
   });
   test("names the DB from the chain, the project and the version, whatever the order of the keys", () => {
     const { chainName, projectName, versionName } = versionIdentifier;

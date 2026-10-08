@@ -1,11 +1,8 @@
 import type { ValueGetterParams } from "ag-grid-community";
-import classNames from "classnames";
 import type { ColumnDef } from "../types";
-export function getColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
-  return addRowNumberColumnDefs(paramColumnDefs);
-}
 export const ColIdRowSequenceNumber = "rowSequenceNumber";
-function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
+// The column of the row numbers first.
+export function getColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
   const columnDefRowNumber: ColumnDef = {
     colId: ColIdRowSequenceNumber,
     headerName: "#",
@@ -14,15 +11,9 @@ function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
     // The position on the screen, which the earlier searches change.
     getQuickFilterText: (): string => "",
     filter: false,
-    cellClass: classNames(
-      "tabular-nums",
-      "grid",
-      "justify-end",
-      "text-right",
-      "",
-    ),
-    // Not the type numericColumn, whose header class would move "#" to the
-    // right.
+    // Aligned to the right by its own classes: the type numericColumn would
+    // align the header "#" to the right too.
+    cellClass: "tabular-nums grid justify-end text-right",
     maxWidth: 70,
     pinned: "left",
     suppressHeaderMenuButton: true,
@@ -30,8 +21,5 @@ function addRowNumberColumnDefs(paramColumnDefs: ColumnDef[]): ColumnDef[] {
     suppressSizeToFit: true,
     suppressMovable: true,
   };
-  const concattedColumnDefs: ColumnDef[] = [columnDefRowNumber].concat(
-    paramColumnDefs,
-  );
-  return concattedColumnDefs;
+  return [columnDefRowNumber, ...paramColumnDefs];
 }

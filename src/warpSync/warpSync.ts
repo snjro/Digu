@@ -6,12 +6,8 @@ import {
   reloadSyncStatusInChain,
   runWithSyncLock,
 } from "#eventLogs/syncLock.js";
-import { fetchWarpSyncManifest, MANIFEST_TIMEOUT_MS } from "./warpSyncFetch";
-import {
-  anySignal,
-  getWarpSyncPending,
-  importWarpSync,
-} from "./warpSyncImport";
+import { fetchWarpSyncManifest } from "./warpSyncFetch";
+import { getWarpSyncPending, importWarpSync } from "./warpSyncImport";
 import type { WarpSyncManifest } from "./warpSyncTypes";
 import {
   hasWarpSync,
@@ -187,11 +183,7 @@ async function runImport(
   // Once a large import failed, while it reads the DB again.
   let failing: boolean = false;
   try {
-    // A fetch that never ends would keep the sync lock of the chain.
-    manifest = await fetchWarpSyncManifest(
-      targetChain,
-      anySignal(controller.signal, AbortSignal.timeout(MANIFEST_TIMEOUT_MS)),
-    );
+    manifest = await fetchWarpSyncManifest(targetChain);
     if (!manifest) return { status: "none" };
     const pending: WarpSyncPending = await getWarpSyncPending(
       targetChain,
