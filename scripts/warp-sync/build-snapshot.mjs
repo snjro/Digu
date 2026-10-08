@@ -5,6 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
+import { pipeline } from "node:stream/promises";
 import { parseArgs } from "node:util";
 import { Interface } from "ethers";
 import {
@@ -72,14 +73,14 @@ function match(text, regex, what) {
 }
 // The paths of the imports of an _index.ts. Every import must have the form of
 // regex, so that an import of another form does not leave its contracts out
-// without a word. Imports of types, and of modules that are not relative (#…),
-// are not data and are skipped.
+// without a word. Imports of types, and of modules that are not relative (#…)
+// and not a JSON file, are not data and are skipped.
 function importsOf(text, regex, what) {
   const paths = [];
-  for (const line of text.split("\n")) {
+  for (const line of text.split(/\r?\n/)) {
     if (!line.startsWith("import ") || line.startsWith("import type "))
       continue;
-    if (/ from "[^."][^"]*";$/.test(line)) continue;
+    if (/ from "[^."][^"]*(?<!\.json)";$/.test(line)) continue;
     const found = line.match(regex);
     if (!found) throw new Error(`Cannot read an import of ${what}: ${line}`);
     paths.push(found[1]);
@@ -538,48 +539,35 @@ function readStates(partialDir) {
 function writeState(file, state) {
   writeWhole(file, (tmp) => fs.writeFileSync(tmp, JSON.stringify(state)));
 }
-// The kept lines are written in pieces of about this many characters.
-export const KEEP_WRITE_LENGTH = 1 << 20;
 // Keeps the lines of the blocks before nextBlock. A line that a stop left
 // half written is dropped too. It streams the file, which can be larger than
-// a string can hold.
+// a string can hold: pipeline writes all of it, closes the files, and passes
+// on an error of the read or of the write.
 export async function keepLogsBefore(file, nextBlock) {
   if (!fs.existsSync(file)) return;
-  await writeWholeAsync(file, async (tmp) => {
-    const out = fs.openSync(tmp, "w");
+  const isKept = (line) => {
     try {
-      // A failed read ends the loop with its error (Node 24).
-      const lines = readline.createInterface({
-        input: fs.createReadStream(file),
-        crlfDelay: Infinity,
-      });
-      let kept = "";
-      for await (const line of lines) {
-        let raw;
-        try {
-          raw = JSON.parse(line);
-        } catch {
-          continue;
-        }
-        if (Number(raw.blockNumber) < nextBlock) {
-          kept += `${line}\n`;
-          if (kept.length >= KEEP_WRITE_LENGTH) {
-            fs.writeSync(out, kept);
-            kept = "";
-          }
-        }
-      }
-      fs.writeSync(out, kept);
-    } catch (error) {
-      try {
-        fs.closeSync(out);
-      } catch {
-        // The error that stopped the write is thrown instead.
-      }
-      throw error;
+      return Number(JSON.parse(line).blockNumber) < nextBlock;
+    } catch {
+      return false;
     }
-    fs.closeSync(out);
-  });
+  };
+  await writeWholeAsync(file, (tmp) =>
+    pipeline(
+      fs.createReadStream(file, { encoding: "utf8" }),
+      async function* (chunks) {
+        let rest = "";
+        for await (const chunk of chunks) {
+          const lines = `${rest}${chunk}`.split("\n");
+          rest = lines.pop();
+          const kept = lines.filter(isKept);
+          if (kept.length > 0) yield `${kept.join("\n")}\n`;
+        }
+        if (isKept(rest)) yield `${rest}\n`;
+      },
+      fs.createWriteStream(tmp),
+    ),
+  );
 }
 async function* readLogs(file) {
   if (!fs.existsSync(file)) return;

@@ -4,7 +4,7 @@ import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import path from "node:path";
-import { Readable } from "node:stream";
+import { Readable, Writable } from "node:stream";
 import zlib from "node:zlib";
 import {
   afterAll,
@@ -18,7 +18,6 @@ import {
 } from "vitest";
 import {
   buildSnapshot,
-  KEEP_WRITE_LENGTH,
   keepLogsBefore,
   loadChain,
   parsePositiveInteger,
@@ -367,37 +366,47 @@ test("keepLogsBefore keeps the file when its read fails", async () => {
   expect(fs.existsSync(`${file}.tmp`)).toBe(false);
 });
 
-test("keepLogsBefore throws the error of the read when the close fails too", async () => {
+test("keepLogsBefore keeps the file when its write fails", async () => {
   const file = path.join(outDir, "segment.jsonl");
   const content = `${JSON.stringify({ blockNumber: toHex(5) })}\n`;
   fs.writeFileSync(file, content);
-  const read = vi.spyOn(fs, "createReadStream").mockImplementationOnce(() => {
-    const stream = new Readable({ read() {} });
-    setTimeout(() => stream.destroy(new Error("read failed")), 10);
-    return stream;
-  });
-  const close = vi.spyOn(fs, "closeSync").mockImplementationOnce(() => {
-    throw new Error("close failed");
-  });
+  const spy = vi.spyOn(fs, "createWriteStream").mockImplementationOnce(
+    () =>
+      new Writable({
+        write(_chunk, _encoding, callback) {
+          callback(new Error("write failed"));
+        },
+      }),
+  );
   try {
-    await expect(keepLogsBefore(file, 7)).rejects.toThrow("read failed");
+    await expect(keepLogsBefore(file, 7)).rejects.toThrow("write failed");
   } finally {
-    read.mockRestore();
-    close.mockRestore();
+    spy.mockRestore();
   }
   expect(fs.readFileSync(file, "utf8")).toBe(content);
+  expect(fs.existsSync(`${file}.tmp`)).toBe(false);
 });
 
-test("keepLogsBefore keeps a file of more than one piece", async () => {
+test("keepLogsBefore keeps a file of many chunks of the read", async () => {
   const file = path.join(outDir, "segment.jsonl");
   const line = (block) =>
     JSON.stringify({ blockNumber: toHex(block), data: "0".repeat(100) });
   const blocks = Array.from({ length: 30_000 }, (_, i) => i + 1);
   const kept = blocks.slice(0, 25_000).map((block) => `${line(block)}\n`);
-  expect(kept.join("").length).toBeGreaterThan(2 * KEEP_WRITE_LENGTH);
+  // Far more than one chunk of a read stream (64 KiB), so lines are cut
+  // between chunks.
+  expect(kept.join("").length).toBeGreaterThan(1 << 20);
   fs.writeFileSync(file, blocks.map((block) => `${line(block)}\n`).join(""));
   await keepLogsBefore(file, 25_001);
   expect(fs.readFileSync(file, "utf8")).toBe(kept.join(""));
+});
+
+test("keepLogsBefore keeps a last line without a newline", async () => {
+  const file = path.join(outDir, "segment.jsonl");
+  const line = (block) => JSON.stringify({ blockNumber: toHex(block) });
+  fs.writeFileSync(file, `${line(5)}\n${line(6)}`);
+  await keepLogsBefore(file, 7);
+  expect(fs.readFileSync(file, "utf8")).toBe(`${line(5)}\n${line(6)}\n`);
 });
 
 describe("parsePositiveInteger", () => {
@@ -436,7 +445,7 @@ describe("loadChain", () => {
   afterEach(() => fs.rmSync(chainsDir, { recursive: true, force: true }));
 
   // A chain "c" with one version, whose _index.ts has versionImports.
-  function writeChain(versionImports) {
+  function writeChain(versionImports, eol = "\n") {
     const files = {
       "_index.ts": [
         'import type { Chain } from "./types";',
@@ -465,7 +474,7 @@ describe("loadChain", () => {
       fs.mkdirSync(path.dirname(path.join(chainsDir, file)), {
         recursive: true,
       });
-      fs.writeFileSync(path.join(chainsDir, file), `${lines.join("\n")}\n`);
+      fs.writeFileSync(path.join(chainsDir, file), `${lines.join(eol)}${eol}`);
     }
     for (const name of ["A", "B"]) {
       fs.writeFileSync(
@@ -501,7 +510,17 @@ describe("loadChain", () => {
     ]);
   });
 
+  test("reads files with CRLF", () => {
+    writeChain(['import A from "./A.json";'], "\r\n");
+    const chain = loadChain("c", chainsDir);
+    expect(chain.contracts.map((contract) => contract.name)).toEqual(["A"]);
+  });
+
   test.each([
+    [
+      "a JSON file of a module that is not relative",
+      'import C from "#constants/chains/C.json";',
+    ],
     [
       "an import of another form",
       'import B from "./B.json" with { type: "json" };',
