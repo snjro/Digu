@@ -547,7 +547,6 @@ export async function keepLogsBefore(file, nextBlock) {
   if (!fs.existsSync(file)) return;
   await writeWholeAsync(file, async (tmp) => {
     const out = fs.openSync(tmp, "w");
-    let failed = false;
     try {
       // A failed read ends the loop with its error (Node 24).
       const lines = readline.createInterface({
@@ -572,16 +571,14 @@ export async function keepLogsBefore(file, nextBlock) {
       }
       fs.writeSync(out, kept);
     } catch (error) {
-      failed = true;
-      throw error;
-    } finally {
       try {
         fs.closeSync(out);
-      } catch (error) {
-        // Not in place of the error that stopped the write.
-        if (!failed) throw error;
+      } catch {
+        // The error that stopped the write is thrown instead.
       }
+      throw error;
     }
+    fs.closeSync(out);
   });
 }
 async function* readLogs(file) {
