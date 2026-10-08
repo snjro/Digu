@@ -80,8 +80,9 @@ Light and dark theme of:
   - the sidebar: the accordion of "Augur version2" opened by a click or the
     Enter key, the mouse over an item or an accordion arrow
   - another chain chosen in the sidebar
-  - the sync toggle found (there is no RPC, so it is disabled and a click on
-    it does nothing)
+  - the sync toggle disabled, as there is no RPC: the same screen as the
+    events page, and the screenshot fails when the toggle is not found or not
+    disabled
   - a narrow window (760 px), and the sync panel opened in it
   - the sync panel at 390 × 844, with the sidebar closed
 - the version page after unchecking the sync target of a contract

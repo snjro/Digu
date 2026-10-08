@@ -209,15 +209,17 @@ const STATES = [
       return openSyncPanel(page);
     },
   ],
-  // There is no RPC, so the toggle is disabled and a click on it does
-  // nothing: the screen shows it as it is. The bases before #661 have no name
-  // on the toggle.
+  // There is no RPC, so the toggle is disabled and the sync cannot start.
+  // The bases before #661 have no name on the toggle.
   [
     "sync-toggle",
     EVENTS,
     async (page) => {
-      if (!(await findToggle(page, { oldTexts: true })))
-        throw new Error("No sync toggle");
+      const toggle = await findToggle(page, { oldTexts: true });
+      if (!toggle?.disabled)
+        throw new Error(
+          `The sync toggle is not found or not disabled: ${JSON.stringify(toggle)}`,
+        );
     },
   ],
 ];
