@@ -4,6 +4,7 @@ import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import path from "node:path";
+import { Readable, Writable } from "node:stream";
 import zlib from "node:zlib";
 import {
   afterAll,
@@ -13,11 +14,14 @@ import {
   describe,
   expect,
   test,
+  vi,
 } from "vitest";
 import {
   buildSnapshot,
   keepLogsBefore,
+  linesOf,
   loadChain,
+  parsePositiveInteger,
   RequestLimitError,
 } from "./build-snapshot.mjs";
 import { fakeEventLog } from "./fake-logs.mjs";
@@ -340,4 +344,231 @@ test("keepLogsBefore drops the lines from the next block on", async () => {
   );
   await keepLogsBefore(file, 7);
   expect(fs.readFileSync(file, "utf8")).toBe(`${line(5)}\n${line(6)}\n`);
+});
+
+test("keepLogsBefore keeps the file when its read fails", async () => {
+  const file = path.join(outDir, "segment.jsonl");
+  const line = (block) => JSON.stringify({ blockNumber: toHex(block) });
+  const content = `${line(5)}\n${line(6)}\n`;
+  fs.writeFileSync(file, content);
+  // The read gives the first line, and then fails.
+  const spy = vi.spyOn(fs, "createReadStream").mockImplementationOnce(() => {
+    const stream = new Readable({ read() {} });
+    stream.push(`${line(5)}\n`);
+    setTimeout(() => stream.destroy(new Error("read failed")), 10);
+    return stream;
+  });
+  try {
+    await expect(keepLogsBefore(file, 7)).rejects.toThrow("read failed");
+  } finally {
+    spy.mockRestore();
+  }
+  expect(fs.readFileSync(file, "utf8")).toBe(content);
+  expect(fs.existsSync(`${file}.tmp`)).toBe(false);
+});
+
+test("keepLogsBefore keeps the file when its write fails", async () => {
+  const file = path.join(outDir, "segment.jsonl");
+  // More than a piece of the write. The read stream must not be left open,
+  // and vitest fails the run on an uncaught error of it.
+  const line = JSON.stringify({ blockNumber: toHex(5), data: "0".repeat(100) });
+  const content = `${line}\n`.repeat(20_000);
+  fs.writeFileSync(file, content);
+  const createReadStream = fs.createReadStream.bind(fs);
+  let input;
+  const read = vi
+    .spyOn(fs, "createReadStream")
+    .mockImplementationOnce((...args) => {
+      input = createReadStream(...args);
+      return input;
+    });
+  // The write makes the .tmp file, and then fails.
+  const write = vi
+    .spyOn(fs, "createWriteStream")
+    .mockImplementationOnce((tmp) => {
+      fs.writeFileSync(tmp, "partial");
+      return new Writable({
+        write(_chunk, _encoding, callback) {
+          callback(new Error("write failed"));
+        },
+      });
+    });
+  try {
+    await expect(keepLogsBefore(file, 7)).rejects.toThrow("write failed");
+  } finally {
+    read.mockRestore();
+    write.mockRestore();
+  }
+  expect(input).toBeDefined();
+  expect(input.destroyed).toBe(true);
+  expect(fs.readFileSync(file, "utf8")).toBe(content);
+  expect(fs.existsSync(`${file}.tmp`)).toBe(false);
+});
+
+test("keepLogsBefore keeps a file of many chunks of the read", async () => {
+  const file = path.join(outDir, "segment.jsonl");
+  const line = (block) =>
+    JSON.stringify({ blockNumber: toHex(block), data: "0".repeat(100) });
+  const blocks = Array.from({ length: 30_000 }, (_, i) => i + 1);
+  const kept = blocks.slice(0, 25_000).map((block) => `${line(block)}\n`);
+  // Far more than one chunk of a read stream (64 KiB), so lines are cut
+  // between chunks.
+  expect(kept.join("").length).toBeGreaterThan(1 << 20);
+  fs.writeFileSync(file, blocks.map((block) => `${line(block)}\n`).join(""));
+  await keepLogsBefore(file, 25_001);
+  expect(fs.readFileSync(file, "utf8")).toBe(kept.join(""));
+});
+
+test("linesOf closes its input when the loop ends early", async () => {
+  // A stream that does not end on its own.
+  const input = new Readable({ read() {} });
+  input.push("a\nb\n");
+  for await (const line of linesOf(input)) {
+    expect(line).toBe("a");
+    break;
+  }
+  expect(input.destroyed).toBe(true);
+});
+
+test("keepLogsBefore keeps a last line without a newline", async () => {
+  const file = path.join(outDir, "segment.jsonl");
+  const line = (block) => JSON.stringify({ blockNumber: toHex(block) });
+  fs.writeFileSync(file, `${line(5)}\n${line(6)}`);
+  await keepLogsBefore(file, 7);
+  expect(fs.readFileSync(file, "utf8")).toBe(`${line(5)}\n${line(6)}\n`);
+});
+
+describe("parsePositiveInteger", () => {
+  test.each([
+    ["1", 1],
+    ["26100000", 26_100_000],
+    ["9007199254740991", Number.MAX_SAFE_INTEGER],
+  ])("takes %s", (text, value) => {
+    expect(parsePositiveInteger(text)).toBe(value);
+  });
+  test.each([
+    "0x18e4120",
+    "2.61e7",
+    "26,100,000",
+    "26_100_000",
+    " 5",
+    "5 ",
+    "+5",
+    "0",
+    "007",
+    "-1",
+    "1.0",
+    "",
+    "9007199254740993",
+    undefined,
+  ])("does not take %j", (text) => {
+    expect(parsePositiveInteger(text)).toBeUndefined();
+  });
+});
+
+describe("loadChain", () => {
+  let chainsDir;
+  beforeEach(() => {
+    chainsDir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-chains-"));
+  });
+  afterEach(() => fs.rmSync(chainsDir, { recursive: true, force: true }));
+
+  // A chain "c" with one version, whose _index.ts has versionImports.
+  function writeChain(versionImports, eol = "\n") {
+    const files = {
+      "_index.ts": [
+        'import type { Chain } from "./types";',
+        'import { chain as c } from "./c/_index";',
+      ],
+      "c/_index.ts": [
+        'import type { Chain } from "#constants/chains/types.js";',
+        'import { project as p } from "./p/_index";',
+        "export const chain: Chain = {",
+        '  name: "c",',
+        "  chainId: 1,",
+        "  confirmationBlocks: 2,",
+      ],
+      "c/p/_index.ts": [
+        'import { version as v } from "./v/_index";',
+        "export const project: Project = {",
+        '  name: "p",',
+      ],
+      "c/p/v/_index.ts": [
+        ...versionImports,
+        "export const version: Version = {",
+        '  name: "v",',
+      ],
+    };
+    for (const [file, lines] of Object.entries(files)) {
+      fs.mkdirSync(path.dirname(path.join(chainsDir, file)), {
+        recursive: true,
+      });
+      fs.writeFileSync(path.join(chainsDir, file), `${lines.join(eol)}${eol}`);
+    }
+    for (const name of ["A", "B"]) {
+      fs.writeFileSync(
+        path.join(chainsDir, "c/p/v", `${name}.json`),
+        JSON.stringify({
+          name,
+          address: `0x${name.repeat(40)}`,
+          creation: { blockNumber: 5 },
+          abi: [
+            {
+              type: "event",
+              name: "E",
+              anonymous: false,
+              inputs: [{ type: "uint256", name: "x", indexed: false }],
+            },
+          ],
+        }),
+      );
+    }
+  }
+
+  test("reads the JSON files that a version imports", () => {
+    writeChain([
+      'import type { Contract, Version } from "#constants/chains/types.js";',
+      'import { convertJsonFilesContractToContracts } from "#constants/chains/convertJsonToABI.js";',
+      'import A from "./A.json";',
+      'import B from "./B.json";',
+    ]);
+    const chain = loadChain("c", chainsDir);
+    expect(chain.contracts.map((contract) => contract.name)).toEqual([
+      "A",
+      "B",
+    ]);
+  });
+
+  test("reads an _index.ts and a JSON file that start with a byte order mark", () => {
+    writeChain(['import A from "./A.json";']);
+    for (const file of ["c/p/v/_index.ts", "c/p/v/A.json"]) {
+      const full = path.join(chainsDir, file);
+      fs.writeFileSync(full, `\uFEFF${fs.readFileSync(full, "utf8")}`);
+    }
+    const chain = loadChain("c", chainsDir);
+    expect(chain.contracts.map((contract) => contract.name)).toEqual(["A"]);
+  });
+
+  test("reads files with CRLF", () => {
+    writeChain(['import A from "./A.json";'], "\r\n");
+    const chain = loadChain("c", chainsDir);
+    expect(chain.contracts.map((contract) => contract.name)).toEqual(["A"]);
+  });
+
+  test.each([
+    [
+      "a JSON file of a module that is not relative",
+      'import C from "#constants/chains/C.json";',
+    ],
+    [
+      "an import of another form",
+      'import B from "./B.json" with { type: "json" };',
+    ],
+    ["an import on more than one line", "import {"],
+  ])("stops at %s next to the imports it reads", (_, line) => {
+    writeChain(['import A from "./A.json";', line]);
+    expect(() => loadChain("c", chainsDir)).toThrow(
+      `Cannot read an import of the JSON files of ${path.join(chainsDir, "c/p/v")}: ${line}`,
+    );
+  });
 });

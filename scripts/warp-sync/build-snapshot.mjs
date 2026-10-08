@@ -5,6 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
+import { pipeline } from "node:stream/promises";
 import { parseArgs } from "node:util";
 import { Interface } from "ethers";
 import {
@@ -14,6 +15,7 @@ import {
   lastBlocks,
   moveChunkFiles,
   readManifest,
+  readText,
   writeContractChunks,
   writeManifest,
   writeWhole,
@@ -62,33 +64,41 @@ const MAX_RATE_ERRORS = 30;
 
 // ---------- the constants of the app ----------
 
-function read(file) {
-  return fs.readFileSync(file, "utf8");
-}
 function match(text, regex, what) {
   const found = text.match(regex);
   if (!found) throw new Error(`Cannot find ${what}.`);
   return found[1];
 }
-// Throws when nothing matches, so that an import of another form does not
-// leave the contracts out without a word.
-function matchAll(text, regex, what) {
-  const found = [...text.matchAll(regex)].map((m) => m[1]);
-  if (found.length === 0) throw new Error(`Cannot find ${what}.`);
-  return found;
+// The paths of the imports of the text of an _index.ts, read with readText
+// (without a byte order mark). Every import must have the form of
+// regex, so that an import of another form does not leave its contracts out
+// without a word. Imports of types, and of modules that are not relative (#…)
+// and not a JSON file, are not data and are skipped.
+function importsOf(text, regex, what) {
+  const paths = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.startsWith("import ") || line.startsWith("import type "))
+      continue;
+    if (/ from "[^."][^"]*(?<!\.json)";$/.test(line)) continue;
+    const found = line.match(regex);
+    if (!found) throw new Error(`Cannot read an import of ${what}: ${line}`);
+    paths.push(found[1]);
+  }
+  if (paths.length === 0) throw new Error(`Cannot find ${what}.`);
+  return paths;
 }
 
 // Reads the chain from the import lines of the _index.ts files and the JSON
 // files that they import.
 export function loadChain(chainName, chainsDir = CHAINS_DIR) {
-  const chainDirs = matchAll(
-    read(path.join(chainsDir, "_index.ts")),
-    /import \{ chain as \w+ \} from "\.\/([^"]+)\/_index";/g,
+  const chainDirs = importsOf(
+    readText(path.join(chainsDir, "_index.ts")),
+    /^import \{ chain as \w+ \} from "\.\/([^"]+)\/_index";$/,
     `the chains of ${chainsDir}`,
   );
   for (const chainDir of chainDirs) {
     const dir = path.join(chainsDir, chainDir);
-    const index = read(path.join(dir, "_index.ts"));
+    const index = readText(path.join(dir, "_index.ts"));
     const name = match(
       index,
       /export const chain: Chain = \{\s*name: "([^"]+)"/,
@@ -108,36 +118,36 @@ export function loadChain(chainName, chainsDir = CHAINS_DIR) {
 }
 function loadContracts(chainDir, chainIndex) {
   const contracts = [];
-  for (const projectDir of matchAll(
+  for (const projectDir of importsOf(
     chainIndex,
-    /import \{ project as \w+ \} from "\.\/([^"]+)\/_index";/g,
+    /^import \{ project as \w+ \} from "\.\/([^"]+)\/_index";$/,
     `the projects of ${chainDir}`,
   )) {
     const dir = path.join(chainDir, projectDir);
-    const index = read(path.join(dir, "_index.ts"));
+    const index = readText(path.join(dir, "_index.ts"));
     const project = match(
       index,
       /export const project: Project = \{\s*name: "([^"]+)"/,
       `the name of ${dir}`,
     );
-    for (const versionDir of matchAll(
+    for (const versionDir of importsOf(
       index,
-      /import \{ version as \w+ \} from "\.\/([^"]+)\/_index";/g,
+      /^import \{ version as \w+ \} from "\.\/([^"]+)\/_index";$/,
       `the versions of ${dir}`,
     )) {
       const vDir = path.join(dir, versionDir);
-      const vIndex = read(path.join(vDir, "_index.ts"));
+      const vIndex = readText(path.join(vDir, "_index.ts"));
       const version = match(
         vIndex,
         /export const version: Version = \{\s*name: "([^"]+)"/,
         `the name of ${vDir}`,
       );
-      for (const file of matchAll(
+      for (const file of importsOf(
         vIndex,
-        /import \w+ from "\.\/([^"]+\.json)";/g,
+        /^import \w+ from "\.\/([^"]+\.json)";$/,
         `the JSON files of ${vDir}`,
       )) {
-        const json = JSON.parse(read(path.join(vDir, file)));
+        const json = JSON.parse(readText(path.join(vDir, file)));
         const iface = new Interface(json.abi);
         const events = eventsByTopic0(iface);
         if (events.size === 0) continue;
@@ -514,7 +524,7 @@ function readStates(partialDir) {
   if (!fs.existsSync(partialDir)) return states;
   for (const file of fs.readdirSync(partialDir)) {
     if (file.endsWith(".state.json")) {
-      const state = JSON.parse(read(path.join(partialDir, file)));
+      const state = JSON.parse(readText(path.join(partialDir, file)));
       states.set(partKeyOf(state), state);
     } else if (file.endsWith(".json")) {
       // The logs of a segment in one .json file, before formatVersion 2.
@@ -528,41 +538,56 @@ function readStates(partialDir) {
 function writeState(file, state) {
   writeWhole(file, (tmp) => fs.writeFileSync(tmp, JSON.stringify(state)));
 }
+// The kept lines are written in pieces of about this many characters.
+const KEEP_BATCH_LENGTH = 1 << 20;
 // Keeps the lines of the blocks before nextBlock. A line that a stop left
 // half written is dropped too. It streams the file, which can be larger than
-// a string can hold.
+// a string can hold: pipeline writes all of it, closes the files, and passes
+// on an error of the read or of the write.
 export async function keepLogsBefore(file, nextBlock) {
   if (!fs.existsSync(file)) return;
-  await writeWholeAsync(file, async (tmp) => {
-    const out = fs.openSync(tmp, "w");
+  const isKept = (line) => {
     try {
-      const lines = readline.createInterface({
-        input: fs.createReadStream(file),
-        crlfDelay: Infinity,
-      });
-      for await (const line of lines) {
-        let raw;
-        try {
-          raw = JSON.parse(line);
-        } catch {
-          continue;
-        }
-        if (Number(raw.blockNumber) < nextBlock) {
-          fs.writeSync(out, `${line}\n`);
-        }
-      }
-    } finally {
-      fs.closeSync(out);
+      return Number(JSON.parse(line).blockNumber) < nextBlock;
+    } catch {
+      return false;
     }
-  });
+  };
+  await writeWholeAsync(file, (tmp) =>
+    pipeline(
+      fs.createReadStream(file),
+      async function* (input) {
+        let kept = "";
+        for await (const line of linesOf(input)) {
+          if (!isKept(line)) continue;
+          kept += `${line}\n`;
+          if (kept.length >= KEEP_BATCH_LENGTH) {
+            yield kept;
+            kept = "";
+          }
+        }
+        if (kept) yield kept;
+      },
+      fs.createWriteStream(tmp),
+    ),
+  );
+}
+// The lines of a stream. When the loop ends, also early or by an error, the
+// interface is closed (it would otherwise give the error of its input again,
+// with no listener: an uncaught error) and the input is destroyed (closing
+// the interface takes its listener off the input).
+export async function* linesOf(input) {
+  const lines = readline.createInterface({ input, crlfDelay: Infinity });
+  try {
+    yield* lines;
+  } finally {
+    lines.close();
+    input.destroy();
+  }
 }
 async function* readLogs(file) {
   if (!fs.existsSync(file)) return;
-  const lines = readline.createInterface({
-    input: fs.createReadStream(file),
-    crlfDelay: Infinity,
-  });
-  for await (const line of lines) {
+  for await (const line of linesOf(fs.createReadStream(file))) {
     if (line) yield JSON.parse(line);
   }
 }
@@ -827,10 +852,18 @@ export function withKey(url, keyFile) {
   return `${url}${key}`;
 }
 
+// A positive integer written in decimal digits only, or undefined: Number()
+// would also take "0x10", "2.6e7", " 5" and numbers above the safe integers.
+export function parsePositiveInteger(text) {
+  const value = Number(text);
+  return /^[1-9]\d*$/.test(text) && Number.isSafeInteger(value)
+    ? value
+    : undefined;
+}
 function positiveInteger(values, name) {
-  const value = Number(values[name]);
-  if (!Number.isInteger(value) || value <= 0) {
-    console.error(`--${name} must be a positive integer.`);
+  const value = parsePositiveInteger(values[name]);
+  if (value === undefined) {
+    console.error(`--${name} must be a positive integer in decimal digits.`);
     process.exit(2);
   }
   return value;

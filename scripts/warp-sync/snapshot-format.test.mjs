@@ -183,6 +183,13 @@ describe("the manifest", () => {
     expect(() => readManifest(file, chain)).toThrow("convert-snapshot.mjs");
   });
 
+  test("one with a byte order mark is read", () => {
+    const file = path.join(dir, "manifest.json");
+    const manifest = { formatVersion: 3, chainId: 1, chunks: [] };
+    fs.writeFileSync(file, `\uFEFF${JSON.stringify(manifest)}`);
+    expect(readManifest(file, chain)).toEqual(manifest);
+  });
+
   test("another chain stops it", () => {
     const file = path.join(dir, "manifest.json");
     fs.writeFileSync(file, JSON.stringify({ formatVersion: 3, chainId: 137 }));
@@ -248,6 +255,55 @@ describe("writeWhole", () => {
     ).toThrow("boom");
     expect(read(file)).toBe("old");
     expect(fs.readdirSync(dir)).toEqual(["a.json"]);
+  });
+
+  test("throws for a write that returns a promise, and catches its rejection", () => {
+    const file = path.join(dir, "a.json");
+    fs.writeFileSync(file, "old");
+    // A thenable that records the handlers that it gets.
+    const handlers = [];
+    expect(() =>
+      writeWhole(file, (tmp) => {
+        fs.writeFileSync(tmp, "new");
+        return { then: (...args) => handlers.push(...args) };
+      }),
+    ).toThrow("use writeWholeAsync");
+    expect(handlers.at(-1)).toBeTypeOf("function");
+    expect(read(file)).toBe("old");
+    // Left as it is: the write may still be running.
+    expect(read(`${file}.tmp`)).toBe("new");
+  });
+
+  test.each([
+    ["writeWhole", (file, write) => writeWhole(file, write)],
+    ["writeWholeAsync", async (file, write) => writeWholeAsync(file, write)],
+  ])(
+    "%s throws the error of the write when the .tmp file cannot be removed",
+    async (_, writeOf) => {
+      const file = path.join(dir, "a.json");
+      fs.writeFileSync(file, "old");
+      // rmSync without recursive does not remove a folder.
+      await expect(async () =>
+        writeOf(file, (tmp) => {
+          fs.mkdirSync(path.join(tmp, "child"), { recursive: true });
+          throw new Error("boom");
+        }),
+      ).rejects.toThrow("boom");
+      expect(read(file)).toBe("old");
+    },
+  );
+
+  test.each([
+    ["writeWhole", (file, write) => writeWhole(file, write)],
+    ["writeWholeAsync", async (file, write) => writeWholeAsync(file, write)],
+  ])("%s removes the .tmp file when the rename fails", async (_, writeOf) => {
+    // A folder with a file in it cannot be replaced by a file.
+    const file = path.join(dir, "a");
+    fs.mkdirSync(path.join(file, "child"), { recursive: true });
+    await expect(async () =>
+      writeOf(file, (tmp) => fs.writeFileSync(tmp, "new")),
+    ).rejects.toThrow();
+    expect(fs.readdirSync(dir)).toEqual(["a"]);
   });
 
   test("writeWholeAsync replaces the file only after the write ends", async () => {

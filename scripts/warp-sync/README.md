@@ -71,6 +71,10 @@ docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
   [--max-width <blocks>]
 ```
 
+The numbers (`--to`, `--max-requests`, `--concurrency`, `--part-blocks`,
+`--max-width`) are positive integers in decimal digits only, such as
+`26100000` (not `26,100,000`, `0x18e4120` or `2.61e7`).
+
 - `--chain`: the `name` of a chain in `src/constants/chains` (`matic`, `eth`).
 - `--rpc`: a JSON-RPC URL of the chain. The script sends its requests there.
 - `--rpc-key-file`: a file with the key of the RPC, which is added to the end

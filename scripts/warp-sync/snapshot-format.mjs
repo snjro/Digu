@@ -138,9 +138,15 @@ export function emptyManifest(chain) {
   };
 }
 
+// The text of a file read whole, without a byte order mark, which would break
+// JSON.parse or hide the first import of an _index.ts.
+export function readText(file) {
+  return fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
+}
+
 export function readManifest(file, chain) {
   if (!fs.existsSync(file)) return emptyManifest(chain);
-  const manifest = JSON.parse(fs.readFileSync(file, "utf8"));
+  const manifest = JSON.parse(readText(file));
   if (manifest.formatVersion === 2) {
     throw new Error(
       `${file} has formatVersion 2. Convert it first with scripts/warp-sync/convert-snapshot.mjs.`,
@@ -156,17 +162,29 @@ export function readManifest(file, chain) {
 }
 
 // Writes file whole and then renames it, so that a stop does not leave half a
-// file: write(tmp) writes the file tmp. When write fails, tmp is removed and
-// file stays as it was; only a stop before the rename leaves <file>.tmp.
+// file: write(tmp) writes the file tmp. When the write or the rename fails, tmp
+// is removed, file stays as it was, and the error is thrown. <file>.tmp is left
+// when its removal fails, after a stop (a kill) before the rename, and by a
+// write that returns a promise (a misuse: it is not waited for, and writeWhole
+// throws).
 export function writeWhole(file, write) {
   const tmp = `${file}.tmp`;
+  let written;
   try {
-    write(tmp);
+    written = write(tmp);
   } catch (error) {
-    fs.rmSync(tmp, { force: true });
+    discard(tmp);
     throw error;
   }
-  fs.renameSync(tmp, file);
+  if (typeof written?.then === "function") {
+    // A misuse, which no caller makes: tmp is left as it is, since the write
+    // goes on. Only its rejection is caught, so that it is not unhandled.
+    written.then(undefined, () => {});
+    throw new TypeError(
+      "The write of writeWhole returned a promise: use writeWholeAsync.",
+    );
+  }
+  replace(tmp, file);
 }
 // writeWhole for a write that returns a promise, which is waited for.
 export async function writeWholeAsync(file, write) {
@@ -174,10 +192,27 @@ export async function writeWholeAsync(file, write) {
   try {
     await write(tmp);
   } catch (error) {
-    fs.rmSync(tmp, { force: true });
+    discard(tmp);
     throw error;
   }
-  fs.renameSync(tmp, file);
+  replace(tmp, file);
+}
+// Removes tmp. A failure here is not thrown, so that it does not hide the
+// error that made the write stop.
+function discard(tmp) {
+  try {
+    fs.rmSync(tmp, { force: true });
+  } catch {
+    // The error of the write is thrown instead.
+  }
+}
+function replace(tmp, file) {
+  try {
+    fs.renameSync(tmp, file);
+  } catch (error) {
+    discard(tmp);
+    throw error;
+  }
 }
 
 export function writeManifest(file, manifest) {
