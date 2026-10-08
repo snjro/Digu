@@ -156,13 +156,26 @@ export function readManifest(file, chain) {
 }
 
 // Writes file whole and then renames it, so that a stop does not leave half a
-// file: write(tmp) writes the file tmp, and may return a promise. A stop
-// before the rename leaves <file>.tmp.
+// file: write(tmp) writes the file tmp. When write fails, tmp is removed and
+// file stays as it was; only a stop before the rename leaves <file>.tmp.
 export function writeWhole(file, write) {
   const tmp = `${file}.tmp`;
-  const written = write(tmp);
-  if (written instanceof Promise) {
-    return written.then(() => fs.renameSync(tmp, file));
+  try {
+    write(tmp);
+  } catch (error) {
+    fs.rmSync(tmp, { force: true });
+    throw error;
+  }
+  fs.renameSync(tmp, file);
+}
+// writeWhole for a write that returns a promise, which is waited for.
+export async function writeWholeAsync(file, write) {
+  const tmp = `${file}.tmp`;
+  try {
+    await write(tmp);
+  } catch (error) {
+    fs.rmSync(tmp, { force: true });
+    throw error;
   }
   fs.renameSync(tmp, file);
 }

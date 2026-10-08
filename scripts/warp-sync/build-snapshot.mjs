@@ -17,6 +17,7 @@ import {
   writeContractChunks,
   writeManifest,
   writeWhole,
+  writeWholeAsync,
 } from "./snapshot-format.mjs";
 import { eventsByTopic0, toSnapshotLog } from "./snapshot-log.mjs";
 
@@ -532,7 +533,7 @@ function writeState(file, state) {
 // a string can hold.
 export async function keepLogsBefore(file, nextBlock) {
   if (!fs.existsSync(file)) return;
-  await writeWhole(file, async (tmp) => {
+  await writeWholeAsync(file, async (tmp) => {
     const out = fs.openSync(tmp, "w");
     try {
       const lines = readline.createInterface({

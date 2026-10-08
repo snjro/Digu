@@ -12,6 +12,8 @@ import {
   readManifest,
   totalsOf,
   writeContractChunks,
+  writeWhole,
+  writeWholeAsync,
 } from "./snapshot-format.mjs";
 
 const contract = {
@@ -218,5 +220,60 @@ describe("the manifest", () => {
     ).toThrow("is there already");
     moveChunkFiles(rows, from, dir, { chunks: [] });
     expect(fs.readFileSync(path.join(dir, "a.json.gz"), "utf8")).toBe("new");
+  });
+});
+
+describe("writeWhole", () => {
+  const read = (file) => fs.readFileSync(file, "utf8");
+
+  test("replaces the file only after the write ends", () => {
+    const file = path.join(dir, "a.json");
+    fs.writeFileSync(file, "old");
+    writeWhole(file, (tmp) => {
+      fs.writeFileSync(tmp, "new");
+      expect(read(file)).toBe("old");
+    });
+    expect(read(file)).toBe("new");
+    expect(fs.readdirSync(dir)).toEqual(["a.json"]);
+  });
+
+  test("keeps the file and removes the .tmp file when the write fails", () => {
+    const file = path.join(dir, "a.json");
+    fs.writeFileSync(file, "old");
+    expect(() =>
+      writeWhole(file, (tmp) => {
+        fs.writeFileSync(tmp, "ne");
+        throw new Error("boom");
+      }),
+    ).toThrow("boom");
+    expect(read(file)).toBe("old");
+    expect(fs.readdirSync(dir)).toEqual(["a.json"]);
+  });
+
+  test("writeWholeAsync replaces the file only after the write ends", async () => {
+    const file = path.join(dir, "a.json");
+    fs.writeFileSync(file, "old");
+    await writeWholeAsync(file, async (tmp) => {
+      fs.writeFileSync(tmp, "ne");
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(read(file)).toBe("old");
+      fs.appendFileSync(tmp, "w");
+    });
+    expect(read(file)).toBe("new");
+    expect(fs.readdirSync(dir)).toEqual(["a.json"]);
+  });
+
+  test("writeWholeAsync keeps the file and removes the .tmp file when the write fails", async () => {
+    const file = path.join(dir, "a.json");
+    fs.writeFileSync(file, "old");
+    await expect(
+      writeWholeAsync(file, async (tmp) => {
+        fs.writeFileSync(tmp, "ne");
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        throw new Error("boom");
+      }),
+    ).rejects.toThrow("boom");
+    expect(read(file)).toBe("old");
+    expect(fs.readdirSync(dir)).toEqual(["a.json"]);
   });
 });
