@@ -1242,6 +1242,27 @@ describe("sync with two tabs (issue #49)", () => {
     expect((await dbStatus(b)).isSyncing).toBe(false);
   }, 30_000);
 
+  test("reads a chain busy at startup once it is released", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    // Tab C syncs while tab B starts, and is closed while it holds the lock:
+    // its rows stay syncing.
+    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
+    await a.db
+      .table("SyncStatus")
+      .update(a.contract.name, { isSyncing: true, isAbort: false });
+    const b = await openTab();
+    tabs.push(b);
+    expect(b.isLockedByOtherTab()).toBe(true);
+    expect(b.storeStatus().syncStateText).toBe("syncing");
+
+    closeTabC();
+    await heldLock;
+    expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
+    expect((await dbStatus(b)).isSyncing).toBe(false);
+    expect(b.storeStatus().syncStateText).toBe("stopped");
+  }, 30_000);
+
   test("lets a tab opened hidden read a chain busy at startup once it is shown", async () => {
     const a = await openTab();
     tabs.push(a);

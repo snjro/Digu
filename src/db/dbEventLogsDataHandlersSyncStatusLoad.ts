@@ -18,7 +18,9 @@ const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 // holding the sync lock of the chain, when no sync runs.
 // - "release" (at startup and after another tab's operation, with the lock
 //   shared): clears the flags of a sync that a tab closed while it synced
-//   left set. A row is written only when it needs it, in a read-write
+//   left set, and only those: with the creation block too, two builds would
+//   write theirs back and forth, and the tabs would hold the lock one after
+//   another. A row is written only when it needs it, in a read-write
 //   transaction that checks it again, so that of the tabs that read at the
 //   same time only the first writes.
 // - "reset" (for an operation of this tab, with the lock exclusive): writes
