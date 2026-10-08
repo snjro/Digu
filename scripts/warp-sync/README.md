@@ -35,9 +35,16 @@ read a manifest or finds no chain. A chain without a snapshot is not checked.
 
 vitest (`check-files.test.mjs`) checks the files of each chain of
 `WARP_SYNC_CHAIN_NAMES` against its `manifest.json` on every PR and in the
-release: sizes, sha256, the ranges of each contract without gaps, `totals`,
-and no file outside the manifest. `WARP_SYNC_SNAPSHOT_CHECK=off` does not turn
-this check off.
+release: sizes, sha256, the content of each file (format, chain, contract,
+address, range, number of logs, and every log in the range), the ranges of
+each contract without gaps and not ending at its creation block, `totals`,
+and no file outside the manifest. It also checks the contracts of the
+manifest against those with events in `src/constants/chains` (the same
+contracts, addresses and creation blocks), that no other folder has a
+`manifest.json`, and that `FORMAT_VERSION` is `WARP_SYNC_FORMAT_VERSION` of
+the app. So a contract with events added to the app needs a run of this
+script for its chain before its pull request passes.
+`WARP_SYNC_SNAPSHOT_CHECK=off` does not turn this check off.
 
 ```sh
 python3 scripts/warp-sync/check-snapshot.py [--at <ISO time>]   # the default is now
