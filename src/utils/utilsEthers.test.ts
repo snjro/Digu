@@ -30,6 +30,7 @@ import * as dbChainStatusDataHandlers from "#db/dbChainStatusDataHandlers.js";
 import type { ChainStatus, EthersEventLog } from "#db/dbTypes.js";
 import {
   EventLog,
+  FetchRequest,
   JsonRpcProvider,
   Log,
   Network,
@@ -51,8 +52,6 @@ import {
 import { customLogger } from "./logger";
 import {
   jsonFileContracts,
-  LOGGABLE_ETHERS_ERROR,
-  makeEthersErrorWithRpcUrl,
   providerAnsweringGetLogs,
   type GetLogsAnswer,
 } from "./testCommon";
@@ -479,7 +478,12 @@ describe("getNodeProvider logs", () => {
   test("should log only the code and the short message of an ethers error", async () => {
     const spyGetNetwork = vi
       .spyOn(JsonRpcProvider.prototype, "getNetwork")
-      .mockRejectedValueOnce(makeEthersErrorWithRpcUrl());
+      .mockRejectedValueOnce(
+        makeError("server response 401 Unauthorized", "SERVER_ERROR", {
+          request: new FetchRequest("https://rpc.example/secret-key"),
+          info: { requestUrl: "https://rpc.example/secret-key" },
+        }),
+      );
     const spyError = vi
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});
@@ -488,7 +492,10 @@ describe("getNodeProvider logs", () => {
 
     expect(spyError).toHaveBeenCalledExactlyOnceWith(
       "nodeProvider.getNetwork().",
-      LOGGABLE_ETHERS_ERROR,
+      {
+        code: "SERVER_ERROR",
+        shortMessage: "server response 401 Unauthorized",
+      },
     );
     spyGetNetwork.mockRestore();
     spyError.mockRestore();
@@ -535,28 +542,6 @@ describe("getNodeProvider logs", () => {
     spyError.mockRestore();
   });
 
-  test("should log only the names of an error with a cause that is not from ethers", async () => {
-    const spyGetNetwork = vi
-      .spyOn(JsonRpcProvider.prototype, "getNetwork")
-      .mockRejectedValueOnce(
-        new Error("https://rpc.example/secret-key", {
-          cause: new TypeError("https://rpc.example/secret-key"),
-        }),
-      );
-    const spyError = vi
-      .spyOn(customLogger, "error")
-      .mockImplementation(() => {});
-
-    await getNodeProvider(targetChain, "https://rpc.example/secret-key");
-
-    expect(spyError).toHaveBeenCalledExactlyOnceWith(
-      "nodeProvider.getNetwork().",
-      { name: "Error", cause: { name: "TypeError" } },
-    );
-    spyGetNetwork.mockRestore();
-    spyError.mockRestore();
-  });
-
   test("should log the timeout of getNetwork as it is", async () => {
     vi.useFakeTimers();
     const spyGetNetwork = vi
@@ -598,113 +583,30 @@ describe("getLoggableError", () => {
   });
 
   test("should keep only the code and the short message of an HTTP error", () => {
-    expect(getLoggableError(makeEthersErrorWithRpcUrl())).toStrictEqual(
-      LOGGABLE_ETHERS_ERROR,
+    const error: Error = makeError(
+      "server response 401 Unauthorized",
+      "SERVER_ERROR",
+      {
+        request: new FetchRequest("https://rpc.example/secret-key"),
+        error: new Error("https://rpc.example/secret-key"),
+        info: {
+          requestUrl: "https://rpc.example/secret-key",
+          responseBody: "invalid key",
+        },
+      },
     );
-  });
-
-  test("should keep the name, the message and the stack of an error, and clean its cause", () => {
-    const error: Error = new Error("Failed to start aborting.", {
-      cause: makeEthersErrorWithRpcUrl(),
-    });
     expect(getLoggableError(error)).toStrictEqual({
-      name: "Error",
-      message: "Failed to start aborting.",
-      stack: error.stack,
-      cause: LOGGABLE_ETHERS_ERROR,
+      code: "SERVER_ERROR",
+      shortMessage: "server response 401 Unauthorized",
     });
   });
 
-  test("should keep only the names of an error and its causes when asked", () => {
-    const error: Error = new Error("wss://rpc.example/secret-key", {
-      cause: new TypeError("wss://rpc.example/secret-key"),
-    });
-    expect(getLoggableError(error, { onlyNames: true })).toStrictEqual({
-      name: "Error",
-      cause: { name: "TypeError" },
-    });
-    expect(
-      getLoggableError(makeEthersErrorWithRpcUrl(), { onlyNames: true }),
-    ).toStrictEqual(LOGGABLE_ETHERS_ERROR);
-  });
-
-  test("should keep a cause that is not an error after the last error it follows", () => {
-    // Six errors, the most it follows, and a text as the last cause.
-    let error: unknown = "the first cause";
-    for (let i = 0; i < 6; i++) {
-      error = new Error(`level ${i}`, { cause: error });
-    }
-    let loggableError: unknown = getLoggableError(error);
-    for (let i = 0; i < 10 && typeof loggableError === "object"; i++) {
-      loggableError = (loggableError as { cause: unknown }).cause;
-    }
-    expect(loggableError).toBe("the first cause");
-  });
-
-  test("should stop following the causes of an error whose cause loops", () => {
-    const error: Error = new Error("loop");
-    error.cause = error;
-    let loggableError: unknown = getLoggableError(error);
-    // At most 10 steps, so that the test ends if the causes are not cut.
-    let depth: number = 0;
-    while (
-      depth < 10 &&
-      typeof loggableError === "object" &&
-      loggableError !== null
-    ) {
-      loggableError = (loggableError as { cause: unknown }).cause;
-      depth++;
-    }
-    expect(loggableError).toBe("(more causes)");
-    expect(depth).toBe(6);
-  });
-
-  test("should make a plain object of the name, the message and the stack of another error", () => {
-    const error: Error = new Error("DB error");
-    expect(getLoggableError(error)).toStrictEqual({
-      name: "Error",
-      message: "DB error",
-      stack: error.stack,
-    });
-  });
-
-  test("should keep only the fixed fields, and clean the inner error of Dexie", () => {
-    const error = Object.assign(new Error("Failed to save."), {
-      name: "AbortError",
-      request: { url: "https://rpc.example/secret-key" },
-      inner: makeEthersErrorWithRpcUrl(),
-    });
-    expect(getLoggableError(error)).toStrictEqual({
-      name: "AbortError",
-      message: "Failed to save.",
-      stack: error.stack,
-      inner: LOGGABLE_ETHERS_ERROR,
-    });
-  });
-
-  test.each(["text", undefined, { url: "https://rpc.example/secret-key" }])(
-    "should return %s as it is when it is not an error",
+  test.each([new Error("DB error"), "text", undefined])(
+    "should return %s as it is when it is not an ethers error",
     (error: unknown) => {
       expect(getLoggableError(error)).toBe(error);
     },
   );
-
-  test("should keep only the type of a value that is not an error, with onlyNames", () => {
-    expect(
-      getLoggableError(
-        new Error("https://rpc.example/secret-key", {
-          cause: "https://rpc.example/secret-key",
-        }),
-        { onlyNames: true },
-      ),
-    ).toStrictEqual({ name: "Error", cause: { type: "string" } });
-    expect(
-      getLoggableError(
-        { url: "https://rpc.example/secret-key" },
-        { onlyNames: true },
-      ),
-    ).toStrictEqual({ type: "object" });
-  });
 });
 
 describe("isErrorUnrelatedToRange", () => {

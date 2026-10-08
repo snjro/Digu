@@ -7,7 +7,8 @@ import {
 } from "#utils/utilsEthers.js";
 import { get } from "svelte/store";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
-import { abortChainWithReason } from "./syncStoppedReason";
+import { recordSyncStoppedReason } from "./syncStoppedReason";
+import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { TRY_COUNT } from "./eventLogsContract";
 
@@ -63,38 +64,40 @@ export async function startUpdateLatestBlockNumber(
         stop();
         return;
       }
+
       await tryGetAndUpdateLatestBlockNumber();
-    } catch (error) {
-      // Counted like a failed request, so that the updates do not go on for
-      // ever, and end at Try Count.
-      if (!isStopped) {
-        errorCount++;
+      // A request in flight fails when the provider is destroyed after
+      // stopping.
+      if (isStopped) return;
+      if (errorCount > TRY_COUNT) {
         customLogger.error({
           errorOn: functionName,
           errorCount: `${errorCount}/${TRY_COUNT}`,
-          errorMessage: "Failed to update the latest block number.",
-          error: getLoggableError(error),
+          errorMessage: "errorCount exceeded the limit. Start aborting.",
         });
-      }
-    }
-    // A request in flight fails when the provider is destroyed after stopping.
-    if (isStopped) return;
-    if (errorCount > TRY_COUNT) {
-      await abortChainWithReason(
-        targetChainName,
-        "RPC_ERRORS",
-        "errorCount exceeded the limit. Start aborting.",
-        {
-          details: {
+
+        recordSyncStoppedReason(targetChainName, "RPC_ERRORS");
+        try {
+          await startAbortingInChain(targetChainName);
+        } catch (error) {
+          customLogger.error({
             errorOn: functionName,
-            errorCount: `${errorCount}/${TRY_COUNT}`,
-          },
-        },
-      );
-      stop();
-      return;
+            errorMessage: "Failed to start aborting.",
+            error: error,
+          });
+        }
+        stop();
+      }
+    } catch (error) {
+      customLogger.error({
+        errorOn: functionName,
+        errorMessage: "Failed to update the latest block number.",
+        error: getLoggableError(error),
+      });
+    } finally {
+      // Unless stopped, so that an unexpected error does not end the updates.
+      if (!isStopped) scheduleUpdate();
     }
-    scheduleUpdate();
   };
   // The next request after the last one ends, so that the requests do not
   // pile up and an older answer does not overwrite a newer one.

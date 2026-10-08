@@ -1,6 +1,9 @@
 import type { Contract as EthersContract } from "ethers";
 import type { DbEventLogs } from "#db/dbEventLogs.js";
-import { stopSyncingInContract } from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import {
+  stopSyncingInContract,
+  startAbortingInChain,
+} from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import type { Chain, ChainName, Contract } from "#constants/chains/types.js";
 import {
   getEthersEventLogs,
@@ -19,7 +22,7 @@ import type {
 } from "#db/dbTypes.js";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
-import { abortChainWithReason, type AbortResult } from "./syncStoppedReason";
+import { recordSyncStoppedReason } from "./syncStoppedReason";
 import { assertIsDefined, sleep } from "#utils/utilsCommon.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { getNextBlock } from "#warpSync/warpSyncPlan.js";
@@ -83,15 +86,14 @@ export async function fetchEventLogsContract(
 
   const creationBlockNumber: number = targetContract.creation.blockNumber;
 
-  // The values of the range, set again at the top of each loop. The logs of a
-  // range are declared in the loop instead, so that they are not kept during
-  // the requests of the next range.
+  // In order to optimize memory usage, declare variables OUTSIDE the loop
   let fetchedBlockNumber: number;
   let fromBlockNumber: number;
   let latestBlockNumber: number;
   let minToBlockNumber: number;
   let toBlockNumber: number;
   let fetchingTargetInfo: FetchingTargetInfo;
+  let ethersEventLogs: EthersEventLog[];
 
   /*eslint no-constant-condition: ["error", { "checkLoops": false }]*/
   while (true) {
@@ -154,7 +156,7 @@ export async function fetchEventLogsContract(
       customLogger.start("Fetch eventLogs. targetBlocks:", {
         fetchingTarget: fetchingTargetInfo,
       });
-      const ethersEventLogs: EthersEventLog[] = await getEthersEventLogs(
+      ethersEventLogs = await getEthersEventLogs(
         targetContract.events.names,
         ethersContract,
         fromBlockNumber,
@@ -216,30 +218,15 @@ export async function fetchEventLogsContract(
       });
     }
     if (errorCount > TRY_COUNT) {
-      const abortResult: AbortResult = await abortChainWithReason(
-        chainName,
-        "RPC_ERRORS",
+      customLogger.fatal(
         "Fetch EventLogs. Error count exceeded the limit. Start to abort:",
         {
-          level: "fatal",
-          details: {
-            errorCount: `${errorCount}/${TRY_COUNT}`,
-            fetchingTarget: fetchingTargetInfo,
-          },
-          logAbortError: false,
+          errorCount: `${errorCount}/${TRY_COUNT}`,
+          fetchingTarget: fetchingTargetInfo,
         },
       );
-      // End the contract with the error, so that the abort of the chain is
-      // tried again as for an unexpected error. The error is logged there as
-      // the cause, and a second failure of the abort as its own entry. A
-      // failed abort marks the chain as aborting in the store, so the other
-      // contracts end too, and the end of the sync of the chain clears the
-      // rows.
-      if (!abortResult.aborted) {
-        throw new Error("Failed to start aborting.", {
-          cause: abortResult.error,
-        });
-      }
+      recordSyncStoppedReason(chainName, "RPC_ERRORS");
+      await startAbortingInChain(chainName);
     } else if (errorCount > 0) {
       await sleepUnlessAborted(contractIdentifier, RETRY_WAIT_MS);
     }

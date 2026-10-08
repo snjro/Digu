@@ -1,10 +1,6 @@
 import "fake-indexeddb/auto";
 import { beforeEach, describe, expect, test, vi, type Mock } from "vitest";
-import type { Block } from "ethers";
-import {
-  LOGGABLE_ETHERS_ERROR,
-  makeEthersErrorWithRpcUrl,
-} from "#utils/testCommon.js";
+import { FetchRequest, makeError, type Block } from "ethers";
 import {
   fetchBlockTimesForEventLogs,
   MAX_CONCURRENT_BLOCK_REQUESTS,
@@ -222,17 +218,18 @@ describe("fetchBlockTimesForEventLogs", () => {
       message: expect.stringContaining(
         'Exception in "nodeProvider.getBlock". Block number is 20.',
       ),
-      cause: {
-        name: "Error",
-        message: "RPC error",
-        stack: rpcError.stack,
-      },
+      cause: rpcError,
     });
   });
 
   test("should keep only the code and the short message of an ethers error", async () => {
     const { nodeProvider, getBlock } = fakeProvider();
-    getBlock.mockRejectedValueOnce(makeEthersErrorWithRpcUrl());
+    getBlock.mockRejectedValueOnce(
+      makeError("server response 401 Unauthorized", "SERVER_ERROR", {
+        request: new FetchRequest("https://rpc.example/secret-key"),
+        info: { requestUrl: "https://rpc.example/secret-key" },
+      }),
+    );
 
     const error: unknown = await fetchBlockTimesForEventLogs(
       nodeProvider,
@@ -242,6 +239,9 @@ describe("fetchBlockTimesForEventLogs", () => {
 
     expect(error).toBeInstanceOf(Error);
     expect((error as Error).message).not.toContain("secret-key");
-    expect((error as Error).cause).toEqual(LOGGABLE_ETHERS_ERROR);
+    expect((error as Error).cause).toEqual({
+      code: "SERVER_ERROR",
+      shortMessage: "server response 401 Unauthorized",
+    });
   });
 });

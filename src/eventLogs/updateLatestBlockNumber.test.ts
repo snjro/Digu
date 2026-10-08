@@ -1,8 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import {
-  LOGGABLE_ETHERS_ERROR,
-  makeEthersErrorWithRpcUrl,
-} from "#utils/testCommon.js";
+import { FetchRequest, makeError } from "ethers";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { TRY_COUNT } from "./eventLogsContract";
 import {
@@ -102,31 +99,6 @@ describe("startUpdateLatestBlockNumber", () => {
       }),
     );
     expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(3);
-  });
-
-  test("should abort the chain when unexpected errors exceed Try Count", async () => {
-    const originalSubscribe = storeSyncStatus.subscribe;
-    let throwCount: number = 0;
-    // The update reads the store first, and fails each time until Try Count is
-    // exceeded. Aborting reads it too, then without an error.
-    vi.spyOn(storeSyncStatus, "subscribe").mockImplementation((...args) => {
-      if (throwCount <= TRY_COUNT) {
-        throwCount++;
-        throw new Error("store error");
-      }
-      return originalSubscribe(...args);
-    });
-    const { customLogger } = await import("#utils/logger.js");
-    vi.spyOn(customLogger, "error").mockImplementation(() => {});
-
-    await startUpdateLatestBlockNumber(chainName, nodeProvider);
-    await vi.advanceTimersByTimeAsync((TRY_COUNT + 3) * blockIntervalMs);
-
-    expect(throwCount).toBe(TRY_COUNT + 1);
-    expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(chainName);
-    expect(get(storeSyncStoppedReason)[chainName]).toBe("RPC_ERRORS");
-    // Only the request before the updates.
-    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledOnce();
   });
 
   test("should stop once when it is stopped after it stopped itself", async () => {
@@ -263,30 +235,8 @@ describe("startUpdateLatestBlockNumber", () => {
 
     expect(startAbortingInChain).toHaveBeenCalledOnce();
     expect(spyError).toHaveBeenCalledWith(
-      "Failed to start aborting.",
-      expect.objectContaining({ chainName }),
+      expect.objectContaining({ errorMessage: "Failed to start aborting." }),
     );
-    // Stopped all the same.
-    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(TRY_COUNT + 1);
-  });
-
-  test("should record the reason, abort and stop when the log before aborting throws", async () => {
-    vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValue(
-      new Error("RPC error"),
-    );
-    const { customLogger } = await import("#utils/logger.js");
-    vi.spyOn(customLogger, "error").mockImplementation((message: unknown) => {
-      if (String(message).startsWith("errorCount exceeded")) {
-        throw new Error("logger error");
-      }
-    });
-
-    await startUpdateLatestBlockNumber(chainName, nodeProvider);
-    await vi.advanceTimersByTimeAsync((TRY_COUNT + 3) * blockIntervalMs);
-
-    expect(get(storeSyncStoppedReason)[chainName]).toBe("RPC_ERRORS");
-    expect(startAbortingInChain).toHaveBeenCalledExactlyOnceWith(chainName);
-    expect(getAndUpdateLatestBlockNumber).toHaveBeenCalledTimes(TRY_COUNT + 1);
   });
 
   test("should not log the provider, which has the RPC URL", async () => {
@@ -302,7 +252,10 @@ describe("startUpdateLatestBlockNumber", () => {
 
   test("should log only the code and the short message of an ethers error", async () => {
     vi.mocked(getAndUpdateLatestBlockNumber).mockRejectedValueOnce(
-      makeEthersErrorWithRpcUrl(),
+      makeError("server response 401 Unauthorized", "SERVER_ERROR", {
+        request: new FetchRequest("https://rpc.example/secret-key"),
+        info: { requestUrl: "https://rpc.example/secret-key" },
+      }),
     );
     const { customLogger } = await import("#utils/logger.js");
     const spyWarn = vi.spyOn(customLogger, "warn");
@@ -310,7 +263,12 @@ describe("startUpdateLatestBlockNumber", () => {
     stopUpdates = await startUpdateLatestBlockNumber(chainName, nodeProvider);
 
     expect(spyWarn).toHaveBeenCalledWith(
-      expect.objectContaining({ error: LOGGABLE_ETHERS_ERROR }),
+      expect.objectContaining({
+        error: {
+          code: "SERVER_ERROR",
+          shortMessage: "server response 401 Unauthorized",
+        },
+      }),
     );
   });
 });

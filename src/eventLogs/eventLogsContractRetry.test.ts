@@ -10,10 +10,7 @@ import {
   TRY_COUNT,
 } from "./eventLogsContract";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
-import {
-  startAbortingInChain,
-  stopSyncingInContract,
-} from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 import {
   providerAnsweringGetLogs,
@@ -174,35 +171,6 @@ describe("fetchEventLogsContract", () => {
     expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
     expect(getLogsCount()).toBe(TRY_COUNT + 1);
     expect(get(storeSyncStoppedReason)[targetChain.name]).toBe("RPC_ERRORS");
-  });
-
-  test("should end the contract with the error of aborting as the cause, and leave the log to the caller", async () => {
-    const { provider } = providerFailingGetLogs(TRY_COUNT + 1);
-    const abortError: Error = new Error("DB error");
-    vi.mocked(startAbortingInChain).mockRejectedValueOnce(abortError);
-    const spyError = vi
-      .spyOn(customLogger, "error")
-      .mockImplementation(() => {});
-
-    const promise: Promise<void> = fetchEventLogsContract(
-      dbEventLogs,
-      targetContract,
-      provider,
-    );
-    const ended = expect(promise).rejects.toMatchObject({
-      message: "Failed to start aborting.",
-      cause: abortError,
-    });
-    await vi.runAllTimersAsync();
-    await ended;
-
-    // It writes neither the logs nor its row.
-    expect(registerEventLogsAndBlockTimes).not.toHaveBeenCalled();
-    expect(stopSyncingInContract).not.toHaveBeenCalled();
-    expect(spyError).not.toHaveBeenCalledWith(
-      "Failed to start aborting.",
-      expect.anything(),
-    );
   });
 
   test("should keep no reason when the user stops during the request that exceeds Try Count", async () => {
