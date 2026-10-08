@@ -208,6 +208,18 @@ describe("BaseGridFunctionBar.svelte", () => {
     expect(gridApi.state.overlayCallsWhileLoading).toBe(0);
   });
 
+  test("Reload does nothing more when the grid is destroyed before its wait ends", async () => {
+    vi.useFakeTimers();
+    const gridApi = renderBar([{ name: "a" }]);
+    await fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+    gridApi.setGridOption.mockClear();
+    gridApi.isDestroyed.mockReturnValue(true);
+    vi.advanceTimersByTime(500);
+    expect(gridApi.setFilterModel).not.toHaveBeenCalled();
+    expect(gridApi.resetColumnState).not.toHaveBeenCalled();
+    expect(gridApi.setGridOption).not.toHaveBeenCalled();
+  });
+
   test("the buttons do nothing before the grid is created", async () => {
     vi.useFakeTimers();
     render(BaseGridFunctionBar, {
