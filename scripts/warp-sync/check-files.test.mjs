@@ -162,7 +162,9 @@ describe("checkSnapshotFiles", () => {
 
   test("a first fromBlock that is not the creationBlock", () => {
     change((m) => (m.contracts[2].creationBlock = b - 1));
+    const key = labelOf(B, b, b + 5).split(" ")[0];
     expect(check()).toEqual([
+      `matic: ${key} has creationBlock ${b - 1}, not ${b}.`,
       `matic: ${labelOf(B, b, b + 5)} does not start at block ${b - 1}.`,
     ]);
   });
@@ -181,7 +183,23 @@ describe("checkSnapshotFiles", () => {
     change((m) => m.contracts.splice(2, 1));
     const key = labelOf(B, b, b + 5).split(" ")[0];
     expect(check()).toEqual([
+      `matic: ${key} is not in manifest.contracts.`,
       `matic: ${labelOf(B, b, b + 5)}: ${key} is not in manifest.contracts.`,
+    ]);
+  });
+
+  test("a contract of another address than in the chain", () => {
+    change((m) => (m.contracts[0].address = B.address));
+    const key = labelOf(A, a, a).split(" ")[0];
+    expect(check()).toEqual([
+      `matic: ${key} has address ${B.address}, not ${A.address}.`,
+    ]);
+  });
+
+  test("a contract that the chain does not have", () => {
+    change((m) => m.contracts.push({ ...A, name: "Other" }));
+    expect(check()).toEqual([
+      `matic: ${A.project}/${A.version}/Other is not a contract with events of the chain.`,
     ]);
   });
 
