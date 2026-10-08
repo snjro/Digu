@@ -9,6 +9,8 @@
     Version,
   } from "#constants/chains/types.js";
   import type { SyncStatus } from "#db/dbTypes.js";
+  import { storeChainActivity } from "#eventLogs/chainActivity.js";
+  import { isChainSettingDisabled } from "#lib/nav/chainControls.js";
   import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
   import { storeSyncStatus } from "#stores/storeSyncStatus.js";
   import { customLogger } from "#utils/logger.js";
@@ -96,7 +98,7 @@
       bind:checked
       bind:indeterminate
       {size}
-      disabled={getTargetSyncStatus($storeSyncStatus, targetChain)?.isSyncing}
+      disabled={isChainSettingDisabled($storeChainActivity[targetChain.name])}
       onchange={checkChanged}
       ariaLabel={`Sync target: ${targetName}`}
     />

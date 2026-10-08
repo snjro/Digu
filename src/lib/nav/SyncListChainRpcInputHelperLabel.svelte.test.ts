@@ -26,7 +26,10 @@ vi.mock("#stores/storeChainStatus.js", async () => {
 });
 vi.mock("#eventLogs/syncLock.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeSyncLockedByOtherTab: writable({ chain1: false }) };
+  return {
+    storeSyncLockedByOtherTab: writable({ chain1: false }),
+    storeSyncLockedByThisTab: writable({}),
+  };
 });
 vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");

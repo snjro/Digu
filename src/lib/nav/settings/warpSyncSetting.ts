@@ -71,8 +71,3 @@ export function getWarpSyncHelperText(
       return `Imports the event logs published with this site when the chain is opened. ${TURN_OFF}`;
   }
 }
-
-// "Import" next to the text: after "Not now" or a stop in this tab.
-export function canImportNow(isOn: boolean, state: WarpSyncState): boolean {
-  return isOn && (state.status === "declined" || state.status === "stopped");
-}

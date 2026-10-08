@@ -5,6 +5,7 @@
   import BaseCheckbox from "#lib/base/BaseCheckbox.svelte";
   import BaseLabel from "#lib/base/BaseLabel.svelte";
   import CommonItemMember from "#lib/common/CommonItemMember.svelte";
+  import { storeChainActivity } from "#eventLogs/chainActivity.js";
   import { storeRpcSettings } from "#stores/storeRpcSettings.js";
   import { storeUserSettings } from "#stores/storeUserSettings.js";
   import { getTargetChain } from "#utils/utilsDb.js";
@@ -15,11 +16,8 @@
   } from "#warpSync/warpSyncState.js";
   import classNames from "classnames";
   import { confirmWarpSync } from "#warpSync/warpSync.js";
-  import {
-    canImportNow,
-    getWarpSyncHelperText,
-    updateWarpSync,
-  } from "./warpSyncSetting";
+  import { canImportNow } from "../chainControls";
+  import { getWarpSyncHelperText, updateWarpSync } from "./warpSyncSetting";
 
   let targetChainName = $derived(
     $storeUserSettings.selectedChainName.toString(),
@@ -36,7 +34,11 @@
     ),
   );
   let showImport: boolean = $derived(
-    canImportNow(isOn, selectWarpSyncState($storeWarpSync, targetChainName)),
+    canImportNow(
+      $storeChainActivity[targetChainName],
+      isOn,
+      selectWarpSyncState($storeWarpSync, targetChainName),
+    ),
   );
 
   async function change(): Promise<void> {

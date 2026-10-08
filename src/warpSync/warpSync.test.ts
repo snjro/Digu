@@ -25,6 +25,7 @@ import {
   reloadSyncStatusInChain,
   runWithSyncLock,
   storeSyncLockedByOtherTab,
+  storeSyncLockedByThisTab,
 } from "#eventLogs/syncLock.js";
 import {
   selectWarpSyncState,
@@ -88,6 +89,7 @@ function holdSyncLockInThisTab(): () => Promise<void> {
   let finish: () => void = () => {};
   const holding: Promise<boolean> = runWithSyncLock(
     "matic",
+    "sync",
     () => new Promise<void>((resolve) => (finish = resolve)),
   );
   return async () => {
@@ -278,12 +280,16 @@ describe("warpSync", () => {
 
   test("imports while holding the sync lock of the chain", async () => {
     let lockName: string | undefined;
+    let kind: string | undefined;
     vi.mocked(importWarpSync).mockImplementationOnce(async () => {
       lockName = (await lockManager.query()).held?.[0]?.name;
+      kind = get(storeSyncLockedByThisTab).matic;
       return 30_000_000;
     });
     await startWarpSync(matic);
     expect(lockName).toBe(getSyncLockName("matic"));
+    expect(kind).toBe("import");
+    expect(get(storeSyncLockedByThisTab).matic).toBeUndefined();
   });
 
   test("skips it while another tab holds the lock, and tries again next time", async () => {

@@ -29,7 +29,10 @@ vi.mock("#utils/utilsDb.js", () => ({
 }));
 vi.mock("#eventLogs/syncLock.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeSyncLockedByOtherTab: writable({ matic: false }) };
+  return {
+    storeSyncLockedByOtherTab: writable({ matic: false }),
+    storeSyncLockedByThisTab: writable({}),
+  };
 });
 vi.mock("#eventLogs/syncReset.js", () => ({ resetSyncedData: vi.fn() }));
 vi.mock("#db/dbSettings.js", () => ({ updateDbItemRpcSettings: vi.fn() }));

@@ -12,7 +12,7 @@
   import type { BaseSnackbarProps } from "#lib/base/snackbarProps.js";
   import CommonItemMember from "#lib/common/CommonItemMember.svelte";
   import type { Chain, ChainName } from "#constants/chains/types.js";
-  import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+  import { storeChainActivity } from "#eventLogs/chainActivity.js";
   import {
     resetSyncedData,
     type SyncResetOutcome,
@@ -25,16 +25,15 @@
   import { getTargetChain } from "#utils/utilsDb.js";
   import {
     hasWarpSync,
-    isWarpSyncRunning,
     selectWarpSyncState,
     storeWarpSync,
   } from "#warpSync/warpSyncState.js";
   import classNames from "classnames";
+  import { getResetDisabledReason } from "../chainControls";
   import {
     countSyncedLogs,
     getImportResultLine,
     getResetConfirmationTexts,
-    getResetDisabledReason,
     getResetResultLines,
     getResetSnackBar,
     type ResetResultLine,
@@ -54,16 +53,8 @@
     hasWarpSync(targetChainName) && $storeRpcSettings[targetChainName].warpSync,
   );
 
-  let isResetting: boolean = $state(false);
   let disabledReason: string | undefined = $derived(
-    getResetDisabledReason({
-      syncStateText: $storeSyncStatus[targetChainName].syncStateText,
-      isSyncingInOtherTab: $storeSyncLockedByOtherTab[targetChainName],
-      isWarpSyncRunning: isWarpSyncRunning(
-        selectWarpSyncState($storeWarpSync, targetChainName),
-      ),
-      isResetting,
-    }),
+    getResetDisabledReason($storeChainActivity[targetChainName]),
   );
   let confirmationTexts: string[] = $derived(
     getResetConfirmationTexts(targetChain.fullName, logCount, isWarpSyncOn),
@@ -79,11 +70,9 @@
   async function reset(): Promise<void> {
     const thisRun: number = ++run;
     const chain: Chain = targetChain;
-    isResetting = true;
     resultLines = [{ text: "Resetting…", isError: false }];
     // Resolves "busy" instead of deleting while the chain is synced.
     const outcome: SyncResetOutcome = await resetSyncedData(chain);
-    isResetting = false;
     if (thisRun !== run) {
       // The dialog was closed, so the snackbar tells a failure.
       const snackBar: BaseSnackbarProps | undefined = getResetSnackBar(

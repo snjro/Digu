@@ -311,6 +311,7 @@ async function withSyncLock(
   try {
     const ran: boolean = await runWithSyncLock(
       chainName,
+      "import",
       async (): Promise<void> => {
         const reloaded: boolean = await run();
         // Without Web Locks (insecure context), work as a single tab.

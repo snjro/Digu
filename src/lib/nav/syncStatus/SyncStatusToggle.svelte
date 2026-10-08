@@ -14,7 +14,10 @@
     SyncStatus,
   } from "#db/dbTypes.js";
   import { fetchEventLogs } from "#eventLogs/eventLogs.js";
-  import { storeSyncLockedByOtherTab } from "#eventLogs/syncLock.js";
+  import {
+    storeChainActivity,
+    type ChainActivity,
+  } from "#eventLogs/chainActivity.js";
   import { storeChainStatus } from "#stores/storeChainStatus.js";
   import { storeNoDbSnackBar } from "#stores/storeNoDb.js";
   import { storeSyncStatus } from "#stores/storeSyncStatus.js";
@@ -28,7 +31,7 @@
     type WarpSyncState,
   } from "#warpSync/warpSyncState.js";
   import { getSyncWaitsForImportText } from "#warpSync/warpSyncTexts.js";
-  import { isSyncToggleDisabled } from "./syncToggleDisabled";
+  import { isSyncToggleDisabled } from "../chainControls";
 
   let toggleOn: boolean = $state(false);
   let isStarting: boolean = $state(false);
@@ -83,27 +86,21 @@
     else if (syncStateText === "syncing") toggleOn = true;
   });
 
-  let isStopping: boolean = $derived(syncStateText === "stopping");
-  let isSyncingInOtherTab: boolean = $derived(
-    $storeSyncLockedByOtherTab[targetChainName],
-  );
+  let activity: ChainActivity = $derived($storeChainActivity[targetChainName]);
+  let isStopping: boolean = $derived(activity === "stopping");
+  let isSyncingInOtherTab: boolean = $derived(activity === "otherTab");
   let warpState: WarpSyncState = $derived(
     selectWarpSyncState($storeWarpSync, targetChainName),
   );
   // A large import of this tab, which shows its progress and has Stop. A
   // small one takes seconds, and the sync waits for it as before.
-  let isWarpSyncImporting: boolean = $derived(
-    warpState.status === "importing" && warpState.progress !== undefined,
-  );
+  let isWarpSyncImporting: boolean = $derived(activity === "largeImport");
   let disabled: boolean = $derived(
-    isSyncToggleDisabled({
+    isSyncToggleDisabled(activity, {
       nodeStatus,
       isSyncTarget: targetChainSyncStatus.isSyncTarget,
       isToggleOn: toggleOn,
-      syncStateText,
       isStarting,
-      isSyncingInOtherTab,
-      isWarpSyncImporting,
     }),
   );
 

@@ -1,14 +1,11 @@
 import { describe, expect, test } from "vitest";
 import type { SyncStatusChain } from "#db/dbTypes.js";
-import { NO_DATA } from "#utils/utilsConstants.js";
 import {
   countSyncedLogs,
   getImportResultLine,
   getResetConfirmationTexts,
-  getResetDisabledReason,
   getResetResultLines,
   getResetSnackBar,
-  type ResetConditions,
 } from "./syncedData";
 
 const contract = (counts: number[]) => ({
@@ -31,40 +28,6 @@ describe("countSyncedLogs", () => {
       },
     } as unknown as SyncStatusChain;
     expect(countSyncedLogs(chain)).toBe(10);
-  });
-});
-
-describe("getResetDisabledReason", () => {
-  const free: ResetConditions = {
-    syncStateText: "stopped",
-    isSyncingInOtherTab: false,
-    isWarpSyncRunning: false,
-    isResetting: false,
-  };
-
-  test("can reset a chain that is not synced now", () => {
-    expect(getResetDisabledReason(free)).toBeUndefined();
-    expect(
-      getResetDisabledReason({ ...free, syncStateText: NO_DATA }),
-    ).toBeUndefined();
-  });
-
-  test("says why it cannot reset now", () => {
-    expect(getResetDisabledReason({ ...free, syncStateText: "syncing" })).toBe(
-      "Stop the sync first.",
-    );
-    expect(getResetDisabledReason({ ...free, syncStateText: "stopping" })).toBe(
-      "Wait until the sync stops.",
-    );
-    expect(getResetDisabledReason({ ...free, isSyncingInOtherTab: true })).toBe(
-      "Stop the sync in the other tab first.",
-    );
-    expect(getResetDisabledReason({ ...free, isWarpSyncRunning: true })).toBe(
-      "Wait until the logs published with this site are imported, or stop the import.",
-    );
-    expect(getResetDisabledReason({ ...free, isResetting: true })).toBe(
-      "Resetting…",
-    );
   });
 });
 

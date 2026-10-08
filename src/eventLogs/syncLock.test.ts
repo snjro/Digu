@@ -13,6 +13,7 @@ import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain, Contract } from "#constants/chains/types.js";
 import type { EthersEventLog, SyncStatusContract } from "#db/dbTypes.js";
 import { getSyncLockName } from "#db/constants.js";
+import type { SyncLockKind } from "./syncLock";
 import type {
   DbWorkerMessage,
   TargetFunctionName,
@@ -245,6 +246,7 @@ async function openTab(beforeWatch?: () => Promise<void>) {
     isChainSyncing: (): boolean => get(storeSyncStatus)[chain.name].isSyncing,
     isLockedByOtherTab: (): boolean =>
       get(syncLock.storeSyncLockedByOtherTab)[chain.name],
+    lockedByThisTab: () => get(syncLock.storeSyncLockedByThisTab)[chain.name],
     latestBlockNumber: (): number =>
       get(storeChainStatus)[chain.name].latestBlockNumber,
     syncStoppedReason: () => get(storeSyncStoppedReason)[chain.name],
@@ -839,10 +841,67 @@ describe("sync with two tabs (issue #49)", () => {
       const { runWithSyncLock } = await import("./syncLock");
       return {
         a,
-        runWithSyncLock: (run: () => Promise<void>) =>
-          runWithSyncLock(chain.name, run),
+        runWithSyncLock: (
+          run: () => Promise<void>,
+          kind: SyncLockKind = "sync",
+        ) => runWithSyncLock(chain.name, kind, run),
       };
     }
+
+    test.each<SyncLockKind>(["sync", "import", "reset"])(
+      "keeps the %s in the lock record while it waits and runs, and clears it",
+      async (kind) => {
+        const { a, runWithSyncLock } = await openTabForLock();
+        let finish: () => void = () => {};
+        const kinds: (SyncLockKind | undefined)[] = [];
+        const holding = runWithSyncLock(async () => {
+          kinds.push(a.lockedByThisTab());
+          await new Promise<void>((resolve) => (finish = resolve));
+        }, kind);
+        // Before the lock is granted.
+        expect(a.lockedByThisTab()).toBe(kind);
+        // A second operation is refused, and leaves the record as it is.
+        expect(await runWithSyncLock(async () => {}, "reset")).toBe(false);
+        expect(a.lockedByThisTab()).toBe(kind);
+        expect(await waitFor(() => kinds.length === 1)).toBe(true);
+        expect(kinds).toEqual([kind]);
+        finish();
+        expect(await holding).toBe(true);
+        expect(a.lockedByThisTab()).toBeUndefined();
+      },
+      30_000,
+    );
+
+    test("clears the lock record when the run throws or another tab keeps the lock", async () => {
+      const { a, runWithSyncLock } = await openTabForLock();
+      await expect(
+        runWithSyncLock(async () => {
+          throw new Error("run error");
+        }),
+      ).rejects.toThrow("run error");
+      expect(a.lockedByThisTab()).toBeUndefined();
+
+      let release: () => void = () => {};
+      const heldLock = lockManager.request(
+        getSyncLockName(chain.name),
+        () => new Promise<void>((resolve) => (release = resolve)),
+      );
+      expect(await runWithSyncLock(async () => {}, "import")).toBe(false);
+      expect(a.lockedByThisTab()).toBeUndefined();
+      release();
+      await heldLock;
+      expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
+    }, 30_000);
+
+    test("keeps the sync in the lock record from the request until the sync ends", async () => {
+      const { a } = await openTabForLock();
+      const fetching: Promise<boolean> = a.fetchEventLogs();
+      expect(await waitFor(() => a.lockedByThisTab() === "sync")).toBe(true);
+      expect(await fetching).toBe(true);
+      expect(a.lockedByThisTab()).toBe("sync");
+      await stopAndWait(a);
+      expect(a.lockedByThisTab()).toBeUndefined();
+    }, 30_000);
 
     test("returns false at once while this tab holds the lock", async () => {
       const { a, runWithSyncLock } = await openTabForLock();

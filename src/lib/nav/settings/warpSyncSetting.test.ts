@@ -12,11 +12,7 @@ import {
 } from "#warpSync/warpSync.js";
 import { setWarpSyncStopController } from "#warpSync/warpSyncState.js";
 import { get } from "svelte/store";
-import {
-  canImportNow,
-  getWarpSyncHelperText,
-  updateWarpSync,
-} from "./warpSyncSetting";
+import { getWarpSyncHelperText, updateWarpSync } from "./warpSyncSetting";
 
 vi.mock("#db/dbSettings.js", () => ({ updateDbItemRpcSettings: vi.fn() }));
 vi.mock("#warpSync/warpSync.js", () => ({
@@ -121,8 +117,6 @@ describe("after Not now or a stop", () => {
       expect(getWarpSyncHelperText(true, { status, pending })).toBe(
         "Not imported yet: 1,200,000 logs (101 MB) are left to import.",
       );
-      expect(canImportNow(true, { status, pending })).toBe(true);
-      expect(canImportNow(false, { status, pending })).toBe(false);
     },
   );
   test("says when Import could not start, and without the numbers", () => {
@@ -134,10 +128,5 @@ describe("after Not now or a stop", () => {
     expect(getWarpSyncHelperText(true, { status: "stopped" })).toBe(
       "Not imported yet.",
     );
-  });
-  test("cannot import now in the other states", () => {
-    expect(canImportNow(true, { status: "confirm" })).toBe(false);
-    expect(canImportNow(true, { status: "checking" })).toBe(false);
-    expect(canImportNow(true, { status: "importing" })).toBe(false);
   });
 });

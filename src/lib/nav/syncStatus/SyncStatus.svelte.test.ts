@@ -24,7 +24,10 @@ vi.mock("#stores/storeChainStatus.js", async () => {
 // SyncStatusToggle imports these, which load the chain data too.
 vi.mock("#eventLogs/syncLock.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeSyncLockedByOtherTab: writable({}) };
+  return {
+    storeSyncLockedByOtherTab: writable({}),
+    storeSyncLockedByThisTab: writable({}),
+  };
 });
 vi.mock("#eventLogs/eventLogs.js", () => ({ fetchEventLogs: vi.fn() }));
 vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js", () => ({

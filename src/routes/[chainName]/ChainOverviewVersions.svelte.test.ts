@@ -16,6 +16,10 @@ vi.mock("$app/state", () => ({
 vi.mock("#routes/+layout.js", () => ({ trailingSlash: "always" }));
 // The real stores build their state from the chain data, which loads ethers.
 // ethers does not load in the client project, so the stores are plain ones.
+vi.mock("#eventLogs/chainActivity.js", async () => {
+  const { writable } = await import("svelte/store");
+  return { storeChainActivity: writable({}) };
+});
 vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
   return {
