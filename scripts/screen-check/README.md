@@ -96,8 +96,8 @@ and does not run `public-site/`.
   from the files in `status/`; the output of each step is in
   `log-<step>.txt`. It exits 1 when a step failed.
 - A new lane needs a branch in `lane()`, its name in both `lanes` lists and
-  its steps in `steps` of `run-all.sh`; a new kind of check also needs a
-  reader in `judge.py` (see [Judge](#judge-judgepy)). When the two `lanes`
+  its steps in `steps` of `run-all.sh`; a new step also needs its results
+  file in `judge.py` (see [Judge](#judge-judgepy)). When the two `lanes`
   lists differ, it stops at the start (exit 2); a step that runs but is not
   in `steps` gets `not-in-steps` in `exit-codes.txt` and fails.
 
@@ -108,26 +108,48 @@ python3 scripts/screen-check/judge.py <out-dir>
 ```
 
 The scripts write their judgements to the results; the exit code of a
-`run.sh` is not 0 only when a script or Docker failed. `judge.py` reads an
-`<out-dir>` of `run-all.sh`, prints each failure and exits 1 when there is
-one:
+`run.sh` is not 0 only when a script or Docker failed.
+
+Every check writes its records in one shape, with `createResults()` of
+`scripts/check-lib/results.mjs`: a file with a `results` list of
+`{ id, result, note }`. `result` is one of:
+
+- `OK` or `NG`: a check with an expected value.
+- `CHECK`: left to a person (a screenshot to look at).
+- `ERROR`: an exception in the script. Each step or scenario runs in
+  `guard()`, which turns its exception into this record.
+- `INFO`: a record for a person, not judged on purpose.
+
+Any other value throws in the script. `judge.py` reads an `<out-dir>` of
+`run-all.sh`, prints each failure and exits 1 when there is one:
 
 - a step of `exit-codes.txt` that is not 0 (`skipped` is not a failure),
-- `NG` or `ERROR` in `ui/`; `CHECK` is left to a person,
-- an `ok` that is false, or an exception (`error`), in `sync/`. These
-  records have an `ok`: `6-2 reached latest` and `6-2 goal (#498)` in S1,
-  `calls in 3 s after stop` in S3 (`reached latest` in `errorOnce`, where the
-  sync does not stop), `real contract link`, `real event link` and
-  `real version link` in S5 (a link is found and no page error), and
-  `fakeKeyInConsole (#483)` in `summary`,
-- `[script-error]` in a log of `upgrade/`, or a `[check]` line there that
-  has `NG:` (a failed check); its other records have no judgement,
-- `1 helper`, `2 goal` or `3 sync` not `ok`, or an exception, in the `http`
-  runs of `real-rpc/ --fake`. The `wss` runs end in an error with `--fake`.
+- `NG` or `ERROR`,
+- a record without `result`, or with a value it does not know,
+- a step whose results file is missing, cannot be read or has no records,
+- a step that is not in `RESULTS` (its results file) or `NO_RESULTS` (the
+  steps that write none: `ui-merge` and `sync-smoke`) of `judge.py`.
 
-A new kind of check (a new folder, or a new kind of record in a script)
-needs a reader in `judge.py`, or in `sync/` an `ok` (write it with `check()`).
-Without one, it passes.
+It reads only the results file of each step (`RESULTS`):
+`ui/results-<script>.json`, `sync/results-sync.json`,
+`upgrade/results-<phase>.json`, `upgrade-b/results-new.json` and
+`real-rpc-fake/results-real-rpc.json`. The other files, such as
+`sync/results.json` and the `[check]` lines of `upgrade/log-<phase>.txt`,
+are for a person.
+
+- A new check writes its records with `createResults()`. A record that
+  `judge.py` should fail on is `OK`/`NG` (`check()` in `sync/` and
+  `real-rpc/`); `note()` writes `INFO`.
+- A new step needs its results file in `RESULTS`, or a place in
+  `NO_RESULTS` with the reason. Without it, `judge.py` fails.
+- With `--fake`, the `wss` runs of `real-rpc/` end in an error (a WebSocket
+  cannot be faked), so their records are `INFO`.
+
+Tests of `judge.py`:
+
+```sh
+python3 -B -m unittest discover -s scripts/screen-check -p "*_test.py"
+```
 
 ## CI (`screen-check.yml`)
 
@@ -191,7 +213,8 @@ other hosts are blocked (DNS and request interception). The RPC URLs
 
 Result in `<out-dir>`:
 
-- `results-<script>.json`: `results` (the steps), `log` (console, page
+- `results-<script>.json`: `results` (the records of the steps, see
+  [Judge](#judge-judgepy)), `log` (console, page
   errors, CSP violations, 404), `blocked` (requests to other hosts),
   `rpcLog` (the last calls to the fake RPC).
 - `results.json`: all of them, from `merge.py`. It also prints each step and
@@ -222,8 +245,9 @@ it does not show in the console (#483).
 | S4       | Two tabs: a sync in one, what the other shows, and after the first stops or closes                                                                                                                       |
 | S5       | Page errors on in-app navigation with real links                                                                                                                                                         |
 
-Result in `<out-dir>`: `results.json` (each scenario, with a `summary` of the
-key in the console, the console by type, CSP violations and blocked
+Result in `<out-dir>`: `results-sync.json` (the records, see
+[Judge](#judge-judgepy)), `results.json` (each scenario, with a `summary` of
+the key in the console, the console by type, CSP violations and blocked
 requests), `console.json`, `blocked.json` and the screenshots `<scenario>-*.png`.
 
 ## Upgrade check (`upgrade/`)
@@ -250,13 +274,14 @@ python3 scripts/screen-check/upgrade/diff_db.py <out-dir>/db-old-old-06-final.js
   `abortWatchIntervalMs` from each RPC setting and kept the rest. `grid` opens
   the Event Logs grids on the logs of both. `probe` only opens the new build
   and logs the stack if the page stops answering.
-- The checks are `[check]` lines in `log-<phase>.txt`. A failed one ends
-  with `NG: <reason>`, and `judge.py` counts it as a failure. The others
-  are records for a person.
+- The checks are records in `results-<phase>.json` (see
+  [Judge](#judge-judgepy)), also written as `[check] <id>: <result> <note>`
+  lines in `log-<phase>.txt`. An `NG` one fails; the `INFO` ones are for a
+  person.
 - `NEW_LATEST` sets the latest block of the fake RPC in the new phases. A
   value below what v1.0.2 fetched checks #498 with Current above the Goal.
 
-Result in `<out-dir>`: `steps-<phase>.json`, `log-<phase>.txt`,
+Result in `<out-dir>`: `results-<phase>.json`, `steps-<phase>.json`, `log-<phase>.txt`,
 `db-<phase>-<step>.json` (dumps of every IndexedDB database),
 `rpc-count-<phase>.json`, `getlogs-<phase>.json` (the ranges of every
 `eth_getLogs`) and `shots-<phase>/`.
@@ -327,7 +352,8 @@ Limits of PublicNode without a key:
   `-32701 exceed maximum block range: 10000` (#694). The sync does not stop
   by itself, so the script stops it. The run does not check the saved logs.
 
-Result in `<out-dir>`: `results.json` (each run), `console.json`,
+Result in `<out-dir>`: `results-real-rpc.json` (the records, see
+[Judge](#judge-judgepy)), `results.json` (each run), `console.json`,
 `blocked.json`, and `<run>-1-connected.png`, `<run>-3-stopped.png`,
 `<run>-3-contracts-grid.png`.
 

@@ -12,6 +12,7 @@ import {
   logPageProblems,
   serveBuild,
 } from "../../check-lib/browser.mjs";
+import { createResults } from "../../check-lib/results.mjs";
 
 const require = createRequire("/app/package.json");
 const puppeteer = require("puppeteer");
@@ -60,6 +61,15 @@ const SETTINGS_VERSION = Number(
 const log = [];
 const steps = [];
 let stepName = "start";
+// judge.py reads results-<phase>.json; log-<phase>.txt is for a person.
+const results = createResults({
+  file: path.join(outDir, `results-${phase}.json`),
+});
+// Writes a record and its [check] line in the log.
+function check(id, result, note) {
+  results.add(`${phase} ${id}`, result, note);
+  log.push(`[check] ${id}: ${result} ${note}`);
+}
 
 const server = serveBuild(buildDir, {
   headers: { "cache-control": "no-store" },
@@ -486,8 +496,10 @@ function checkSettingsUpgrade(before, after) {
     );
     if (changed.length) ng.push(`${b.chainName}: changed ${changed.join(",")}`);
   }
-  log.push(
-    `[check] Settings DB upgrade: version ${before?.version} -> ${after?.version}; before ${JSON.stringify(before?.rows)}; after ${JSON.stringify(after?.rows)}${ng.length ? ` NG: ${ng.join("; ")}` : ""}`,
+  check(
+    "Settings DB upgrade",
+    ng.length ? "NG" : "OK",
+    `${ng.length ? `${ng.join("; ")}; ` : ""}version ${before?.version} -> ${after?.version}; before ${JSON.stringify(before?.rows)}; after ${JSON.stringify(after?.rows)}`,
   );
 }
 async function syncUntil(page, prefix, target) {
@@ -505,14 +517,17 @@ async function syncUntil(page, prefix, target) {
     if (n >= target) break;
     await new Promise((r) => setTimeout(r, 1000));
   }
-  log.push(
-    `[check] ${prefix} Augur_TimestampSet count=${n} after ${Date.now() - t0}ms${n >= target ? "" : ` NG: expected ${target}`}`,
+  check(
+    `${prefix} Augur_TimestampSet count`,
+    n >= target ? "OK" : "NG",
+    `${n} after ${Date.now() - t0}ms, expected ${target}`,
   );
   // Let the remaining loop settle a little, then stop.
   await new Promise((r) => setTimeout(r, 4000));
   await (await toggleButton(page)).click();
-  await waitLabel(page, "start sync", 60000).catch((e) =>
-    log.push(`[check] ${prefix} stop wait NG: ${e.message}`),
+  await waitLabel(page, "start sync", 60000).then(
+    () => check(`${prefix} stop wait`, "OK", "start sync"),
+    (e) => check(`${prefix} stop wait`, "NG", e.message),
   );
   await record(page, `${prefix}-sync-stopped`);
 }
@@ -524,8 +539,10 @@ const browser = await puppeteer.launch({
   protocolTimeout: 60000,
   args: ["--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost"],
 });
-log.push(
-  `[check] open pages at launch: ${(await browser.pages()).map((p) => p.url()).join(", ")}`,
+check(
+  "open pages at launch",
+  "INFO",
+  (await browser.pages()).map((p) => p.url()).join(", "),
 );
 const page = (await browser.pages())[0] ?? (await browser.newPage());
 await page.bringToFront();
@@ -546,310 +563,328 @@ await handleRequests(page, {
   onBlocked: (url) => log.push(`[blocked] ${stepName}: ${url}`),
 });
 
-try {
-  if (phase === "old") {
-    stepName = "old-00";
-    await page.goto(`${ORIGIN}/`, { waitUntil: "load" });
-    await settle(page, 1500);
-    await record(page, "old-00-home-initial", { dump: true });
+await results.guard(
+  `${phase} error`,
+  async () => {
+    if (phase === "old") {
+      stepName = "old-00";
+      await page.goto(`${ORIGIN}/`, { waitUntil: "load" });
+      await settle(page, 1500);
+      await record(page, "old-00-home-initial", { dump: true });
 
-    // Sync targets: version2 off, LegacyReputationToken off.
-    await page.goto(`${ORIGIN}/eth/Augur-version2`, { waitUntil: "load" });
-    await settle(page, 1000);
-    await (
-      await inputNearLabel(page, "body", "Target", 'input[type="checkbox"]')
-    ).click();
-    await record(page, "old-01-v2-target-off");
-    await page.goto(
-      `${ORIGIN}/eth/Augur-version1/contracts/LegacyReputationToken`,
-      { waitUntil: "load" },
-    );
-    await settle(page, 1000);
-    await (
-      await inputNearLabel(page, "body", "Target", 'input[type="checkbox"]')
-    ).click();
-    await record(page, "old-02-lrt-target-off");
-
-    // RPC and settings (eth). v1.0.2: the placeholder https://localhost:8545,
-    // "Try Count" and "Abort Watch Interval [ms]" (not the develop names).
-    await page.goto(`${ORIGIN}/eth/Augur-version1`, { waitUntil: "load" });
-    await settle(page, 1000);
-    await typeInto(
-      page,
-      await page.$('input[placeholder="https://localhost:8545"]'),
-      FAKE_RPC,
-    );
-    await waitLabel(page, "start sync", 20000);
-    await clickByTooltip(page, "Settings");
-    await settle(page);
-    const values = {
-      "Bulk Unit": "200",
-      "Try Count": "5",
-      "Block Interval [ms]": "3000",
-      "Abort Watch Interval [ms]": "7000",
-    };
-    for (const [label, v] of Object.entries(values)) {
-      await typeInto(
-        page,
-        await inputNearLabel(
-          page,
-          "dialog[open]",
-          label,
-          'input[type="number"]',
-        ),
-        v,
-      );
-      await settle(page, 200);
-    }
-    const sel = await inputNearLabel(
-      page,
-      "dialog[open]",
-      "Chain Explorer",
-      "select",
-    );
-    await sel.select("2");
-    await settle(page);
-    await record(page, "old-03-settings-dialog");
-    await page.keyboard.press("Escape");
-    await settle(page);
-
-    // Sync a little.
-    await syncUntil(page, "old-04", 1);
-
-    // Theme dark, selected chain matic, sidebar closed.
-    await clickByTooltip(page, "Change theme");
-    await settle(page);
-    const chainSelect = await page.$("aside select, select");
-    await chainSelect.select("matic");
-    await settle(page, 1500);
-    await record(page, "old-05-dark-matic");
-    // Close button of the sidebar: the first button in the sidebar header
-    // that is not a tooltip button of the accordion handlers.
-    const closed = await page.evaluate(() => {
-      // The close button (X) is the first visible button, at the top left.
-      const b = [...document.querySelectorAll("button")].find(
-        (b) => b.getClientRects().length,
-      );
-      b.click();
-      return b.outerHTML.slice(0, 200);
-    });
-    log.push(`[check] sidebar close clicked: ${closed}`);
-    await settle(page, 1000);
-    await record(page, "old-06-final", { dump: true });
-  } else if (phase === "probe") {
-    // Opens the new build again and checks whether the page stays responsive.
-    // If an evaluate does not return, pause the debugger and log the stack.
-    const cdp = await page.createCDPSession();
-    await cdp.send("Debugger.enable");
-    let pausedFrames = null;
-    cdp.on("Debugger.paused", (ev) => {
-      pausedFrames = ev.callFrames
-        .slice(0, 25)
-        .map(
-          (f) =>
-            `${f.functionName || "(anon)"} ${f.url.split("/").pop()}:${f.location.lineNumber + 1}:${f.location.columnNumber + 1}`,
-        );
-      cdp.send("Debugger.resume").catch(() => {});
-    });
-    stepName = "probe-00";
-    const t0 = Date.now();
-    await page
-      .goto(`${ORIGIN}/`, { waitUntil: "domcontentloaded", timeout: 60000 })
-      .catch((e) => log.push(`[probe] goto: ${e.message}`));
-    for (let i = 0; i < 20; i++) {
-      const r = await Promise.race([
-        page.evaluate(() => ({
-          now: performance.now(),
-          url: location.href,
-          toggle: [...document.querySelectorAll("*")]
-            .filter(
-              (e) =>
-                e.children.length === 0 &&
-                /sync/.test(e.textContent) &&
-                e.textContent.length < 30,
-            )
-            .map((e) => e.textContent.trim()),
-        })),
-        new Promise((r) => setTimeout(() => r("TIMEOUT"), 5000)),
-      ]);
-      log.push(
-        `[probe] t=${Date.now() - t0}ms ${JSON.stringify(r)} rpc=${JSON.stringify(rpcCount)}`,
-      );
-      if (r === "TIMEOUT") {
-        await cdp
-          .send("Debugger.pause")
-          .catch((e) => log.push(`[probe] pause: ${e.message}`));
-        await new Promise((r) => setTimeout(r, 3000));
-        log.push(
-          `[probe] paused stack: ${JSON.stringify(pausedFrames, null, 1)}`,
-        );
-        break;
-      }
-      await new Promise((r) => setTimeout(r, 2000));
-    }
-    await page
-      .screenshot({ path: path.join(shotDir, "probe-end.png") })
-      .catch(() => {});
-  } else if (phase === "grid") {
-    // Event log grids of the new build, on logs saved by v1.0.2 and by the new build.
-    for (const [ev, tab] of [
-      ["TimestampSet", "Event Logs"],
-      ["UniverseForked", "Event Logs"],
-    ]) {
+      // Sync targets: version2 off, LegacyReputationToken off.
+      await page.goto(`${ORIGIN}/eth/Augur-version2`, { waitUntil: "load" });
+      await settle(page, 1000);
+      await (
+        await inputNearLabel(page, "body", "Target", 'input[type="checkbox"]')
+      ).click();
+      await record(page, "old-01-v2-target-off");
       await page.goto(
-        `${ORIGIN}/eth/Augur-version1/contracts/Augur/events/${ev}`,
+        `${ORIGIN}/eth/Augur-version1/contracts/LegacyReputationToken`,
         { waitUntil: "load" },
       );
-      await settle(page, 1500);
-      await page.evaluate((tab) => {
-        const l = [...document.querySelectorAll("*")].find(
-          (e) => e.children.length === 0 && e.textContent.trim() === tab,
+      await settle(page, 1000);
+      await (
+        await inputNearLabel(page, "body", "Target", 'input[type="checkbox"]')
+      ).click();
+      await record(page, "old-02-lrt-target-off");
+
+      // RPC and settings (eth). v1.0.2: the placeholder https://localhost:8545,
+      // "Try Count" and "Abort Watch Interval [ms]" (not the develop names).
+      await page.goto(`${ORIGIN}/eth/Augur-version1`, { waitUntil: "load" });
+      await settle(page, 1000);
+      await typeInto(
+        page,
+        await page.$('input[placeholder="https://localhost:8545"]'),
+        FAKE_RPC,
+      );
+      await waitLabel(page, "start sync", 20000);
+      await clickByTooltip(page, "Settings");
+      await settle(page);
+      const values = {
+        "Bulk Unit": "200",
+        "Try Count": "5",
+        "Block Interval [ms]": "3000",
+        "Abort Watch Interval [ms]": "7000",
+      };
+      for (const [label, v] of Object.entries(values)) {
+        await typeInto(
+          page,
+          await inputNearLabel(
+            page,
+            "dialog[open]",
+            label,
+            'input[type="number"]',
+          ),
+          v,
         );
-        (l.closest("a,button") ?? l).click();
-      }, tab);
-      await settle(page, 3000);
-      const name = `grid-${ev}`;
-      await record(page, name);
-      const rows = await page.evaluate(() =>
-        [...document.querySelectorAll(".ag-row")].map((r) =>
-          r.innerText.replace(/\s+/g, " ").slice(0, 400),
-        ),
+        await settle(page, 200);
+      }
+      const sel = await inputNearLabel(
+        page,
+        "dialog[open]",
+        "Chain Explorer",
+        "select",
       );
-      log.push(
-        `[check] ${name} ag-row count=${rows.length}: ${JSON.stringify(rows)}`,
-      );
-      // #509: sort by the datetime column (the Date), ascending then descending.
-      if (name === "grid-TimestampSet") {
-        for (const n of [1, 2]) {
-          const label = await page.$(
-            '.ag-header-cell[col-id="jsDate"] .ag-header-cell-label',
+      await sel.select("2");
+      await settle(page);
+      await record(page, "old-03-settings-dialog");
+      await page.keyboard.press("Escape");
+      await settle(page);
+
+      // Sync a little.
+      await syncUntil(page, "old-04", 1);
+
+      // Theme dark, selected chain matic, sidebar closed.
+      await clickByTooltip(page, "Change theme");
+      await settle(page);
+      const chainSelect = await page.$("aside select, select");
+      await chainSelect.select("matic");
+      await settle(page, 1500);
+      await record(page, "old-05-dark-matic");
+      // Close button of the sidebar: the first button in the sidebar header
+      // that is not a tooltip button of the accordion handlers.
+      const closed = await page.evaluate(() => {
+        // The close button (X) is the first visible button, at the top left.
+        const b = [...document.querySelectorAll("button")].find(
+          (b) => b.getClientRects().length,
+        );
+        b.click();
+        return b.outerHTML.slice(0, 200);
+      });
+      check("sidebar close clicked", "INFO", closed);
+      await settle(page, 1000);
+      await record(page, "old-06-final", { dump: true });
+    } else if (phase === "probe") {
+      // Opens the new build again and checks whether the page stays responsive.
+      // If an evaluate does not return, pause the debugger and log the stack.
+      const cdp = await page.createCDPSession();
+      await cdp.send("Debugger.enable");
+      let pausedFrames = null;
+      cdp.on("Debugger.paused", (ev) => {
+        pausedFrames = ev.callFrames
+          .slice(0, 25)
+          .map(
+            (f) =>
+              `${f.functionName || "(anon)"} ${f.url.split("/").pop()}:${f.location.lineNumber + 1}:${f.location.columnNumber + 1}`,
           );
-          if (!label) {
-            log.push(`[check] ${name} datetime header NG: not found`);
-            break;
-          }
-          await label.click();
-          await settle(page, 1000);
-          const sorted = await page.evaluate(() => ({
-            ariaSort: document
-              .querySelector('.ag-header-cell[col-id="jsDate"]')
-              ?.getAttribute("aria-sort"),
-            rows: [
-              ...document.querySelectorAll('.ag-row .ag-cell[col-id="jsDate"]'),
-            ]
-              .sort(
-                (a, b) =>
-                  a.getBoundingClientRect().top - b.getBoundingClientRect().top,
+        cdp.send("Debugger.resume").catch(() => {});
+      });
+      stepName = "probe-00";
+      const t0 = Date.now();
+      await page
+        .goto(`${ORIGIN}/`, { waitUntil: "domcontentloaded", timeout: 60000 })
+        .catch((e) => log.push(`[probe] goto: ${e.message}`));
+      for (let i = 0; i < 20; i++) {
+        const r = await Promise.race([
+          page.evaluate(() => ({
+            now: performance.now(),
+            url: location.href,
+            toggle: [...document.querySelectorAll("*")]
+              .filter(
+                (e) =>
+                  e.children.length === 0 &&
+                  /sync/.test(e.textContent) &&
+                  e.textContent.length < 30,
               )
-              .map((c) => c.innerText.trim()),
-          }));
+              .map((e) => e.textContent.trim()),
+          })),
+          new Promise((r) => setTimeout(() => r("TIMEOUT"), 5000)),
+        ]);
+        log.push(
+          `[probe] t=${Date.now() - t0}ms ${JSON.stringify(r)} rpc=${JSON.stringify(rpcCount)}`,
+        );
+        if (r === "TIMEOUT") {
+          await cdp
+            .send("Debugger.pause")
+            .catch((e) => log.push(`[probe] pause: ${e.message}`));
+          await new Promise((r) => setTimeout(r, 3000));
           log.push(
-            `[check] ${name} datetime sort click ${n}: ${JSON.stringify(sorted)}`,
+            `[probe] paused stack: ${JSON.stringify(pausedFrames, null, 1)}`,
           );
-          await page.screenshot({
-            path: path.join(shotDir, `${name}-sort${n}.png`),
-          });
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+      await page
+        .screenshot({ path: path.join(shotDir, "probe-end.png") })
+        .catch(() => {});
+    } else if (phase === "grid") {
+      // Event log grids of the new build, on logs saved by v1.0.2 and by the new build.
+      for (const [ev, tab] of [
+        ["TimestampSet", "Event Logs"],
+        ["UniverseForked", "Event Logs"],
+      ]) {
+        await page.goto(
+          `${ORIGIN}/eth/Augur-version1/contracts/Augur/events/${ev}`,
+          { waitUntil: "load" },
+        );
+        await settle(page, 1500);
+        await page.evaluate((tab) => {
+          const l = [...document.querySelectorAll("*")].find(
+            (e) => e.children.length === 0 && e.textContent.trim() === tab,
+          );
+          (l.closest("a,button") ?? l).click();
+        }, tab);
+        await settle(page, 3000);
+        const name = `grid-${ev}`;
+        await record(page, name);
+        const rows = await page.evaluate(() =>
+          [...document.querySelectorAll(".ag-row")].map((r) =>
+            r.innerText.replace(/\s+/g, " ").slice(0, 400),
+          ),
+        );
+        check(
+          `${name} ag-row count`,
+          "INFO",
+          `${rows.length}: ${JSON.stringify(rows)}`,
+        );
+        // #509: sort by the datetime column (the Date), ascending then descending.
+        if (name === "grid-TimestampSet") {
+          for (const n of [1, 2]) {
+            const label = await page.$(
+              '.ag-header-cell[col-id="jsDate"] .ag-header-cell-label',
+            );
+            check(
+              `${name} datetime header ${n}`,
+              label ? "OK" : "NG",
+              label ? "found" : "not found",
+            );
+            if (!label) break;
+            await label.click();
+            await settle(page, 1000);
+            const sorted = await page.evaluate(() => ({
+              ariaSort: document
+                .querySelector('.ag-header-cell[col-id="jsDate"]')
+                ?.getAttribute("aria-sort"),
+              rows: [
+                ...document.querySelectorAll(
+                  '.ag-row .ag-cell[col-id="jsDate"]',
+                ),
+              ]
+                .sort(
+                  (a, b) =>
+                    a.getBoundingClientRect().top -
+                    b.getBoundingClientRect().top,
+                )
+                .map((c) => c.innerText.trim()),
+            }));
+            check(
+              `${name} datetime sort click ${n}`,
+              "INFO",
+              JSON.stringify(sorted),
+            );
+            await page.screenshot({
+              path: path.join(shotDir, `${name}-sort${n}.png`),
+            });
+          }
         }
       }
-    }
-    // #509: v1.0.2 and the new build save jsDate as a Date.
-    const jsDateTypes = await page.evaluate(
-      () =>
-        new Promise((resolve) => {
-          const r = indexedDB.open("Digu_EventLog_eth_Augur_version1");
-          r.onsuccess = () => {
-            const g = r.result
-              .transaction("Augur_TimestampSet")
-              .objectStore("Augur_TimestampSet")
-              .getAll();
-            g.onsuccess = () => {
-              r.result.close();
-              resolve(
-                g.result.map((l) => ({
-                  blockNumber: l.blockNumber,
-                  isDate: l.jsDate instanceof Date,
-                })),
-              );
+      // #509: v1.0.2 and the new build save jsDate as a Date.
+      const jsDateTypes = await page.evaluate(
+        () =>
+          new Promise((resolve) => {
+            const r = indexedDB.open("Digu_EventLog_eth_Augur_version1");
+            r.onsuccess = () => {
+              const g = r.result
+                .transaction("Augur_TimestampSet")
+                .objectStore("Augur_TimestampSet")
+                .getAll();
+              g.onsuccess = () => {
+                r.result.close();
+                resolve(
+                  g.result.map((l) => ({
+                    blockNumber: l.blockNumber,
+                    isDate: l.jsDate instanceof Date,
+                  })),
+                );
+              };
             };
-          };
-        }),
-    );
-    log.push(
-      `[check] Augur_TimestampSet jsDate types: ${JSON.stringify(jsDateTypes)}`,
-    );
-  } else {
-    stepName = "new-00";
-    // The Settings DB before the new build opens it, from a file of the
-    // origin that does not run the app.
-    await page.goto(`${ORIGIN}/favicon.png`, { waitUntil: "load" });
-    const settingsBefore = await readSettingsDb(page);
-    await page.goto(`${ORIGIN}/`, { waitUntil: "load" });
-    await settle(page, 3000);
-    await record(page, "new-00-home-first-open", { dump: true });
-    checkSettingsUpgrade(settingsBefore, await readSettingsDb(page));
-    for (const [name, p] of [
-      ["new-01-matic", "/matic"],
-      ["new-02-eth", "/eth"],
-      ["new-03-eth-v1", "/eth/Augur-version1"],
-      ["new-04-eth-v2", "/eth/Augur-version2"],
-      [
-        "new-05-eth-v2-repv2-yes-1",
-        "/eth/Augur-version2/contracts/REPv2_Yes_1",
-      ],
-      ["new-06-v1-augur", "/eth/Augur-version1/contracts/Augur"],
-      ["new-07-v1-lrt", "/eth/Augur-version1/contracts/LegacyReputationToken"],
-      [
-        "new-08-events-TimestampSet",
-        "/eth/Augur-version1/contracts/Augur/events/TimestampSet",
-      ],
-      [
-        "new-09-events-UniverseForked",
-        "/eth/Augur-version1/contracts/Augur/events/UniverseForked",
-      ],
-    ]) {
-      await page.goto(`${ORIGIN}${p}`, { waitUntil: "load" });
-      await settle(page, 2000);
-      await record(page, name);
-    }
-    // The sync panel (#596), which took the place of the settings dialog.
-    await page.click('nav button[aria-controls="sync-panel"]');
-    await page.waitForSelector("#sync-panel:not(.hidden)");
-    await settle(page);
-    const dialogValues = await page.evaluate(() => {
-      const d = document.getElementById("sync-panel");
-      return {
-        checkboxes: [...d.querySelectorAll('input[type="checkbox"]')].map(
-          (i) => ({
-            label: i.getAttribute("aria-label"),
-            checked: i.checked,
           }),
-        ),
-        text: d.innerText.slice(0, 800),
-      };
-    });
-    log.push(`[check] sync panel (eth page): ${JSON.stringify(dialogValues)}`);
-    await record(page, "new-10-sync-panel");
-    await page.keyboard.press("Escape");
-    await settle(page);
-    await syncUntil(page, "new-11", 2);
-    await page.goto(
-      `${ORIGIN}/eth/Augur-version1/contracts/Augur/events/TimestampSet`,
-      { waitUntil: "load" },
-    );
-    await settle(page, 2000);
-    await record(page, "new-12-events-after-sync", { dump: true });
-  }
-} catch (e) {
-  log.push(`[script-error] ${stepName}: ${e.stack}`);
-  await page
-    .screenshot({ path: path.join(shotDir, `error-${stepName}.png`) })
-    .catch(() => {});
-  console.log("SCRIPT ERROR", e.message);
-} finally {
-  flush();
-  // Chrome restores the open tab at the next launch and runs the app before
-  // the listeners of the next phase are attached. Leave a blank tab instead.
-  await page.goto("about:blank").catch(() => {});
-  await browser.close();
-  server.close();
-}
+      );
+      check(
+        "Augur_TimestampSet jsDate types",
+        "INFO",
+        JSON.stringify(jsDateTypes),
+      );
+    } else {
+      stepName = "new-00";
+      // The Settings DB before the new build opens it, from a file of the
+      // origin that does not run the app.
+      await page.goto(`${ORIGIN}/favicon.png`, { waitUntil: "load" });
+      const settingsBefore = await readSettingsDb(page);
+      await page.goto(`${ORIGIN}/`, { waitUntil: "load" });
+      await settle(page, 3000);
+      await record(page, "new-00-home-first-open", { dump: true });
+      checkSettingsUpgrade(settingsBefore, await readSettingsDb(page));
+      for (const [name, p] of [
+        ["new-01-matic", "/matic"],
+        ["new-02-eth", "/eth"],
+        ["new-03-eth-v1", "/eth/Augur-version1"],
+        ["new-04-eth-v2", "/eth/Augur-version2"],
+        [
+          "new-05-eth-v2-repv2-yes-1",
+          "/eth/Augur-version2/contracts/REPv2_Yes_1",
+        ],
+        ["new-06-v1-augur", "/eth/Augur-version1/contracts/Augur"],
+        [
+          "new-07-v1-lrt",
+          "/eth/Augur-version1/contracts/LegacyReputationToken",
+        ],
+        [
+          "new-08-events-TimestampSet",
+          "/eth/Augur-version1/contracts/Augur/events/TimestampSet",
+        ],
+        [
+          "new-09-events-UniverseForked",
+          "/eth/Augur-version1/contracts/Augur/events/UniverseForked",
+        ],
+      ]) {
+        await page.goto(`${ORIGIN}${p}`, { waitUntil: "load" });
+        await settle(page, 2000);
+        await record(page, name);
+      }
+      // The sync panel (#596), which took the place of the settings dialog.
+      await page.click('nav button[aria-controls="sync-panel"]');
+      await page.waitForSelector("#sync-panel:not(.hidden)");
+      await settle(page);
+      const dialogValues = await page.evaluate(() => {
+        const d = document.getElementById("sync-panel");
+        return {
+          checkboxes: [...d.querySelectorAll('input[type="checkbox"]')].map(
+            (i) => ({
+              label: i.getAttribute("aria-label"),
+              checked: i.checked,
+            }),
+          ),
+          text: d.innerText.slice(0, 800),
+        };
+      });
+      check("sync panel (eth page)", "INFO", JSON.stringify(dialogValues));
+      await record(page, "new-10-sync-panel");
+      await page.keyboard.press("Escape");
+      await settle(page);
+      await syncUntil(page, "new-11", 2);
+      await page.goto(
+        `${ORIGIN}/eth/Augur-version1/contracts/Augur/events/TimestampSet`,
+        { waitUntil: "load" },
+      );
+      await settle(page, 2000);
+      await record(page, "new-12-events-after-sync", { dump: true });
+    }
+  },
+  async (e) => {
+    log.push(`[script-error] ${stepName}: ${e.stack}`);
+    console.log("SCRIPT ERROR", e.message);
+    await page
+      .screenshot({ path: path.join(shotDir, `error-${stepName}.png`) })
+      .catch(() => {});
+    return { step: stepName };
+  },
+);
+flush();
+// Chrome restores the open tab at the next launch and runs the app before
+// the listeners of the next phase are attached. Leave a blank tab instead.
+await page.goto("about:blank").catch(() => {});
+await browser.close();
+server.close();
