@@ -190,8 +190,9 @@ async function runImport(
       manifest,
     );
     const about: WarpSyncAbout = { ...getLastRun(manifest), pending };
-    // Stopped while checking: nothing is saved, so the counts stand and the
-    // DB need not be read again.
+    // Stopped while checking: nothing is saved, so the counts stand, and the
+    // import need not read the DB again. Through startWarpSync, withSyncLock
+    // still reads it, for what another tab may have done meanwhile.
     if (controller.signal.aborted) {
       const state = await endStopped(chainName, { about });
       return { state, reloaded: false };
@@ -278,7 +279,7 @@ async function runImport(
 type ImportResult = { state: WarpSyncState | undefined; reloaded: boolean };
 function getLastRun(
   manifest: WarpSyncManifest | undefined,
-): Pick<WarpSyncState, "toBlock" | "createdAt"> {
+): Omit<WarpSyncAbout, "pending"> {
   const lastRun = manifest?.runs.at(-1);
   return { toBlock: lastRun?.toBlock, createdAt: lastRun?.createdAt };
 }
@@ -296,27 +297,25 @@ type WarpSyncAbout = Pick<WarpSyncState, "toBlock" | "createdAt" | "pending">;
 // Every stopped end. The chain is held before anything is awaited, so that
 // the warp sync turned on meanwhile is not undone. about: what was counted
 // before anything was saved. Without it, a file may have been saved after the
-// stop, before its result reached this tab.
+// stop, before its result reached this tab: the DB is read again, and what is
+// left is counted after it.
 async function endStopped(
   chainName: ChainName,
   end: { about: WarpSyncAbout } | { manifest: WarpSyncManifest | undefined },
 ): Promise<WarpSyncState> {
   heldChains.add(chainName);
+  if ("manifest" in end) await reloadAfterImport(chainName);
   customLogger.info("Stopped the import of the warp sync snapshot.", {
     chainName,
   });
   const about: WarpSyncAbout =
-    "about" in end
-      ? end.about
-      : await countAfterReload(chainName, end.manifest);
+    "about" in end ? end.about : await countLeft(chainName, end.manifest);
   return { status: "stopped", ...about };
 }
-// Reads the DB again, and then counts what is left.
-async function countAfterReload(
+async function countLeft(
   chainName: ChainName,
   manifest: WarpSyncManifest | undefined,
 ): Promise<WarpSyncAbout> {
-  await reloadAfterImport(chainName);
   return {
     ...getLastRun(manifest),
     pending: manifest

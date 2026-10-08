@@ -719,12 +719,18 @@ describe("warpSync", () => {
       await vi.waitFor(() => expect(fetchWarpSyncManifest).toHaveBeenCalled());
       vi.mocked(getWarpSyncPending).mockClear();
       vi.mocked(reloadSyncStatusInChain).mockClear();
+      let held: boolean | undefined;
+      vi.mocked(reloadSyncStatusInChain).mockImplementationOnce(async () => {
+        held = (await lockManager.query()).held?.length === 1;
+      });
       stopWarpSync("matic");
       give(manifest);
       await importing;
       expect(importWarpSync).not.toHaveBeenCalled();
-      // Nothing was saved: only the lock reads the DB, once.
+      // Nothing was saved: only withSyncLock reads the DB, once, in the lock,
+      // for what another tab may have done.
       expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("matic");
+      expect(held).toBe(true);
       const state = selectWarpSyncState(get(storeWarpSync), "matic");
       expect(state.status).toBe("stopped");
       // Counted once, before the stop is seen, and kept for the stopped state.
