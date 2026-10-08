@@ -20,12 +20,11 @@ import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
 import { getAbiParamsFromAbiRow } from "./getAbiParamsFromAbiRow";
 import type { AbiRow } from "./types";
 
-type ArgKey = AbiParamField;
 function getAbiParamsArgStringValueFromAbiRow<T extends AbiRow>(
   targetParams: ValueGetterParams<T> | ICellRendererParams<T>,
   abiParamsKey: keyof T,
   indexOfArgs: number,
-  argKey: ArgKey,
+  argKey: AbiParamField,
 ): string {
   return getAbiParamText(
     getAbiParamsFromAbiRow<T>(targetParams, abiParamsKey)[indexOfArgs],
@@ -36,7 +35,7 @@ function getAbiParamsArgStringValueFromAbiRow<T extends AbiRow>(
 const columnDefAbiParamsStringArg = <T extends AbiRow>(
   abiParamsKey: keyof T,
   indexOfArgs: number,
-  argKey: ArgKey,
+  argKey: AbiParamField,
 ): ColumnDef => {
   return {
     headerName: capitalizeFirstLetter(argKey),

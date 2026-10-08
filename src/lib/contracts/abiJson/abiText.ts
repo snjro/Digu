@@ -55,8 +55,9 @@ export function getAbiParamText(
   field: AbiParamField,
 ): string {
   if (!abiParam) return NO_DATA;
-  // Only the inputs of an event show it. A human readable ABI, or a JSON ABI
-  // without the key, gives null for an input that is not indexed.
+  // Only the inputs of an event show it. For an input that is not indexed,
+  // ethers gives null from a human readable ABI, and undefined from a JSON ABI
+  // without the key.
   if (field === "indexed") return String(abiParam.indexed === true);
   // ethers gives an unnamed param the name "".
   return abiParam[field] === "" ? NO_DATA : abiParam[field];
@@ -76,8 +77,13 @@ export function getComponentsJsonText(
   components: readonly AbiFragmentParam[],
   isExpanded: boolean,
 ): string {
-  const text: string = `[${components.map((component) => component.format("json")).join(",")}]`;
-  return isExpanded ? jsonStringifyFormatted(JSON.parse(text)) : text;
+  return isExpanded
+    ? jsonStringifyFormatted(
+        components.map((component): unknown =>
+          JSON.parse(component.format("json")),
+        ),
+      )
+    : `[${components.map((component) => component.format("json")).join(",")}]`;
 }
 
 // Only the JSON format is JSON. The human readable formats are plain text.

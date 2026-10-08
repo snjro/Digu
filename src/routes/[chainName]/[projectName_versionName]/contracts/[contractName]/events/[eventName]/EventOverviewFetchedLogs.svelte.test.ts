@@ -147,7 +147,10 @@ describe("EventOverviewFetchedLogs.svelte", () => {
 
     load.mockResolvedValueOnce({ count: 2, oldest: log(10), latest: log(20) });
     await save(2);
-    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
+    // Not before the interval.
+    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL - 1);
+    expect(load).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
     expect(screen.getByText("2")).toBeTruthy();
     expect(load).toHaveBeenCalledTimes(2);
     expect(screen.queryByText("No logs fetched yet.")).toBeNull();
@@ -179,7 +182,11 @@ describe("EventOverviewFetchedLogs.svelte", () => {
     const error = new Error("test error");
     load.mockRejectedValueOnce(error);
     await save(2);
-    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL);
+    // Not before the interval.
+    await vi.advanceTimersByTimeAsync(EVENT_LOGS_RELOAD_INTERVAL - 1);
+    expect(load).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(load).toHaveBeenCalledTimes(2);
     expect(screen.getByText("No logs fetched yet.")).toBeTruthy();
     expect(customLogger.error).toHaveBeenCalledWith("Get event logs.", {
       eventIdentifier: {

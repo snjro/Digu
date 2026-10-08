@@ -9,14 +9,15 @@ import type { AbiRow } from "./types";
 const functionFragment = FunctionFragment.from(
   "function f((uint256 a, address b) s, (uint8 c, bool)[] t, uint256[] u, address) returns (uint256)",
 );
-// From JSON, like the ABIs of the app: a human readable ABI leaves "indexed"
-// out when it is not indexed.
+// From JSON, like the ABIs of the app. The last input has no "indexed", which
+// ethers gives as undefined.
 const eventFragment = EventFragment.from({
   type: "event",
   name: "E",
   inputs: [
     { type: "address", name: "from", indexed: true },
     { type: "uint256", name: "value", indexed: false },
+    { type: "bool", name: "flag" },
   ],
 });
 const functionRow = {
@@ -110,6 +111,13 @@ describe("columnDefAbiParamsArgsChildren", () => {
       Name: "value",
       Indexed: "false",
       Type: "uint256",
+      Components: NO_DATA,
+    });
+    expect(eventFragment.inputs[2].indexed).toBeUndefined();
+    expect(values(eventRow, "eventInputs", true, 2)).toEqual({
+      Name: "flag",
+      Indexed: "false",
+      Type: "bool",
       Components: NO_DATA,
     });
   });
