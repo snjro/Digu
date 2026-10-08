@@ -1,7 +1,11 @@
 import { fetchEventLogsContract } from "./eventLogsContract";
 import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
 import type { VersionIdentifier } from "#db/dbTypes.js";
-import { extractEventContracts, getNodeProvider } from "#utils/utilsEthers.js";
+import {
+  destroyNodeProvider,
+  extractEventContracts,
+  getNodeProvider,
+} from "#utils/utilsEthers.js";
 import type { NodeProvider } from "#utils/utilsEthers.js";
 import type {
   Chain,
@@ -111,7 +115,7 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
       // Also stops a contract whose loop ended with an error.
       await stopSyncingInChain(targetChain.name);
     } finally {
-      await nodeProvider?.destroy();
+      await destroyNodeProvider(nodeProvider);
     }
   }
   customLogger.finished(

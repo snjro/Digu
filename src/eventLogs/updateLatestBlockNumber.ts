@@ -13,6 +13,9 @@ import { getTargetChain } from "#utils/utilsDb.js";
 import { TRY_COUNT } from "./eventLogsContract";
 
 const functionName: string = "startUpdateLatestBlockNumber";
+// A request of the latest block that takes longer fails, so that the next one
+// is not kept waiting until the timeout of ethers (5 minutes over http).
+export const LATEST_BLOCK_REQUEST_LIMIT_IN_INTERVALS: number = 3;
 
 // Resolves a function that stops the updates.
 export async function startUpdateLatestBlockNumber(
@@ -27,8 +30,19 @@ export async function startUpdateLatestBlockNumber(
   let isStopped: boolean = false;
 
   const tryGetAndUpdateLatestBlockNumber = async () => {
+    let timeoutId: number | undefined = undefined;
     try {
-      await getAndUpdateLatestBlockNumber(nodeProvider, targetChainName);
+      await Promise.race([
+        getAndUpdateLatestBlockNumber(nodeProvider, targetChainName),
+        new Promise<never>((_, reject) => {
+          timeoutId = window.setTimeout(
+            () =>
+              reject(new Error("The request of the latest block timed out.")),
+            LATEST_BLOCK_REQUEST_LIMIT_IN_INTERVALS *
+              targetChain.blockIntervalMs,
+          );
+        }),
+      ]);
       errorCount = 0;
     } catch (error) {
       // Destroying the provider after stopping cancels the request in flight.
@@ -39,6 +53,8 @@ export async function startUpdateLatestBlockNumber(
         errorCount: `${errorCount}/${TRY_COUNT}`,
         error: getLoggableError(error),
       });
+    } finally {
+      window.clearTimeout(timeoutId);
     }
   };
 

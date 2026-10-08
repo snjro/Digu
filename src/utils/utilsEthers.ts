@@ -43,11 +43,12 @@ export function extractEventContracts(targetContracts: Contract[]): Contract[] {
 }
 export type NodeProvider = JsonRpcProvider | WebSocketProvider;
 
-// The blocks of the current map when it becomes the previous one. A block
-// is read right after the eth_getLogs answer that has it, and the range of an
-// answer has at most MAX_BULK_UNIT (100,000) blocks. The contracts of a chain
-// fetch at the same time with one provider, so the answers of the others can
-// drop a block before it is read; it is then read from the DB or the RPC.
+// The blocks of the current map when it becomes the previous one. The maps
+// hold only the blocks with logs. A block is read right after the eth_getLogs
+// answer that has it, and only the answers of the other contracts of the
+// chain, which share the provider, can come in between, which are far fewer
+// than 100,000 blocks with logs. A block that is no longer kept is read from
+// the DB or the RPC instead.
 export const MAX_BLOCK_TIMESTAMPS: number = 100000;
 // The timestamps by block number, in two maps, so that old blocks are dropped
 // without deleting them one by one: at most twice maxSize blocks.
@@ -110,9 +111,12 @@ class WebSocketProviderKeepingBlockTimestamps extends WebSocketProvider {
   // Rejects when the socket closes. ethers 6.17.0 does not set onclose, and
   // a request on a closed socket waits forever.
   readonly #closed: Promise<never>;
-  constructor(url: string) {
+  constructor(url: string, maxBlockTimestamps: number = MAX_BLOCK_TIMESTAMPS) {
     super(url);
-    blockTimestampsOfProviders.set(this, new BlockTimestamps());
+    blockTimestampsOfProviders.set(
+      this,
+      new BlockTimestamps(maxBlockTimestamps),
+    );
     this.#closed = new Promise<never>((_, reject) => {
       (this.websocket as WebSocket).onclose = () => {
         reject(makeError("WebSocket closed.", "NETWORK_ERROR"));
@@ -265,14 +269,9 @@ export async function getNodeProvider(
         nodeStatus = "WRONG_CHAIN";
       }
     } catch (error) {
-      const loggableError: unknown = getLoggableError(error);
       customLogger.error(
         "nodeProvider.getNetwork().",
-        // Other errors, such as the DOMException of a WebSocket that cannot
-        // be made, may have the URL in the message.
-        loggableError instanceof Error && loggableError !== timeoutError
-          ? { name: loggableError.name }
-          : loggableError,
+        error === timeoutError ? error : getLoggableErrorName(error),
       );
       nodeStatus = "NETWORK_ERROR";
     } finally {
@@ -305,22 +304,22 @@ export async function getNodeProvider(
   return nodeProvider;
 }
 // Does not throw, so that the caller goes on with its own result or error.
-async function destroyNodeProvider(
+export async function destroyNodeProvider(
   nodeProvider: NodeProvider | undefined,
 ): Promise<void> {
   try {
     await nodeProvider?.destroy();
   } catch (error) {
-    const loggableError: unknown = getLoggableError(error);
-    // An error that is not from ethers may have the URL in the message, as in
-    // getNodeProvider.
-    customLogger.error(
-      "nodeProvider.destroy().",
-      loggableError instanceof Error
-        ? { name: loggableError.name }
-        : loggableError,
-    );
+    customLogger.error("nodeProvider.destroy().", getLoggableErrorName(error));
   }
+}
+// Only the name of an error that is not from ethers, whose message may have
+// the URL too, such as the DOMException of a WebSocket that cannot be made.
+function getLoggableErrorName(error: unknown): unknown {
+  const loggableError: unknown = getLoggableError(error);
+  return loggableError instanceof Error
+    ? { name: loggableError.name }
+    : loggableError;
 }
 // ethers puts the request URL, which may hold an API key, in the message and
 // the properties of its errors.

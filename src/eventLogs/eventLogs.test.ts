@@ -1,6 +1,14 @@
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain } from "#constants/chains/types.js";
-import { startSyncingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import {
+  startAbortingInChain,
+  startSyncingInChain,
+} from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
+import { customLogger } from "#utils/logger.js";
+import { getNodeProvider, type NodeProvider } from "#utils/utilsEthers.js";
+import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import {
   importWarpSyncBeforeSync,
   waitForWarpSync,
@@ -17,6 +25,13 @@ vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js", () => ({
   startSyncingInChain: vi.fn(),
   startAbortingInChain: vi.fn(),
   stopSyncingInChain: vi.fn(),
+}));
+vi.mock("#utils/utilsEthers.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("#utils/utilsEthers.js")>()),
+  getNodeProvider: vi.fn(),
+}));
+vi.mock("./updateLatestBlockNumber", () => ({
+  startUpdateLatestBlockNumber: vi.fn(),
 }));
 
 const chain = { name: "matic" } as Chain;
@@ -48,5 +63,39 @@ describe("fetchEventLogs", () => {
     ]);
     expect(importWarpSyncBeforeSync).toHaveBeenCalledWith(chain);
     expect(startSyncingInChain).toHaveBeenCalledWith("matic");
+  });
+});
+
+describe("syncEventLogs", () => {
+  afterEach(() => {
+    vi.resetAllMocks();
+    vi.restoreAllMocks();
+    storeSyncStoppedReason.clear("matic");
+  });
+
+  test("throws the error of the sync when destroying the provider fails too", async () => {
+    const matic: Chain = TARGET_CHAINS.find((chain) => chain.name === "matic")!;
+    const syncError: Error = new Error("sync error");
+    vi.mocked(getNodeProvider).mockResolvedValue({
+      destroy: vi.fn().mockRejectedValue(new Error("destroy error")),
+    } as unknown as NodeProvider);
+    vi.mocked(startUpdateLatestBlockNumber).mockRejectedValue(syncError);
+    vi.mocked(startAbortingInChain).mockResolvedValue();
+    vi.spyOn(customLogger, "error").mockImplementation(() => {});
+    // The error that the sync throws to the lock.
+    let syncing: Promise<unknown> = Promise.resolve();
+    vi.mocked(requestSyncLock).mockImplementation(
+      async (_chainName, start, sync) => {
+        await start();
+        syncing = sync().then(
+          () => undefined,
+          (error: unknown) => error,
+        );
+        return true;
+      },
+    );
+
+    expect(await fetchEventLogs(matic)).toBe(true);
+    expect(await syncing).toBe(syncError);
   });
 });
