@@ -32,7 +32,8 @@
   let hasFailed: boolean = $derived(
     warpState.status === "failed" && $storeRpcSettings[chainName].warpSync,
   );
-  // The texts while stopping or finishing do not read now.
+  // The texts while stopping or finishing do not read now, and the progress
+  // after a failure stays as it was (its time left would only grow).
   let isEnding: boolean = $derived(warpState.ending !== undefined);
   // The time left moves on between the ranges too.
   let now: number = $state(Date.now());

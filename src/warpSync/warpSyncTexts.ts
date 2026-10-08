@@ -80,7 +80,7 @@ export const IMPORT_STOPPING = "Stopping import…";
 export const IMPORT_FINISHING = "Finishing import…";
 
 // "34%", and the time left once a range is done. Once a large import is
-// stopped or done, what it waits for.
+// stopped or done, what it waits for. Once it failed, the progress as it was.
 export function getImportProgressText(
   state: WarpSyncState,
   now: number,
@@ -97,8 +97,21 @@ export function getImportProgressText(
   return `Importing logs ${percent}% · ${formatDuration(left)} left`;
 }
 
+// The tooltip of the sync toggle while a large import runs. Without Stop in
+// the nav once it stops, finishes, or failed.
 export const SYNC_WAITS_FOR_IMPORT =
   "Importing the published logs. Stop it to sync from your RPC now.";
+export const SYNC_WAITS_FOR_IMPORT_STOPPING =
+  "Stopping the import of the published logs.";
+export const SYNC_WAITS_FOR_IMPORT_FINISHING =
+  "Finishing the import of the published logs.";
+export const SYNC_WAITS_FOR_IMPORT_FAILING = "Importing the published logs.";
+export function getSyncWaitsForImportText(state: WarpSyncState): string {
+  if (state.ending === "stopping") return SYNC_WAITS_FOR_IMPORT_STOPPING;
+  if (state.ending === "finishing") return SYNC_WAITS_FOR_IMPORT_FINISHING;
+  if (state.ending === "failing") return SYNC_WAITS_FOR_IMPORT_FAILING;
+  return SYNC_WAITS_FOR_IMPORT;
+}
 
 // In the nav after the import failed, with Retry.
 export const IMPORT_FAILED = "Could not import the published logs.";

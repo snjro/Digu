@@ -145,6 +145,28 @@ describe("WarpSyncStatus.svelte", () => {
     },
   );
 
+  test("keeps the progress without Stop once a large import failed, until it says so", async () => {
+    const timersBefore: number = vi.getTimerCount();
+    render(WarpSyncStatus);
+    await setState({
+      status: "importing",
+      pending,
+      progress: { doneLogCount: 50, startedAt: Date.now() - 60_000 },
+      ending: "failing",
+    });
+    expect(
+      screen.getByText("Importing logs 50% · 1 minute left").className,
+    ).toContain("motion-safe:animate-pulse");
+    expect(screen.queryByRole("button", { name: "Stop" })).toBeNull();
+    // The time left does not grow while it reads the DB again.
+    expect(vi.getTimerCount()).toBe(timersBefore);
+    await setState({ status: "failed" });
+    expect(
+      screen.getByText("Could not import the published logs."),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+  });
+
   test("says that the import failed, and Retry imports again", async () => {
     render(WarpSyncStatus);
     await setState({ status: "failed" });

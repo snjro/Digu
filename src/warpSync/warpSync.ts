@@ -180,6 +180,8 @@ async function runImport(
   const controller = new AbortController();
   setWarpSyncStopController(chainName, controller);
   let manifest: WarpSyncManifest | undefined = undefined;
+  // Once a large import failed, while it reads the DB again.
+  let failing: boolean = false;
   try {
     manifest = await fetchWarpSyncManifest(targetChain);
     if (!manifest) return { status: "none" };
@@ -204,7 +206,11 @@ async function runImport(
       status: "importing",
       ...about,
       progress: isLarge ? { doneLogCount, startedAt } : undefined,
-      ending: controller.signal.aborted ? "stopping" : undefined,
+      ending: failing
+        ? "failing"
+        : controller.signal.aborted
+          ? "stopping"
+          : undefined,
     });
     // With no logs left, it only moves the blocks on while "checking".
     if (pending.logCount > 0) setWarpSyncState(chainName, importing());
@@ -237,6 +243,15 @@ async function runImport(
       createdAt: manifest.runs.at(-1)?.createdAt,
     };
   } catch (error) {
+    // Before the reload: a stop while it reads the DB does not turn a failure
+    // into a stop.
+    const stopped: boolean = controller.signal.aborted;
+    // A large import hides Stop while it reads the DB again.
+    const shown: WarpSyncState = getState(chainName);
+    if (!stopped && shown.progress) {
+      failing = true;
+      setWarpSyncState(chainName, { ...shown, ending: "failing" });
+    }
     // A file may have been saved after the stop or the timeout, before its
     // result reached this tab: the stores follow the DB again.
     await reloadSyncStatusInChain(chainName).catch((reloadError: unknown) => {
@@ -245,7 +260,7 @@ async function runImport(
         errorObject: reloadError,
       });
     });
-    if (controller.signal.aborted) {
+    if (stopped) {
       customLogger.info("Stopped the import of the warp sync snapshot.", {
         chainName,
       });

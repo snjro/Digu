@@ -25,8 +25,9 @@
   import {
     selectWarpSyncState,
     storeWarpSync,
+    type WarpSyncState,
   } from "#warpSync/warpSyncState.js";
-  import { SYNC_WAITS_FOR_IMPORT } from "#warpSync/warpSyncTexts.js";
+  import { getSyncWaitsForImportText } from "#warpSync/warpSyncTexts.js";
   import { isSyncToggleDisabled } from "./syncToggleDisabled";
 
   let toggleOn: boolean = $state(false);
@@ -88,10 +89,12 @@
   );
   // A large import of this tab, which shows its progress and has Stop. A
   // small one takes seconds, and the sync waits for it as before.
-  let isWarpSyncImporting: boolean = $derived.by(() => {
-    const warpState = selectWarpSyncState($storeWarpSync, targetChainName);
-    return warpState.status === "importing" && warpState.progress !== undefined;
-  });
+  let warpState: WarpSyncState = $derived(
+    selectWarpSyncState($storeWarpSync, targetChainName),
+  );
+  let isWarpSyncImporting: boolean = $derived(
+    warpState.status === "importing" && warpState.progress !== undefined,
+  );
   let disabled: boolean = $derived(
     isSyncToggleDisabled({
       nodeStatus,
@@ -122,7 +125,7 @@
           : toggleOn
             ? "stop sync"
             : isWarpSyncImporting
-              ? SYNC_WAITS_FOR_IMPORT
+              ? getSyncWaitsForImportText(warpState)
               : "start sync",
   );
 </script>
