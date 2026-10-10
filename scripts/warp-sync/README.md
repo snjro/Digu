@@ -146,13 +146,14 @@ than the credits of a day.
 When a run stops (at `--max-requests`, or after failures), the logs fetched
 so far are in `<chain>/.partial/` (not committed): for each part, a
 `.jsonl` file to which the logs of each range are added, one log per line,
-and a `.state.json` file with the next block to fetch. Run it again without
-`--to`, with the same `--part-blocks`: it goes on to the same block, from
-where each part stopped, and drops the lines of the blocks that the state does
-not count yet (such as a line half written when it stopped). The lines are
-the logs as the RPC returned them; they are decoded when the files are
-written. The logs are not all kept in memory, so a chain with millions of
-logs fits.
+and a `.state.json` file with the next block to fetch and the size of the
+`.jsonl` file when the state was written. Run it again without `--to`, with
+the same `--part-blocks`: it goes on to the same block, from where each part
+stopped, and cuts each `.jsonl` file back to the size in its state, which
+drops what was added after the state (such as a line half written when it
+stopped). The lines are the logs as the RPC returned them; they are decoded
+when the files are written. The logs are not all kept in memory, so a chain
+with millions of logs fits.
 
 The files of the snapshot are written only at the end, one contract at a
 time, and then `.partial/` is deleted. The block times fetched for the logs

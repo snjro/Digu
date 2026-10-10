@@ -184,17 +184,6 @@ export function writeWhole(file, write) {
   }
   replace(tmp, file);
 }
-// writeWhole for a write that returns a promise, which is waited for.
-export async function writeWholeAsync(file, write) {
-  const tmp = `${file}.tmp`;
-  try {
-    await write(tmp);
-  } catch (error) {
-    discard(tmp);
-    throw error;
-  }
-  replace(tmp, file);
-}
 // Removes tmp. A failure here is not thrown, so that it does not hide the
 // error that made the write stop.
 function discard(tmp) {

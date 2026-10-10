@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { Readable, Writable } from "node:stream";
+import { Readable } from "node:stream";
 import zlib from "node:zlib";
 import {
   afterAll,
@@ -13,14 +13,13 @@ import {
   describe,
   expect,
   test,
-  vi,
 } from "vitest";
 import { buildSnapshot, parsePositiveInteger } from "./build-snapshot.mjs";
 import { loadChain } from "./chains.mjs";
 import { checkSnapshotFiles } from "./check-files.mjs";
 import { expectedSnapshotLog, fakeRpcLog } from "./fake-logs.mjs";
 import { startFakeRpc } from "./fake-rpc.mjs";
-import { keepLogsBefore, linesOf } from "./partial.mjs";
+import { linesOf, readParts } from "./partial.mjs";
 import { RequestLimitError } from "./rpc.mjs";
 import { keyOf, writeManifest } from "./snapshot-format.mjs";
 
@@ -193,6 +192,69 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(fs.existsSync(partial)).toBe(false);
   });
 
+  test("drops what was added to .partial/ after the state when it goes on", async () => {
+    await expect(
+      build({ toBlock: 16_000_000, maxRequests: 12 }),
+    ).rejects.toThrow(RequestLimitError);
+    const partial = path.join(dir(), ".partial");
+    const file = fs
+      .readdirSync(partial)
+      .map((name) => path.join(partial, name))
+      .find((name) => name.endsWith(".jsonl") && fs.statSync(name).size > 0);
+    expect(file).toBeDefined();
+    // A log of a block before the next block, as a range added after the
+    // state, and a line half written.
+    const [first] = fs.readFileSync(file, "utf8").split("\n");
+    fs.appendFileSync(file, `${first}\n{"blockNumber":"0xf4`);
+    await build({});
+    expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
+  });
+
+  test.each([
+    [
+      "its state has no size",
+      (_file, state) => ({ ...state, size: undefined }),
+    ],
+    [
+      "its state is from another block",
+      (_file, state) => ({ ...state, fromBlock: state.fromBlock - 1 }),
+    ],
+    [
+      "its .jsonl file is missing",
+      (file, state) => {
+        fs.rmSync(file);
+        return state;
+      },
+    ],
+    [
+      "its .jsonl file is shorter than its state",
+      (file, state) => {
+        fs.truncateSync(file, state.size - 1);
+        return state;
+      },
+    ],
+  ])("starts a part over when %s", async (_, change) => {
+    await expect(
+      build({ toBlock: 16_000_000, maxRequests: 12 }),
+    ).rejects.toThrow(RequestLimitError);
+    const partial = path.join(dir(), ".partial");
+    const file = fs
+      .readdirSync(partial)
+      .map((name) => path.join(partial, name))
+      .find((name) => name.endsWith(".jsonl") && fs.statSync(name).size > 0);
+    expect(file).toBeDefined();
+    const stateFile = file.replace(/\.jsonl$/, ".state.json");
+    const state = JSON.parse(fs.readFileSync(stateFile, "utf8"));
+    fs.writeFileSync(stateFile, JSON.stringify(change(file, state)));
+    const messages = [];
+    await build({ log: (message) => messages.push(message) });
+    expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
+    const label = `${state.project}/${state.version}/${state.name} ${state.partFrom}-${state.partTo}`;
+    expect(messages).toContainEqual(
+      expect.stringMatching(`^${label}: start over, since `),
+    );
+  });
+
   test("a later run adds only the blocks after the last run", async () => {
     await build({ toBlock: 16_000_000 });
     const first = readManifest();
@@ -346,93 +408,20 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
   });
 });
 
-const shortLine = (block) => JSON.stringify({ blockNumber: toHex(block) });
-test.each([
-  [
-    "drops the lines from the next block on",
-    `${shortLine(5)}\n${shortLine(6)}\n${shortLine(7)}\n${shortLine(8)}\n{"blockNumber":"0x`,
-  ],
-  ["keeps a last line without a newline", `${shortLine(5)}\n${shortLine(6)}`],
-])("keepLogsBefore %s", async (_name, content) => {
+test("readParts reads a file of many chunks of the read", async () => {
   const file = path.join(outDir, "segment.jsonl");
-  fs.writeFileSync(file, content);
-  await keepLogsBefore(file, 7);
-  expect(fs.readFileSync(file, "utf8")).toBe(
-    `${shortLine(5)}\n${shortLine(6)}\n`,
-  );
-});
-
-test("keepLogsBefore keeps the file when its read fails", async () => {
-  const file = path.join(outDir, "segment.jsonl");
-  const line = (block) => JSON.stringify({ blockNumber: toHex(block) });
-  const content = `${line(5)}\n${line(6)}\n`;
-  fs.writeFileSync(file, content);
-  // The read gives the first line, and then fails.
-  const spy = vi.spyOn(fs, "createReadStream").mockImplementationOnce(() => {
-    const stream = new Readable({ read() {} });
-    stream.push(`${line(5)}\n`);
-    setTimeout(() => stream.destroy(new Error("read failed")), 10);
-    return stream;
-  });
-  try {
-    await expect(keepLogsBefore(file, 7)).rejects.toThrow("read failed");
-  } finally {
-    spy.mockRestore();
-  }
-  expect(fs.readFileSync(file, "utf8")).toBe(content);
-  expect(fs.existsSync(`${file}.tmp`)).toBe(false);
-});
-
-test("keepLogsBefore keeps the file when its write fails", async () => {
-  const file = path.join(outDir, "segment.jsonl");
-  // More than a piece of the write. The read stream must not be left open,
-  // and vitest fails the run on an uncaught error of it.
-  const line = JSON.stringify({ blockNumber: toHex(5), data: "0".repeat(100) });
-  const content = `${line}\n`.repeat(20_000);
-  fs.writeFileSync(file, content);
-  const createReadStream = fs.createReadStream.bind(fs);
-  let input;
-  const read = vi
-    .spyOn(fs, "createReadStream")
-    .mockImplementationOnce((...args) => {
-      input = createReadStream(...args);
-      return input;
-    });
-  // The write makes the .tmp file, and then fails.
-  const write = vi
-    .spyOn(fs, "createWriteStream")
-    .mockImplementationOnce((tmp) => {
-      fs.writeFileSync(tmp, "partial");
-      return new Writable({
-        write(_chunk, _encoding, callback) {
-          callback(new Error("write failed"));
-        },
-      });
-    });
-  try {
-    await expect(keepLogsBefore(file, 7)).rejects.toThrow("write failed");
-  } finally {
-    read.mockRestore();
-    write.mockRestore();
-  }
-  expect(input).toBeDefined();
-  expect(input.destroyed).toBe(true);
-  expect(fs.readFileSync(file, "utf8")).toBe(content);
-  expect(fs.existsSync(`${file}.tmp`)).toBe(false);
-});
-
-test("keepLogsBefore keeps a file of many chunks of the read", async () => {
-  const file = path.join(outDir, "segment.jsonl");
-  const line = (block) =>
-    JSON.stringify({ blockNumber: toHex(block), data: "0".repeat(100) });
-  const blocks = Array.from({ length: 30_000 }, (_, i) => i + 1);
-  const kept = blocks.slice(0, 25_000).map((block) => `${line(block)}\n`);
+  const logs = Array.from({ length: 30_000 }, (_, i) => ({
+    blockNumber: toHex(i + 1),
+    data: "0".repeat(100),
+  }));
+  const content = logs.map((log) => `${JSON.stringify(log)}\n`).join("");
   // Far more than one chunk of a read stream (64 KiB), so lines are cut
   // between chunks.
-  expect(kept.join("").length).toBeGreaterThan(1 << 20);
-  fs.writeFileSync(file, blocks.map((block) => `${line(block)}\n`).join(""));
-  await keepLogsBefore(file, 25_001);
-  expect(fs.readFileSync(file, "utf8")).toBe(kept.join(""));
+  expect(content.length).toBeGreaterThan(1 << 20);
+  fs.writeFileSync(file, content);
+  const read = [];
+  for await (const log of readParts([file])) read.push(log);
+  expect(read).toEqual(logs);
 });
 
 test("linesOf closes its input when the loop ends early", async () => {
