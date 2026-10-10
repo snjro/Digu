@@ -1,4 +1,4 @@
-import { writable } from "svelte/store";
+import { get, writable } from "svelte/store";
 import { getInitialState } from "./storeSyncStatusGetInitialState";
 import {
   updateStoreSyncStatusSummarized,
@@ -56,6 +56,15 @@ function store() {
   return { subscribe, set, update, updateState };
 }
 export const storeSyncStatus = store();
+
+// The store holds the event contracts of this build.
+export function isContractInStore(
+  contractIdentifier: ContractIdentifier,
+): boolean {
+  return (
+    getContractInState(get(storeSyncStatus), contractIdentifier) !== undefined
+  );
+}
 
 function getContractInState(
   state: SyncStatusesChain,

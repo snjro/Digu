@@ -2,7 +2,14 @@ import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import "fake-indexeddb/auto";
 import Dexie from "dexie";
 import { get } from "svelte/store";
-import { describe, vi, expect, test, type MockInstance } from "vitest";
+import {
+  describe,
+  vi,
+  expect,
+  onTestFinished,
+  test,
+  type MockInstance,
+} from "vitest";
 import type {
   ContractIdentifier,
   SyncStatusContract,
@@ -82,7 +89,13 @@ describe("startSyncingInChain and stopSyncingInChain with a row of a contract th
       projectName: targetChain.projects[0].name,
       versionName: version.name,
     };
+    // The cleanups run in the reverse order, each also when one before it
+    // failed, and their errors do not replace that of the test.
     const dbEventLogs = new DbEventLogs(versionIdentifier);
+    onTestFinished(() => dbEventLogs.close());
+    onTestFinished(async () => {
+      await dbEventLogs.table(tableNameSyncStatus).delete("UnknownContract");
+    });
     const unknownRow = async (): Promise<SyncStatusContract | undefined> =>
       await dbEventLogs.table(tableNameSyncStatus).get("UnknownContract");
     // The store of this tab has no such contract, and logs an error for the
@@ -90,49 +103,47 @@ describe("startSyncingInChain and stopSyncingInChain with a row of a contract th
     const spyError = vi
       .spyOn(customLogger, "error")
       .mockImplementation(() => {});
-    try {
-      const knownRow: SyncStatusContract | undefined = await dbEventLogs
-        .table(tableNameSyncStatus)
-        .get(extractEventContracts(version.contracts)[0].name);
-      expect(knownRow?.isSyncTarget).toBe(true);
-      // As a tab of another build left it.
-      await dbEventLogs.table(tableNameSyncStatus).put({
-        ...knownRow!,
-        name: "UnknownContract",
-        isSyncTarget: true,
-        isSyncing: false,
-      });
+    onTestFinished(() => spyError.mockRestore());
+    let stopped: boolean = false;
+    // Clear the rows that the start marked, when the test did not stop.
+    onTestFinished(async () => {
+      if (!stopped) await stopSyncingInChain(targetChain.name);
+    });
+    const knownRow: SyncStatusContract | undefined = await dbEventLogs
+      .table(tableNameSyncStatus)
+      .get(extractEventContracts(version.contracts)[0].name);
+    expect(knownRow?.isSyncTarget).toBe(true);
+    // As a tab of another build left it.
+    await dbEventLogs.table(tableNameSyncStatus).put({
+      ...knownRow!,
+      name: "UnknownContract",
+      isSyncTarget: true,
+      isSyncing: false,
+    });
 
-      const syncing: ContractIdentifier[] = await startSyncingInChain(
-        targetChain.name,
-      );
+    const syncing: ContractIdentifier[] = await startSyncingInChain(
+      targetChain.name,
+    );
 
-      expect((await unknownRow())?.isSyncing).toBe(true);
-      expect(syncing.map((contract) => contract.contractName)).not.toContain(
-        "UnknownContract",
-      );
-      expect(syncing).toContainEqual({
-        ...versionIdentifier,
-        contractName: knownRow!.name,
-      });
+    expect((await unknownRow())?.isSyncing).toBe(true);
+    expect(syncing.map((contract) => contract.contractName)).not.toContain(
+      "UnknownContract",
+    );
+    expect(syncing).toContainEqual({
+      ...versionIdentifier,
+      contractName: knownRow!.name,
+    });
 
-      await stopSyncingInChain(targetChain.name);
+    await stopSyncingInChain(targetChain.name);
+    stopped = true;
 
-      expect((await unknownRow())?.isSyncing).toBe(false);
-    } finally {
-      try {
-        // Clear the rows that the start marked, also when a check failed.
-        await stopSyncingInChain(targetChain.name);
-      } finally {
-        spyError.mockRestore();
-        try {
-          await dbEventLogs
-            .table(tableNameSyncStatus)
-            .delete("UnknownContract");
-        } finally {
-          dbEventLogs.close();
-        }
-      }
+    expect((await unknownRow())?.isSyncing).toBe(false);
+    // Every error is for the row that this build does not know.
+    for (const messages of spyError.mock.calls) {
+      expect(messages).toEqual([
+        expect.any(String),
+        expect.objectContaining({ contractName: "UnknownContract" }),
+      ]);
     }
   });
 
