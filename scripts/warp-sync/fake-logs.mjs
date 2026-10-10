@@ -1,6 +1,7 @@
 // For the tests of the scripts: the data and topics of a log of the first
 // event of a contract of loadChain, encoded with its ABI, and its event and
-// args as the snapshot writes them.
+// args as the snapshot writes them; the logs of the fake RPCs, and the logs
+// of the snapshot for them.
 import { getAddress } from "ethers";
 
 // A value of the type made from n, and the same value in the JSON of the
@@ -54,5 +55,44 @@ function encode(contract, n) {
     topics,
     event: fragment.name,
     args: parts.map((part) => part.json),
+  };
+}
+
+const toHex = (value) => `0x${value.toString(16)}`;
+
+// The log of contract at index in block, as the fake RPCs return it. Its
+// transactionHash is the n of its fakeEventLog: block * 10 + index.
+export function fakeRpcLog(contract, block, index) {
+  const n = block * 10 + index;
+  const { data, topics } = fakeEventLog(contract, n);
+  return {
+    blockNumber: toHex(block),
+    blockHash: `0x${block.toString(16).padStart(64, "0")}`,
+    blockTimestamp: toHex(block * 2),
+    transactionHash: `0x${n.toString(16).padStart(64, "0")}`,
+    transactionIndex: "0x0",
+    logIndex: toHex(index),
+    address: contract.address.toLowerCase(),
+    data,
+    topics,
+    removed: false,
+  };
+}
+
+// The log that the snapshot should have for a log of fakeRpcLog. Made by hand,
+// not with toSnapshotLog, so that the tests check it.
+export function expectedSnapshotLog(
+  contract,
+  { blockNumber, blockTimestamp, transactionHash, transactionIndex, logIndex },
+) {
+  const { event, args } = fakeEventLog(contract, Number(transactionHash));
+  return {
+    blockNumber,
+    blockTimestamp,
+    transactionHash,
+    transactionIndex,
+    logIndex,
+    event,
+    args,
   };
 }

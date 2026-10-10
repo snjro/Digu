@@ -23,7 +23,7 @@ import {
   parsePositiveInteger,
   RequestLimitError,
 } from "./build-snapshot.mjs";
-import { fakeEventLog } from "./fake-logs.mjs";
+import { expectedSnapshotLog, fakeRpcLog } from "./fake-logs.mjs";
 import { startFakeRpc } from "./fake-rpc.mjs";
 import { keyOf, writeManifest } from "./snapshot-format.mjs";
 
@@ -46,26 +46,14 @@ function logsOf(address, from, to) {
   const logs = [];
   for (let block = Math.ceil(from / STEP) * STEP; block <= to; block += STEP) {
     if (block < contract.creationBlock) continue;
+    // Out of order, so that the script sorts them.
     for (const index of [1, 0]) {
-      const { data, topics } = fakeEventLog(contract, block * 10 + index);
-      // Out of order, so that the script sorts them.
-      logs.push({
-        blockNumber: toHex(block),
-        blockHash: `0x${block.toString(16).padStart(64, "0")}`,
-        ...(withoutTimestamp && block % 3000 === 0
-          ? {}
-          : { blockTimestamp: toHex(block * 2) }),
-        transactionHash: `0x${(block * 10 + index).toString(16).padStart(64, "0")}`,
-        transactionIndex: "0x0",
-        logIndex: toHex(index),
-        address: address.toLowerCase(),
-        data,
-        topics,
-        removed: false,
-        ...(block === broken?.block && contract.name === broken.name
-          ? broken.fields
-          : {}),
-      });
+      const log = fakeRpcLog(contract, block, index);
+      if (withoutTimestamp && block % 3000 === 0) delete log.blockTimestamp;
+      if (block === broken?.block && contract.name === broken.name) {
+        Object.assign(log, broken.fields);
+      }
+      logs.push(log);
     }
   }
   return logs;
@@ -143,29 +131,7 @@ function expectedLogs(to) {
       );
     logs.set(
       key,
-      list.map(
-        ({
-          blockNumber,
-          blockTimestamp,
-          transactionHash,
-          transactionIndex,
-          logIndex,
-        }) => {
-          const { event, args } = fakeEventLog(
-            contract,
-            Number(transactionHash),
-          );
-          return {
-            blockNumber,
-            blockTimestamp,
-            transactionHash,
-            transactionIndex,
-            logIndex,
-            event,
-            args,
-          };
-        },
-      ),
+      list.map((log) => expectedSnapshotLog(contract, log)),
     );
   }
   return logs;

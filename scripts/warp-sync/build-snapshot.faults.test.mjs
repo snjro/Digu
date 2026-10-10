@@ -14,7 +14,7 @@ import { afterAll, beforeAll, expect, test } from "vitest";
 // No wait after a failure. Read when the script is imported.
 process.env.WARP_SYNC_RETRY_WAIT_MS = "0";
 const { buildSnapshot, loadChain } = await import("./build-snapshot.mjs");
-const { fakeEventLog } = await import("./fake-logs.mjs");
+const { expectedSnapshotLog, fakeRpcLog } = await import("./fake-logs.mjs");
 const { startFakeRpc } = await import("./fake-rpc.mjs");
 
 const chain = loadChain("matic");
@@ -33,21 +33,9 @@ function blocksWithLogs(from, to) {
   }
   return blocks;
 }
-const rpcFields = ({ data, topics }) => ({ data, topics });
 function logsOf(contract, from, to) {
   return blocksWithLogs(Math.max(from, contract.creationBlock), to).flatMap(
-    (block) =>
-      [0, 1].map((index) => ({
-        ...rpcFields(fakeEventLog(contract, block * 10 + index)),
-        blockNumber: toHex(block),
-        blockHash: `0x${block.toString(16).padStart(64, "0")}`,
-        blockTimestamp: toHex(block * 2),
-        transactionHash: `0x${(block * 10 + index).toString(16).padStart(64, "0")}`,
-        transactionIndex: "0x0",
-        logIndex: toHex(index),
-        address: contract.address.toLowerCase(),
-        removed: false,
-      })),
+    (block) => [0, 1].map((index) => fakeRpcLog(contract, block, index)),
   );
 }
 
@@ -177,22 +165,8 @@ test("has every log despite the faults of the RPC", async () => {
               ),
             ).logs,
         );
-      const expected = logsOf(contract, contract.creationBlock, TO).map(
-        (log) => {
-          const { event, args } = fakeEventLog(
-            contract,
-            Number(log.transactionHash),
-          );
-          return {
-            blockNumber: log.blockNumber,
-            blockTimestamp: log.blockTimestamp,
-            transactionHash: log.transactionHash,
-            transactionIndex: log.transactionIndex,
-            logIndex: log.logIndex,
-            event,
-            args,
-          };
-        },
+      const expected = logsOf(contract, contract.creationBlock, TO).map((log) =>
+        expectedSnapshotLog(contract, log),
       );
       expect(logs).toEqual(expected);
     }
