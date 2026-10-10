@@ -13,6 +13,7 @@ import {
   fetchLogs,
   MAX_WIDTH,
   MAX_WIDTHS,
+  retryFailures,
   retryRate,
   splitParts,
 } from "./fetch-logs.mjs";
@@ -47,7 +48,8 @@ const DEFAULT_CONCURRENCY = 24;
 const OUT_DIR = "out";
 
 // Decodes the logs, by block and log index, into the logs of the snapshot. A
-// log without blockTimestamp gets it from its block.
+// log without blockTimestamp gets it from its block, with rpc from
+// retryFailures.
 async function* toSnapshotLogs(rpc, contract, rawLogs) {
   let timestamp = undefined; // [blockNumber, blockTimestamp] of the last block asked
   for await (const raw of rawLogs) {
@@ -58,8 +60,9 @@ async function* toSnapshotLogs(rpc, contract, rawLogs) {
           raw.blockNumber,
           false,
         ]);
-        // null: the node does not have the block (#768). A block without a
-        // hex timestamp would write logs without their block time.
+        // null after the retries: the RPC does not have the block (#768). A
+        // block without a hex timestamp would write logs without their block
+        // time.
         if (!isHexQuantity(block?.timestamp)) {
           throw new Error(
             `${keyOf(contract)}: the RPC returned no block with a hex timestamp for block ${Number(raw.blockNumber)}, for the blockTimestamp of its logs.`,
@@ -282,6 +285,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
 
   // Writes the files one contract at a time, reading the logs of its parts
   // in the order of the blocks, so that the logs are not all in memory.
+  const askBlock = retryFailures(ask, { log, stats });
   const tmpDir = path.join(partialDir, OUT_DIR);
   fs.rmSync(tmpDir, { recursive: true, force: true });
   const rows = [];
@@ -292,7 +296,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
         contract,
         fromBlock: from,
         toBlock: end,
-        logs: toSnapshotLogs(ask, contract, readParts(files)),
+        logs: toSnapshotLogs(askBlock, contract, readParts(files)),
         outDir: tmpDir,
         maxLogs: chunkLogs,
       })),
@@ -382,7 +386,7 @@ function optionalPositiveInteger(values, name) {
   return values[name] === undefined ? undefined : positiveInteger(values, name);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.main) {
   const { values } = parseArgs({
     options: {
       chain: { type: "string" },
