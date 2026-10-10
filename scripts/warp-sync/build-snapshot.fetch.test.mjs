@@ -92,55 +92,6 @@ describe("fetchLogs", () => {
     ]);
   });
 
-  test("tries the same range again after HTTP 500, 504 and a node without old blocks", async () => {
-    const { asked, stats, widths } = await run(
-      [httpError(500), rpcError("historical state is not available"), [log(5)]],
-      1,
-      9_999,
-    );
-    expect(asked).toEqual([
-      [1, 9_999],
-      [1, 9_999],
-      [1, 9_999],
-    ]);
-    expect(widths.width).toBe(9_999);
-    expect(stats.errors).toEqual({
-      rate: 0,
-      results: 0,
-      unrelated: 2,
-      range: 0,
-    });
-  });
-
-  test("halves after three errors in a row of any kind", async () => {
-    const { asked } = await run(
-      [httpError(504), httpError(500), httpError(504), [log(5)], [log(5_005)]],
-      1,
-      9_999,
-    );
-    expect(asked.slice(0, 4)).toEqual([
-      [1, 9_999],
-      [1, 9_999],
-      [1, 9_999],
-      [1, 4_999],
-    ]);
-  });
-
-  test("halves after two range errors in a row", async () => {
-    const tooWide = rpcError("query exceeds max block range 5000");
-    const { asked, widths } = await run(
-      [tooWide, tooWide, [log(5)], [log(5_005)]],
-      1,
-      9_999,
-    );
-    expect(asked.slice(0, 3)).toEqual([
-      [1, 9_999],
-      [1, 9_999],
-      [1, 4_999],
-    ]);
-    expect(widths.maxWidth).toBe(4_999);
-  });
-
   test("halves at once, without counting a failure, when there are too many logs", async () => {
     const tooMany = rpcError("query exceeds max results 20000");
     const answers = Array.from({ length: 12 }, () => tooMany);
@@ -175,36 +126,26 @@ describe("fetchLogs", () => {
     ]);
   });
 
-  test("asks an empty range again, and keeps the logs of the second answer", async () => {
-    const { asked, ranges, stats } = await run([[], [log(7)]], 1, 9_999);
-    expect(asked).toEqual([
-      [1, 9_999],
-      [1, 9_999],
-    ]);
-    expect(ranges).toEqual([[1, 9_999, 1]]);
+  // The same range is asked once for each answer.
+  test.each([
+    [
+      "asks an empty range again, and keeps the logs of the second answer",
+      [[], [log(7)]],
+      1,
+    ],
+    [
+      "keeps the logs of the third answer after two empty answers",
+      [[], [], [log(7)]],
+      1,
+    ],
+    ["keeps an empty range that is empty three times", [[], [], []], 0],
+  ])("%s", async (_name, answers, logs) => {
+    const { asked, ranges, stats } = await run([...answers], 1, 9_999);
+    expect(asked).toEqual(answers.map(() => [1, 9_999]));
+    expect(ranges).toEqual([[1, 9_999, logs]]);
     expect(stats).toMatchObject({
       emptyRangesAskedAgain: 1,
-      emptyRangesWithLogs: 1,
-    });
-  });
-
-  test("keeps the logs of the third answer after two empty answers", async () => {
-    const { asked, ranges, stats } = await run([[], [], [log(7)]], 1, 9_999);
-    expect(asked).toHaveLength(3);
-    expect(ranges).toEqual([[1, 9_999, 1]]);
-    expect(stats).toMatchObject({
-      emptyRangesAskedAgain: 1,
-      emptyRangesWithLogs: 1,
-    });
-  });
-
-  test("keeps an empty range that is empty three times", async () => {
-    const { asked, ranges, stats } = await run([[], [], []], 1, 9_999);
-    expect(asked).toHaveLength(3);
-    expect(ranges).toEqual([[1, 9_999, 0]]);
-    expect(stats).toMatchObject({
-      emptyRangesAskedAgain: 1,
-      emptyRangesWithLogs: 0,
+      emptyRangesWithLogs: logs,
     });
   });
 
@@ -260,26 +201,54 @@ describe("fetchLogs", () => {
     });
   });
 
-  // Range errors halve after two in a row and errors of any kind after
+  // The same range is asked again after HTTP 500, 504 and a node without old
+  // blocks. Range errors halve after two in a row and errors of any kind after
   // three; an unrelated error in between counts only for the second.
   const rangeError = rpcError("query exceeds max block range 5000");
   test.each([
-    ["500, range", [httpError(500), rangeError], [9_999, 9_999, 9_999]],
+    [
+      "500, a node without old blocks",
+      [httpError(500), rpcError("historical state is not available")],
+      [9_999, 9_999, 9_999],
+      { width: 9_999 },
+    ],
+    [
+      "504, 500, 504",
+      [httpError(504), httpError(500), httpError(504)],
+      [9_999, 9_999, 9_999, 4_999],
+      {},
+    ],
+    [
+      "range, range",
+      [rangeError, rangeError],
+      [9_999, 9_999, 4_999],
+      { maxWidth: 4_999 },
+    ],
+    ["500, range", [httpError(500), rangeError], [9_999, 9_999, 9_999], {}],
     [
       "range, 500, range",
       [rangeError, httpError(500), rangeError],
       [9_999, 9_999, 9_999, 4_999],
+      {},
     ],
     [
       "500, range, 500",
       [httpError(500), rangeError, httpError(500)],
       [9_999, 9_999, 9_999, 4_999],
+      {},
     ],
-  ])("counts the failures of %s", async (_name, errors, widths) => {
-    const { asked, stats } = await run([...errors, [log(5)]], 1, 9_999);
-    expect(
-      asked.slice(0, widths.length).map(([from, to]) => to - from + 1),
-    ).toEqual(widths);
+  ])("counts the failures of %s", async (_name, errors, asks, sharedWidths) => {
+    const { asked, ranges, stats, widths } = await run(
+      [...errors, [log(5)]],
+      1,
+      9_999,
+    );
+    // Each from block 1 until the range of the last one works.
+    expect(asked.slice(0, asks.length)).toEqual(
+      asks.map((width) => [1, width]),
+    );
+    expect(ranges[0]).toEqual([1, asks.at(-1), 1]);
+    expect(widths).toMatchObject(sharedWidths);
     const range = errors.filter((error) => error === rangeError).length;
     expect(stats.errors).toEqual({
       rate: 0,
@@ -289,8 +258,19 @@ describe("fetchLogs", () => {
     });
   });
 
-  test("stops after ten failures in a row", async () => {
-    const answers = Array.from({ length: 10 }, () => httpError(500));
+  test.each([
+    [
+      "stops after ten failures in a row",
+      Array.from({ length: 10 }, () => httpError(500)),
+    ],
+    [
+      "stops after ten HTTP 500 in a row, with HTTP 429 in between",
+      Array.from({ length: 10 }, () => [
+        tooManyRequests(),
+        httpError(500),
+      ]).flat(),
+    ],
+  ])("%s", async (_name, answers) => {
     await expect(run(answers, 1, 9_999)).rejects.toThrow("HTTP 500");
   });
 });
@@ -340,14 +320,6 @@ describe("fetchLogs after HTTP 429", () => {
       unrelated: 3,
       range: 0,
     });
-  });
-
-  test("stops after ten HTTP 500 in a row, with HTTP 429 in between", async () => {
-    const answers = Array.from({ length: 10 }, () => [
-      tooManyRequests(),
-      httpError(500),
-    ]).flat();
-    await expect(run(answers, 1, 9_999)).rejects.toThrow("HTTP 500");
   });
 
   test("stops at 30 in a row, not after 29", async () => {
