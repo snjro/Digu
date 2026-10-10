@@ -322,15 +322,20 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
   });
 });
 
-test("keepLogsBefore drops the lines from the next block on", async () => {
+const shortLine = (block) => JSON.stringify({ blockNumber: toHex(block) });
+test.each([
+  [
+    "drops the lines from the next block on",
+    `${shortLine(5)}\n${shortLine(6)}\n${shortLine(7)}\n${shortLine(8)}\n{"blockNumber":"0x`,
+  ],
+  ["keeps a last line without a newline", `${shortLine(5)}\n${shortLine(6)}`],
+])("keepLogsBefore %s", async (_name, content) => {
   const file = path.join(outDir, "segment.jsonl");
-  const line = (block) => JSON.stringify({ blockNumber: toHex(block) });
-  fs.writeFileSync(
-    file,
-    `${line(5)}\n${line(6)}\n${line(7)}\n${line(8)}\n{"blockNumber":"0x`,
-  );
+  fs.writeFileSync(file, content);
   await keepLogsBefore(file, 7);
-  expect(fs.readFileSync(file, "utf8")).toBe(`${line(5)}\n${line(6)}\n`);
+  expect(fs.readFileSync(file, "utf8")).toBe(
+    `${shortLine(5)}\n${shortLine(6)}\n`,
+  );
 });
 
 test("keepLogsBefore keeps the file when its read fails", async () => {
@@ -415,14 +420,6 @@ test("linesOf closes its input when the loop ends early", async () => {
     break;
   }
   expect(input.destroyed).toBe(true);
-});
-
-test("keepLogsBefore keeps a last line without a newline", async () => {
-  const file = path.join(outDir, "segment.jsonl");
-  const line = (block) => JSON.stringify({ blockNumber: toHex(block) });
-  fs.writeFileSync(file, `${line(5)}\n${line(6)}`);
-  await keepLogsBefore(file, 7);
-  expect(fs.readFileSync(file, "utf8")).toBe(`${line(5)}\n${line(6)}\n`);
 });
 
 describe("parsePositiveInteger", () => {
