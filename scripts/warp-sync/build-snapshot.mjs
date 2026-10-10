@@ -792,8 +792,10 @@ async function build(chain, rpc, outDir, toBlock, options) {
   }
   moveChunkFiles(rows, tmpDir, dir, manifest);
 
+  // The contracts of the manifest, with every contract of the chain.
+  const contracts = new Map(known);
   for (const contract of chain.contracts) {
-    known.set(keyOf(contract), {
+    contracts.set(keyOf(contract), {
       project: contract.project,
       version: contract.version,
       name: contract.name,
@@ -801,7 +803,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
       creationBlock: contract.creationBlock,
     });
   }
-  manifest.contracts = [...known.values()];
+  manifest.contracts = [...contracts.values()];
   manifest.runs.push({
     createdAt: new Date().toISOString(),
     latestBlockNumber: latest,

@@ -25,6 +25,7 @@ import {
   RequestLimitError,
 } from "./build-snapshot.mjs";
 import { fakeEventLog } from "./fake-logs.mjs";
+import { keyOf, writeManifest } from "./snapshot-format.mjs";
 
 const chain = loadChain("matic");
 const LATEST = 16_200_000;
@@ -257,6 +258,55 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     }
     expect(logsInFiles(manifest)).toEqual(expectedLogs(16_100_000));
     await expect(build({ toBlock: 16_100_000 })).resolves.toBeUndefined();
+  });
+
+  // The contracts of matic created after block 15,000,000, taken out of the
+  // manifest of a run to that block, as if they were added to the app later.
+  const withoutLaterContracts = async () => {
+    await build({ toBlock: 15_000_000 });
+    const later = chain.contracts
+      .filter((contract) => contract.creationBlock > 15_000_000)
+      .map(keyOf);
+    expect(later.length).toBeGreaterThan(0);
+    const manifest = readManifest();
+    manifest.contracts = manifest.contracts.filter(
+      (contract) => !later.includes(keyOf(contract)),
+    );
+    writeManifest(path.join(dir(), "manifest.json"), manifest);
+    return later;
+  };
+
+  test("a run with a range to fetch adds the contracts created after its end", async () => {
+    const later = await withoutLaterContracts();
+    await build({ toBlock: 15_100_000 });
+    const keys = readManifest().contracts.map(keyOf);
+    for (const key of later) expect(keys).toContain(key);
+    expect(keys.sort()).toEqual(chain.contracts.map(keyOf).sort());
+  });
+
+  test("a run with no range to fetch keeps the manifest without the missing contracts", async () => {
+    await withoutLaterContracts();
+    const file = path.join(dir(), "manifest.json");
+    const before = fs.readFileSync(file, "utf8");
+    await expect(build({ toBlock: 15_000_000 })).resolves.toBeUndefined();
+    expect(fs.readFileSync(file, "utf8")).toBe(before);
+  });
+
+  test("a run with no range to fetch keeps a contract that the chain does not have", async () => {
+    await build({ toBlock: 15_000_000 });
+    const manifest = readManifest();
+    manifest.contracts.push({ ...manifest.contracts[0], name: "Other" });
+    const file = path.join(dir(), "manifest.json");
+    writeManifest(file, manifest);
+    const before = fs.readFileSync(file, "utf8");
+    await expect(build({ toBlock: 15_000_000 })).resolves.toBeUndefined();
+    expect(fs.readFileSync(file, "utf8")).toBe(before);
+  });
+
+  test("a run before every contract of a chain without a snapshot writes no manifest", async () => {
+    const first = Math.min(...chain.contracts.map((c) => c.creationBlock));
+    await expect(build({ toBlock: first - 1 })).resolves.toBeUndefined();
+    expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
   });
 
   test("gets blockTimestamp from the block when the RPC does not return it", async () => {
