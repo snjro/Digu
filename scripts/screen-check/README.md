@@ -124,7 +124,8 @@ python3 scripts/screen-check/judge.py <out-dir>
 ```
 
 The scripts write their judgements to the results; the exit code of a
-`run.sh` is not 0 only when a script or Docker failed.
+`run.sh` is not 0 only when a script or Docker failed, or when `smoke.mjs`
+of `sync/` gets an answer it does not expect (it writes no results).
 
 Every check writes its records in one shape, with `createResults()` of
 `scripts/check-lib/results.mjs`: a file with a `results` list of
@@ -226,7 +227,10 @@ other hosts are blocked (DNS and request interception). The RPC URLs
   that an earlier step left, so a step alone can fail where the whole script
   passes.
 - Each step prints `[<id>] OK`, `NG`, `CHECK` or `ERROR` (an exception in the
-  script). At the end, `[summary]` counts the console errors and warnings,
+  script). A value that a script can compare is an `OK`/`NG` record of its
+  own, and `CHECK` keeps only the screenshots: for example, `4-logs` of
+  `sec4.mjs` is `CHECK`, and its paging, sort and columns are
+  `4-logs-paging`, `4-logs-sort` and `4-logs-columns`. At the end, `[summary]` counts the console errors and warnings,
   page errors, Content Security Policy violations (`csp`) and 404 responses,
   and prints each violation.
 
@@ -256,6 +260,10 @@ the confirmation depth of the build (`confirmationBlocks` of
 `sync-check.mjs` answers the RPC URL with it through request interception, so
 nothing leaves the container. The RPC URL has a key-like path, to check that
 it does not show in the console (#483).
+
+`smoke.mjs` asks the fake RPC with ethers, without a browser. It exits 1 when
+the chain id is not 1, or when the number of logs of a query is not the
+number of the logs `fake-rpc.mjs` made in its range.
 
 | Scenario | What it does                                                                                                                                                                                             |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

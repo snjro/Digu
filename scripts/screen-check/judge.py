@@ -33,7 +33,8 @@ NO_RESULTS = {
     # merge.py joins the results of ui into ui/results.json for a person.
     "ui-merge",
     # smoke.mjs prints what the fake RPC answers to ethers, before the browser
-    # runs. It judges nothing; it ends with an exception when ethers fails.
+    # runs. It exits 1 when the chain id or the number of logs is not what the
+    # fake RPC should answer, and ends with an exception when ethers fails.
     "sync-smoke",
 }
 
