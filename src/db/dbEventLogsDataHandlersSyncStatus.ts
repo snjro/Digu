@@ -15,15 +15,28 @@ import { updateSyncStatusInChain } from "./dbEventLogsDataHandlersSyncStatusUpda
 // changed since this tab read them, and returns those that this build syncs:
 // its event contracts. A row of a contract that this build does not know
 // (from a tab of another build) is marked too, and cleared by the stop.
+// Each version is a DB of its own, so the write of one version may fail after
+// others have committed: then it stops the chain, which this tab holds, so
+// that no contract is left syncing without a sync, and rethrows.
 export async function startSyncingInChain(
   chainName: ChainName,
 ): Promise<ContractIdentifier[]> {
-  const marked: ContractIdentifier[] = await updateSyncStatusInChain(
-    chainName,
-    "isSyncTarget",
-    true,
-    { isSyncing: true },
-  );
+  let marked: ContractIdentifier[];
+  try {
+    marked = await updateSyncStatusInChain(chainName, "isSyncTarget", true, {
+      isSyncing: true,
+    });
+  } catch (error) {
+    // The versions whose write fails here keep their flags until the reset
+    // at the next start of a sync or startup.
+    await stopSyncingInChain(chainName).catch((stopError: unknown) => {
+      customLogger.error("Write back the flags of a failed start.", {
+        chainName: chainName,
+        errorObject: stopError,
+      });
+    });
+    throw error;
+  }
   return marked.filter((contractIdentifier: ContractIdentifier) =>
     extractEventContracts(getTargetVersion(contractIdentifier).contracts).some(
       (contract: Contract) => contract.name === contractIdentifier.contractName,
