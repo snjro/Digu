@@ -1,14 +1,14 @@
 // fetchLogs with a scripted RPC: the widths after each kind of error, and an
 // empty result asked again (#576, #580).
 import fs from "node:fs";
-import http from "node:http";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 // No wait after a failure. Read when the script is imported.
 process.env.WARP_SYNC_RETRY_WAIT_MS = "0";
 const script = await import("./build-snapshot.mjs");
+const { startFakeRpc } = await import("./fake-rpc.mjs");
 
 const contract = { name: "C", address: "0xc", topics: ["0x01"] };
 const httpError = (status) => new script.RpcError("eth_getLogs", { status });
@@ -92,55 +92,6 @@ describe("fetchLogs", () => {
     ]);
   });
 
-  test("tries the same range again after HTTP 500, 504 and a node without old blocks", async () => {
-    const { asked, stats, widths } = await run(
-      [httpError(500), rpcError("historical state is not available"), [log(5)]],
-      1,
-      9_999,
-    );
-    expect(asked).toEqual([
-      [1, 9_999],
-      [1, 9_999],
-      [1, 9_999],
-    ]);
-    expect(widths.width).toBe(9_999);
-    expect(stats.errors).toEqual({
-      rate: 0,
-      results: 0,
-      unrelated: 2,
-      range: 0,
-    });
-  });
-
-  test("halves after three errors in a row of any kind", async () => {
-    const { asked } = await run(
-      [httpError(504), httpError(500), httpError(504), [log(5)], [log(5_005)]],
-      1,
-      9_999,
-    );
-    expect(asked.slice(0, 4)).toEqual([
-      [1, 9_999],
-      [1, 9_999],
-      [1, 9_999],
-      [1, 4_999],
-    ]);
-  });
-
-  test("halves after two range errors in a row", async () => {
-    const tooWide = rpcError("query exceeds max block range 5000");
-    const { asked, widths } = await run(
-      [tooWide, tooWide, [log(5)], [log(5_005)]],
-      1,
-      9_999,
-    );
-    expect(asked.slice(0, 3)).toEqual([
-      [1, 9_999],
-      [1, 9_999],
-      [1, 4_999],
-    ]);
-    expect(widths.maxWidth).toBe(4_999);
-  });
-
   test("halves at once, without counting a failure, when there are too many logs", async () => {
     const tooMany = rpcError("query exceeds max results 20000");
     const answers = Array.from({ length: 12 }, () => tooMany);
@@ -175,36 +126,26 @@ describe("fetchLogs", () => {
     ]);
   });
 
-  test("asks an empty range again, and keeps the logs of the second answer", async () => {
-    const { asked, ranges, stats } = await run([[], [log(7)]], 1, 9_999);
-    expect(asked).toEqual([
-      [1, 9_999],
-      [1, 9_999],
-    ]);
-    expect(ranges).toEqual([[1, 9_999, 1]]);
+  // The same range is asked once for each answer.
+  test.each([
+    [
+      "asks an empty range again, and keeps the logs of the second answer",
+      [[], [log(7)]],
+      1,
+    ],
+    [
+      "keeps the logs of the third answer after two empty answers",
+      [[], [], [log(7)]],
+      1,
+    ],
+    ["keeps an empty range that is empty three times", [[], [], []], 0],
+  ])("%s", async (_name, answers, logs) => {
+    const { asked, ranges, stats } = await run([...answers], 1, 9_999);
+    expect(asked).toEqual(answers.map(() => [1, 9_999]));
+    expect(ranges).toEqual([[1, 9_999, logs]]);
     expect(stats).toMatchObject({
       emptyRangesAskedAgain: 1,
-      emptyRangesWithLogs: 1,
-    });
-  });
-
-  test("keeps the logs of the third answer after two empty answers", async () => {
-    const { asked, ranges, stats } = await run([[], [], [log(7)]], 1, 9_999);
-    expect(asked).toHaveLength(3);
-    expect(ranges).toEqual([[1, 9_999, 1]]);
-    expect(stats).toMatchObject({
-      emptyRangesAskedAgain: 1,
-      emptyRangesWithLogs: 1,
-    });
-  });
-
-  test("keeps an empty range that is empty three times", async () => {
-    const { asked, ranges, stats } = await run([[], [], []], 1, 9_999);
-    expect(asked).toHaveLength(3);
-    expect(ranges).toEqual([[1, 9_999, 0]]);
-    expect(stats).toMatchObject({
-      emptyRangesAskedAgain: 1,
-      emptyRangesWithLogs: 0,
+      emptyRangesWithLogs: logs,
     });
   });
 
@@ -260,38 +201,93 @@ describe("fetchLogs", () => {
     });
   });
 
-  // Range errors halve after two in a row and errors of any kind after
+  // The same range is asked again after HTTP 500, 504 and a node without old
+  // blocks. Range errors halve after two in a row and errors of any kind after
   // three; an unrelated error in between counts only for the second.
   const rangeError = rpcError("query exceeds max block range 5000");
   test.each([
-    ["500, range", [httpError(500), rangeError], [9_999, 9_999, 9_999]],
+    [
+      "500, a node without old blocks",
+      [httpError(500), rpcError("historical state is not available")],
+      [[log(5)]],
+      [9_999, 9_999, 9_999],
+      { width: 9_999 },
+    ],
+    [
+      "504, 500, 504",
+      [httpError(504), httpError(500), httpError(504)],
+      [[log(5)], [log(5_005)]],
+      [9_999, 9_999, 9_999, 4_999],
+      {},
+    ],
+    [
+      "range, range",
+      [rangeError, rangeError],
+      [[log(5)], [log(5_005)]],
+      [9_999, 9_999, 4_999],
+      { maxWidth: 4_999 },
+    ],
+    [
+      "500, range",
+      [httpError(500), rangeError],
+      [[log(5)]],
+      [9_999, 9_999, 9_999],
+      {},
+    ],
     [
       "range, 500, range",
       [rangeError, httpError(500), rangeError],
+      [[log(5)]],
       [9_999, 9_999, 9_999, 4_999],
+      {},
     ],
     [
       "500, range, 500",
       [httpError(500), rangeError, httpError(500)],
+      [[log(5)]],
       [9_999, 9_999, 9_999, 4_999],
+      {},
     ],
-  ])("counts the failures of %s", async (_name, errors, widths) => {
-    const { asked, stats } = await run([...errors, [log(5)]], 1, 9_999);
-    expect(
-      asked.slice(0, widths.length).map(([from, to]) => to - from + 1),
-    ).toEqual(widths);
-    const range = errors.filter((error) => error === rangeError).length;
-    expect(stats.errors).toEqual({
-      rate: 0,
-      results: 0,
-      unrelated: errors.length - range,
-      range,
-    });
-  });
+  ])(
+    "counts the failures of %s",
+    async (_name, errors, logs, asks, sharedWidths) => {
+      const { asked, ranges, stats, widths } = await run(
+        [...errors, ...logs],
+        1,
+        9_999,
+      );
+      // Each from block 1 until the range of the last one works. A last one
+      // of every block is the last ask.
+      const every = asks.at(-1) === 9_999;
+      expect(every ? asked : asked.slice(0, asks.length)).toEqual(
+        asks.map((width) => [1, width]),
+      );
+      expect(ranges[0]).toEqual([1, asks.at(-1), 1]);
+      expect(widths).toMatchObject(sharedWidths);
+      const range = errors.filter((error) => error === rangeError).length;
+      expect(stats.errors).toEqual({
+        rate: 0,
+        results: 0,
+        unrelated: errors.length - range,
+        range,
+      });
+    },
+  );
 
-  test("stops after ten failures in a row", async () => {
-    const answers = Array.from({ length: 10 }, () => httpError(500));
-    await expect(run(answers, 1, 9_999)).rejects.toThrow("HTTP 500");
+  test.each([
+    [
+      "stops after ten failures in a row",
+      Array.from({ length: 10 }, () => httpError(500)),
+    ],
+    [
+      "stops after ten HTTP 500 in a row, with HTTP 429 in between",
+      Array.from({ length: 10 }, () => [
+        tooManyRequests(),
+        httpError(500),
+      ]).flat(),
+    ],
+  ])("%s", async (_name, answers) => {
+    await expect(run([...answers], 1, 9_999)).rejects.toThrow("HTTP 500");
   });
 });
 
@@ -340,14 +336,6 @@ describe("fetchLogs after HTTP 429", () => {
       unrelated: 3,
       range: 0,
     });
-  });
-
-  test("stops after ten HTTP 500 in a row, with HTTP 429 in between", async () => {
-    const answers = Array.from({ length: 10 }, () => [
-      tooManyRequests(),
-      httpError(500),
-    ]).flat();
-    await expect(run(answers, 1, 9_999)).rejects.toThrow("HTTP 500");
   });
 
   test("stops at 30 in a row, not after 29", async () => {
@@ -591,13 +579,12 @@ describe("createRpc", () => {
     [undefined, undefined],
     ["Wed, 21 Oct 2026 07:28:00 GMT", undefined],
   ])("reads Retry-After %s of HTTP 429 as %s", async (header, seconds) => {
-    const server = http.createServer((_req, res) => {
+    const server = await startFakeRpc((_request, _send, res) => {
       res.writeHead(429, header === undefined ? {} : { "retry-after": header });
       res.end();
     });
-    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     try {
-      const rpc = script.createRpc(`http://127.0.0.1:${server.address().port}`);
+      const rpc = script.createRpc(server.url);
       const error = await rpc("eth_blockNumber").catch((error) => error);
       expect(error).toBeInstanceOf(script.RpcError);
       expect(error.status).toBe(429);
@@ -628,78 +615,61 @@ describe("createRpc", () => {
 });
 
 describe("withKey", () => {
+  let dir;
+  let file;
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-key-"));
+    file = path.join(dir, "key");
+    fs.writeFileSync(file, "abc123\n");
+  });
+  afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
+
   test("adds the key in the file to the end of the URL", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-key-"));
-    try {
-      const file = path.join(dir, "key");
-      fs.writeFileSync(file, "abc123\n");
-      expect(script.withKey("https://rpc.example/v3/", file)).toBe(
-        "https://rpc.example/v3/abc123",
-      );
-      expect(script.withKey("https://rpc.example/", undefined)).toBe(
-        "https://rpc.example/",
-      );
-      fs.writeFileSync(file, "\n");
-      expect(() => script.withKey("https://rpc.example/", file)).toThrow(
-        "is empty",
-      );
-    } finally {
-      fs.rmSync(dir, { recursive: true, force: true });
-    }
+    expect(script.withKey("https://rpc.example/v3/", file)).toBe(
+      "https://rpc.example/v3/abc123",
+    );
+    expect(script.withKey("https://rpc.example/", undefined)).toBe(
+      "https://rpc.example/",
+    );
+    fs.writeFileSync(file, "\n");
+    expect(() => script.withKey("https://rpc.example/", file)).toThrow(
+      "is empty",
+    );
   });
 
   test("checks the URL before it reads the key file", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-key-"));
-    try {
-      expect(() =>
-        script.withKey("rpc.example/v3/", path.join(dir, "missing")),
-      ).toThrow("--rpc");
-    } finally {
-      fs.rmSync(dir, { recursive: true, force: true });
-    }
+    expect(() =>
+      script.withKey("rpc.example/v3/", path.join(dir, "missing")),
+    ).toThrow("--rpc");
   });
 
   test("a URL that the key cannot be added to throws without the key", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-key-"));
-    try {
-      const file = path.join(dir, "key");
-      fs.writeFileSync(file, "abc123\n");
-      for (const url of [
-        "https://rpc.example",
-        "https://rpc.example:",
-        "ftp://rpc.example/",
-        "https://rpc.example/v3",
-        "https://rpc.example/v3/#/",
-        "https://user@rpc.example/v3/",
-        "https://user:pw-zq7x@rpc.example/v3/",
-      ]) {
-        let error;
-        try {
-          script.withKey(url, file);
-        } catch (thrown) {
-          error = thrown;
-        }
-        expect(error, url).toBeInstanceOf(Error);
-        expect(error.message, url).toContain("--rpc");
-        expect(error.message, url).not.toContain("abc123");
-        expect(error.message, url).not.toContain("pw-zq7x");
+    for (const url of [
+      "https://rpc.example",
+      "https://rpc.example:",
+      "ftp://rpc.example/",
+      "https://rpc.example/v3",
+      "https://rpc.example/v3/#/",
+      "https://user@rpc.example/v3/",
+      "https://user:pw-zq7x@rpc.example/v3/",
+    ]) {
+      let error;
+      try {
+        script.withKey(url, file);
+      } catch (thrown) {
+        error = thrown;
       }
-    } finally {
-      fs.rmSync(dir, { recursive: true, force: true });
+      expect(error, url).toBeInstanceOf(Error);
+      expect(error.message, url).toContain("--rpc");
+      expect(error.message, url).not.toContain("abc123");
+      expect(error.message, url).not.toContain("pw-zq7x");
     }
   });
 
   test("adds the key to the end of the query", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-key-"));
-    try {
-      const file = path.join(dir, "key");
-      fs.writeFileSync(file, "abc123\n");
-      expect(script.withKey("https://rpc.example/?apikey=", file)).toBe(
-        "https://rpc.example/?apikey=abc123",
-      );
-    } finally {
-      fs.rmSync(dir, { recursive: true, force: true });
-    }
+    expect(script.withKey("https://rpc.example/?apikey=", file)).toBe(
+      "https://rpc.example/?apikey=abc123",
+    );
   });
 });
 

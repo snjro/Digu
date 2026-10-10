@@ -1,7 +1,6 @@
 // Runs the script against a fake RPC on localhost, with the contracts of
 // Polygon in src/constants/chains.
 import fs from "node:fs";
-import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { Readable, Writable } from "node:stream";
@@ -24,7 +23,9 @@ import {
   parsePositiveInteger,
   RequestLimitError,
 } from "./build-snapshot.mjs";
-import { fakeEventLog } from "./fake-logs.mjs";
+import { checkSnapshotFiles } from "./check-files.mjs";
+import { expectedSnapshotLog, fakeRpcLog } from "./fake-logs.mjs";
+import { startFakeRpc } from "./fake-rpc.mjs";
 import { keyOf, writeManifest } from "./snapshot-format.mjs";
 
 const chain = loadChain("matic");
@@ -46,58 +47,37 @@ function logsOf(address, from, to) {
   const logs = [];
   for (let block = Math.ceil(from / STEP) * STEP; block <= to; block += STEP) {
     if (block < contract.creationBlock) continue;
+    // Out of order, so that the script sorts them.
     for (const index of [1, 0]) {
-      const { data, topics } = fakeEventLog(contract, block * 10 + index);
-      // Out of order, so that the script sorts them.
-      logs.push({
-        blockNumber: toHex(block),
-        blockHash: `0x${block.toString(16).padStart(64, "0")}`,
-        ...(withoutTimestamp && block % 3000 === 0
-          ? {}
-          : { blockTimestamp: toHex(block * 2) }),
-        transactionHash: `0x${(block * 10 + index).toString(16).padStart(64, "0")}`,
-        transactionIndex: "0x0",
-        logIndex: toHex(index),
-        address: address.toLowerCase(),
-        data,
-        topics,
-        removed: false,
-        ...(block === broken?.block && contract.name === broken.name
-          ? broken.fields
-          : {}),
-      });
+      const log = fakeRpcLog(contract, block, index);
+      if (withoutTimestamp && block % 3000 === 0) delete log.blockTimestamp;
+      if (block === broken?.block && contract.name === broken.name) {
+        Object.assign(log, broken.fields);
+      }
+      logs.push(log);
     }
   }
   return logs;
 }
 
-let server;
-let url;
+let rpc;
 beforeAll(async () => {
-  server = http.createServer((req, res) => {
-    let body = "";
-    req.on("data", (data) => (body += data));
-    req.on("end", () => {
-      const { id, method, params } = JSON.parse(body);
-      requests.push(method);
-      let result;
-      if (method === "eth_chainId") result = toHex(chain.chainId);
-      if (method === "eth_blockNumber") result = toHex(LATEST);
-      if (method === "eth_getLogs") {
-        const [{ address, fromBlock, toBlock }] = params;
-        result = logsOf(address, Number(fromBlock), Number(toBlock));
-      }
-      if (method === "eth_getBlockByNumber") {
-        result = { timestamp: toHex(Number(params[0]) * 2) };
-      }
-      res.writeHead(200, { "content-type": "application/json" });
-      res.end(JSON.stringify({ jsonrpc: "2.0", id, result }));
-    });
+  rpc = await startFakeRpc(({ method, params }, send) => {
+    requests.push(method);
+    let result;
+    if (method === "eth_chainId") result = toHex(chain.chainId);
+    if (method === "eth_blockNumber") result = toHex(LATEST);
+    if (method === "eth_getLogs") {
+      const [{ address, fromBlock, toBlock }] = params;
+      result = logsOf(address, Number(fromBlock), Number(toBlock));
+    }
+    if (method === "eth_getBlockByNumber") {
+      result = { timestamp: toHex(Number(params[0]) * 2) };
+    }
+    send(200, { result });
   });
-  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-  url = `http://127.0.0.1:${server.address().port}`;
 });
-afterAll(() => server.close());
+afterAll(() => rpc.close());
 
 let outDir;
 beforeEach(() => {
@@ -111,7 +91,7 @@ afterEach(() => fs.rmSync(outDir, { recursive: true, force: true }));
 const build = (options) =>
   buildSnapshot({
     chainName: "matic",
-    rpcUrl: url,
+    rpcUrl: rpc.url,
     outDir,
     maxRequests: 10_000,
     log: () => {},
@@ -152,29 +132,7 @@ function expectedLogs(to) {
       );
     logs.set(
       key,
-      list.map(
-        ({
-          blockNumber,
-          blockTimestamp,
-          transactionHash,
-          transactionIndex,
-          logIndex,
-        }) => {
-          const { event, args } = fakeEventLog(
-            contract,
-            Number(transactionHash),
-          );
-          return {
-            blockNumber,
-            blockTimestamp,
-            transactionHash,
-            transactionIndex,
-            logIndex,
-            event,
-            args,
-          };
-        },
-      ),
+      list.map((log) => expectedSnapshotLog(contract, log)),
     );
   }
   return logs;
@@ -199,28 +157,18 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       }),
     ]);
     expect(logsInFiles(manifest)).toEqual(expectedLogs(16_000_000));
-    // The ranges of each contract follow each other from the creation block.
+    // The ranges from the creation block, the files and the totals.
+    expect(checkSnapshotFiles(outDir, ["matic"])).toEqual([]);
     for (const contract of chain.contracts) {
       const rows = manifest.chunks.filter((row) => row.name === contract.name);
-      expect(rows[0].fromBlock).toBe(contract.creationBlock);
       expect(rows.at(-1).toBlock).toBe(16_000_000);
-      for (let i = 1; i < rows.length; i++)
-        expect(rows[i].fromBlock).toBe(rows[i - 1].toBlock + 1);
       for (const row of rows) expect(row.logCount).toBeLessThanOrEqual(50);
     }
-    const files = manifest.chunks
-      .filter((row) => row.file)
-      .map((row) => row.file);
-    expect(fs.readdirSync(dir()).sort()).toEqual(
-      [...files, "manifest.json"].sort(),
-    );
+    // No .partial/ and no other file than the .json.gz files.
+    expect(
+      fs.readdirSync(dir()).filter((file) => !file.endsWith(".json.gz")),
+    ).toEqual(["manifest.json"]);
     expect(manifest.totals.logCount).toBe(manifest.runs[0].logCount);
-    expect(manifest.totals.logCount).toBe(
-      [...expectedLogs(16_000_000).values()].reduce(
-        (sum, list) => sum + list.length,
-        0,
-      ),
-    );
   });
 
   test("goes on after a stop, with the same files", async () => {
@@ -374,15 +322,20 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
   });
 });
 
-test("keepLogsBefore drops the lines from the next block on", async () => {
+const shortLine = (block) => JSON.stringify({ blockNumber: toHex(block) });
+test.each([
+  [
+    "drops the lines from the next block on",
+    `${shortLine(5)}\n${shortLine(6)}\n${shortLine(7)}\n${shortLine(8)}\n{"blockNumber":"0x`,
+  ],
+  ["keeps a last line without a newline", `${shortLine(5)}\n${shortLine(6)}`],
+])("keepLogsBefore %s", async (_name, content) => {
   const file = path.join(outDir, "segment.jsonl");
-  const line = (block) => JSON.stringify({ blockNumber: toHex(block) });
-  fs.writeFileSync(
-    file,
-    `${line(5)}\n${line(6)}\n${line(7)}\n${line(8)}\n{"blockNumber":"0x`,
-  );
+  fs.writeFileSync(file, content);
   await keepLogsBefore(file, 7);
-  expect(fs.readFileSync(file, "utf8")).toBe(`${line(5)}\n${line(6)}\n`);
+  expect(fs.readFileSync(file, "utf8")).toBe(
+    `${shortLine(5)}\n${shortLine(6)}\n`,
+  );
 });
 
 test("keepLogsBefore keeps the file when its read fails", async () => {
@@ -467,14 +420,6 @@ test("linesOf closes its input when the loop ends early", async () => {
     break;
   }
   expect(input.destroyed).toBe(true);
-});
-
-test("keepLogsBefore keeps a last line without a newline", async () => {
-  const file = path.join(outDir, "segment.jsonl");
-  const line = (block) => JSON.stringify({ blockNumber: toHex(block) });
-  fs.writeFileSync(file, `${line(5)}\n${line(6)}`);
-  await keepLogsBefore(file, 7);
-  expect(fs.readFileSync(file, "utf8")).toBe(`${line(5)}\n${line(6)}\n`);
 });
 
 describe("parsePositiveInteger", () => {
