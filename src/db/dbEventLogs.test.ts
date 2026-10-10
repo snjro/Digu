@@ -22,6 +22,10 @@ import { extractEventContracts } from "#utils/utilsEthers.js";
 import { getInitialDataOfSyncStatusContract } from "./dbEventLogsAddInitialData";
 import Dexie from "dexie";
 import type { Contract } from "#constants/chains/types.js";
+import {
+  schemaVersion1,
+  syncStatusesVersion1,
+} from "./dbEventLogsVersion1.fixture";
 
 describe("DbEventLogs", () => {
   for (const targetChain of TARGET_CHAINS) {
@@ -242,6 +246,48 @@ describe("the upgrade to version 2", () => {
       syncedSyncStatus,
     );
     expect(await dbEventLogs.table(syncedTableName).count()).toBe(1);
+    dbEventLogs.close();
+    await Dexie.delete(dbName);
+  });
+
+  test("should make the database of version 1 of v1.1.2 the same as a new one, with addInitialDataOfDbEventLogs", async () => {
+    const versionIdentifier: VersionIdentifier = {
+      chainName: "eth",
+      projectName: "Augur",
+      versionName: "version2",
+    };
+    const tableName = DB_TABLE_NAMES.EventLog.syncStatus;
+    const dbName: string = new DbEventLogs(versionIdentifier).name;
+    await Dexie.delete(dbName);
+
+    // a new database
+    const newDb: DbEventLogs = new DbEventLogs(versionIdentifier);
+    await newDb.open();
+    const newStoreNames: string[] = [...newDb.backendDB().objectStoreNames];
+    const newSyncStatuses = await newDb.table(tableName).toArray();
+    newDb.close();
+    await Dexie.delete(dbName);
+    // the fixture has the removed contracts
+    expect(Object.keys(schemaVersion1)).toContain("USDT_Transfer");
+    expect(newStoreNames).not.toContain("USDT_Transfer");
+
+    // the database of version 1 of v1.1.2
+    const oldDb = new Dexie(dbName);
+    oldDb.version(1).stores(schemaVersion1);
+    await oldDb.table(tableName).bulkAdd(syncStatusesVersion1);
+    oldDb.close();
+
+    // call target
+    const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
+    await dbEventLogs.open();
+    await addInitialDataOfDbEventLogs(dbEventLogs);
+
+    expect([...dbEventLogs.backendDB().objectStoreNames]).toEqual(
+      newStoreNames,
+    );
+    expect(await dbEventLogs.table(tableName).toArray()).toEqual(
+      newSyncStatuses,
+    );
     dbEventLogs.close();
     await Dexie.delete(dbName);
   });
