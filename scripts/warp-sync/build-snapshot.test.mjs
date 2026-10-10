@@ -254,6 +254,26 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       (_file, state) => ({ ...state, fromBlock: state.fromBlock - 1 }),
     ],
     [
+      "its state is for another address",
+      (file, state) => {
+        // Its logs too, as if the app changed the address after the stop.
+        const other = `0x${"9".repeat(40)}`;
+        const lines = fs
+          .readFileSync(file, "utf8")
+          .split("\n")
+          .map(
+            (line) =>
+              line && JSON.stringify({ ...JSON.parse(line), address: other }),
+          );
+        fs.writeFileSync(file, lines.join("\n"));
+        return { ...state, address: other };
+      },
+    ],
+    [
+      "its state has no address",
+      (_file, state) => ({ ...state, address: undefined }),
+    ],
+    [
       "its .jsonl file is missing",
       (file, state) => {
         fs.rmSync(file);
@@ -282,6 +302,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     fs.writeFileSync(stateFile, JSON.stringify(change(file, state)));
     const messages = [];
     await build({ log: (message) => messages.push(message) });
+    expect(checkSnapshotFiles(outDir, ["matic"])).toEqual([]);
     expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
     const label = `${state.project}/${state.version}/${state.name} ${state.partFrom}-${state.partTo}`;
     expect(messages).toContainEqual(
