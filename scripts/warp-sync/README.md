@@ -60,12 +60,12 @@ contracts, addresses and creation blocks), and that no other folder has a
 `manifest.json`. So a contract with events added to the app needs a run of
 `build-snapshot.mjs` for its chain before its pull request passes. A contract with events
 removed from the app, or with another address or creation block, fails the
-check too, and a run cannot fix all of these yet (#761): the script keeps a
-removed contract and stops at a changed one. A run that has some range to
-fetch adds every contract of the chain to `manifest.contracts`, also one
-created after its end. A run with no range to fetch ends at "Nothing to add"
-and does not change the manifest, so it cannot add a missing contract
-(#761).
+check too. A run that has some range to fetch drops such a contract from the
+manifest, with its chunks and files, and names it in its output; a changed
+one is fetched again from its creation block. It adds every contract of the
+chain to `manifest.contracts`, also one created after its end. A run with no
+range to fetch ends at "Nothing to add" and does not change the manifest, so
+it cannot add a missing contract or drop one (#761).
 `WARP_SYNC_SNAPSHOT_CHECK=off` does not turn this check off.
 
 ```sh
@@ -174,9 +174,9 @@ another `--rpc` that has the block.
 
 The first run fetches from the creation block of each contract. A later run
 reads `manifest.json` and fetches only the blocks after the last run, into
-new files. It stops when a contract changed its address or creation block,
-and when a file that it would write is there already (another run to the
-same block would overwrite it). A run that stopped after it moved its files
+new files. It stops when a file that it would write is there already
+(another run to the same block would overwrite it), except a file of a
+contract that it drops. A run that stopped after it moved its files
 next to the manifest and before it wrote the manifest leaves files that the
 manifest does not list, and the next run stops at them: delete the files that
 are not in `manifest.json` (`git status` shows them), and run it again.

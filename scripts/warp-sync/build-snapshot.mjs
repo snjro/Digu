@@ -29,6 +29,7 @@ import { createRpc, RequestLimitError } from "./rpc.mjs";
 import {
   CHUNK_LOGS,
   chunkFileName,
+  compareContracts,
   isHexQuantity,
   keyOf,
   lastBlocks,
@@ -139,20 +140,18 @@ async function build(chain, rpc, outDir, toBlock, options) {
 
   const manifestFile = path.join(dir, "manifest.json");
   const manifest = readManifest(manifestFile, chain);
-  const known = new Map(manifest.contracts.map((c) => [keyOf(c), c]));
-  for (const contract of chain.contracts) {
-    const before = known.get(keyOf(contract));
-    if (
-      before &&
-      (before.address.toLowerCase() !== contract.address.toLowerCase() ||
-        before.creationBlock !== contract.creationBlock)
-    ) {
-      throw new Error(
-        `${keyOf(contract)} changed its address or creation block.`,
-      );
-    }
-  }
-  const last = lastBlocks(manifest);
+  // The contracts of the manifest that the app does not import: a run that
+  // writes drops them, with their chunks and files, so that one with another
+  // address or creation block is fetched again from its creation block.
+  // Their parts in .partial/ are kept, so that a run that stopped while it
+  // fetched one again goes on.
+  const { notImported } = compareContracts(chain, manifest);
+  const dropped = new Set(notImported.map(({ key }) => key));
+  const kept = manifest.chunks.filter((chunk) => !dropped.has(keyOf(chunk)));
+  const droppedFiles = manifest.chunks
+    .filter((chunk) => dropped.has(keyOf(chunk)) && chunk.file !== null)
+    .map((chunk) => chunk.file);
+  const last = lastBlocks({ chunks: kept });
   const plans = [];
   for (const contract of chain.contracts) {
     const lastBlock = last.get(keyOf(contract));
@@ -162,7 +161,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
     // Another run to the same block would overwrite the file of its last
     // logs. Stop before fetching.
     const file = chunkFileName(contract, end);
-    if (fs.existsSync(path.join(dir, file))) {
+    if (fs.existsSync(path.join(dir, file)) && !droppedFiles.includes(file)) {
       throw new Error(`${path.join(dir, file)} is there already.`);
     }
     plans.push({
@@ -316,10 +315,18 @@ async function build(chain, rpc, outDir, toBlock, options) {
       })),
     );
   }
+  manifest.chunks = kept;
+  for (const file of droppedFiles) {
+    fs.rmSync(path.join(dir, file), { force: true });
+  }
   moveChunkFiles(rows, tmpDir, dir, manifest);
 
   // The contracts of the manifest, with every contract of the chain.
-  const contracts = new Map(known);
+  const contracts = new Map(
+    manifest.contracts
+      .filter((c) => !dropped.has(keyOf(c)))
+      .map((c) => [keyOf(c), c]),
+  );
   for (const contract of chain.contracts) {
     contracts.set(keyOf(contract), {
       project: contract.project,
@@ -341,6 +348,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
   manifest.chunks.push(...rows);
   writeManifest(manifestFile, manifest);
   fs.rmSync(partialDir, { recursive: true, force: true });
+  for (const { text } of notImported) log(`Dropped from the snapshot: ${text}`);
   const written = rows.filter((row) => row.file !== null).length;
   log(`Wrote ${written} files to ${dir} and ${manifestFile}.`);
   return manifest;
