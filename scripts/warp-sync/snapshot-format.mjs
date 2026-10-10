@@ -7,18 +7,7 @@ import zlib from "node:zlib";
 export const FORMAT_VERSION = 3;
 // The most logs in one file, unless one block has more. The app imports one
 // file at a time, so a file stays small enough to read and save at once.
-// Smaller only to check the scripts with few logs.
-export const CHUNK_LOGS = chunkLogsOf(process.env.WARP_SYNC_CHUNK_LOGS);
-export function chunkLogsOf(value) {
-  if (value === undefined) return 20_000;
-  const chunkLogs = Number(value);
-  if (!/^\d+$/.test(value) || chunkLogs <= 0) {
-    throw new Error(
-      `WARP_SYNC_CHUNK_LOGS must be a positive integer, not "${value}".`,
-    );
-  }
-  return chunkLogs;
-}
+export const CHUNK_LOGS = 20_000;
 
 export const keyOf = (contract) =>
   `${contract.project}/${contract.version}/${contract.name}`;

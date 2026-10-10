@@ -5,7 +5,6 @@ import path from "node:path";
 import zlib from "node:zlib";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
-  chunkLogsOf,
   FORMAT_VERSION,
   lastBlocks,
   moveChunkFiles,
@@ -150,16 +149,6 @@ describe("writeContractChunks", () => {
     await expect(write([logOf(4, 0)])).rejects.toThrow("out of 5-9");
     await expect(write([logOf(10, 0)])).rejects.toThrow("out of 5-9");
   });
-});
-
-test("WARP_SYNC_CHUNK_LOGS is a positive integer", () => {
-  expect(chunkLogsOf(undefined)).toBe(20_000);
-  expect(chunkLogsOf("10")).toBe(10);
-  for (const value of ["", "0", "abc", "-5", "1.5", " 10"]) {
-    expect(() => chunkLogsOf(value)).toThrow(
-      `WARP_SYNC_CHUNK_LOGS must be a positive integer, not "${value}".`,
-    );
-  }
 });
 
 describe("the manifest", () => {
