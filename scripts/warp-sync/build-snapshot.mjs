@@ -206,13 +206,35 @@ async function build(chain, rpc, outDir, toBlock, options) {
     const files = partFiles(partialDir, part);
     plan.files[index] = files.logs;
     const saved = states.get(partKeyOf(part));
-    const resumed =
-      saved?.fromBlock === from && saved.size !== undefined ? saved : undefined;
+    const logsSize = fs.statSync(files.logs, { throwIfNoEntry: false })?.size;
+    // Why a part with a state cannot go on from it. truncateSync would fill a
+    // shorter file with NUL bytes.
+    const startOver =
+      saved === undefined
+        ? undefined
+        : saved.size === undefined
+          ? "its state has no size"
+          : saved.fromBlock !== from
+            ? `its state is from block ${saved.fromBlock}, not ${from}`
+            : logsSize === undefined || logsSize < saved.size
+              ? `its .jsonl file is missing or shorter than ${saved.size} bytes`
+              : undefined;
+    const resumed = startOver === undefined ? saved : undefined;
     const nextBlock = resumed?.nextBlock ?? partFrom;
-    // Drops what was added after the state: the logs of a range whose state
-    // was not written, and a line half written.
-    if (resumed) fs.truncateSync(files.logs, resumed.size);
-    else fs.rmSync(files.logs, { force: true });
+    if (resumed) {
+      // Drops what was added after the state: the logs of a range whose
+      // state was not written, and a line half written.
+      fs.truncateSync(files.logs, resumed.size);
+    } else {
+      if (startOver !== undefined) {
+        log(
+          `${keyOf(contract)} ${partFrom}-${partTo}: start over, since ${startOver}.`,
+        );
+      }
+      // A state left beside a new file would make the next run go on from it.
+      fs.rmSync(files.logs, { force: true });
+      fs.rmSync(files.state, { force: true });
+    }
     if (resumed && nextBlock <= partTo) {
       log(`${keyOf(contract)} ${partFrom}-${partTo}: go on from ${nextBlock}.`);
     }

@@ -19,7 +19,7 @@ import { loadChain } from "./chains.mjs";
 import { checkSnapshotFiles } from "./check-files.mjs";
 import { expectedSnapshotLog, fakeRpcLog } from "./fake-logs.mjs";
 import { startFakeRpc } from "./fake-rpc.mjs";
-import { linesOf } from "./partial.mjs";
+import { linesOf, readParts } from "./partial.mjs";
 import { RequestLimitError } from "./rpc.mjs";
 import { keyOf, writeManifest } from "./snapshot-format.mjs";
 
@@ -210,6 +210,51 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
   });
 
+  test.each([
+    [
+      "its state has no size",
+      (_file, state) => ({ ...state, size: undefined }),
+    ],
+    [
+      "its state is from another block",
+      (_file, state) => ({ ...state, fromBlock: state.fromBlock - 1 }),
+    ],
+    [
+      "its .jsonl file is missing",
+      (file, state) => {
+        fs.rmSync(file);
+        return state;
+      },
+    ],
+    [
+      "its .jsonl file is shorter than its state",
+      (file, state) => {
+        fs.truncateSync(file, state.size - 1);
+        return state;
+      },
+    ],
+  ])("starts a part over when %s", async (_, change) => {
+    await expect(
+      build({ toBlock: 16_000_000, maxRequests: 12 }),
+    ).rejects.toThrow(RequestLimitError);
+    const partial = path.join(dir(), ".partial");
+    const file = fs
+      .readdirSync(partial)
+      .map((name) => path.join(partial, name))
+      .find((name) => name.endsWith(".jsonl") && fs.statSync(name).size > 0);
+    expect(file).toBeDefined();
+    const stateFile = file.replace(/\.jsonl$/, ".state.json");
+    const state = JSON.parse(fs.readFileSync(stateFile, "utf8"));
+    fs.writeFileSync(stateFile, JSON.stringify(change(file, state)));
+    const messages = [];
+    await build({ log: (message) => messages.push(message) });
+    expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
+    const label = `${state.project}/${state.version}/${state.name} ${state.partFrom}-${state.partTo}`;
+    expect(messages).toContainEqual(
+      expect.stringMatching(`^${label}: start over, since `),
+    );
+  });
+
   test("a later run adds only the blocks after the last run", async () => {
     await build({ toBlock: 16_000_000 });
     const first = readManifest();
@@ -361,6 +406,22 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(blocks).toContain(14_860_000);
     expect(blocks).not.toContain(15_300_000);
   });
+});
+
+test("readParts reads a file of many chunks of the read", async () => {
+  const file = path.join(outDir, "segment.jsonl");
+  const logs = Array.from({ length: 30_000 }, (_, i) => ({
+    blockNumber: toHex(i + 1),
+    data: "0".repeat(100),
+  }));
+  const content = logs.map((log) => `${JSON.stringify(log)}\n`).join("");
+  // Far more than one chunk of a read stream (64 KiB), so lines are cut
+  // between chunks.
+  expect(content.length).toBeGreaterThan(1 << 20);
+  fs.writeFileSync(file, content);
+  const read = [];
+  for await (const log of readParts([file])) read.push(log);
+  expect(read).toEqual(logs);
 });
 
 test("linesOf closes its input when the loop ends early", async () => {
