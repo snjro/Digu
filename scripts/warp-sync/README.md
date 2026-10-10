@@ -47,13 +47,9 @@ the app. So a contract with events added to the app needs a run of this
 script for its chain before its pull request passes. A contract with events
 removed from the app, or with another address or creation block, fails the
 check too, and a run cannot fix all of these yet (#761): the script keeps a
-removed contract, stops at a changed one, and adds the contracts of the
-chain to `manifest.contracts` only when it has some range to fetch (then
-every contract of the chain, also one created after its end). A run with no
-range to fetch ends at "Nothing to add" and does not change the manifest: it
-names the contracts of the chain that `manifest.contracts` does not have and
-those in it that the chain does not have, or, with no `manifest.json`, says
-that no contract of the chain is created by its end.
+removed contract and stops at a changed one. A run with no range to fetch
+ends at "Nothing to add" and does not change the manifest, so it cannot add
+a missing contract (#761).
 `WARP_SYNC_SNAPSHOT_CHECK=off` does not turn this check off.
 
 ```sh
