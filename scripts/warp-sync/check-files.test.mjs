@@ -4,7 +4,7 @@ import path from "node:path";
 import zlib from "node:zlib";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { WARP_SYNC_FORMAT_VERSION } from "../../src/warpSync/warpSyncTypes.ts";
-import { loadChain } from "./build-snapshot.mjs";
+import { loadChain } from "./chains.mjs";
 import { checkSnapshotFiles, readWarpSyncChainNames } from "./check-files.mjs";
 import {
   emptyManifest,

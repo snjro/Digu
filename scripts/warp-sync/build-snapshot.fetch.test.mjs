@@ -7,15 +7,19 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 // No wait after a failure. Read when the script is imported.
 process.env.WARP_SYNC_RETRY_WAIT_MS = "0";
-const script = await import("./build-snapshot.mjs");
+const { RequestLimitError, RpcError, classifyError, createRpc, rateWaitMs } =
+  await import("./rpc.mjs");
+const { createFetchStats, createWidths, fetchLogs, retryRate, splitParts } =
+  await import("./fetch-logs.mjs");
+const { withKey } = await import("./build-snapshot.mjs");
 const { startFakeRpc } = await import("./fake-rpc.mjs");
 
 const contract = { name: "C", address: "0xc", topics: ["0x01"] };
-const httpError = (status) => new script.RpcError("eth_getLogs", { status });
+const httpError = (status) => new RpcError("eth_getLogs", { status });
 const tooManyRequests = (retryAfter) =>
-  new script.RpcError("eth_getLogs", { status: 429, retryAfter });
+  new RpcError("eth_getLogs", { status: 429, retryAfter });
 const rpcError = (message) =>
-  new script.RpcError("eth_getLogs", { rpcError: { code: -32000, message } });
+  new RpcError("eth_getLogs", { rpcError: { code: -32000, message } });
 const log = (block) => ({
   blockNumber: `0x${block.toString(16)}`,
   logIndex: "0x0",
@@ -36,9 +40,9 @@ function scripted(answers) {
 async function run(answers, fromBlock, toBlock, maxWidth = 9_999) {
   const { rpc, asked } = scripted(answers);
   const ranges = [];
-  const stats = script.createFetchStats();
-  const widths = script.createWidths(maxWidth);
-  await script.fetchLogs(rpc, contract, fromBlock, toBlock, {
+  const stats = createFetchStats();
+  const widths = createWidths(maxWidth);
+  await fetchLogs(rpc, contract, fromBlock, toBlock, {
     onRange: (from, to, logs) => ranges.push([from, to, logs.length]),
     widths,
     stats,
@@ -75,7 +79,7 @@ describe("classifyError", () => {
     [httpError(408), "range"],
     [new TypeError("fetch failed"), "range"],
   ])("%s is %s", (error, kind) => {
-    expect(script.classifyError(error)).toBe(kind);
+    expect(classifyError(error)).toBe(kind);
   });
 });
 
@@ -350,8 +354,8 @@ describe("fetchLogs after HTTP 429", () => {
     vi.useFakeTimers();
     const { rpc, asked } = scripted([tooManyRequests(60), [log(5)]]);
     const controller = new AbortController();
-    const done = script.fetchLogs(rpc, contract, 1, 9_999, {
-      widths: script.createWidths(9_999),
+    const done = fetchLogs(rpc, contract, 1, 9_999, {
+      widths: createWidths(9_999),
       signal: controller.signal,
     });
     await vi.advanceTimersByTimeAsync(1_000);
@@ -363,8 +367,8 @@ describe("fetchLogs after HTTP 429", () => {
   test("waits for Retry-After", async () => {
     vi.useFakeTimers();
     const { rpc, asked } = scripted([tooManyRequests(3), [log(5)]]);
-    const done = script.fetchLogs(rpc, contract, 1, 9_999, {
-      widths: script.createWidths(9_999),
+    const done = fetchLogs(rpc, contract, 1, 9_999, {
+      widths: createWidths(9_999),
     });
     await vi.advanceTimersByTimeAsync(2_999);
     expect(asked).toHaveLength(1);
@@ -389,17 +393,17 @@ describe("rateWaitMs", () => {
     [15, 45, 45_000],
     [1, 120, 60_000],
   ])("after %s in a row with Retry-After %s: %s ms", (n, retryAfter, ms) => {
-    expect(script.rateWaitMs(n, retryAfter, 1_000)).toBe(ms);
+    expect(rateWaitMs(n, retryAfter, 1_000)).toBe(ms);
   });
 });
 
 describe("retryRate", () => {
   test("asks again after HTTP 429, and throws any other error", async () => {
     const answers = [
-      new script.RpcError("eth_blockNumber", { status: 429 }),
-      new script.RpcError("eth_blockNumber", { status: 429 }),
+      new RpcError("eth_blockNumber", { status: 429 }),
+      new RpcError("eth_blockNumber", { status: 429 }),
       "0x10",
-      new script.RpcError("eth_blockNumber", { status: 500 }),
+      new RpcError("eth_blockNumber", { status: 500 }),
     ];
     const asked = [];
     const rpc = async (method) => {
@@ -408,8 +412,8 @@ describe("retryRate", () => {
       if (answer instanceof Error) throw answer;
       return answer;
     };
-    const stats = script.createFetchStats();
-    const ask = script.retryRate(rpc, { stats });
+    const stats = createFetchStats();
+    const ask = retryRate(rpc, { stats });
     await expect(ask("eth_blockNumber")).resolves.toBe("0x10");
     expect(asked).toHaveLength(3);
     expect(stats.errors.rate).toBe(2);
@@ -421,7 +425,7 @@ describe("retryRate", () => {
     const answers = (n) => [
       ...Array.from(
         { length: n },
-        () => new script.RpcError("eth_blockNumber", { status: 429 }),
+        () => new RpcError("eth_blockNumber", { status: 429 }),
       ),
       "0x10",
     ];
@@ -431,18 +435,18 @@ describe("retryRate", () => {
       return answer;
     };
     await expect(
-      script.retryRate(rpcOf(answers(30)))("eth_blockNumber"),
+      retryRate(rpcOf(answers(30)))("eth_blockNumber"),
     ).rejects.toThrow("HTTP 429");
     await expect(
-      script.retryRate(rpcOf(answers(29)))("eth_blockNumber"),
+      retryRate(rpcOf(answers(29)))("eth_blockNumber"),
     ).resolves.toBe("0x10");
   });
 
   test("does not ask again over the limit of requests", async () => {
     const rpc = async () => {
-      throw new script.RequestLimitError("Stopped at the limit of 1 requests.");
+      throw new RequestLimitError("Stopped at the limit of 1 requests.");
     };
-    const ask = script.retryRate(rpc, {});
+    const ask = retryRate(rpc, {});
     await expect(ask("eth_chainId")).rejects.toThrow("limit");
   });
 });
@@ -454,7 +458,7 @@ describe("fetchLogs with the widths of another part", () => {
   // With afterWorks, the other part starts only after the first range of the
   // dense part that works.
   async function runDense(toBlock, { afterWorks = false } = {}) {
-    const widths = script.createWidths(9_999);
+    const widths = createWidths(9_999);
     let otherFrom = 1_000_000;
     let worked = false;
     // Before each answer to the dense part, the other part fetches 20 ranges
@@ -464,7 +468,7 @@ describe("fetchLogs with the widths of another part", () => {
       const from = otherFrom;
       otherFrom += 20 * 9_999;
       const works = async () => [log(0)];
-      await script.fetchLogs(works, contract, from, otherFrom - 1, { widths });
+      await fetchLogs(works, contract, from, otherFrom - 1, { widths });
     };
     const asked = [];
     const rpc = async (_method, [{ fromBlock, toBlock: to }]) => {
@@ -477,7 +481,7 @@ describe("fetchLogs with the widths of another part", () => {
       worked = true;
       return [log(Number(fromBlock))];
     };
-    await script.fetchLogs(rpc, contract, 1, toBlock, { widths });
+    await fetchLogs(rpc, contract, 1, toBlock, { widths });
     return { asked, widths };
   }
 
@@ -506,7 +510,7 @@ describe("fetchLogs with the widths of another part", () => {
 
   test("counts a range at the shared width, when it is the narrower, in the shared widths", async () => {
     const tooWide = rpcError("query exceeds max block range 5000");
-    const widths = script.createWidths(9_999);
+    const widths = createWidths(9_999);
     const answers = [tooWide, tooWide];
     for (let i = 0; i < 11; i++) answers.push([log(1 + i * 1_000)]);
     const asked = [];
@@ -521,13 +525,13 @@ describe("fetchLogs with the widths of another part", () => {
       if (answer instanceof Error) throw answer;
       return answer;
     };
-    await script.fetchLogs(rpc, contract, 1, 10 * 1_000 + 2_000, { widths });
+    await fetchLogs(rpc, contract, 1, 10 * 1_000 + 2_000, { widths });
     expect(asked).toEqual([9_999, 9_999, ...Array(10).fill(1_000), 2_000]);
   });
 
   test("uses the shared widths again when its own width is raised to them", async () => {
     const tooWide = rpcError("query exceeds max block range 5000");
-    const widths = script.createWidths(9_999);
+    const widths = createWidths(9_999);
     const answers = [tooWide, tooWide];
     const asked = [];
     const rpc = async (_method, [{ fromBlock, toBlock }]) => {
@@ -540,7 +544,7 @@ describe("fetchLogs with the widths of another part", () => {
       if (answer instanceof Error) throw answer;
       return answer;
     };
-    await script.fetchLogs(rpc, contract, 1, 10 * 4_999 + 10 * 8_000 + 9_999, {
+    await fetchLogs(rpc, contract, 1, 10 * 4_999 + 10 * 8_000 + 9_999, {
       widths,
     });
     // Ten ranges raise the own width to 9,998, which is not narrower than the
@@ -561,13 +565,13 @@ describe("fetchLogs with the widths of another part", () => {
   ])(
     "does not count a range in shared widths %s while it waits",
     async (_name, before, after) => {
-      const widths = script.createWidths(9_999);
+      const widths = createWidths(9_999);
       Object.assign(widths, before);
       const rpc = async () => {
         Object.assign(widths, { width: after, maxWidth: after, successes: 0 });
         return [log(1)];
       };
-      await script.fetchLogs(rpc, contract, 1, before.width, { widths });
+      await fetchLogs(rpc, contract, 1, before.width, { widths });
       expect(widths).toMatchObject({ width: after, successes: 0 });
     },
   );
@@ -584,9 +588,9 @@ describe("createRpc", () => {
       res.end();
     });
     try {
-      const rpc = script.createRpc(server.url);
+      const rpc = createRpc(server.url);
       const error = await rpc("eth_blockNumber").catch((error) => error);
-      expect(error).toBeInstanceOf(script.RpcError);
+      expect(error).toBeInstanceOf(RpcError);
       expect(error.status).toBe(429);
       expect(error.retryAfter).toBe(seconds);
     } finally {
@@ -602,12 +606,12 @@ describe("createRpc", () => {
       body: { cancel: () => Promise.reject(new Error("cancel failed")) },
     }));
     try {
-      const rpc = script.createRpc("http://127.0.0.1:1");
+      const rpc = createRpc("http://127.0.0.1:1");
       const error = await rpc("eth_blockNumber").catch((error) => error);
-      expect(error).toBeInstanceOf(script.RpcError);
+      expect(error).toBeInstanceOf(RpcError);
       expect(error.status).toBe(429);
       expect(error.retryAfter).toBe(7);
-      expect(script.classifyError(error)).toBe("rate");
+      expect(classifyError(error)).toBe("rate");
     } finally {
       vi.unstubAllGlobals();
     }
@@ -625,22 +629,20 @@ describe("withKey", () => {
   afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
 
   test("adds the key in the file to the end of the URL", () => {
-    expect(script.withKey("https://rpc.example/v3/", file)).toBe(
+    expect(withKey("https://rpc.example/v3/", file)).toBe(
       "https://rpc.example/v3/abc123",
     );
-    expect(script.withKey("https://rpc.example/", undefined)).toBe(
+    expect(withKey("https://rpc.example/", undefined)).toBe(
       "https://rpc.example/",
     );
     fs.writeFileSync(file, "\n");
-    expect(() => script.withKey("https://rpc.example/", file)).toThrow(
-      "is empty",
-    );
+    expect(() => withKey("https://rpc.example/", file)).toThrow("is empty");
   });
 
   test("checks the URL before it reads the key file", () => {
-    expect(() =>
-      script.withKey("rpc.example/v3/", path.join(dir, "missing")),
-    ).toThrow("--rpc");
+    expect(() => withKey("rpc.example/v3/", path.join(dir, "missing"))).toThrow(
+      "--rpc",
+    );
   });
 
   test("a URL that the key cannot be added to throws without the key", () => {
@@ -655,7 +657,7 @@ describe("withKey", () => {
     ]) {
       let error;
       try {
-        script.withKey(url, file);
+        withKey(url, file);
       } catch (thrown) {
         error = thrown;
       }
@@ -667,7 +669,7 @@ describe("withKey", () => {
   });
 
   test("adds the key to the end of the query", () => {
-    expect(script.withKey("https://rpc.example/?apikey=", file)).toBe(
+    expect(withKey("https://rpc.example/?apikey=", file)).toBe(
       "https://rpc.example/?apikey=abc123",
     );
   });
@@ -675,11 +677,11 @@ describe("withKey", () => {
 
 describe("splitParts", () => {
   test("parts of the given blocks, the last one shorter", () => {
-    expect(script.splitParts(1, 12, 5)).toEqual([
+    expect(splitParts(1, 12, 5)).toEqual([
       [1, 5],
       [6, 10],
       [11, 12],
     ]);
-    expect(script.splitParts(7, 7, 5)).toEqual([[7, 7]]);
+    expect(splitParts(7, 7, 5)).toEqual([[7, 7]]);
   });
 });

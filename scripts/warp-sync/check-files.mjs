@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
-import { loadChain } from "./build-snapshot.mjs";
+import { loadChain } from "./chains.mjs";
 import {
   FORMAT_VERSION,
   isAfter,
@@ -15,7 +15,7 @@ import {
   totalsOf,
 } from "./snapshot-format.mjs";
 
-// Reads WARP_SYNC_CHAIN_NAMES like build-snapshot.mjs reads the _index.ts
+// Reads WARP_SYNC_CHAIN_NAMES like chains.mjs reads the _index.ts
 // files. Returns [] when the line is not found.
 export function readWarpSyncChainNames(file = "src/warpSync/warpSyncState.ts") {
   const found = readText(file).match(
