@@ -15,17 +15,13 @@ import {
   test,
   vi,
 } from "vitest";
-import {
-  buildSnapshot,
-  keepLogsBefore,
-  linesOf,
-  loadChain,
-  parsePositiveInteger,
-  RequestLimitError,
-} from "./build-snapshot.mjs";
+import { buildSnapshot, parsePositiveInteger } from "./build-snapshot.mjs";
+import { loadChain } from "./chains.mjs";
 import { checkSnapshotFiles } from "./check-files.mjs";
 import { expectedSnapshotLog, fakeRpcLog } from "./fake-logs.mjs";
 import { startFakeRpc } from "./fake-rpc.mjs";
+import { keepLogsBefore, linesOf } from "./partial.mjs";
+import { RequestLimitError } from "./rpc.mjs";
 import { keyOf, writeManifest } from "./snapshot-format.mjs";
 
 const chain = loadChain("matic");

@@ -13,7 +13,8 @@ import { afterAll, beforeAll, expect, test } from "vitest";
 
 // No wait after a failure. Read when the script is imported.
 process.env.WARP_SYNC_RETRY_WAIT_MS = "0";
-const { buildSnapshot, loadChain } = await import("./build-snapshot.mjs");
+const { buildSnapshot } = await import("./build-snapshot.mjs");
+const { loadChain } = await import("./chains.mjs");
 const { expectedSnapshotLog, fakeRpcLog } = await import("./fake-logs.mjs");
 const { startFakeRpc } = await import("./fake-rpc.mjs");
 

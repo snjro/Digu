@@ -9,6 +9,12 @@ on from the end of the snapshot.
 The owner runs it before a release, checks the files, and commits them. The
 users of the app do not run it.
 
+It uses `chains.mjs` (reads the chain from `src/constants/chains`),
+`rpc.mjs` (the requests, the kinds of their errors, and the waits after
+them), `fetch-logs.mjs` (the ranges of `eth_getLogs`), `partial.mjs`
+(`.partial/`), and `snapshot-format.mjs` and `snapshot-log.mjs` (the files of
+the snapshot).
+
 ## The snapshots
 
 - `matic`: made by this script with the public RPC of pocket.
