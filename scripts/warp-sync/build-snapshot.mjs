@@ -204,6 +204,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
       version: contract.version,
       name: contract.name,
       address: contract.address,
+      topics: contract.topics,
       end,
       fromBlock: from,
       partFrom,
@@ -222,11 +223,15 @@ async function build(chain, rpc, outDir, toBlock, options) {
           ? "its state has no size"
           : saved.address?.toLowerCase() !== contract.address.toLowerCase()
             ? `its state is not for address ${contract.address}`
-            : saved.fromBlock !== from
-              ? `its state is from block ${saved.fromBlock}, not ${from}`
-              : logsSize === undefined || logsSize < saved.size
-                ? `its .jsonl file is missing or shorter than ${saved.size} bytes`
-                : undefined;
+            : // The order of the topics does not change the logs.
+              [...(saved.topics ?? [])].sort().join() !==
+                [...contract.topics].sort().join()
+              ? "its state is not for the events of the ABI"
+              : saved.fromBlock !== from
+                ? `its state is from block ${saved.fromBlock}, not ${from}`
+                : logsSize === undefined || logsSize < saved.size
+                  ? `its .jsonl file is missing or shorter than ${saved.size} bytes`
+                  : undefined;
     const resumed = startOver === undefined ? saved : undefined;
     const nextBlock = resumed?.nextBlock ?? partFrom;
     if (resumed) {

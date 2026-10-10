@@ -274,6 +274,14 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       (_file, state) => ({ ...state, address: undefined }),
     ],
     [
+      "its state is for other topics",
+      (_file, state) => ({ ...state, topics: [`0x${"9".repeat(64)}`] }),
+    ],
+    [
+      "its state has no topics",
+      (_file, state) => ({ ...state, topics: undefined }),
+    ],
+    [
       "its .jsonl file is missing",
       (file, state) => {
         fs.rmSync(file);
