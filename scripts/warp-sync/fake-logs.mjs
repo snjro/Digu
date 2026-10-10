@@ -3,6 +3,7 @@
 // args as the snapshot writes them; the logs of the fake RPCs, and the logs
 // of the snapshot for them.
 import { getAddress } from "ethers";
+import { keyOf } from "./snapshot-format.mjs";
 
 // A value of the type made from n, and the same value in the JSON of the
 // snapshot.
@@ -38,7 +39,7 @@ function fakeValue(param, n) {
 // and again, and encoding all of them each time made the tests slow.
 const cache = new Map();
 function fakeEventLog(contract, n) {
-  const key = `${contract.project}/${contract.version}/${contract.name}/${n}`;
+  const key = `${keyOf(contract)}/${n}`;
   if (!cache.has(key)) cache.set(key, encode(contract, n));
   return cache.get(key);
 }

@@ -7,19 +7,14 @@ import type {
   WarpSyncManifest,
   WarpSyncManifestContract,
 } from "./warpSyncTypes";
+import { getWarpSyncKey } from "./warpSyncShared.mjs";
+
+export { getWarpSyncKey };
 
 export type WarpSyncTarget = {
   versionIdentifier: VersionIdentifier;
   contract: Contract;
 };
-
-export function getWarpSyncKey(key: {
-  project: string;
-  version: string;
-  name: string;
-}): string {
-  return `${key.project}/${key.version}/${key.name}`;
-}
 
 // The contracts of the snapshot that the app has, with the same address and
 // creation block. The others are skipped, so that a contract added to the app

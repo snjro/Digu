@@ -13,7 +13,9 @@ It uses `chains.mjs` (reads the chain from `src/constants/chains`),
 `rpc.mjs` (the requests, the kinds of their errors, and the waits after
 them), `fetch-logs.mjs` (the ranges of `eth_getLogs`), `partial.mjs`
 (`.partial/`), and `snapshot-format.mjs` and `snapshot-log.mjs` (the files of
-the snapshot).
+the snapshot). The values that the app reads too (the format version, the
+chains with a snapshot, the key of a contract, and the folder under
+`static/`) are in `src/warpSync/warpSyncShared.mjs`, which both import.
 
 ## The snapshots
 
@@ -47,9 +49,8 @@ the range in the order of their blocks and log indexes), the ranges of
 each contract without gaps and not ending at its creation block, `totals`,
 and no file outside the manifest. It also checks the contracts of the
 manifest against those with events in `src/constants/chains` (the same
-contracts, addresses and creation blocks), that no other folder has a
-`manifest.json`, and that `FORMAT_VERSION` is `WARP_SYNC_FORMAT_VERSION` of
-the app. So a contract with events added to the app needs a run of this
+contracts, addresses and creation blocks), and that no other folder has a
+`manifest.json`. So a contract with events added to the app needs a run of this
 script for its chain before its pull request passes. A contract with events
 removed from the app, or with another address or creation block, fails the
 check too, and a run cannot fix all of these yet (#761): the script keeps a

@@ -5,11 +5,7 @@ import type {
 } from "#constants/chains/types.js";
 import type { HexString } from "#constants/chains/types.js";
 
-// The snapshot that scripts/warp-sync/build-snapshot.mjs writes. See
-// scripts/warp-sync/README.md.
-export const WARP_SYNC_FORMAT_VERSION = 3;
-// Under static/.
-export const WARP_SYNC_DIR = "warp-sync";
+export { WARP_SYNC_DIR, WARP_SYNC_FORMAT_VERSION } from "./warpSyncShared.mjs";
 
 type ContractKey = {
   project: ProjectName;

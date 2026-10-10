@@ -1,6 +1,7 @@
 // A log of the warp sync snapshot (formatVersion 3), of build-snapshot.mjs.
 // The tests of the app import it too, so it has the types of svelte-check. See
 // README.md.
+import { getWarpSyncKey } from "../../src/warpSync/warpSyncShared.mjs";
 
 /**
  * @typedef {object} DecodingContract
@@ -77,7 +78,7 @@ export function toSnapshotLog(contract, raw, blockTimestamp) {
  */
 function failOf(contract, raw, text, cause) {
   return new Error(
-    `${contract.project}/${contract.version}/${contract.name}: ${text} at block ${Number(raw.blockNumber)}, log index ${Number(raw.logIndex)}${cause === undefined ? "." : `: ${cause instanceof Error ? cause.message : cause}`}`,
+    `${getWarpSyncKey(contract)}: ${text} at block ${Number(raw.blockNumber)}, log index ${Number(raw.logIndex)}${cause === undefined ? "." : `: ${cause instanceof Error ? cause.message : cause}`}`,
     cause === undefined ? undefined : { cause },
   );
 }
