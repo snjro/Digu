@@ -1,9 +1,6 @@
 import type { Contract as EthersContract } from "ethers";
 import type { DbEventLogs } from "#db/dbEventLogs.js";
-import {
-  stopSyncingInContract,
-  startAbortingInChain,
-} from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import { stopSyncingInContract } from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import type { Chain, ChainName, Contract } from "#constants/chains/types.js";
 import {
   getEthersEventLogs,
@@ -22,7 +19,7 @@ import type {
 } from "#db/dbTypes.js";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
-import { recordSyncStoppedReason } from "./syncStoppedReason";
+import { getSyncRunSignal, stopSync } from "./syncStop";
 import { assertIsDefined, sleep } from "#utils/utilsCommon.js";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { getNextBlock } from "#warpSync/warpSyncPlan.js";
@@ -88,7 +85,7 @@ export async function fetchEventLogsContract(
 
   /*eslint no-constant-condition: ["error", { "checkLoops": false }]*/
   while (true) {
-    if (syncStatusContract(contractIdentifier).isAbort) {
+    if (isStopping(contractIdentifier)) {
       await stopSyncingInContract(dbEventLogs, targetContract.name);
       return;
     }
@@ -127,7 +124,7 @@ export async function fetchEventLogsContract(
       // sleep for fetching events to be called in the next loop
       await sleepUnlessAborted(contractIdentifier, targetChain.blockIntervalMs);
       // Stopped while sleeping: stop at the top of the loop without fetching.
-      if (syncStatusContract(contractIdentifier).isAbort) {
+      if (isStopping(contractIdentifier)) {
         continue;
       }
       if (toBlockNumber < minToBlockNumber) {
@@ -156,7 +153,7 @@ export async function fetchEventLogsContract(
       // Stopped while fetching: stop at the top of the loop without saving the
       // range. fetchedBlockNumber does not move, so the next start fetches it
       // again.
-      if (syncStatusContract(contractIdentifier).isAbort) {
+      if (isStopping(contractIdentifier)) {
         continue;
       }
       await registerEventLogsAndBlockTimes(
@@ -165,7 +162,7 @@ export async function fetchEventLogsContract(
         nodeProvider,
         ethersEventLogs,
         toBlockNumber,
-        () => syncStatusContract(contractIdentifier).isAbort,
+        () => isStopping(contractIdentifier),
       );
       if (ethersEventLogs.length) {
         customLogger.success("Fetch eventLogs. Fetched & registered to DB:", {
@@ -216,8 +213,7 @@ export async function fetchEventLogsContract(
           fetchingTarget: fetchingTargetInfo,
         },
       );
-      recordSyncStoppedReason(chainName, "RPC_ERRORS");
-      await startAbortingInChain(chainName);
+      await stopSync(chainName, "RPC_ERRORS");
     } else if (errorCount > 0) {
       await sleepUnlessAborted(contractIdentifier, RETRY_WAIT_MS);
     }
@@ -233,13 +229,26 @@ async function sleepUnlessAborted(
   let wake: () => void = () => {};
   const aborted: Promise<void> = new Promise((resolve) => (wake = resolve));
   const unsubscribe = storeSyncStatus.subscribe(() => {
-    if (syncStatusContract(contractIdentifier).isAbort) wake();
+    if (isStopping(contractIdentifier)) wake();
   });
+  const signal: AbortSignal | undefined = getSyncRunSignal(
+    contractIdentifier.chainName,
+  );
+  signal?.addEventListener("abort", wake);
   try {
     await Promise.race([sleep(ms), aborted]);
   } finally {
     unsubscribe();
+    signal?.removeEventListener("abort", wake);
   }
+}
+// isAbort, or the abort of the run in memory, which stops the loops also when
+// isAbort cannot be written to the DB.
+function isStopping(contractIdentifier: ContractIdentifier): boolean {
+  return (
+    syncStatusContract(contractIdentifier).isAbort ||
+    getSyncRunSignal(contractIdentifier.chainName)?.aborted === true
+  );
 }
 export const syncStatusContract = (
   contractIdentifier: ContractIdentifier,
