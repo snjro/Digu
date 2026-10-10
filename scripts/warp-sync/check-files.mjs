@@ -250,7 +250,7 @@ function checkChain(dir, name) {
   return problems;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.main) {
   const dir = `static/${WARP_SYNC_DIR}`;
   const start = Date.now();
   const problems = checkSnapshotFiles(dir, WARP_SYNC_CHAIN_NAMES);

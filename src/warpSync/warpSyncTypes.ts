@@ -18,8 +18,9 @@ export type WarpSyncManifestContract = ContractKey & {
   address: HexString;
   creationBlock: number;
 };
-// One per run. check-snapshot.py reads the last one. A run also has requests
-// and checks, which the app does not read (scripts/warp-sync/README.md).
+// One per run. check-snapshot.py reads the last one. A run of the script may
+// also have requests and checks, which the app does not read
+// (scripts/warp-sync/README.md).
 export type WarpSyncRun = {
   createdAt: string;
   // The latest block when it was made.
@@ -39,10 +40,10 @@ export type WarpSyncManifestChunk = WarpSyncChunkRange &
     | { file: null }
     | {
         file: string;
-        // Of the gzip file, and of its JSON.
+        // bytes and sha256 are of the gzip file, rawBytes and rawSha256 of
+        // its JSON.
         bytes: number;
         rawBytes: number;
-        // Of the gzip file, and of its JSON.
         sha256: string;
         rawSha256: string;
       }

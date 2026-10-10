@@ -50,8 +50,8 @@ each contract without gaps and not ending at its creation block, `totals`,
 and no file outside the manifest. It also checks the contracts of the
 manifest against those with events in `src/constants/chains` (the same
 contracts, addresses and creation blocks), and that no other folder has a
-`manifest.json`. So a contract with events added to the app needs a run of this
-script for its chain before its pull request passes. A contract with events
+`manifest.json`. So a contract with events added to the app needs a run of
+`build-snapshot.mjs` for its chain before its pull request passes. A contract with events
 removed from the app, or with another address or creation block, fails the
 check too, and a run cannot fix all of these yet (#761): the script keeps a
 removed contract and stops at a changed one. A run that has some range to
@@ -190,9 +190,10 @@ contract that has events, fetch that contract's snapshot again from an RPC.
   keeps its own widths too, the half of the range that failed (#601). It asks
   the narrower of its own width and the shared one: the other parts may
   narrow it, but their successes do not raise it. A full range that works
-  raises, by the same rules, the widths that had its width (`fetchLogs` in
-  `fetch-logs.mjs`). When its own width is raised to the shared one, the part
-  uses the shared widths again.
+  raises, by the same rules, its own widths when it had their width, and the
+  shared widths when they still have its width after the answer (another part
+  may have changed them meanwhile). When its own width is raised to the
+  shared one, the part uses the shared widths again.
 - **Failures** (like #549, #554 and #591 in the sync: the RPC may pass each
   request to another node). The script waits a second (`RETRY_WAIT_MS`) and
   tries again:
