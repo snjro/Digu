@@ -318,15 +318,23 @@ function holdSyncLockOfOtherTab(operation?: () => Promise<unknown>): {
   return { held, release };
 }
 // Tab C syncs, and is closed while it holds the lock (release()): the row of
-// `tab`'s contract stays syncing, with `row` written to it too.
+// `tab`'s contract stays syncing, with `row` written to it too. A test calls
+// release() where tab C is closed, and again in a finally, so that a failed
+// check does not leave the lock held; a second call does nothing.
 async function holdSyncLockOfTabClosedWhileSyncing(
   tab: Tab,
   row: Partial<SyncStatusContract> = {},
 ): Promise<{ held: Promise<void>; release: () => void }> {
   const lock = holdSyncLockOfOtherTab();
-  await tab.db
-    .table("SyncStatus")
-    .update(tab.contract.name, { isSyncing: true, isAbort: false, ...row });
+  try {
+    await tab.db
+      .table("SyncStatus")
+      .update(tab.contract.name, { isSyncing: true, isAbort: false, ...row });
+  } catch (error) {
+    lock.release();
+    await lock.held;
+    throw error;
+  }
   return lock;
 }
 
@@ -849,28 +857,33 @@ describe("sync with two tabs (issue #49)", () => {
         await holdSyncLockOfTabClosedWhileSyncing(a, {
           creationBlockNumber: 1,
         });
-      // Tab A's store as if it had read the row before: only a reading after
-      // the release clears it.
-      const { storeSyncStatus } = await import("#stores/storeSyncStatus.js");
-      storeSyncStatus.updateState(
-        { ...versionIdentifier, contractName: a.contract.name },
-        { isSyncing: true },
-      );
-      expect(a.storeStatus().syncStateText).toBe("syncing");
-      const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
       try {
-        signal.postMessage({ chainName: chain.name });
-      } finally {
-        signal.close();
-      }
-      expect(await waitFor(() => a.isLockedByOtherTab())).toBe(true);
+        // Tab A's store as if it had read the row before: only a reading after
+        // the release clears it.
+        const { storeSyncStatus } = await import("#stores/storeSyncStatus.js");
+        storeSyncStatus.updateState(
+          { ...versionIdentifier, contractName: a.contract.name },
+          { isSyncing: true },
+        );
+        expect(a.storeStatus().syncStateText).toBe("syncing");
+        const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
+        try {
+          signal.postMessage({ chainName: chain.name });
+        } finally {
+          signal.close();
+        }
+        expect(await waitFor(() => a.isLockedByOtherTab())).toBe(true);
 
-      closeTabC();
-      await heldLock;
-      expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
-      expect((await dbStatus(a)).isSyncing).toBe(false);
-      expect((await dbStatus(a)).creationBlockNumber).toBe(1);
-      expect(a.storeStatus().syncStateText).toBe("stopped");
+        closeTabC();
+        await heldLock;
+        expect(await waitFor(() => !a.isLockedByOtherTab())).toBe(true);
+        expect((await dbStatus(a)).isSyncing).toBe(false);
+        expect((await dbStatus(a)).creationBlockNumber).toBe(1);
+        expect(a.storeStatus().syncStateText).toBe("stopped");
+      } finally {
+        closeTabC();
+        await heldLock;
+      }
     }, 30_000);
 
     test("writes a row left behind once, of the tabs that read it again at the same time", async () => {
@@ -922,28 +935,35 @@ describe("sync with two tabs (issue #49)", () => {
       const { held: heldLock, release: closeTabC } =
         await holdSyncLockOfTabClosedWhileSyncing(a);
       writes = 0;
-      watching = true;
-      const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
       try {
-        signal.postMessage({ chainName: chain.name });
-      } finally {
-        signal.close();
-      }
-      expect(
-        await waitFor(() => a.isLockedByOtherTab() && b.isLockedByOtherTab()),
-      ).toBe(true);
+        watching = true;
+        const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
+        try {
+          signal.postMessage({ chainName: chain.name });
+        } finally {
+          signal.close();
+        }
+        expect(
+          await waitFor(() => a.isLockedByOtherTab() && b.isLockedByOtherTab()),
+        ).toBe(true);
 
-      closeTabC();
-      await heldLock;
-      expect(
-        await waitFor(() => !a.isLockedByOtherTab() && !b.isLockedByOtherTab()),
-      ).toBe(true);
-      // Both read the row as left syncing; the second finds it written.
-      expect(readWriteRequests).toBe(2);
-      expect(writes).toBe(1);
-      expect((await dbStatus(a)).isSyncing).toBe(false);
-      expect(a.storeStatus().syncStateText).toBe("stopped");
-      expect(b.storeStatus().syncStateText).toBe("stopped");
+        closeTabC();
+        await heldLock;
+        expect(
+          await waitFor(
+            () => !a.isLockedByOtherTab() && !b.isLockedByOtherTab(),
+          ),
+        ).toBe(true);
+        // Both read the row as left syncing; the second finds it written.
+        expect(readWriteRequests).toBe(2);
+        expect(writes).toBe(1);
+        expect((await dbStatus(a)).isSyncing).toBe(false);
+        expect(a.storeStatus().syncStateText).toBe("stopped");
+        expect(b.storeStatus().syncStateText).toBe("stopped");
+      } finally {
+        closeTabC();
+        await heldLock;
+      }
     }, 30_000);
 
     test("does not write a flag that a row does not have", async () => {
@@ -1227,21 +1247,27 @@ describe("sync with two tabs (issue #49)", () => {
     const { held: heldLock, release: closeTabC } =
       await holdSyncLockOfTabClosedWhileSyncing(a, { isAbort: true });
 
-    const b = await openTab(async () => {
-      try {
-        // Same module instances as tab B.
-        const { syncStatusContract } = await import("./eventLogsContract");
-        expect(
-          syncStatusContract({
-            ...versionIdentifier,
-            contractName: a.contract.name,
-          }).syncStateText,
-        ).toBe("stopping");
-      } finally {
-        closeTabC();
-        await heldLock;
-      }
-    });
+    let b: Tab;
+    try {
+      b = await openTab(async () => {
+        try {
+          // Same module instances as tab B.
+          const { syncStatusContract } = await import("./eventLogsContract");
+          expect(
+            syncStatusContract({
+              ...versionIdentifier,
+              contractName: a.contract.name,
+            }).syncStateText,
+          ).toBe("stopping");
+        } finally {
+          closeTabC();
+          await heldLock;
+        }
+      });
+    } finally {
+      closeTabC();
+      await heldLock;
+    }
     tabs.push(b);
 
     expect(b.isLockedByOtherTab()).toBe(false);

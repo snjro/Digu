@@ -20,9 +20,9 @@ const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 //   shared): clears the flags of a sync that a tab closed while it synced
 //   left set, and only those: with the creation block too, two builds would
 //   write theirs back and forth, and their writes would run one after
-//   another and keep a new operation waiting. A row is written only when it needs it, in a read-write
-//   transaction that checks it again, so that of the tabs that read at the
-//   same time only the first writes.
+//   another and keep a new operation waiting. A row is written only when it
+//   needs it, in a read-write transaction that checks it again, so that of
+//   the tabs that read at the same time only the first writes.
 // - "reset" (for an operation of this tab, with the lock exclusive): writes
 //   the cleared flags and the creation block of this build to every row.
 export type SyncStatusLoad = "release" | "reset";
