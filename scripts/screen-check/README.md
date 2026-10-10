@@ -321,6 +321,8 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
   is `https://` or `wss://` `ethereum-rpc.publicnode.com` or
   `polygon-bor-rpc.publicnode.com`, without a key. Other hosts are blocked by
   DNS and request interception.
+- An unknown argument, or an unknown run in `--only`, stops the check with
+  exit 2 before anything is sent.
 - A run turns off all sync targets but one contract (Augur of Augur version1
   on eth, AMMFactory of Augur turbo on matic), types the RPC URL, waits for
   "Connected." (30 s) and starts the sync. On eth, it waits until the sync
