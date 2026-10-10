@@ -153,14 +153,16 @@ than the credits of a day.
 When a run stops (at `--max-requests`, or after failures), the logs fetched
 so far are in `<chain>/.partial/` (not committed): for each part, a
 `.jsonl` file to which the logs of each range are added, one log per line,
-and a `.state.json` file with the address of the contract, the next block to
-fetch and the size of the `.jsonl` file when the state was written. Run it
-again without `--to`, with the same `--part-blocks`: it goes on to the same
-block, from where each part stopped, and cuts each `.jsonl` file back to the
-size in its state, which drops what was added after the state (such as a line
-half written when it stopped). A part whose state is for another address
-(the app changed it after the stop), or has no address (a state written
-before the address was kept), is fetched again from its first block. The lines are the logs as the RPC returned them; they are decoded
+and a `.state.json` file with the address of the contract, the topics of its
+events, the next block to fetch and the size of the `.jsonl` file when the
+state was written. Run it again without `--to`, with the same
+`--part-blocks`: it goes on to the same block, from where each part stopped,
+and cuts each `.jsonl` file back to the size in its state, which drops what
+was added after the state (such as a line half written when it stopped). A
+part whose state is for another address or other topics (the app changed the
+address or the events of the ABI after the stop), or has no address or no
+topics (a state written before they were kept), is fetched again from its
+first block. The topics in another order give the same logs. The lines are the logs as the RPC returned them; they are decoded
 when the files are written. The logs are not all kept in memory, so a chain
 with millions of logs fits.
 
