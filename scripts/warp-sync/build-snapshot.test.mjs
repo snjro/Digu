@@ -23,6 +23,7 @@ import {
   parsePositiveInteger,
   RequestLimitError,
 } from "./build-snapshot.mjs";
+import { checkSnapshotFiles } from "./check-files.mjs";
 import { expectedSnapshotLog, fakeRpcLog } from "./fake-logs.mjs";
 import { startFakeRpc } from "./fake-rpc.mjs";
 import { keyOf, writeManifest } from "./snapshot-format.mjs";
@@ -156,28 +157,18 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       }),
     ]);
     expect(logsInFiles(manifest)).toEqual(expectedLogs(16_000_000));
-    // The ranges of each contract follow each other from the creation block.
+    // The ranges from the creation block, the files and the totals.
+    expect(checkSnapshotFiles(outDir, ["matic"])).toEqual([]);
     for (const contract of chain.contracts) {
       const rows = manifest.chunks.filter((row) => row.name === contract.name);
-      expect(rows[0].fromBlock).toBe(contract.creationBlock);
       expect(rows.at(-1).toBlock).toBe(16_000_000);
-      for (let i = 1; i < rows.length; i++)
-        expect(rows[i].fromBlock).toBe(rows[i - 1].toBlock + 1);
       for (const row of rows) expect(row.logCount).toBeLessThanOrEqual(50);
     }
-    const files = manifest.chunks
-      .filter((row) => row.file)
-      .map((row) => row.file);
-    expect(fs.readdirSync(dir()).sort()).toEqual(
-      [...files, "manifest.json"].sort(),
-    );
+    // No .partial/ and no other file than the .json.gz files.
+    expect(
+      fs.readdirSync(dir()).filter((file) => !file.endsWith(".json.gz")),
+    ).toEqual(["manifest.json"]);
     expect(manifest.totals.logCount).toBe(manifest.runs[0].logCount);
-    expect(manifest.totals.logCount).toBe(
-      [...expectedLogs(16_000_000).values()].reduce(
-        (sum, list) => sum + list.length,
-        0,
-      ),
-    );
   });
 
   test("goes on after a stop, with the same files", async () => {
