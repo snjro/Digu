@@ -18,7 +18,7 @@ export type WarpSyncManifestContract = ContractKey & {
   address: HexString;
   creationBlock: number;
 };
-// One per run. check-snapshot.py reads the last one. A run of the script may
+// One per run. check-snapshot.mjs reads the last one. A run of the script may
 // also have requests and checks, which the app does not read
 // (scripts/warp-sync/README.md).
 export type WarpSyncRun = {

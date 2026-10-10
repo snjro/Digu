@@ -34,12 +34,12 @@ chains with a snapshot, the key of a contract, and the folder under
 ## Before a release
 
 Update the snapshot on the day of a release: it reaches the users only with a
-release. `release.yml` runs `check-snapshot.py` before it deploys. It shows,
+release. `release.yml` runs `check-snapshot.mjs` before it deploys. It shows,
 for each chain, the last run of `manifest.json`, when it was made
 (`createdAt`), its `toBlock` and its age in days, in the summary of the run.
 It stops the release when the last run was not made on the day of the
 release, by the date in UTC, and when it cannot
-read a manifest or finds no chain. A chain without a snapshot is not checked.
+read a manifest. It checks the chains of `WARP_SYNC_CHAIN_NAMES`; a chain without a snapshot is not checked.
 
 `check-files.mjs` (a step of `test.yml`, apart from vitest) checks the files
 of each chain of `WARP_SYNC_CHAIN_NAMES` against its `manifest.json` on every
@@ -63,14 +63,11 @@ and does not change the manifest, so it cannot add a missing contract
 
 ```sh
 docker compose run --rm app node scripts/warp-sync/check-files.mjs
-python3 scripts/warp-sync/check-snapshot.py [--at <ISO time>]   # the default is now
+node scripts/warp-sync/check-snapshot.mjs [--at <ISO time with a time zone>]   # the default is now
 ```
 
-Tests of `check-snapshot.py` (`test.yml` runs them on every PR):
-
-```sh
-python3 -B -m unittest discover -s scripts/warp-sync -p "*_test.py"
-```
+`check-snapshot.mjs` imports no package, so it runs without `npm ci`. Its
+tests are in vitest (`check-snapshot.test.mjs`).
 
 When the snapshot cannot be made on that day (for example, the RPC is down)
 or a release does not change the data (an urgent fix), turn the check into a

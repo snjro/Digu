@@ -43,8 +43,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # No npm ci: check-snapshot.mjs imports no package.
+      - name: Node.js setup
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
       - name: Check the warp sync snapshots
-        run: python3 scripts/warp-sync/check-snapshot.py
+        run: node scripts/warp-sync/check-snapshot.mjs
 
   test:
     # The other jobs need test, so none runs before these passed.
