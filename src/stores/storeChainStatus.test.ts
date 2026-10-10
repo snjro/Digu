@@ -91,4 +91,43 @@ describe("storeChhainStatus", () => {
     // The object passed to `set` is not changed.
     expect(chainStatuses[chainNameEth].nodeStatus).toBe("CONNECTING");
   });
+  describe("raiseLatestBlockNumber", () => {
+    const chainNameEth: Chain["name"] = "eth";
+    test("should raise the latest block, and keep the other items", async () => {
+      const storeChainStatus = await importStoreChainStatus();
+      storeChainStatus.updateState(chainNameEth, {
+        latestBlockNumber: 100,
+        nodeStatus: "SUCCESS",
+      });
+
+      storeChainStatus.raiseLatestBlockNumber(chainNameEth, 110);
+
+      expect(get(storeChainStatus)[chainNameEth]).toStrictEqual({
+        chainName: chainNameEth,
+        latestBlockNumber: 110,
+        nodeStatus: "SUCCESS",
+      });
+    });
+    test.each([100, 90])(
+      "should not lower or notify a store at 100 with %s",
+      async (latestBlockNumber: number) => {
+        const storeChainStatus = await importStoreChainStatus();
+        storeChainStatus.updateState(chainNameEth, { latestBlockNumber: 100 });
+        const notified: StateChainStatuses[] = [];
+        const unsubscribe = storeChainStatus.subscribe((state) =>
+          notified.push(state),
+        );
+
+        storeChainStatus.raiseLatestBlockNumber(
+          chainNameEth,
+          latestBlockNumber,
+        );
+        unsubscribe();
+
+        // Only the call of subscribe.
+        expect(notified).toHaveLength(1);
+        expect(get(storeChainStatus)[chainNameEth].latestBlockNumber).toBe(100);
+      },
+    );
+  });
 });

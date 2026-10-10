@@ -318,5 +318,5 @@ async function readChainAfterRelease(chainName: ChainName): Promise<void> {
 // Only the syncing tab updates the latest block number.
 async function readLatestBlockNumber(chainName: ChainName): Promise<void> {
   const { latestBlockNumber } = await getDbRecordChainStatus(chainName);
-  storeChainStatus.updateState(chainName, { latestBlockNumber });
+  storeChainStatus.raiseLatestBlockNumber(chainName, latestBlockNumber);
 }
