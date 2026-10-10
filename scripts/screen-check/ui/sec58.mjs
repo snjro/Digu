@@ -57,7 +57,7 @@ await L.step("5-1", page, async () => {
   ]);
   L.rec(
     "5-1-399",
-    colors.includes("rgb(201, 41, 56)") ? "OK" : "CHECK",
+    colors.includes("rgb(201, 41, 56)") ? "OK" : "NG",
     `colors in the JSON: ${JSON.stringify(colors)}`,
   );
   for (let i = 0; i < 4; i++) {
@@ -424,7 +424,7 @@ await L.step("8-4", page, async () => {
   const last = out.chainVersionsHeaders.at(-1);
   L.rec(
     "8-4-406",
-    last === "Events" ? "OK" : "CHECK",
+    last === "Events" ? "OK" : "NG",
     `chain page headers: ${JSON.stringify(out.chainVersionsHeaders)}`,
   );
 });

@@ -688,14 +688,63 @@ await L.step("4-logs", page, async () => {
   await L.settle(page, 300);
   const s2 = await gs();
   const sh2 = await L.shot(page, "4-logs-desc-page2");
+  // The page size depends on the height of the grid, so it is read from
+  // page 1 just before Next Page. Page 2 goes on right after page 1 and ends
+  // at the size of a page or at the total.
+  const total = rep.Augur_MarketCreated;
+  const size = Number(s1.paging?.match(/^1 to (\d+) of /)?.[1]);
+  L.rec(
+    "4-logs-paging",
+    s1.paging === `1 to ${size} of ${total}` &&
+      s2.paging === `${size + 1} to ${Math.min(2 * size, total)} of ${total}` &&
+      nums(s2)[0] === String(size + 1)
+      ? "OK"
+      : "NG",
+    JSON.stringify({ total, page1: s1.paging, page2: [s2.paging, nums(s2)] }),
+  );
+  // Two clicks on blocknumber sort it in descending order.
+  const blocks = (s) => s.rows.map((r) => Number(r[1].replace(/,/g, "")));
+  const desc = blocks(s1);
+  L.rec(
+    "4-logs-sort",
+    desc.length > 1 && desc.every((b, i) => i === 0 || b < desc[i - 1])
+      ? "OK"
+      : "NG",
+    JSON.stringify({ initial: blocks(s0), desc }),
+  );
+  // The columns of MarketCreated of Augur version1, all shown.
+  const columns = [
+    "#",
+    "blocknumber",
+    "datetime",
+    "transaction index",
+    "transaction hash",
+    "log index",
+    "removed",
+    "topic",
+    "description",
+    "extraInfo",
+    "universe",
+    "market",
+    "marketCreator",
+    "outcomes[0]",
+    "outcomes[1]",
+    "marketCreationFee",
+    "minPrice",
+    "maxPrice",
+    "marketType",
+  ];
+  L.rec(
+    "4-logs-columns",
+    JSON.stringify(sAll.headers) === JSON.stringify(columns) ? "OK" : "NG",
+    JSON.stringify(sAll.headers),
+  );
   L.rec(
     "4-logs",
     "CHECK",
     JSON.stringify({
-      initial: [s0.paging, s0.headers, s0.rows.slice(0, 2)],
-      allCols: sAll.headers,
+      initial: s0.rows.slice(0, 2),
       desc: s1.rows.slice(0, 2),
-      page2: [s2.paging, nums(s2)],
     }),
     [sh1, sh1b, sh2],
   );
