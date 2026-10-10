@@ -9,11 +9,8 @@ import {
 } from "#warpSync/warpSync.js";
 import { hasWarpSync, setWarpSyncState } from "#warpSync/warpSyncState.js";
 import { get } from "svelte/store";
-import {
-  reloadSyncStatusInChain,
-  runWithSyncLock,
-  waitForSyncLockRelease,
-} from "./syncLock";
+import { reloadSyncStatusInChain, runWithSyncLock } from "./syncLock";
+import { createTabChannel } from "./tabChannel";
 
 // "busy": the chain is synced or imported now, and nothing was deleted.
 export type SyncResetResult = "reset" | "busy" | "failed";
@@ -24,9 +21,6 @@ export type SyncResetOutcome = {
   // The import of the warp sync snapshot that starts after the reset.
   warpSyncImport?: Promise<void>;
 };
-
-const SYNC_RESET_CHANNEL_NAME: string = `${DB_NAME.firstName}_syncReset`;
-type SyncResetMessage = { chainName: ChainName };
 
 // Deletes the synced data of the chain while holding its sync lock, and then
 // imports the warp sync snapshot again when it is on.
@@ -106,36 +100,22 @@ function forgetWarpSyncImport(chainName: ChainName): void {
   setWarpSyncState(chainName, { status: "idle" });
 }
 
-// From the channel that this tab watches, which does not get its own message.
+// The other tabs import the snapshot again the next time. They read the chain
+// again from the signal of the sync lock, which the reset holds.
+const syncResetChannel = createTabChannel(
+  `${DB_NAME.firstName}_syncReset`,
+  forgetWarpSyncImport,
+);
+
 function postSyncReset(chainName: ChainName): void {
-  const message: SyncResetMessage = { chainName };
-  watchSyncResetsOfOtherTabs()?.postMessage(message);
+  syncResetChannel.post(chainName);
 }
 
-let watchingChannel: BroadcastChannel | undefined;
-
-// The other tabs read the chain again once the resetting tab releases the
-// lock, and import the snapshot again the next time.
-export function watchSyncResetsOfOtherTabs(): BroadcastChannel | undefined {
-  if (typeof BroadcastChannel === "undefined") return undefined;
-  if (watchingChannel) return watchingChannel;
-  const channel: BroadcastChannel = new BroadcastChannel(
-    SYNC_RESET_CHANNEL_NAME,
-  );
-  watchingChannel = channel;
-  channel.addEventListener(
-    "message",
-    (event: MessageEvent<SyncResetMessage>) => {
-      const { chainName } = event.data;
-      forgetWarpSyncImport(chainName);
-      if (navigator.locks) waitForSyncLockRelease(chainName);
-    },
-  );
-  return channel;
+export function watchSyncResetsOfOtherTabs(): void {
+  syncResetChannel.watch();
 }
 
 // For the tests.
 export function stopWatchingSyncResets(): void {
-  watchingChannel?.close();
-  watchingChannel = undefined;
+  syncResetChannel.stop();
 }

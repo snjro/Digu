@@ -25,7 +25,6 @@ const spyInitializeDBSyncStatusForContract = vi.spyOn(
 type CalledArgs = {
   versionIdentifier: VersionIdentifier;
   contract: Contract;
-  recount: boolean;
 };
 
 function expectedArgs(targetChains: Chain[]): CalledArgs[] {
@@ -39,8 +38,7 @@ function expectedArgs(targetChains: Chain[]): CalledArgs[] {
           versionName: targetVersion.name,
         };
         for (const contract of extractEventContracts(targetVersion.contracts)) {
-          // The startup is the only place that recounts the records.
-          args.push({ versionIdentifier, contract, recount: true });
+          args.push({ versionIdentifier, contract });
         }
       }
     }
@@ -56,11 +54,10 @@ function calledArgs(): CalledArgs[] {
     (result) => result.value,
   );
   return spyInitializeDBSyncStatusForContract.mock.calls.map(
-    ([dbEventLogs, contract, recount]) => ({
+    ([dbEventLogs, contract]) => ({
       versionIdentifier:
         mockedGetDbEventLogs.calls[instances.indexOf(dbEventLogs)][0],
       contract,
-      recount,
     }),
   );
 }
@@ -96,5 +93,34 @@ describe("dbWorkerFuncInitializeDBSyncStatus", () => {
     const expected: CalledArgs[] = expectedArgs(TARGET_CHAINS.slice(1));
     expect(calledArgs()).toHaveLength(expected.length);
     expect(calledArgs()).toEqual(expect.arrayContaining(expected));
+  });
+
+  test("should skip a chain that another tab reads again", async () => {
+    // waitForSyncLockRelease() reads the chain with the lock shared.
+    const readChain: Chain = TARGET_CHAINS[0];
+    let release: () => void = () => {};
+    const heldLock = lockManager.request(
+      getSyncLockName(readChain.name),
+      { mode: "shared" },
+      () => new Promise<void>((resolve) => (release = resolve)),
+    );
+
+    await InitializeDBSyncStatus.dbWorkerFuncInitializeDBSyncStatus();
+    release();
+    await heldLock;
+
+    const expected: CalledArgs[] = expectedArgs(TARGET_CHAINS.slice(1));
+    expect(calledArgs()).toHaveLength(expected.length);
+    expect(calledArgs()).toEqual(expect.arrayContaining(expected));
+  });
+
+  test("should throw an error of the recount", async () => {
+    spyInitializeDBSyncStatusForContract.mockRejectedValueOnce(
+      new Error("failed"),
+    );
+
+    await expect(
+      InitializeDBSyncStatus.dbWorkerFuncInitializeDBSyncStatus(),
+    ).rejects.toThrow("failed");
   });
 });

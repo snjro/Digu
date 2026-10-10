@@ -81,7 +81,7 @@ describe("getSyncPanelStateText", () => {
       expect(
         getSyncPanelStateText("otherTab", syncStateText, undefined),
       ).toEqual({
-        text: "Syncing in another tab.",
+        text: "In use in another tab.",
         isError: false,
       });
     }
