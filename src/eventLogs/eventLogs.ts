@@ -11,14 +11,13 @@ import type {
   ContractName,
 } from "#constants/chains/types.js";
 import {
-  startAbortingInChain,
   startSyncingInChain,
   stopSyncingInChain,
 } from "#db/dbEventLogsDataHandlersSyncStatus.js";
 import { customLogger } from "#utils/logger.js";
 import { getUrlObject } from "#utils/utilsCommon.js";
 import { storeRpcSettings } from "#stores/storeRpcSettings.js";
-import { recordSyncStoppedReason } from "./syncStoppedReason";
+import { startSyncRun, stopSync } from "./syncStop";
 import { get } from "svelte/store";
 import { startUpdateLatestBlockNumber } from "./updateLatestBlockNumber";
 import { requestSyncLock } from "./syncLock";
@@ -57,6 +56,8 @@ async function syncEventLogs(
   const rpc: string = get(storeRpcSettings)[targetChain.name].rpc;
   let nodeProvider: NodeProvider | undefined = undefined;
   let stopUpdateLatestBlockNumber: (() => void) | undefined = undefined;
+  // Before the first await, so that a stop right after the start reaches it.
+  const endSyncRun: () => void = startSyncRun(targetChain.name);
   try {
     nodeProvider = await getNodeProvider(targetChain, rpc);
     if (nodeProvider === undefined) {
@@ -65,8 +66,7 @@ async function syncEventLogs(
         // Only the host: the rest of the URL may hold an API key.
         rpcHost: getUrlObject(rpc)?.host,
       });
-      recordSyncStoppedReason(targetChain.name, "RPC_ERRORS");
-      await startAbortingInChain(targetChain.name);
+      await stopSync(targetChain.name, "RPC_ERRORS");
       return;
     }
 
@@ -86,9 +86,8 @@ async function syncEventLogs(
       );
     }
   } catch (error) {
-    recordSyncStoppedReason(targetChain.name, "UNEXPECTED_ERROR");
     // Stop the contracts that already started, so that the wait below ends.
-    await startAbortingInChain(targetChain.name).catch(
+    await stopSync(targetChain.name, "UNEXPECTED_ERROR").catch(
       (abortError: unknown) => {
         customLogger.error("Start aborting.", {
           chainName: targetChain.name,
@@ -106,6 +105,7 @@ async function syncEventLogs(
       // Also stops a contract whose loop ended with an error.
       await stopSyncingInChain(targetChain.name);
     } finally {
+      endSyncRun();
       await destroyNodeProvider(nodeProvider);
     }
   }
@@ -124,8 +124,7 @@ async function abortOnError(
     contractName: contractName,
     errorObject: error,
   });
-  recordSyncStoppedReason(chainName, "UNEXPECTED_ERROR");
-  await startAbortingInChain(chainName).catch((abortError: unknown) => {
+  await stopSync(chainName, "UNEXPECTED_ERROR").catch((abortError: unknown) => {
     // allSettled would drop it silently.
     customLogger.error("Start aborting.", {
       chainName: chainName,

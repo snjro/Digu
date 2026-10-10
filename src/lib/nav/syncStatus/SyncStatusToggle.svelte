@@ -6,7 +6,6 @@
   import { iconNameForSyncStateText } from "#lib/common/CommonSyncStateText.svelte";
   import { showSnackBarAsSaveFailed } from "#lib/common/saveFailed.js";
   import type { Chain, ChainName } from "#constants/chains/types.js";
-  import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
   import type {
     ChainStatus,
     NodeStatus,
@@ -14,6 +13,7 @@
     SyncStatus,
   } from "#db/dbTypes.js";
   import { fetchEventLogs } from "#eventLogs/eventLogs.js";
+  import { stopSync } from "#eventLogs/syncStop.js";
   import {
     storeChainActivity,
     type ChainActivity,
@@ -64,7 +64,7 @@
       if (!started) toggleOn = false;
     } else {
       try {
-        await startAbortingInChain(targetChain.name);
+        await stopSync(targetChain.name);
       } catch (error) {
         customLogger.error("Start aborting the sync.", {
           chainName: targetChain.name,

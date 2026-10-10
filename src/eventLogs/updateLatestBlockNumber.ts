@@ -7,8 +7,7 @@ import {
 } from "#utils/utilsEthers.js";
 import { get } from "svelte/store";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
-import { recordSyncStoppedReason } from "./syncStoppedReason";
-import { startAbortingInChain } from "#db/dbEventLogsDataHandlersSyncStatus.js";
+import { stopSync } from "./syncStop";
 import { getTargetChain } from "#utils/utilsDb.js";
 import { TRY_COUNT } from "./eventLogsContract";
 
@@ -66,9 +65,8 @@ export async function startUpdateLatestBlockNumber(
         errorMessage: "errorCount exceeded the limit. Start aborting.",
       });
 
-      recordSyncStoppedReason(targetChainName, "RPC_ERRORS");
       try {
-        await startAbortingInChain(targetChainName);
+        await stopSync(targetChainName, "RPC_ERRORS");
       } catch (error) {
         customLogger.error({
           errorOn: functionName,
