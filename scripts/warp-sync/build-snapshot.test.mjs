@@ -40,10 +40,10 @@ let badBlock = undefined;
 // { block, answers }: eth_getBlockByNumber of that block returns the answers
 // in turn ("HTTP 500", or a result), and then the block.
 let blockFaults = undefined;
-// The address of a contract whose eth_getLogs gets no answer: its responses,
-// with closed set when the script closes the request, destroyed after each
-// test.
-let hangAddress = undefined;
+// With hang, the first eth_getLogs gets no answer until the test answers it;
+// with hang "HTTP 500", the later ones get HTTP 500. hung has the request
+// held, with closed set when the script closes it; destroyed after each test.
+let hang = undefined;
 const hung = [];
 // The block of each eth_getBlockByNumber.
 const blockAsks = [];
@@ -81,11 +81,12 @@ beforeAll(async () => {
     if (method === "eth_blockNumber") result = toHex(LATEST);
     if (method === "eth_getLogs") {
       const [{ address, fromBlock, toBlock }] = params;
-      if (address === hangAddress) {
-        const request = { res, closed: false };
+      if (hang !== undefined && hung.length === 0) {
+        const request = { res, params, closed: false };
         res.on("close", () => (request.closed = true));
         return hung.push(request);
       }
+      if (hang === "HTTP 500") return send(500, {});
       result = logsOf(address, Number(fromBlock), Number(toBlock));
     }
     if (method === "eth_getBlockByNumber") {
@@ -112,7 +113,7 @@ beforeEach(() => {
   withoutTimestamp = false;
   badBlock = undefined;
   blockFaults = undefined;
-  hangAddress = undefined;
+  hang = undefined;
   broken = undefined;
   requests.length = 0;
   blockAsks.length = 0;
@@ -210,15 +211,8 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     const straight = readManifest().chunks;
     fs.rmSync(dir(), { recursive: true });
 
-    // Two workers, here and below, so that ranges are answered before the
-    // limit: the stop cuts the requests in flight.
     await expect(
-      build({
-        toBlock: 16_000_000,
-        chunkLogs: 50,
-        maxRequests: 12,
-        concurrency: 2,
-      }),
+      build({ toBlock: 16_000_000, chunkLogs: 50, maxRequests: 12 }),
     ).rejects.toThrow(RequestLimitError);
     const partial = path.join(dir(), ".partial");
     const jsonl = fs
@@ -234,7 +228,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
 
   test("drops what was added to .partial/ after the state when it goes on", async () => {
     await expect(
-      build({ toBlock: 16_000_000, maxRequests: 12, concurrency: 2 }),
+      build({ toBlock: 16_000_000, maxRequests: 12 }),
     ).rejects.toThrow(RequestLimitError);
     const partial = path.join(dir(), ".partial");
     const file = fs
@@ -275,7 +269,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     ],
   ])("starts a part over when %s", async (_, change) => {
     await expect(
-      build({ toBlock: 16_000_000, maxRequests: 12, concurrency: 2 }),
+      build({ toBlock: 16_000_000, maxRequests: 12 }),
     ).rejects.toThrow(RequestLimitError);
     const partial = path.join(dir(), ".partial");
     const file = fs
@@ -423,18 +417,53 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(asksOfBlock(block)).toBe(10);
   });
 
-  test("cuts the requests in flight when a part stops, and throws the reason of the stop", async () => {
-    // One worker takes the first part of the first contract and waits for
-    // its answer; the other one reaches the limit with requests one after
-    // another, after the request of the first one has come.
-    hangAddress = chain.contracts[0].address;
+  test("cuts the requests in flight when a part stops on a failure, and throws its error", async () => {
+    // One part waits for the first eth_getLogs; the other gets HTTP 500 until
+    // it stops.
+    hang = "HTTP 500";
     await expect(
-      build({ toBlock: 16_000_000, maxRequests: 10, concurrency: 2 }),
+      build({ toBlock: 16_000_000, concurrency: 2 }),
+    ).rejects.toThrow("HTTP 500");
+    expect(hung).toHaveLength(1);
+    await vi.waitFor(() => expect(hung[0].closed).toBe(true));
+  });
+
+  test("keeps the answers of the requests in flight when a part stops at the limit", async () => {
+    // One part waits for the first eth_getLogs, which is answered after the
+    // other part stopped at the limit.
+    hang = "until the limit";
+    let answered = 0;
+    const log = (message) => {
+      if (!message.startsWith("Stopped at the limit")) return;
+      const [{ res, params }] = hung;
+      const [{ address, fromBlock, toBlock }] = params;
+      const logs = logsOf(address, Number(fromBlock), Number(toBlock));
+      answered = logs.length;
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ jsonrpc: "2.0", id: 0, result: logs }));
+    };
+    await expect(
+      build({ toBlock: 16_000_000, maxRequests: 10, concurrency: 2, log }),
     ).rejects.toThrow(
       new RequestLimitError("Stopped at the limit of 10 requests."),
     );
-    expect(hung).toHaveLength(1);
-    await vi.waitFor(() => expect(hung[0].closed).toBe(true));
+    expect(answered).toBeGreaterThan(0);
+    const [{ params }] = hung;
+    const lines = fs
+      .readdirSync(path.join(dir(), ".partial"))
+      .filter((file) => file.endsWith(".jsonl"))
+      .flatMap((file) =>
+        fs.readFileSync(path.join(dir(), ".partial", file), "utf8").split("\n"),
+      )
+      .filter(Boolean)
+      .map((line) => JSON.parse(line));
+    const kept = lines.filter(
+      (raw) =>
+        raw.address.toLowerCase() === params[0].address.toLowerCase() &&
+        Number(raw.blockNumber) >= Number(params[0].fromBlock) &&
+        Number(raw.blockNumber) <= Number(params[0].toBlock),
+    );
+    expect(kept).toHaveLength(answered);
   });
 
   // The blocks of the logs of FeePot kept in .partial/.

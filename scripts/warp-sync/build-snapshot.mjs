@@ -25,7 +25,7 @@ import {
   readStates,
   writeState,
 } from "./partial.mjs";
-import { createRpc } from "./rpc.mjs";
+import { createRpc, RequestLimitError } from "./rpc.mjs";
 import {
   CHUNK_LOGS,
   chunkFileName,
@@ -184,9 +184,12 @@ async function build(chain, rpc, outDir, toBlock, options) {
   // `concurrency` workers take the next part when they finish one, so that
   // the requests at a time stay the same until the end (#586). When one part
   // stops (at --max-requests, or after failures), the others stop before
-  // their next request, and all keep what they fetched in .partial/.
+  // their next request, and all keep what they fetched in .partial/. Their
+  // requests in flight are cut when the first stop is a failure (#768); at
+  // --max-requests they end, and their answers are kept.
   fs.mkdirSync(partialDir, { recursive: true });
   const controller = new AbortController();
+  const cut = new AbortController();
   const queue = [];
   const most = Math.max(...plans.map((plan) => plan.parts.length));
   for (let i = 0; i < most; i++) {
@@ -260,6 +263,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
         });
       },
       signal: controller.signal,
+      requestSignal: cut.signal,
       widths,
       stats,
     });
@@ -272,6 +276,16 @@ async function build(chain, rpc, outDir, toBlock, options) {
   const results = await Promise.allSettled(
     Array.from({ length: Math.min(concurrency, queue.length) }, () =>
       worker().catch((error) => {
+        if (!controller.signal.aborted) {
+          if (error instanceof RequestLimitError) {
+            log(`${error.message} The requests in flight end first.`);
+          } else {
+            log(
+              `A part stopped: ${error.message} The requests in flight are cut.`,
+            );
+            cut.abort(error);
+          }
+        }
         controller.abort(error);
         throw error;
       }),

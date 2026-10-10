@@ -107,15 +107,21 @@ describe("fetchLogs", () => {
     expect(asked[12]).toEqual([1, 2]);
   });
 
-  test("stops at once when one block has too many logs", async () => {
+  test("asks one block with too many logs again as a failure, and stops at ten in a row", async () => {
     const tooMany = rpcError("query exceeds max results 20000");
-    const { rpc, asked } = scripted(Array.from({ length: 30 }, () => tooMany));
+    const answers = (n) => Array.from({ length: n }, () => tooMany);
+    const asked10 = scripted([...answers(30)]);
     await expect(
-      fetchLogs(rpc, contract, 5, 5, { widths: createWidths(9_999) }),
+      fetchLogs(asked10.rpc, contract, 5, 5, { widths: createWidths(9_999) }),
     ).rejects.toThrow(
       "C (0xc): block 5 has more logs than the RPC returns at once (eth_getLogs: ",
     );
-    expect(asked).toEqual([[5, 5]]);
+    expect(asked10.asked).toEqual(Array(10).fill([5, 5]));
+    // Another node of the RPC returns them at the tenth.
+    const { asked, ranges, stats } = await run([...answers(9), [log(5)]], 5, 5);
+    expect(asked).toHaveLength(10);
+    expect(ranges).toEqual([[5, 5, 1]]);
+    expect(stats.errors.results).toBe(9);
   });
 
   test("halves the range that was asked, not the width", async () => {

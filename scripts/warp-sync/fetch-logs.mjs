@@ -138,7 +138,8 @@ export function createFetchStats() {
 // Each range that works goes to onRange(from, to, logs), with its logs by
 // block and log index, so that the logs are not all kept in memory. Returns
 // the number of logs. It stops before the next request when signal is
-// aborted (another part stopped).
+// aborted (another part stopped), and its request in flight is cut when
+// requestSignal is aborted (another part stopped on a failure, #768).
 export async function fetchLogs(
   rpc,
   contract,
@@ -148,6 +149,7 @@ export async function fetchLogs(
     log = () => {},
     onRange = () => {},
     signal = undefined,
+    requestSignal = undefined,
     widths = createWidths(),
     stats = createFetchStats(),
   } = {},
@@ -180,7 +182,7 @@ export async function fetchLogs(
             toBlock: toHex(to),
           },
         ],
-        signal,
+        requestSignal,
       );
     } catch (error) {
       if (error instanceof RequestLimitError || signal?.aborted) throw error;
@@ -198,18 +200,22 @@ export async function fetchLogs(
       rateErrors = 0;
       log(`${contract.name}: ${from}-${to} failed (${kind}): ${error.message}`);
       if (kind === "results") {
-        // One block cannot be narrowed: the same request would get the same
-        // error until --max-requests (#768).
-        if (to === from) {
+        // Not the empty range any more: a narrower one.
+        askAgainTo = undefined;
+        emptyAnswers = 0;
+        if (to > from) {
+          own = narrow(widths, to - from + 1);
+          continue;
+        }
+        // One block cannot be narrowed (#768). It is asked again as a failure,
+        // since another node of the RPC may return more logs.
+        if (++failures >= MAX_FAILURES) {
           throw new Error(
             `${contract.name} (${contract.address}): block ${from} has more logs than the RPC returns at once (${error.message}). Use another --rpc.`,
             { cause: error },
           );
         }
-        // Not the empty range any more: a narrower one.
-        askAgainTo = undefined;
-        emptyAnswers = 0;
-        own = narrow(widths, to - from + 1);
+        await sleep(RETRY_WAIT_MS);
         continue;
       }
       failures++;

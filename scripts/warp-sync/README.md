@@ -223,8 +223,10 @@ contract that has events, fetch that contract's snapshot again from an RPC.
     answers a range that is too wide with HTTP 500.
   - Too many logs for one answer (`results`; the messages are in
     `classifyError`): the range is halved at once, without a wait and without
-    counting a failure. A range of one block cannot be halved: the script
-    stops with the contract and the block (#768); use another `--rpc`.
+    counting a failure. A range of one block cannot be halved: it is asked
+    again as a failure (another node may return more logs), and after 10 in
+    a row the script stops with the contract and the block (#768); use
+    another `--rpc`.
   - A request that does not answer in time (`REQUEST_TIMEOUT_MS`) is a
     failure. After 10 failures in a row of one part (`MAX_FAILURES`), the
     script stops.
@@ -239,9 +241,10 @@ contract that has events, fetch that contract's snapshot again from an RPC.
   first. `--concurrency` workers take the next part when they finish one, so
   that the requests at a time stay the same until the end. When one part
   stops, the others stop before their next request, even in the middle of
-  a wait after HTTP 429, and their requests in flight are cut (#768): their
-  answers are not kept. The run stops with the error of the part that
-  stopped first. A part stops after 30 429s in a row too.
+  a wait after HTTP 429. When the first stop is a failure, their requests in
+  flight are cut (#768); at `--max-requests` they end, and their answers are
+  kept in `.partial/`. The run stops with the error of the part that stopped
+  first. A part stops after 30 429s in a row too.
 
 The logs of each range are sorted by block and log index, and the parts of a
 contract are read in the order of the blocks. The run in the manifest has
