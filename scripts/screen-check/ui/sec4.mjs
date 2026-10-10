@@ -688,18 +688,19 @@ await L.step("4-logs", page, async () => {
   await L.settle(page, 300);
   const s2 = await gs();
   const sh2 = await L.shot(page, "4-logs-desc-page2");
-  // The page size depends on the height of the grid, so only the total and
-  // the rows of page 2 are fixed.
+  // The page size depends on the height of the grid, so it is read from
+  // page 1 just before Next Page. Page 2 goes on right after page 1 and ends
+  // at the size of a page or at the total.
   const total = rep.Augur_MarketCreated;
-  const size = Number(s0.paging?.match(/^1 to (\d+) of (\d+)$/)?.[1]);
+  const size = Number(s1.paging?.match(/^1 to (\d+) of /)?.[1]);
   L.rec(
     "4-logs-paging",
-    s0.paging === `1 to ${size} of ${total}` &&
-      s2.paging === `${size + 1} to ${2 * size} of ${total}` &&
+    s1.paging === `1 to ${size} of ${total}` &&
+      s2.paging === `${size + 1} to ${Math.min(2 * size, total)} of ${total}` &&
       nums(s2)[0] === String(size + 1)
       ? "OK"
       : "NG",
-    JSON.stringify({ total, initial: s0.paging, page2: [s2.paging, nums(s2)] }),
+    JSON.stringify({ total, page1: s1.paging, page2: [s2.paging, nums(s2)] }),
   );
   // Two clicks on blocknumber sort it in descending order.
   const blocks = (s) => s.rows.map((r) => Number(r[1].replace(/,/g, "")));
