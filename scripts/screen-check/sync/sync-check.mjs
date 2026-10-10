@@ -124,7 +124,10 @@ async function answerRpc(req) {
 
 await new Promise((resolve) => server.listen(PORT, "127.0.0.1", resolve));
 const browser = await puppeteer.launch({
-  args: ["--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost"],
+  args: [
+    "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost",
+    "--no-sandbox",
+  ],
 });
 
 async function newPage(context, name) {

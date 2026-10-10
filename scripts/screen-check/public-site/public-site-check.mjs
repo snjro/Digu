@@ -25,7 +25,7 @@ const record = (id, ok, detail) => {
   console.log(`[${id}] ${ok ? "OK" : "NG"} ${JSON.stringify(detail)}`);
 };
 
-const browser = await puppeteer.launch();
+const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
 const page = await browser.newPage();
 await page.setViewport({ width: 1400, height: 900 });
 page.on("console", (m) => {

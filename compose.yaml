@@ -11,8 +11,12 @@ services:
       - "127.0.0.1:5173:5173"
     command: npm run dev -- --host 0.0.0.0
 
-  # Has Chrome for scripts/visual-compare and scripts/a11y-scan.
+  # Has Chrome for scripts/visual-compare, scripts/screen-check and scripts/a11y-scan.
   # Keep the image tag the same as the puppeteer version in package-lock.json.
+  # The scripts launch Chrome with --no-sandbox, so the service needs no added
+  # capability. Without Chrome's sandbox, only the container (uid 1001, no
+  # added capability) protects the host from a page that breaks Chrome. Chrome
+  # opens only our builds, the public site and the data of RPCs.
   test:
     image: ghcr.io/puppeteer/puppeteer:25.12.0
     profiles: ["test"]
@@ -21,9 +25,6 @@ services:
     environment:
       HOME: /tmp
       PUPPETEER_CACHE_DIR: /home/pptruser/.cache/puppeteer
-    # Chrome's sandbox needs it; scripts/visual-compare launches Chrome without --no-sandbox.
-    cap_add:
-      - SYS_ADMIN
     volumes:
       - .:/app
     command: npm run vitest
