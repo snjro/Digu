@@ -521,8 +521,9 @@ describe("startSyncingInChain with a version whose write fails (#726)", () => {
       startError,
     );
 
-    // The failing version marked nothing.
-    await expectNoContractSyncing();
+    // The failing version marked nothing. The rejection comes before the
+    // write-backs of the other versions have committed.
+    await vi.waitFor(() => expectNoContractSyncing());
     expect(spyError).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({

@@ -27,8 +27,8 @@ export async function startSyncingInChain(
       isSyncing: true,
     });
   } catch (error) {
-    // The versions whose write fails here keep their flags until the reset
-    // at the next start of a sync or startup.
+    // A version that was marked but cannot be written back keeps its flags
+    // until the next startup, or with Web Locks the next start, resets them.
     await stopSyncingInChain(chainName).catch((stopError: unknown) => {
       customLogger.error("Write back the flags of a failed start.", {
         chainName: chainName,
