@@ -6,8 +6,11 @@ import { keyOf, readText, writeWhole } from "./snapshot-format.mjs";
 // The logs fetched so far of each part, so that a run that stopped (at
 // --max-requests, or after failures) goes on where it stopped. Each part
 // has a .jsonl file, to which the logs of each range are added, one log per
-// line, and a .state.json file with the next block to fetch and the size of
-// the .jsonl file. The logs are added before the state is written, so a run
+// line, and a .state.json file with the address and the topics of the
+// contract, the block its run started from (fromBlock), the next block to
+// fetch and the size of the .jsonl file. When a run goes on, startOver in
+// build-snapshot.mjs decides from them whether a part is fetched again from
+// its first block. The logs are added before the state is written, so a run
 // that goes on cuts the .jsonl file back to that size: the logs added after
 // the state, and a line half written, are dropped.
 export const PARTIAL_DIR = ".partial";

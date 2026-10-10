@@ -162,9 +162,10 @@ was added after the state (such as a line half written when it stopped). A
 part whose state is for another address or other topics (the app changed the
 address or the events of the ABI after the stop), or has no address or no
 topics (a state written before they were kept), is fetched again from its
-first block. The topics in another order give the same logs. The lines are the logs as the RPC returned them; they are decoded
-when the files are written. The logs are not all kept in memory, so a chain
-with millions of logs fits.
+first block. The topics in another order give the same logs. The lines are
+the logs as the RPC returned them; they are decoded when the files are
+written. The logs are not all kept in memory, so a chain with millions of
+logs fits.
 
 The files of the snapshot are written only at the end, one contract at a
 time, and then `.partial/` is deleted. The block times fetched for the logs
