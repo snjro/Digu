@@ -1120,6 +1120,32 @@ describe("sync with two tabs (issue #49)", () => {
     expect(b.latestBlockNumber()).toBe(a.latestBlockNumber());
   }, 30_000);
 
+  test("tab B does not lower the latest block raised while it reads it after tab A stops", async () => {
+    const a = await openTab();
+    tabs.push(a);
+    const b = await openTab();
+    tabs.push(b);
+    // Tab B's module instance: the last tab opened. A raise commits between
+    // its reading of the DB and its writing of the store.
+    const chainStatus = await import("#db/dbChainStatusDataHandlers.js");
+    const { getDbRecordChainStatus, raiseDbLatestBlockNumber } = chainStatus;
+    const raised: number = b.latestBlockNumber() + 100;
+    vi.spyOn(chainStatus, "getDbRecordChainStatus").mockImplementationOnce(
+      async (...args) => {
+        const record = await getDbRecordChainStatus(...args);
+        await raiseDbLatestBlockNumber(chain.name, raised);
+        return record;
+      },
+    );
+    expect(await a.fetchEventLogs()).toBe(true);
+    await waitForSavedLogs(a);
+    expect(await waitFor(() => b.isLockedByOtherTab())).toBe(true);
+
+    await stopAndWait(a);
+    expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
+    expect(b.latestBlockNumber()).toBe(raised);
+  }, 30_000);
+
   test("tab B resumes from the block that tab A fetched", async () => {
     const a = await openTab();
     tabs.push(a);

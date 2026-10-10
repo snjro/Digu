@@ -75,8 +75,10 @@ async function InitializeStoreSyncStatusInVersion(
   );
 }
 async function InitializeStoreChainStatus(chainName: ChainName): Promise<void> {
-  const chainStatus: ChainStatus = await getDbRecordChainStatus(chainName);
+  const { latestBlockNumber, ...chainStatus }: ChainStatus =
+    await getDbRecordChainStatus(chainName);
   storeChainStatus.updateState(chainName, chainStatus);
+  storeChainStatus.raiseLatestBlockNumber(chainName, latestBlockNumber);
 }
 async function InitializeStoreRpcSettings(chainName: ChainName): Promise<void> {
   const rpcSetting: RpcSetting | undefined =
