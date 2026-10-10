@@ -1,5 +1,10 @@
-import type { ChainName, ContractName } from "#constants/chains/types.js";
-import { filterContractsInStore } from "#stores/storeSyncStatus.js";
+import type {
+  ChainName,
+  Contract,
+  ContractName,
+} from "#constants/chains/types.js";
+import { getTargetVersion } from "#utils/utilsDb.js";
+import { extractEventContracts } from "#utils/utilsEthers.js";
 import { DbEventLogs } from "./dbEventLogs";
 import type { ContractIdentifier } from "./dbTypes";
 import { customLogger } from "#utils/logger.js";
@@ -19,7 +24,11 @@ export async function startSyncingInChain(
     true,
     { isSyncing: true },
   );
-  return filterContractsInStore(marked);
+  return marked.filter((contractIdentifier: ContractIdentifier) =>
+    extractEventContracts(getTargetVersion(contractIdentifier).contracts).some(
+      (contract: Contract) => contract.name === contractIdentifier.contractName,
+    ),
+  );
 }
 export async function startAbortingInChain(
   chainName: ChainName,
