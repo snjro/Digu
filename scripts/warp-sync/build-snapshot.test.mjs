@@ -294,7 +294,25 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     ).resolves.toBeUndefined();
     expect(fs.readFileSync(file, "utf8")).toBe(before);
     expect(logs).toContain(
-      `Nothing to add to block 15000000, and not in manifest.contracts: ${later.join(", ")}. A run cannot add them yet (#761).`,
+      `Nothing to add to block 15000000. Not in manifest.contracts: ${later.join(", ")}; a run to a later block adds them. (#761)`,
+    );
+  });
+
+  test("a run with no range to fetch names the contracts that the chain does not have", async () => {
+    await build({ toBlock: 15_000_000 });
+    const manifest = readManifest();
+    const [first] = manifest.contracts;
+    manifest.contracts.push({ ...first, name: "Other" });
+    const file = path.join(dir(), "manifest.json");
+    writeManifest(file, manifest);
+    const before = fs.readFileSync(file, "utf8");
+    const logs = [];
+    await expect(
+      build({ toBlock: 15_000_000, log: (message) => logs.push(message) }),
+    ).resolves.toBeUndefined();
+    expect(fs.readFileSync(file, "utf8")).toBe(before);
+    expect(logs).toContain(
+      `Nothing to add to block 15000000. In manifest.contracts but not contracts of the chain: ${first.project}/${first.version}/Other; a run keeps them. (#761)`,
     );
   });
 

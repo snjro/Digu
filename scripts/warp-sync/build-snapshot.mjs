@@ -695,17 +695,29 @@ async function build(chain, rpc, outDir, toBlock, options) {
   }
   if (plans.length === 0) {
     fs.rmSync(partialDir, { recursive: true, force: true });
-    // The manifest is not changed: a run adds the contracts of the chain to
-    // manifest.contracts only with logs to fetch (#761).
-    const missing = chain.contracts.map(keyOf).filter((key) => !known.has(key));
+    // The manifest is not changed: a run writes manifest.contracts only with
+    // logs to fetch (#761). The contracts that check-files.mjs fails on are
+    // named.
+    const chainKeys = new Set(chain.contracts.map(keyOf));
+    const missing = [...chainKeys].filter((key) => !known.has(key));
+    const extra = [...known.keys()].filter((key) => !chainKeys.has(key));
     if (!fs.existsSync(manifestFile)) {
       log(
         `Nothing to add: no contract of ${chain.name} is created by block ${end}.`,
       );
-    } else if (missing.length > 0) {
-      log(
-        `Nothing to add to block ${end}, and not in manifest.contracts: ${missing.join(", ")}. A run cannot add them yet (#761).`,
-      );
+    } else if (missing.length > 0 || extra.length > 0) {
+      const notes = [];
+      if (missing.length > 0) {
+        notes.push(
+          `Not in manifest.contracts: ${missing.join(", ")}; a run to a later block adds them.`,
+        );
+      }
+      if (extra.length > 0) {
+        notes.push(
+          `In manifest.contracts but not contracts of the chain: ${extra.join(", ")}; a run keeps them.`,
+        );
+      }
+      log(`Nothing to add to block ${end}. ${notes.join(" ")} (#761)`);
     } else {
       log(`Nothing to add: the snapshot already reaches block ${end}.`);
     }
