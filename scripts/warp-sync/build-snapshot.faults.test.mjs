@@ -6,7 +6,6 @@
 // have every log.
 import { createHash } from "node:crypto";
 import fs from "node:fs";
-import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
@@ -16,6 +15,7 @@ import { afterAll, beforeAll, expect, test } from "vitest";
 process.env.WARP_SYNC_RETRY_WAIT_MS = "0";
 const { buildSnapshot, loadChain } = await import("./build-snapshot.mjs");
 const { fakeEventLog } = await import("./fake-logs.mjs");
+const { startFakeRpc } = await import("./fake-rpc.mjs");
 
 const chain = loadChain("matic");
 const TO = 15_600_000;
@@ -71,99 +71,84 @@ const faults = {
   http429With500: 0,
   blockNumber429: 0,
 };
-let server;
-let url;
+let rpc;
 beforeAll(async () => {
-  server = http.createServer((req, res) => {
-    let body = "";
-    req.on("data", (data) => (body += data));
-    req.on("end", () => {
-      const { id, method, params } = JSON.parse(body);
-      const send = (status, value, headers = {}) => {
-        res.writeHead(status, {
-          "content-type": "application/json",
-          ...headers,
-        });
-        res.end(JSON.stringify({ jsonrpc: "2.0", id, ...value }));
-      };
-      // Retry-After: 0 is read but does not make the wait longer; the test
-      // does not wait because of WARP_SYNC_RETRY_WAIT_MS=0.
-      const tooManyRequests = () => send(429, {}, { "retry-after": "0" });
-      if (method === "eth_chainId") return send(200, { result: toHex(137) });
-      if (method === "eth_blockNumber") {
-        if (faults.blockNumber429 === 0) {
-          faults.blockNumber429++;
-          return tooManyRequests();
-        }
-        return send(200, { result: toHex(TO + 1_000) });
+  rpc = await startFakeRpc(({ method, params }, send) => {
+    // Retry-After: 0 is read but does not make the wait longer; the test
+    // does not wait because of WARP_SYNC_RETRY_WAIT_MS=0.
+    const tooManyRequests = () => send(429, {}, { "retry-after": "0" });
+    if (method === "eth_chainId") return send(200, { result: toHex(137) });
+    if (method === "eth_blockNumber") {
+      if (faults.blockNumber429 === 0) {
+        faults.blockNumber429++;
+        return tooManyRequests();
       }
-      const [{ address, fromBlock, toBlock }] = params;
-      const from = Number(fromBlock);
-      const to = Number(toBlock);
-      const contract = chain.contracts.find(
-        (c) => c.address.toLowerCase() === address.toLowerCase(),
-      );
-      const start = `${address.toLowerCase()}/${from}`;
-      const n = (requestsFrom.get(start) ?? 0) + 1;
-      requestsFrom.set(start, n);
-      // At most 2 failures in a row from any first block (MAX_FAILURES is 10).
-      const fault = hashOf(start) % 8;
-      if (n === 1 && fault === 0) return (faults.http500++, send(500, {}));
-      if (n === 1 && fault === 1) return (faults.http504++, send(504, {}));
-      // HTTP 429 15 times in a row, which are not failures.
-      if (n <= 15 && fault === 4) return (faults.http429++, tooManyRequests());
-      // HTTP 500 and 429 in turn: two failures in a row.
-      if (n <= 4 && fault === 5) {
-        if (n % 2 === 1) return (faults.http429With500++, tooManyRequests());
-        return (faults.http500++, send(500, {}));
-      }
-      if (n === 1 && fault === 2) {
-        faults.noOldBlocks++;
-        return send(200, {
-          error: { code: -32000, message: "historical state is not available" },
-        });
-      }
-      // A node that refuses more than 5,000 blocks, twice, so that the
-      // script halves the range.
-      if (n <= 2 && fault === 3 && to - from + 1 > 5_000) {
-        faults.tooWide++;
-        return send(200, {
-          error: {
-            code: -32602,
-            message:
-              "query block range exceeds server limit, narrow your filter: 5000",
-          },
-        });
-      }
-      const logs = logsOf(contract, from, to);
-      if (logs.length > MAX_RESULTS) {
-        faults.tooMany++;
-        return send(200, {
-          error: {
-            code: -32602,
-            message: `query exceeds max results ${MAX_RESULTS}, retry with the range ${from}-${from + 1}`,
-          },
-        });
-      }
-      // The first two answers for a range with logs are empty, one range in
-      // four (pocket was empty twice in a row).
-      const key = `${start}-${to}`;
-      if (logs.length > 0 && empties.get(key) === 1) {
-        empties.set(key, 2);
-        return send(200, { result: [] });
-      }
-      if (logs.length > 0 && !empties.has(key) && hashOf(key) % 4 === 0) {
-        empties.set(key, 1);
-        faults.empty++;
-        return send(200, { result: [] });
-      }
-      send(200, { result: logs });
-    });
+      return send(200, { result: toHex(TO + 1_000) });
+    }
+    const [{ address, fromBlock, toBlock }] = params;
+    const from = Number(fromBlock);
+    const to = Number(toBlock);
+    const contract = chain.contracts.find(
+      (c) => c.address.toLowerCase() === address.toLowerCase(),
+    );
+    const start = `${address.toLowerCase()}/${from}`;
+    const n = (requestsFrom.get(start) ?? 0) + 1;
+    requestsFrom.set(start, n);
+    // At most 2 failures in a row from any first block (MAX_FAILURES is 10).
+    const fault = hashOf(start) % 8;
+    if (n === 1 && fault === 0) return (faults.http500++, send(500, {}));
+    if (n === 1 && fault === 1) return (faults.http504++, send(504, {}));
+    // HTTP 429 15 times in a row, which are not failures.
+    if (n <= 15 && fault === 4) return (faults.http429++, tooManyRequests());
+    // HTTP 500 and 429 in turn: two failures in a row.
+    if (n <= 4 && fault === 5) {
+      if (n % 2 === 1) return (faults.http429With500++, tooManyRequests());
+      return (faults.http500++, send(500, {}));
+    }
+    if (n === 1 && fault === 2) {
+      faults.noOldBlocks++;
+      return send(200, {
+        error: { code: -32000, message: "historical state is not available" },
+      });
+    }
+    // A node that refuses more than 5,000 blocks, twice, so that the
+    // script halves the range.
+    if (n <= 2 && fault === 3 && to - from + 1 > 5_000) {
+      faults.tooWide++;
+      return send(200, {
+        error: {
+          code: -32602,
+          message:
+            "query block range exceeds server limit, narrow your filter: 5000",
+        },
+      });
+    }
+    const logs = logsOf(contract, from, to);
+    if (logs.length > MAX_RESULTS) {
+      faults.tooMany++;
+      return send(200, {
+        error: {
+          code: -32602,
+          message: `query exceeds max results ${MAX_RESULTS}, retry with the range ${from}-${from + 1}`,
+        },
+      });
+    }
+    // The first two answers for a range with logs are empty, one range in
+    // four (pocket was empty twice in a row).
+    const key = `${start}-${to}`;
+    if (logs.length > 0 && empties.get(key) === 1) {
+      empties.set(key, 2);
+      return send(200, { result: [] });
+    }
+    if (logs.length > 0 && !empties.has(key) && hashOf(key) % 4 === 0) {
+      empties.set(key, 1);
+      faults.empty++;
+      return send(200, { result: [] });
+    }
+    send(200, { result: logs });
   });
-  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-  url = `http://127.0.0.1:${server.address().port}`;
 });
-afterAll(() => server.close());
+afterAll(() => rpc.close());
 
 // 30 seconds: several runs at once make this test wait for the CPU for
 // longer than the 5 seconds of Vitest (#618).
@@ -172,7 +157,7 @@ test("has every log despite the faults of the RPC", async () => {
   try {
     const manifest = await buildSnapshot({
       chainName: "matic",
-      rpcUrl: url,
+      rpcUrl: rpc.url,
       outDir,
       toBlock: TO,
       maxRequests: 100_000,

@@ -1,7 +1,6 @@
 // fetchLogs with a scripted RPC: the widths after each kind of error, and an
 // empty result asked again (#576, #580).
 import fs from "node:fs";
-import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
@@ -9,6 +8,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 // No wait after a failure. Read when the script is imported.
 process.env.WARP_SYNC_RETRY_WAIT_MS = "0";
 const script = await import("./build-snapshot.mjs");
+const { startFakeRpc } = await import("./fake-rpc.mjs");
 
 const contract = { name: "C", address: "0xc", topics: ["0x01"] };
 const httpError = (status) => new script.RpcError("eth_getLogs", { status });
@@ -591,13 +591,12 @@ describe("createRpc", () => {
     [undefined, undefined],
     ["Wed, 21 Oct 2026 07:28:00 GMT", undefined],
   ])("reads Retry-After %s of HTTP 429 as %s", async (header, seconds) => {
-    const server = http.createServer((_req, res) => {
+    const server = await startFakeRpc((_request, _send, res) => {
       res.writeHead(429, header === undefined ? {} : { "retry-after": header });
       res.end();
     });
-    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     try {
-      const rpc = script.createRpc(`http://127.0.0.1:${server.address().port}`);
+      const rpc = script.createRpc(server.url);
       const error = await rpc("eth_blockNumber").catch((error) => error);
       expect(error).toBeInstanceOf(script.RpcError);
       expect(error.status).toBe(429);

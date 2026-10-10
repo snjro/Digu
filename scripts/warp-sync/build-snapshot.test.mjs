@@ -1,7 +1,6 @@
 // Runs the script against a fake RPC on localhost, with the contracts of
 // Polygon in src/constants/chains.
 import fs from "node:fs";
-import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { Readable, Writable } from "node:stream";
@@ -25,6 +24,7 @@ import {
   RequestLimitError,
 } from "./build-snapshot.mjs";
 import { fakeEventLog } from "./fake-logs.mjs";
+import { startFakeRpc } from "./fake-rpc.mjs";
 import { keyOf, writeManifest } from "./snapshot-format.mjs";
 
 const chain = loadChain("matic");
@@ -71,33 +71,24 @@ function logsOf(address, from, to) {
   return logs;
 }
 
-let server;
-let url;
+let rpc;
 beforeAll(async () => {
-  server = http.createServer((req, res) => {
-    let body = "";
-    req.on("data", (data) => (body += data));
-    req.on("end", () => {
-      const { id, method, params } = JSON.parse(body);
-      requests.push(method);
-      let result;
-      if (method === "eth_chainId") result = toHex(chain.chainId);
-      if (method === "eth_blockNumber") result = toHex(LATEST);
-      if (method === "eth_getLogs") {
-        const [{ address, fromBlock, toBlock }] = params;
-        result = logsOf(address, Number(fromBlock), Number(toBlock));
-      }
-      if (method === "eth_getBlockByNumber") {
-        result = { timestamp: toHex(Number(params[0]) * 2) };
-      }
-      res.writeHead(200, { "content-type": "application/json" });
-      res.end(JSON.stringify({ jsonrpc: "2.0", id, result }));
-    });
+  rpc = await startFakeRpc(({ method, params }, send) => {
+    requests.push(method);
+    let result;
+    if (method === "eth_chainId") result = toHex(chain.chainId);
+    if (method === "eth_blockNumber") result = toHex(LATEST);
+    if (method === "eth_getLogs") {
+      const [{ address, fromBlock, toBlock }] = params;
+      result = logsOf(address, Number(fromBlock), Number(toBlock));
+    }
+    if (method === "eth_getBlockByNumber") {
+      result = { timestamp: toHex(Number(params[0]) * 2) };
+    }
+    send(200, { result });
   });
-  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-  url = `http://127.0.0.1:${server.address().port}`;
 });
-afterAll(() => server.close());
+afterAll(() => rpc.close());
 
 let outDir;
 beforeEach(() => {
@@ -111,7 +102,7 @@ afterEach(() => fs.rmSync(outDir, { recursive: true, force: true }));
 const build = (options) =>
   buildSnapshot({
     chainName: "matic",
-    rpcUrl: url,
+    rpcUrl: rpc.url,
     outDir,
     maxRequests: 10_000,
     log: () => {},
