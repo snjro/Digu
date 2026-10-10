@@ -13,15 +13,20 @@ import {
   describe,
   expect,
   test,
+  vi,
 } from "vitest";
-import { buildSnapshot, parsePositiveInteger } from "./build-snapshot.mjs";
-import { loadChain } from "./chains.mjs";
-import { checkSnapshotFiles } from "./check-files.mjs";
-import { expectedSnapshotLog, fakeRpcLog } from "./fake-logs.mjs";
-import { startFakeRpc } from "./fake-rpc.mjs";
-import { linesOf, readParts } from "./partial.mjs";
-import { RequestLimitError } from "./rpc.mjs";
-import { keyOf, writeManifest } from "./snapshot-format.mjs";
+
+// No wait after a failure. Read when the script is imported.
+process.env.WARP_SYNC_RETRY_WAIT_MS = "0";
+const { buildSnapshot, parsePositiveInteger } =
+  await import("./build-snapshot.mjs");
+const { loadChain } = await import("./chains.mjs");
+const { checkSnapshotFiles } = await import("./check-files.mjs");
+const { expectedSnapshotLog, fakeRpcLog } = await import("./fake-logs.mjs");
+const { startFakeRpc } = await import("./fake-rpc.mjs");
+const { linesOf, readParts } = await import("./partial.mjs");
+const { RequestLimitError } = await import("./rpc.mjs");
+const { keyOf, writeManifest } = await import("./snapshot-format.mjs");
 
 const chain = loadChain("matic");
 const LATEST = 16_200_000;
@@ -32,6 +37,16 @@ const STEP = 20_000;
 let withoutTimestamp = false;
 // { block, answer }: eth_getBlockByNumber of that block returns answer.
 let badBlock = undefined;
+// { block, answers }: eth_getBlockByNumber of that block returns the answers
+// in turn ("HTTP 500", or a result), and then the block.
+let blockFaults = undefined;
+// With hang, the first eth_getLogs gets no answer until the test answers it;
+// with hang "HTTP 500", the later ones get HTTP 500. hung has the request
+// held, with closed set when the script closes it; destroyed after each test.
+let hang = undefined;
+const hung = [];
+// The block of each eth_getBlockByNumber.
+const blockAsks = [];
 // { block, name, ...fields }: the logs of that block of the contract of that
 // name get these fields, so that the script does not take them.
 let broken = undefined;
@@ -59,20 +74,33 @@ function logsOf(address, from, to) {
 
 let rpc;
 beforeAll(async () => {
-  rpc = await startFakeRpc(({ method, params }, send) => {
+  rpc = await startFakeRpc(({ method, params }, send, res) => {
     requests.push(method);
     let result;
     if (method === "eth_chainId") result = toHex(chain.chainId);
     if (method === "eth_blockNumber") result = toHex(LATEST);
     if (method === "eth_getLogs") {
       const [{ address, fromBlock, toBlock }] = params;
+      if (hang !== undefined && hung.length === 0) {
+        const request = { res, params, closed: false };
+        res.on("close", () => (request.closed = true));
+        return hung.push(request);
+      }
+      if (hang === "HTTP 500") return send(500, {});
       result = logsOf(address, Number(fromBlock), Number(toBlock));
     }
     if (method === "eth_getBlockByNumber") {
+      const block = Number(params[0]);
+      blockAsks.push(block);
+      if (block === blockFaults?.block && blockFaults.answers.length > 0) {
+        const answer = blockFaults.answers.shift();
+        if (answer === "HTTP 500") return send(500, {});
+        return send(200, { result: answer });
+      }
       result =
-        Number(params[0]) === badBlock?.block
+        block === badBlock?.block
           ? badBlock.answer
-          : { timestamp: toHex(Number(params[0]) * 2) };
+          : { timestamp: toHex(block * 2) };
     }
     send(200, { result });
   });
@@ -84,10 +112,16 @@ beforeEach(() => {
   outDir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-build-"));
   withoutTimestamp = false;
   badBlock = undefined;
+  blockFaults = undefined;
+  hang = undefined;
   broken = undefined;
   requests.length = 0;
+  blockAsks.length = 0;
 });
-afterEach(() => fs.rmSync(outDir, { recursive: true, force: true }));
+afterEach(() => {
+  for (const { res } of hung.splice(0)) res.destroy();
+  fs.rmSync(outDir, { recursive: true, force: true });
+});
 
 const build = (options) =>
   buildSnapshot({
@@ -328,27 +362,109 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(requests).toContain("eth_getBlockByNumber");
   });
 
+  // The first block of the first contract whose logs have no blockTimestamp:
+  // the logs are at the multiples of STEP, and withoutTimestamp takes it from
+  // those at the multiples of 3,000.
+  const firstBlockWithoutTimestamp = () =>
+    Math.ceil(chain.contracts[0].creationBlock / 60_000) * 60_000;
+  const asksOfBlock = (block) => blockAsks.filter((b) => b === block).length;
+  // Each contract with logs in the block asks it once.
+  const contractsAt = (block) =>
+    chain.contracts.filter((c) => c.creationBlock <= block).length;
+
   test.each([
-    ["null (the node does not have the block)", null],
-    ["no result", undefined],
-    ["a block without a timestamp", {}],
-    ["a timestamp that is not a hex string", { timestamp: 1_700_000_000 }],
+    ["HTTP 500", ["HTTP 500"]],
+    ["null", [null]],
+    [
+      "HTTP 500 and null, nine in all",
+      [...Array(5).fill("HTTP 500"), ...Array(4).fill(null)],
+    ],
+  ])("asks the block again after %s for blockTimestamp", async (_, answers) => {
+    withoutTimestamp = true;
+    const block = firstBlockWithoutTimestamp();
+    blockFaults = { block, answers: [...answers] };
+    await build({ toBlock: 16_000_000 });
+    expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
+    expect(asksOfBlock(block)).toBe(answers.length + contractsAt(block));
+  });
+
+  test.each([
+    // Asked until MAX_FAILURES (10) answers in a row.
+    ["null (the node does not have the block)", null, 10],
+    ["no result", undefined, 1],
+    ["a block without a timestamp", {}, 1],
+    ["a timestamp that is not a hex string", { timestamp: 1_700_000_000 }, 1],
   ])(
     "stops with the contract and the block when the RPC returns %s for blockTimestamp",
-    async (_, answer) => {
+    async (_, answer, asks) => {
       withoutTimestamp = true;
       const [contract] = chain.contracts;
-      // The first block of the contract whose logs have no blockTimestamp: the
-      // logs are at the multiples of STEP, and withoutTimestamp takes it from
-      // those at the multiples of 3,000.
-      const block = Math.ceil(contract.creationBlock / 60_000) * 60_000;
+      const block = firstBlockWithoutTimestamp();
       badBlock = { block, answer };
       await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
         `${keyOf(contract)}: the RPC returned no block with a hex timestamp for block ${block}, for the blockTimestamp of its logs.`,
       );
       expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
+      expect(asksOfBlock(block)).toBe(asks);
     },
   );
+
+  test("stops the HTTP 500 of a block after ten in a row", async () => {
+    withoutTimestamp = true;
+    const block = firstBlockWithoutTimestamp();
+    blockFaults = { block, answers: Array(10).fill("HTTP 500") };
+    await expect(build({ toBlock: 16_000_000 })).rejects.toThrow("HTTP 500");
+    expect(asksOfBlock(block)).toBe(10);
+  });
+
+  test("cuts the requests in flight when a part stops on a failure, and throws its error", async () => {
+    // One part waits for the first eth_getLogs; the other gets HTTP 500 until
+    // it stops.
+    hang = "HTTP 500";
+    await expect(
+      build({ toBlock: 16_000_000, concurrency: 2 }),
+    ).rejects.toThrow("HTTP 500");
+    expect(hung).toHaveLength(1);
+    await vi.waitFor(() => expect(hung[0].closed).toBe(true));
+  });
+
+  test("keeps the answers of the requests in flight when a part stops at the limit", async () => {
+    // One part waits for the first eth_getLogs, which is answered after the
+    // other part stopped at the limit.
+    hang = "until the limit";
+    let answered = 0;
+    const log = (message) => {
+      if (!message.startsWith("Stopped at the limit")) return;
+      const [{ res, params }] = hung;
+      const [{ address, fromBlock, toBlock }] = params;
+      const logs = logsOf(address, Number(fromBlock), Number(toBlock));
+      answered = logs.length;
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ jsonrpc: "2.0", id: 0, result: logs }));
+    };
+    await expect(
+      build({ toBlock: 16_000_000, maxRequests: 10, concurrency: 2, log }),
+    ).rejects.toThrow(
+      new RequestLimitError("Stopped at the limit of 10 requests."),
+    );
+    expect(answered).toBeGreaterThan(0);
+    const [{ params }] = hung;
+    const lines = fs
+      .readdirSync(path.join(dir(), ".partial"))
+      .filter((file) => file.endsWith(".jsonl"))
+      .flatMap((file) =>
+        fs.readFileSync(path.join(dir(), ".partial", file), "utf8").split("\n"),
+      )
+      .filter(Boolean)
+      .map((line) => JSON.parse(line));
+    const kept = lines.filter(
+      (raw) =>
+        raw.address.toLowerCase() === params[0].address.toLowerCase() &&
+        Number(raw.blockNumber) >= Number(params[0].fromBlock) &&
+        Number(raw.blockNumber) <= Number(params[0].toBlock),
+    );
+    expect(kept).toHaveLength(answered);
+  });
 
   // The blocks of the logs of FeePot kept in .partial/.
   const partialBlocksOfFeePot = () => {

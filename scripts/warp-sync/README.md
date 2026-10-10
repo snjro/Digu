@@ -159,10 +159,11 @@ The files of the snapshot are written only at the end, one contract at a
 time, and then `.partial/` is deleted. The block times fetched for the logs
 without `blockTimestamp` (`eth_getBlockByNumber`) are not kept in
 `.partial/`: with an RPC that does not return `blockTimestamp`, a run that
-stops while it fetches them fetches them again the next time. A run stops when
-the RPC returns no block with a hex `timestamp` for such a log; `.partial/`
-keeps the logs fetched so far, so run it again with another `--rpc` that has
-the block.
+stops while it fetches them fetches them again the next time. A block that
+fails, or that the RPC returns as `null`, is asked again (**Failures**
+below). A run stops when the RPC returns no block with a hex `timestamp` for
+such a log; `.partial/` keeps the logs fetched so far, so run it again with
+another `--rpc` that has the block.
 
 The first run fetches from the creation block of each contract. A later run
 reads `manifest.json` and fetches only the blocks after the last run, into
@@ -208,6 +209,9 @@ contract that has events, fetch that contract's snapshot again from an RPC.
     stops. The requests other than `eth_getLogs` (`eth_chainId`,
     `eth_blockNumber`, `eth_getBlockByNumber`) are asked again after a 429 in
     the same way (`retryRate`), but their wait does not end early.
+    `eth_getBlockByNumber` is asked again after the other errors too, and
+    after `null` (one node may not have the block), a second apart, up to 10
+    in a row (`retryFailures`, #768).
   - HTTP 500 or 504, and the errors of a node without old blocks
     (`unrelated`; `ERRORS_UNRELATED_TO_RANGE`): the same range, since they
     come for any width.
@@ -219,7 +223,10 @@ contract that has events, fetch that contract's snapshot again from an RPC.
     answers a range that is too wide with HTTP 500.
   - Too many logs for one answer (`results`; the messages are in
     `classifyError`): the range is halved at once, without a wait and without
-    counting a failure.
+    counting a failure. A range of one block cannot be halved: it is asked
+    again as a failure (another node may return more logs), and after 10 in
+    a row the script stops with the contract and the block (#768); use
+    another `--rpc`.
   - A request that does not answer in time (`REQUEST_TIMEOUT_MS`) is a
     failure. After 10 failures in a row of one part (`MAX_FAILURES`), the
     script stops.
@@ -234,7 +241,10 @@ contract that has events, fetch that contract's snapshot again from an RPC.
   first. `--concurrency` workers take the next part when they finish one, so
   that the requests at a time stay the same until the end. When one part
   stops, the others stop before their next request, even in the middle of
-  a wait after HTTP 429. A part stops after 30 429s in a row too.
+  a wait after HTTP 429. When the first stop is a failure, their requests in
+  flight are cut (#768); at `--max-requests` they end, and their answers are
+  kept in `.partial/`. The run stops with the error of the part that stopped
+  first. A part stops after 30 429s in a row too.
 
 The logs of each range are sorted by block and log index, and the parts of a
 contract are read in the order of the blocks. The run in the manifest has

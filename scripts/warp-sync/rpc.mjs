@@ -39,22 +39,24 @@ function retryAfterOf(response) {
   return value && /^\d+$/.test(value) ? Number(value) : undefined;
 }
 
-// rpc.counts has the number of requests sent, by method.
+// rpc.counts has the number of requests sent, by method. A request is cut
+// when signal is aborted, with its reason.
 export function createRpc(url, maxRequests = Infinity) {
   let id = 0;
   const counts = {};
-  async function rpc(method, params = []) {
+  async function rpc(method, params = [], signal = undefined) {
     if (id >= maxRequests) {
       throw new RequestLimitError(
         `Stopped at the limit of ${maxRequests} requests.`,
       );
     }
     counts[method] = (counts[method] ?? 0) + 1;
+    const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
     const response = await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ jsonrpc: "2.0", id: ++id, method, params }),
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
     });
     if (!response.ok) {
       const retryAfter = retryAfterOf(response);

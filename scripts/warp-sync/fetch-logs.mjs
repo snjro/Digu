@@ -54,6 +54,36 @@ export function retryRate(
   };
 }
 
+// The rpc for eth_getBlockByNumber (#768): ask (from retryRate) is asked
+// again, as fetchLogs asks a range again, after the errors other than HTTP
+// 429, and after null, since an RPC may pass each request to another node and
+// one node may not have the block. After MAX_FAILURES in a row, RETRY_WAIT_MS
+// apart, the last error is thrown, or null returned.
+export function retryFailures(
+  ask,
+  { log = () => {}, stats = createFetchStats() } = {},
+) {
+  return async (method, params) => {
+    for (let failures = 1; ; failures++) {
+      let failure;
+      try {
+        const result = await ask(method, params);
+        if (result !== null || failures >= MAX_FAILURES) return result;
+        failure = "returned null";
+      } catch (error) {
+        const kind = classifyError(error);
+        // retryRate gave up after HTTP 429.
+        if (error instanceof RequestLimitError || kind === "rate") throw error;
+        stats.errors[kind]++;
+        if (failures >= MAX_FAILURES) throw error;
+        failure = `failed (${kind}): ${error.message}`;
+      }
+      log(`${method} ${JSON.stringify(params)} ${failure}; asks again`);
+      await sleep(RETRY_WAIT_MS);
+    }
+  };
+}
+
 // The widths of the ranges of one contract, shared by its parts, which are
 // fetched at the same time: what one part learns, the others use. A part that
 // fails keeps its own narrowed widths too (#601), so that the others, which
@@ -108,7 +138,8 @@ export function createFetchStats() {
 // Each range that works goes to onRange(from, to, logs), with its logs by
 // block and log index, so that the logs are not all kept in memory. Returns
 // the number of logs. It stops before the next request when signal is
-// aborted (another part stopped).
+// aborted (another part stopped), and its request in flight is cut when
+// requestSignal is aborted (another part stopped on a failure, #768).
 export async function fetchLogs(
   rpc,
   contract,
@@ -118,6 +149,7 @@ export async function fetchLogs(
     log = () => {},
     onRange = () => {},
     signal = undefined,
+    requestSignal = undefined,
     widths = createWidths(),
     stats = createFetchStats(),
   } = {},
@@ -140,14 +172,18 @@ export async function fetchLogs(
     const to = askAgainTo ?? Math.min(from + width - 1, toBlock);
     let result;
     try {
-      result = await rpc("eth_getLogs", [
-        {
-          address: contract.address,
-          topics: [contract.topics],
-          fromBlock: toHex(from),
-          toBlock: toHex(to),
-        },
-      ]);
+      result = await rpc(
+        "eth_getLogs",
+        [
+          {
+            address: contract.address,
+            topics: [contract.topics],
+            fromBlock: toHex(from),
+            toBlock: toHex(to),
+          },
+        ],
+        requestSignal,
+      );
     } catch (error) {
       if (error instanceof RequestLimitError || signal?.aborted) throw error;
       const kind = classifyError(error);
@@ -167,7 +203,19 @@ export async function fetchLogs(
         // Not the empty range any more: a narrower one.
         askAgainTo = undefined;
         emptyAnswers = 0;
-        own = narrow(widths, to - from + 1);
+        if (to > from) {
+          own = narrow(widths, to - from + 1);
+          continue;
+        }
+        // One block cannot be narrowed (#768). It is asked again as a failure,
+        // since another node of the RPC may return more logs.
+        if (++failures >= MAX_FAILURES) {
+          throw new Error(
+            `${contract.name} (${contract.address}): block ${from} has more logs than the RPC returns at once (${error.message}). Use another --rpc.`,
+            { cause: error },
+          );
+        }
+        await sleep(RETRY_WAIT_MS);
         continue;
       }
       failures++;

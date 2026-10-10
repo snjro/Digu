@@ -13,6 +13,7 @@ import {
   fetchLogs,
   MAX_WIDTH,
   MAX_WIDTHS,
+  retryFailures,
   retryRate,
   splitParts,
 } from "./fetch-logs.mjs";
@@ -24,7 +25,7 @@ import {
   readStates,
   writeState,
 } from "./partial.mjs";
-import { createRpc } from "./rpc.mjs";
+import { createRpc, RequestLimitError } from "./rpc.mjs";
 import {
   CHUNK_LOGS,
   chunkFileName,
@@ -47,7 +48,8 @@ const DEFAULT_CONCURRENCY = 24;
 const OUT_DIR = "out";
 
 // Decodes the logs, by block and log index, into the logs of the snapshot. A
-// log without blockTimestamp gets it from its block.
+// log without blockTimestamp gets it from its block, with rpc from
+// retryFailures.
 async function* toSnapshotLogs(rpc, contract, rawLogs) {
   let timestamp = undefined; // [blockNumber, blockTimestamp] of the last block asked
   for await (const raw of rawLogs) {
@@ -58,8 +60,9 @@ async function* toSnapshotLogs(rpc, contract, rawLogs) {
           raw.blockNumber,
           false,
         ]);
-        // null: the node does not have the block (#768). A block without a
-        // hex timestamp would write logs without their block time.
+        // null after the retries: the RPC does not have the block (#768). A
+        // block without a hex timestamp would write logs without their block
+        // time.
         if (!isHexQuantity(block?.timestamp)) {
           throw new Error(
             `${keyOf(contract)}: the RPC returned no block with a hex timestamp for block ${Number(raw.blockNumber)}, for the blockTimestamp of its logs.`,
@@ -181,9 +184,12 @@ async function build(chain, rpc, outDir, toBlock, options) {
   // `concurrency` workers take the next part when they finish one, so that
   // the requests at a time stay the same until the end (#586). When one part
   // stops (at --max-requests, or after failures), the others stop before
-  // their next request, and all keep what they fetched in .partial/.
+  // their next request, and all keep what they fetched in .partial/. Their
+  // requests in flight are cut when the first stop is a failure (#768); at
+  // --max-requests they end, and their answers are kept.
   fs.mkdirSync(partialDir, { recursive: true });
   const controller = new AbortController();
+  const cut = new AbortController();
   const queue = [];
   const most = Math.max(...plans.map((plan) => plan.parts.length));
   for (let i = 0; i < most; i++) {
@@ -257,6 +263,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
         });
       },
       signal: controller.signal,
+      requestSignal: cut.signal,
       widths,
       stats,
     });
@@ -269,6 +276,16 @@ async function build(chain, rpc, outDir, toBlock, options) {
   const results = await Promise.allSettled(
     Array.from({ length: Math.min(concurrency, queue.length) }, () =>
       worker().catch((error) => {
+        if (!controller.signal.aborted) {
+          if (error instanceof RequestLimitError) {
+            log(`${error.message} The requests in flight end first.`);
+          } else {
+            log(
+              `A part stopped: ${error.message} The requests in flight are cut.`,
+            );
+            cut.abort(error);
+          }
+        }
         controller.abort(error);
         throw error;
       }),
@@ -282,6 +299,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
 
   // Writes the files one contract at a time, reading the logs of its parts
   // in the order of the blocks, so that the logs are not all in memory.
+  const askBlock = retryFailures(ask, { log, stats });
   const tmpDir = path.join(partialDir, OUT_DIR);
   fs.rmSync(tmpDir, { recursive: true, force: true });
   const rows = [];
@@ -292,7 +310,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
         contract,
         fromBlock: from,
         toBlock: end,
-        logs: toSnapshotLogs(ask, contract, readParts(files)),
+        logs: toSnapshotLogs(askBlock, contract, readParts(files)),
         outDir: tmpDir,
         maxLogs: chunkLogs,
       })),
@@ -382,7 +400,7 @@ function optionalPositiveInteger(values, name) {
   return values[name] === undefined ? undefined : positiveInteger(values, name);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.main) {
   const { values } = parseArgs({
     options: {
       chain: { type: "string" },
