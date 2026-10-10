@@ -58,6 +58,12 @@ async function* toSnapshotLogs(rpc, contract, rawLogs) {
           raw.blockNumber,
           false,
         ]);
+        // null: the node does not have the block (#768).
+        if (block === null) {
+          throw new Error(
+            `${keyOf(contract)}: the RPC has no block ${Number(raw.blockNumber)} for the blockTimestamp of its logs.`,
+          );
+        }
         timestamp = [raw.blockNumber, block.timestamp];
       }
       blockTimestamp = timestamp[1];

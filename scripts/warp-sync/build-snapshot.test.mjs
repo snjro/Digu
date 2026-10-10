@@ -31,6 +31,8 @@ const toHex = (value) => `0x${value.toString(16)}`;
 // decoding them is slow with the coverage of CI.
 const STEP = 20_000;
 let withoutTimestamp = false;
+// A block that eth_getBlockByNumber answers with null, as a node without it.
+let missingBlock = undefined;
 // { block, name, ...fields }: the logs of that block of the contract of that
 // name get these fields, so that the script does not take them.
 let broken = undefined;
@@ -68,7 +70,10 @@ beforeAll(async () => {
       result = logsOf(address, Number(fromBlock), Number(toBlock));
     }
     if (method === "eth_getBlockByNumber") {
-      result = { timestamp: toHex(Number(params[0]) * 2) };
+      result =
+        Number(params[0]) === missingBlock
+          ? null
+          : { timestamp: toHex(Number(params[0]) * 2) };
     }
     send(200, { result });
   });
@@ -79,6 +84,7 @@ let outDir;
 beforeEach(() => {
   outDir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-build-"));
   withoutTimestamp = false;
+  missingBlock = undefined;
   broken = undefined;
   requests.length = 0;
 });
@@ -258,6 +264,19 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     await build({ toBlock: 16_000_000 });
     expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
     expect(requests).toContain("eth_getBlockByNumber");
+  });
+
+  test("stops with the contract and the block when the RPC has no block for blockTimestamp", async () => {
+    withoutTimestamp = true;
+    const [contract] = chain.contracts;
+    // The first block of the contract whose logs have no blockTimestamp: the
+    // logs are at the multiples of STEP, and withoutTimestamp takes it from
+    // those at the multiples of 3,000.
+    missingBlock = Math.ceil(contract.creationBlock / 60_000) * 60_000;
+    await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
+      `${keyOf(contract)}: the RPC has no block ${missingBlock} for the blockTimestamp of its logs.`,
+    );
+    expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
   });
 
   // The blocks of the logs of FeePot kept in .partial/.
