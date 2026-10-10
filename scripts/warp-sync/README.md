@@ -41,9 +41,9 @@ It stops the release when the last run was not made on the day of the
 release, by the date in UTC, and when it cannot
 read a manifest or finds no chain. A chain without a snapshot is not checked.
 
-vitest (`check-files.test.mjs`) checks the files of each chain of
-`WARP_SYNC_CHAIN_NAMES` against its `manifest.json` on every PR and in the
-release: sizes, sha256, the content of each file (format, chain, contract,
+`check-files.mjs` (a step of `test.yml`, apart from vitest) checks the files
+of each chain of `WARP_SYNC_CHAIN_NAMES` against its `manifest.json` on every
+PR and in the release: sizes, sha256, the content of each file (format, chain, contract,
 address, range, number of logs, every log in the range, and the logs in
 the range in the order of their blocks and log indexes), the ranges of
 each contract without gaps and not ending at its creation block, `totals`,
@@ -62,6 +62,7 @@ and does not change the manifest, so it cannot add a missing contract
 `WARP_SYNC_SNAPSHOT_CHECK=off` does not turn this check off.
 
 ```sh
+docker compose run --rm app node scripts/warp-sync/check-files.mjs
 python3 scripts/warp-sync/check-snapshot.py [--at <ISO time>]   # the default is now
 ```
 
@@ -184,45 +185,40 @@ contract that has events, fetch that contract's snapshot again from an RPC.
 
 - **Widths:** the ranges start at 100,000 blocks (`FIRST_WIDTH`; or
   `--max-width`, if narrower) and are doubled after each full range that
-  works, up to `--max-width`. The parts of a contract share their widths, so that what
-  one part learns, the others use. A part whose range is halved keeps its own
-  widths too, the half of the range that failed (#601). It asks the narrower
-  of its own width and the shared one: the other parts may narrow it, but
-  their successes do not raise it. A full range that works raises, by the
-  same rules, its own widths when it had their width, and the shared widths
-  when it has their width after the answer (another part may have changed
-  them meanwhile). When its own width is raised to the shared one, the part
+  works, up to `--max-width`. The parts of a contract share their widths, so
+  that what one part learns, the others use. A part whose range is halved
+  keeps its own widths too, the half of the range that failed (#601). It asks
+  the narrower of its own width and the shared one: the other parts may
+  narrow it, but their successes do not raise it. A full range that works
+  raises, by the same rules, the widths that had its width (`fetchLogs` in
+  `fetch-logs.mjs`). When its own width is raised to the shared one, the part
   uses the shared widths again.
 - **Failures** (like #549, #554 and #591 in the sync: the RPC may pass each
   request to another node). The script waits a second (`RETRY_WAIT_MS`) and
   tries again:
-  - HTTP 429 (`rate`; too many requests, #632; Infura answers it for a while,
-    even to one request at a time): the same range, after a wait that is
-    doubled at each 429 in a row, from a second up to 30 seconds
-    (`RATE_WAIT_MAX_MS`), or the `Retry-After` of the answer (seconds) when
-    that is longer, up to 60 seconds (`RETRY_AFTER_MAX_MS`). The wait ends
-    early when another part stops (Parts, below). Any other answer makes the
-    wait a second again. A 429 is not a failure: it does not halve the range
-    and does not count toward the 10 failures below, and the failures before
-    it stay counted. After 30 429s in a row (`MAX_RATE_ERRORS`; of one part,
-    or of one other request), the script stops, so that it does not wait for
-    hours at a daily limit. The requests other than `eth_getLogs`
-    (`eth_chainId`, `eth_blockNumber`, `eth_getBlockByNumber`) are asked
-    again after a 429 in the same way, but their wait does not end early.
+  - HTTP 429 (`rate`; Infura answers it for a while, even to one request at
+    a time): the same range, after the wait of `rateWaitMs` (`rpc.mjs`). The
+    wait ends early when another part stops (Parts, below). Any other answer
+    makes the wait a second again. A 429 is not a failure: it does not halve
+    the range and does not count toward the 10 failures below, and the
+    failures before it stay counted. After 30 429s in a row
+    (`MAX_RATE_ERRORS`; of one part, or of one other request), the script
+    stops. The requests other than `eth_getLogs` (`eth_chainId`,
+    `eth_blockNumber`, `eth_getBlockByNumber`) are asked again after a 429 in
+    the same way (`retryRate`), but their wait does not end early.
   - HTTP 500 or 504, and the errors of a node without old blocks
-    (`unrelated`; "historical state is not available", "pruned history
-    unavailable", "old data not available due to pruning"): the same range,
-    since they come for any width.
+    (`unrelated`; `ERRORS_UNRELATED_TO_RANGE`): the same range, since they
+    come for any width.
   - Any other error (`range`): the range is halved after two in a row, and
     the half becomes the widest range until 10 ranges in a row work
     (`SUCCESSES_TO_RAISE_LIMIT`); then it is doubled again.
   - After three errors in a row of any kind but 429
     (`ERRORS_TO_HALVE_ANYWAY`), the range is halved too, in case a node
     answers a range that is too wide with HTTP 500.
-  - Too many logs for one answer (`results`; "max results", 20,000 with
-    pocket; "more than 10000 results" with Infura): the range is halved at
-    once, without a wait and without counting a failure.
-  - A request that does not answer in 60 seconds (`REQUEST_TIMEOUT_MS`) is a
+  - Too many logs for one answer (`results`; the messages are in
+    `classifyError`): the range is halved at once, without a wait and without
+    counting a failure.
+  - A request that does not answer in time (`REQUEST_TIMEOUT_MS`) is a
     failure. After 10 failures in a row of one part (`MAX_FAILURES`), the
     script stops.
 - **Empty results (#576):** an RPC may return no logs, without an error, for a
@@ -241,119 +237,36 @@ contract that has events, fetch that contract's snapshot again from an RPC.
 The logs of each range are sorted by block and log index, and the parts of a
 contract are read in the order of the blocks. The run in the manifest has
 `checks`: the empty ranges asked again, those that had logs the second time,
-and the errors of each kind (`rate`: the HTTP 429s, of all the methods). Like
-`requests`, they are of the invocation that finished the run.
+and the errors of each kind (Format, below).
 
 ## Format (formatVersion 3)
 
-`<chain>/manifest.json`:
+The types and their comments are in `src/warpSync/warpSyncTypes.ts`:
+`WarpSyncManifest` for `<chain>/manifest.json`, and `WarpSyncFile` and
+`WarpSyncLog` for each `<chain>/<project>-<version>-<name>-<toBlock>.json.gz`.
+A file has the logs of one contract from `fromBlock` to `toBlock`: at most
+20,000 logs, cut between blocks (a block with more logs is in one file). It is
+gzip of JSON with no spaces.
+
+Each run of the manifest also has what only the script writes:
 
 ```jsonc
 {
-  "formatVersion": 3,
-  "chainName": "eth",
-  "chainId": 1,
-  // The contracts that the snapshot has. The app imports a contract only when
-  // its address and creation block are the same as in the app.
-  "contracts": [
-    {
-      "project": "Augur",
-      "version": "version2",
-      "name": "Augur",
-      "address": "0x…",
-      "creationBlock": 10543755,
-    },
-  ],
-  // One per run. check-snapshot.py reads the last one.
-  "runs": [
-    {
-      "createdAt": "2026-10-01T00:00:00.000Z",
-      "latestBlockNumber": 26074024, // the latest block when it was made
-      "toBlock": 26073960,
-      "logCount": 2328259, // the logs added by the run
-      // By method, of the invocation that finished the run (not those that
-      // stopped before it). Not in a run converted from formatVersion 1.
-      "requests": { "eth_getLogs": 21000 },
-      // What the fetching met, of the invocation that finished the run, like
-      // requests. Not in a converted run.
-      "checks": {
-        "emptyRangesAskedAgain": 18000,
-        "emptyRangesWithLogs": 3,
-        // rate: HTTP 429, of any method. Not in a run made before #632.
-        "errors": { "rate": 50, "results": 40, "unrelated": 900, "range": 30 },
-      },
-    },
-  ],
-  // One per file, and one per range without logs (no file). A run adds its
-  // rows after those of the runs before it; for each contract, the rows are
-  // in the order of the blocks.
-  "chunks": [
-    {
-      "project": "Augur",
-      "version": "version2",
-      "name": "Augur",
-      "fromBlock": 10543755,
-      "toBlock": 10890000,
-      "logCount": 20000,
-      "file": "Augur-version2-Augur-10890000.json.gz", // null without logs
-      "bytes": 1712345, // of the gzip file
-      "rawBytes": 15600000, // of its JSON
-      "sha256": "…", // of the gzip file
-      "rawSha256": "…", // of its JSON
-    },
-  ],
-  // The sums of the chunks.
-  "totals": { "logCount": 2328259, "bytes": 194000000, "rawBytes": 1816000000 },
+  // By method, of the invocation that finished the run (not those that
+  // stopped before it).
+  "requests": { "eth_getLogs": 21000 },
+  // What the fetching met, of the invocation that finished the run, like
+  // requests.
+  "checks": {
+    "emptyRangesAskedAgain": 18000,
+    "emptyRangesWithLogs": 3,
+    // rate: HTTP 429, of any method.
+    "errors": { "rate": 50, "results": 40, "unrelated": 900, "range": 30 },
+  },
 }
 ```
 
-`<chain>/<project>-<version>-<name>-<toBlock>.json.gz` has the logs of one
-contract from `fromBlock` to `toBlock`: at most 20,000 logs, cut between
-blocks (a block with more logs is in one file). It is gzip of JSON with no
-spaces:
-
-```jsonc
-{
-  "formatVersion": 3,
-  "chainId": 1,
-  "project": "Augur",
-  "version": "version2",
-  "name": "Augur",
-  "address": "0x…",
-  "fromBlock": 10543755,
-  "toBlock": 10890000,
-  // Sorted by blockNumber and logIndex. The numbers and transactionHash are
-  // as the RPC returned them (hex strings). blockTimestamp comes from the
-  // block when the RPC did not return it.
-  "logs": [
-    {
-      "blockNumber": "0x…",
-      "blockTimestamp": "0x…",
-      "transactionHash": "0x…",
-      "transactionIndex": "0x…",
-      "logIndex": "0x…",
-      // The name of the event, and its args decoded with the ABI.
-      "event": "TokensTransferred",
-      "args": [
-        "0xE991…",
-        "0x2219…",
-        "0x8f2B…",
-        "0x4A1c…",
-        "1500000000000000000",
-        "0",
-        "0x0000…",
-      ],
-    },
-  ],
-}
-```
-
-`args` has the values by position, without names, as the sync saves them.
-An integer (also `uint8`) is a decimal string, an address is checksummed, a
-`bytes32` is a hex string, and an array or a tuple is an array. The app gives
-back a `bigint` for each integer by the types of the ABI, so that the rows of
-the import and of the sync are the same.
-
-A row has all the logs of its contract from `fromBlock` to `toBlock`. The
-`fromBlock` of a row is the `toBlock` of the row before it of the same
-contract + 1, or the creation block in the first row.
+Runs 0 and 1 of `matic` have neither: they were converted from
+formatVersion 1. Run 0 of `eth` has `requests` but not `checks`: it was not
+made by this script (The snapshots, above). The runs made before #632 (run 2
+of `matic` and run 1 of `eth`) have no `rate`.

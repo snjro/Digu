@@ -3,7 +3,6 @@ import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import { WARP_SYNC_CHAIN_NAMES } from "../../src/warpSync/warpSyncShared.mjs";
 import { loadChain } from "./chains.mjs";
 import { checkSnapshotFiles } from "./check-files.mjs";
 import {
@@ -84,14 +83,6 @@ const fileProblem = (i, text) =>
   `matic: ${path.join(chainDir, readManifest(manifestFile, chain).chunks[i].file)} ${text}`;
 
 describe("checkSnapshotFiles", () => {
-  test("finds no problem in the snapshot of the repository", () => {
-    const start = Date.now();
-    expect(
-      checkSnapshotFiles("static/warp-sync", WARP_SYNC_CHAIN_NAMES),
-    ).toEqual([]);
-    console.log(`static/warp-sync: checked in ${Date.now() - start} ms`);
-  }, 120_000);
-
   test("finds no problem in a good snapshot", () => {
     const { chunks } = readManifest(manifestFile, chain);
     // Two files of A, a range of A without logs, and one file of B.

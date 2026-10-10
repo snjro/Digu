@@ -1,8 +1,12 @@
-// Checks the files of the warp sync snapshot against their manifest.json, for
-// check-files.test.mjs: it runs on every PR and in the release. See README.md.
+// Checks the files of the warp sync snapshot against their manifest.json.
+// test.yml runs it on every PR and in the release. See README.md.
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
+import {
+  WARP_SYNC_CHAIN_NAMES,
+  WARP_SYNC_DIR,
+} from "../../src/warpSync/warpSyncShared.mjs";
 import { loadChain } from "./chains.mjs";
 import {
   FORMAT_VERSION,
@@ -244,4 +248,15 @@ function checkChain(dir, name) {
     }
   }
   return problems;
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const dir = `static/${WARP_SYNC_DIR}`;
+  const start = Date.now();
+  const problems = checkSnapshotFiles(dir, WARP_SYNC_CHAIN_NAMES);
+  for (const problem of problems) console.error(problem);
+  console.log(
+    `${dir}: ${problems.length} problems, checked in ${Date.now() - start} ms`,
+  );
+  if (problems.length > 0) process.exitCode = 1;
 }
