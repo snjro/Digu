@@ -225,66 +225,29 @@ describe("the manifest", () => {
 describe("writeWhole", () => {
   const read = (file) => fs.readFileSync(file, "utf8");
 
-  // A write of first and then rest: at once with writeWhole, and with a wait
-  // in between with writeWholeAsync. The result of writeWhole is not
-  // returned: it must replace the file, or throw, before it returns.
-  const writers = [
-    [
-      "writeWhole",
-      (file, first, rest) => {
-        writeWhole(file, (tmp) => {
-          first(tmp);
-          rest(tmp);
-        });
-      },
-    ],
-    [
-      "writeWholeAsync",
-      (file, first, rest) =>
-        writeWholeAsync(file, async (tmp) => {
-          first(tmp);
-          await new Promise((resolve) => setTimeout(resolve, 10));
-          rest(tmp);
-        }),
-    ],
-  ];
-
-  test.each(writers)(
-    "%s replaces the file only after the write ends",
-    async (_, writeOf) => {
-      const file = path.join(dir, "a.json");
-      fs.writeFileSync(file, "old");
-      await writeOf(
-        file,
-        (tmp) => fs.writeFileSync(tmp, "ne"),
-        (tmp) => {
-          expect(read(file)).toBe("old");
-          fs.appendFileSync(tmp, "w");
-        },
-      );
-      expect(read(file)).toBe("new");
-      expect(fs.readdirSync(dir)).toEqual(["a.json"]);
-    },
-  );
-
-  test.each(writers)(
-    "%s keeps the file and removes the .tmp file when the write fails",
-    async (_, writeOf) => {
-      const file = path.join(dir, "a.json");
-      fs.writeFileSync(file, "old");
-      await expect(async () =>
-        writeOf(
-          file,
-          (tmp) => fs.writeFileSync(tmp, "ne"),
-          () => {
-            throw new Error("boom");
-          },
-        ),
-      ).rejects.toThrow("boom");
+  test("replaces the file only after the write ends", () => {
+    const file = path.join(dir, "a.json");
+    fs.writeFileSync(file, "old");
+    writeWhole(file, (tmp) => {
+      fs.writeFileSync(tmp, "new");
       expect(read(file)).toBe("old");
-      expect(fs.readdirSync(dir)).toEqual(["a.json"]);
-    },
-  );
+    });
+    expect(read(file)).toBe("new");
+    expect(fs.readdirSync(dir)).toEqual(["a.json"]);
+  });
+
+  test("keeps the file and removes the .tmp file when the write fails", () => {
+    const file = path.join(dir, "a.json");
+    fs.writeFileSync(file, "old");
+    expect(() =>
+      writeWhole(file, (tmp) => {
+        fs.writeFileSync(tmp, "ne");
+        throw new Error("boom");
+      }),
+    ).toThrow("boom");
+    expect(read(file)).toBe("old");
+    expect(fs.readdirSync(dir)).toEqual(["a.json"]);
+  });
 
   test.each([
     ["writeWhole", (file, write) => writeWhole(file, write)],
@@ -316,6 +279,33 @@ describe("writeWhole", () => {
       writeOf(file, (tmp) => fs.writeFileSync(tmp, "new")),
     ).rejects.toThrow();
     expect(fs.readdirSync(dir)).toEqual(["a"]);
+  });
+
+  test("writeWholeAsync replaces the file only after the write ends", async () => {
+    const file = path.join(dir, "a.json");
+    fs.writeFileSync(file, "old");
+    await writeWholeAsync(file, async (tmp) => {
+      fs.writeFileSync(tmp, "ne");
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(read(file)).toBe("old");
+      fs.appendFileSync(tmp, "w");
+    });
+    expect(read(file)).toBe("new");
+    expect(fs.readdirSync(dir)).toEqual(["a.json"]);
+  });
+
+  test("writeWholeAsync keeps the file and removes the .tmp file when the write fails", async () => {
+    const file = path.join(dir, "a.json");
+    fs.writeFileSync(file, "old");
+    await expect(
+      writeWholeAsync(file, async (tmp) => {
+        fs.writeFileSync(tmp, "ne");
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        throw new Error("boom");
+      }),
+    ).rejects.toThrow("boom");
+    expect(read(file)).toBe("old");
+    expect(fs.readdirSync(dir)).toEqual(["a.json"]);
   });
 });
 
