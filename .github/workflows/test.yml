@@ -44,6 +44,11 @@ jobs:
       - name: Run vitest Tests
         run: npm run vitest:coverage
 
+      # Apart from vitest: it reads every file of static/warp-sync.
+      - name: Check the files of the warp sync snapshot
+        if: ${{ !cancelled() }}
+        run: node scripts/warp-sync/check-files.mjs
+
       - name: Run the tests of judge.py
         if: ${{ !cancelled() }}
         run: python3 -B -m unittest discover -s scripts/screen-check -p "*_test.py"
