@@ -5,9 +5,11 @@
 //   WARP_SYNC_SNAPSHOT_CHECK=off: warn instead of failing.
 // Fails (exit 1) when the last run of a manifest.json was made on another day,
 // a manifest cannot be read, no chain is given, or --at is wrong. A chain
-// without a snapshot is not checked. Writes a table to $GITHUB_STEP_SUMMARY
-// (or to stdout without it). It only reads the files of the repository, and
-// imports no package, so that it runs without npm ci.
+// without a snapshot is not checked. Warns, without failing, when the last run
+// recorded empty ranges that had logs later (a sign that the RPC drops logs,
+// #734). Writes a table to $GITHUB_STEP_SUMMARY (or to stdout without it). It
+// only reads the files of the repository, and imports no package, so that it
+// runs without npm ci.
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -62,7 +64,16 @@ function readLastRun(file) {
   if (!created) {
     return { error: `createdAt ${JSON.stringify(last.createdAt)}` };
   }
-  return { label: `run ${runs.length}`, toBlock: last.toBlock, created };
+  // A run without checks (made before them) is not a problem.
+  const emptyWithLogs = last.checks?.emptyRangesWithLogs;
+  return {
+    label: `run ${runs.length}`,
+    toBlock: last.toBlock,
+    created,
+    emptyWithLogs: Number.isSafeInteger(emptyWithLogs)
+      ? emptyWithLogs
+      : undefined,
+  };
 }
 
 // args: the arguments of the command; env: its environment; dir: the folder
@@ -92,10 +103,13 @@ export function checkSnapshots({ args, env, dir, chainNames }) {
   if (chainNames.length === 0) problem("No chain to check.");
   const releaseDay = dayOf(at);
   const rows = [];
+  // Not counted in problems: the sign does not find the ranges that stayed
+  // empty, so it does not stop the release.
+  const warnings = [];
   for (const chain of chainNames) {
     const file = path.join(dir, chain, "manifest.json");
     if (!fs.existsSync(file)) {
-      rows.push([chain, "No snapshot", "", "", ""]);
+      rows.push([chain, "No snapshot", "", "", "", ""]);
       continue;
     }
     const run = readLastRun(file);
@@ -103,7 +117,7 @@ export function checkSnapshots({ args, env, dir, chainNames }) {
       problem(
         `Warp sync snapshot of ${chain}: cannot read ${path.join("static", WARP_SYNC_DIR, chain, "manifest.json")} (${run.error})`,
       );
-      rows.push([chain, "Cannot read the manifest", "", "", ""]);
+      rows.push([chain, "Cannot read the manifest", "", "", "", ""]);
       continue;
     }
     const createdDay = dayOf(run.created);
@@ -114,7 +128,16 @@ export function checkSnapshots({ args, env, dir, chainNames }) {
       `${run.created.toISOString().slice(0, 16).replace("T", " ")} UTC`,
       formatBlock(run.toBlock),
       days.toFixed(1),
+      run.emptyWithLogs ?? "No record",
     ]);
+    if (run.emptyWithLogs > 0) {
+      const text =
+        `The last run of the warp sync snapshot of ${chain} had ${run.emptyWithLogs}` +
+        " empty ranges that had logs when asked again, a sign that the RPC drops logs:" +
+        " a range that stayed empty may have lost its logs. Check the snapshot with another source.";
+      warnings.push(text);
+      stdout.push(`::warning::${text}`);
+    }
     if (createdDay !== releaseDay) {
       problem(
         `The warp sync snapshot of ${chain} was made on ${createdDay}, not on the day` +
@@ -132,10 +155,13 @@ export function checkSnapshots({ args, env, dir, chainNames }) {
     lines.push("WARP_SYNC_SNAPSHOT_CHECK is off: warnings only.", "");
   }
   lines.push(
-    "| Chain | Last run | Created | toBlock | Days |",
-    "| --- | --- | --- | --- | --- |",
+    "| Chain | Last run | Created | toBlock | Days | Empty, then logs |",
+    "| --- | --- | --- | --- | --- | --- |",
     ...rows.map((row) => `| ${row.join(" | ")} |`),
   );
+  if (warnings.length > 0) {
+    lines.push("", ...warnings.map((text) => `- Warning: ${text}`));
+  }
   if (env.GITHUB_STEP_SUMMARY) {
     fs.appendFileSync(env.GITHUB_STEP_SUMMARY, `${lines.join("\n")}\n`);
   } else {
