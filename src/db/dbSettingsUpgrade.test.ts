@@ -75,8 +75,8 @@ describe("the upgrade to version 2", () => {
       rpc: "https://saved.example",
       bulkUnit: 100,
       chainExplorerIndex: 0,
-      blockIntervalMs: 12000,
-      tryCount: 5,
+      blockIntervalMs: 20000,
+      tryCount: 10,
       inputType: "password",
     });
     await oldDb.table(tableNameUserSettings).add(initialDataUserSettings);
