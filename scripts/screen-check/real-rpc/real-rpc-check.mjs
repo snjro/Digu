@@ -56,9 +56,9 @@ const USAGE =
 // typo does not send all the runs to PublicNode.
 const [buildDir, outDir, ...flags] = process.argv.slice(2);
 if (
-  !buildDir ||
-  !outDir ||
-  flags.some((a) => a !== "--fake" && !a.startsWith("--only="))
+  [buildDir, outDir].some((a) => !a || a.startsWith("--")) ||
+  flags.some((a) => a !== "--fake" && !a.startsWith("--only=")) ||
+  flags.filter((a) => a.startsWith("--only=")).length > 1
 ) {
   console.error(USAGE);
   process.exit(2);
