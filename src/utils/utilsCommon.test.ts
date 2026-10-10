@@ -4,6 +4,7 @@ import {
   assertIsDefined,
   capitalizeFirstLetter,
   convertToKebabCase,
+  getOwn,
   getUrlObject,
   jsonStringifyFormatted,
   numberWithCommas,
@@ -24,6 +25,15 @@ describe("assertIsDefined", () => {
   });
   test("should NOT throw an error if the value is string", () => {
     expect(() => assertIsDefined("hoge")).not.toThrow();
+  });
+});
+describe("getOwn", () => {
+  const target: Record<string, number> = { a: 1 };
+  test("should return the value of an own name", () => {
+    expect(getOwn(target, "a")).toBe(1);
+  });
+  test("should return undefined for a name of Object.prototype", () => {
+    expect(getOwn(target, "constructor")).toBeUndefined();
   });
 });
 describe("removeDuplicateValuesFromArray", () => {
