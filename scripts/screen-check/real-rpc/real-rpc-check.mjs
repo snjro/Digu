@@ -51,7 +51,7 @@ const require = createRequire(path.join(process.cwd(), "package.json"));
 const puppeteer = require("puppeteer");
 
 const USAGE =
-  "Usage: node real-rpc-check.mjs <buildDir> <outDir> [--fake] [--only=eth-http,eth-wss,matic-http,matic-wss]";
+  "Usage: node real-rpc-check.mjs <buildDir> <outDir> [--fake] [--only=eth-http,...]";
 // An unknown argument stops the script before anything is sent, so that a
 // typo does not send all the runs to PublicNode.
 const [buildDir, outDir, ...flags] = process.argv.slice(2);
