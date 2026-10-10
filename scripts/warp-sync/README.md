@@ -162,7 +162,7 @@ was added after the state (such as a line half written when it stopped). A
 part whose state is for another address or other topics (the app changed the
 address or the events of the ABI after the stop), or has no address or no
 topics (a state written before they were kept), is fetched again from its
-first block. The topics in another order are the same. The lines are the logs as the RPC returned them; they are decoded
+first block. The topics in another order give the same logs. The lines are the logs as the RPC returned them; they are decoded
 when the files are written. The logs are not all kept in memory, so a chain
 with millions of logs fits.
 
