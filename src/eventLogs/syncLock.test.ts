@@ -317,6 +317,18 @@ function holdSyncLockOfOtherTab(operation?: () => Promise<unknown>): {
   );
   return { held, release };
 }
+// Tab C syncs, and is closed while it holds the lock (release()): the row of
+// `tab`'s contract stays syncing, with `row` written to it too.
+async function holdSyncLockOfTabClosedWhileSyncing(
+  tab: Tab,
+  row: Partial<SyncStatusContract> = {},
+): Promise<{ held: Promise<void>; release: () => void }> {
+  const lock = holdSyncLockOfOtherTab();
+  await tab.db
+    .table("SyncStatus")
+    .update(tab.contract.name, { isSyncing: true, isAbort: false, ...row });
+  return lock;
+}
 
 describe("sync with two tabs (issue #49)", () => {
   let tabs: Tab[] = [];
@@ -831,16 +843,12 @@ describe("sync with two tabs (issue #49)", () => {
     test("clears the flags that a tab closed while it synced left behind, after the release", async () => {
       const a = await openTab();
       tabs.push(a);
-      // Tab C syncs, and is closed while it holds the lock: its rows stay
-      // syncing.
-      const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
       // A creation block of another build stays: the reading after a release
       // clears only the flags.
-      await a.db.table("SyncStatus").update(a.contract.name, {
-        isSyncing: true,
-        isAbort: false,
-        creationBlockNumber: 1,
-      });
+      const { held: heldLock, release: closeTabC } =
+        await holdSyncLockOfTabClosedWhileSyncing(a, {
+          creationBlockNumber: 1,
+        });
       // Tab A's store as if it had read the row before: only a reading after
       // the release clears it.
       const { storeSyncStatus } = await import("#stores/storeSyncStatus.js");
@@ -911,10 +919,8 @@ describe("sync with two tabs (issue #49)", () => {
       const b = await openTab();
       tabs.push(b);
       await countWrites();
-      const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
-      await a.db
-        .table("SyncStatus")
-        .update(a.contract.name, { isSyncing: true, isAbort: false });
+      const { held: heldLock, release: closeTabC } =
+        await holdSyncLockOfTabClosedWhileSyncing(a);
       writes = 0;
       watching = true;
       const signal = new BroadcastChannel(SYNC_LOCK_CHANNEL);
@@ -1218,22 +1224,23 @@ describe("sync with two tabs (issue #49)", () => {
     tabs.push(a);
     // Tab C was stopping when it held the lock, and is closed before tab B
     // watches the locks.
-    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
-    await a.db
-      .table("SyncStatus")
-      .update(a.contract.name, { isSyncing: true, isAbort: true });
+    const { held: heldLock, release: closeTabC } =
+      await holdSyncLockOfTabClosedWhileSyncing(a, { isAbort: true });
 
     const b = await openTab(async () => {
-      // Same module instances as tab B.
-      const { syncStatusContract } = await import("./eventLogsContract");
-      expect(
-        syncStatusContract({
-          ...versionIdentifier,
-          contractName: a.contract.name,
-        }).syncStateText,
-      ).toBe("stopping");
-      closeTabC();
-      await heldLock;
+      try {
+        // Same module instances as tab B.
+        const { syncStatusContract } = await import("./eventLogsContract");
+        expect(
+          syncStatusContract({
+            ...versionIdentifier,
+            contractName: a.contract.name,
+          }).syncStateText,
+        ).toBe("stopping");
+      } finally {
+        closeTabC();
+        await heldLock;
+      }
     });
     tabs.push(b);
 
@@ -1245,33 +1252,33 @@ describe("sync with two tabs (issue #49)", () => {
   test("reads a chain busy at startup once it is released", async () => {
     const a = await openTab();
     tabs.push(a);
-    // Tab C syncs while tab B starts, and is closed while it holds the lock:
-    // its rows stay syncing.
-    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
-    await a.db
-      .table("SyncStatus")
-      .update(a.contract.name, { isSyncing: true, isAbort: false });
-    const b = await openTab();
-    tabs.push(b);
-    expect(b.isLockedByOtherTab()).toBe(true);
-    expect(b.storeStatus().syncStateText).toBe("syncing");
+    // Tab C syncs while tab B starts. A creation block of another build
+    // stays: the reading after a release clears only the flags.
+    const { held: heldLock, release: closeTabC } =
+      await holdSyncLockOfTabClosedWhileSyncing(a, { creationBlockNumber: 1 });
+    let b: Tab;
+    try {
+      b = await openTab();
+      tabs.push(b);
+      expect(b.isLockedByOtherTab()).toBe(true);
+      expect(b.storeStatus().syncStateText).toBe("syncing");
+    } finally {
+      closeTabC();
+      await heldLock;
+    }
 
-    closeTabC();
-    await heldLock;
     expect(await waitFor(() => !b.isLockedByOtherTab())).toBe(true);
     expect((await dbStatus(b)).isSyncing).toBe(false);
+    expect((await dbStatus(b)).creationBlockNumber).toBe(1);
     expect(b.storeStatus().syncStateText).toBe("stopped");
   }, 30_000);
 
   test("lets a tab opened hidden read a chain busy at startup once it is shown", async () => {
     const a = await openTab();
     tabs.push(a);
-    // Tab C syncs while tab B starts, and is closed while it holds the lock:
-    // its rows stay syncing.
-    const { held: heldLock, release: closeTabC } = holdSyncLockOfOtherTab();
-    await a.db
-      .table("SyncStatus")
-      .update(a.contract.name, { isSyncing: true, isAbort: false });
+    // Tab C syncs while tab B starts.
+    const { held: heldLock, release: closeTabC } =
+      await holdSyncLockOfTabClosedWhileSyncing(a);
     // The tabs share the document of the test.
     const spyVisibility = vi
       .spyOn(document, "visibilityState", "get")
@@ -1323,6 +1330,8 @@ describe("sync with two tabs (issue #49)", () => {
       expect(b.storeStatus().syncStateText).toBe("stopped");
     } finally {
       spyVisibility.mockRestore();
+      closeTabC();
+      await heldLock;
     }
   }, 30_000);
 
