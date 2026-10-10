@@ -349,6 +349,133 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(fs.readFileSync(file, "utf8")).toBe(before);
   });
 
+  const ammFactory = chain.contracts.find((c) => c.name === "AMMFactory");
+  const manifestFile = () => path.join(dir(), "manifest.json");
+
+  test("a run with a range to fetch drops a contract that the chain does not have, with its files", async () => {
+    await build({ toBlock: 16_000_000, chunkLogs: 50 });
+    // A copy of AMMFactory, with its chunks and files, named Other.
+    const manifest = readManifest();
+    const other = {
+      ...manifest.contracts.find((c) => c.name === "AMMFactory"),
+    };
+    other.name = "Other";
+    manifest.contracts.push(other);
+    for (const row of manifest.chunks.filter((r) => r.name === "AMMFactory")) {
+      const copy = { ...row, name: "Other" };
+      if (row.file) {
+        copy.file = row.file.replace("-AMMFactory-", "-Other-");
+        fs.copyFileSync(
+          path.join(dir(), row.file),
+          path.join(dir(), copy.file),
+        );
+      }
+      manifest.chunks.push(copy);
+    }
+    writeManifest(manifestFile(), manifest);
+    const otherFiles = manifest.chunks
+      .filter((r) => r.name === "Other" && r.file)
+      .map((r) => r.file);
+    expect(otherFiles.length).toBeGreaterThan(0);
+
+    const messages = [];
+    await build({ toBlock: 16_100_000, log: (m) => messages.push(m) });
+    const after = readManifest();
+    expect(after.contracts.map(keyOf).sort()).toEqual(
+      chain.contracts.map(keyOf).sort(),
+    );
+    expect(after.chunks.some((r) => r.name === "Other")).toBe(false);
+    for (const file of otherFiles) {
+      expect(fs.existsSync(path.join(dir(), file))).toBe(false);
+    }
+    expect(checkSnapshotFiles(outDir, ["matic"])).toEqual([]);
+    expect(logsInFiles(after)).toEqual(expectedLogs(16_100_000));
+    expect(messages).toContainEqual(
+      `Dropped from the snapshot: ${keyOf(other)} is not a contract with events of the chain.`,
+    );
+  });
+
+  // AMMFactory in the manifest with another creation block (and its first
+  // range from there) or another address, as if the app changed it.
+  test.each([
+    [
+      "creation block",
+      (contract, chunks) => {
+        contract.creationBlock -= 10_000;
+        chunks[0].fromBlock = contract.creationBlock;
+        return `has creationBlock ${contract.creationBlock}, not ${ammFactory.creationBlock}.`;
+      },
+    ],
+    [
+      "address",
+      (contract) => {
+        contract.address = chain.contracts.find(
+          (c) => c.name === "FeePot",
+        ).address;
+        return `has address ${contract.address}, not ${ammFactory.address}.`;
+      },
+    ],
+  ])(
+    "a run fetches a contract with another %s again from its creation block",
+    async (_, change) => {
+      await build({ toBlock: 16_000_000, chunkLogs: 50 });
+      const manifest = readManifest();
+      const contract = manifest.contracts.find((c) => c.name === "AMMFactory");
+      const chunks = manifest.chunks.filter((r) => r.name === "AMMFactory");
+      expect(chunks.filter((r) => r.file).length).toBeGreaterThan(1);
+      const text = change(contract, chunks);
+      writeManifest(manifestFile(), manifest);
+
+      // To the same block: its last file has the name of the one to write.
+      const messages = [];
+      await build({
+        toBlock: 16_000_000,
+        chunkLogs: 50,
+        log: (m) => messages.push(m),
+      });
+      const after = readManifest();
+      expect(after.contracts.find((c) => c.name === "AMMFactory")).toEqual({
+        project: ammFactory.project,
+        version: ammFactory.version,
+        name: ammFactory.name,
+        address: ammFactory.address,
+        creationBlock: ammFactory.creationBlock,
+      });
+      expect(checkSnapshotFiles(outDir, ["matic"])).toEqual([]);
+      expect(logsInFiles(after)).toEqual(expectedLogs(16_000_000));
+      expect(messages).toContainEqual(
+        `Dropped from the snapshot: ${keyOf(ammFactory)} ${text}`,
+      );
+    },
+  );
+
+  test("a run that fetches a changed contract again goes on after a stop", async () => {
+    await build({ toBlock: 16_000_000 });
+    const manifest = readManifest();
+    const contract = manifest.contracts.find((c) => c.name === "AMMFactory");
+    contract.creationBlock -= 10_000;
+    manifest.chunks.find((r) => r.name === "AMMFactory").fromBlock =
+      contract.creationBlock;
+    writeManifest(manifestFile(), manifest);
+    const before = fs.readFileSync(manifestFile(), "utf8");
+
+    await expect(
+      build({ toBlock: 16_000_000, maxRequests: 4 }),
+    ).rejects.toThrow(RequestLimitError);
+    // The stop keeps the manifest and the files of the contract.
+    expect(fs.readFileSync(manifestFile(), "utf8")).toBe(before);
+    for (const row of manifest.chunks.filter((r) => r.file)) {
+      expect(fs.existsSync(path.join(dir(), row.file))).toBe(true);
+    }
+    const messages = [];
+    await build({ log: (m) => messages.push(m) });
+    expect(messages).toContainEqual(
+      expect.stringMatching(`^${keyOf(ammFactory)} .*: go on from `),
+    );
+    expect(checkSnapshotFiles(outDir, ["matic"])).toEqual([]);
+    expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
+  });
+
   test("a run before every contract of a chain without a snapshot writes no manifest", async () => {
     const first = Math.min(...chain.contracts.map((c) => c.creationBlock));
     await expect(build({ toBlock: first - 1 })).resolves.toBeUndefined();

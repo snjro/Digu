@@ -140,6 +140,51 @@ export function lastBlocks(manifest) {
   return last;
 }
 
+// How the contracts of the manifest differ from those with events of the
+// chain. The app imports a contract only when it has events and the same
+// address and creation block (matchWarpSyncContracts of warpSyncPlan.ts), and
+// skips the others without a word. notImported: the problems of the contracts
+// of the manifest that the app does not import; missing: those of the
+// contracts of the chain that the manifest does not have. Each problem is
+// { key, text }.
+export function compareContracts(chain, manifest) {
+  const notImported = [];
+  const missing = [];
+  const appContracts = new Map(chain.contracts.map((c) => [keyOf(c), c]));
+  const manifestContracts = new Map(
+    manifest.contracts.map((c) => [keyOf(c), c]),
+  );
+  for (const contract of manifest.contracts) {
+    const key = keyOf(contract);
+    const appContract = appContracts.get(key);
+    if (!appContract) {
+      notImported.push({
+        key,
+        text: `${key} is not a contract with events of the chain.`,
+      });
+      continue;
+    }
+    if (contract.address.toLowerCase() !== appContract.address.toLowerCase()) {
+      notImported.push({
+        key,
+        text: `${key} has address ${contract.address}, not ${appContract.address}.`,
+      });
+    }
+    if (contract.creationBlock !== appContract.creationBlock) {
+      notImported.push({
+        key,
+        text: `${key} has creationBlock ${contract.creationBlock}, not ${appContract.creationBlock}.`,
+      });
+    }
+  }
+  for (const key of appContracts.keys()) {
+    if (!manifestContracts.has(key)) {
+      missing.push({ key, text: `${key} is not in manifest.contracts.` });
+    }
+  }
+  return { notImported, missing };
+}
+
 export function emptyManifest(chain) {
   return {
     formatVersion: FORMAT_VERSION,

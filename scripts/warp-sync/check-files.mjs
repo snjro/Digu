@@ -9,6 +9,7 @@ import {
 } from "../../src/warpSync/warpSyncShared.mjs";
 import { loadChain } from "./chains.mjs";
 import {
+  compareContracts,
   FORMAT_VERSION,
   isAfter,
   keyOf,
@@ -135,36 +136,11 @@ function checkChain(dir, name) {
   const problems = [];
   const problem = (text) => problems.push(`${name}: ${text}`);
 
-  // The app imports a contract only when it has events and the same address
-  // and creation block (matchWarpSyncContracts of warpSyncPlan.ts), and skips
-  // the others without a word.
-  const appContracts = new Map(chain.contracts.map((c) => [keyOf(c), c]));
+  const { notImported, missing } = compareContracts(chain, manifest);
+  for (const { text } of [...notImported, ...missing]) problem(text);
   const manifestContracts = new Map(
     manifest.contracts.map((c) => [keyOf(c), c]),
   );
-  for (const contract of manifest.contracts) {
-    const key = keyOf(contract);
-    const appContract = appContracts.get(key);
-    if (!appContract) {
-      problem(`${key} is not a contract with events of the chain.`);
-      continue;
-    }
-    if (contract.address.toLowerCase() !== appContract.address.toLowerCase()) {
-      problem(
-        `${key} has address ${contract.address}, not ${appContract.address}.`,
-      );
-    }
-    if (contract.creationBlock !== appContract.creationBlock) {
-      problem(
-        `${key} has creationBlock ${contract.creationBlock}, not ${appContract.creationBlock}.`,
-      );
-    }
-  }
-  for (const key of appContracts.keys()) {
-    if (!manifestContracts.has(key)) {
-      problem(`${key} is not in manifest.contracts.`);
-    }
-  }
 
   const listed = new Set();
   for (const chunk of manifest.chunks) {
