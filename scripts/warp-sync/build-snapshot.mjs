@@ -17,7 +17,6 @@ import {
   splitParts,
 } from "./fetch-logs.mjs";
 import {
-  keepLogsBefore,
   PARTIAL_DIR,
   partFiles,
   partKeyOf,
@@ -207,9 +206,13 @@ async function build(chain, rpc, outDir, toBlock, options) {
     const files = partFiles(partialDir, part);
     plan.files[index] = files.logs;
     const saved = states.get(partKeyOf(part));
-    const resumed = saved?.fromBlock === from ? saved : undefined;
+    const resumed =
+      saved?.fromBlock === from && saved.size !== undefined ? saved : undefined;
     const nextBlock = resumed?.nextBlock ?? partFrom;
-    await keepLogsBefore(files.logs, nextBlock);
+    // Drops what was added after the state: the logs of a range whose state
+    // was not written, and a line half written.
+    if (resumed) fs.truncateSync(files.logs, resumed.size);
+    else fs.rmSync(files.logs, { force: true });
     if (resumed && nextBlock <= partTo) {
       log(`${keyOf(contract)} ${partFrom}-${partTo}: go on from ${nextBlock}.`);
     }
@@ -225,7 +228,11 @@ async function build(chain, rpc, outDir, toBlock, options) {
           files.logs,
           logs.map((raw) => `${JSON.stringify(raw)}\n`).join(""),
         );
-        writeState(files.state, { ...part, nextBlock: to + 1 });
+        writeState(files.state, {
+          ...part,
+          nextBlock: to + 1,
+          size: fs.statSync(files.logs).size,
+        });
       },
       signal: controller.signal,
       widths,
