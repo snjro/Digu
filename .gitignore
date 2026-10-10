@@ -3,6 +3,7 @@ node_modules
 .svelte-kit
 *.code-workspace
 coverage
+__pycache__/
 # Left by scripts/warp-sync when a run stops
 static/warp-sync/*/.partial/
 static/warp-sync/*/manifest.json.tmp
