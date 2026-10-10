@@ -45,8 +45,8 @@ The table also shows `checks.emptyRangesWithLogs` of the last run ("Empty,
 then logs"; "No record" for a run without it): the empty ranges that had logs
 when asked again (Empty results (#576), below). Look at it before the release.
 More than 0 is a warning, in the annotations and the summary, and does not
-stop the release: it is a sign that the RPC drops logs, not the ranges that
-were lost, so check the snapshot with another source (#734).
+stop the release: it is a sign that the RPC drops logs, not the number of
+ranges that were lost, so check the snapshot with another source (#734).
 
 `check-files.mjs` (a step of `test.yml`, apart from vitest) checks the files
 of each chain of `WARP_SYNC_CHAIN_NAMES` against its `manifest.json` on every
