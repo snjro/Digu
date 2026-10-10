@@ -183,14 +183,22 @@ cancels the older one.
   be set when it is run by hand.
 - The `<out-dir>` is uploaded as an artifact for 14 days, for the
   screenshots of the `CHECK` steps.
-- On a failure it opens an issue with the label `screen-check-failure` and
-  the failures of `judge.py`, or comments on the open one. On a pass it
-  closes the open one.
+- On a failure on develop it opens an issue with the label
+  `screen-check-failure` and the failures of `judge.py`, or comments on the
+  open one. On a pass on develop it closes the open one. A run on another ref
+  (for example, a tag) does neither.
 - `release.yml` runs `wait-for-pass.sh` first: the release stops unless this
   workflow passed on the commit of the tag. While a run on that commit is
-  queued or in progress, it waits up to 30 min. When the commit has no run
-  (for example, a newer push cancelled it), run it with
-  `gh workflow run screen-check.yml --ref <tag>`, then run the release again.
+  queued or in progress, it waits up to 30 min.
+- When the commit has no run, or its run was cancelled (for example, by a
+  newer push) or failed, run it again by hand. A run by hand checks out the
+  head of the ref:
+  - Before the tag is pushed: check that develop still points at the commit
+    (`git fetch origin` and `git rev-parse origin/develop`), then run
+    `gh workflow run screen-check.yml --ref develop`.
+  - After the tag is pushed and the release stopped: run
+    `gh workflow run screen-check.yml --ref <tag>`, then run the release
+    again.
 - The checks by hand before a release (upgrade B, `real-rpc/` without
   `--fake`, the `CHECK` steps and `public-site/` after it) are still needed.
 
