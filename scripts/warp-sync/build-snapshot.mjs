@@ -203,6 +203,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
       project: contract.project,
       version: contract.version,
       name: contract.name,
+      address: contract.address,
       end,
       fromBlock: from,
       partFrom,
@@ -219,11 +220,13 @@ async function build(chain, rpc, outDir, toBlock, options) {
         ? undefined
         : saved.size === undefined
           ? "its state has no size"
-          : saved.fromBlock !== from
-            ? `its state is from block ${saved.fromBlock}, not ${from}`
-            : logsSize === undefined || logsSize < saved.size
-              ? `its .jsonl file is missing or shorter than ${saved.size} bytes`
-              : undefined;
+          : saved.address?.toLowerCase() !== contract.address.toLowerCase()
+            ? `its state is not for address ${contract.address}`
+            : saved.fromBlock !== from
+              ? `its state is from block ${saved.fromBlock}, not ${from}`
+              : logsSize === undefined || logsSize < saved.size
+                ? `its .jsonl file is missing or shorter than ${saved.size} bytes`
+                : undefined;
     const resumed = startOver === undefined ? saved : undefined;
     const nextBlock = resumed?.nextBlock ?? partFrom;
     if (resumed) {
