@@ -16,43 +16,52 @@ import {
   syncStatusBaseNumberKeys,
   syncStatusBaseBooleanKeys,
 } from "#db/dbTypes.js";
-import { assertIsDefined } from "#utils/utilsCommon.js";
+import { assertIsDefined, getOwn } from "#utils/utilsCommon.js";
 import type { KeysMatching } from "#utils/utilsType.js";
 import { syncStateText } from "./storeSyncStatusGetInitialState";
 
+// Called only after updateState checks that the contract is in the store.
 const storeSyncStatusChain = (
   state: SyncStatusesChain,
   chainIdentifier: ChainIdentifier,
 ): SyncStatusChain => {
-  return state[chainIdentifier.chainName];
+  const syncStatusChain: SyncStatusChain | undefined = getOwn(
+    state,
+    chainIdentifier.chainName,
+  );
+  assertIsDefined(syncStatusChain);
+  return syncStatusChain;
 };
 const storeSyncStatusProject = (
   state: SyncStatusesChain,
   projectIdentifier: ProjectIdentifier,
 ): SyncStatusProject => {
-  return state[projectIdentifier.chainName].subSyncStatuses[
-    projectIdentifier.projectName
-  ];
+  const syncStatusProject: SyncStatusProject | undefined = getOwn(
+    storeSyncStatusChain(state, projectIdentifier).subSyncStatuses,
+    projectIdentifier.projectName,
+  );
+  assertIsDefined(syncStatusProject);
+  return syncStatusProject;
 };
 const storeSyncStatusVersion = (
   state: SyncStatusesChain,
   versionIdentifier: VersionIdentifier,
 ): SyncStatusVersion => {
-  return state[versionIdentifier.chainName].subSyncStatuses[
-    versionIdentifier.projectName
-  ].subSyncStatuses[versionIdentifier.versionName];
+  const syncStatusVersion: SyncStatusVersion | undefined = getOwn(
+    storeSyncStatusProject(state, versionIdentifier).subSyncStatuses,
+    versionIdentifier.versionName,
+  );
+  assertIsDefined(syncStatusVersion);
+  return syncStatusVersion;
 };
 const storeSyncStatusContract = (
   state: SyncStatusesChain,
   contractIdentifier: ContractIdentifier,
 ): SyncStatusContract => {
-  const syncStatusContract: SyncStatusContract | undefined =
-    state[contractIdentifier.chainName].subSyncStatuses[
-      contractIdentifier.projectName
-    ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
-      contractIdentifier.contractName
-    ];
-  // Called only after updateState checks that the contract is in the store.
+  const syncStatusContract: SyncStatusContract | undefined = getOwn(
+    storeSyncStatusVersion(state, contractIdentifier).subSyncStatuses,
+    contractIdentifier.contractName,
+  );
   assertIsDefined(syncStatusContract);
   return syncStatusContract;
 };

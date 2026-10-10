@@ -7,6 +7,14 @@ export function assertIsDefined<T>(
   }
 }
 
+// Unlike target[key], it does not find names of Object.prototype.
+export function getOwn<T extends object, K extends keyof T>(
+  target: T,
+  key: K,
+): T[K] | undefined {
+  return Object.hasOwn(target, key) ? target[key] : undefined;
+}
+
 export function removeDuplicateValuesFromArray<T>(array: T[]): T[] {
   const uniqueArray: T[] = [...new Set(array)];
   return uniqueArray;

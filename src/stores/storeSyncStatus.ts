@@ -13,6 +13,7 @@ import type {
   SyncStatusVersion,
 } from "#db/dbTypes.js";
 import { customLogger } from "#utils/logger.js";
+import { assertIsDefined, getOwn } from "#utils/utilsCommon.js";
 
 function store() {
   const { subscribe, set, update } = writable(getInitialState());
@@ -63,9 +64,12 @@ function getContractInState(
 ): SyncStatusContract | undefined {
   const { chainName, projectName, versionName, contractName } =
     contractIdentifier;
-  return state[chainName]?.subSyncStatuses[projectName]?.subSyncStatuses[
-    versionName
-  ]?.subSyncStatuses[contractName];
+  const chain: SyncStatusChain | undefined = getOwn(state, chainName);
+  const project: SyncStatusProject | undefined =
+    chain && getOwn(chain.subSyncStatuses, projectName);
+  const version: SyncStatusVersion | undefined =
+    project && getOwn(project.subSyncStatuses, versionName);
+  return version && getOwn(version.subSyncStatuses, contractName);
 }
 
 // Copy the chain, project, version and contract on the path, and merge the
@@ -78,9 +82,18 @@ function copyPath(
 ): SyncStatusesChain {
   const { chainName, projectName, versionName, contractName } =
     contractIdentifier;
-  const chain: SyncStatusChain = state[chainName];
-  const project: SyncStatusProject = chain.subSyncStatuses[projectName];
-  const version: SyncStatusVersion = project.subSyncStatuses[versionName];
+  const chain: SyncStatusChain | undefined = getOwn(state, chainName);
+  assertIsDefined(chain);
+  const project: SyncStatusProject | undefined = getOwn(
+    chain.subSyncStatuses,
+    projectName,
+  );
+  assertIsDefined(project);
+  const version: SyncStatusVersion | undefined = getOwn(
+    project.subSyncStatuses,
+    versionName,
+  );
+  assertIsDefined(version);
   return {
     ...state,
     [chainName]: {

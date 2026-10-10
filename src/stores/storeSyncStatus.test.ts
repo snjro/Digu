@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
 import { getInitialState } from "./storeSyncStatusGetInitialState";
 import { NO_DATA } from "#utils/utilsConstants.js";
-import type { SyncStatusContract, SyncStatusesChain } from "#db/dbTypes.js";
+import type {
+  ContractIdentifier,
+  SyncStatusContract,
+  SyncStatusesChain,
+} from "#db/dbTypes.js";
 
 export const dummyChainName = "chain1";
 export const dummyProjectName = "project1";
@@ -303,6 +307,44 @@ describe("storeSyncStatus", () => {
     );
     spyError.mockRestore();
   });
+  // A name of Object.prototype, such as "constructor", is not in the store.
+  test.each(["chainName", "projectName", "versionName", "contractName"])(
+    "should ignore a contract whose %s is a name of Object.prototype",
+    async (level) => {
+      const storeSyncStatus = await importStoreSyncStatus();
+      const { customLogger } = await import("#utils/logger.js");
+      const spyError = vi
+        .spyOn(customLogger, "error")
+        .mockImplementation(() => {});
+      const previousSyncStatusesChain: SyncStatusesChain = get(storeSyncStatus);
+      const contractIdentifier = {
+        chainName: "eth",
+        projectName: "Augur",
+        versionName: "version2",
+        contractName: "OICash",
+        [level]: "constructor",
+      } as ContractIdentifier;
+
+      expect(() =>
+        storeSyncStatus.updateState(contractIdentifier, {
+          isSyncing: true,
+          isSyncTarget: true,
+        }),
+      ).not.toThrow();
+
+      expect(get(storeSyncStatus)).toBe(previousSyncStatusesChain);
+      const chain = get(storeSyncStatus).eth;
+      const project = chain.subSyncStatuses["Augur"];
+      const version = project.subSyncStatuses["version2"];
+      expect(Object.hasOwn(version.subSyncStatuses, "constructor")).toBe(false);
+      for (const parent of [chain, project, version]) {
+        expect(parent.isSyncing).toBe(false);
+        expect(parent.fetchedBlockNumber).not.toBeNaN();
+      }
+      expect(spyError).toHaveBeenCalledTimes(1);
+      spyError.mockRestore();
+    },
+  );
   describe("updateState should not change the previous value", () => {
     const contractIdentifier = {
       chainName: "eth",
