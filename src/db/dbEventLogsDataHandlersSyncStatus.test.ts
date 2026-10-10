@@ -47,7 +47,7 @@ describe("startSyncingInChain", () => {
         chainName,
         "isSyncTarget",
         true,
-        { isSyncing: true },
+        { isSyncing: true, isAbort: false },
       );
     });
   }

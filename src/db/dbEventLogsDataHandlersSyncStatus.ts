@@ -23,8 +23,12 @@ export async function startSyncingInChain(
 ): Promise<ContractIdentifier[]> {
   let marked: ContractIdentifier[];
   try {
+    // Clears an isAbort that a stop left when its write-back failed, which
+    // would stop the new loops at once. Without Web Locks nothing else clears
+    // it before the start.
     marked = await updateSyncStatusInChain(chainName, "isSyncTarget", true, {
       isSyncing: true,
+      isAbort: false,
     });
   } catch (error) {
     // A version that was marked but cannot be written back keeps its flags
