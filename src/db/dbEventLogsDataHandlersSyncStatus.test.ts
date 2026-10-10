@@ -18,7 +18,7 @@ import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain, Contract } from "#constants/chains/types.js";
 import * as UpdateSyncStatusInChain from "./dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain";
 import * as UpdateDbRecordSyncStatus from "./dbEventLogsDataHandlersSyncStatusUpdateDbRecordSyncStatus";
-import type { VersionIdentifier } from "./dbTypes";
+import type { ContractIdentifier, VersionIdentifier } from "./dbTypes";
 import { DbEventLogs } from "./dbEventLogs";
 import { extractEventContracts } from "#utils/utilsEthers.js";
 
@@ -46,6 +46,29 @@ describe("startSyncingInChain", () => {
       );
     });
   }
+  test("should return the marked contracts that this build knows only", async () => {
+    const targetChain: Chain = TARGET_CHAINS[0];
+    const versionIdentifier: VersionIdentifier = {
+      chainName: targetChain.name,
+      projectName: targetChain.projects[0].name,
+      versionName: targetChain.projects[0].versions[0].name,
+    };
+    const known: ContractIdentifier = {
+      ...versionIdentifier,
+      contractName: extractEventContracts(
+        targetChain.projects[0].versions[0].contracts,
+      )[0].name,
+    };
+    // Rows of contracts that this build does not know, one of them named like
+    // a member of Object.prototype.
+    spyUpdateSyncStatusInChain.mockResolvedValue([
+      known,
+      { ...versionIdentifier, contractName: "UnknownContract" },
+      { ...versionIdentifier, contractName: "constructor" },
+    ]);
+
+    expect(await startSyncingInChain(targetChain.name)).toEqual([known]);
+  });
 });
 
 describe("startAbortingInChain", () => {

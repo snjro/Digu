@@ -57,12 +57,15 @@ function store() {
 }
 export const storeSyncStatus = store();
 
-// The store holds the event contracts of this build.
-export function isContractInStore(
-  contractIdentifier: ContractIdentifier,
-): boolean {
-  return (
-    getContractInState(get(storeSyncStatus), contractIdentifier) !== undefined
+// Returns those in the store: the store holds the event contracts of this
+// build.
+export function filterContractsInStore(
+  contractIdentifiers: ContractIdentifier[],
+): ContractIdentifier[] {
+  const state: SyncStatusesChain = get(storeSyncStatus);
+  return contractIdentifiers.filter(
+    (contractIdentifier: ContractIdentifier) =>
+      getContractInState(state, contractIdentifier) !== undefined,
   );
 }
 
@@ -72,9 +75,17 @@ function getContractInState(
 ): SyncStatusContract | undefined {
   const { chainName, projectName, versionName, contractName } =
     contractIdentifier;
-  return state[chainName]?.subSyncStatuses[projectName]?.subSyncStatuses[
-    versionName
-  ]?.subSyncStatuses[contractName];
+  const chain: SyncStatusChain | undefined = getOwn(state, chainName);
+  const project: SyncStatusProject | undefined =
+    chain && getOwn(chain.subSyncStatuses, projectName);
+  const version: SyncStatusVersion | undefined =
+    project && getOwn(project.subSyncStatuses, versionName);
+  return version && getOwn(version.subSyncStatuses, contractName);
+}
+
+// Only an own property: a name like "constructor" is not in the store.
+function getOwn<T>(record: { [name: string]: T }, name: string): T | undefined {
+  return Object.hasOwn(record, name) ? record[name] : undefined;
 }
 
 // Copy the chain, project, version and contract on the path, and merge the

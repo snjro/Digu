@@ -139,6 +139,7 @@ describe("startSyncingInChain and stopSyncingInChain with a row of a contract th
 
     expect((await unknownRow())?.isSyncing).toBe(false);
     // Every error is for the row that this build does not know.
+    expect(spyError).toHaveBeenCalled();
     for (const messages of spyError.mock.calls) {
       expect(messages).toEqual([
         expect.any(String),
