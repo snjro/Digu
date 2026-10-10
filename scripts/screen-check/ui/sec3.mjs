@@ -119,13 +119,20 @@ await L.step("3-4", page, async () => {
   );
 });
 
+// The type stays text while hidden, so Chrome does not offer to save the RPC (#640).
+const rpcShown = () =>
+  page.$eval(
+    RPC,
+    (i) =>
+      `${i.type} ${getComputedStyle(i).getPropertyValue("-webkit-text-security")}`,
+  );
 await L.step("3-5", page, async () => {
-  const t0 = await page.$eval(RPC, (i) => i.type);
+  const t0 = await rpcShown();
   await L.click(page, "show", { scope: "nav" }).catch(() =>
     page.click('nav button[aria-label="show"]'),
   );
   await L.settle(page);
-  const t1 = await page.$eval(RPC, (i) => i.type);
+  const t1 = await rpcShown();
   const lab1 = await page.evaluate(() =>
     [...document.querySelectorAll("nav button")]
       .map((b) => b.getAttribute("aria-label"))
@@ -135,18 +142,22 @@ await L.step("3-5", page, async () => {
   const db1 = (await rpcDb())?.inputType;
   await page.reload({ waitUntil: "load" });
   await L.settle(page, 800);
-  const t2 = await page.$eval(RPC, (i) => i.type);
+  const t2 = await rpcShown();
   // back
   await page.click(
     'nav button[aria-label="hide"], nav button[aria-label="show"]',
   );
   await L.settle(page);
-  const t3 = await page.$eval(RPC, (i) => i.type);
-  const ok = t0 !== t1 && t2 === t1 && t3 === t0;
+  const t3 = await rpcShown();
+  const ok =
+    t0 !== t1 &&
+    t2 === t1 &&
+    t3 === t0 &&
+    [t0, t1].every((t) => t.startsWith("text "));
   L.rec(
     "3-5",
     ok ? "OK" : "NG",
-    `type ${t0} → click → ${t1} (buttons ${lab1}, db inputType=${db1}) → reload → ${t2} → click → ${t3}`,
+    `type and text-security ${t0} → click → ${t1} (buttons ${lab1}, db inputType=${db1}) → reload → ${t2} → click → ${t3}`,
     [s],
   );
 });
