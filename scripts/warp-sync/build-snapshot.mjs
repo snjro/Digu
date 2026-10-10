@@ -471,7 +471,7 @@ const sortLogs = (logs) =>
 
 // Decodes the logs, by block and log index, into the logs of the snapshot. A
 // log without blockTimestamp gets it from its block.
-export async function* toSnapshotLogs(rpc, contract, rawLogs) {
+async function* toSnapshotLogs(rpc, contract, rawLogs) {
   let timestamp = undefined; // [blockNumber, blockTimestamp] of the last block asked
   for await (const raw of rawLogs) {
     let blockTimestamp = raw.blockTimestamp;

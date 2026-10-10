@@ -147,25 +147,14 @@ export function readManifest(file, chain) {
 // Writes file whole and then renames it, so that a stop does not leave half a
 // file: write(tmp) writes the file tmp. When the write or the rename fails, tmp
 // is removed, file stays as it was, and the error is thrown. <file>.tmp is left
-// when its removal fails, after a stop (a kill) before the rename, and by a
-// write that returns a promise (a misuse: it is not waited for, and writeWhole
-// throws).
+// when its removal fails, and after a stop (a kill) before the rename.
 export function writeWhole(file, write) {
   const tmp = `${file}.tmp`;
-  let written;
   try {
-    written = write(tmp);
+    write(tmp);
   } catch (error) {
     discard(tmp);
     throw error;
-  }
-  if (typeof written?.then === "function") {
-    // A misuse, which no caller makes: tmp is left as it is, since the write
-    // goes on. Only its rejection is caught, so that it is not unhandled.
-    written.then(undefined, () => {});
-    throw new TypeError(
-      "The write of writeWhole returned a promise: use writeWholeAsync.",
-    );
   }
   replace(tmp, file);
 }
