@@ -742,10 +742,8 @@ await L.step("4-logs", page, async () => {
     "4-logs",
     "CHECK",
     JSON.stringify({
-      initial: [s0.paging, s0.headers, s0.rows.slice(0, 2)],
-      allCols: sAll.headers,
+      initial: s0.rows.slice(0, 2),
       desc: s1.rows.slice(0, 2),
-      page2: [s2.paging, nums(s2)],
     }),
     [sh1, sh1b, sh2],
   );
