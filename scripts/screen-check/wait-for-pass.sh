@@ -9,6 +9,7 @@ set -euo pipefail
 sha=$1
 deadline=$((SECONDS + ${WAIT_SECONDS:-1800}))
 url=${GITHUB_SERVER_URL:-https://github.com}/$GITHUB_REPOSITORY/actions/workflows/screen-check.yml
+how='see "CI" in scripts/screen-check/README.md for how'
 while true; do
   runs=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/screen-check.yml/runs?head_sha=$sha" \
     --jq '[.workflow_runs[] | {status, conclusion}]')
@@ -18,9 +19,11 @@ while true; do
   fi
   if ! jq -e 'any(.[]; .status != "completed")' <<<"$runs" >/dev/null; then
     if jq -e 'length == 0' <<<"$runs" >/dev/null; then
-      echo "::error::The screen check has not run on $sha. Run it with 'gh workflow run screen-check.yml --ref <tag>', then run this release again."
+      echo "::error::The screen check has not run on $sha. Run it ($how), then run this release again."
+    elif jq -e 'all(.[]; .conclusion == "cancelled")' <<<"$runs" >/dev/null; then
+      echo "::error::The screen check on $sha was cancelled ($url). Run it again ($how), then run this release again."
     else
-      echo "::error::The screen check failed on $sha ($url). Fix it, or run it again, then run this release again."
+      echo "::error::The screen check failed on $sha ($url). Fix it, or run it again ($how), then run this release again."
     fi
     exit 1
   fi

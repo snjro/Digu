@@ -1,9 +1,10 @@
 name: Screen check
 
 # Runs scripts/screen-check/run-all.sh on develop and judges it with judge.py.
-# On a failure it opens an issue with the label screen-check-failure, or
-# comments on the open one; on a pass it closes it. release.yml stops unless
-# this passed on the commit of the tag. See scripts/screen-check/README.md.
+# On a failure on develop it opens an issue with the label
+# screen-check-failure, or comments on the open one; on a pass on develop it
+# closes it. release.yml stops unless this passed on the commit of the tag.
+# See scripts/screen-check/README.md.
 on:
   # Not on pull requests: it takes about 15 min.
   push:
@@ -93,7 +94,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Open or update the issue
-        if: failure()
+        if: failure() && github.ref == 'refs/heads/develop'
         run: |
           gh label create screen-check-failure --color B60205 \
             --description "The screen check failed on develop" --force
@@ -119,7 +120,7 @@ jobs:
           fi
 
       - name: Close the issue
-        if: success()
+        if: success() && github.ref == 'refs/heads/develop'
         run: |
           for number in $(gh api "repos/$GH_REPO/issues?labels=screen-check-failure&state=open" --jq '.[].number'); do
             gh api "repos/$GH_REPO/issues/$number/comments" \
