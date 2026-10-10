@@ -533,3 +533,39 @@ describe("startSyncingInChain with a version whose write fails (#726)", () => {
     );
   });
 });
+
+describe("startSyncingInChain with isAbort left by a stop whose write-back failed (#795)", () => {
+  test("should clear isAbort in the DB and the store", async () => {
+    const targetChain = TARGET_CHAINS[0];
+    const targetProject = targetChain.projects[0];
+    const targetVersion = targetProject.versions[0];
+    const contractIdentifier: ContractIdentifier = {
+      chainName: targetChain.name,
+      projectName: targetProject.name,
+      versionName: targetVersion.name,
+      contractName: extractEventContracts(targetVersion.contracts)[0].name,
+    };
+    const dbEventLogs = new DbEventLogs(contractIdentifier);
+    onTestFinished(() => dbEventLogs.close());
+    onTestFinished(() => stopSyncingInChain(targetChain.name));
+    // The abort committed, and the stop that clears it failed. Without Web
+    // Locks, the start does not read the rows again.
+    const left: Partial<SyncStatusContract> = {
+      isSyncing: true,
+      isAbort: true,
+    };
+    await dbEventLogs
+      .table(tableNameSyncStatus)
+      .update(contractIdentifier.contractName, left);
+    storeSyncStatus.updateState(contractIdentifier, left);
+
+    await startSyncingInChain(targetChain.name);
+
+    const row: SyncStatusContract | undefined = await dbEventLogs
+      .table(tableNameSyncStatus)
+      .get(contractIdentifier.contractName);
+    expect(row?.isSyncing).toBe(true);
+    expect(row?.isAbort).toBe(false);
+    expect(getStoreSyncStatusContract(contractIdentifier).isAbort).toBe(false);
+  });
+});
