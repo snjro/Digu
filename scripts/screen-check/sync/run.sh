@@ -30,5 +30,6 @@ args=()
 if [[ $script == sync-check.mjs ]]; then
   args=(/app/_build /out "$@")
 fi
-"${compose[@]}" run --rm -T "${env[@]}" \
-  -v "$repo/scripts:/scripts:ro" -v "$out:/out" test node "/scripts/screen-check/sync/$script" "${args[@]}"
+# ${a[@]+"${a[@]}"}: an empty array, which set -u stops at in bash before 4.4.
+"${compose[@]}" run --rm -T ${env[@]+"${env[@]}"} \
+  -v "$repo/scripts:/scripts:ro" -v "$out:/out" test node "/scripts/screen-check/sync/$script" ${args[@]+"${args[@]}"}
