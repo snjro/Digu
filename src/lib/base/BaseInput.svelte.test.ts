@@ -55,6 +55,16 @@ describe("BaseInput.svelte", () => {
     expect(getInput(container).hasAttribute("aria-label")).toBe(false);
   });
 
+  test("hides the text with a class only when hideText is set", async () => {
+    const { container, rerender } = render(BaseInput, { ...baseProps });
+    const input = getInput(container);
+    expect(input.classList.contains("hidetext")).toBe(false);
+
+    await rerender({ hideText: true });
+    expect(input.type).toBe("text");
+    expect(input.classList.contains("hidetext")).toBe(true);
+  });
+
   test("shows an empty value when value is undefined", () => {
     const { container } = render(BaseInput, { ...baseProps });
     expect(getInput(container).value).toBe("");

@@ -9,6 +9,7 @@
     disabled?: boolean;
     border?: boolean;
     truncate?: boolean;
+    hideText?: boolean;
     placeholder?: string;
     labelProps?: BaseLabelProps;
     helperTextState?: HelperTextState;
@@ -36,6 +37,7 @@
     colorCategoryBorder: ColorCategory;
     disabled?: NonNullable<BaseInputProps["disabled"]>;
     truncate?: NonNullable<BaseInputProps["truncate"]>;
+    hideText?: NonNullable<BaseInputProps["hideText"]>;
     labelProps?: BaseInputProps["labelProps"];
     helperTextState?: BaseInputProps["helperTextState"];
     placeholder?: BaseInputProps["placeholder"];
@@ -59,6 +61,7 @@
     colorCategoryBorder,
     disabled = false,
     truncate = true,
+    hideText = false,
     labelProps = undefined,
     helperTextState = undefined,
     placeholder = undefined,
@@ -120,6 +123,7 @@
         baseTextSizes[size],
         inputPaddingSizes[size],
         "noborder",
+        hideText && "hidetext",
         appendClass,
       ),
   );
@@ -237,5 +241,9 @@
   .noborder:focus {
     outline: none !important;
     border: none !important;
+  }
+  /* Hides the text without type="password", which Chrome treats as a password. */
+  .hidetext {
+    -webkit-text-security: disc;
   }
 </style>

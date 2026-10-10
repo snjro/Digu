@@ -12,6 +12,8 @@ import {
   storeNoDbSnackBarInitialValue,
 } from "#stores/storeNoDb.js";
 import SyncListChainRpcInput from "./SyncListChainRpcInput.svelte";
+import { storeRpcSettings } from "#stores/storeRpcSettings.js";
+import type { RpcInputType } from "#db/dbTypes.js";
 import { updateRpc } from "./rpcInput";
 import { customLogger } from "#utils/logger.js";
 
@@ -59,6 +61,9 @@ vi.mock("#utils/logger.js", () => ({ customLogger: { error: vi.fn() } }));
 const activity = storeChainActivity as unknown as Writable<
   Record<string, ChainActivity>
 >;
+const rpcSettings = storeRpcSettings as unknown as Writable<
+  Record<string, { rpc: string; inputType: RpcInputType }>
+>;
 
 describe("SyncListChainRpcInput.svelte", () => {
   beforeEach(() => {
@@ -68,6 +73,19 @@ describe("SyncListChainRpcInput.svelte", () => {
   afterEach(() => {
     vi.clearAllMocks();
     storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
+    rpcSettings.set({ chain1: { rpc: "https://foo", inputType: "password" } });
+  });
+
+  test("hides the RPC with CSS and keeps type text, so Chrome does not offer to save it", async () => {
+    render(SyncListChainRpcInput);
+    const input = screen.getByLabelText("RPC URL") as HTMLInputElement;
+    expect(input.type).toBe("text");
+    expect(input.classList.contains("hidetext")).toBe(true);
+
+    rpcSettings.set({ chain1: { rpc: "https://foo", inputType: "text" } });
+    await tick();
+    expect(input.type).toBe("text");
+    expect(input.classList.contains("hidetext")).toBe(false);
   });
 
   test.each<ChainActivity>([

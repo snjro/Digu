@@ -100,7 +100,8 @@
     bind:this={baseInputElement}
     colorCategory={colorSettings.navInput}
     colorCategoryBorder={colorSettings.navInput}
-    type={inputType}
+    type="text"
+    hideText={inputType === "password"}
     value={rpc}
     size={sizeSettings.navInput}
     {truncate}
