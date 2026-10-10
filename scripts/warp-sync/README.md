@@ -119,9 +119,8 @@ blocks and 10,000 logs for one request), whose logs included every log of the
 two runs. Blockscout was not a check either: its API returned some logs twice
 with another `logIndex`.
 
-With Infura, give the key file to the container, read only, and send one
-request at a time (the free plan allows 500 credits a second, about one
-`eth_getLogs`):
+With Infura, give the key file to the container, read only, and send few
+requests at a time (the free plan allows about one `eth_getLogs` a second):
 
 ```sh
 docker compose run --rm -v <key file>:/run/secrets/rpc-key:ro \
