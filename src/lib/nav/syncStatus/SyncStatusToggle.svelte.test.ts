@@ -235,7 +235,7 @@ describe("SyncStatusToggle.svelte", () => {
     expect(screen.getByText("start sync")).toBeTruthy();
   });
 
-  test("turns on again and shows the save failed snackbar when stopping fails", async () => {
+  test("stays off and shows the save failed snackbar when the DB write of stopping fails, as the sync stops anyway", async () => {
     const error = new Error("DB error");
     const spyError = vi
       .spyOn(customLogger, "error")
@@ -255,8 +255,8 @@ describe("SyncStatusToggle.svelte", () => {
       chainName: "eth",
       errorObject: error,
     });
-    expect(screen.getByText("stop sync")).toBeTruthy();
-    expect(getIcon().classList).toContain("motion-safe:animate-spin");
+    expect(screen.getByText("start sync")).toBeTruthy();
+    expect(getIcon().classList).not.toContain("motion-safe:animate-spin");
   });
 
   test("stays off when stopping fails after the sync has stopped", async () => {

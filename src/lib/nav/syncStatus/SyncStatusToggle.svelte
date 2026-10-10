@@ -70,9 +70,8 @@
           chainName: targetChain.name,
           errorObject: error,
         });
+        // The toggle stays off: the sync stops without the DB write.
         $storeNoDbSnackBar = showSnackBarAsSaveFailed;
-        // The sync goes on, unless it has stopped in the meantime.
-        toggleOn = syncStateText !== "stopped";
       }
     }
   };
