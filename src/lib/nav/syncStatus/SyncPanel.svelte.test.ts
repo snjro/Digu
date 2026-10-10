@@ -203,7 +203,7 @@ describe("SyncPanel.svelte", () => {
     setChain("stopped");
     lockedByOtherTab.set({ matic: true });
     await tick();
-    expect(status().textContent?.trim()).toBe("Syncing in another tab.");
+    expect(status().textContent?.trim()).toBe("In use in another tab.");
   });
 
   test("tells why the sync stopped, only while it is stopped here", async () => {
@@ -217,7 +217,7 @@ describe("SyncPanel.svelte", () => {
 
     lockedByOtherTab.set({ matic: true });
     await tick();
-    expect(status().textContent?.trim()).toBe("Syncing in another tab.");
+    expect(status().textContent?.trim()).toBe("In use in another tab.");
 
     lockedByOtherTab.set({ matic: false });
     setChain("stopping");

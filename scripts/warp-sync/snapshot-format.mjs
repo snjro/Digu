@@ -18,6 +18,26 @@ export const chunkFileName = (contract, toBlock) =>
 export const sha256 = (data) =>
   crypto.createHash("sha256").update(data).digest("hex");
 
+// The block and the log index of a log, as numbers, or undefined when one is
+// not a hex quantity: the form of the RPC, which toSnapshotLog keeps.
+const HEX_QUANTITY = /^0x[0-9a-fA-F]+$/;
+const isHexQuantity = (value) =>
+  typeof value === "string" && HEX_QUANTITY.test(value);
+export function logPositionOf(log) {
+  return isHexQuantity(log?.blockNumber) && isHexQuantity(log?.logIndex)
+    ? [Number(log.blockNumber), Number(log.logIndex)]
+    : undefined;
+}
+// Whether a log at position comes after the one at last in a file of the
+// snapshot: by block and log index, each log once.
+export function isAfter(position, last) {
+  return (
+    last === undefined ||
+    position[0] > last[0] ||
+    (position[0] === last[0] && position[1] > last[1])
+  );
+}
+
 // Writes the logs of one contract from fromBlock to toBlock into files of at
 // most maxLogs logs, cut between blocks, under outDir. logs is an iterable
 // (or async iterable) of the logs of the snapshot, by block and log index.
@@ -72,14 +92,19 @@ export async function writeContractChunks({
     buffer = [];
   };
   for await (const log of logs) {
-    const block = Number(log.blockNumber);
-    const index = Number(log.logIndex);
+    const position = logPositionOf(log);
+    if (!position) {
+      throw new Error(
+        `${keyOf(contract)}: a log with block ${log?.blockNumber} and log index ${log?.logIndex}.`,
+      );
+    }
+    const [block, index] = position;
     if (block < fromBlock || block > toBlock) {
       throw new Error(
         `${keyOf(contract)}: a log of block ${block} is out of ${fromBlock}-${toBlock}.`,
       );
     }
-    if (last && (block < last[0] || (block === last[0] && index <= last[1]))) {
+    if (!isAfter(position, last)) {
       throw new Error(
         `${keyOf(contract)}: the logs are not in order at block ${block}, log index ${index}.`,
       );
@@ -87,7 +112,7 @@ export async function writeContractChunks({
     // Cut only between blocks, so that a block is in one file.
     if (buffer.length >= maxLogs && block !== last[0]) flush(last[0]);
     buffer.push(log);
-    last = [block, index];
+    last = position;
   }
   // The rest of the range, with or without logs.
   if (buffer.length > 0 || from <= toBlock) flush(toBlock);

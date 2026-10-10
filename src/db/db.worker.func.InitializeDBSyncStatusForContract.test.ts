@@ -52,7 +52,6 @@ describe("initializeDBSyncStatusForContract", () => {
     await InitializeDBSyncStatusForContract.initializeDBSyncStatusForContract(
       dbEventLogs,
       targetContract,
-      true,
     );
     for (const eventName of targetContract.events.names) {
       expect(spyGetEventLogTableName).toBeCalledWith(
@@ -67,26 +66,11 @@ describe("initializeDBSyncStatusForContract", () => {
     expect(spyUpdateDbRecordSyncStatus).toBeCalledWith(
       dbEventLogs,
       targetContract.name,
-      expect.objectContaining({ events: expect.any(Object) }),
-    );
-  });
-
-  test("should keep the record counts in the DB without recount", async () => {
-    const dbEventLogs: DbEventLogs = new DbEventLogs(versionIdentifier);
-
-    await InitializeDBSyncStatusForContract.initializeDBSyncStatusForContract(
-      dbEventLogs,
-      targetContract,
-      false,
-    );
-    expect(spyGetEventLogTableRecordCount).not.toBeCalled();
-    expect(spyUpdateDbRecordSyncStatus).toBeCalledWith(
-      dbEventLogs,
-      targetContract.name,
       {
         isAbort: false,
         isSyncing: false,
         creationBlockNumber: targetContract.creation.blockNumber,
+        events: expect.any(Object),
       },
     );
   });

@@ -40,12 +40,14 @@ export const DB_TABLE_NAMES = {
 
 export const PK_AUTO_INCREMENTED = "++id";
 
-// Web Lock held by the tab that syncs, imports or resets the chain.
+// Web Lock held exclusive by the tab that syncs, imports or resets the chain,
+// and shared by the tabs that read the chain again after it.
 export function getSyncLockName(chainName: ChainName): string {
   return `${DB_NAME.firstName}_sync_${chainName}`;
 }
 
-// How long to wait for the sync lock. Other tabs hold it briefly to read the
-// sync status again, so do not give up at once. A sync, an import or a reset
-// holds it for longer.
+// How long to wait for the sync lock. Other tabs hold it shared briefly to
+// read the sync status again, and the Worker of a tab that opens holds it
+// briefly, so do not give up at once. A sync, an import or a reset holds it
+// for longer.
 export const SYNC_LOCK_TIMEOUT_MS: number = 1000;

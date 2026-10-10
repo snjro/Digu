@@ -120,7 +120,7 @@ describe("getResetDisabledReason", () => {
   test.each<[ChainActivity, string]>([
     ["syncing", "Stop the sync first."],
     ["stopping", "Wait until the sync stops."],
-    ["otherTab", "Stop the sync in the other tab first."],
+    ["otherTab", "Wait until the other tab is done."],
     [
       "smallImport",
       "Wait until the logs published with this site are imported, or stop the import.",

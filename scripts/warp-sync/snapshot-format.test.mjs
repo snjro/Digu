@@ -5,6 +5,7 @@ import path from "node:path";
 import zlib from "node:zlib";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
+  logPositionOf,
   FORMAT_VERSION,
   lastBlocks,
   moveChunkFiles,
@@ -305,5 +306,39 @@ describe("writeWhole", () => {
     ).rejects.toThrow("boom");
     expect(read(file)).toBe("old");
     expect(fs.readdirSync(dir)).toEqual(["a.json"]);
+  });
+});
+
+describe("logPositionOf", () => {
+  test("takes the hex quantities of the RPC", () => {
+    expect(logPositionOf({ blockNumber: "0x1a", logIndex: "0x0" })).toEqual([
+      26, 0,
+    ]);
+  });
+  test.each(
+    [
+      null,
+      "",
+      true,
+      5,
+      "26",
+      "0x",
+      "0xg",
+      undefined,
+      ["0x1"],
+      {
+        toString: () => "0x1",
+      },
+    ].map((value) => [value]),
+  )("does not take %j", (value) => {
+    expect(
+      logPositionOf({ blockNumber: value, logIndex: "0x0" }),
+    ).toBeUndefined();
+    expect(
+      logPositionOf({ blockNumber: "0x1", logIndex: value }),
+    ).toBeUndefined();
+  });
+  test("does not take a log that is not an object", () => {
+    expect(logPositionOf(null)).toBeUndefined();
   });
 });

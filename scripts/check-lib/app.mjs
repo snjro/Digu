@@ -39,13 +39,30 @@ function pageLib(syncToggleSelector, oldSyncToggleTexts) {
     }
     return null;
   }
+  // The first visible element of `selector`, or null.
+  function visibleElement(selector) {
+    return [...document.querySelectorAll(selector)].find(visible) ?? null;
+  }
+  // The visible checkboxes with the aria-label `label`.
+  function checkboxes(label) {
+    return [
+      ...document.querySelectorAll(`input[aria-label="${CSS.escape(label)}"]`),
+    ].filter(visible);
+  }
+  // Clicks the `index`-th of checkboxes(label) when it is enabled. Returns the
+  // checkbox, how many there are and whether it clicked.
+  function clickCheckbox(label, index) {
+    const boxes = checkboxes(label);
+    const box = boxes.at(index) ?? null;
+    const clicked = !!box && !box.disabled;
+    if (clicked) box.click();
+    return { box, count: boxes.length, clicked };
+  }
   // With `oldTexts`, a build without the name is searched by the tooltips of
   // v1.0.2; only for the older builds.
   function syncToggle(oldTexts) {
-    const named = [...document.querySelectorAll(syncToggleSelector)].find(
-      visible,
-    );
-    if (named || !oldTexts) return named ?? null;
+    const named = visibleElement(syncToggleSelector);
+    if (named || !oldTexts) return named;
     return buttonNearText(oldSyncToggleTexts);
   }
   // `checked` is null in a build without aria-checked. The tooltip is the
@@ -86,6 +103,9 @@ function pageLib(syncToggleSelector, oldSyncToggleTexts) {
   }
   return {
     buttonNearText,
+    visibleElement,
+    checkboxes,
+    clickCheckbox,
     syncToggle,
     readToggle,
     findToggle,
@@ -112,38 +132,88 @@ export async function inPage(page, fn, ...args) {
   return page.evaluate(inPageSource(fn, args));
 }
 
+// How long a click or typing waits for its control to be enabled. Opening a
+// chain starts the warp sync, which holds the sync lock (and so disables the
+// sync targets and the RPC input) while it fetches the manifest and reads the
+// DB (warpSync.ts).
+// Where the checks use them, the manifest gets 404, so that is short, but on a
+// slow CI runner it outlasted the settle (#757); 30 s leaves a wide margin.
+const ENABLED_TIMEOUT_MS = 30000;
+
+// The error for the `what` of the page that stayed disabled, with
+// `detail(lib, ...args)` of the page when it is given.
+async function disabledError(page, what, detail, args) {
+  const seen = detail
+    ? `: ${JSON.stringify(await inPage(page, detail, ...args))}`
+    : "";
+  return new Error(`The ${what} is disabled${seen}`);
+}
+
+// Waits, only reading the page, until `fn(lib, ...args)` (see inPage) is not
+// disabled or is not there, for `timeout` ms, and gives the handle of { e },
+// with the element or null. After it, it throws disabledError(). With no time
+// left, it reads the page once.
+async function waitUntilEnabled(
+  page,
+  what,
+  fn,
+  args,
+  { detail, timeout = ENABLED_TIMEOUT_MS } = {},
+) {
+  const predicate = `((e) => (!e || !e.disabled) && { e })(${inPageSource(fn, args)})`;
+  // A timeout of 0 would wait without an end: the page is read once instead.
+  if (timeout <= 0) {
+    const found = await page.evaluateHandle(predicate);
+    if (await found.evaluate((r) => !!r)) return found;
+    await found.dispose();
+    throw await disabledError(page, what, detail, args);
+  }
+  return page
+    .waitForFunction(predicate, { timeout, polling: 100 })
+    .catch(async (error) => {
+      if (error.name !== "TimeoutError") throw error;
+      throw await disabledError(page, what, detail, args);
+    });
+}
+
+// Waits until `fn(lib, ...args)` (see inPage), the `what` of the page, is not
+// disabled, and gives its handle. It throws at once when there is none, and
+// after ENABLED_TIMEOUT_MS when it stays disabled.
+async function waitEnabled(page, what, fn, args, detail) {
+  const found = await waitUntilEnabled(page, what, fn, args, { detail });
+  try {
+    const e = await found.getProperty("e");
+    const el = e.asElement();
+    if (el) return el;
+    await e.dispose();
+    throw new Error(`No ${what}`);
+  } finally {
+    await found.dispose();
+  }
+}
+
 // { checked, disabled, pulse, tooltip } of the sync toggle, or null. The
 // tooltip is for the records.
 export async function findToggle(page, { oldTexts = false } = {}) {
   return inPage(page, (lib, oldTexts) => lib.findToggle(oldTexts), oldTexts);
 }
 
-// Clicks the sync toggle with the mouse, as a person does. It throws when the
-// toggle is not found or is disabled, so the scenario ends as ERROR. When the
-// state can change by itself before the click, use clickToggleIf().
+// Clicks the sync toggle with the mouse, as a person does, once it is enabled.
+// It throws when the toggle is not found or stays disabled, so the scenario
+// ends as ERROR. When the state can change by itself before the click, use
+// clickToggleIf().
 export async function clickToggle(page, { oldTexts = false } = {}) {
-  const h = await page.evaluateHandle(
-    inPageSource(
-      (lib, oldTexts) => lib.toggleIf({ disabled: false }, oldTexts),
-      [oldTexts],
-    ),
+  const b = await waitEnabled(
+    page,
+    "sync toggle",
+    (lib, oldTexts) => lib.syncToggle(oldTexts),
+    [oldTexts],
+    (lib, oldTexts) => lib.findToggle(oldTexts),
   );
   try {
-    const { toggle, ok } = await h.evaluate(({ toggle, ok }) => ({
-      toggle,
-      ok,
-    }));
-    if (!toggle) throw new Error("No sync toggle");
-    if (!ok)
-      throw new Error(`The sync toggle is disabled: ${JSON.stringify(toggle)}`);
-    const b = await h.getProperty("b");
-    try {
-      await b.asElement().click();
-    } finally {
-      await b.dispose();
-    }
+    await b.click();
   } finally {
-    await h.dispose();
+    await b.dispose();
   }
 }
 
@@ -168,24 +238,41 @@ export async function openSyncPanel(page) {
 
 // Types `text` into `target` (a selector or an element handle) and leaves it
 // with Tab. Without `clear`, the text is selected and typed over. With it, the
-// input is clicked, emptied with Backspace, and `text` may be empty.
+// input is clicked, emptied with Backspace, and `text` may be empty. An input
+// given by a selector is the visible one, typed into once it is enabled, and it
+// throws when the input stays disabled; one given by a handle is not waited
+// for. It throws when the input does not have `text` before the Tab (the app
+// may change the value when it saves it).
 export async function typeInto(page, target, text, { clear = false } = {}) {
-  const el = typeof target === "string" ? await page.$(target) : target;
-  if (!el)
-    throw new Error(
-      typeof target === "string" ? `No ${target}` : "No element to type into",
-    );
+  const isSelector = typeof target === "string";
+  if (!isSelector && !target) throw new Error("No element to type into");
+  const el = isSelector
+    ? await waitEnabled(
+        page,
+        target,
+        (lib, selector) => lib.visibleElement(selector),
+        [target],
+      )
+    : target;
   try {
     if (clear) await el.click({ clickCount: 3 });
     else await el.focus();
+    await page.keyboard.down("Control");
+    await page.keyboard.press("a");
+    await page.keyboard.up("Control");
+    if (clear) await page.keyboard.press("Backspace");
+    if (text) await page.keyboard.type(text);
+    const { value, disabled } = await el.evaluate((e) => ({
+      value: e.value,
+      disabled: e.disabled,
+    }));
+    if (value !== text)
+      throw new Error(
+        `Typed "${text}" into ${isSelector ? target : "an input"}, which has "${value}"${disabled ? " and is disabled" : ""}`,
+      );
   } finally {
     if (el !== target) await el.dispose();
   }
-  await page.keyboard.down("Control");
-  await page.keyboard.press("a");
-  await page.keyboard.up("Control");
-  if (clear) await page.keyboard.press("Backspace");
-  if (text) await page.keyboard.type(text);
   await page.keyboard.press("Tab");
 }
 
@@ -205,19 +292,57 @@ export async function clickByTooltip(page, text) {
 }
 
 // Clicks the `index`-th visible checkbox with the aria-label `label` (the one
-// in the sidebar is first, the one in the page last). `checked` is read after
-// `after()`, such as a settle of the caller. Returns { count, checked }.
+// in the sidebar is first, the one in the page last), once it is enabled. It
+// waits only reading the page, then checks the checkbox and clicks it in one
+// evaluate, and waits again when it was disabled in between. It throws at once
+// when the checkbox is not found, and after ENABLED_TIMEOUT_MS when it stays
+// disabled. `checked` is read after `after()`, such as a settle of the caller.
+// Returns { count, checked }.
 export async function clickCheckbox(
   page,
   label,
   { index = -1, after = async () => {} } = {},
 ) {
-  const visible = [];
-  for (const h of await page.$$(`input[aria-label="${label}"]`))
-    if (await h.evaluate((e) => e.getClientRects().length > 0)) visible.push(h);
-  if (!visible.length) throw new Error(`No checkbox ${label}`);
-  const h = visible.at(index);
-  await h.click();
-  await after();
-  return { count: visible.length, checked: await h.evaluate((e) => e.checked) };
+  const what = `checkbox ${label}`;
+  const args = [label, index];
+  const end = Date.now() + ENABLED_TIMEOUT_MS;
+  for (;;) {
+    const found = await waitUntilEnabled(
+      page,
+      what,
+      (lib, label, index) => lib.checkboxes(label).at(index),
+      args,
+      {
+        detail: (lib, label) =>
+          lib
+            .checkboxes(label)
+            .map((e) => ({ checked: e.checked, disabled: e.disabled })),
+        timeout: end - Date.now(),
+      },
+    );
+    await found.dispose();
+    const h = await page.evaluateHandle(
+      inPageSource(
+        (lib, label, index) => lib.clickCheckbox(label, index),
+        args,
+      ),
+    );
+    try {
+      const { count, clicked, isFound } = await h.evaluate(
+        ({ count, clicked, box }) => ({ count, clicked, isFound: !!box }),
+      );
+      if (!isFound) throw new Error(`No ${what} at ${index} (${count} found)`);
+      if (clicked) {
+        const box = await h.getProperty("box");
+        try {
+          await after();
+          return { count, checked: await box.evaluate((e) => e.checked) };
+        } finally {
+          await box.dispose();
+        }
+      }
+    } finally {
+      await h.dispose();
+    }
+  }
 }

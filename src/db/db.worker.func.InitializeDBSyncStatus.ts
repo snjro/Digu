@@ -11,19 +11,20 @@ export async function dbWorkerFuncInitializeDBSyncStatus(): Promise<void> {
   if (!navigator.locks) {
     await Promise.all(
       TARGET_CHAINS.map((targetChain: Chain) =>
-        initializeDBSyncStatusInChain(targetChain, true),
+        initializeDBSyncStatusInChain(targetChain),
       ),
     );
     return;
   }
   await Promise.all(
     TARGET_CHAINS.map((targetChain: Chain) =>
-      // Skip the chain while another tab syncs it.
+      // Skip the chain while another tab syncs it, or reads it again with the
+      // lock shared.
       navigator.locks.request(
         getSyncLockName(targetChain.name),
         { ifAvailable: true },
         async (lock: Lock | null): Promise<void> => {
-          if (lock) await initializeDBSyncStatusInChain(targetChain, true);
+          if (lock) await initializeDBSyncStatusInChain(targetChain);
         },
       ),
     ),
@@ -31,7 +32,6 @@ export async function dbWorkerFuncInitializeDBSyncStatus(): Promise<void> {
 }
 export async function initializeDBSyncStatusInChain(
   targetChain: Chain,
-  recount: boolean,
 ): Promise<void> {
   const promises: Promise<void>[] = [];
   for (const targetProject of targetChain.projects) {
@@ -46,11 +46,7 @@ export async function initializeDBSyncStatusInChain(
         targetVersion.contracts,
       )) {
         promises.push(
-          initializeDBSyncStatusForContract(
-            dbEventLogs,
-            targetContract,
-            recount,
-          ),
+          initializeDBSyncStatusForContract(dbEventLogs, targetContract),
         );
       }
     }

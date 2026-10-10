@@ -936,24 +936,14 @@ if (want("S4")) {
       await (await front(a), snap)(a, "S4-6-8-b-A-syncing");
       await new Promise((res) => setTimeout(res, 500));
       await (await front(b), snap)(b, "S4-6-8-c-B-while-A-syncing-no-click");
-      // B tries to start.
+      // B knows from the signal of A that A syncs, without trying to start
+      // (#656). There is nothing to click: the toggle is disabled.
       const bInfo = await (await front(b), findToggle)(b);
-      note("B toggle before click", bInfo);
-      if (bInfo && !bInfo.disabled) {
-        await (await front(b), clickToggle)(b);
-        checkTransitions(
-          "B after click",
-          await (await front(b), watchTransitions)(
-            b,
-            V1,
-            "Augur",
-            (t) =>
-              t?.tooltip === "syncing in another tab" && t.disabled === true,
-            5000,
-          ),
-        );
-      }
-      await (await front(b), snap)(b, "S4-6-8-d-B-after-click");
+      check(
+        "B toggle before click",
+        bInfo?.tooltip === "in use in another tab" && bInfo.disabled === true,
+        { toggle: bInfo },
+      );
       // C opens while A syncs.
       const c = await newPage(context, "C");
       await (await front(c), gotoApp)(c, EV);
@@ -1014,8 +1004,7 @@ if (want("S4")) {
       check("B toggle after A closed while syncing", startSync(b3), {
         toggle: b3,
       });
-      // B's toggle shows "start sync" also while another tab syncs, until B
-      // tries. So B starts and stops a sync: A's lock was released.
+      // B starts and stops a sync: A's lock was released.
       if (startSync(b3)) {
         await (await front(b), clickToggle)(b);
         const bStart = await (await front(b), watchTransitions)(

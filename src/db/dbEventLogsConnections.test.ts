@@ -5,6 +5,7 @@ import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import { DB_NAME } from "#db/constants.js";
 import { EventLogsTable } from "#db/eventLogsTable.js";
 import { initializeDBSyncStatusInChain } from "#db/db.worker.func.InitializeDBSyncStatus.js";
+import { loadSyncStatusInChain } from "#db/dbEventLogsDataHandlersSyncStatusLoad.js";
 import { updateSyncStatusInChain } from "#db/dbEventLogsDataHandlersSyncStatusUpdateSyncStatusInChain.js";
 import { initializeStore } from "../initialization/initializeStore";
 import { toggleIsSyncTarget } from "#lib/common/toggleSyncTarget.js";
@@ -67,10 +68,16 @@ describe("the connections to the DB of a version", () => {
     );
   });
   test("initializeDBSyncStatusInChain() does not open more each time", async () => {
-    await expectNoNewConnection(() =>
-      initializeDBSyncStatusInChain(chain, false),
-    );
+    await expectNoNewConnection(() => initializeDBSyncStatusInChain(chain));
   });
+  test.each(["release", "reset"] as const)(
+    "loadSyncStatusInChain(%s) does not open more each time",
+    async (load) => {
+      await expectNoNewConnection(() =>
+        loadSyncStatusInChain(chain.name, load),
+      );
+    },
+  );
   test("EventLogsTable.open() does not open more each time", async () => {
     await expectNoNewConnection(() =>
       new EventLogsTable({

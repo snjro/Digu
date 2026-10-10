@@ -1,15 +1,13 @@
 import { fetchEventLogsContract } from "./eventLogsContract";
 import { getDbEventLogs, type DbEventLogs } from "#db/dbEventLogs.js";
-import type { VersionIdentifier } from "#db/dbTypes.js";
-import {
-  destroyNodeProvider,
-  extractEventContracts,
-  getNodeProvider,
-} from "#utils/utilsEthers.js";
+import type { ContractIdentifier } from "#db/dbTypes.js";
+import { destroyNodeProvider, getNodeProvider } from "#utils/utilsEthers.js";
+import { getTargetContract } from "#utils/utilsDb.js";
 import type { NodeProvider } from "#utils/utilsEthers.js";
 import type {
   Chain,
   ChainName,
+  Contract,
   ContractName,
 } from "#constants/chains/types.js";
 import {
@@ -37,16 +35,22 @@ import {
 export async function fetchEventLogs(targetChain: Chain): Promise<boolean> {
   // The import of this tab holds the lock: wait for it instead.
   await waitForWarpSync(targetChain.name);
+  let syncingContracts: ContractIdentifier[] = [];
   return await requestSyncLock(
     targetChain.name,
     async () => {
       await importWarpSyncBeforeSync(targetChain);
-      await startSyncingInChain(targetChain.name);
+      syncingContracts = await startSyncingInChain(targetChain.name);
     },
-    () => syncEventLogs(targetChain),
+    () => syncEventLogs(targetChain, syncingContracts),
   );
 }
-async function syncEventLogs(targetChain: Chain): Promise<void> {
+// Syncs the contracts that the start marked as syncing, which the abort
+// reaches.
+async function syncEventLogs(
+  targetChain: Chain,
+  syncingContracts: ContractIdentifier[],
+): Promise<void> {
   customLogger.start(`Fetch event logs. Chain: ${targetChain.name}`);
 
   const promiseFetchAndInsertEthersEvents: Promise<void>[] = [];
@@ -71,28 +75,15 @@ async function syncEventLogs(targetChain: Chain): Promise<void> {
       nodeProvider,
     );
 
-    for (const targetProject of targetChain.projects) {
-      for (const targetVersion of targetProject.versions) {
-        const versionIdentifier: VersionIdentifier = {
-          chainName: targetChain.name,
-          projectName: targetProject.name,
-          versionName: targetVersion.name,
-        };
-        const dbEventLogs: DbEventLogs = getDbEventLogs(versionIdentifier);
-        for (const targetContract of extractEventContracts(
-          targetVersion.contracts,
-        )) {
-          promiseFetchAndInsertEthersEvents.push(
-            fetchEventLogsContract(
-              dbEventLogs,
-              targetContract,
-              nodeProvider,
-            ).catch((error: unknown) =>
-              abortOnError(targetChain.name, targetContract.name, error),
-            ),
-          );
-        }
-      }
+    for (const contractIdentifier of syncingContracts) {
+      const dbEventLogs: DbEventLogs = getDbEventLogs(contractIdentifier);
+      const targetContract: Contract = getTargetContract(contractIdentifier);
+      promiseFetchAndInsertEthersEvents.push(
+        fetchEventLogsContract(dbEventLogs, targetContract, nodeProvider).catch(
+          (error: unknown) =>
+            abortOnError(targetChain.name, targetContract.name, error),
+        ),
+      );
     }
   } catch (error) {
     recordSyncStoppedReason(targetChain.name, "UNEXPECTED_ERROR");
