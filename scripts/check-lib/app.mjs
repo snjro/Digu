@@ -151,7 +151,8 @@ async function disabledError(page, what, detail, args) {
 
 // Waits, only reading the page, until `fn(lib, ...args)` (see inPage) is not
 // disabled or is not there, for `timeout` ms, and gives the handle of { e },
-// with the element or null. After it, it throws disabledError().
+// with the element or null. After it, it throws disabledError(). With no time
+// left, it reads the page once.
 async function waitUntilEnabled(
   page,
   what,
@@ -159,13 +160,16 @@ async function waitUntilEnabled(
   args,
   { detail, timeout = ENABLED_TIMEOUT_MS } = {},
 ) {
-  // A timeout of 0 would wait without an end.
-  if (timeout <= 0) throw await disabledError(page, what, detail, args);
+  const predicate = `((e) => (!e || !e.disabled) && { e })(${inPageSource(fn, args)})`;
+  // A timeout of 0 would wait without an end: the page is read once instead.
+  if (timeout <= 0) {
+    const found = await page.evaluateHandle(predicate);
+    if (await found.evaluate((r) => !!r)) return found;
+    await found.dispose();
+    throw await disabledError(page, what, detail, args);
+  }
   return page
-    .waitForFunction(
-      `((e) => (!e || !e.disabled) && { e })(${inPageSource(fn, args)})`,
-      { timeout, polling: 100 },
-    )
+    .waitForFunction(predicate, { timeout, polling: 100 })
     .catch(async (error) => {
       if (error.name !== "TimeoutError") throw error;
       throw await disabledError(page, what, detail, args);
