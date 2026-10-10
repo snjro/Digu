@@ -50,19 +50,24 @@ import { createChecks } from "../../check-lib/results.mjs";
 const require = createRequire(path.join(process.cwd(), "package.json"));
 const puppeteer = require("puppeteer");
 
-const [buildDir, outDir] = process.argv.slice(2);
-if (!buildDir || !outDir) {
-  console.error(
-    "Usage: node real-rpc-check.mjs <buildDir> <outDir> [--fake] [--only=eth-http,...]",
-  );
+const USAGE =
+  "Usage: node real-rpc-check.mjs <buildDir> <outDir> [--fake] [--only=eth-http,...]";
+// An unknown argument stops the script before anything is sent, so that a
+// typo does not send all the runs to PublicNode.
+const [buildDir, outDir, ...flags] = process.argv.slice(2);
+if (
+  [buildDir, outDir].some((a) => !a || a.startsWith("--")) ||
+  flags.some((a) => a !== "--fake" && !a.startsWith("--only=")) ||
+  flags.filter((a) => a.startsWith("--only=")).length > 1
+) {
+  console.error(USAGE);
   process.exit(2);
 }
-const FAKE = process.argv.includes("--fake");
-const ONLY = process.argv
+const FAKE = flags.includes("--fake");
+const ONLY = flags
   .find((a) => a.startsWith("--only="))
   ?.slice(7)
   .split(",");
-fs.mkdirSync(outDir, { recursive: true });
 
 const PORT = 4173;
 const ORIGIN = `http://localhost:${PORT}`;
@@ -107,12 +112,18 @@ const SCRIPT_STOP = new Set(["matic"]);
 const SCRIPT_STOP_MS = 60000;
 let holdWarpSync = null;
 let warpSyncRequests = 0;
-const RUNS = [
+const ALL_RUNS = [
   ["eth-http", "eth", `https://${HOSTS.eth}`],
   ["eth-wss", "eth", `wss://${HOSTS.eth}`],
   ["matic-http", "matic", `https://${HOSTS.matic}`],
   ["matic-wss", "matic", `wss://${HOSTS.matic}`],
-].filter(([id]) => !ONLY || ONLY.includes(id));
+];
+if (ONLY?.some((o) => !ALL_RUNS.some(([id]) => id === o))) {
+  console.error(USAGE);
+  process.exit(2);
+}
+const RUNS = ALL_RUNS.filter(([id]) => !ONLY || ONLY.includes(id));
+fs.mkdirSync(outDir, { recursive: true });
 
 // results.json is for a person; judge.py reads results-real-rpc.json.
 const results = {};
