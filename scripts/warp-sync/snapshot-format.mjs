@@ -3,14 +3,15 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
+import {
+  getWarpSyncKey as keyOf,
+  WARP_SYNC_FORMAT_VERSION as FORMAT_VERSION,
+} from "../../src/warpSync/warpSyncShared.mjs";
 
-export const FORMAT_VERSION = 3;
+export { FORMAT_VERSION, keyOf };
 // The most logs in one file, unless one block has more. The app imports one
 // file at a time, so a file stays small enough to read and save at once.
 export const CHUNK_LOGS = 20_000;
-
-export const keyOf = (contract) =>
-  `${contract.project}/${contract.version}/${contract.name}`;
 
 export const chunkFileName = (contract, toBlock) =>
   `${contract.project}-${contract.version}-${contract.name}-${toBlock}.json.gz`;

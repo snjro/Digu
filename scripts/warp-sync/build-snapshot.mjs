@@ -5,6 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { WARP_SYNC_DIR } from "../../src/warpSync/warpSyncShared.mjs";
 import { loadChain } from "./chains.mjs";
 import {
   createFetchStats,
@@ -349,7 +350,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     options: {
       chain: { type: "string" },
       rpc: { type: "string" },
-      out: { type: "string", default: "static/warp-sync" },
+      out: { type: "string", default: `static/${WARP_SYNC_DIR}` },
       to: { type: "string" },
       "max-requests": { type: "string", default: "3000" },
       concurrency: { type: "string", default: String(DEFAULT_CONCURRENCY) },

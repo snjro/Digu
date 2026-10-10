@@ -10,20 +10,9 @@ import {
   keyOf,
   logPositionOf,
   readManifest,
-  readText,
   sha256,
   totalsOf,
 } from "./snapshot-format.mjs";
-
-// Reads WARP_SYNC_CHAIN_NAMES like chains.mjs reads the _index.ts
-// files. Returns [] when the line is not found.
-export function readWarpSyncChainNames(file = "src/warpSync/warpSyncState.ts") {
-  const found = readText(file).match(
-    /WARP_SYNC_CHAIN_NAMES[^=]*=\s*\[([^\]]*)\]/,
-  );
-  if (!found) return [];
-  return [...found[1].matchAll(/"([^"]+)"/g)].map((name) => name[1]);
-}
 
 // The app checks the sha256 (of the gzip, or of the JSON when the server sends
 // it decoded), the format, the key and the range of a file, but not its logs

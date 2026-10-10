@@ -3,12 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import { WARP_SYNC_FORMAT_VERSION } from "../../src/warpSync/warpSyncTypes.ts";
+import { WARP_SYNC_CHAIN_NAMES } from "../../src/warpSync/warpSyncShared.mjs";
 import { loadChain } from "./chains.mjs";
-import { checkSnapshotFiles, readWarpSyncChainNames } from "./check-files.mjs";
+import { checkSnapshotFiles } from "./check-files.mjs";
 import {
   emptyManifest,
-  FORMAT_VERSION,
   keyOf,
   readManifest,
   sha256,
@@ -86,10 +85,10 @@ const fileProblem = (i, text) =>
 
 describe("checkSnapshotFiles", () => {
   test("finds no problem in the snapshot of the repository", () => {
-    const names = readWarpSyncChainNames();
-    expect(names.length).toBeGreaterThan(0);
     const start = Date.now();
-    expect(checkSnapshotFiles("static/warp-sync", names)).toEqual([]);
+    expect(
+      checkSnapshotFiles("static/warp-sync", WARP_SYNC_CHAIN_NAMES),
+    ).toEqual([]);
     console.log(`static/warp-sync: checked in ${Date.now() - start} ms`);
   }, 120_000);
 
@@ -382,24 +381,5 @@ describe("checkSnapshotFiles", () => {
     expect(check()).toEqual([
       `matic: ${path.join(chainDir, "x.json.gz")} is not in the manifest.`,
     ]);
-  });
-});
-
-// The app reads only the format of its own version (checkFormat of
-// warpSyncFile.ts): the two must be raised together.
-test("the format of the scripts is the one that the app reads", () => {
-  expect(FORMAT_VERSION).toBe(WARP_SYNC_FORMAT_VERSION);
-});
-
-describe("readWarpSyncChainNames", () => {
-  test("reads the list, or nothing when the line is not found", () => {
-    const file = path.join(dir, "warpSyncState.ts");
-    fs.writeFileSync(
-      file,
-      'export const WARP_SYNC_CHAIN_NAMES: readonly ChainName[] = ["matic", "eth"];\n',
-    );
-    expect(readWarpSyncChainNames(file)).toEqual(["matic", "eth"]);
-    fs.writeFileSync(file, "export const CHAINS = [];\n");
-    expect(readWarpSyncChainNames(file)).toEqual([]);
   });
 });

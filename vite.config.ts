@@ -1553,7 +1553,7 @@ const config: UserConfig = {
     environment: "happy-dom",
     coverage: {
       provider: "v8",
-      include: ["src/**/*.{js,ts,svelte}"],
+      include: ["src/**/*.{js,mjs,ts,svelte}"],
       exclude: [
         "src/app.d.ts",
         // Helpers for the tests
