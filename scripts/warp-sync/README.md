@@ -104,19 +104,22 @@ blocks and 10,000 logs for one request), whose logs included every log of the
 two runs. Blockscout was not a check either: its API returned some logs twice
 with another `logIndex`.
 
-With Infura, give the key file to the container, read only, and send few
-requests at a time (the free plan allows about two `eth_getLogs` a second):
+With Infura, give the key file to the container, read only, and send one
+request at a time (the free plan allows 500 credits a second, about one
+`eth_getLogs`):
 
 ```sh
 docker compose run --rm -v <key file>:/run/secrets/rpc-key:ro \
   app node scripts/warp-sync/build-snapshot.mjs --chain eth \
   --rpc https://mainnet.infura.io/v3/ --rpc-key-file /run/secrets/rpc-key \
-  --concurrency 2
+  --concurrency 1
 ```
 
 A run for a release adds only the blocks after the last run, so it needs few
-requests. A run of a whole chain asks each contract for every range of
-`--max-width` blocks, which may be more than the credits of a day.
+requests. A run of a whole chain asks each contract for its blocks from its
+creation block, in ranges that start at 100,000 blocks (or `--max-width`, if
+narrower) and widen up to `--max-width` (**Widths** below). It may need more
+than the credits of a day.
 
 When a run stops (at `--max-requests`, or after failures), the logs fetched
 so far are in `<chain>/.partial/` (not committed): for each part, a
