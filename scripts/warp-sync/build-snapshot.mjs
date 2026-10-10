@@ -471,7 +471,7 @@ const sortLogs = (logs) =>
 
 // Decodes the logs, by block and log index, into the logs of the snapshot. A
 // log without blockTimestamp gets it from its block.
-export async function* toSnapshotLogs(rpc, contract, rawLogs) {
+async function* toSnapshotLogs(rpc, contract, rawLogs) {
   let timestamp = undefined; // [blockNumber, blockTimestamp] of the last block asked
   for await (const raw of rawLogs) {
     let blockTimestamp = raw.blockTimestamp;
@@ -526,11 +526,6 @@ function readStates(partialDir) {
     if (file.endsWith(".state.json")) {
       const state = JSON.parse(readText(path.join(partialDir, file)));
       states.set(partKeyOf(state), state);
-    } else if (file.endsWith(".json")) {
-      // The logs of a segment in one .json file, before formatVersion 2.
-      throw new Error(
-        `${path.join(partialDir, file)} is of an older version of this script. Delete ${partialDir} and run it again.`,
-      );
     }
   }
   return states;

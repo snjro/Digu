@@ -5,7 +5,6 @@ import path from "node:path";
 import zlib from "node:zlib";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
-  chunkLogsOf,
   logPositionOf,
   FORMAT_VERSION,
   lastBlocks,
@@ -153,16 +152,6 @@ describe("writeContractChunks", () => {
   });
 });
 
-test("WARP_SYNC_CHUNK_LOGS is a positive integer", () => {
-  expect(chunkLogsOf(undefined)).toBe(20_000);
-  expect(chunkLogsOf("10")).toBe(10);
-  for (const value of ["", "0", "abc", "-5", "1.5", " 10"]) {
-    expect(() => chunkLogsOf(value)).toThrow(
-      `WARP_SYNC_CHUNK_LOGS must be a positive integer, not "${value}".`,
-    );
-  }
-});
-
 describe("the manifest", () => {
   const chain = { name: "eth", chainId: 1 };
 
@@ -178,10 +167,12 @@ describe("the manifest", () => {
     });
   });
 
-  test("formatVersion 2 is to be converted first", () => {
+  test("another formatVersion stops it", () => {
     const file = path.join(dir, "manifest.json");
     fs.writeFileSync(file, JSON.stringify({ formatVersion: 2, chainId: 1 }));
-    expect(() => readManifest(file, chain)).toThrow("convert-snapshot.mjs");
+    expect(() => readManifest(file, chain)).toThrow(
+      `${file} has formatVersion 2.`,
+    );
   });
 
   test("one with a byte order mark is read", () => {
@@ -256,23 +247,6 @@ describe("writeWhole", () => {
     ).toThrow("boom");
     expect(read(file)).toBe("old");
     expect(fs.readdirSync(dir)).toEqual(["a.json"]);
-  });
-
-  test("throws for a write that returns a promise, and catches its rejection", () => {
-    const file = path.join(dir, "a.json");
-    fs.writeFileSync(file, "old");
-    // A thenable that records the handlers that it gets.
-    const handlers = [];
-    expect(() =>
-      writeWhole(file, (tmp) => {
-        fs.writeFileSync(tmp, "new");
-        return { then: (...args) => handlers.push(...args) };
-      }),
-    ).toThrow("use writeWholeAsync");
-    expect(handlers.at(-1)).toBeTypeOf("function");
-    expect(read(file)).toBe("old");
-    // Left as it is: the write may still be running.
-    expect(read(`${file}.tmp`)).toBe("new");
   });
 
   test.each([

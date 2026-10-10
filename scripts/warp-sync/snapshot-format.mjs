@@ -1,5 +1,4 @@
-// The files of the warp sync snapshot (formatVersion 3), shared by
-// build-snapshot.mjs and convert-snapshot.mjs. See README.md.
+// The files of the warp sync snapshot (formatVersion 3). See README.md.
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -8,18 +7,7 @@ import zlib from "node:zlib";
 export const FORMAT_VERSION = 3;
 // The most logs in one file, unless one block has more. The app imports one
 // file at a time, so a file stays small enough to read and save at once.
-// Smaller only to check the scripts with few logs.
-export const CHUNK_LOGS = chunkLogsOf(process.env.WARP_SYNC_CHUNK_LOGS);
-export function chunkLogsOf(value) {
-  if (value === undefined) return 20_000;
-  const chunkLogs = Number(value);
-  if (!/^\d+$/.test(value) || chunkLogs <= 0) {
-    throw new Error(
-      `WARP_SYNC_CHUNK_LOGS must be a positive integer, not "${value}".`,
-    );
-  }
-  return chunkLogs;
-}
+export const CHUNK_LOGS = 20_000;
 
 export const keyOf = (contract) =>
   `${contract.project}/${contract.version}/${contract.name}`;
@@ -172,11 +160,6 @@ export function readText(file) {
 export function readManifest(file, chain) {
   if (!fs.existsSync(file)) return emptyManifest(chain);
   const manifest = JSON.parse(readText(file));
-  if (manifest.formatVersion === 2) {
-    throw new Error(
-      `${file} has formatVersion 2. Convert it first with scripts/warp-sync/convert-snapshot.mjs.`,
-    );
-  }
   if (manifest.formatVersion !== FORMAT_VERSION) {
     throw new Error(`${file} has formatVersion ${manifest.formatVersion}.`);
   }
@@ -189,25 +172,14 @@ export function readManifest(file, chain) {
 // Writes file whole and then renames it, so that a stop does not leave half a
 // file: write(tmp) writes the file tmp. When the write or the rename fails, tmp
 // is removed, file stays as it was, and the error is thrown. <file>.tmp is left
-// when its removal fails, after a stop (a kill) before the rename, and by a
-// write that returns a promise (a misuse: it is not waited for, and writeWhole
-// throws).
+// when its removal fails, and after a stop (a kill) before the rename.
 export function writeWhole(file, write) {
   const tmp = `${file}.tmp`;
-  let written;
   try {
-    written = write(tmp);
+    write(tmp);
   } catch (error) {
     discard(tmp);
     throw error;
-  }
-  if (typeof written?.then === "function") {
-    // A misuse, which no caller makes: tmp is left as it is, since the write
-    // goes on. Only its rejection is caught, so that it is not unhandled.
-    written.then(undefined, () => {});
-    throw new TypeError(
-      "The write of writeWhole returned a promise: use writeWholeAsync.",
-    );
   }
   replace(tmp, file);
 }

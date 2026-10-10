@@ -119,19 +119,24 @@ blocks and 10,000 logs for one request), whose logs included every log of the
 two runs. Blockscout was not a check either: its API returned some logs twice
 with another `logIndex`.
 
-With Infura, give the key file to the container, read only, and send few
-requests at a time (the free plan allows about two `eth_getLogs` a second):
+With Infura, give the key file to the container, read only, and send one
+request at a time (`--concurrency 1`). The free plan allows about one
+`eth_getLogs` a second, and `--concurrency` limits only the requests sent at
+the same time, not the requests of a second: a request over the limit gets
+HTTP 429 and is sent again after a wait (**Failures** below):
 
 ```sh
 docker compose run --rm -v <key file>:/run/secrets/rpc-key:ro \
   app node scripts/warp-sync/build-snapshot.mjs --chain eth \
   --rpc https://mainnet.infura.io/v3/ --rpc-key-file /run/secrets/rpc-key \
-  --concurrency 2
+  --concurrency 1
 ```
 
 A run for a release adds only the blocks after the last run, so it needs few
-requests. A run of a whole chain asks each contract for every range of
-`--max-width` blocks, which may be more than the credits of a day.
+requests. A run of a whole chain asks each contract for its blocks from its
+creation block, in ranges that start at 100,000 blocks (or `--max-width`, if
+narrower) and widen up to `--max-width` (**Widths** below). It may need more
+than the credits of a day.
 
 When a run stops (at `--max-requests`, or after failures), the logs fetched
 so far are in `<chain>/.partial/` (not committed): for each part, a
@@ -141,9 +146,8 @@ and a `.state.json` file with the next block to fetch. Run it again without
 where each part stopped, and drops the lines of the blocks that the state does
 not count yet (such as a line half written when it stopped). The lines are
 the logs as the RPC returned them; they are decoded when the files are
-written. A `.partial/` of the script before formatVersion 2 stops it: delete
-the folder and run it again. The logs are not all kept in memory, so a chain
-with millions of logs fits.
+written. The logs are not all kept in memory, so a chain with millions of
+logs fits.
 
 The files of the snapshot are written only at the end, one contract at a
 time, and then `.partial/` is deleted. The block times fetched for the logs
@@ -159,25 +163,6 @@ same block would overwrite it). A run that stopped after it moved its files
 next to the manifest and before it wrote the manifest leaves files that the
 manifest does not list, and the next run stops at them: delete the files that
 are not in `manifest.json` (`git status` shows them), and run it again.
-
-A snapshot of formatVersion 2 is converted once, without sending anything,
-before the first run of this script on it:
-
-```sh
-docker compose run --rm app node scripts/warp-sync/convert-snapshot.mjs \
-  --chain matic [--out static/warp-sync]
-```
-
-It checks the `sha256` of each file of formatVersion 2, checks and decodes
-its logs as this script does (below), and writes a file of formatVersion 3
-with the same name, range and logs in its place. `manifest.json` keeps its
-contracts, runs and ranges; only `formatVersion` and the `bytes`, `rawBytes`,
-`sha256` and `rawSha256` of the files change. It writes the new files in
-`<chain>/.convert/` and moves them over the old ones only after every file is
-converted. It also stops at a file of another address than the contract in
-`src/constants/chains`, and when a contract of a file is not there. If it
-stops, `git checkout -- static/warp-sync/<chain>` gives back the files, and
-`<chain>/.convert/` can be deleted.
 
 It fetches like the sync: one `eth_getLogs` per range with the address and
 the topic 0 of the events that are not anonymous. It decodes each log with

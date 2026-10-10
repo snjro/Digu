@@ -372,17 +372,6 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(blocks).toContain(14_860_000);
     expect(blocks).not.toContain(15_300_000);
   });
-
-  test("stops at a .partial/ of the script before formatVersion 2", async () => {
-    fs.mkdirSync(path.join(dir(), ".partial"), { recursive: true });
-    fs.writeFileSync(
-      path.join(dir(), ".partial", "Augur__turbo__AMMFactory__1.json"),
-      "{}",
-    );
-    await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
-      "older version",
-    );
-  });
 });
 
 test("keepLogsBefore drops the lines from the next block on", async () => {
