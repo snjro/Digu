@@ -37,7 +37,7 @@ function fakeValue(param, n) {
 // Encoded once for each contract and n: the fake RPCs ask the same logs again
 // and again, and encoding all of them each time made the tests slow.
 const cache = new Map();
-export function fakeEventLog(contract, n) {
+function fakeEventLog(contract, n) {
   const key = `${contract.project}/${contract.version}/${contract.name}/${n}`;
   if (!cache.has(key)) cache.set(key, encode(contract, n));
   return cache.get(key);

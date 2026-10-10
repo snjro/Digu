@@ -209,54 +209,70 @@ describe("fetchLogs", () => {
     [
       "500, a node without old blocks",
       [httpError(500), rpcError("historical state is not available")],
+      [[log(5)]],
       [9_999, 9_999, 9_999],
       { width: 9_999 },
     ],
     [
       "504, 500, 504",
       [httpError(504), httpError(500), httpError(504)],
+      [[log(5)], [log(5_005)]],
       [9_999, 9_999, 9_999, 4_999],
       {},
     ],
     [
       "range, range",
       [rangeError, rangeError],
+      [[log(5)], [log(5_005)]],
       [9_999, 9_999, 4_999],
       { maxWidth: 4_999 },
     ],
-    ["500, range", [httpError(500), rangeError], [9_999, 9_999, 9_999], {}],
+    [
+      "500, range",
+      [httpError(500), rangeError],
+      [[log(5)]],
+      [9_999, 9_999, 9_999],
+      {},
+    ],
     [
       "range, 500, range",
       [rangeError, httpError(500), rangeError],
+      [[log(5)]],
       [9_999, 9_999, 9_999, 4_999],
       {},
     ],
     [
       "500, range, 500",
       [httpError(500), rangeError, httpError(500)],
+      [[log(5)]],
       [9_999, 9_999, 9_999, 4_999],
       {},
     ],
-  ])("counts the failures of %s", async (_name, errors, asks, sharedWidths) => {
-    const { asked, ranges, stats, widths } = await run(
-      [...errors, [log(5)]],
-      1,
-      9_999,
-    );
-    // Each from block 1 until the range of the last one works.
-    expect(asked.slice(0, asks.length)).toEqual(
-      asks.map((width) => [1, width]),
-    );
-    expect(ranges[0]).toEqual([1, asks.at(-1), 1]);
-    expect(widths).toMatchObject(sharedWidths);
-    const range = errors.filter((error) => error === rangeError).length;
-    expect(stats.errors).toEqual({
-      rate: 0,
-      results: 0,
-      unrelated: errors.length - range,
-      range,
-    });
-  });
+  ])(
+    "counts the failures of %s",
+    async (_name, errors, logs, asks, sharedWidths) => {
+      const { asked, ranges, stats, widths } = await run(
+        [...errors, ...logs],
+        1,
+        9_999,
+      );
+      // Each from block 1 until the range of the last one works. A last one
+      // of every block is the last ask.
+      const every = asks.at(-1) === 9_999;
+      expect(every ? asked : asked.slice(0, asks.length)).toEqual(
+        asks.map((width) => [1, width]),
+      );
+      expect(ranges[0]).toEqual([1, asks.at(-1), 1]);
+      expect(widths).toMatchObject(sharedWidths);
+      const range = errors.filter((error) => error === rangeError).length;
+      expect(stats.errors).toEqual({
+        rate: 0,
+        results: 0,
+        unrelated: errors.length - range,
+        range,
+      });
+    },
+  );
 
   test.each([
     [
@@ -271,7 +287,7 @@ describe("fetchLogs", () => {
       ]).flat(),
     ],
   ])("%s", async (_name, answers) => {
-    await expect(run(answers, 1, 9_999)).rejects.toThrow("HTTP 500");
+    await expect(run([...answers], 1, 9_999)).rejects.toThrow("HTTP 500");
   });
 });
 
