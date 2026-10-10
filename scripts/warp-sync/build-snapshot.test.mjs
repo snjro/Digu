@@ -288,26 +288,25 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     await withoutLaterContracts();
     const file = path.join(dir(), "manifest.json");
     const before = fs.readFileSync(file, "utf8");
-    const logs = [];
-    await expect(
-      build({ toBlock: 15_000_000, log: (message) => logs.push(message) }),
-    ).resolves.toBeUndefined();
+    await expect(build({ toBlock: 15_000_000 })).resolves.toBeUndefined();
     expect(fs.readFileSync(file, "utf8")).toBe(before);
-    expect(logs).toContain(
-      "Nothing to add: the snapshot already reaches block 15000000.",
-    );
+  });
+
+  test("a run with no range to fetch keeps a contract that the chain does not have", async () => {
+    await build({ toBlock: 15_000_000 });
+    const manifest = readManifest();
+    manifest.contracts.push({ ...manifest.contracts[0], name: "Other" });
+    const file = path.join(dir(), "manifest.json");
+    writeManifest(file, manifest);
+    const before = fs.readFileSync(file, "utf8");
+    await expect(build({ toBlock: 15_000_000 })).resolves.toBeUndefined();
+    expect(fs.readFileSync(file, "utf8")).toBe(before);
   });
 
   test("a run before every contract of a chain without a snapshot writes no manifest", async () => {
     const first = Math.min(...chain.contracts.map((c) => c.creationBlock));
-    const logs = [];
-    await expect(
-      build({ toBlock: first - 1, log: (message) => logs.push(message) }),
-    ).resolves.toBeUndefined();
+    await expect(build({ toBlock: first - 1 })).resolves.toBeUndefined();
     expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
-    expect(logs).toContain(
-      `Nothing to add: the snapshot already reaches block ${first - 1}.`,
-    );
   });
 
   test("gets blockTimestamp from the block when the RPC does not return it", async () => {
