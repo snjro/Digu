@@ -1,6 +1,6 @@
-// A log of the warp sync snapshot (formatVersion 3), shared by
-// build-snapshot.mjs and convert-snapshot.mjs. The tests of the app import it
-// too, so it has the types of svelte-check. See README.md.
+// A log of the warp sync snapshot (formatVersion 3), of build-snapshot.mjs.
+// The tests of the app import it too, so it has the types of svelte-check. See
+// README.md.
 
 /**
  * @typedef {object} DecodingContract

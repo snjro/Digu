@@ -1,5 +1,4 @@
-// The files of the warp sync snapshot (formatVersion 3), shared by
-// build-snapshot.mjs and convert-snapshot.mjs. See README.md.
+// The files of the warp sync snapshot (formatVersion 3). See README.md.
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -147,11 +146,6 @@ export function readText(file) {
 export function readManifest(file, chain) {
   if (!fs.existsSync(file)) return emptyManifest(chain);
   const manifest = JSON.parse(readText(file));
-  if (manifest.formatVersion === 2) {
-    throw new Error(
-      `${file} has formatVersion 2. Convert it first with scripts/warp-sync/convert-snapshot.mjs.`,
-    );
-  }
   if (manifest.formatVersion !== FORMAT_VERSION) {
     throw new Error(`${file} has formatVersion ${manifest.formatVersion}.`);
   }

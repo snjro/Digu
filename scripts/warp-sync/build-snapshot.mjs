@@ -526,11 +526,6 @@ function readStates(partialDir) {
     if (file.endsWith(".state.json")) {
       const state = JSON.parse(readText(path.join(partialDir, file)));
       states.set(partKeyOf(state), state);
-    } else if (file.endsWith(".json")) {
-      // The logs of a segment in one .json file, before formatVersion 2.
-      throw new Error(
-        `${path.join(partialDir, file)} is of an older version of this script. Delete ${partialDir} and run it again.`,
-      );
     }
   }
   return states;

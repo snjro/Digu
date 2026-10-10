@@ -177,10 +177,12 @@ describe("the manifest", () => {
     });
   });
 
-  test("formatVersion 2 is to be converted first", () => {
+  test("another formatVersion stops it", () => {
     const file = path.join(dir, "manifest.json");
     fs.writeFileSync(file, JSON.stringify({ formatVersion: 2, chainId: 1 }));
-    expect(() => readManifest(file, chain)).toThrow("convert-snapshot.mjs");
+    expect(() => readManifest(file, chain)).toThrow(
+      `${file} has formatVersion 2.`,
+    );
   });
 
   test("one with a byte order mark is read", () => {
