@@ -71,6 +71,12 @@ test("the day is in UTC", () => {
   p = check("2026-10-09T09:00:00+09:00");
   expect(p.exitCode).toBe(1);
   expect(p.stdout).toContain("release on 2026-10-09");
+  p = check("2026-10-07T19:00:00-05:00");
+  expect(p.exitCode, p.stdout).toBe(0);
+  expect(p.stdout).toContain("release on 2026-10-08");
+  expect(p.stdout).toContain(
+    "| matic | run 1 | 2026-10-08 11:00 UTC | 77,000,000 | -0.5 |",
+  );
 });
 
 test("a snapshot made after the release time on its day passes", () => {
@@ -120,6 +126,14 @@ describe("a manifest that cannot be read fails", () => {
       "a createdAt without a time zone",
       () => writeManifest("eth", [run("2026-10-08T00:00:00")]),
     ],
+    [
+      "a createdAt on a day that does not exist",
+      () => writeManifest("eth", [run("2026-02-30T00:00:00Z")]),
+    ],
+    [
+      "a createdAt at 24:00",
+      () => writeManifest("eth", [run("2026-10-07T24:00:00Z")]),
+    ],
     // #755
     [
       "a toBlock that is not a number",
@@ -162,6 +176,8 @@ describe("a wrong --at fails, also with off", () => {
     "2026-10-08",
     "today",
     "2026-13-08T12:00:00Z",
+    "2026-02-30T12:00:00Z",
+    "2026-10-07T24:00:00Z",
   ])("%s", (at) => {
     env.WARP_SYNC_SNAPSHOT_CHECK = "off";
     const p = check(at);

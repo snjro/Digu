@@ -63,7 +63,7 @@ and does not change the manifest, so it cannot add a missing contract
 
 ```sh
 docker compose run --rm app node scripts/warp-sync/check-files.mjs
-node scripts/warp-sync/check-snapshot.mjs [--at <ISO time with a time zone>]   # the default is now
+docker compose run --rm app node scripts/warp-sync/check-snapshot.mjs [--at <ISO time with a time zone>]   # the default is now
 ```
 
 `check-snapshot.mjs` imports no package, so it runs without `npm ci`. Its

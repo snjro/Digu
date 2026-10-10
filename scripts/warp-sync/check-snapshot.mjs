@@ -18,14 +18,24 @@ import {
 } from "../../src/warpSync/warpSyncShared.mjs";
 
 const ISO_TIME =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;
+  /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(:\d{2})?(\.\d+)?(Z|([+-])(\d{2}):(\d{2}))$/;
 
 // Returns undefined for a text that is not an ISO time with a time zone: a
-// Date would take one without a zone in the local time.
+// Date would take one without a zone in the local time, and would roll an
+// impossible date or time over (2026-02-30 to 2026-03-02, 24:00 to the next
+// day), so the fields of the time in its offset must come back the same.
 function parseTime(text) {
-  if (typeof text !== "string" || !ISO_TIME.test(text)) return undefined;
+  const match = typeof text === "string" && ISO_TIME.exec(text);
+  if (!match) return undefined;
   const time = new Date(text);
-  return Number.isNaN(time.getTime()) ? undefined : time;
+  if (Number.isNaN(time.getTime())) return undefined;
+  const [, minute, second = ":00", , zone, sign, hours, minutes] = match;
+  const offset =
+    zone === "Z" ? 0 : (sign === "-" ? -1 : 1) * (hours * 60 + Number(minutes));
+  const fields = new Date(time.getTime() + offset * 60_000)
+    .toISOString()
+    .slice(0, 19);
+  return fields === minute + second ? time : undefined;
 }
 
 const dayOf = (time) => time.toISOString().slice(0, 10);
