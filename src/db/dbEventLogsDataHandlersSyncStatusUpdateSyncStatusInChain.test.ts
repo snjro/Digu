@@ -422,3 +422,114 @@ describe("updateSyncStatusInChain with a row that changes while it runs", () => 
     }
   });
 });
+
+describe("startSyncingInChain with a version whose write fails (#726)", () => {
+  // A chain with several versions, each in its own DB.
+  const targetChain = TARGET_CHAINS.find((chain) =>
+    chain.projects.some((project) => project.versions.length > 1),
+  )!;
+  const targetProject = targetChain.projects.find(
+    (project) => project.versions.length > 1,
+  )!;
+  const failingVersionName = targetProject.versions[1].name;
+
+  // Makes the writes of the failing version reject: the start's, and also
+  // the later ones when `writeBackFails`.
+  function failWrites(writeBackFails: boolean): {
+    startError: Error;
+    writeBackError: Error;
+  } {
+    const startError = new Error("The start's write failed.");
+    const writeBackError = new Error("The write-back failed.");
+    let failed: boolean = false;
+    const originalTransaction = DbEventLogs.prototype.transaction;
+    const spyTransaction = vi
+      .spyOn(DbEventLogs.prototype, "transaction")
+      .mockImplementation(function (
+        this: DbEventLogs,
+        ...args: Parameters<DbEventLogs["transaction"]>
+      ) {
+        if (this.versionIdentifier.versionName === failingVersionName) {
+          if (!failed) {
+            failed = true;
+            return Promise.reject(startError);
+          }
+          if (writeBackFails) return Promise.reject(writeBackError);
+        }
+        return (originalTransaction as (...a: unknown[]) => unknown).apply(
+          this,
+          args,
+        );
+      } as typeof originalTransaction);
+    onTestFinished(() => spyTransaction.mockRestore());
+    return { startError, writeBackError };
+  }
+
+  async function expectNoContractSyncing(): Promise<void> {
+    for (const targetProject of targetChain.projects) {
+      for (const targetVersion of targetProject.versions) {
+        const versionIdentifier: VersionIdentifier = {
+          chainName: targetChain.name,
+          projectName: targetProject.name,
+          versionName: targetVersion.name,
+        };
+        const dbEventLogs = new DbEventLogs(versionIdentifier);
+        try {
+          for (const targetContract of extractEventContracts(
+            targetVersion.contracts,
+          )) {
+            const syncStatusContract: SyncStatusContract | undefined =
+              await dbEventLogs
+                .table(tableNameSyncStatus)
+                .get(targetContract.name);
+            expect(syncStatusContract?.isSyncing).toBe(false);
+            expect(
+              getStoreSyncStatusContract({
+                ...versionIdentifier,
+                contractName: targetContract.name,
+              }).isSyncing,
+            ).toBe(false);
+          }
+        } finally {
+          dbEventLogs.close();
+        }
+      }
+    }
+  }
+
+  test("should leave no contract syncing", async () => {
+    // Clear the rows that the start marked, when the test failed.
+    onTestFinished(() => stopSyncingInChain(targetChain.name));
+    const { startError } = failWrites(false);
+
+    await expect(startSyncingInChain(targetChain.name)).rejects.toBe(
+      startError,
+    );
+
+    await expectNoContractSyncing();
+  });
+
+  test("should clear the other versions and reject with the start's error when the write-back fails too", async () => {
+    onTestFinished(() => stopSyncingInChain(targetChain.name));
+    const spyError = vi
+      .spyOn(customLogger, "error")
+      .mockImplementation(() => {});
+    onTestFinished(() => spyError.mockRestore());
+    const { startError, writeBackError } = failWrites(true);
+
+    await expect(startSyncingInChain(targetChain.name)).rejects.toBe(
+      startError,
+    );
+
+    // The failing version marked nothing. The rejection comes before the
+    // write-backs of the other versions have committed.
+    await vi.waitFor(() => expectNoContractSyncing());
+    expect(spyError).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        chainName: targetChain.name,
+        errorObject: writeBackError,
+      }),
+    );
+  });
+});
