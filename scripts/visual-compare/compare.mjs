@@ -1,7 +1,7 @@
 // Compares two folders of screenshots from shots.mjs.
 // Usage (in the test service): node compare.mjs <baseDir> <headDir> <outDir>
 // Writes <outDir>/report.md and <outDir>/diff/<name>.png for each changed screen.
-// Exits with 1 when a screen differs or is missing on one side.
+// Exits with 1 when a screen differs or is missing in one or both builds.
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -18,7 +18,16 @@ if (!baseDir || !headDir || !outDir) {
 const diffDir = path.join(outDir, "diff");
 fs.mkdirSync(diffDir, { recursive: true });
 
-const pngs = (dir) => fs.readdirSync(dir).filter((f) => f.endsWith(".png"));
+// The screenshots, and the screens that shots.mjs planned in screens.txt, so
+// that a screen taken in neither build is listed too.
+const pngs = (dir) => [
+  ...fs.readdirSync(dir).filter((f) => f.endsWith(".png")),
+  ...fs
+    .readFileSync(path.join(dir, "screens.txt"), "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map((name) => `${name}.png`),
+];
 const names = [...new Set([...pngs(baseDir), ...pngs(headDir)])].sort();
 const sha256 = (file) =>
   crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
@@ -92,9 +101,11 @@ try {
   for (const name of names) {
     const base = path.join(baseDir, name);
     const head = path.join(headDir, name);
-    if (!fs.existsSync(base) || !fs.existsSync(head)) {
+    const missing = [base, head].filter((file) => !fs.existsSync(file));
+    if (missing.length > 0) {
       failed = true;
-      rows.push([name, `missing in ${fs.existsSync(base) ? "head" : "base"}`]);
+      const sides = missing.map((file) => (file === base ? "base" : "head"));
+      rows.push([name, `missing in ${sides.join(" and ")}`]);
       continue;
     }
     if (sha256(base) === sha256(head)) {

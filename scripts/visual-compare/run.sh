@@ -48,12 +48,12 @@ has_only_run_files() {
     esac
   done < <(ls -A "$out_dir")
 }
-if [[ -d $out_dir && -n $(ls -A "$out_dir") && ! -f $out_dir/report.md ]]; then
-  if [[ ! -f $out_dir/$marker ]]; then
+if [[ -d $out_dir && -n $(ls -A "$out_dir") ]]; then
+  if [[ ! -f $out_dir/report.md && ! -f $out_dir/$marker ]]; then
     refuse "it is not empty and has no report.md or $marker of an earlier run"
   fi
   if ! has_only_run_files; then
-    refuse "it has $marker but also files that run.sh does not make"
+    refuse "it has files that run.sh does not make"
   fi
 fi
 

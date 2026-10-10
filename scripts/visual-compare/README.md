@@ -15,10 +15,11 @@ scripts/visual-compare/run.sh <base-ref> <out-dir> [<head-ref>]
 - `<out-dir>`: where to write the result. It is deleted first. Keep it outside
   the repository.
   `run.sh` stops without deleting it when it is `/`, `$HOME`, in or around the
-  repository, or not empty without the `report.md` of an earlier run.
+  repository, or not empty and not the `<out-dir>` of an earlier run.
   `run.sh` puts a `.visual-compare` file in it before taking the screenshots.
-  A run that stopped halfway can be run again with the same `<out-dir>` when
-  it has only `.visual-compare`, `base/`, `head/` and `diff/`.
+  An earlier run can be run again with the same `<out-dir>` when it has
+  `report.md` or `.visual-compare`, and nothing else than `report.md`,
+  `.visual-compare`, `base/`, `head/` and `diff/`.
 - `<head-ref>`: the version to check. Without it, the head is this working
   tree, with its uncommitted changes. Then `run.sh` reinstalls the
   `node_modules` of this working tree with `npm ci`, and overwrites its
@@ -56,15 +57,17 @@ it waits for that run first.
 
 ## Result
 
-- `<out-dir>/report.md`: `same`, `same pixels`, or `changed` with the number of
-  changed pixels and the box around them, for each screen.
+- `<out-dir>/report.md`: `same`, `same pixels`, `changed` with the number of
+  changed pixels and the box around them, or `missing in base`, `head`, or
+  `base and head`, for each screen.
 - `<out-dir>/diff/<screen>.png`: the head screenshot in pale gray, with the
   changed pixels in red.
-- `<out-dir>/base/`, `<out-dir>/head/`: the screenshots, and `log.txt` with the
-  console errors and warnings of each run, and its Content Security Policy
-  violations (`[csp]` lines).
+- `<out-dir>/base/`, `<out-dir>/head/`: the screenshots, `screens.txt` with the
+  screens that `shots.mjs` was to take, and `log.txt` with the console errors
+  and warnings of each run, and its Content Security Policy violations
+  (`[csp]` lines).
 
-`run.sh` exits with 1 when a screen changed.
+`run.sh` exits with 1 when a screen changed or is missing.
 
 ## Screens
 
@@ -108,7 +111,8 @@ browser (settings, the chain) does not change the next screen.
 
 An action that cannot be done in a build, such as opening the sync panel in a
 build before it (#596), returns `NOT_IN_THIS_BUILD`: the screen is not taken,
-and `report.md` lists it as missing in that build.
+and `report.md` lists it as missing in that build (in both, when neither
+build can do it).
 
 To add a screen, edit `PAGES`, `STATES`, `MORE_STATES`, `PHONE_PAGES` or
 `DATA_PAGES` in `shots.mjs`.

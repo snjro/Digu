@@ -608,81 +608,98 @@ async function shoot(page, name) {
 
 // The screens in units that run in parallel. A unit is the screens that share
 // a page (the theme, the sidebar or the seed stays in its IndexedDB), or one
-// screen after an action. `run` gets `newPage(options)` and its own `log`.
+// screen after an action. `names` are the screens it takes. `run` gets
+// `newPage(options)` and its own `log`.
 const units = [];
 for (const theme of ["light", "dark"]) {
+  const pages = PAGES.map(([name, url]) => [`${theme}-${name}`, url]);
   units.push({
-    screens: PAGES.length,
+    names: pages.map(([name]) => name),
     async run(newPage, log) {
       // The theme is kept in IndexedDB, so it stays across the pages.
       const { page, close } = await newPage();
       await open(page, "/");
       await setTheme(page, theme);
-      for (const [name, url] of PAGES) {
-        log.push(`${theme}-${name} ${url}`);
+      for (const [name, url] of pages) {
+        log.push(`${name} ${url}`);
         await open(page, url);
-        await shoot(page, `${theme}-${name}`);
+        await shoot(page, name);
       }
       await close();
     },
   });
-  for (const [name, url, action, options] of [...STATES, ...MORE_STATES]) {
+  for (const [state, url, action, options] of [...STATES, ...MORE_STATES]) {
+    const name = `${theme}-${state}`;
     units.push({
-      screens: 1,
+      names: [name],
       async run(newPage, log) {
-        log.push(`${theme}-${name} ${url}`);
+        log.push(`${name} ${url}`);
         const { page, close } = await newPage(options);
         await open(page, url);
         await setTheme(page, theme);
         await settle(page);
         if ((await action(page)) === NOT_IN_THIS_BUILD) {
-          log.push(`${theme}-${name}: not in this build`);
+          log.push(`${name}: not in this build`);
           await close();
           return;
         }
         await settle(page, options);
-        await shoot(page, `${theme}-${name}`);
+        await shoot(page, name);
         await close();
       },
     });
   }
+  const phonePages = ["sidebar-open", "sidebar-closed"].map((state) => [
+    state,
+    PHONE_PAGES.map(([name, url]) => [`${theme}-phone-${state}-${name}`, url]),
+  ]);
   units.push({
-    screens: PHONE_PAGES.length * 2,
+    names: phonePages.flatMap(([, pages]) => pages.map(([name]) => name)),
     async run(newPage, log) {
       const { page, close } = await newPage();
       await open(page, "/");
       await setTheme(page, theme);
-      for (const state of ["sidebar-open", "sidebar-closed"]) {
+      for (const [state, pages] of phonePages) {
         if (state === "sidebar-closed") {
           // The choice is kept in IndexedDB.
           await page.click(CLOSE_SIDEBAR);
           await settle(page);
         }
-        for (const [name, url] of PHONE_PAGES) {
-          log.push(`${theme}-phone-${state}-${name} ${url}`);
+        for (const [name, url] of pages) {
+          log.push(`${name} ${url}`);
           await open(page, url, PHONE_VIEWPORT);
-          await shoot(page, `${theme}-phone-${state}-${name}`);
+          await shoot(page, name);
         }
       }
       await close();
     },
   });
+  const dataPages = DATA_PAGES.map(([name, url, tab]) => [
+    `${theme}-data-${name}`,
+    url,
+    tab,
+  ]);
   units.push({
-    screens: DATA_PAGES.length,
+    names: dataPages.map(([name]) => name),
     async run(newPage, log) {
       const { page, close } = await newPage();
       await seed(page, log);
       await setTheme(page, theme);
-      for (const [name, url, tab] of DATA_PAGES) {
-        log.push(`${theme}-data-${name} ${url}`);
+      for (const [name, url, tab] of dataPages) {
+        log.push(`${name} ${url}`);
         await open(page, url);
         if (tab) await expectTab(page, tab);
-        await shoot(page, `${theme}-data-${name}`);
+        await shoot(page, name);
       }
       await close();
     },
   });
 }
+// compare.mjs reads this, so that a screen taken in neither build is reported.
+fs.writeFileSync(
+  path.join(outDir, "screens.txt"),
+  units.flatMap((unit) => unit.names).join("\n") + "\n",
+);
 
 // Each worker has its own browsers, with one page open at a time.
 // With many more Chromes at once, some screenshots were blank or timed out.
@@ -690,7 +707,7 @@ const WORKERS = 4;
 const logs = units.map(() => []);
 // The larger units first, so that the workers end at about the same time.
 const queue = [...units.keys()].sort(
-  (a, b) => units[b].screens - units[a].screens,
+  (a, b) => units[b].names.length - units[a].names.length,
 );
 const workers = [];
 try {
