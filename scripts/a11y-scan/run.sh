@@ -25,7 +25,9 @@ fi
 trap '"${compose[@]}" down >/dev/null 2>&1 || true' EXIT
 
 mkdir -p "$out_dir"
-"${compose[@]}" run --rm -T app \
+# Without the Chrome of puppeteer, which the build does not use (like
+# ../screen-check/build.sh and ../visual-compare/run.sh).
+"${compose[@]}" run --rm -T -e PUPPETEER_SKIP_DOWNLOAD=1 app \
   sh -c "npm ci --no-audit --no-fund && npm run build"
 "${compose[@]}" run --rm -T \
   -v "$repo/scripts:/scripts:ro" \
