@@ -23,7 +23,8 @@ and `.svelte-kit`.
 ## What it does
 
 1. Runs `npm ci` and `npm run build` in the `app` service.
-2. In the `test` service (image `ghcr.io/puppeteer/puppeteer:25.11.0`):
+2. In the `test` service (image `ghcr.io/puppeteer/puppeteer`; its version is in
+   `compose.yaml`):
    1. Installs axe-core 4.13.0 from npm into a temporary folder in the
       container. The version is fixed so that the numbers of two runs can be
       compared.

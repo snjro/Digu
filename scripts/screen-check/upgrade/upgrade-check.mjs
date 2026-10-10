@@ -499,7 +499,10 @@ if (phase === "old") fs.rmSync(profileDir, { recursive: true, force: true });
 const browser = await puppeteer.launch({
   userDataDir: profileDir,
   protocolTimeout: 60000,
-  args: ["--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost"],
+  args: [
+    "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost",
+    "--no-sandbox",
+  ],
 });
 // The phase before left a blank tab (see the end of this file).
 const openPages = (await browser.pages()).map((p) => p.url());

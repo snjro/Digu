@@ -623,6 +623,7 @@ const allowed = FAKE ? [] : Object.values(HOSTS).map((h) => `, EXCLUDE ${h}`);
 const browser = await puppeteer.launch({
   args: [
     `--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost${allowed.join("")}`,
+    "--no-sandbox",
   ],
 });
 

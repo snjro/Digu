@@ -38,12 +38,9 @@ If Node.js is not installed on your machine, you can run the npm scripts in a Do
   docker compose run --rm app npm run vitest
   ```
 
-- The unit tests run in the `app` service as above. The `test` service, whose image includes Chrome, is for `scripts/visual-compare` and `scripts/a11y-scan`. It runs the tests too:
-  ```bash
-  docker compose run --rm test npx vitest run
-  ```
+- The unit tests run in the `app` service as above. The `test` service, whose image includes Chrome, is for `scripts/visual-compare`, `scripts/screen-check` and `scripts/a11y-scan`.
 
-Note: The `test` service uses the Puppeteer image and needs `SYS_ADMIN` because Chrome's sandbox cannot start in a container without it. Keep its image tag the same as the `puppeteer` version in `package-lock.json`.
+Note: The `test` service uses the Puppeteer image. The scripts launch Chrome with `--no-sandbox`, so the service has no added capability; `compose.yaml` says why. Keep its image tag the same as the `puppeteer` version in `package-lock.json`.
 
 ## [**Starting a development server**](#starting-a-development-server)
 
@@ -109,6 +106,8 @@ Perform quality checks and maintenance tasks:
   ```bash
   npx prettier --check --plugin prettier-plugin-svelte .
   npx eslint .
+  npm run lint:types
+  npm run check -- --fail-on-warnings
   ```
 
 ## [**Accessing the database**](#accessing-the-database)

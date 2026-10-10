@@ -568,10 +568,11 @@ const LAUNCH_ARGS = [
 // `(pointer: fine)` like one with a mouse, for MORE_STATES with `hover`.
 async function launchBrowsers() {
   return {
-    browser: await puppeteer.launch({ args: LAUNCH_ARGS }),
+    browser: await puppeteer.launch({ args: [...LAUNCH_ARGS, "--no-sandbox"] }),
     hoverBrowser: await puppeteer.launch({
       args: [
         ...LAUNCH_ARGS,
+        "--no-sandbox",
         "--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4",
       ],
     }),
