@@ -36,7 +36,8 @@ read a manifest or finds no chain. A chain without a snapshot is not checked.
 vitest (`check-files.test.mjs`) checks the files of each chain of
 `WARP_SYNC_CHAIN_NAMES` against its `manifest.json` on every PR and in the
 release: sizes, sha256, the content of each file (format, chain, contract,
-address, range, number of logs, and every log in the range), the ranges of
+address, range, number of logs, every log in the range, and the logs in
+the range in the order of their blocks and log indexes), the ranges of
 each contract without gaps and not ending at its creation block, `totals`,
 and no file outside the manifest. It also checks the contracts of the
 manifest against those with events in `src/constants/chains` (the same
@@ -46,9 +47,11 @@ the app. So a contract with events added to the app needs a run of this
 script for its chain before its pull request passes. A contract with events
 removed from the app, or with another address or creation block, fails the
 check too, and a run cannot fix all of these yet (#761): the script keeps a
-removed contract, stops at a changed one, and adds a contract created after
-the end of the snapshot only with a run that reaches its creation block
-(a run with no range to fetch ends at "Nothing to add").
+removed contract, stops at a changed one, and adds the contracts of the
+chain to `manifest.contracts` only when it has some range to fetch (then
+every contract of the chain, also one created after its end). A run with no
+range to fetch ends at "Nothing to add", names the contracts that
+`manifest.contracts` does not have, and does not change the manifest.
 `WARP_SYNC_SNAPSHOT_CHECK=off` does not turn this check off.
 
 ```sh

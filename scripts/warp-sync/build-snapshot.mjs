@@ -695,7 +695,20 @@ async function build(chain, rpc, outDir, toBlock, options) {
   }
   if (plans.length === 0) {
     fs.rmSync(partialDir, { recursive: true, force: true });
-    log(`Nothing to add: the snapshot already reaches block ${end}.`);
+    // The manifest is not changed: a run adds the contracts of the chain to
+    // manifest.contracts only with logs to fetch (#761).
+    const missing = chain.contracts.map(keyOf).filter((key) => !known.has(key));
+    if (!fs.existsSync(manifestFile)) {
+      log(
+        `Nothing to add: no contract of ${chain.name} is created by block ${end}.`,
+      );
+    } else if (missing.length > 0) {
+      log(
+        `Nothing to add to block ${end}, and not in manifest.contracts: ${missing.join(", ")}. A run cannot add them yet (#761).`,
+      );
+    } else {
+      log(`Nothing to add: the snapshot already reaches block ${end}.`);
+    }
     return undefined;
   }
 
@@ -792,8 +805,10 @@ async function build(chain, rpc, outDir, toBlock, options) {
   }
   moveChunkFiles(rows, tmpDir, dir, manifest);
 
+  // The contracts of the manifest, with every contract of the chain.
+  const contracts = new Map(known);
   for (const contract of chain.contracts) {
-    known.set(keyOf(contract), {
+    contracts.set(keyOf(contract), {
       project: contract.project,
       version: contract.version,
       name: contract.name,
@@ -801,7 +816,7 @@ async function build(chain, rpc, outDir, toBlock, options) {
       creationBlock: contract.creationBlock,
     });
   }
-  manifest.contracts = [...known.values()];
+  manifest.contracts = [...contracts.values()];
   manifest.runs.push({
     createdAt: new Date().toISOString(),
     latestBlockNumber: latest,
