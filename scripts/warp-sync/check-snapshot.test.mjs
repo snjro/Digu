@@ -7,6 +7,11 @@ import { checkSnapshots } from "./check-snapshot.mjs";
 
 const AT = "2026-10-08T12:00:00Z";
 const run = (createdAt, toBlock = 26138967) => ({ createdAt, toBlock });
+const checks = (emptyRangesWithLogs) => ({
+  emptyRangesAskedAgain: 5,
+  emptyRangesWithLogs,
+  errors: { rate: 0, results: 0, unrelated: 0, range: 0 },
+});
 
 let tmp;
 let dir;
@@ -46,11 +51,85 @@ test("snapshots of the day pass", () => {
   expect(p.exitCode, p.stdout).toBe(0);
   expect(p.stdout).not.toContain("::");
   expect(p.stdout).toContain(
-    "| eth | run 2 | 2026-10-08 00:30 UTC | 26,138,967 | 0.5 |",
+    "| eth | run 2 | 2026-10-08 00:30 UTC | 26,138,967 | 0.5 | No record |",
   );
   expect(p.stdout).toContain(
-    "| matic | run 1 | 2026-10-08 11:00 UTC | 77,000,000 | 0.0 |",
+    "| matic | run 1 | 2026-10-08 11:00 UTC | 77,000,000 | 0.0 | No record |",
   );
+});
+
+describe("empty ranges that had logs later (#734)", () => {
+  test("0 is shown without a warning", () => {
+    writeManifest("eth", [
+      { ...run("2026-10-07T00:00:00Z"), checks: checks(4) },
+      { ...run("2026-10-08T00:30:00Z"), checks: checks(0) },
+    ]);
+    const p = check();
+    expect(p.exitCode, p.stdout).toBe(0);
+    expect(p.stdout).not.toContain("::");
+    expect(p.stdout).toContain(
+      "| eth | run 2 | 2026-10-08 00:30 UTC | 26,138,967 | 0.5 | 0 |",
+    );
+  });
+
+  test("more than 0 warns without failing", () => {
+    writeManifest("eth", [
+      { ...run("2026-10-08T00:30:00Z"), checks: checks(3) },
+    ]);
+    const p = check();
+    expect(p.exitCode, p.stdout).toBe(0);
+    const warnings = annotations(p.stdout);
+    expect(warnings, p.stdout).toHaveLength(1);
+    expect(warnings[0]).toMatch(
+      /^::warning::The last run of the warp sync snapshot of eth had 3 empty ranges/,
+    );
+    expect(p.stdout).toContain(
+      "| eth | run 1 | 2026-10-08 00:30 UTC | 26,138,967 | 0.5 | 3 |",
+    );
+    expect(p.stdout).toContain(
+      "- Warning: The last run of the warp sync snapshot of eth had 3",
+    );
+  });
+
+  test("the warning does not hide a snapshot of another day", () => {
+    writeManifest("eth", [
+      { ...run("2026-10-07T00:30:00Z"), checks: checks(3) },
+    ]);
+    const p = check();
+    expect(p.exitCode).toBe(1);
+    expect(p.stdout).toContain(
+      "::warning::The last run of the warp sync snapshot of eth",
+    );
+    expect(p.stdout).toContain(
+      "::error::The warp sync snapshot of eth was made on 2026-10-07",
+    );
+  });
+
+  test.each([
+    ["no checks", {}],
+    ["checks without the count", { checks: {} }],
+    ["a count that is not a number", { checks: checks("3") }],
+  ])("%s is no record and passes", (_, more) => {
+    writeManifest("eth", [{ ...run("2026-10-08T00:30:00Z"), ...more }]);
+    const p = check();
+    expect(p.exitCode, p.stdout).toBe(0);
+    expect(p.stdout).not.toContain("::");
+    expect(p.stdout).toContain("| 0.5 | No record |");
+  });
+
+  test("the warning goes to the summary of the step too", () => {
+    writeManifest("eth", [
+      { ...run("2026-10-08T00:30:00Z"), checks: checks(3) },
+    ]);
+    const summary = path.join(tmp, "summary.md");
+    env.GITHUB_STEP_SUMMARY = summary;
+    const p = check();
+    expect(p.exitCode).toBe(0);
+    expect(p.stdout).toMatch(/^::warning::The last run/);
+    expect(fs.readFileSync(summary, "utf8")).toContain(
+      "- Warning: The last run of the warp sync snapshot of eth had 3",
+    );
+  });
 });
 
 test("a snapshot of another day fails", () => {
@@ -87,7 +166,7 @@ test("a snapshot made after the release time on its day passes", () => {
   expect(p.exitCode, p.stdout).toBe(0);
   expect(p.stdout).not.toContain("::");
   expect(p.stdout).toContain(
-    "| eth | run 1 | 2026-10-08 23:00 UTC | 26,138,967 | -0.5 |",
+    "| eth | run 1 | 2026-10-08 23:00 UTC | 26,138,967 | -0.5 | No record |",
   );
 });
 
@@ -105,7 +184,7 @@ test("a chain without a snapshot is not checked", () => {
   fs.rmSync(manifestPath("matic"));
   const p = check();
   expect(p.exitCode, p.stdout).toBe(0);
-  expect(p.stdout).toContain("| matic | No snapshot |  |  |  |");
+  expect(p.stdout).toContain("| matic | No snapshot |  |  |  |  |");
 });
 
 test("no chain fails", () => {

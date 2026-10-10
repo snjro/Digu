@@ -41,6 +41,13 @@ It stops the release when the last run was not made on the day of the
 release, by the date in UTC, and when it cannot
 read a manifest. It checks the chains of `WARP_SYNC_CHAIN_NAMES`; a chain without a snapshot is not checked.
 
+The table also shows `checks.emptyRangesWithLogs` of the last run ("Empty,
+then logs"; "No record" for a run without it): the empty ranges that had logs
+when asked again (Empty results (#576), below). Look at it before the release.
+More than 0 is a warning, in the annotations and the summary, and does not
+stop the release: it is a sign that the RPC drops logs, not the ranges that
+were lost, so check the snapshot with another source (#734).
+
 `check-files.mjs` (a step of `test.yml`, apart from vitest) checks the files
 of each chain of `WARP_SYNC_CHAIN_NAMES` against its `manifest.json` on every
 PR and in the release: sizes, sha256, the content of each file (format, chain, contract,
@@ -235,7 +242,8 @@ contract that has events, fetch that contract's snapshot again from an RPC.
   is asked again until it returns logs or three empty answers in a row
   (`EMPTY_ANSWERS_TO_KEEP`). This almost triples the requests where the logs
   are sparse. It makes a lost range less likely, not impossible: check the
-  snapshot with another source.
+  snapshot with another source. `check-snapshot.mjs` warns when the last run
+  had such a range (Before a release, above).
 - **Parts (#586):** the blocks of each contract are split into parts of
   `--part-blocks`, which wait in a queue, the first part of each contract
   first. `--concurrency` workers take the next part when they finish one, so
