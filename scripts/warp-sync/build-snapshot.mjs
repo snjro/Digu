@@ -29,6 +29,7 @@ import { createRpc } from "./rpc.mjs";
 import {
   CHUNK_LOGS,
   chunkFileName,
+  isHexQuantity,
   keyOf,
   lastBlocks,
   moveChunkFiles,
@@ -58,10 +59,11 @@ async function* toSnapshotLogs(rpc, contract, rawLogs) {
           raw.blockNumber,
           false,
         ]);
-        // null: the node does not have the block (#768).
-        if (block === null) {
+        // null: the node does not have the block (#768). A block without a
+        // hex timestamp would write logs without their block time.
+        if (!isHexQuantity(block?.timestamp)) {
           throw new Error(
-            `${keyOf(contract)}: the RPC has no block ${Number(raw.blockNumber)} for the blockTimestamp of its logs.`,
+            `${keyOf(contract)}: the RPC returned no block with a hex timestamp for block ${Number(raw.blockNumber)}, for the blockTimestamp of its logs.`,
           );
         }
         timestamp = [raw.blockNumber, block.timestamp];

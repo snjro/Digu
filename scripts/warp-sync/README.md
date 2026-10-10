@@ -161,7 +161,10 @@ The files of the snapshot are written only at the end, one contract at a
 time, and then `.partial/` is deleted. The block times fetched for the logs
 without `blockTimestamp` (`eth_getBlockByNumber`) are not kept in
 `.partial/`: with an RPC that does not return `blockTimestamp`, a run that
-stops while it fetches them fetches them again the next time.
+stops while it fetches them fetches them again the next time. A run stops when
+the RPC returns no block with a hex `timestamp` for such a log; `.partial/`
+keeps the logs fetched so far, so run it again with another `--rpc` that has
+the block.
 
 The first run fetches from the creation block of each contract. A later run
 reads `manifest.json` and fetches only the blocks after the last run, into

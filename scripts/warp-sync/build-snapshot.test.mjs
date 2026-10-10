@@ -31,8 +31,8 @@ const toHex = (value) => `0x${value.toString(16)}`;
 // decoding them is slow with the coverage of CI.
 const STEP = 20_000;
 let withoutTimestamp = false;
-// A block that eth_getBlockByNumber answers with null, as a node without it.
-let missingBlock = undefined;
+// { block, answer }: eth_getBlockByNumber of that block returns answer.
+let badBlock = undefined;
 // { block, name, ...fields }: the logs of that block of the contract of that
 // name get these fields, so that the script does not take them.
 let broken = undefined;
@@ -71,8 +71,8 @@ beforeAll(async () => {
     }
     if (method === "eth_getBlockByNumber") {
       result =
-        Number(params[0]) === missingBlock
-          ? null
+        Number(params[0]) === badBlock?.block
+          ? badBlock.answer
           : { timestamp: toHex(Number(params[0]) * 2) };
     }
     send(200, { result });
@@ -84,7 +84,7 @@ let outDir;
 beforeEach(() => {
   outDir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-build-"));
   withoutTimestamp = false;
-  missingBlock = undefined;
+  badBlock = undefined;
   broken = undefined;
   requests.length = 0;
 });
@@ -266,18 +266,27 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(requests).toContain("eth_getBlockByNumber");
   });
 
-  test("stops with the contract and the block when the RPC has no block for blockTimestamp", async () => {
-    withoutTimestamp = true;
-    const [contract] = chain.contracts;
-    // The first block of the contract whose logs have no blockTimestamp: the
-    // logs are at the multiples of STEP, and withoutTimestamp takes it from
-    // those at the multiples of 3,000.
-    missingBlock = Math.ceil(contract.creationBlock / 60_000) * 60_000;
-    await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
-      `${keyOf(contract)}: the RPC has no block ${missingBlock} for the blockTimestamp of its logs.`,
-    );
-    expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
-  });
+  test.each([
+    ["null (the node does not have the block)", null],
+    ["no result", undefined],
+    ["a block without a timestamp", {}],
+    ["a timestamp that is not a hex string", { timestamp: 1_700_000_000 }],
+  ])(
+    "stops with the contract and the block when the RPC returns %s for blockTimestamp",
+    async (_, answer) => {
+      withoutTimestamp = true;
+      const [contract] = chain.contracts;
+      // The first block of the contract whose logs have no blockTimestamp: the
+      // logs are at the multiples of STEP, and withoutTimestamp takes it from
+      // those at the multiples of 3,000.
+      const block = Math.ceil(contract.creationBlock / 60_000) * 60_000;
+      badBlock = { block, answer };
+      await expect(build({ toBlock: 16_000_000 })).rejects.toThrow(
+        `${keyOf(contract)}: the RPC returned no block with a hex timestamp for block ${block}, for the blockTimestamp of its logs.`,
+      );
+      expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
+    },
+  );
 
   // The blocks of the logs of FeePot kept in .partial/.
   const partialBlocksOfFeePot = () => {

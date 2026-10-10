@@ -22,7 +22,7 @@ export const sha256 = (data) =>
 // The block and the log index of a log, as numbers, or undefined when one is
 // not a hex quantity: the form of the RPC, which toSnapshotLog keeps.
 const HEX_QUANTITY = /^0x[0-9a-fA-F]+$/;
-const isHexQuantity = (value) =>
+export const isHexQuantity = (value) =>
   typeof value === "string" && HEX_QUANTITY.test(value);
 export function logPositionOf(log) {
   return isHexQuantity(log?.blockNumber) && isHexQuantity(log?.logIndex)
