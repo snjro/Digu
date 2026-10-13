@@ -305,7 +305,10 @@ python3 scripts/screen-check/upgrade/diff_db.py <out-dir>/db-old-old-06-final.js
   stopped. It also logs a `[check]` line on the Settings database: its
   version after the upgrade, and that the upgrade removed `bulkUnit`,
   `chainExplorerIndex`, `blockIntervalMs`, `tryCount` and
-  `abortWatchIntervalMs` from each RPC setting and kept the rest. `grid` opens
+  `abortWatchIntervalMs` from each RPC setting and kept the rest.
+  `old` also selects matic, which the new build does not have (#809): the
+  upgrade must delete its RPC setting, and `removed chain` checks that the new
+  build opens on a chain of its own without a page error. `grid` opens
   the Event Logs grids on the logs of both. `probe` only opens the new build
   and logs the stack if the page stops answering.
 - The checks are records in `results-<phase>.json` (see

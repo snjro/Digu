@@ -96,3 +96,60 @@ describe("the upgrade to version 2", () => {
     await Dexie.delete(dbSettings.name);
   });
 });
+
+describe("the upgrade to version 3", () => {
+  // The settings that v1.7.0 and before had for matic (#809).
+  const removedChainName = "matic";
+  const rpcSetting: RpcSetting = {
+    ...initialDataRpcSetting(TARGET_CHAINS[0]),
+    rpc: "https://saved.example",
+  };
+  async function createOldDb(
+    version: number,
+    rpcSettings: Record<string, unknown>[],
+  ): Promise<void> {
+    await Dexie.delete(dbSettings.name);
+    const oldDb = new Dexie(dbSettings.name);
+    oldDb.version(version).stores({
+      [tableNameRpcSettings]: "chainName",
+      [tableNameUserSettings]: "userSettingsId",
+    });
+    await oldDb.table(tableNameRpcSettings).bulkAdd(rpcSettings);
+    await oldDb.table(tableNameUserSettings).add({
+      ...initialDataUserSettings,
+      selectedChainName: removedChainName,
+    });
+    oldDb.close();
+  }
+  async function expectOnlyTargetChains(): Promise<void> {
+    await dbSettings.open();
+    expect(await dbSettings.table(tableNameRpcSettings).toArray()).toEqual([
+      rpcSetting,
+    ]);
+    expect(
+      await dbSettings
+        .table(tableNameUserSettings)
+        .get(initialDataUserSettings.userSettingsId),
+    ).toStrictEqual(initialDataUserSettings);
+    dbSettings.close();
+    await Dexie.delete(dbSettings.name);
+  }
+
+  test("should delete the RPC settings of a removed chain, and select the default chain", async () => {
+    await createOldDb(2, [
+      rpcSetting,
+      { ...rpcSetting, chainName: removedChainName },
+    ]);
+
+    await expectOnlyTargetChains();
+  });
+
+  test("should upgrade version 1 to version 2 first", async () => {
+    await createOldDb(1, [
+      { ...rpcSetting, tryCount: 5 },
+      { ...rpcSetting, chainName: removedChainName, tryCount: 5 },
+    ]);
+
+    await expectOnlyTargetChains();
+  });
+});

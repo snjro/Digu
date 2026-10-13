@@ -69,6 +69,19 @@ const SETTINGS_VERSION = Number(
     .readFileSync("/app/src/db/constants.ts", "utf8")
     .match(/Settings:\s*(\d+)/)[1],
 );
+// The chains of the new build. v1.0.2 also has matic, which the new build
+// does not have (#809): the upgrade deletes the rows of the other chains.
+const CHAINS_DIR = "/app/src/constants/chains";
+const CHAIN_NAMES = [
+  ...fs
+    .readFileSync(`${CHAINS_DIR}/_index.ts`, "utf8")
+    .matchAll(/from "\.\/([^"]+)\/_index"/g),
+].map(
+  ([, dir]) =>
+    fs
+      .readFileSync(`${CHAINS_DIR}/${dir}/_index.ts`, "utf8")
+      .match(/name:\s*"([^"]+)"/)[1],
+);
 const log = [];
 const steps = [];
 let stepName = "start";
@@ -424,13 +437,16 @@ async function readSettingsDb(page) {
             resolve({ version, rows: null });
             return;
           }
-          const g = db
-            .transaction("RpcSettings")
-            .objectStore("RpcSettings")
-            .getAll();
-          g.onsuccess = () => {
+          const tx = db.transaction(["RpcSettings", "UserSettings"]);
+          const g = tx.objectStore("RpcSettings").getAll();
+          const u = tx.objectStore("UserSettings").getAll();
+          tx.oncomplete = () => {
             db.close();
-            resolve({ version, rows: g.result });
+            resolve({
+              version,
+              rows: g.result,
+              selectedChainName: u.result[0]?.selectedChainName,
+            });
           };
         };
         r.onerror = () => resolve(null);
@@ -445,6 +461,10 @@ function checkSettingsUpgrade(before, after) {
   if (!before?.rows?.length) ng.push("no RPC settings before the upgrade");
   for (const b of before?.rows ?? []) {
     const a = after?.rows?.find((r) => r.chainName === b.chainName);
+    if (!CHAIN_NAMES.includes(b.chainName)) {
+      if (a) ng.push(`${b.chainName}: a removed chain is still there`);
+      continue;
+    }
     if (!a) {
       ng.push(`${b.chainName}: no row after the upgrade`);
       continue;
@@ -602,10 +622,14 @@ await results.guard(
       // Sync a little.
       await syncUntil(page, "old-04", 1);
 
-      // Theme dark, sidebar closed.
+      // Theme dark, selected chain matic, sidebar closed. The new build has
+      // no matic (#809), and must open on another chain.
       await clickByTooltip(page, "Change theme");
       await settle(page);
-      await record(page, "old-05-dark");
+      const chainSelect = await page.$("aside select, select");
+      await chainSelect.select("matic");
+      await settle(page, 1500);
+      await record(page, "old-05-dark-matic");
       // Close button of the sidebar: the first button in the sidebar header
       // that is not a tooltip button of the accordion handlers.
       const closed = await page.evaluate(() => {
@@ -790,7 +814,27 @@ await results.guard(
       await page.goto(`${ORIGIN}/`, { waitUntil: "load" });
       await settle(page, 3000);
       await record(page, "new-00-home-first-open", { dump: true });
-      checkSettingsUpgrade(settingsBefore, await readSettingsDb(page));
+      const settingsAfter = await readSettingsDb(page);
+      checkSettingsUpgrade(settingsBefore, settingsAfter);
+      // The chain saved by v1.0.2 is gone (#809): the app opens on a chain of
+      // the build, without a page error.
+      const pageErrors = log.filter((line) =>
+        line.startsWith("[pageerror] new-00"),
+      );
+      const url = new URL(page.url()).pathname;
+      check(
+        "removed chain",
+        settingsBefore?.selectedChainName === "matic" &&
+          CHAIN_NAMES.includes(settingsAfter?.selectedChainName) &&
+          url === `/${settingsAfter.selectedChainName}/` &&
+          pageErrors.length === 0,
+        JSON.stringify({
+          before: settingsBefore?.selectedChainName,
+          after: settingsAfter?.selectedChainName,
+          url,
+          pageErrors,
+        }),
+      );
       for (const [name, p] of [
         ["new-02-eth", "/eth"],
         ["new-03-eth-v1", "/eth/Augur-version1"],
