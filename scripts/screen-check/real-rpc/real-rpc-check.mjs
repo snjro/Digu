@@ -21,8 +21,9 @@
 //   - "logs": logs or an empty result come back (PublicNode over wss, #811).
 //   The sync moves on, each refusal for the range is followed by a range from
 //   the same block that is not wider, and the refused range is then fetched
-//   in narrower ranges. Other errors are only recorded. The script stops the
-//   sync after that, and no eth_getLogs is sent after the stop.
+//   in narrower ranges or in the same range again. Other errors are only
+//   recorded. The script stops the sync after that, and no eth_getLogs is
+//   sent after the stop.
 //   - Both: the toggle is off, the RPC URL is not in the console (#483), and
 //   no contract is left isAbort/isSyncing (#515).
 //   4. Console errors and warnings, page errors, CSP violations (#504).
@@ -85,10 +86,15 @@ const CONFIRMATION = { eth: conf("ethereum-mainnet") };
 // The errors after which the sync stops (TRY_COUNT of the build).
 const TRY_COUNT = readTryCount();
 // When eth_getLogs returns logs, the sync does not stop by itself (#811). The
-// script stops it after the first range refused for its width is fetched in
-// narrower ranges, or after SCRIPT_STOP_MS. In v1.7.0 that took 55 s, with a
-// wait of 28 s for one answer.
+// script stops it after the first range refused for its width is fetched, or
+// after SCRIPT_STOP_MS. In v1.7.0 that took 55 s, with a wait of 28 s for one
+// answer.
 const SCRIPT_STOP_MS = 100000;
+// The app stops after the answer to the eth_getLogs in flight, so the wait
+// after the click of the script is long enough for one slow answer.
+const STOP_WAIT_MS = 60000;
+// The wait for a sync that stops by itself.
+const SELF_STOP_MS = 120000;
 // One contract to sync. The versions are turned off first.
 const TARGET = {
   eth: {
@@ -231,8 +237,9 @@ const isRangeRefusal = (e) =>
   e?.code === -32701 || /exceed maximum block range/i.test(e?.message ?? "");
 // Each eth_getLogs refused for its range, and what was sent after it (#694).
 // The next request is from the same block and not wider, and the successes up
-// to the end of the refused range are narrower. complete: that end was
-// reached.
+// to the end of the refused range are narrower, or the same range: the app
+// sends a refused range once more before halving it, and another node of the
+// RPC may answer it. complete: that end was reached.
 function refusalsOf(answers) {
   const logs = answers
     .filter((a) => a.method === "eth_getLogs" && a.range)
@@ -248,7 +255,11 @@ function refusalsOf(answers) {
     );
     const nextOk =
       !next || (next.range[0] === r.range[0] && width(next) <= width(r));
-    const narrower = successes.every((b) => width(b) < width(r));
+    const narrower = successes.every(
+      (b) =>
+        width(b) < width(r) ||
+        (b.range[0] === r.range[0] && b.range[1] === r.range[1]),
+    );
     return [
       {
         range: r.range,
@@ -620,7 +631,11 @@ for (const [id, chain, rpc] of RUNS) {
     let stopped = false;
     let stoppedByItself = false;
     let stopClickedMs = null;
-    while (Date.now() - t1 < 120000) {
+    const deadline = () =>
+      stopClickedMs === null
+        ? SELF_STOP_MS
+        : Math.max(SELF_STOP_MS, stopClickedMs + STOP_WAIT_MS);
+    while (Date.now() - t1 < deadline()) {
       const ti = await findToggle(page);
       const d = await readDb(page, chain, t.db, t.contract);
       const key = JSON.stringify({ toggle: ti, row: d.row });

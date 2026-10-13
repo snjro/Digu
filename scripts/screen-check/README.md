@@ -347,8 +347,8 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
   version1), types the RPC URL, waits for "Connected." (30 s) and starts the
   sync. It waits until the sync stops by itself (120 s). When `eth_getLogs`
   returns logs or an empty result, the check stops the sync after the first
-  range refused for its width is fetched in narrower ranges, or after 100 s
-  (#811). Eth has no snapshot here.
+  range refused for its width is fetched, or after 100 s, and then waits up
+  to 60 s for the stop (#811). Eth has no snapshot here.
 - It records:
   - `1 helper`: "Connected." was shown.
   - `2 goal`: the Goal is a latest block the RPC returned, less the
@@ -362,8 +362,10 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
     - `logs` (logs or an empty result came back): the sync moved on. After
       each request refused for its range, the next one is from the same
       block and not wider, and the refused range is fetched in narrower
-      ranges. Other errors are only recorded. The check stopped the sync,
-      and no `eth_getLogs` was sent in the 3 s after the stop.
+      ranges or in the same range again (the app sends a refused range once
+      more before halving it). Other errors are only recorded. The check
+      stopped the sync, and no `eth_getLogs` was sent in the 3 s after the
+      stop.
     - Both: the toggle is off, the nav says "stopped", the RPC host is not
       in the console (#483), no contract is left syncing or aborting, and
       the contracts grid shows "stopped" (#515).
