@@ -49,6 +49,23 @@ function values<T extends AbiRow>(
 }
 
 describe("columnDefAbiParamsArgsChildren", () => {
+  test("the columns are in the order of the ABI params table", () => {
+    const headerNames = (showIndexed: boolean): (string | undefined)[] =>
+      columnDefAbiParamsArgsChildren<EventRow>(
+        "eventInputs",
+        showIndexed,
+        "Inputs",
+        0,
+      ).map((columnDef) => columnDef.headerName);
+    expect(headerNames(true)).toEqual([
+      "Name",
+      "Type",
+      "Indexed",
+      "Components",
+    ]);
+    expect(headerNames(false)).toEqual(["Name", "Type", "Components"]);
+  });
+
   test("a tuple has the standard JSON of its components", () => {
     expect(values(functionRow, "functionInputs", false, 0)).toEqual({
       Name: "s",
