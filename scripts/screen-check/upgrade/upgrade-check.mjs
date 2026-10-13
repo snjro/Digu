@@ -855,7 +855,9 @@ await results.guard(
       const url = new URL(page.url()).pathname;
       const before = settingsBefore?.selectedChainName;
       const after = settingsAfter?.selectedChainName;
-      const isRemoved = !CHAIN_NAMES.includes(before);
+      // No saved chain is not a removed chain: it fails below.
+      const isRemoved =
+        typeof before === "string" && !CHAIN_NAMES.includes(before);
       check(
         "removed chain",
         (isRemoved ? CHAIN_NAMES.includes(after) : after === before) &&
