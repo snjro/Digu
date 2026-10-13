@@ -139,9 +139,9 @@ describe("handleRequests", () => {
     expect(answered).toEqual([]);
   });
 
-  test("gives the snapshot of matic to answer", async () => {
+  test("gives the snapshot of another chain to answer", async () => {
     const { answered, send } = await setup();
-    const url = `${ORIGIN}/warp-sync/matic/manifest.json`;
+    const url = `${ORIGIN}/warp-sync/chain2/manifest.json`;
     expect(send(url)).toEqual(["respond", 200]);
     expect(answered).toEqual([url]);
   });

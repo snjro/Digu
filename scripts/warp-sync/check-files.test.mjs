@@ -126,13 +126,17 @@ describe("checkSnapshotFiles", () => {
 
   test("another chainId", () => {
     change((m) => (m.chainId = 1));
-    expect(check()).toEqual([`${TEST_CHAIN_NAME}: ${manifestFile} is for chainId 1.`]);
+    expect(check()).toEqual([
+      `${TEST_CHAIN_NAME}: ${manifestFile} is for chainId 1.`,
+    ]);
   });
 
   test("a missing file", () => {
     const file = path.join(chainDir, firstFile());
     fs.rmSync(file);
-    expect(check()).toEqual([`${TEST_CHAIN_NAME}: ${labelOf(A, a, a + 1)}: no ${file}.`]);
+    expect(check()).toEqual([
+      `${TEST_CHAIN_NAME}: ${labelOf(A, a, a + 1)}: no ${file}.`,
+    ]);
   });
 
   test("another size", () => {
@@ -140,13 +144,17 @@ describe("checkSnapshotFiles", () => {
     const problems = check();
     expect(problems).toHaveLength(2);
     expect(problems[0]).toMatch(/ bytes, not /);
-    expect(problems[1]).toMatch(new RegExp(`^${TEST_CHAIN_NAME}: totals\\.bytes is `));
+    expect(problems[1]).toMatch(
+      new RegExp(`^${TEST_CHAIN_NAME}: totals\\.bytes is `),
+    );
   });
 
   test("another sha256", () => {
     change((m) => (m.chunks[0].sha256 = "0".repeat(64)));
     const file = path.join(chainDir, firstFile());
-    expect(check()).toEqual([`${TEST_CHAIN_NAME}: ${file} does not match its sha256.`]);
+    expect(check()).toEqual([
+      `${TEST_CHAIN_NAME}: ${file} does not match its sha256.`,
+    ]);
   });
 
   test("two chunks with the same file", () => {
@@ -367,7 +375,9 @@ describe("checkSnapshotFiles", () => {
 
   test("other totals", () => {
     change((m) => (m.totals.logCount += 1));
-    expect(check()).toEqual([`${TEST_CHAIN_NAME}: totals.logCount is 5, not 4.`]);
+    expect(check()).toEqual([
+      `${TEST_CHAIN_NAME}: totals.logCount is 5, not 4.`,
+    ]);
   });
 
   test("a file that is not in the manifest, but not under .partial/", () => {

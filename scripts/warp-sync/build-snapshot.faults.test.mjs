@@ -71,7 +71,8 @@ beforeAll(async () => {
     // Retry-After: 0 is read but does not make the wait longer; the test
     // does not wait because of WARP_SYNC_RETRY_WAIT_MS=0.
     const tooManyRequests = () => send(429, {}, { "retry-after": "0" });
-    if (method === "eth_chainId") return send(200, { result: toHex(chain.chainId) });
+    if (method === "eth_chainId")
+      return send(200, { result: toHex(chain.chainId) });
     if (method === "eth_blockNumber") {
       if (faults.blockNumber429 === 0) {
         faults.blockNumber429++;

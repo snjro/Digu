@@ -298,7 +298,7 @@ async function pageInfo(page) {
             ].find(
               (e) =>
                 e.placeholder === "https://localhost:8545" ||
-                /fake-rpc|polygon|http/.test(e.value),
+                /fake-rpc|http/.test(e.value),
             );
           return i ? { value: i.value, disabled: i.disabled } : null;
         })(),
@@ -602,13 +602,10 @@ await results.guard(
       // Sync a little.
       await syncUntil(page, "old-04", 1);
 
-      // Theme dark, selected chain matic, sidebar closed.
+      // Theme dark, sidebar closed.
       await clickByTooltip(page, "Change theme");
       await settle(page);
-      const chainSelect = await page.$("aside select, select");
-      await chainSelect.select("matic");
-      await settle(page, 1500);
-      await record(page, "old-05-dark-matic");
+      await record(page, "old-05-dark");
       // Close button of the sidebar: the first button in the sidebar header
       // that is not a tooltip button of the accordion handlers.
       const closed = await page.evaluate(() => {
@@ -795,7 +792,6 @@ await results.guard(
       await record(page, "new-00-home-first-open", { dump: true });
       checkSettingsUpgrade(settingsBefore, await readSettingsDb(page));
       for (const [name, p] of [
-        ["new-01-matic", "/matic"],
         ["new-02-eth", "/eth"],
         ["new-03-eth-v1", "/eth/Augur-version1"],
         ["new-04-eth-v2", "/eth/Augur-version2"],

@@ -105,9 +105,7 @@ describe("resetSyncedData", () => {
       deletedLogCount: 7,
       warpSyncImport: importing,
     });
-    expect(selectWarpSyncState(get(storeWarpSync), "eth").status).toBe(
-      "idle",
-    );
+    expect(selectWarpSyncState(get(storeWarpSync), "eth").status).toBe("idle");
     expect(startWarpSync).toHaveBeenCalledExactlyOnceWith(eth);
   });
 
@@ -243,9 +241,7 @@ describe("resetSyncedData", () => {
       errorObject: error,
     });
     expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("eth");
-    expect(selectWarpSyncState(get(storeWarpSync), "eth").status).toBe(
-      "idle",
-    );
+    expect(selectWarpSyncState(get(storeWarpSync), "eth").status).toBe("idle");
   });
 
   test("goes on to read the chain again when forgetting the import throws", async () => {
@@ -274,9 +270,7 @@ describe("resetSyncedData", () => {
       );
       expect(reloadSyncStatusInChain).toHaveBeenCalledExactlyOnceWith("eth");
       expect(startWarpSync).toHaveBeenCalledExactlyOnceWith(eth);
-      await vi.waitFor(() =>
-        expect(received).toEqual([{ chainName: "eth" }]),
-      );
+      await vi.waitFor(() => expect(received).toEqual([{ chainName: "eth" }]));
     } finally {
       other.close();
     }
@@ -331,9 +325,7 @@ describe("watchSyncResetsOfOtherTabs", () => {
         received.push(event.data),
       );
       await resetSyncedData(eth);
-      await vi.waitFor(() =>
-        expect(received).toEqual([{ chainName: "eth" }]),
-      );
+      await vi.waitFor(() => expect(received).toEqual([{ chainName: "eth" }]));
     } finally {
       other.close();
     }

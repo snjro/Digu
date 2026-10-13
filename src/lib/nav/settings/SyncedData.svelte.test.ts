@@ -174,9 +174,13 @@ describe("SyncedData.svelte", () => {
     const { container } = render(SyncedData);
     await fireEvent.click(resetButton());
     expect(dialog(container).open).toBe(true);
-    expect(screen.getByText("Reset the sync of Ethereum Mainnet?")).toBeTruthy();
     expect(
-      screen.getByText(/^This deletes the 1,234 event logs of Ethereum Mainnet/),
+      screen.getByText("Reset the sync of Ethereum Mainnet?"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        /^This deletes the 1,234 event logs of Ethereum Mainnet/,
+      ),
     ).toBeTruthy();
     expect(
       screen.getByText(/^The logs published with this site are imported/),

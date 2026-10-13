@@ -255,9 +255,7 @@ describe("warpSync", () => {
     vi.mocked(fetchWarpSyncManifest).mockResolvedValueOnce(undefined);
     await startWarpSync(eth);
     expect(importWarpSync).not.toHaveBeenCalled();
-    expect(selectWarpSyncState(get(storeWarpSync), "eth").status).toBe(
-      "none",
-    );
+    expect(selectWarpSyncState(get(storeWarpSync), "eth").status).toBe("none");
   });
 
   test("logs a failure and says so", async () => {
@@ -298,9 +296,7 @@ describe("warpSync", () => {
     // Waits SYNC_LOCK_TIMEOUT_MS (1 s), as the sync does.
     await startWarpSync(eth);
     expect(importWarpSync).not.toHaveBeenCalled();
-    expect(selectWarpSyncState(get(storeWarpSync), "eth").status).toBe(
-      "idle",
-    );
+    expect(selectWarpSyncState(get(storeWarpSync), "eth").status).toBe("idle");
     // The stores are read again when the other tab releases the lock.
     expect(get(storeSyncLockedByOtherTab).eth).toBe(true);
 
@@ -343,9 +339,7 @@ describe("warpSync", () => {
     expect(request).not.toHaveBeenCalled();
     expect(importWarpSync).not.toHaveBeenCalled();
     expect(get(storeSyncLockedByOtherTab).eth).toBe(false);
-    expect(selectWarpSyncState(get(storeWarpSync), "eth").status).toBe(
-      "idle",
-    );
+    expect(selectWarpSyncState(get(storeWarpSync), "eth").status).toBe("idle");
     await release();
   });
 
@@ -462,9 +456,9 @@ describe("warpSync", () => {
         const ending: Promise<void> = start();
         await stop?.();
         await vi.waitFor(() => expect(reload).toHaveBeenCalledTimes(calls + 1));
-        expect(
-          selectWarpSyncState(get(storeWarpSync), "eth").status,
-        ).not.toBe(status);
+        expect(selectWarpSyncState(get(storeWarpSync), "eth").status).not.toBe(
+          status,
+        );
         release();
         await ending;
         unsubscribe();

@@ -317,7 +317,6 @@ async function dbDump(page, contractNames = null) {
     const out = {};
     for (const { name } of await indexedDB.databases()) {
       if (!/^Digu_/.test(name)) continue;
-      if (/matic/.test(name)) continue;
       const db = await open(name);
       const o = {};
       for (const s of db.objectStoreNames) {
@@ -717,37 +716,9 @@ if (want("S1")) {
       await navIn(page, "/eth/Augur-version1/contracts/Augur/");
       await snap(page, "S1-6-3-g-contract-overview");
 
-      // 6-5: move between pages and chains while syncing
+      // 6-5: move between pages while syncing
       await navIn(page, "/eth/Augur-version1/");
       await snap(page, "S1-6-5-a-version-page-syncing");
-      await page.select('select[aria-label="Chain"]', "matic");
-      await page
-        .waitForFunction(() => location.pathname.startsWith("/matic"), {
-          timeout: 15000,
-        })
-        .catch(() => {});
-      await waitSpinner(page);
-      await settle(page);
-      await new Promise((res) => setTimeout(res, 1500));
-      await snap(page, "S1-6-5-b-matic-while-eth-syncing");
-      const ethStillSyncing = await syncStateOf(page, V1, "Augur");
-      // Changing the chain does not stop the sync.
-      check(
-        "6-5 eth while on matic",
-        ethStillSyncing?.isSyncing === true &&
-          ethStillSyncing.isAbort === false,
-        ethStillSyncing,
-      );
-      await page.select('select[aria-label="Chain"]', "eth");
-      await page
-        .waitForFunction(() => location.pathname.startsWith("/eth"), {
-          timeout: 15000,
-        })
-        .catch(() => {});
-      await waitSpinner(page);
-      await settle(page);
-      await new Promise((res) => setTimeout(res, 1000));
-      await snap(page, "S1-6-5-c-back-to-eth");
 
       // 6-6: stop
       await navIn(page, EV);

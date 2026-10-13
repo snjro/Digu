@@ -18,8 +18,7 @@ each push to develop (see [CI](#ci-screen-checkyml)).
 The checks of a local build answer the warp sync files of Ethereum
 (`/warp-sync/eth/`) with 404, so Ethereum has no snapshot and syncs from the
 RPC as before. Its import asks first, and that dialog would cover the page
-(#604). The snapshot of Polygon is still imported, except in the matic runs
-of `real-rpc/`, which turn the warp sync off first (#635).
+(#604).
 
 ## Before you run
 
@@ -205,7 +204,7 @@ cancels the older one.
 ## UI check (`ui/`)
 
 ```sh
-scripts/screen-check/ui/run.sh <build-dir> <out-dir> sec1.mjs root   # 1-1 to 1-9
+scripts/screen-check/ui/run.sh <build-dir> <out-dir> sec1.mjs root   # 1-1 to 1-7
 scripts/screen-check/ui/run.sh <build-dir> <out-dir> sec1.mjs digu   # 1-10, served under /Digu/
 scripts/screen-check/ui/run.sh <build-dir> <out-dir> sec2.mjs
 scripts/screen-check/ui/run.sh <build-dir> <out-dir> sec3.mjs
@@ -223,7 +222,7 @@ other hosts are blocked (DNS and request interception). The RPC URLs
 
 | Script      | Steps                                                                                                                                                                                                                                                                                                                                     |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sec1.mjs`  | 1: the start page, the sidebar tree, the breadcrumb, the tabs and a reload, the links in tables and grids, Back and Forward, unknown names and the error page, a `/matic/` URL opened directly, another chain in the sidebar. 1-10: the same under `/Digu/`, and that the links and the logo stay under `/Digu/`                          |
+| `sec1.mjs`  | 1: the start page, the sidebar tree, the breadcrumb, the tabs and a reload, the links in tables and grids, Back and Forward, unknown names and the error page. 1-10: the same under `/Digu/`, and that the links and the logo stay under `/Digu/`                                                                                         |
 | `sec2.mjs`  | 2: the theme switch and the theme after a reload, the sidebar closed and after a reload, its accordions (click, Enter, Space), a narrow window (the sidebar, a click outside it, the nav in one row, the sync panel), the footer links                                                                                                    |
 | `sec3.mjs`  | 3: the RPC input (its helper text, invalid URLs, a wrong chain, "Connected." and after a reload, show and hide), the sync panel (no RPC settings, closing it with the progress, Escape or a click outside), the explorer links (Etherscan), the RPC URL seen in another tab, the placeholder, and Enter in the RPC input                  |
 | `sec4.mjs`  | 4: on the contracts, events and functions grids: sort, column filter, quick search, Reset all filters, Reload, Show all columns and Hide minor columns, the column widths, full screen and Escape, paging, Copy, the CSV dialog and its file. Also the event log grids with fake logs written to IndexedDB, and 1-5 "View all Event Logs" |
@@ -273,12 +272,12 @@ it does not show in the console (#483).
 the chain id is not 1, or when the number of logs of a query is not the
 number of the logs `fake-rpc.mjs` made in its range.
 
-| Scenario | What it does                                                                                                                                                                                             |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| S1       | Picks the sync targets, syncs Augur version1 to the Goal (latest − depth, #498), follows the progress on the pages while it syncs, changes the chain during the sync, stops it, reloads, and syncs again |
-| S3       | RPC errors, one mode each: `errorGetLogs`, `errorOnce`, `errorAll` (it stops after about 200 s: the latest block is asked once per 20 s), `nullBlock` (`eth_getBlockByNumber` returns null, #519)        |
-| S4       | Two tabs: a sync in one, what the other shows, and after the first stops or closes                                                                                                                       |
-| S5       | Page errors on in-app navigation with real links                                                                                                                                                         |
+| Scenario | What it does                                                                                                                                                                                      |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1       | Picks the sync targets, syncs Augur version1 to the Goal (latest − depth, #498), follows the progress on the pages while it syncs, stops it, reloads, and syncs again                             |
+| S3       | RPC errors, one mode each: `errorGetLogs`, `errorOnce`, `errorAll` (it stops after about 200 s: the latest block is asked once per 20 s), `nullBlock` (`eth_getBlockByNumber` returns null, #519) |
+| S4       | Two tabs: a sync in one, what the other shows, and after the first stops or closes                                                                                                                |
+| S5       | Page errors on in-app navigation with real links                                                                                                                                                  |
 
 Result in `<out-dir>`: `results-sync.json` (the records, see
 [Judge](#judge-judgepy)), `results.json` (each scenario, with a `summary` of
@@ -328,51 +327,36 @@ service. Ask the owner of the repository before running it.**
 
 ```sh
 scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --fake                  # no request leaves the container
-scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir>                         # PublicNode, all 4 runs
+scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir>                         # PublicNode, both runs
 scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
 ```
 
-- A run is one chain and one protocol, in a new browser profile:
-  `eth-http`, `eth-wss`, `matic-http`, `matic-wss` (all by default). The RPC
-  is `https://` or `wss://` `ethereum-rpc.publicnode.com` or
-  `polygon-bor-rpc.publicnode.com`, without a key. Other hosts are blocked by
+- A run is one protocol, in a new browser profile: `eth-http`, `eth-wss`
+  (both by default). The RPC is `https://` or `wss://`
+  `ethereum-rpc.publicnode.com`, without a key. Other hosts are blocked by
   DNS and request interception.
 - An unknown argument, or an unknown run in `--only`, stops the check with
   exit 2 before anything is sent.
-- A run turns off all sync targets but one contract (Augur of Augur version1
-  on eth, AMMFactory of Augur turbo on matic), types the RPC URL, waits for
-  "Connected." (30 s) and starts the sync. On eth, it waits until the sync
-  stops by itself (120 s). On matic, it clicks "stop sync" when the first
-  range refused for its width has been fetched in narrower ranges, or after
-  60 s, and
-  waits for the stop (#694).
-- The matic runs first turn off "Warp sync" in the sync panel (its files get
-  404 until then), so that the sync starts at old blocks (#635); `warpSync`
-  records it. Eth has no snapshot here.
+- A run turns off all sync targets but one contract (Augur of Augur
+  version1), types the RPC URL, waits for "Connected." (30 s) and starts the
+  sync. It waits until the sync stops by itself (120 s). Eth has no snapshot
+  here.
 - It records:
   - `1 helper`: "Connected." was shown.
   - `2 goal`: the Goal is a latest block the RPC returned, less the
-    confirmation depth of the build (eth 96, matic 128, #498).
-  - `3 sync`: on eth, `eth_getLogs` was sent `TRY_COUNT` + 1 times (11;
+    confirmation depth of the build (eth 96, #498).
+  - `3 sync`: `eth_getLogs` was sent `TRY_COUNT` + 1 times (11;
     `TRY_COUNT` of `src/eventLogs/eventLogsContract.ts` in the build) and
     each was refused with an error (any code), and the sync stopped by
-    itself. On matic, the sync did not stop by itself, `fetchedBlockNumber`
-    moved on, at least one range refused for its width (`-32701` or "exceed
-    maximum block range") was fetched again in narrower ranges (`refusals`:
-    after each such refusal, the next request sent is from the same block
-    and not wider, and the successes up to the end of the refused range are
-    narrower; other errors are only counted in `refusedCodes`), the sync
-    stopped after the click, and no `eth_getLogs` was sent in 3 s after the
-    stop. On both: the toggle is off, the nav says
-    "stopped", the RPC host is not in the console (#483), no contract is left
-    syncing or aborting, and the contracts grid shows "stopped" (#515).
+    itself. The toggle is off, the nav says "stopped", the RPC host is not
+    in the console (#483), no contract is left syncing or aborting, and the
+    contracts grid shows "stopped" (#515).
   - `4 console by type`, `4 csp`: console errors and warnings, page errors,
     CSP violations.
   - `5 traffic`: the requests, the WebSocket connections, the calls by method
     (and `eth_chainId`), and the errors by code.
 - `--fake` answers the https requests in the container: the chain id, a
-  latest block, and for `eth_getLogs` `-32602` on eth, and on matic no logs
-  or `-32701` for a range over 10,000 blocks. A WebSocket cannot be
+  latest block, and `-32602` for `eth_getLogs`. A WebSocket cannot be
   intercepted, so the `wss` runs end in an error with `--fake`.
 
 Limits of PublicNode without a key:
@@ -384,10 +368,6 @@ Limits of PublicNode without a key:
   `eth_getLogs` of old blocks with no logs and refused `eth_getBlockByNumber`
   instead, so `3 sync` of `eth-wss` is not `ok` although the sync stopped
   and left nothing behind. Read the record of that run.
-- On matic, since October 2026, it returns the logs of old blocks, but
-  refuses a range over 10,000 blocks with
-  `-32701 exceed maximum block range: 10000` (#694). The sync does not stop
-  by itself, so the script stops it. The run does not check the saved logs.
 
 Result in `<out-dir>`: `results-real-rpc.json` (the records, see
 [Judge](#judge-judgepy)), `results.json` (each run), `console.json`,

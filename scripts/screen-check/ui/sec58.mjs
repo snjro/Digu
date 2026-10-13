@@ -187,7 +187,7 @@ await L.step("5-4", page, async () => {
   // Components "View" on a tuple function
   await page.goto(
     L.ROOT +
-      "/matic/Augur-turbo/contracts/SportsLinkMarketFactory/functions/getMarketDetails-0xb06c1ba3/",
+      "/eth/Augur-version2/contracts/Augur/functions/getMarketCreationData-0x4891c9ab/",
     { waitUntil: "load" },
   );
   await L.settle(page, 800);

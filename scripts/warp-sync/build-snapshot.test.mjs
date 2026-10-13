@@ -383,7 +383,9 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(fs.readFileSync(file, "utf8")).toBe(before);
   });
 
-  const legacyReputationToken = chain.contracts.find((c) => c.name === "LegacyReputationToken");
+  const legacyReputationToken = chain.contracts.find(
+    (c) => c.name === "LegacyReputationToken",
+  );
   const manifestFile = () => path.join(dir(), "manifest.json");
 
   test("a run with a range to fetch drops a contract that the chain does not have, with its files", async () => {
@@ -395,7 +397,9 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     };
     other.name = "Other";
     manifest.contracts.push(other);
-    for (const row of manifest.chunks.filter((r) => r.name === "LegacyReputationToken")) {
+    for (const row of manifest.chunks.filter(
+      (r) => r.name === "LegacyReputationToken",
+    )) {
       const copy = { ...row, name: "Other" };
       if (row.file) {
         copy.file = row.file.replace("-LegacyReputationToken-", "-Other-");
@@ -454,8 +458,12 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     async (_, change) => {
       await build({ toBlock: 16_000_000, chunkLogs: 50 });
       const manifest = readManifest();
-      const contract = manifest.contracts.find((c) => c.name === "LegacyReputationToken");
-      const chunks = manifest.chunks.filter((r) => r.name === "LegacyReputationToken");
+      const contract = manifest.contracts.find(
+        (c) => c.name === "LegacyReputationToken",
+      );
+      const chunks = manifest.chunks.filter(
+        (r) => r.name === "LegacyReputationToken",
+      );
       expect(chunks.filter((r) => r.file).length).toBeGreaterThan(1);
       const text = change(contract, chunks);
       writeManifest(manifestFile(), manifest);
@@ -468,7 +476,9 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
         log: (m) => messages.push(m),
       });
       const after = readManifest();
-      expect(after.contracts.find((c) => c.name === "LegacyReputationToken")).toEqual({
+      expect(
+        after.contracts.find((c) => c.name === "LegacyReputationToken"),
+      ).toEqual({
         project: legacyReputationToken.project,
         version: legacyReputationToken.version,
         name: legacyReputationToken.name,
@@ -486,7 +496,9 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
   test("a run that fetches a changed contract again goes on after a stop", async () => {
     await build({ toBlock: 16_000_000 });
     const manifest = readManifest();
-    const contract = manifest.contracts.find((c) => c.name === "LegacyReputationToken");
+    const contract = manifest.contracts.find(
+      (c) => c.name === "LegacyReputationToken",
+    );
     contract.creationBlock -= 10_000;
     manifest.chunks.find((r) => r.name === "LegacyReputationToken").fromBlock =
       contract.creationBlock;
@@ -634,7 +646,8 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       .readdirSync(partial)
       .filter(
         (file) =>
-          file.startsWith("Augur__version2__OICash__") && file.endsWith(".jsonl"),
+          file.startsWith("Augur__version2__OICash__") &&
+          file.endsWith(".jsonl"),
       )
       .flatMap((file) =>
         fs.readFileSync(path.join(partial, file), "utf8").split("\n"),

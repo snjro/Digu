@@ -155,19 +155,6 @@ const STATES = [
     },
   ],
   [
-    "select-chain",
-    EVENTS,
-    async (page) => {
-      const value = await page.$eval(
-        "select",
-        (select) =>
-          [...select.options].find((o) => o.textContent.includes("Polygon"))
-            .value,
-      );
-      await page.select("select", value);
-    },
-  ],
-  [
     "version-sync-target",
     VERSION,
     async (page) => {
@@ -230,7 +217,7 @@ const FUNCTION =
   "/eth/Augur-version1/contracts/Augur/functions/createChildUniverse-0x8892bb73/";
 // A function with a tuple parameter, which has a "Components of ..." dialog.
 const TUPLE_FUNCTION =
-  "/matic/Augur-turbo/contracts/SportsLinkMarketFactory/functions/getMarketDetails-0xb06c1ba3/";
+  "/eth/Augur-version2/contracts/Augur/functions/getMarketCreationData-0x4891c9ab/";
 // More screens after an action, taken like STATES. The options:
 // - `hover`: in a browser with a mouse. Headless Chrome answers
 //   `(hover: none)`, so the Tailwind `hover:` classes do not apply without it.

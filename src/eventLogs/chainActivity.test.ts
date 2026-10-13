@@ -181,7 +181,10 @@ describe("storeChainActivity", () => {
       expect(shown).toHaveLength(2);
       expect(shown[1].chain2).toBe("otherTab");
       expect(shown[1].eth).toBe("free");
-      storeSyncLockedByOtherTab.update((state) => ({ ...state, chain2: false }));
+      storeSyncLockedByOtherTab.update((state) => ({
+        ...state,
+        chain2: false,
+      }));
       expect(shown).toHaveLength(3);
     } finally {
       unsubscribe();
