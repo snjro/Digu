@@ -103,21 +103,21 @@ describe("columnDefAbiParamsArgsChildren", () => {
   test("the inputs of an event have the indexed column", () => {
     expect(values(eventRow, "eventInputs", true, 0)).toEqual({
       Name: "from",
-      Indexed: "true",
       Type: "address",
+      Indexed: "true",
       Components: NO_DATA,
     });
     expect(values(eventRow, "eventInputs", true, 1)).toEqual({
       Name: "value",
-      Indexed: "false",
       Type: "uint256",
+      Indexed: "false",
       Components: NO_DATA,
     });
     expect(eventFragment.inputs[2].indexed).toBeUndefined();
     expect(values(eventRow, "eventInputs", true, 2)).toEqual({
       Name: "flag",
-      Indexed: "false",
       Type: "bool",
+      Indexed: "false",
       Components: NO_DATA,
     });
   });

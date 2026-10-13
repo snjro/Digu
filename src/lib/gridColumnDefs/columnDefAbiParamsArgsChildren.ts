@@ -61,10 +61,10 @@ export const columnDefAbiParamsArgsChildren = <T extends AbiRow>(
 ): ColumnDef[] => {
   const columnDefs: ColumnDef[] = [
     columnDefAbiParamsStringArg(abiParamsKey, indexOfArgs, "name"),
+    columnDefAbiParamsStringArg(abiParamsKey, indexOfArgs, "type"),
     ...(showAbiParamsInputIndexedField
       ? [columnDefAbiParamsStringArg(abiParamsKey, indexOfArgs, "indexed")]
       : []),
-    columnDefAbiParamsStringArg(abiParamsKey, indexOfArgs, "type"),
     {
       headerName: capitalizeFirstLetter("components"),
       sortable: true,
