@@ -5,7 +5,7 @@ describe("getChainRootUrl", () => {
   test.each([
     ["", "eth", "/eth"],
     ["/Digu", "eth", "/Digu/eth"],
-    ["/Digu", "matic", "/Digu/matic"],
+    ["/Digu", "chain2", "/Digu/chain2"],
   ])("base %j and chain %j give %j", (basePath, chainName, expected) => {
     expect(getChainRootUrl(basePath, chainName)).toBe(expected);
   });

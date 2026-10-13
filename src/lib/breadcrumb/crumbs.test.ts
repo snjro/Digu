@@ -19,8 +19,8 @@ describe("getCrumbItems", () => {
     ]);
   });
   test("the home crumb uses the chain name and the base path", () => {
-    expect(getCrumbItems("/matic/", "matic", "", "always")).toEqual([
-      { href: "/matic", text: undefined, prefixIconName: "home" },
+    expect(getCrumbItems("/chain2/", "chain2", "", "always")).toEqual([
+      { href: "/chain2", text: undefined, prefixIconName: "home" },
     ]);
   });
   test("an event page adds the overview hash to the contract and the event", () => {

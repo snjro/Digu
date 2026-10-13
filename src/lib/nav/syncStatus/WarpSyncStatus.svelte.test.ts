@@ -19,7 +19,7 @@ vi.mock("#stores/storeRpcSettings.js", async () => {
   return {
     storeRpcSettings: writable({
       eth: { warpSync: true },
-      matic: { warpSync: true },
+      chain2: { warpSync: true },
     }),
   };
 });
@@ -205,7 +205,7 @@ describe("WarpSyncStatus.svelte", () => {
 
   test("shows the state of the selected chain only", async () => {
     const { container } = render(WarpSyncStatus);
-    setWarpSyncState("matic", { status: "failed" });
+    setWarpSyncState("chain2", { status: "failed" });
     await tick();
     expect(container.textContent).toBe("");
   });

@@ -1,5 +1,5 @@
-// Runs the script against a fake RPC on localhost, with the contracts of
-// Polygon in src/constants/chains.
+// Runs the script against a fake RPC on localhost, with the test chain of
+// test-chain.mjs.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -16,6 +16,10 @@ import {
   vi,
 } from "vitest";
 
+vi.mock("./chains.mjs", async (importOriginal) =>
+  (await import("./test-chain.mjs")).withTestChain(await importOriginal()),
+);
+
 // No wait after a failure. Read when the script is imported.
 process.env.WARP_SYNC_RETRY_WAIT_MS = "0";
 const { buildSnapshot, parsePositiveInteger } =
@@ -27,8 +31,9 @@ const { startFakeRpc } = await import("./fake-rpc.mjs");
 const { linesOf, readParts } = await import("./partial.mjs");
 const { RequestLimitError } = await import("./rpc.mjs");
 const { keyOf, writeManifest } = await import("./snapshot-format.mjs");
+const { TEST_CHAIN_NAME } = await import("./test-chain.mjs");
 
-const chain = loadChain("matic");
+const chain = loadChain(TEST_CHAIN_NAME);
 const LATEST = 16_200_000;
 const toHex = (value) => `0x${value.toString(16)}`;
 // Two logs in every block that is a multiple of 20,000. Few logs, since
@@ -125,14 +130,14 @@ afterEach(() => {
 
 const build = (options) =>
   buildSnapshot({
-    chainName: "matic",
+    chainName: TEST_CHAIN_NAME,
     rpcUrl: rpc.url,
     outDir,
     maxRequests: 10_000,
     log: () => {},
     ...options,
   });
-const dir = () => path.join(outDir, "matic");
+const dir = () => path.join(outDir, TEST_CHAIN_NAME);
 const readManifest = () =>
   JSON.parse(fs.readFileSync(path.join(dir(), "manifest.json"), "utf8"));
 const readChunk = (file) =>
@@ -181,8 +186,8 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     const manifest = readManifest();
     expect(manifest).toMatchObject({
       formatVersion: 3,
-      chainName: "matic",
-      chainId: 137,
+      chainName: TEST_CHAIN_NAME,
+      chainId: chain.chainId,
     });
     expect(manifest.contracts).toHaveLength(chain.contracts.length);
     expect(manifest.runs).toEqual([
@@ -193,7 +198,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     ]);
     expect(logsInFiles(manifest)).toEqual(expectedLogs(16_000_000));
     // The ranges from the creation block, the files and the totals.
-    expect(checkSnapshotFiles(outDir, ["matic"])).toEqual([]);
+    expect(checkSnapshotFiles(outDir, [TEST_CHAIN_NAME])).toEqual([]);
     for (const contract of chain.contracts) {
       const rows = manifest.chunks.filter((row) => row.name === contract.name);
       expect(rows.at(-1).toBlock).toBe(16_000_000);
@@ -310,7 +315,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     fs.writeFileSync(stateFile, JSON.stringify(change(file, state)));
     const messages = [];
     await build({ log: (message) => messages.push(message) });
-    expect(checkSnapshotFiles(outDir, ["matic"])).toEqual([]);
+    expect(checkSnapshotFiles(outDir, [TEST_CHAIN_NAME])).toEqual([]);
     expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
     const label = `${state.project}/${state.version}/${state.name} ${state.partFrom}-${state.partTo}`;
     expect(messages).toContainEqual(
@@ -335,7 +340,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     await expect(build({ toBlock: 16_100_000 })).resolves.toBeUndefined();
   });
 
-  // The contracts of matic created after block 15,000,000, taken out of the
+  // The contracts of the chain created after block 15,000,000, taken out of the
   // manifest of a run to that block, as if they were added to the app later.
   const withoutLaterContracts = async () => {
     await build({ toBlock: 15_000_000 });
@@ -378,22 +383,22 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(fs.readFileSync(file, "utf8")).toBe(before);
   });
 
-  const ammFactory = chain.contracts.find((c) => c.name === "AMMFactory");
+  const legacyReputationToken = chain.contracts.find((c) => c.name === "LegacyReputationToken");
   const manifestFile = () => path.join(dir(), "manifest.json");
 
   test("a run with a range to fetch drops a contract that the chain does not have, with its files", async () => {
     await build({ toBlock: 16_000_000, chunkLogs: 50 });
-    // A copy of AMMFactory, with its chunks and files, named Other.
+    // A copy of LegacyReputationToken, with its chunks and files, named Other.
     const manifest = readManifest();
     const other = {
-      ...manifest.contracts.find((c) => c.name === "AMMFactory"),
+      ...manifest.contracts.find((c) => c.name === "LegacyReputationToken"),
     };
     other.name = "Other";
     manifest.contracts.push(other);
-    for (const row of manifest.chunks.filter((r) => r.name === "AMMFactory")) {
+    for (const row of manifest.chunks.filter((r) => r.name === "LegacyReputationToken")) {
       const copy = { ...row, name: "Other" };
       if (row.file) {
-        copy.file = row.file.replace("-AMMFactory-", "-Other-");
+        copy.file = row.file.replace("-LegacyReputationToken-", "-Other-");
         fs.copyFileSync(
           path.join(dir(), row.file),
           path.join(dir(), copy.file),
@@ -417,14 +422,14 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     for (const file of otherFiles) {
       expect(fs.existsSync(path.join(dir(), file))).toBe(false);
     }
-    expect(checkSnapshotFiles(outDir, ["matic"])).toEqual([]);
+    expect(checkSnapshotFiles(outDir, [TEST_CHAIN_NAME])).toEqual([]);
     expect(logsInFiles(after)).toEqual(expectedLogs(16_100_000));
     expect(messages).toContainEqual(
       `Dropped from the snapshot: ${keyOf(other)} is not a contract with events of the chain.`,
     );
   });
 
-  // AMMFactory in the manifest with another creation block (and its first
+  // LegacyReputationToken in the manifest with another creation block (and its first
   // range from there) or another address, as if the app changed it.
   test.each([
     [
@@ -432,16 +437,16 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       (contract, chunks) => {
         contract.creationBlock -= 10_000;
         chunks[0].fromBlock = contract.creationBlock;
-        return `has creationBlock ${contract.creationBlock}, not ${ammFactory.creationBlock}.`;
+        return `has creationBlock ${contract.creationBlock}, not ${legacyReputationToken.creationBlock}.`;
       },
     ],
     [
       "address",
       (contract) => {
         contract.address = chain.contracts.find(
-          (c) => c.name === "FeePot",
+          (c) => c.name === "OICash",
         ).address;
-        return `has address ${contract.address}, not ${ammFactory.address}.`;
+        return `has address ${contract.address}, not ${legacyReputationToken.address}.`;
       },
     ],
   ])(
@@ -449,8 +454,8 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     async (_, change) => {
       await build({ toBlock: 16_000_000, chunkLogs: 50 });
       const manifest = readManifest();
-      const contract = manifest.contracts.find((c) => c.name === "AMMFactory");
-      const chunks = manifest.chunks.filter((r) => r.name === "AMMFactory");
+      const contract = manifest.contracts.find((c) => c.name === "LegacyReputationToken");
+      const chunks = manifest.chunks.filter((r) => r.name === "LegacyReputationToken");
       expect(chunks.filter((r) => r.file).length).toBeGreaterThan(1);
       const text = change(contract, chunks);
       writeManifest(manifestFile(), manifest);
@@ -463,17 +468,17 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
         log: (m) => messages.push(m),
       });
       const after = readManifest();
-      expect(after.contracts.find((c) => c.name === "AMMFactory")).toEqual({
-        project: ammFactory.project,
-        version: ammFactory.version,
-        name: ammFactory.name,
-        address: ammFactory.address,
-        creationBlock: ammFactory.creationBlock,
+      expect(after.contracts.find((c) => c.name === "LegacyReputationToken")).toEqual({
+        project: legacyReputationToken.project,
+        version: legacyReputationToken.version,
+        name: legacyReputationToken.name,
+        address: legacyReputationToken.address,
+        creationBlock: legacyReputationToken.creationBlock,
       });
-      expect(checkSnapshotFiles(outDir, ["matic"])).toEqual([]);
+      expect(checkSnapshotFiles(outDir, [TEST_CHAIN_NAME])).toEqual([]);
       expect(logsInFiles(after)).toEqual(expectedLogs(16_000_000));
       expect(messages).toContainEqual(
-        `Dropped from the snapshot: ${keyOf(ammFactory)} ${text}`,
+        `Dropped from the snapshot: ${keyOf(legacyReputationToken)} ${text}`,
       );
     },
   );
@@ -481,9 +486,9 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
   test("a run that fetches a changed contract again goes on after a stop", async () => {
     await build({ toBlock: 16_000_000 });
     const manifest = readManifest();
-    const contract = manifest.contracts.find((c) => c.name === "AMMFactory");
+    const contract = manifest.contracts.find((c) => c.name === "LegacyReputationToken");
     contract.creationBlock -= 10_000;
-    manifest.chunks.find((r) => r.name === "AMMFactory").fromBlock =
+    manifest.chunks.find((r) => r.name === "LegacyReputationToken").fromBlock =
       contract.creationBlock;
     writeManifest(manifestFile(), manifest);
     const before = fs.readFileSync(manifestFile(), "utf8");
@@ -499,9 +504,9 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     const messages = [];
     await build({ log: (m) => messages.push(m) });
     expect(messages).toContainEqual(
-      expect.stringMatching(`^${keyOf(ammFactory)} .*: go on from `),
+      expect.stringMatching(`^${keyOf(legacyReputationToken)} .*: go on from `),
     );
-    expect(checkSnapshotFiles(outDir, ["matic"])).toEqual([]);
+    expect(checkSnapshotFiles(outDir, [TEST_CHAIN_NAME])).toEqual([]);
     expect(logsInFiles(readManifest())).toEqual(expectedLogs(16_000_000));
   });
 
@@ -622,14 +627,14 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
     expect(kept).toHaveLength(answered);
   });
 
-  // The blocks of the logs of FeePot kept in .partial/.
-  const partialBlocksOfFeePot = () => {
+  // The blocks of the logs of OICash kept in .partial/.
+  const partialBlocksOfOICash = () => {
     const partial = path.join(dir(), ".partial");
     return fs
       .readdirSync(partial)
       .filter(
         (file) =>
-          file.startsWith("Augur__turbo__FeePot__") && file.endsWith(".jsonl"),
+          file.startsWith("Augur__version2__OICash__") && file.endsWith(".jsonl"),
       )
       .flatMap((file) =>
         fs.readFileSync(path.join(partial, file), "utf8").split("\n"),
@@ -638,7 +643,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       .map((line) => Number(JSON.parse(line).blockNumber));
   };
 
-  // 15,300,000 is in the first part of FeePot (500,000 blocks from its
+  // 15,300,000 is in the first part of OICash (500,000 blocks from its
   // creation block 14,853,221). The ranges of a part are fetched one after
   // another, in the order of the blocks, and maxWidth keeps every range at
   // most 100,000 blocks, whatever the other parts do to the shared widths: no
@@ -668,13 +673,13 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       `a log of another address 0x${"9".repeat(40)} at block 15300000, log index 0.`,
     ],
   ])("stops at %s when its range is fetched", async (_, fields, message) => {
-    broken = { block: 15_300_000, name: "FeePot", fields };
+    broken = { block: 15_300_000, name: "OICash", fields };
     await expect(
       build({ toBlock: 16_000_000, maxWidth: 100_000 }),
-    ).rejects.toThrow(`Augur/turbo/FeePot: ${message}`);
+    ).rejects.toThrow(`Augur/version2/OICash: ${message}`);
     expect(fs.existsSync(path.join(dir(), "manifest.json"))).toBe(false);
     // A range before the log is kept, and the range of the log is not.
-    const blocks = partialBlocksOfFeePot();
+    const blocks = partialBlocksOfOICash();
     expect(blocks).toContain(14_860_000);
     expect(blocks).not.toContain(15_300_000);
   });

@@ -10,11 +10,11 @@ afterEach(() => {
 
 describe("saveSelectedChainName", () => {
   test("writes the chain name to the user settings", async () => {
-    await saveSelectedChainName("matic");
+    await saveSelectedChainName("chain2");
     expect(updateDbItemUserSettings).toHaveBeenCalledTimes(1);
     expect(updateDbItemUserSettings).toHaveBeenCalledWith(
       "selectedChainName",
-      "matic",
+      "chain2",
     );
   });
 });

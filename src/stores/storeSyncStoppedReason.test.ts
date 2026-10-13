@@ -3,6 +3,11 @@ import { get } from "svelte/store";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { ChainName } from "#constants/chains/types.js";
 
+// "of the chain only" needs another chain.
+vi.mock("#constants/chains/_index.js", async (importOriginal) =>
+  (await import("../testUtils/secondChain")).withSecondChain(importOriginal),
+);
+
 const chainName: ChainName = TARGET_CHAINS[0].name;
 
 // Import a fresh store for each test, so that no test depends on the state

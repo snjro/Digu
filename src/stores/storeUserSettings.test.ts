@@ -32,7 +32,7 @@ describe("storeUserSettings", () => {
     const userSetting: UserSetting = {
       userSettingsId: "userSetting01",
       themeColor: "dark",
-      selectedChainName: "matic",
+      selectedChainName: "chain2",
       isOpenSidebar: false,
     };
     // set test data to the store by using `set`
@@ -57,7 +57,7 @@ describe("storeUserSettings", () => {
     const userSetting: UserSetting = {
       userSettingsId: "userSetting01",
       themeColor: "dark",
-      selectedChainName: "matic",
+      selectedChainName: "chain2",
       isOpenSidebar: false,
     };
     const expectedUserSetting: UserSetting = {

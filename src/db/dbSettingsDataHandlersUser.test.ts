@@ -75,7 +75,7 @@ describe("updateDbItemRpcSettings", () => {
   const updatedUserSetting: UserSetting = {
     userSettingsId: userSettingsId,
     themeColor: "dark",
-    selectedChainName: "matic",
+    selectedChainName: "chain2",
     isOpenSidebar: false,
   };
 

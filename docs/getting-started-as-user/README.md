@@ -101,7 +101,7 @@ Digu gets the event logs of the contracts from an [RPC endpoint](https://ethereu
    Digu sends `eth_getLogs` requests to this URL to get the event logs, and stores the logs in your browser. The URL is saved only in your browser, too.
 
 2. **The URL of the selected chain**  
-   The URL must be for the chain that you selected: `Ethereum Mainnet` or `Polygon Mainnet`. A URL of another chain shows "Error. Target chain is wrong."
+   The URL must be for the chain that you selected (`Ethereum Mainnet` now). A URL of another chain shows "Error. Target chain is wrong."
 
 3. **Where to get one**
 
@@ -112,7 +112,7 @@ Digu gets the event logs of the contracts from an [RPC endpoint](https://ethereu
    A public URL without a key can leave out some event logs without an error. Use a URL with a key if you can. If you synced with a public URL before, you can get the logs again: press the sync progress in the header to open the sync panel, and press "Reset" of "Event logs". With the warp sync on, Digu then imports the logs published with this site again, and gets only the logs after them from your RPC.
 
 4. **With the warp sync**  
-   On the chains that have the warp sync (`Ethereum Mainnet` and `Polygon Mainnet` now), Digu imports the event logs published with this site. Your RPC is needed only for the blocks after them.
+   On the chains that have the warp sync (`Ethereum Mainnet` now), Digu imports the event logs published with this site. Your RPC is needed only for the blocks after them.
 
 5. **`https:` and `wss:`**  
    On the public site (`https://snjro.github.io/Digu/`), use a URL that starts with `https:` or `wss:`. Use `http:` or `ws:` only for your own node on `localhost`: these requests are not encrypted, and an API key in the URL is sent as it is. On the public site, the browser blocks an `http:` or `ws:` URL of another host as mixed content (checked with Chrome), so it shows "Error. Cannot reach this RPC. Check the URL."

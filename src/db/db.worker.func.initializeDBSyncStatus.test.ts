@@ -12,6 +12,10 @@ import {
   type FakeLockManager,
 } from "../testUtils/fakeLockManager";
 
+// "skip a chain" needs another chain that is not skipped.
+vi.mock("#constants/chains/_index.js", async (importOriginal) =>
+  (await import("../testUtils/secondChain")).withSecondChain(importOriginal),
+);
 vi.mock("./dbEventLogs");
 vi.mocked(getDbEventLogs).mockImplementation(
   (versionIdentifier) => new DbEventLogs(versionIdentifier),

@@ -24,7 +24,7 @@ function writeManifest(chain, runs, formatVersion = 3) {
     JSON.stringify({ formatVersion, runs }),
   );
 }
-const check = (at = AT, chainNames = ["eth", "matic"]) => {
+const check = (at = AT, chainNames = ["eth", "chain2"]) => {
   const result = checkSnapshots({ args: ["--at", at], env, dir, chainNames });
   return { ...result, stdout: result.stdout.join("\n") };
 };
@@ -39,7 +39,7 @@ beforeEach(() => {
     run("2026-10-01T00:00:00Z"),
     run("2026-10-08T00:30:00Z"),
   ]);
-  writeManifest("matic", [run("2026-10-08T11:00:00Z", 77000000)]);
+  writeManifest("chain2", [run("2026-10-08T11:00:00Z", 77000000)]);
 });
 
 afterEach(() => {
@@ -54,7 +54,7 @@ test("snapshots of the day pass", () => {
     "| eth | run 2 | 2026-10-08 00:30 UTC | 26,138,967 | 0.5 | No record |",
   );
   expect(p.stdout).toContain(
-    "| matic | run 1 | 2026-10-08 11:00 UTC | 77,000,000 | 0.0 | No record |",
+    "| chain2 | run 1 | 2026-10-08 11:00 UTC | 77,000,000 | 0.0 | No record |",
   );
 });
 
@@ -154,7 +154,7 @@ test("the day is in UTC", () => {
   expect(p.exitCode, p.stdout).toBe(0);
   expect(p.stdout).toContain("release on 2026-10-08");
   expect(p.stdout).toContain(
-    "| matic | run 1 | 2026-10-08 11:00 UTC | 77,000,000 | -0.5 |",
+    "| chain2 | run 1 | 2026-10-08 11:00 UTC | 77,000,000 | -0.5 |",
   );
 });
 
@@ -181,10 +181,10 @@ test("off warns instead of failing", () => {
 });
 
 test("a chain without a snapshot is not checked", () => {
-  fs.rmSync(manifestPath("matic"));
+  fs.rmSync(manifestPath("chain2"));
   const p = check();
   expect(p.exitCode, p.stdout).toBe(0);
-  expect(p.stdout).toContain("| matic | No snapshot |  |  |  |  |");
+  expect(p.stdout).toContain("| chain2 | No snapshot |  |  |  |  |");
 });
 
 test("no chain fails", () => {

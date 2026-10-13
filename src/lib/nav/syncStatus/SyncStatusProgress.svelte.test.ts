@@ -26,7 +26,7 @@ vi.mock("#stores/storeChainStatus.js", async () => {
 vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
-    fullName: chainName === "eth" ? "Ethereum Mainnet" : "Polygon Mainnet",
+    fullName: chainName === "eth" ? "Ethereum Mainnet" : "Chain 2",
   }),
 }));
 
@@ -44,7 +44,7 @@ function initialState(): SyncStatusesChain {
       numOfSyncTargetContract: 2,
       syncStateText: "stopped",
     },
-    matic: {
+    chain2: {
       creationBlockNumber: 0,
       fetchedBlockNumber: 20,
       numOfSyncTargetContract: 1,
@@ -85,7 +85,7 @@ describe("SyncStatusProgress.svelte", () => {
     syncStatus.set(initialState());
     chainStatus.set({
       eth: { chainName: "eth", latestBlockNumber: 100 } as ChainStatus,
-      matic: { chainName: "matic", latestBlockNumber: 100 } as ChainStatus,
+      chain2: { chainName: "chain2", latestBlockNumber: 100 } as ChainStatus,
     });
   });
   afterEach(() => {
@@ -162,14 +162,14 @@ describe("SyncStatusProgress.svelte", () => {
   test("follows the chain selected in storeUserSettings", async () => {
     renderProgress(false);
 
-    storeUserSettings.update((s) => ({ ...s, selectedChainName: "matic" }));
+    storeUserSettings.update((s) => ({ ...s, selectedChainName: "chain2" }));
     await tick();
     expect(getLabel("20.0")).toBeTruthy();
     expect(getLabel("syncing")).toBeTruthy();
     expect(screen.queryByText("50.0")).toBeNull();
 
     // The store is read with the new chain, not the first one.
-    setChain("matic", { fetchedBlockNumber: 40 });
+    setChain("chain2", { fetchedBlockNumber: 40 });
     await tick();
     expect(getLabel("40.0")).toBeTruthy();
     setChain("eth", { fetchedBlockNumber: 200 });
@@ -206,11 +206,11 @@ describe("SyncStatusProgress.svelte", () => {
   test("names the button with the chain, the progress rate and the state", async () => {
     renderProgress(true);
 
-    storeUserSettings.update((s) => ({ ...s, selectedChainName: "matic" }));
+    storeUserSettings.update((s) => ({ ...s, selectedChainName: "chain2" }));
     await tick();
     expect(
       screen.getByRole("button", {
-        name: "Sync of Polygon Mainnet: 20.0%, syncing",
+        name: "Sync of Chain 2: 20.0%, syncing",
       }),
     ).toBeTruthy();
   });

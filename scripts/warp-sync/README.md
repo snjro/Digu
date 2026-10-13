@@ -19,7 +19,6 @@ chains with a snapshot, the key of a contract, and the folder under
 
 ## The snapshots
 
-- `matic`: made by this script with the public RPC of pocket.
 - `eth`: its first run (2,640,510 logs of 16 contracts to block 26,075,462)
   was not made by this script: pocket dropped logs (#576), so the logs were
   fetched from Infura with all the contracts in one `eth_getLogs` for each
@@ -92,7 +91,7 @@ In the repository root, with the `app` service of `compose.yaml`:
 
 ```sh
 docker compose run --rm app node scripts/warp-sync/build-snapshot.mjs \
-  --chain matic --rpc <url> [--rpc-key-file <path>] [--to <block>] \
+  --chain eth --rpc <url> [--rpc-key-file <path>] [--to <block>] \
   [--out static/warp-sync] \
   [--max-requests 3000] [--concurrency 24] [--part-blocks 500000] \
   [--max-width <blocks>]
@@ -102,7 +101,7 @@ The numbers (`--to`, `--max-requests`, `--concurrency`, `--part-blocks`,
 `--max-width`) are positive integers in decimal digits only, such as
 `26100000` (not `26,100,000`, `0x18e4120` or `2.61e7`).
 
-- `--chain`: the `name` of a chain in `src/constants/chains` (`matic`, `eth`).
+- `--chain`: the `name` of a chain in `src/constants/chains` (`eth`).
 - `--rpc`: a JSON-RPC URL of the chain. The script sends its requests there.
 - `--rpc-key-file`: a file with the key of the RPC, which is added to the end
   of `--rpc`, so that the key is not in the command line. With it, `--rpc`
@@ -291,7 +290,6 @@ Each run of the manifest also has what only the script writes:
 }
 ```
 
-Runs 0 and 1 of `matic` have neither: they were converted from
-formatVersion 1. Run 0 of `eth` has `requests` but not `checks`: it was not
-made by this script (The snapshots, above). The runs made before #632 (run 2
-of `matic` and run 1 of `eth`) have no `rate`.
+Run 0 of `eth` has `requests` but not `checks`: it was not made by this
+script (The snapshots, above). Run 1 of `eth`, made before #632, has no
+`rate`.
