@@ -49,6 +49,23 @@ function values<T extends AbiRow>(
 }
 
 describe("columnDefAbiParamsArgsChildren", () => {
+  test("the columns are in the order of the ABI params table", () => {
+    const headerNames = (showIndexed: boolean): (string | undefined)[] =>
+      columnDefAbiParamsArgsChildren<EventRow>(
+        "eventInputs",
+        showIndexed,
+        "Inputs",
+        0,
+      ).map((columnDef) => columnDef.headerName);
+    expect(headerNames(true)).toEqual([
+      "Name",
+      "Type",
+      "Indexed",
+      "Components",
+    ]);
+    expect(headerNames(false)).toEqual(["Name", "Type", "Components"]);
+  });
+
   test("a tuple has the standard JSON of its components", () => {
     expect(values(functionRow, "functionInputs", false, 0)).toEqual({
       Name: "s",
@@ -103,21 +120,21 @@ describe("columnDefAbiParamsArgsChildren", () => {
   test("the inputs of an event have the indexed column", () => {
     expect(values(eventRow, "eventInputs", true, 0)).toEqual({
       Name: "from",
-      Indexed: "true",
       Type: "address",
+      Indexed: "true",
       Components: NO_DATA,
     });
     expect(values(eventRow, "eventInputs", true, 1)).toEqual({
       Name: "value",
-      Indexed: "false",
       Type: "uint256",
+      Indexed: "false",
       Components: NO_DATA,
     });
     expect(eventFragment.inputs[2].indexed).toBeUndefined();
     expect(values(eventRow, "eventInputs", true, 2)).toEqual({
       Name: "flag",
-      Indexed: "false",
       Type: "bool",
+      Indexed: "false",
       Components: NO_DATA,
     });
   });
