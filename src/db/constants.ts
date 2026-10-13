@@ -26,7 +26,8 @@ export const DB_VERSIONS = {
   // 2: removed bulkUnit, chainExplorerIndex, blockIntervalMs, tryCount and
   // abortWatchIntervalMs from the RPC settings.
   Settings: 2,
-  BlockTimes: 1,
+  // 2: removed matic.
+  BlockTimes: 2,
   ChainStatus: 1,
 } as const;
 

@@ -18,7 +18,7 @@ function getContract(
 const augurV1 = getContract("eth", "version1", "Augur");
 const augurV2 = getContract("eth", "version2", "Augur");
 const shareToken = getContract("eth", "version2", "ShareToken");
-const feePot = getContract("matic", "turbo", "FeePot");
+const repV2 = getContract("eth", "version2", "REPv2");
 const A = "0x1111111111111111111111111111111111111111";
 const B = "0x2222222222222222222222222222222222222222";
 const C = "0x3333333333333333333333333333333333333333";
@@ -100,7 +100,7 @@ describe("makeWarpSyncEventLogs", () => {
     ],
     // uint256[] named "values"
     [shareToken, "TransferBatch", [A, B, C, [1n, 2n], [3n, 10n ** 40n]]],
-    [feePot, "Transfer", [A, B, 5n]],
+    [repV2, "Transfer", [A, B, 5n]],
   ])("makes the same row as the sync: %#", (contract, eventName, values) => {
     const fragment = contract.contractInterface.getEvent(eventName)!;
     expect(fragment.inputs).toHaveLength(values.length);
@@ -131,18 +131,18 @@ describe("makeWarpSyncEventLogs", () => {
   });
 
   test("throws for a log without blockTimestamp, as the sync does", () => {
-    const log = makeWarpSyncLog(feePot, "Transfer", [A, B, 1n], 10);
+    const log = makeWarpSyncLog(repV2, "Transfer", [A, B, 1n], 10);
     delete (log as Partial<typeof log>).blockTimestamp;
-    expect(() => makeWarpSyncEventLogs(feePot, [log])).toThrow(
+    expect(() => makeWarpSyncEventLogs(repV2, [log])).toThrow(
       "cannot find blocktime",
     );
   });
 
   test("throws for an event that the contract does not have", () => {
-    const log = makeWarpSyncLog(feePot, "Transfer", [A, B, 1n], 10);
+    const log = makeWarpSyncLog(repV2, "Transfer", [A, B, 1n], 10);
     log.event = "Unknown";
-    expect(() => makeWarpSyncEventLogs(feePot, [log])).toThrow(
-      "FeePot has no event Unknown.",
+    expect(() => makeWarpSyncEventLogs(repV2, [log])).toThrow(
+      "REPv2 has no event Unknown.",
     );
   });
 });

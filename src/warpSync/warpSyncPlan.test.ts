@@ -13,6 +13,7 @@ import type {
   WarpSyncManifestContract,
 } from "./warpSyncTypes";
 import { getTargetContract } from "#utils/utilsDb.js";
+import { hasSyncTargetEvents } from "#utils/utilsEthers.js";
 
 // The real one, which a test makes fail once.
 vi.mock("#utils/utilsDb.js", async (importOriginal) => {
@@ -23,14 +24,16 @@ vi.mock("#utils/utilsDb.js", async (importOriginal) => {
   };
 });
 
-const matic: Chain = TARGET_CHAINS.find((chain) => chain.name === "matic")!;
-const turbo = matic.projects[0].versions[0];
-const [first, second]: Contract[] = turbo.contracts;
+const eth: Chain = TARGET_CHAINS.find((chain) => chain.name === "eth")!;
+const version1 = eth.projects[0].versions[0];
+// A contract without a sync target event is never matched.
+const [first, second]: Contract[] =
+  version1.contracts.filter(hasSyncTargetEvents);
 
 function manifestContract(contract: Contract): WarpSyncManifestContract {
   return {
-    project: matic.projects[0].name,
-    version: turbo.name,
+    project: eth.projects[0].name,
+    version: version1.name,
     name: contract.name,
     address: contract.address,
     creationBlock: contract.creation.blockNumber,
@@ -39,8 +42,8 @@ function manifestContract(contract: Contract): WarpSyncManifestContract {
 function manifest(contracts: WarpSyncManifestContract[]): WarpSyncManifest {
   return {
     formatVersion: 3,
-    chainName: "matic",
-    chainId: 137,
+    chainName: "eth",
+    chainId: 1,
     contracts,
     runs: [],
     chunks: [],
@@ -51,22 +54,22 @@ function manifest(contracts: WarpSyncManifestContract[]): WarpSyncManifest {
 describe("matchWarpSyncContracts", () => {
   test("matches the contracts with the same names, address and creation block", () => {
     const targets = matchWarpSyncContracts(
-      matic.name,
+      eth.name,
       manifest([manifestContract(first), manifestContract(second)]),
     );
     const target = targets.get(getWarpSyncKey(manifestContract(first)));
     expect(targets.size).toBe(2);
     expect(target?.contract).toBe(first);
     expect(target?.versionIdentifier).toEqual({
-      chainName: "matic",
-      projectName: matic.projects[0].name,
-      versionName: turbo.name,
+      chainName: "eth",
+      projectName: eth.projects[0].name,
+      versionName: version1.name,
     });
   });
   test("matches an address in another case", () => {
     const contract = manifestContract(first);
     const targets = matchWarpSyncContracts(
-      matic.name,
+      eth.name,
       manifest([
         {
           ...contract,
@@ -87,7 +90,7 @@ describe("matchWarpSyncContracts", () => {
     ["an unknown project", { project: "unknown" }],
   ])("skips %s and keeps the others", (_, change) => {
     const targets = matchWarpSyncContracts(
-      matic.name,
+      eth.name,
       manifest([
         { ...manifestContract(first), ...change } as WarpSyncManifestContract,
         manifestContract(second),
@@ -110,7 +113,7 @@ describe("matchWarpSyncContracts when finding a contract fails otherwise", () =>
     });
 
     expect(() =>
-      matchWarpSyncContracts(matic.name, manifest([manifestContract(first)])),
+      matchWarpSyncContracts(eth.name, manifest([manifestContract(first)])),
     ).toThrow(error);
   });
 });
@@ -173,7 +176,7 @@ describe("getWarpSyncEnd", () => {
   test("is the last block of the contracts of the app", () => {
     const key = manifestContract(first);
     const other = { ...manifestContract(second), name: "Unknown" };
-    const targets = matchWarpSyncContracts(matic.name, manifest([key]));
+    const targets = matchWarpSyncContracts(eth.name, manifest([key]));
     const range = (name: string, toBlock: number) => ({
       project: key.project,
       version: key.version,

@@ -4,7 +4,7 @@ import { fetchWarpSyncManifest, getWarpSyncFileUrl } from "./warpSyncFetch";
 
 vi.mock("#lib/common/basePath.js", () => ({ basePath: "/Digu" }));
 
-const chain = { name: "matic", chainId: 137 } as Chain;
+const chain = { name: "eth", chainId: 1 } as Chain;
 const fetchMock = vi.fn();
 vi.stubGlobal("fetch", fetchMock);
 
@@ -15,8 +15,8 @@ function reply(status: number, body: unknown): Response {
 }
 const manifest = {
   formatVersion: 3,
-  chainName: "matic",
-  chainId: 137,
+  chainName: "eth",
+  chainId: 1,
   contracts: [],
   runs: [],
   chunks: [],
@@ -32,7 +32,7 @@ describe("fetchWarpSyncManifest", () => {
     fetchMock.mockResolvedValueOnce(reply(200, manifest));
     expect(await fetchWarpSyncManifest(chain)).toEqual(manifest);
     expect(fetchMock).toHaveBeenCalledWith(
-      "/Digu/warp-sync/matic/manifest.json",
+      "/Digu/warp-sync/eth/manifest.json",
       { signal: expect.any(AbortSignal) },
     );
   });
@@ -71,7 +71,7 @@ describe("fetchWarpSyncManifest", () => {
   });
   test.each([
     ["formatVersion 2", { formatVersion: 2 }, "format version: 2"],
-    ["another chain", { chainId: 1 }, "chainId 1"],
+    ["another chain", { chainId: 999 }, "chainId 999"],
   ])("throws for %s", async (_, change, message) => {
     fetchMock.mockResolvedValueOnce(reply(200, { ...manifest, ...change }));
     await expect(fetchWarpSyncManifest(chain)).rejects.toThrow(message);
@@ -81,7 +81,7 @@ describe("fetchWarpSyncManifest", () => {
 describe("getWarpSyncFileUrl", () => {
   test("is absolute, for the DB worker", () => {
     expect(getWarpSyncFileUrl(chain, "a.json.gz")).toBe(
-      new URL("/Digu/warp-sync/matic/a.json.gz", location.href).href,
+      new URL("/Digu/warp-sync/eth/a.json.gz", location.href).href,
     );
     expect(getWarpSyncFileUrl(chain, "a.json.gz")).toMatch(/^https?:\/\//);
   });

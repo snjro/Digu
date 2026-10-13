@@ -15,11 +15,11 @@ import SyncPanelTestHost from "./SyncPanel.testHost.svelte";
 // client project.
 vi.mock("#stores/storeUserSettings.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeUserSettings: writable({ selectedChainName: "matic" }) };
+  return { storeUserSettings: writable({ selectedChainName: "eth" }) };
 });
 vi.mock("#stores/storeRpcSettings.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeRpcSettings: writable({ matic: { warpSync: true } }) };
+  return { storeRpcSettings: writable({ eth: { warpSync: true } }) };
 });
 vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
@@ -28,13 +28,13 @@ vi.mock("#stores/storeSyncStatus.js", async () => {
 vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
-    fullName: "Polygon Mainnet",
+    fullName: "Ethereum Mainnet",
   }),
 }));
 vi.mock("#eventLogs/syncLock.js", async () => {
   const { writable } = await import("svelte/store");
   return {
-    storeSyncLockedByOtherTab: writable({ matic: false }),
+    storeSyncLockedByOtherTab: writable({ eth: false }),
     storeSyncLockedByThisTab: writable({}),
   };
 });
@@ -56,7 +56,7 @@ const lockedByThisTab = storeSyncLockedByThisTab as unknown as Writable<
   Record<string, SyncLockKind>
 >;
 function setChain(syncStateText: string): void {
-  syncStatus.set({ matic: { syncStateText, subSyncStatuses: {} } });
+  syncStatus.set({ eth: { syncStateText, subSyncStatuses: {} } });
 }
 
 const trigger = (): HTMLButtonElement =>
@@ -77,9 +77,9 @@ describe("SyncPanel.svelte", () => {
     setChain("stopped");
   });
   afterEach(() => {
-    lockedByOtherTab.set({ matic: false });
+    lockedByOtherTab.set({ eth: false });
     lockedByThisTab.set({});
-    storeSyncStoppedReason.clear("matic");
+    storeSyncStoppedReason.clear("eth");
     vi.clearAllMocks();
   });
 
@@ -91,11 +91,11 @@ describe("SyncPanel.svelte", () => {
     expect(isOpen()).toBe(true);
     expect(trigger().getAttribute("aria-expanded")).toBe("true");
     const region: HTMLElement = screen.getByRole("region", {
-      name: "Sync of Polygon Mainnet",
+      name: "Sync of Ethereum Mainnet",
     });
     expect(region).toBe(panel());
     expect(document.activeElement).toBe(
-      screen.getByRole("heading", { name: "Sync of Polygon Mainnet" }),
+      screen.getByRole("heading", { name: "Sync of Ethereum Mainnet" }),
     );
     // The settings of the chain, from the old settings dialog.
     expect(screen.getByRole("checkbox", { name: "Warp sync" })).toBeTruthy();
@@ -201,7 +201,7 @@ describe("SyncPanel.svelte", () => {
     expect(status().textContent?.trim()).toBe("Stopping.");
 
     setChain("stopped");
-    lockedByOtherTab.set({ matic: true });
+    lockedByOtherTab.set({ eth: true });
     await tick();
     expect(status().textContent?.trim()).toBe("In use in another tab.");
   });
@@ -209,24 +209,24 @@ describe("SyncPanel.svelte", () => {
   test("tells why the sync stopped, only while it is stopped here", async () => {
     render(SyncPanelTestHost);
     await openPanel();
-    storeSyncStoppedReason.record("matic", "RPC_ERRORS");
+    storeSyncStoppedReason.record("eth", "RPC_ERRORS");
     await tick();
     expect(status().textContent?.trim()).toBe(
       "Sync stopped: RPC errors. Try another RPC.",
     );
 
-    lockedByOtherTab.set({ matic: true });
+    lockedByOtherTab.set({ eth: true });
     await tick();
     expect(status().textContent?.trim()).toBe("In use in another tab.");
 
-    lockedByOtherTab.set({ matic: false });
+    lockedByOtherTab.set({ eth: false });
     setChain("stopping");
     await tick();
     expect(status().textContent?.trim()).toBe("Stopping.");
 
     setChain("stopped");
-    storeSyncStoppedReason.clear("matic");
-    storeSyncStoppedReason.record("matic", "UNEXPECTED_ERROR");
+    storeSyncStoppedReason.clear("eth");
+    storeSyncStoppedReason.record("eth", "UNEXPECTED_ERROR");
     await tick();
     expect(status().textContent?.trim()).toBe(
       "Sync stopped: unexpected error.",
@@ -234,11 +234,11 @@ describe("SyncPanel.svelte", () => {
   });
 
   test("tells why the sync stopped at once, before the sync releases the lock", async () => {
-    lockedByThisTab.set({ matic: "sync" });
+    lockedByThisTab.set({ eth: "sync" });
     setChain("syncing");
     render(SyncPanelTestHost);
     await openPanel();
-    storeSyncStoppedReason.record("matic", "RPC_ERRORS");
+    storeSyncStoppedReason.record("eth", "RPC_ERRORS");
     setChain("stopped");
     await tick();
     expect(status().textContent?.trim()).toBe(

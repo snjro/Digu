@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import type { SyncStateText } from "#db/dbTypes.js";
 import { NO_DATA } from "#utils/utilsConstants.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
@@ -19,6 +19,10 @@ import {
   storeSyncLockedByOtherTab,
   storeSyncLockedByThisTab,
 } from "./syncLock";
+
+vi.mock("#constants/chains/_index.js", async (importOriginal) =>
+  (await import("../testUtils/secondChain")).withSecondChain(importOriginal),
+);
 
 const free: ChainActivitySources = {
   lockedByThisTab: undefined,
@@ -128,22 +132,22 @@ describe("getChainActivity", () => {
 
 describe("storeChainActivity", () => {
   test("follows the lock record of this tab and the lock of another tab", async () => {
-    expect(get(storeChainActivity).matic).toBe("free");
+    expect(get(storeChainActivity).chain2).toBe("free");
     let finish: () => void = () => {};
     const holding: Promise<boolean> = runWithSyncLock(
-      "matic",
+      "chain2",
       "reset",
       () => new Promise<void>((resolve) => (finish = resolve)),
     );
-    expect(get(storeChainActivity).matic).toBe("resetting");
+    expect(get(storeChainActivity).chain2).toBe("resetting");
     // Another chain is not touched.
     expect(get(storeChainActivity).eth).toBe("free");
-    storeSyncLockedByOtherTab.update((state) => ({ ...state, matic: true }));
-    expect(get(storeChainActivity).matic).toBe("otherTab");
-    storeSyncLockedByOtherTab.update((state) => ({ ...state, matic: false }));
+    storeSyncLockedByOtherTab.update((state) => ({ ...state, chain2: true }));
+    expect(get(storeChainActivity).chain2).toBe("otherTab");
+    storeSyncLockedByOtherTab.update((state) => ({ ...state, chain2: false }));
     finish();
     expect(await holding).toBe(true);
-    expect(get(storeChainActivity).matic).toBe("free");
+    expect(get(storeChainActivity).chain2).toBe("free");
   });
 
   test("tells the subscribers only when an activity changes", () => {
@@ -165,19 +169,19 @@ describe("storeChainActivity", () => {
     try {
       expect(shown).toHaveLength(1);
       const first = shown[0];
-      expect(first.matic).toBe("free");
+      expect(first.chain2).toBe("free");
       // As a sync saving a range, and other changes that keep the activities.
       storeSyncStatus.update((state) => structuredClone(state));
       storeSyncLockedByOtherTab.update((state) => ({ ...state }));
-      setWarpSyncState("matic", { status: "imported" });
+      setWarpSyncState("chain2", { status: "imported" });
       expect(shown).toHaveLength(1);
       expect(get(storeChainActivity)).toBe(first);
 
-      storeSyncLockedByOtherTab.update((state) => ({ ...state, matic: true }));
+      storeSyncLockedByOtherTab.update((state) => ({ ...state, chain2: true }));
       expect(shown).toHaveLength(2);
-      expect(shown[1].matic).toBe("otherTab");
+      expect(shown[1].chain2).toBe("otherTab");
       expect(shown[1].eth).toBe("free");
-      storeSyncLockedByOtherTab.update((state) => ({ ...state, matic: false }));
+      storeSyncLockedByOtherTab.update((state) => ({ ...state, chain2: false }));
       expect(shown).toHaveLength(3);
     } finally {
       unsubscribe();
