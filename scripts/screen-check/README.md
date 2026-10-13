@@ -345,18 +345,30 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
   exit 2 before anything is sent.
 - A run turns off all sync targets but one contract (Augur of Augur
   version1), types the RPC URL, waits for "Connected." (30 s) and starts the
-  sync. It waits until the sync stops by itself (120 s). Eth has no snapshot
-  here.
+  sync. It waits until the sync stops by itself (120 s). When `eth_getLogs`
+  returns logs or an empty result, the check stops the sync after the first
+  range refused for its width is fetched, or after 100 s, and then waits up
+  to 60 s for the stop (#811). Eth has no snapshot here.
 - It records:
   - `1 helper`: "Connected." was shown.
   - `2 goal`: the Goal is a latest block the RPC returned, less the
     confirmation depth of the build (eth 96, #498).
-  - `3 sync`: `eth_getLogs` was sent `TRY_COUNT` + 1 times (11;
-    `TRY_COUNT` of `src/eventLogs/eventLogsContract.ts` in the build) and
-    each was refused with an error (any code), and the sync stopped by
-    itself. The toggle is off, the nav says "stopped", the RPC host is not
-    in the console (#483), no contract is left syncing or aborting, and the
-    contracts grid shows "stopped" (#515).
+  - `3 sync`: the answers to `eth_getLogs` in the run choose the check, and
+    `shape` in the record says which (#811):
+    - `refused` (every `eth_getLogs` was refused): `eth_getLogs` was sent
+      `TRY_COUNT` + 1 times (11; `TRY_COUNT` of
+      `src/eventLogs/eventLogsContract.ts` in the build) and each was refused
+      with an error (any code), and the sync stopped by itself.
+    - `logs` (logs or an empty result came back): the sync moved on. After
+      each request refused for its range, the next one is from the same
+      block and not wider, and the refused range is fetched in narrower
+      ranges or in the same range again (the app sends a refused range once
+      more before halving it). Other errors are only recorded. The check
+      stopped the sync, and no `eth_getLogs` was sent in the 3 s after the
+      stop.
+    - Both: the toggle is off, the nav says "stopped", the RPC host is not
+      in the console (#483), no contract is left syncing or aborting, and
+      the contracts grid shows "stopped" (#515).
   - `4 console by type`, `4 csp`: console errors and warnings, page errors,
     CSP violations.
   - `5 traffic`: the requests, the WebSocket connections, the calls by method
@@ -367,13 +379,15 @@ scripts/screen-check/real-rpc/run.sh <build-dir> <out-dir> --only=eth-http
 
 Limits of PublicNode without a key:
 
-- On eth, it does not return the logs or blocks of old blocks, so this check
-  cannot see a real sync of event logs there. It checks the connection, the
-  Goal, the stop after the refused requests and what is left after it. It
-  refused `eth_getLogs` of old blocks with `-32602`. Over `wss`, it answered
-  `eth_getLogs` of old blocks with no logs and refused `eth_getBlockByNumber`
-  instead, so `3 sync` of `eth-wss` is not `ok` although the sync stopped
-  and left nothing behind. Read the record of that run.
+- Over `https`, it refuses `eth_getLogs` of old blocks with `-32602`
+  (October 2026), so `eth-http` is checked as `refused`: the connection, the
+  Goal, the stop after the refused requests and what is left after it.
+- Over `wss`, it returns the logs of old blocks and refuses a range over
+  50,000 blocks with `-32701 exceed maximum block range: 50000` (October
+  2026, #811), so `eth-wss` is checked as `logs`.
+- Its answers have changed three times (#694, #779, #811). The check chooses
+  `refused` or `logs` from the answers of each run, so read `shape` in the
+  record of `3 sync`.
 
 Result in `<out-dir>`: `results-real-rpc.json` (the records, see
 [Judge](#judge-judgepy)), `results.json` (each run), `console.json`,
