@@ -82,7 +82,6 @@ Light and dark theme of:
   - a quick search, and after clearing it
   - the sidebar: the accordion of "Augur version2" opened by a click or the
     Enter key, the mouse over an item or an accordion arrow
-  - another chain chosen in the sidebar
   - the sync toggle disabled, as there is no RPC: the same screen as the
     events page, and the screenshot fails when the toggle is not found or not
     disabled

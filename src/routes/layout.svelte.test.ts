@@ -16,8 +16,8 @@ import { breakPointWidths } from "#lib/appearanceConfig/size/sizeDefinitions.js"
 
 vi.mock("$app/state", () => ({
   page: {
-    url: new URL("http://localhost/matic/"),
-    params: { chainName: "matic" },
+    url: new URL("http://localhost/chain2/"),
+    params: { chainName: "chain2" },
     status: 200,
   },
 }));
@@ -33,7 +33,7 @@ vi.mock("#lib/leftSidebar/Header/selectChain.js", () => ({
 }));
 // The real chain data and children load ethers, which does not load in the client project.
 vi.mock("#constants/chains/_index.js", () => ({
-  TARGET_CHAINS: [{ name: "eth" }, { name: "matic" }],
+  TARGET_CHAINS: [{ name: "eth" }, { name: "chain2" }],
 }));
 vi.mock("#lib/leftSidebar/LeftSidebar.svelte", () => ({ default: () => {} }));
 vi.mock("#lib/nav/Nav.svelte", () => ({ default: () => {} }));
@@ -62,17 +62,17 @@ describe("+layout.svelte", () => {
 
   test("starts the warp sync of the chain in the URL", () => {
     render(Layout);
-    expect(startWarpSync).toHaveBeenCalledExactlyOnceWith({ name: "matic" });
+    expect(startWarpSync).toHaveBeenCalledExactlyOnceWith({ name: "chain2" });
   });
 
   test("saves the chain in the URL when it differs from the saved one", () => {
     storeUserSettings.updateState({ selectedChainName: "eth" });
     render(Layout);
-    expect(saveSelectedChainName).toHaveBeenCalledExactlyOnceWith("matic");
+    expect(saveSelectedChainName).toHaveBeenCalledExactlyOnceWith("chain2");
   });
 
   test("does not save when the chain in the URL is the saved one", () => {
-    storeUserSettings.updateState({ selectedChainName: "matic" });
+    storeUserSettings.updateState({ selectedChainName: "chain2" });
     render(Layout);
     expect(saveSelectedChainName).not.toHaveBeenCalled();
   });

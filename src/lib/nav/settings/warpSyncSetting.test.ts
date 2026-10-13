@@ -21,7 +21,7 @@ vi.mock("#warpSync/warpSync.js", () => ({
   forgetWarpSyncConfirmation: vi.fn(),
 }));
 
-const matic = { name: "matic" } as Chain;
+const chain2 = { name: "chain2" } as Chain;
 
 describe("updateWarpSync", () => {
   afterEach(() => {
@@ -32,30 +32,30 @@ describe("updateWarpSync", () => {
   });
 
   test("saves it, and imports the snapshot when it is turned on", async () => {
-    expect(await updateWarpSync(matic, true)).toBe(true);
+    expect(await updateWarpSync(chain2, true)).toBe(true);
     expect(updateDbItemRpcSettings).toHaveBeenCalledWith(
-      "matic",
+      "chain2",
       "warpSync",
       true,
     );
-    expect(startWarpSync).toHaveBeenCalledWith(matic);
+    expect(startWarpSync).toHaveBeenCalledWith(chain2);
   });
   test("asks again for a large import when it is turned on", async () => {
-    await updateWarpSync(matic, true);
-    expect(forgetWarpSyncConfirmation).toHaveBeenCalledWith("matic");
+    await updateWarpSync(chain2, true);
+    expect(forgetWarpSyncConfirmation).toHaveBeenCalledWith("chain2");
   });
   test("does not import, and stops the import of this tab, when it is turned off", async () => {
     const controller = new AbortController();
-    setWarpSyncStopController("matic", controller);
-    expect(await updateWarpSync(matic, false)).toBe(true);
+    setWarpSyncStopController("chain2", controller);
+    expect(await updateWarpSync(chain2, false)).toBe(true);
     expect(startWarpSync).not.toHaveBeenCalled();
     expect(controller.signal.aborted).toBe(true);
-    setWarpSyncStopController("matic", undefined);
+    setWarpSyncStopController("chain2", undefined);
   });
   test("returns false and shows a snackbar when the save fails", async () => {
     vi.spyOn(customLogger, "error").mockImplementation(() => {});
     vi.mocked(updateDbItemRpcSettings).mockRejectedValueOnce(new Error("db"));
-    expect(await updateWarpSync(matic, true)).toBe(false);
+    expect(await updateWarpSync(chain2, true)).toBe(false);
     expect(get(storeNoDbSnackBar).visible).toBe(true);
     expect(startWarpSync).not.toHaveBeenCalled();
   });

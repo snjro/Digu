@@ -69,6 +69,19 @@ const SETTINGS_VERSION = Number(
     .readFileSync("/app/src/db/constants.ts", "utf8")
     .match(/Settings:\s*(\d+)/)[1],
 );
+// The chains of the new build. v1.0.2 also has matic, which the new build
+// does not have (#809): the upgrade deletes the rows of the other chains.
+const CHAINS_DIR = "/app/src/constants/chains";
+const CHAIN_NAMES = [
+  ...fs
+    .readFileSync(`${CHAINS_DIR}/_index.ts`, "utf8")
+    .matchAll(/from "\.\/([^"]+)\/_index"/g),
+].map(
+  ([, dir]) =>
+    fs
+      .readFileSync(`${CHAINS_DIR}/${dir}/_index.ts`, "utf8")
+      .match(/name:\s*"([^"]+)"/)[1],
+);
 const log = [];
 const steps = [];
 let stepName = "start";
@@ -298,7 +311,7 @@ async function pageInfo(page) {
             ].find(
               (e) =>
                 e.placeholder === "https://localhost:8545" ||
-                /fake-rpc|polygon|http/.test(e.value),
+                /fake-rpc|http/.test(e.value),
             );
           return i ? { value: i.value, disabled: i.disabled } : null;
         })(),
@@ -424,13 +437,16 @@ async function readSettingsDb(page) {
             resolve({ version, rows: null });
             return;
           }
-          const g = db
-            .transaction("RpcSettings")
-            .objectStore("RpcSettings")
-            .getAll();
-          g.onsuccess = () => {
+          const tx = db.transaction(["RpcSettings", "UserSettings"]);
+          const g = tx.objectStore("RpcSettings").getAll();
+          const u = tx.objectStore("UserSettings").getAll();
+          tx.oncomplete = () => {
             db.close();
-            resolve({ version, rows: g.result });
+            resolve({
+              version,
+              rows: g.result,
+              selectedChainName: u.result[0]?.selectedChainName,
+            });
           };
         };
         r.onerror = () => resolve(null);
@@ -445,6 +461,10 @@ function checkSettingsUpgrade(before, after) {
   if (!before?.rows?.length) ng.push("no RPC settings before the upgrade");
   for (const b of before?.rows ?? []) {
     const a = after?.rows?.find((r) => r.chainName === b.chainName);
+    if (!CHAIN_NAMES.includes(b.chainName)) {
+      if (a) ng.push(`${b.chainName}: a removed chain is still there`);
+      continue;
+    }
     if (!a) {
       ng.push(`${b.chainName}: no row after the upgrade`);
       continue;
@@ -602,7 +622,8 @@ await results.guard(
       // Sync a little.
       await syncUntil(page, "old-04", 1);
 
-      // Theme dark, selected chain matic, sidebar closed.
+      // Theme dark, selected chain matic, sidebar closed. The new build has
+      // no matic (#809), and must open on another chain.
       await clickByTooltip(page, "Change theme");
       await settle(page);
       const chainSelect = await page.$("aside select, select");
@@ -793,9 +814,28 @@ await results.guard(
       await page.goto(`${ORIGIN}/`, { waitUntil: "load" });
       await settle(page, 3000);
       await record(page, "new-00-home-first-open", { dump: true });
-      checkSettingsUpgrade(settingsBefore, await readSettingsDb(page));
+      const settingsAfter = await readSettingsDb(page);
+      checkSettingsUpgrade(settingsBefore, settingsAfter);
+      // The chain saved by v1.0.2 is gone (#809): the app opens on a chain of
+      // the build, without a page error.
+      const pageErrors = log.filter((line) =>
+        line.startsWith("[pageerror] new-00"),
+      );
+      const url = new URL(page.url()).pathname;
+      check(
+        "removed chain",
+        settingsBefore?.selectedChainName === "matic" &&
+          CHAIN_NAMES.includes(settingsAfter?.selectedChainName) &&
+          url === `/${settingsAfter.selectedChainName}/` &&
+          pageErrors.length === 0,
+        JSON.stringify({
+          before: settingsBefore?.selectedChainName,
+          after: settingsAfter?.selectedChainName,
+          url,
+          pageErrors,
+        }),
+      );
       for (const [name, p] of [
-        ["new-01-matic", "/matic"],
         ["new-02-eth", "/eth"],
         ["new-03-eth-v1", "/eth/Augur-version1"],
         ["new-04-eth-v2", "/eth/Augur-version2"],

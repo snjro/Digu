@@ -6,8 +6,8 @@ import { storeUserSettings } from "#stores/storeUserSettings.js";
 
 vi.mock("$app/state", () => ({
   page: {
-    url: new URL("http://localhost/matic/proj-v1/"),
-    params: { chainName: "matic", projectName_versionName: "proj-v1" },
+    url: new URL("http://localhost/chain2/proj-v1/"),
+    params: { chainName: "chain2", projectName_versionName: "proj-v1" },
     status: 200,
   },
 }));
@@ -25,9 +25,9 @@ describe("Breadcrumb.svelte", () => {
       a.getAttribute("href"),
     );
     // The last crumb is a label, not a link.
-    expect(hrefs).toEqual(["/matic"]);
+    expect(hrefs).toEqual(["/chain2"]);
     expect(container.textContent).toContain("proj v1");
-    expect(container.textContent).not.toContain("matic");
+    expect(container.textContent).not.toContain("chain2");
   });
 
   test("puts only <li> in the list", () => {

@@ -9,7 +9,7 @@ export const WARP_SYNC_DIR = "warp-sync";
 
 // The chains that have a snapshot under static/warp-sync.
 /** @type {readonly import("#constants/chains/types.js").ChainName[]} */
-export const WARP_SYNC_CHAIN_NAMES = ["matic", "eth"];
+export const WARP_SYNC_CHAIN_NAMES = ["eth"];
 
 /**
  * The key of a contract in the snapshot.

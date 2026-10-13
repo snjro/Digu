@@ -127,7 +127,6 @@ try {
     "/eth/Augur-version1/",
     "/eth/Augur-version1/contracts/Augur/",
     "/eth/Augur-version1/contracts/Augur/events/MarketCreated/",
-    "/matic/",
   ]) {
     const res = await open(`${BASE}${p}`);
     const h1 = await page.evaluate(

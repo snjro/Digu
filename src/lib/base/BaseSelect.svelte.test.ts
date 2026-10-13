@@ -9,7 +9,7 @@ import BaseSelectTestHost from "./BaseSelect.testHost.svelte";
 
 const items = [
   { name: "Ethereum", value: "eth" },
-  { name: "Polygon", value: "matic" },
+  { name: "Chain 2", value: "chain2" },
 ];
 
 afterEach(() => {
@@ -20,14 +20,14 @@ describe("BaseSelect.svelte", () => {
   test("shows the items and the selected value, and follows the props", async () => {
     const { rerender } = render(BaseSelect, {
       items,
-      value: "matic",
+      value: "chain2",
       size: "md",
     });
     const select = screen.getByRole("combobox") as HTMLSelectElement;
     expect(
       screen.getAllByRole("option").map((o) => o.textContent?.trim()),
-    ).toEqual(["Ethereum", "Polygon"]);
-    expect(select.value).toBe("matic");
+    ).toEqual(["Ethereum", "Chain 2"]);
+    expect(select.value).toBe("chain2");
 
     await rerender({ value: "eth" });
     expect(select.value).toBe("eth");
@@ -53,7 +53,7 @@ describe("BaseSelect.svelte", () => {
     const onchange = vi.fn();
     render(BaseSelect, { items, value: "eth", size: "md", onchange });
     const select = screen.getByRole("combobox");
-    await fireEvent.change(select, { target: { value: "matic" } });
+    await fireEvent.change(select, { target: { value: "chain2" } });
     expect(onchange).toHaveBeenCalledTimes(1);
     expect(onchange.mock.calls[0][0].target).toBe(select);
   });
@@ -61,7 +61,7 @@ describe("BaseSelect.svelte", () => {
   test("sends the selected value back to the parent (bind:value)", async () => {
     // happy-dom does not match `option:checked`, which the binding reads, and
     // the binding then falls back to the first option. So select the first.
-    render(BaseSelectTestHost, { items, value: "matic" });
+    render(BaseSelectTestHost, { items, value: "chain2" });
     const select = screen.getByRole("combobox") as HTMLSelectElement;
     select.value = "eth";
     await fireEvent.change(select);

@@ -93,11 +93,11 @@ vi.mock("ethers", async (importOriginal) => {
   return { ...actual, WebSocketProvider: FakeSocketWebSocketProvider };
 });
 
-const targetChainName: ChainName = "matic";
+const targetChainName: ChainName = "eth";
 const targetChain: Chain = TARGET_CHAINS.find(
   (chain: Chain) => chain.name === targetChainName,
 )!;
-const otherChainId: number = 1;
+const otherChainId: number = 999;
 let spyUpdateDbItemChainStatus: MockInstance;
 
 beforeAll(() => {

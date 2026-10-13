@@ -33,9 +33,9 @@ describe("countSyncedLogs", () => {
 
 describe("getResetConfirmationTexts", () => {
   test("says what is deleted and kept, and where the logs come from next", () => {
-    const on = getResetConfirmationTexts("Polygon Mainnet", "1,234", true);
+    const on = getResetConfirmationTexts("Chain 2", "1,234", true);
     expect(on[0]).toBe(
-      "This deletes the 1,234 event logs of Polygon Mainnet and their block times saved in this browser, and the sync of every contract starts again from its creation block.",
+      "This deletes the 1,234 event logs of Chain 2 and their block times saved in this browser, and the sync of every contract starts again from its creation block.",
     );
     expect(on[1]).toBe(
       "Your settings are kept: the RPC, the warp sync and the contracts to sync.",
@@ -56,10 +56,10 @@ describe("getResetResultLines", () => {
           deletedLogCount: 4064,
           warpSyncImport: Promise.resolve(),
         },
-        "Polygon Mainnet",
+        "Chain 2",
       ),
     ).toEqual([
-      { text: "Deleted 4,064 event logs of Polygon Mainnet.", isError: false },
+      { text: "Deleted 4,064 event logs of Chain 2.", isError: false },
       {
         text: "Importing the logs published with this site…",
         isError: false,

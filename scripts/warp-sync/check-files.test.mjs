@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { loadChain } from "./chains.mjs";
 import { checkSnapshotFiles } from "./check-files.mjs";
 import {
@@ -13,9 +13,14 @@ import {
   writeContractChunks,
   writeManifest,
 } from "./snapshot-format.mjs";
+import { TEST_CHAIN_NAME } from "./test-chain.mjs";
 
-const chain = loadChain("matic");
-// The contracts of matic, as build-snapshot.mjs writes them in the manifest.
+vi.mock("./chains.mjs", async (importOriginal) =>
+  (await import("./test-chain.mjs")).withTestChain(await importOriginal()),
+);
+
+const chain = loadChain(TEST_CHAIN_NAME);
+// The contracts of the chain, as build-snapshot.mjs writes them in the manifest.
 const contracts = chain.contracts.map(
   ({ project, version, name, address, creationBlock }) => ({
     project,
@@ -27,8 +32,8 @@ const contracts = chain.contracts.map(
 );
 // The two that have logs in the sample snapshot, and their creation blocks.
 const contractOf = (name) =>
-  contracts.find((contract) => keyOf(contract) === `Augur/turbo/${name}`);
-const [A, B] = [contractOf("AMMFactory"), contractOf("FeePot")];
+  contracts.find((contract) => keyOf(contract) === `Augur/version2/${name}`);
+const [A, B] = [contractOf("LegacyReputationToken"), contractOf("OICash")];
 const a = A.creationBlock;
 const b = B.creationBlock;
 const labelOf = (contract, from, to) => `${keyOf(contract)} ${from}-${to}`;
@@ -42,11 +47,11 @@ const logOf = (block, index) => ({
 let dir;
 let chainDir;
 let manifestFile;
-// A snapshot of matic without problems: A has the logs of its first three
+// A snapshot of the chain without problems: A has the logs of its first three
 // blocks in two files and no log after; B has one file.
 beforeEach(async () => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-files-"));
-  chainDir = path.join(dir, "matic");
+  chainDir = path.join(dir, TEST_CHAIN_NAME);
   manifestFile = path.join(chainDir, "manifest.json");
   const manifest = emptyManifest(chain);
   manifest.contracts = contracts;
@@ -71,7 +76,7 @@ beforeEach(async () => {
 });
 afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
 
-const check = () => checkSnapshotFiles(dir, ["matic"]);
+const check = () => checkSnapshotFiles(dir, [TEST_CHAIN_NAME]);
 const change = (edit) => {
   const manifest = readManifest(manifestFile, chain);
   edit(manifest);
@@ -80,7 +85,7 @@ const change = (edit) => {
 const firstFile = () => readManifest(manifestFile, chain).chunks[0].file;
 // A problem of the file of chunk i (the files are not changed by change()).
 const fileProblem = (i, text) =>
-  `matic: ${path.join(chainDir, readManifest(manifestFile, chain).chunks[i].file)} ${text}`;
+  `${TEST_CHAIN_NAME}: ${path.join(chainDir, readManifest(manifestFile, chain).chunks[i].file)} ${text}`;
 
 describe("checkSnapshotFiles", () => {
   test("finds no problem in a good snapshot", () => {
@@ -105,8 +110,8 @@ describe("checkSnapshotFiles", () => {
 
   test("a folder of the snapshot that does not exist", () => {
     const missing = path.join(dir, "none");
-    expect(checkSnapshotFiles(missing, ["matic"])).toEqual([
-      `matic: no ${path.join(missing, "matic", "manifest.json")}.`,
+    expect(checkSnapshotFiles(missing, [TEST_CHAIN_NAME])).toEqual([
+      `${TEST_CHAIN_NAME}: no ${path.join(missing, TEST_CHAIN_NAME, "manifest.json")}.`,
     ]);
   });
 
@@ -116,18 +121,22 @@ describe("checkSnapshotFiles", () => {
 
   test("a chain in the list without a manifest", () => {
     fs.rmSync(manifestFile);
-    expect(check()).toEqual([`matic: no ${manifestFile}.`]);
+    expect(check()).toEqual([`${TEST_CHAIN_NAME}: no ${manifestFile}.`]);
   });
 
   test("another chainId", () => {
     change((m) => (m.chainId = 1));
-    expect(check()).toEqual([`matic: ${manifestFile} is for chainId 1.`]);
+    expect(check()).toEqual([
+      `${TEST_CHAIN_NAME}: ${manifestFile} is for chainId 1.`,
+    ]);
   });
 
   test("a missing file", () => {
     const file = path.join(chainDir, firstFile());
     fs.rmSync(file);
-    expect(check()).toEqual([`matic: ${labelOf(A, a, a + 1)}: no ${file}.`]);
+    expect(check()).toEqual([
+      `${TEST_CHAIN_NAME}: ${labelOf(A, a, a + 1)}: no ${file}.`,
+    ]);
   });
 
   test("another size", () => {
@@ -135,21 +144,25 @@ describe("checkSnapshotFiles", () => {
     const problems = check();
     expect(problems).toHaveLength(2);
     expect(problems[0]).toMatch(/ bytes, not /);
-    expect(problems[1]).toMatch(/^matic: totals\.bytes is /);
+    expect(problems[1]).toMatch(
+      new RegExp(`^${TEST_CHAIN_NAME}: totals\\.bytes is `),
+    );
   });
 
   test("another sha256", () => {
     change((m) => (m.chunks[0].sha256 = "0".repeat(64)));
     const file = path.join(chainDir, firstFile());
-    expect(check()).toEqual([`matic: ${file} does not match its sha256.`]);
+    expect(check()).toEqual([
+      `${TEST_CHAIN_NAME}: ${file} does not match its sha256.`,
+    ]);
   });
 
   test("two chunks with the same file", () => {
     const { chunks } = readManifest(manifestFile, chain);
     change((m) => (m.chunks[1].file = chunks[0].file));
     expect(check()).toEqual([
-      `matic: ${labelOf(A, a + 2, a + 9)}: ${chunks[0].file} is the file of another chunk.`,
-      `matic: ${path.join(chainDir, chunks[1].file)} is not in the manifest.`,
+      `${TEST_CHAIN_NAME}: ${labelOf(A, a + 2, a + 9)}: ${chunks[0].file} is the file of another chunk.`,
+      `${TEST_CHAIN_NAME}: ${path.join(chainDir, chunks[1].file)} is not in the manifest.`,
     ]);
   });
 
@@ -161,10 +174,10 @@ describe("checkSnapshotFiles", () => {
     });
     const problems = check();
     expect(problems).toContain(
-      `matic: ${labelOf(A, a + 2, a + 9)} has 0 logs and file x.json.gz.`,
+      `${TEST_CHAIN_NAME}: ${labelOf(A, a + 2, a + 9)} has 0 logs and file x.json.gz.`,
     );
     expect(problems).toContain(
-      `matic: ${labelOf(B, b, b + 5)} has 1 logs and file null.`,
+      `${TEST_CHAIN_NAME}: ${labelOf(B, b, b + 5)} has 1 logs and file null.`,
     );
   });
 
@@ -173,7 +186,7 @@ describe("checkSnapshotFiles", () => {
     expect(check()).toEqual([
       fileProblem(1, `has blocks ${a + 2}-${a + 9}, not ${a + 3}-${a + 9}.`),
       fileProblem(1, `has a log of block ${a + 2}.`),
-      `matic: ${labelOf(A, a + 3, a + 9)} does not start at block ${a + 2}.`,
+      `${TEST_CHAIN_NAME}: ${labelOf(A, a + 3, a + 9)} does not start at block ${a + 2}.`,
     ]);
   });
 
@@ -184,8 +197,8 @@ describe("checkSnapshotFiles", () => {
     );
     const key = keyOf(B);
     expect(check()).toEqual([
-      `matic: ${key} has creationBlock ${b - 1}, not ${b}.`,
-      `matic: ${labelOf(B, b, b + 5)} does not start at block ${b - 1}.`,
+      `${TEST_CHAIN_NAME}: ${key} has creationBlock ${b - 1}, not ${b}.`,
+      `${TEST_CHAIN_NAME}: ${labelOf(B, b, b + 5)} does not start at block ${b - 1}.`,
     ]);
   });
 
@@ -197,7 +210,7 @@ describe("checkSnapshotFiles", () => {
     expect(check()).toEqual([
       fileProblem(1, `has blocks ${a + 2}-${a + 9}, not ${a + 2}-${a + 1}.`),
       fileProblem(1, `has a log of block ${a + 2}.`),
-      `matic: ${labelOf(A, a + 2, a + 1)} has no block.`,
+      `${TEST_CHAIN_NAME}: ${labelOf(A, a + 2, a + 1)} has no block.`,
     ]);
   });
 
@@ -210,7 +223,7 @@ describe("checkSnapshotFiles", () => {
       fileProblem(0, `has blocks ${a}-${a + 1}, not ${a}-${a}.`),
       fileProblem(0, `has a log of block ${a + 1}.`),
       fileProblem(1, `has blocks ${a + 2}-${a + 9}, not ${a + 1}-${a + 9}.`),
-      `matic: ${labelOf(A, a, a)} ends at the creation block.`,
+      `${TEST_CHAIN_NAME}: ${labelOf(A, a, a)} ends at the creation block.`,
     ]);
   });
 
@@ -220,8 +233,8 @@ describe("checkSnapshotFiles", () => {
     );
     const key = keyOf(B);
     expect(check()).toEqual([
-      `matic: ${key} is not in manifest.contracts.`,
-      `matic: ${labelOf(B, b, b + 5)}: ${key} is not in manifest.contracts.`,
+      `${TEST_CHAIN_NAME}: ${key} is not in manifest.contracts.`,
+      `${TEST_CHAIN_NAME}: ${labelOf(B, b, b + 5)}: ${key} is not in manifest.contracts.`,
     ]);
   });
 
@@ -232,7 +245,7 @@ describe("checkSnapshotFiles", () => {
     );
     const key = keyOf(A);
     expect(check()).toEqual([
-      `matic: ${key} has address ${B.address}, not ${A.address}.`,
+      `${TEST_CHAIN_NAME}: ${key} has address ${B.address}, not ${A.address}.`,
       fileProblem(0, `has address ${A.address}, not ${B.address}.`),
       fileProblem(1, `has address ${A.address}, not ${B.address}.`),
     ]);
@@ -241,7 +254,7 @@ describe("checkSnapshotFiles", () => {
   test("a contract that the chain does not have", () => {
     change((m) => m.contracts.push({ ...A, name: "Other" }));
     expect(check()).toEqual([
-      `matic: ${A.project}/${A.version}/Other is not a contract with events of the chain.`,
+      `${TEST_CHAIN_NAME}: ${A.project}/${A.version}/Other is not a contract with events of the chain.`,
     ]);
   });
 
@@ -362,7 +375,9 @@ describe("checkSnapshotFiles", () => {
 
   test("other totals", () => {
     change((m) => (m.totals.logCount += 1));
-    expect(check()).toEqual(["matic: totals.logCount is 5, not 4."]);
+    expect(check()).toEqual([
+      `${TEST_CHAIN_NAME}: totals.logCount is 5, not 4.`,
+    ]);
   });
 
   test("a file that is not in the manifest, but not under .partial/", () => {
@@ -370,7 +385,7 @@ describe("checkSnapshotFiles", () => {
     fs.mkdirSync(path.join(chainDir, ".partial"));
     fs.writeFileSync(path.join(chainDir, ".partial", "y.json.gz"), "");
     expect(check()).toEqual([
-      `matic: ${path.join(chainDir, "x.json.gz")} is not in the manifest.`,
+      `${TEST_CHAIN_NAME}: ${path.join(chainDir, "x.json.gz")} is not in the manifest.`,
     ]);
   });
 });

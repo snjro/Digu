@@ -26,7 +26,7 @@ vi.mock("./selectChain", () => ({ saveSelectedChainName: vi.fn() }));
 vi.mock("#constants/chains/_index.js", () => ({
   TARGET_CHAINS: [
     { name: "eth", fullName: "Ethereum" },
-    { name: "matic", fullName: "Polygon" },
+    { name: "chain2", fullName: "Chain 2" },
   ],
 }));
 // Keeps the change handler, so that a test can wait for its promise.
@@ -65,9 +65,9 @@ describe("SelectChain.svelte", () => {
     vi.mocked(saveSelectedChainName).mockImplementation(async () => {
       loaderValues.push(get(storeNodbShowLoader));
     });
-    await selectChain("matic");
-    expect(saveSelectedChainName).toHaveBeenCalledExactlyOnceWith("matic");
-    expect(goto).toHaveBeenCalledExactlyOnceWith("/matic");
+    await selectChain("chain2");
+    expect(saveSelectedChainName).toHaveBeenCalledExactlyOnceWith("chain2");
+    expect(goto).toHaveBeenCalledExactlyOnceWith("/chain2");
     expect(loaderValues).toEqual([true]);
     expect(get(storeNodbShowLoader)).toBe(false);
   });
@@ -76,7 +76,7 @@ describe("SelectChain.svelte", () => {
     const error = new Error("DB error");
     vi.spyOn(customLogger, "error").mockImplementation(() => {});
     vi.mocked(saveSelectedChainName).mockRejectedValue(error);
-    await expect(selectChain("matic")).resolves.toBeUndefined();
+    await expect(selectChain("chain2")).resolves.toBeUndefined();
     expect(customLogger.error).toHaveBeenCalledWith(
       "Save the selected chain.",
       error,
@@ -91,18 +91,18 @@ describe("SelectChain.svelte", () => {
     vi.mocked(saveSelectedChainName).mockRejectedValueOnce(
       new Error("DB error"),
     );
-    storeUserSettings.updateState({ selectedChainName: "matic" });
+    storeUserSettings.updateState({ selectedChainName: "chain2" });
     render(SelectChain);
     const select = screen.getByRole("combobox", {
       name: "Chain",
     }) as HTMLSelectElement;
-    expect(select.value).toBe("matic");
+    expect(select.value).toBe("chain2");
 
     await selectAsUser(select, "eth");
     await vi.waitFor(() =>
       expect(get(storeNoDbSnackBar)).toEqual(showSnackBarAsSaveFailed),
     );
     expect(saveSelectedChainName).toHaveBeenCalledExactlyOnceWith("eth");
-    expect(select.value).toBe("matic");
+    expect(select.value).toBe("chain2");
   });
 });

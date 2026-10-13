@@ -22,10 +22,11 @@ class DbSettings extends dbBase {
     const dbName = DB_NAME.secondNames.settings;
     super(dbName);
     const schemaDefinition: SchemaDefinition = this.getSchemaDefinition();
-    this.version(DB_VERSIONS.Settings)
+    // Each upgrade stays on its version, so that an older version gets every
+    // upgrade after it.
+    this.version(2)
       .stores(schemaDefinition)
-      // From version 1 to 2. For version 3, put this upgrade on version(2) and
-      // add version(3) with its own, so that version 1 is upgraded too.
+      // From version 1 to 2.
       .upgrade(async (tx: Transaction) => {
         await tx
           .table(tableNameRpcSettings)
@@ -36,6 +37,31 @@ class DbSettings extends dbBase {
             delete rpcSetting.blockIntervalMs;
             delete rpcSetting.tryCount;
             delete rpcSetting.abortWatchIntervalMs;
+          });
+      });
+    this.version(DB_VERSIONS.Settings)
+      .stores(schemaDefinition)
+      // From version 2 to 3: deletes the RPC settings of the chains that are
+      // not targets, and selects the default chain instead of one (#809).
+      .upgrade(async (tx: Transaction) => {
+        const chainNames: ChainName[] = TARGET_CHAINS.map(
+          (targetChain) => targetChain.name,
+        );
+        await tx
+          .table(tableNameRpcSettings)
+          .filter(
+            (rpcSetting: RpcSetting) =>
+              !chainNames.includes(rpcSetting.chainName),
+          )
+          .delete();
+        await tx
+          .table(tableNameUserSettings)
+          .filter(
+            (userSetting: UserSetting) =>
+              !chainNames.includes(userSetting.selectedChainName),
+          )
+          .modify({
+            selectedChainName: initialDataUserSettings.selectedChainName,
           });
       });
     this.on("populate", async (tx: Transaction) => {

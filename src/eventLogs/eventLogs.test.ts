@@ -41,7 +41,7 @@ vi.mock("./updateLatestBlockNumber", () => ({
 }));
 vi.mock("./eventLogsContract", () => ({ fetchEventLogsContract: vi.fn() }));
 
-const chain = { name: "matic" } as Chain;
+const chain = { name: "eth" } as Chain;
 
 describe("fetchEventLogs", () => {
   test("waits for the warp sync of this tab, then imports the rest under the lock before the sync starts", async () => {
@@ -65,12 +65,12 @@ describe("fetchEventLogs", () => {
     expect(await fetchEventLogs(chain)).toBe(true);
     expect(calls).toEqual([
       "wait for the import of this tab",
-      "lock matic",
+      "lock eth",
       "import",
       "start syncing",
     ]);
     expect(importWarpSyncBeforeSync).toHaveBeenCalledWith(chain);
-    expect(startSyncingInChain).toHaveBeenCalledWith("matic");
+    expect(startSyncingInChain).toHaveBeenCalledWith("eth");
   });
 });
 
@@ -84,7 +84,7 @@ describe("syncEventLogs", () => {
   });
 
   test("throws the error of the sync when destroying the provider fails too", async () => {
-    const matic: Chain = TARGET_CHAINS.find((chain) => chain.name === "matic")!;
+    const eth: Chain = TARGET_CHAINS.find((chain) => chain.name === "eth")!;
     const syncError: Error = new Error("sync error");
     const destroy = vi.fn().mockRejectedValue(new Error("destroy error"));
     vi.mocked(getNodeProvider).mockResolvedValue({
@@ -108,7 +108,7 @@ describe("syncEventLogs", () => {
       },
     );
 
-    expect(await fetchEventLogs(matic)).toBe(true);
+    expect(await fetchEventLogs(eth)).toBe(true);
     expect(await syncing).toBe(syncError);
     expect(destroy).toHaveBeenCalledOnce();
     expect(spyError).toHaveBeenCalledWith("nodeProvider.destroy().", {

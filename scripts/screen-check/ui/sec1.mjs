@@ -372,66 +372,6 @@ await L.step(`${P}-7`, page, async () => {
   L.rec(`${P}-7`, ok ? "OK" : "NG", JSON.stringify(out), shots);
 });
 
-// 1-8 open /matic/... directly (fresh context)
-await L.step(`${P}-8`, page, async () => {
-  const { ctx: c2, page: p2 } = await L.newContextPage();
-  await p2.goto(BASE + "/matic/Augur-turbo/contracts/", { waitUntil: "load" });
-  await L.settle(p2, 800);
-  const sel = await p2.$eval("select[aria-label=Chain]", (s) => s.value);
-  const sb = await p2.evaluate(
-    (SB) =>
-      document.querySelector(SB)?.innerText.replace(/\s+/g, " ").slice(0, 200),
-    SB,
-  );
-  const db = await L.idb(p2);
-  const us = db.Digu_Settings?.UserSettings?.[0];
-  const s = await L.shot(p2, `${pre}1-8-matic-direct`);
-  const ok =
-    sel === "matic" && /turbo/.test(sb) && us?.selectedChainName === "matic";
-  L.rec(
-    `${P}-8`,
-    ok ? "OK" : "NG",
-    JSON.stringify({
-      url: await p2.evaluate(() => location.pathname),
-      select: sel,
-      sidebar: sb,
-      selectedChainName: us?.selectedChainName,
-    }),
-    [s],
-  );
-  await c2.close();
-});
-
-// 1-9 select matic in the sidebar
-await L.step(`${P}-9`, page, async () => {
-  await page.goto(BASE + "/eth/Augur-version1/", { waitUntil: "load" });
-  await L.settle(page);
-  await page.select("select[aria-label=Chain]", "matic");
-  await L.settle(page, 800);
-  const p = await path();
-  const sb = await page.evaluate(
-    (SB) =>
-      document.querySelector(SB)?.innerText.replace(/\s+/g, " ").slice(0, 150),
-    SB,
-  );
-  const db = await L.idb(page);
-  const s = await L.shot(page, `${pre}1-9-select-matic`);
-  const ok = sub(p) === "/matic/" && /turbo/.test(sb);
-  L.rec(
-    `${P}-9`,
-    ok ? "OK" : "NG",
-    JSON.stringify({
-      url: p,
-      sidebar: sb,
-      selectedChainName: db.Digu_Settings?.UserSettings?.[0]?.selectedChainName,
-    }),
-    [s],
-  );
-  // back to eth
-  await page.select("select[aria-label=Chain]", "eth");
-  await L.settle(page);
-});
-
 if (mode === "digu") {
   // link hrefs under /Digu/
   const hrefs = await page.evaluate(() =>

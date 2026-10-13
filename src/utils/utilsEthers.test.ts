@@ -80,7 +80,7 @@ vi.mock("ethers", async (importOriginal) => {
   }
   return { ...actual, WebSocketProvider: FakeSocketWebSocketProvider };
 });
-const targetChainName: ChainName = "matic";
+const targetChainName: ChainName = "eth";
 const targetChain: Chain = TARGET_CHAINS.find(
   (chain: Chain) => chain.name === targetChainName,
 )!;

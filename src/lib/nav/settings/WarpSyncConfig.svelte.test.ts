@@ -15,14 +15,13 @@ import WarpSyncConfig from "./WarpSyncConfig.svelte";
 // client project.
 vi.mock("#stores/storeUserSettings.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeUserSettings: writable({ selectedChainName: "matic" }) };
+  return { storeUserSettings: writable({ selectedChainName: "eth" }) };
 });
 vi.mock("#stores/storeRpcSettings.js", async () => {
   const { writable } = await import("svelte/store");
   return {
     storeRpcSettings: writable({
       eth: { warpSync: true },
-      matic: { warpSync: true },
       other: { warpSync: true },
     }),
   };
@@ -34,7 +33,7 @@ vi.mock("#utils/utilsDb.js", () => ({
 }));
 vi.mock("#eventLogs/chainActivity.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeChainActivity: writable({ matic: "free" }) };
+  return { storeChainActivity: writable({ eth: "free" }) };
 });
 vi.mock("#db/dbSettings.js", () => ({ updateDbItemRpcSettings: vi.fn() }));
 vi.mock("#warpSync/warpSync.js", () => ({
@@ -51,8 +50,8 @@ const checkbox = (): HTMLInputElement =>
 
 describe("WarpSyncConfig.svelte", () => {
   afterEach(() => {
-    userSettings.set({ selectedChainName: "matic" });
-    setWarpSyncState("matic", { status: "idle" });
+    userSettings.set({ selectedChainName: "eth" });
+    setWarpSyncState("eth", { status: "idle" });
     vi.clearAllMocks();
     vi.restoreAllMocks();
   });
@@ -67,7 +66,7 @@ describe("WarpSyncConfig.svelte", () => {
   test("shows the setting and up to where the snapshot goes", async () => {
     render(WarpSyncConfig);
     expect(checkbox().checked).toBe(true);
-    setWarpSyncState("matic", {
+    setWarpSyncState("eth", {
       status: "imported",
       toBlock: 83_000_000,
       createdAt: "2026-09-28T00:00:00.000Z",
@@ -92,7 +91,7 @@ describe("WarpSyncConfig.svelte", () => {
     checkbox().click();
     await vi.waitFor(() =>
       expect(updateDbItemRpcSettings).toHaveBeenCalledWith(
-        "matic",
+        "eth",
         "warpSync",
         false,
       ),

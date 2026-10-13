@@ -9,7 +9,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
-import { afterAll, beforeAll, expect, test } from "vitest";
+import { afterAll, beforeAll, expect, test, vi } from "vitest";
+
+vi.mock("./chains.mjs", async (importOriginal) =>
+  (await import("./test-chain.mjs")).withTestChain(await importOriginal()),
+);
 
 // No wait after a failure. Read when the script is imported.
 process.env.WARP_SYNC_RETRY_WAIT_MS = "0";
@@ -17,8 +21,9 @@ const { buildSnapshot } = await import("./build-snapshot.mjs");
 const { loadChain } = await import("./chains.mjs");
 const { expectedSnapshotLog, fakeRpcLog } = await import("./fake-logs.mjs");
 const { startFakeRpc } = await import("./fake-rpc.mjs");
+const { TEST_CHAIN_NAME } = await import("./test-chain.mjs");
 
-const chain = loadChain("matic");
+const chain = loadChain(TEST_CHAIN_NAME);
 const TO = 15_600_000;
 const toHex = (value) => `0x${value.toString(16)}`;
 const MAX_RESULTS = 40;
@@ -66,7 +71,8 @@ beforeAll(async () => {
     // Retry-After: 0 is read but does not make the wait longer; the test
     // does not wait because of WARP_SYNC_RETRY_WAIT_MS=0.
     const tooManyRequests = () => send(429, {}, { "retry-after": "0" });
-    if (method === "eth_chainId") return send(200, { result: toHex(137) });
+    if (method === "eth_chainId")
+      return send(200, { result: toHex(chain.chainId) });
     if (method === "eth_blockNumber") {
       if (faults.blockNumber429 === 0) {
         faults.blockNumber429++;
@@ -145,7 +151,7 @@ test("has every log despite the faults of the RPC", async () => {
   const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "warp-faults-"));
   try {
     const manifest = await buildSnapshot({
-      chainName: "matic",
+      chainName: TEST_CHAIN_NAME,
       rpcUrl: rpc.url,
       outDir,
       toBlock: TO,
@@ -162,7 +168,7 @@ test("has every log despite the faults of the RPC", async () => {
           (row) =>
             JSON.parse(
               zlib.gunzipSync(
-                fs.readFileSync(path.join(outDir, "matic", row.file)),
+                fs.readFileSync(path.join(outDir, TEST_CHAIN_NAME, row.file)),
               ),
             ).logs,
         );

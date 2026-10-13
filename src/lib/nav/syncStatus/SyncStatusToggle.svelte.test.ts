@@ -58,7 +58,7 @@ vi.mock("#utils/utilsDb.js", () => ({
   }),
 }));
 
-const CHAINS = ["eth", "matic"] as const;
+const CHAINS = ["eth", "chain2"] as const;
 const syncStatus = storeSyncStatus as unknown as Writable<SyncStatusesChain>;
 const chainStatus = storeChainStatus as unknown as Writable<
   Record<string, ChainStatus>
@@ -313,7 +313,7 @@ describe("SyncStatusToggle.svelte", () => {
     setSyncStatus("eth", { syncStateText: "syncing" });
     await tick();
 
-    storeUserSettings.updateState({ selectedChainName: "matic" });
+    storeUserSettings.updateState({ selectedChainName: "chain2" });
     await tick();
     expect(screen.getByText("start sync")).toBeTruthy();
 
@@ -422,17 +422,17 @@ describe("SyncStatusToggle.svelte", () => {
   );
 
   test("follows the chain selected in storeUserSettings", async () => {
-    setNodeStatus("matic", undefined);
+    setNodeStatus("chain2", undefined);
     render(SyncStatusToggle);
     expect(getToggle().disabled).toBe(false);
 
-    storeUserSettings.updateState({ selectedChainName: "matic" });
+    storeUserSettings.updateState({ selectedChainName: "chain2" });
     await tick();
     expect(getToggle().disabled).toBe(true);
 
-    setNodeStatus("matic", "SUCCESS");
+    setNodeStatus("chain2", "SUCCESS");
     await tick();
     await startSync();
-    expect(fetchEventLogs).toHaveBeenCalledWith({ name: "matic" });
+    expect(fetchEventLogs).toHaveBeenCalledWith({ name: "chain2" });
   });
 });

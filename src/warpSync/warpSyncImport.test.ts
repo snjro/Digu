@@ -52,19 +52,19 @@ vi.mock("#db/db.worker.portal.js", () => ({
 const fetchMock = vi.fn();
 vi.stubGlobal("fetch", fetchMock);
 
-const matic: Chain = TARGET_CHAINS.find((chain) => chain.name === "matic")!;
-const project = matic.projects[0];
-const version = project.versions[0];
-const feePot: Contract = version.contracts.find((c) => c.name === "FeePot")!;
+const eth: Chain = TARGET_CHAINS.find((chain) => chain.name === "eth")!;
+const project = eth.projects[0];
+const version = project.versions[1];
+const rep: Contract = version.contracts.find((c) => c.name === "REPv2")!;
 const versionIdentifier: VersionIdentifier = {
-  chainName: matic.name,
+  chainName: eth.name,
   projectName: project.name,
   versionName: version.name,
 };
-const CREATION = feePot.creation.blockNumber;
+const CREATION = rep.creation.blockNumber;
 const FROM = "0x1111111111111111111111111111111111111111";
 const TO = "0x2222222222222222222222222222222222222222";
-const key = { project: project.name, version: version.name, name: feePot.name };
+const key = { project: project.name, version: version.name, name: rep.name };
 
 // A file to 20,000,000, a range without logs to 25,000,000, and a file to
 // 30,000,000.
@@ -73,16 +73,16 @@ const ranges: [number, number, WarpSyncLog[] | null][] = [
     CREATION,
     20_000_000,
     [
-      makeWarpSyncLog(feePot, "Transfer", [FROM, TO, 1n], CREATION + 10, 0),
-      makeWarpSyncLog(feePot, "Approval", [FROM, TO, 2n], CREATION + 10, 1),
-      makeWarpSyncLog(feePot, "Transfer", [FROM, TO, 3n], 19_000_000, 0),
+      makeWarpSyncLog(rep, "Transfer", [FROM, TO, 1n], CREATION + 10, 0),
+      makeWarpSyncLog(rep, "Approval", [FROM, TO, 2n], CREATION + 10, 1),
+      makeWarpSyncLog(rep, "Transfer", [FROM, TO, 3n], 19_000_000, 0),
     ],
   ],
   [20_000_001, 25_000_000, null],
   [
     25_000_001,
     30_000_000,
-    [makeWarpSyncLog(feePot, "Transfer", [FROM, TO, 4n], 26_000_000, 0)],
+    [makeWarpSyncLog(rep, "Transfer", [FROM, TO, 4n], 26_000_000, 0)],
   ],
 ];
 const sha256 = (data: Uint8Array | string) =>
@@ -95,15 +95,15 @@ const chunks: WarpSyncManifestChunk[] = ranges.map(
     // The first file starts at the creation block unless a test moves it.
     const text = JSON.stringify({
       formatVersion: 3,
-      chainId: 137,
+      chainId: 1,
       ...key,
-      address: feePot.address,
+      address: rep.address,
       fromBlock: index === 0 ? CREATION : fromBlock,
       toBlock,
       logs,
     });
     const gzip = new Uint8Array(gzipSync(text));
-    const file = `Augur-turbo-FeePot-${toBlock}.json.gz`;
+    const file = `Augur-version2-REPv2-${toBlock}.json.gz`;
     files.set(file, gzip);
     return {
       ...range,
@@ -121,10 +121,10 @@ function manifest(
 ): WarpSyncManifest {
   return {
     formatVersion: 3,
-    chainName: "matic",
-    chainId: 137,
+    chainName: "eth",
+    chainId: 1,
     contracts: [
-      { ...key, address: feePot.address, creationBlock: CREATION, ...change },
+      { ...key, address: rep.address, creationBlock: CREATION, ...change },
     ],
     runs: [
       {
@@ -143,21 +143,21 @@ const fetchedFiles = () =>
 
 const db = () => getDbEventLogs(versionIdentifier);
 async function rows(eventName: string): Promise<ConvertedEventLog[]> {
-  return await db().table(`FeePot_${eventName}`).toArray();
+  return await db().table(`REPv2_${eventName}`).toArray();
 }
 async function syncStatus(): Promise<SyncStatusContract> {
-  return await db().table(DB_TABLE_NAMES.EventLog.syncStatus).get("FeePot");
+  return await db().table(DB_TABLE_NAMES.EventLog.syncStatus).get("REPv2");
 }
 async function setFetchedBlockNumber(fetchedBlockNumber: number) {
   await db()
     .table(DB_TABLE_NAMES.EventLog.syncStatus)
-    .update("FeePot", { fetchedBlockNumber });
+    .update("REPv2", { fetchedBlockNumber });
 }
 
 describe("importWarpSync", () => {
   beforeEach(async () => {
     await Dexie.delete(db().name);
-    await updateDbItemChainStatus("matic", "latestBlockNumber", 0);
+    await updateDbItemChainStatus("eth", "latestBlockNumber", 0);
     vi.mocked(startDbWorker).mockClear();
     fetchMock.mockReset();
     fetchMock.mockImplementation(async (url: string) => {
@@ -169,7 +169,7 @@ describe("importWarpSync", () => {
   });
 
   test("imports every file into a DB that has nothing yet, in the DB worker", async () => {
-    expect(await importWarpSync(matic, manifest())).toBe(30_000_000);
+    expect(await importWarpSync(eth, manifest())).toBe(30_000_000);
 
     const transfers = await rows("Transfer");
     expect(transfers.map((row) => row.blockNumber)).toEqual([
@@ -202,9 +202,9 @@ describe("importWarpSync", () => {
       Transfer: { recordCount: 3 },
     });
     const storeContract =
-      get(storeSyncStatus).matic.subSyncStatuses[project.name].subSyncStatuses[
+      get(storeSyncStatus).eth.subSyncStatuses[project.name].subSyncStatuses[
         version.name
-      ].subSyncStatuses.FeePot!;
+      ].subSyncStatuses.REPv2!;
     expect(storeContract.fetchedBlockNumber).toBe(30_000_000);
     expect(storeContract.events.Transfer?.recordCount).toBe(3);
 
@@ -214,25 +214,25 @@ describe("importWarpSync", () => {
       targetFunctionName: "importWarpSyncFile",
       params: {
         versionIdentifier,
-        contractName: "FeePot",
-        chainId: 137,
+        contractName: "REPv2",
+        chainId: 1,
         url: new URL(
-          "/warp-sync/matic/Augur-turbo-FeePot-20000000.json.gz",
+          "/warp-sync/eth/Augur-version2-REPv2-20000000.json.gz",
           location.href,
         ).href,
       },
     });
 
     // The progress uses it when there is no RPC.
-    expect((await getDbRecordChainStatus("matic")).latestBlockNumber).toBe(
+    expect((await getDbRecordChainStatus("eth")).latestBlockNumber).toBe(
       30_000_000,
     );
-    expect(get(storeChainStatus).matic.latestBlockNumber).toBe(30_000_000);
+    expect(get(storeChainStatus).eth.latestBlockNumber).toBe(30_000_000);
   });
 
   test("imports only the logs after the fetched block", async () => {
     await setFetchedBlockNumber(19_500_000);
-    await importWarpSync(matic, manifest());
+    await importWarpSync(eth, manifest());
     expect((await rows("Transfer")).map((row) => row.blockNumber)).toEqual([
       26_000_000,
     ]);
@@ -242,14 +242,14 @@ describe("importWarpSync", () => {
 
   test("skips the files that the DB has, and moves over a range without logs", async () => {
     await setFetchedBlockNumber(20_000_000);
-    await importWarpSync(matic, manifest());
-    expect(fetchedFiles()).toEqual(["Augur-turbo-FeePot-30000000.json.gz"]);
+    await importWarpSync(eth, manifest());
+    expect(fetchedFiles()).toEqual(["Augur-version2-REPv2-30000000.json.gz"]);
     expect((await syncStatus()).fetchedBlockNumber).toBe(30_000_000);
   });
 
   test("fetches nothing when the DB has the whole snapshot", async () => {
     await setFetchedBlockNumber(31_000_000);
-    expect(await importWarpSync(matic, manifest())).toBe(30_000_000);
+    expect(await importWarpSync(eth, manifest())).toBe(30_000_000);
     expect(fetchMock).not.toHaveBeenCalled();
     expect((await syncStatus()).fetchedBlockNumber).toBe(31_000_000);
   });
@@ -260,7 +260,7 @@ describe("importWarpSync", () => {
         ? new Response("", { status: 500 })
         : new Response(files.get(url.split("/").at(-1)!)! as BodyInit),
     );
-    await expect(importWarpSync(matic, manifest())).rejects.toThrow("HTTP 500");
+    await expect(importWarpSync(eth, manifest())).rejects.toThrow("HTTP 500");
     expect((await syncStatus()).fetchedBlockNumber).toBe(25_000_000);
     expect(await rows("Transfer")).toHaveLength(2);
   });
@@ -272,11 +272,11 @@ describe("importWarpSync", () => {
         ? new Response("", { status: 500 })
         : serve(url),
     );
-    await expect(importWarpSync(matic, manifest())).rejects.toThrow("HTTP 500");
+    await expect(importWarpSync(eth, manifest())).rejects.toThrow("HTTP 500");
     fetchMock.mockClear();
     fetchMock.mockImplementation(serve);
-    expect(await importWarpSync(matic, manifest())).toBe(30_000_000);
-    expect(fetchedFiles()).toEqual(["Augur-turbo-FeePot-30000000.json.gz"]);
+    expect(await importWarpSync(eth, manifest())).toBe(30_000_000);
+    expect(fetchedFiles()).toEqual(["Augur-version2-REPv2-30000000.json.gz"]);
     expect((await rows("Transfer")).map((row) => row.blockNumber)).toEqual([
       CREATION + 10,
       19_000_000,
@@ -286,7 +286,7 @@ describe("importWarpSync", () => {
   });
 
   test("skips a contract whose logs would have a gap", async () => {
-    await importWarpSync(matic, manifest({}, CREATION + 100));
+    await importWarpSync(eth, manifest({}, CREATION + 100));
     expect(fetchMock).not.toHaveBeenCalled();
     expect((await syncStatus()).fetchedBlockNumber).toBe(CREATION);
   });
@@ -294,28 +294,28 @@ describe("importWarpSync", () => {
   test("imports nothing for a contract with another address", async () => {
     expect(
       await importWarpSync(
-        matic,
+        eth,
         manifest({ address: "0x0000000000000000000000000000000000000001" }),
       ),
     ).toBeUndefined();
     expect(fetchMock).not.toHaveBeenCalled();
-    expect((await getDbRecordChainStatus("matic")).latestBlockNumber).toBe(0);
+    expect((await getDbRecordChainStatus("eth")).latestBlockNumber).toBe(0);
   });
 
   test("compares with the latest block number of the DB, not of the store", async () => {
-    await updateDbItemChainStatus("matic", "latestBlockNumber", 40_000_000);
+    await updateDbItemChainStatus("eth", "latestBlockNumber", 40_000_000);
     // Like a store that lags behind another tab.
-    storeChainStatus.updateState("matic", { latestBlockNumber: 0 });
-    await importWarpSync(matic, manifest());
-    expect((await getDbRecordChainStatus("matic")).latestBlockNumber).toBe(
+    storeChainStatus.updateState("eth", { latestBlockNumber: 0 });
+    await importWarpSync(eth, manifest());
+    expect((await getDbRecordChainStatus("eth")).latestBlockNumber).toBe(
       40_000_000,
     );
   });
 
   test("does not lower the latest block number", async () => {
-    await updateDbItemChainStatus("matic", "latestBlockNumber", 40_000_000);
-    await importWarpSync(matic, manifest());
-    expect((await getDbRecordChainStatus("matic")).latestBlockNumber).toBe(
+    await updateDbItemChainStatus("eth", "latestBlockNumber", 40_000_000);
+    await importWarpSync(eth, manifest());
+    expect((await getDbRecordChainStatus("eth")).latestBlockNumber).toBe(
       40_000_000,
     );
   });
@@ -329,7 +329,7 @@ describe("getWarpSyncPending", () => {
     chunks[index] as Extract<WarpSyncManifestChunk, { file: string }>;
 
   test("counts every range for a DB that has nothing", async () => {
-    expect(await getWarpSyncPending(matic.name, manifest())).toEqual({
+    expect(await getWarpSyncPending(eth.name, manifest())).toEqual({
       logCount: 4,
       snapshotLogCount: 4,
       bytes: file(0).bytes + file(2).bytes,
@@ -339,7 +339,7 @@ describe("getWarpSyncPending", () => {
   });
   test("counts only the ranges after the fetched block", async () => {
     await setFetchedBlockNumber(20_000_000);
-    expect(await getWarpSyncPending(matic.name, manifest())).toEqual({
+    expect(await getWarpSyncPending(eth.name, manifest())).toEqual({
       logCount: 1,
       snapshotLogCount: 4,
       bytes: file(2).bytes,
@@ -347,11 +347,11 @@ describe("getWarpSyncPending", () => {
       files: 1,
     });
     await setFetchedBlockNumber(31_000_000);
-    expect((await getWarpSyncPending(matic.name, manifest())).files).toBe(0);
+    expect((await getWarpSyncPending(eth.name, manifest())).files).toBe(0);
   });
   test("counts nothing after a gap, like the import", async () => {
     expect(
-      await getWarpSyncPending(matic.name, manifest({}, CREATION + 100)),
+      await getWarpSyncPending(eth.name, manifest({}, CREATION + 100)),
     ).toEqual({
       logCount: 0,
       snapshotLogCount: 4,
@@ -375,7 +375,7 @@ describe("importWarpSync with options", () => {
 
   test("tells each range once saved, and gives the worker a signal", async () => {
     const done: number[] = [];
-    await importWarpSync(matic, manifest(), {
+    await importWarpSync(eth, manifest(), {
       onRangeDone: (chunk) => done.push(chunk.toBlock),
     });
     expect(done).toEqual([20_000_000, 25_000_000, 30_000_000]);
@@ -387,7 +387,7 @@ describe("importWarpSync with options", () => {
   test("stops before the next range once aborted, and keeps what was saved", async () => {
     const controller = new AbortController();
     await expect(
-      importWarpSync(matic, manifest(), {
+      importWarpSync(eth, manifest(), {
         signal: controller.signal,
         onRangeDone: () => controller.abort(new Error("stop")),
       }),
@@ -424,10 +424,10 @@ describe("anySignal", () => {
 });
 
 describe("importWarpSync and then the sync", () => {
-  const contractIdentifier = { ...versionIdentifier, contractName: "FeePot" };
+  const contractIdentifier = { ...versionIdentifier, contractName: "REPv2" };
   beforeEach(async () => {
     await Dexie.delete(db().name);
-    await updateDbItemChainStatus("matic", "latestBlockNumber", 0);
+    await updateDbItemChainStatus("eth", "latestBlockNumber", 0);
     fetchMock.mockReset();
     fetchMock.mockImplementation(
       async (url: string) =>
@@ -443,9 +443,9 @@ describe("importWarpSync and then the sync", () => {
 
   // The sync fetches the first range and stops at the second one.
   async function syncAfterImport(): Promise<number[][]> {
-    storeChainStatus.updateState("matic", { latestBlockNumber: 30_001_000 });
+    storeChainStatus.updateState("eth", { latestBlockNumber: 30_001_000 });
     const { provider, getLogsRanges } = providerAnsweringGetLogs(
-      matic.chainId,
+      eth.chainId,
       (requestNumber: number) => {
         if (requestNumber === 2) {
           storeSyncStatus.updateState(contractIdentifier, { isAbort: true });
@@ -453,13 +453,13 @@ describe("importWarpSync and then the sync", () => {
         return undefined;
       },
     );
-    await fetchEventLogsContract(db(), feePot, provider);
+    await fetchEventLogsContract(db(), rep, provider);
     await provider.destroy();
     return getLogsRanges();
   }
 
   test("goes on from the block after the snapshot", async () => {
-    await importWarpSync(matic, manifest());
+    await importWarpSync(eth, manifest());
 
     const ranges: number[][] = await syncAfterImport();
 
@@ -474,7 +474,7 @@ describe("importWarpSync and then the sync", () => {
   });
 
   test("starts from the creation block when the snapshot is skipped", async () => {
-    await importWarpSync(matic, manifest({}, CREATION + 100));
+    await importWarpSync(eth, manifest({}, CREATION + 100));
 
     const ranges: number[][] = await syncAfterImport();
 

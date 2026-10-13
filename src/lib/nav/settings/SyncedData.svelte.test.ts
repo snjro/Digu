@@ -20,11 +20,11 @@ import SyncedData from "./SyncedData.svelte";
 // client project.
 vi.mock("#stores/storeUserSettings.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeUserSettings: writable({ selectedChainName: "matic" }) };
+  return { storeUserSettings: writable({ selectedChainName: "eth" }) };
 });
 vi.mock("#stores/storeRpcSettings.js", async () => {
   const { writable } = await import("svelte/store");
-  return { storeRpcSettings: writable({ matic: { warpSync: true } }) };
+  return { storeRpcSettings: writable({ eth: { warpSync: true } }) };
 });
 vi.mock("#stores/storeSyncStatus.js", async () => {
   const { writable } = await import("svelte/store");
@@ -33,13 +33,13 @@ vi.mock("#stores/storeSyncStatus.js", async () => {
 vi.mock("#utils/utilsDb.js", () => ({
   getTargetChain: ({ chainName }: { chainName: string }) => ({
     name: chainName,
-    fullName: "Polygon Mainnet",
+    fullName: "Ethereum Mainnet",
   }),
 }));
 vi.mock("#eventLogs/syncLock.js", async () => {
   const { writable } = await import("svelte/store");
   return {
-    storeSyncLockedByOtherTab: writable({ matic: false }),
+    storeSyncLockedByOtherTab: writable({ eth: false }),
     storeSyncLockedByThisTab: writable({}),
   };
 });
@@ -56,7 +56,7 @@ const lockedByThisTab = storeSyncLockedByThisTab as unknown as Writable<
 >;
 function setChain(syncStateText: string, recordCount: number): void {
   syncStatus.set({
-    matic: {
+    eth: {
       syncStateText,
       subSyncStatuses: {
         p: {
@@ -91,10 +91,10 @@ function confirmButton(container: HTMLElement): HTMLButtonElement {
 
 describe("SyncedData.svelte", () => {
   afterEach(() => {
-    storeSyncLockedByOtherTab.set({ matic: false });
+    storeSyncLockedByOtherTab.set({ eth: false });
     lockedByThisTab.set({});
     storeNoDbSnackBar.set({ ...storeNoDbSnackBarInitialValue });
-    setWarpSyncState("matic", { status: "idle" });
+    setWarpSyncState("eth", { status: "idle" });
     vi.clearAllMocks();
   });
 
@@ -106,7 +106,7 @@ describe("SyncedData.svelte", () => {
   });
 
   test("cannot reset while the chain is synced here or in another tab, or imported", async () => {
-    lockedByThisTab.set({ matic: "sync" });
+    lockedByThisTab.set({ eth: "sync" });
     setChain("syncing", 0);
     render(SyncedData);
     expect(resetButton().disabled).toBe(true);
@@ -130,16 +130,16 @@ describe("SyncedData.svelte", () => {
     expect(screen.getByText("Stop the sync first.")).toBeTruthy();
 
     lockedByThisTab.set({});
-    storeSyncLockedByOtherTab.set({ matic: true });
+    storeSyncLockedByOtherTab.set({ eth: true });
     await tick();
     expect(resetButton().disabled).toBe(true);
 
-    storeSyncLockedByOtherTab.set({ matic: false });
+    storeSyncLockedByOtherTab.set({ eth: false });
     // The import of the warp sync, or the one before the sync, in its lock.
     for (const kind of ["import", "sync"] as const) {
-      lockedByThisTab.set({ matic: kind });
+      lockedByThisTab.set({ eth: kind });
       for (const status of ["checking", "importing"] as const) {
-        setWarpSyncState("matic", { status });
+        setWarpSyncState("eth", { status });
         await tick();
         expect(resetButton().disabled).toBe(true);
         expect(
@@ -151,7 +151,7 @@ describe("SyncedData.svelte", () => {
     }
 
     lockedByThisTab.set({});
-    setWarpSyncState("matic", { status: "imported" });
+    setWarpSyncState("eth", { status: "imported" });
     await tick();
     expect(resetButton().disabled).toBe(false);
     expect(screen.queryByText(/^Wait until|^Stop the sync/)).toBeNull();
@@ -160,10 +160,10 @@ describe("SyncedData.svelte", () => {
   test("says Resetting… only for the chain that this tab resets", async () => {
     setChain("stopped", 0);
     render(SyncedData);
-    lockedByThisTab.set({ eth: "reset" });
+    lockedByThisTab.set({ chain2: "reset" });
     await tick();
     expect(resetButton().disabled).toBe(false);
-    lockedByThisTab.set({ matic: "reset" });
+    lockedByThisTab.set({ eth: "reset" });
     await tick();
     expect(resetButton().disabled).toBe(true);
     expect(screen.getByText("Resetting…")).toBeTruthy();
@@ -174,9 +174,13 @@ describe("SyncedData.svelte", () => {
     const { container } = render(SyncedData);
     await fireEvent.click(resetButton());
     expect(dialog(container).open).toBe(true);
-    expect(screen.getByText("Reset the sync of Polygon Mainnet?")).toBeTruthy();
     expect(
-      screen.getByText(/^This deletes the 1,234 event logs of Polygon Mainnet/),
+      screen.getByText("Reset the sync of Ethereum Mainnet?"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        /^This deletes the 1,234 event logs of Ethereum Mainnet/,
+      ),
     ).toBeTruthy();
     expect(
       screen.getByText(/^The logs published with this site are imported/),
@@ -203,26 +207,26 @@ describe("SyncedData.svelte", () => {
     await fireEvent.click(confirmButton(container));
 
     expect(resetSyncedData).toHaveBeenCalledExactlyOnceWith({
-      name: "matic",
-      fullName: "Polygon Mainnet",
+      name: "eth",
+      fullName: "Ethereum Mainnet",
     });
     const status = screen.getByRole("status");
     expect(status.getAttribute("aria-live")).toBe("polite");
     await vi.waitFor(() =>
       expect(status.textContent).toContain(
-        "Deleted 1,234 event logs of Polygon Mainnet.",
+        "Deleted 1,234 event logs of Ethereum Mainnet.",
       ),
     );
     expect(status.textContent).toContain(
       "Importing the logs published with this site…",
     );
     expect(dialog(container).open).toBe(true);
-    expect(screen.getByText("Reset the sync of Polygon Mainnet")).toBeTruthy();
+    expect(screen.getByText("Reset the sync of Ethereum Mainnet")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
     // The dialog shows it: no snackbar.
     expect(get(storeNoDbSnackBar).visible).toBe(false);
 
-    setWarpSyncState("matic", { status: "imported", toBlock: 24_000_000 });
+    setWarpSyncState("eth", { status: "imported", toBlock: 24_000_000 });
     setChain("stopped", 4064);
     finishImport();
     await vi.waitFor(() =>

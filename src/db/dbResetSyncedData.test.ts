@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 import type { Chain, Contract, Version } from "#constants/chains/types.js";
 import { extractEventContracts } from "#utils/utilsEthers.js";
@@ -16,9 +16,16 @@ import { getInitialDataOfSyncStatusContract } from "./dbEventLogsAddInitialData"
 import { resetDbSyncedData } from "./dbResetSyncedData";
 import { dbSettings, getDbRecordRpcSettings } from "./dbSettings";
 import type { BlockTime, SyncStatusContract } from "./dbTypes";
+import { SECOND_CHAIN_NAME } from "../testUtils/secondChain";
 
-const matic: Chain = TARGET_CHAINS.find((chain) => chain.name === "matic")!;
+vi.mock("#constants/chains/_index.js", async (importOriginal) =>
+  (await import("../testUtils/secondChain")).withSecondChain(importOriginal),
+);
+
 const eth: Chain = TARGET_CHAINS.find((chain) => chain.name === "eth")!;
+const chain2: Chain = TARGET_CHAINS.find(
+  (chain) => chain.name === SECOND_CHAIN_NAME,
+)!;
 
 function firstVersion(chain: Chain): {
   db: DbEventLogs;
@@ -62,7 +69,7 @@ async function fillChain(chain: Chain): Promise<void> {
 
 describe("resetDbSyncedData", () => {
   beforeEach(async () => {
-    for (const chain of [matic, eth]) {
+    for (const chain of [eth, chain2]) {
       const { db } = firstVersion(chain);
       await Dexie.delete(db.name);
       await dbBlockTimes.table(chain.name).clear();
@@ -72,9 +79,9 @@ describe("resetDbSyncedData", () => {
 
   test("empties the logs and sets the sync status back to the creation block", async () => {
     // The two logs that fillChain() added.
-    expect(await resetDbSyncedData(matic)).toBe(2);
+    expect(await resetDbSyncedData(eth)).toBe(2);
 
-    const { db, version, contract } = firstVersion(matic);
+    const { db, version, contract } = firstVersion(eth);
     for (const eventContract of extractEventContracts(version.contracts)) {
       for (const eventName of eventContract.events.names) {
         expect(
@@ -93,13 +100,13 @@ describe("resetDbSyncedData", () => {
       isSyncTarget: false,
       numOfSyncTargetContract: 0,
     });
-    expect(await dbBlockTimes.table(matic.name).count()).toBe(0);
+    expect(await dbBlockTimes.table(eth.name).count()).toBe(0);
   });
 
   test("keeps the other chains", async () => {
-    await resetDbSyncedData(matic);
+    await resetDbSyncedData(eth);
 
-    const { db, contract } = firstVersion(eth);
+    const { db, contract } = firstVersion(chain2);
     expect(await db.table(eventTableName(contract)).count()).toBe(2);
     const status: SyncStatusContract = await db
       .table(syncStatusTableName)
@@ -107,25 +114,25 @@ describe("resetDbSyncedData", () => {
     expect(status.fetchedBlockNumber).toBe(
       contract.creation.blockNumber + 1000,
     );
-    expect(await dbBlockTimes.table(eth.name).count()).toBe(2);
+    expect(await dbBlockTimes.table(chain2.name).count()).toBe(2);
   });
 
   test("keeps the settings and the latest block number", async () => {
     await dbSettings.open();
-    const rpcSetting = await getDbRecordRpcSettings(matic.name);
-    await updateDbItemChainStatus(matic.name, "latestBlockNumber", 80_000_000);
+    const rpcSetting = await getDbRecordRpcSettings(eth.name);
+    await updateDbItemChainStatus(eth.name, "latestBlockNumber", 80_000_000);
 
-    await resetDbSyncedData(matic);
+    await resetDbSyncedData(eth);
 
-    expect(await getDbRecordRpcSettings(matic.name)).toEqual(rpcSetting);
-    expect((await getDbRecordChainStatus(matic.name)).latestBlockNumber).toBe(
+    expect(await getDbRecordRpcSettings(eth.name)).toEqual(rpcSetting);
+    expect((await getDbRecordChainStatus(eth.name)).latestBlockNumber).toBe(
       80_000_000,
     );
   });
 
   test("keeps the connection of the DB open", async () => {
-    const { db, contract } = firstVersion(matic);
-    await resetDbSyncedData(matic);
+    const { db, contract } = firstVersion(eth);
+    await resetDbSyncedData(eth);
     expect(db.isOpen()).toBe(true);
     await db.table(eventTableName(contract)).add({ a: 3 });
     expect(await db.table(eventTableName(contract)).count()).toBe(1);

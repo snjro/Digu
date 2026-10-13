@@ -27,6 +27,11 @@ import {
   syncStatusesVersion1,
 } from "./dbEventLogsVersion1.fixture";
 
+// The last test needs a chain that the tests above do not open.
+vi.mock("#constants/chains/_index.js", async (importOriginal) =>
+  (await import("../testUtils/secondChain")).withSecondChain(importOriginal),
+);
+
 describe("DbEventLogs", () => {
   for (const targetChain of TARGET_CHAINS) {
     for (const targetProject of targetChain.projects) {

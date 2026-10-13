@@ -39,7 +39,7 @@ vi.mock("#stores/storeRpcSettings.js", async () => {
   return {
     storeRpcSettings: writable({
       eth: { warpSync: true },
-      matic: { warpSync: true },
+      chain2: { warpSync: true },
     }),
   };
 });
