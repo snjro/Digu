@@ -34,8 +34,8 @@ const RETRY_WAIT_MS: number = 300;
 export const TRY_COUNT: number = 10;
 // The width of the first range. It is doubled or halved from there.
 export const INITIAL_BULK_UNIT: number = 100;
-// Set when the app also synced Polygon (removed in #812), whose public RPC
-// returned 100,000 blocks in a few seconds.
+// Set when the app also synced Polygon (removed in #809): a public RPC of
+// Polygon returned 100,000 blocks in a few seconds. Not checked on Ethereum.
 export const MAX_BULK_UNIT: number = 100000;
 // An RPC may pass each request to a different node, with a different limit or
 // a transient error, so the limit learned from an error is raised again.
