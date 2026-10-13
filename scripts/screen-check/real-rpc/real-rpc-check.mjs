@@ -13,10 +13,18 @@
 // here (see the request interception).
 //   1. "Connected." for the RPC. 2. The Goal (ChainStatus.latestBlockNumber)
 //   is a seen eth_blockNumber minus confirmationBlocks (#498).
-//   3. Sync one contract. eth_getLogs is refused with an error (any code;
-//   PublicNode used -32602), and the sync stops after TRY_COUNT + 1 tries.
-//   The toggle is off, the RPC URL is not in the console (#483), and no
-//   contract is left isAbort/isSyncing (#515).
+//   3. Sync one contract. The answers to eth_getLogs in the run choose the
+//   check (#811):
+//   - "refused": every eth_getLogs is refused with an error (any code;
+//   PublicNode used -32602 over http), and the sync stops after
+//   TRY_COUNT + 1 tries.
+//   - "logs": logs or an empty result come back (PublicNode over wss, #811).
+//   The sync moves on, each refusal for the range is followed by a range from
+//   the same block that is not wider, and the refused range is then fetched
+//   in narrower ranges. Other errors are only recorded. The script stops the
+//   sync after that, and no eth_getLogs is sent after the stop.
+//   - Both: the toggle is off, the RPC URL is not in the console (#483), and
+//   no contract is left isAbort/isSyncing (#515).
 //   4. Console errors and warnings, page errors, CSP violations (#504).
 //   5. The number of requests to the RPC, by method.
 import fs from "node:fs";
@@ -32,6 +40,7 @@ import {
   RPC_INPUT,
   clickCheckbox,
   clickToggle,
+  clickToggleIf,
   findToggle,
   typeInto,
 } from "../../check-lib/app.mjs";
@@ -75,6 +84,11 @@ const conf = (dir) =>
 const CONFIRMATION = { eth: conf("ethereum-mainnet") };
 // The errors after which the sync stops (TRY_COUNT of the build).
 const TRY_COUNT = readTryCount();
+// When eth_getLogs returns logs, the sync does not stop by itself (#811). The
+// script stops it after the first range refused for its width is fetched in
+// narrower ranges, or after SCRIPT_STOP_MS. In v1.7.0 that took 55 s, with a
+// wait of 28 s for one answer.
+const SCRIPT_STOP_MS = 100000;
 // One contract to sync. The versions are turned off first.
 const TARGET = {
   eth: {
@@ -138,7 +152,7 @@ const { note, check, guard } = createChecks({
 const server = serveBuild(buildDir);
 
 // ---- the RPC traffic of one run ----
-// calls: every JSON-RPC call sent, {transport, method, id}. answers: the
+// calls: every JSON-RPC call sent, {transport, method, id, seq}. answers: the
 // results and errors that came back, by method.
 let traffic;
 function newTraffic() {
@@ -158,6 +172,8 @@ function recordSent(transport, body) {
       transport,
       method: p.method,
       id: p.id,
+      // The order in which the calls were sent.
+      seq: traffic.calls.length,
       params: p.method === "eth_getLogs" ? p.params : undefined,
     };
     traffic.calls.push(call);
@@ -172,6 +188,15 @@ function recordAnswer(call, a) {
   const method = call?.method ?? "?";
   traffic.answers.push({
     method,
+    seq: call?.seq,
+    // The range of eth_getLogs, to see what comes after a refusal (#694).
+    range:
+      method === "eth_getLogs" && call.params?.[0]
+        ? [
+            Number(BigInt(call.params[0].fromBlock)),
+            Number(BigInt(call.params[0].toBlock)),
+          ]
+        : undefined,
     result: a.error
       ? undefined
       : method === "eth_getLogs"
@@ -199,6 +224,43 @@ function summary() {
     byMethod,
     errors,
   };
+}
+// A refusal of a range over the limit of the RPC, as PublicNode answered over
+// wss (#811). Other errors may not come again for the same range.
+const isRangeRefusal = (e) =>
+  e?.code === -32701 || /exceed maximum block range/i.test(e?.message ?? "");
+// Each eth_getLogs refused for its range, and what was sent after it (#694).
+// The next request is from the same block and not wider, and the successes up
+// to the end of the refused range are narrower. complete: that end was
+// reached.
+function refusalsOf(answers) {
+  const logs = answers
+    .filter((a) => a.method === "eth_getLogs" && a.range)
+    .sort((a, b) => a.seq - b.seq);
+  const width = (a) => a.range[1] - a.range[0] + 1;
+  return logs.flatMap((r, i) => {
+    if (!isRangeRefusal(r.error)) return [];
+    const after = logs.slice(i + 1);
+    const next = after[0];
+    const end = after.findIndex((b) => !b.error && b.range[1] >= r.range[1]);
+    const successes = (end < 0 ? after : after.slice(0, end + 1)).filter(
+      (b) => !b.error,
+    );
+    const nextOk =
+      !next || (next.range[0] === r.range[0] && width(next) <= width(r));
+    const narrower = successes.every((b) => width(b) < width(r));
+    return [
+      {
+        range: r.range,
+        code: r.error.code,
+        next: next?.range,
+        nextOk,
+        successWidths: successes.map(width),
+        narrower,
+        complete: end >= 0,
+      },
+    ];
+  });
 }
 // --fake: answers like PublicNode did in October 2026.
 // Keep each chain above the end of its warp sync snapshot
@@ -540,13 +602,24 @@ for (const [id, chain, rpc] of RUNS) {
     note("traffic after connect", summary());
     if (!connected) throw new Error("not connected; the sync is not started");
 
-    // 2 and 3. Start the sync. Wait until it stops by itself.
+    // 2 and 3. Start the sync. Wait until it stops by itself, or, when
+    // eth_getLogs returns logs, stop it from the script and wait for the stop
+    // (#811).
     const before = await readDb(page, chain, t.db, t.contract);
     const n0 = traffic.calls.length;
+    const a0 = traffic.answers.length;
+    // An eth_getLogs answered with logs or an empty result.
+    const logsReturned = () =>
+      traffic.answers
+        .slice(a0)
+        .some((a) => a.method === "eth_getLogs" && !a.error);
     await clickToggle(page);
     const transitions = [];
     const t1 = Date.now();
+    // stopped: by itself, or after the click of the script.
     let stopped = false;
+    let stoppedByItself = false;
+    let stopClickedMs = null;
     while (Date.now() - t1 < 120000) {
       const ti = await findToggle(page);
       const d = await readDb(page, chain, t.db, t.contract);
@@ -559,7 +632,22 @@ for (const [id, chain, rpc] of RUNS) {
         d.row?.isSyncing === false
       ) {
         stopped = true;
+        stoppedByItself = stopClickedMs === null;
         break;
+      }
+      if (
+        stopClickedMs === null &&
+        logsReturned() &&
+        (Date.now() - t1 >= SCRIPT_STOP_MS ||
+          refusalsOf(traffic.answers.slice(a0)).some((r) => r.complete))
+      ) {
+        const ms = Date.now() - t1;
+        // Only while it is on: a sync that stopped by itself is not started
+        // again.
+        if (await clickToggleIf(page, { checked: true, disabled: false })) {
+          stopClickedMs = ms;
+          continue;
+        }
       }
       await new Promise((r) => setTimeout(r, 200));
     }
@@ -574,6 +662,10 @@ for (const [id, chain, rpc] of RUNS) {
       .slice(n1)
       .map((c) => `${c.transport} ${c.method}`);
     note("calls in 3 s after the stop", callsAfterStop);
+    // The sync itself: eth_getLogs. Other calls stay in the note above.
+    const getLogsAfterStop = traffic.calls
+      .slice(n1)
+      .filter((c) => c.method === "eth_getLogs").length;
     const after = await readDb(page, chain, t.db, t.contract);
     const nav = await navText(page);
     await page.screenshot({ path: path.join(outDir, `${id}-3-stopped.png`) });
@@ -609,10 +701,14 @@ for (const [id, chain, rpc] of RUNS) {
       confirmationBlocks: CONFIRMATION[chain],
     });
 
-    // 3. Refused eth_getLogs, TRY_COUNT + 1 tries. Toggle off, #483, #515.
+    // 3. "refused": refused eth_getLogs, TRY_COUNT + 1 tries. "logs": the sync
+    // moves on, the refused ranges are fetched in narrower ranges, and the
+    // script stops it (#811). Both: toggle off, #483, #515.
+    const shape = logsReturned() ? "logs" : "refused";
     const syncCalls = traffic.calls.slice(n0);
     const getLogs = syncCalls.filter((c) => c.method === "eth_getLogs");
-    // Any error code: PublicNode refused with -32602.
+    // Any error code: PublicNode refused with -32602 over http and -32701 over
+    // wss.
     const refused = traffic.answers.filter(
       (a) => a.method === "eth_getLogs" && a.error,
     );
@@ -625,10 +721,22 @@ for (const [id, chain, rpc] of RUNS) {
         (x) => x.run === id && `${x.text} ${x.detail ?? ""}`.includes(host),
       )
       .map((x) => `${x.type} ${(x.detail ?? x.text).slice(0, 200)}`);
+    const refusals = refusalsOf(traffic.answers.slice(a0));
+    const fetched = {
+      before: before.row?.fetchedBlockNumber,
+      after: after.row?.fetchedBlockNumber,
+    };
     const synced =
-      stopped &&
-      getLogs.length === TRY_COUNT + 1 &&
-      refused.length === getLogs.length;
+      shape === "logs"
+        ? stopped &&
+          !stoppedByItself &&
+          getLogsAfterStop === 0 &&
+          fetched.after > fetched.before &&
+          refusals.some((r) => r.complete) &&
+          refusals.every((r) => r.nextOk && r.narrower)
+        : stopped &&
+          getLogs.length === TRY_COUNT + 1 &&
+          refused.length === getLogs.length;
     check(
       "3 sync",
       synced &&
@@ -637,8 +745,17 @@ for (const [id, chain, rpc] of RUNS) {
         / stopped /.test(` ${nav} `) &&
         !!gridRow?.includes("stopped"),
       {
+        shape,
         stopped,
-        expected: TRY_COUNT + 1,
+        ...(shape === "logs"
+          ? {
+              stoppedByItself,
+              stopClickedMs,
+              getLogsAfterStop,
+              fetchedBlockNumber: fetched,
+              refusals: refusals.slice(0, 10),
+            }
+          : { expected: TRY_COUNT + 1 }),
         eth_getLogs: getLogs.length,
         refused: refused.length,
         refusedCodes,
