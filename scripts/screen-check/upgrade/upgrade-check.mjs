@@ -666,6 +666,10 @@ await results.guard(
       note("sidebar close clicked", closed);
       await settle(page, 1000);
       await record(page, "old-06-final", { dump: true });
+      // `removed chain` of the new phase checks a removed chain only on such
+      // data.
+      const selected = (await readSettingsDb(page))?.selectedChainName;
+      check("old-06 selected chain", selected === "matic", `${selected}`);
     } else if (phase === "probe") {
       // Opens the new build again and checks whether the page stays responsive.
       // If an evaluate does not return, pause the debugger and log the stack.
