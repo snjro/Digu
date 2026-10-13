@@ -17,7 +17,9 @@ import {
 import type { ConvertedEventLog } from "#db/dbTypes.js";
 import { columnDefs } from "./columnDefs";
 import {
+  digitGroupSeparators,
   eventLogCellValues,
+  formatArgChildValue,
   type EventLogCellValues,
 } from "./eventLogCellValues";
 
@@ -195,6 +197,53 @@ describe("eventLogCellValues", () => {
     } finally {
       toLocaleString.mockRestore();
     }
+  });
+
+  test("should remove the digit grouping only in the columns of integers", () => {
+    expect(
+      values
+        .filter((value) => value.removeDigitGrouping)
+        .map((value) => value.colId),
+    ).toEqual(["args.2.0", "args.3.0", "args.4.0", "args.4.1"]);
+  });
+
+  test.each([
+    ["en-US", ","],
+    ["de-DE", "."],
+    ["fr-FR", "\u202f"],
+  ])("should take the digit group separator of %s", (locale, separator) => {
+    expect(digitGroupSeparators(locale)).toEqual([separator]);
+  });
+
+  const groupedValues: bigint[] = [2n ** 60n + 1n, -1234567n, 1000n, 5n, 0n];
+  test("should remove the digit grouping of the screen", () => {
+    const remove = valuesOf("args.2.0").removeDigitGrouping!;
+    for (const value of groupedValues) {
+      expect(remove(formatArgChildValue(value))).toBe(String(value));
+    }
+  });
+
+  test.each(["en-US", "de-DE", "fr-FR", "en-IN", "ja-JP"])(
+    "should remove the digit grouping of %s",
+    (locale) => {
+      const remove = eventLogCellValues(
+        fragment,
+        eachArgsMaxLengths,
+        digitGroupSeparators(locale),
+      ).find((value) => value.colId === "args.2.0")!.removeDigitGrouping!;
+      for (const value of groupedValues) {
+        expect(remove(value.toLocaleString(locale))).toBe(String(value));
+      }
+    },
+  );
+
+  test("should keep a text of only digit group separators", () => {
+    const remove = eventLogCellValues(fragment, eachArgsMaxLengths, [","]).find(
+      (value) => value.colId === "args.2.0",
+    )!.removeDigitGrouping!;
+    expect(remove("1,234,567")).toBe("1234567");
+    expect(remove("1.5")).toBe("1.5");
+    expect(remove(",,")).toBe(",,");
   });
 
   test("should sort the datetime by the date and match it in ISO 8601", () => {

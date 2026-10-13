@@ -26,9 +26,11 @@ const fragment: EventFragment = EventFragment.from(
   "event Test(address from, address[] owners, uint256 amount, int256 delta, uint256[] amounts, bool ok, bytes data, string name)",
 );
 const eachArgsMaxLengths: number[] = [1, 2, 1, 1, 2, 1, 1, 1];
+// The digit grouping of en-US, whatever the locale of the test.
 const cellValues: EventLogCellValues[] = eventLogCellValues(
   fragment,
   eachArgsMaxLengths,
+  [","],
 );
 const colIds: string[] = cellValues.map((values) => values.colId);
 
@@ -264,6 +266,21 @@ async function expectSameRows(
   );
   return expected;
 }
+// The rows of the grid, and of the query with the model that change gives.
+async function expectSameRowsWith(
+  rowData: ConvertedEventLog[],
+  setUp: (gridApi: GridApi<ConvertedEventLog>) => void | Promise<void>,
+  change: (model: EventLogsTableQueryModel) => EventLogsTableQueryModel,
+): Promise<number[]> {
+  const gridApi = createRealGrid(rowData);
+  await setUp(gridApi);
+  gridApi.onFilterChanged();
+  const expected: number[] = shownRows(gridApi, rowData);
+  expect(
+    queryEventLogRows(rowData, cellValues, change(queryModelOf(gridApi))),
+  ).toEqual(expected);
+  return expected;
+}
 function sortBy(
   gridApi: GridApi<ConvertedEventLog>,
   sorts: [string, "asc" | "desc"][],
@@ -376,11 +393,14 @@ describe.each(rowSets)("queryEventLogRows and ag-grid on %s", (_, rowData) => {
     ["args.2.0", "7"],
     ["args.2.0", "1152921504606846976"],
     ["args.3.0", "-5"],
-    ["args.4.1", "1,234"],
+    // Only separators, which are not removed.
+    ["args.4.1", ","],
     ["args.5.0", "TRUE"],
     ["args.6.0", "0x"],
     ["args.7.0", "hello"],
     ["args.7.0", " "],
+    // A text column keeps the commas.
+    ["args.7.0", '"quoted", text'],
     ["transactionHash", "0xa"],
     ["removed", "false"],
   ];
@@ -538,7 +558,9 @@ describe.each(rowSets)("queryEventLogRows and ag-grid on %s", (_, rowData) => {
     "0xaaa  0xbbb",
     // A bigint over 2^53, without the digit grouping of the screen.
     "1152921504606846977",
-    "1,234",
+    // Only separators, which are not removed. A text column keeps the commas.
+    ",",
+    '"quoted",',
     "-5",
     "-",
     // The datetime is matched in ISO 8601.
@@ -549,6 +571,80 @@ describe.each(rowSets)("queryEventLogRows and ag-grid on %s", (_, rowData) => {
   ])("finds the rows by the quick search: %j", async (text) => {
     await expectSameRows(rowData, (gridApi) =>
       gridApi.setGridOption("quickFilterText", text),
+    );
+  });
+
+  // The screen groups the digits of a bigint, as 1,234: the query finds the
+  // rows that ag-grid finds with the text without the grouping.
+  test.each([
+    ["1,234", "1234"],
+    ["1,152,921,504,606,846,977", "1152921504606846977"],
+    ["921,504", "921504"],
+    ["-1,000", "-1000"],
+    ["0xaaa 1,234 false", "0xaaa 1234 false"],
+  ])(
+    "finds the rows by the quick search with the digit grouping: %j",
+    async (groupedText, text) => {
+      await expectSameRowsWith(
+        rowData,
+        (gridApi) => gridApi.setGridOption("quickFilterText", text),
+        (model) => ({ ...model, quickSearch: groupedText }),
+      );
+    },
+  );
+
+  test.each(
+    [
+      ["args.4.1", "1,234", "1234"],
+      ["args.2.0", "1,152,921,504,606,846,976", "1152921504606846976"],
+      ["args.3.0", "-1,000", "-1000"],
+    ].flatMap(([colId, groupedText, text]) =>
+      textTypes.map((type) => [colId, type, groupedText, text] as const),
+    ),
+  )(
+    "filters by the text filter with the digit grouping: %s %s %j",
+    async (colId, type, groupedText, text) => {
+      await expectSameRowsWith(
+        rowData,
+        (gridApi) =>
+          gridApi.setColumnFilterModel(colId, {
+            filterType: "text",
+            type,
+            filter: text,
+          }),
+        (model) => ({
+          ...model,
+          filterModel: {
+            [colId]: { filterType: "text", type, filter: groupedText },
+          },
+        }),
+      );
+    },
+  );
+
+  test("filters by two text conditions with the digit grouping", async () => {
+    const conditions = (equals: string, startsWith: string) => [
+      { filterType: "text", type: "equals", filter: equals },
+      { filterType: "text", type: "startsWith", filter: startsWith },
+    ];
+    await expectSameRowsWith(
+      rowData,
+      (gridApi) =>
+        gridApi.setColumnFilterModel("args.2.0", {
+          filterType: "text",
+          operator: "OR",
+          conditions: conditions("1000", "1152"),
+        }),
+      (model) => ({
+        ...model,
+        filterModel: {
+          "args.2.0": {
+            filterType: "text",
+            operator: "OR",
+            conditions: conditions("1,000", "1,152"),
+          },
+        },
+      }),
     );
   });
 
@@ -642,6 +738,32 @@ describe("queryEventLogRows and ag-grid on many rows", () => {
   ] as [string, "asc" | "desc"][][][])("sorts by %j", async (sorts) => {
     await expectSameRows(manyRows, (gridApi) => sortBy(gridApi, sorts));
   });
+});
+
+test("finds the rows of a bigint by its digit grouping", () => {
+  const find = (model: Partial<EventLogsTableQueryModel>): number[] =>
+    queryEventLogRows(rows, cellValues, {
+      sortModel: [],
+      filterModel: {},
+      quickSearch: "",
+      ...model,
+    });
+  expect(find({ quickSearch: "1,234" })).toEqual([0, 3]);
+  expect(
+    find({
+      filterModel: {
+        "args.4.1": { filterType: "text", type: "equals", filter: "1,234" },
+      },
+    }),
+  ).toEqual([3]);
+  // Not in a text column.
+  expect(
+    find({
+      filterModel: {
+        "args.7.0": { filterType: "text", type: "contains", filter: "o,r" },
+      },
+    }),
+  ).toEqual([]);
 });
 
 test("ignores a column that the table does not have", () => {
