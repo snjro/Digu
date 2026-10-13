@@ -141,6 +141,27 @@
           "range": 9
         }
       }
+    },
+    {
+      "createdAt": "2026-10-13T02:24:59.756Z",
+      "latestBlockNumber": 95435338,
+      "toBlock": 95435033,
+      "logCount": 0,
+      "requests": {
+        "eth_chainId": 1,
+        "eth_blockNumber": 1,
+        "eth_getLogs": 4
+      },
+      "checks": {
+        "emptyRangesAskedAgain": 1,
+        "emptyRangesWithLogs": 0,
+        "errors": {
+          "rate": 0,
+          "results": 0,
+          "unrelated": 0,
+          "range": 1
+        }
+      }
     }
   ],
   "chunks": [
@@ -485,6 +506,60 @@
       "name": "SportsLinkMarketFactory",
       "fromBlock": 95102207,
       "toBlock": 95282957,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "AMMFactory",
+      "fromBlock": 95282958,
+      "toBlock": 95435033,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "BalancerFactory",
+      "fromBlock": 95282958,
+      "toBlock": 95435033,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "FeePot",
+      "fromBlock": 95282958,
+      "toBlock": 95435033,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "MMALinkMarketFactory",
+      "fromBlock": 95282958,
+      "toBlock": 95435033,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "PlaceholderReputationToken",
+      "fromBlock": 95282958,
+      "toBlock": 95435033,
+      "logCount": 0,
+      "file": null
+    },
+    {
+      "project": "Augur",
+      "version": "turbo",
+      "name": "SportsLinkMarketFactory",
+      "fromBlock": 95282958,
+      "toBlock": 95435033,
       "logCount": 0,
       "file": null
     }
