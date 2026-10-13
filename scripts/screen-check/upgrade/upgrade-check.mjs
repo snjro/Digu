@@ -424,6 +424,29 @@ async function countTable(page, dbName, table) {
     table,
   );
 }
+// The logs in the EventLog DBs of the chain: every table but SyncStatus.
+async function countEventLogs(page, chainName) {
+  return page.evaluate(async (prefix) => {
+    let count = 0;
+    for (const { name } of await indexedDB.databases()) {
+      if (!name.startsWith(prefix)) continue;
+      const db = await new Promise((resolve, reject) => {
+        const r = indexedDB.open(name);
+        r.onsuccess = () => resolve(r.result);
+        r.onerror = () => reject(r.error);
+      });
+      for (const table of [...db.objectStoreNames]) {
+        if (table === "SyncStatus") continue;
+        count += await new Promise((resolve) => {
+          const c = db.transaction(table).objectStore(table).count();
+          c.onsuccess = () => resolve(c.result);
+        });
+      }
+      db.close();
+    }
+    return count;
+  }, `Digu_EventLog_${chainName}_`);
+}
 async function readSettingsDb(page) {
   return page.evaluate(
     () =>
@@ -643,6 +666,10 @@ await results.guard(
       note("sidebar close clicked", closed);
       await settle(page, 1000);
       await record(page, "old-06-final", { dump: true });
+      // `removed chain` of the new phase checks a removed chain only on such
+      // data.
+      const selected = (await readSettingsDb(page))?.selectedChainName;
+      check("old-06 selected chain", selected === "matic", `${selected}`);
     } else if (phase === "probe") {
       // Opens the new build again and checks whether the page stays responsive.
       // If an evaluate does not return, pause the debugger and log the stack.
@@ -811,29 +838,32 @@ await results.guard(
       // origin that does not run the app.
       await page.goto(`${ORIGIN}/favicon.png`, { waitUntil: "load" });
       const settingsBefore = await readSettingsDb(page);
+      // Upgrade A opens the data of the old phase, upgrade B a copy of the
+      // data of an earlier run (#777, #814): the expected values come from it.
+      const logsBefore = await countEventLogs(page, "eth");
       await page.goto(`${ORIGIN}/`, { waitUntil: "load" });
       await settle(page, 3000);
       await record(page, "new-00-home-first-open", { dump: true });
       const settingsAfter = await readSettingsDb(page);
       checkSettingsUpgrade(settingsBefore, settingsAfter);
-      // The chain saved by v1.0.2 is gone (#809): the app opens on a chain of
-      // the build, without a page error.
+      // A chain removed from the build (#809, matic in upgrade A): the app
+      // opens on a chain of the build. A chain of the build (upgrade B): the
+      // app keeps it. Both without a page error.
       const pageErrors = log.filter((line) =>
         line.startsWith("[pageerror] new-00"),
       );
       const url = new URL(page.url()).pathname;
+      const before = settingsBefore?.selectedChainName;
+      const after = settingsAfter?.selectedChainName;
+      // No saved chain is not a removed chain: it fails below.
+      const isRemoved =
+        typeof before === "string" && !CHAIN_NAMES.includes(before);
       check(
         "removed chain",
-        settingsBefore?.selectedChainName === "matic" &&
-          CHAIN_NAMES.includes(settingsAfter?.selectedChainName) &&
-          url === `/${settingsAfter.selectedChainName}/` &&
+        (isRemoved ? CHAIN_NAMES.includes(after) : after === before) &&
+          url === `/${after}/` &&
           pageErrors.length === 0,
-        JSON.stringify({
-          before: settingsBefore?.selectedChainName,
-          after: settingsAfter?.selectedChainName,
-          url,
-          pageErrors,
-        }),
+        JSON.stringify({ before, isRemoved, after, url, pageErrors }),
       );
       for (const [name, p] of [
         ["new-02-eth", "/eth"],
@@ -876,15 +906,19 @@ await results.guard(
           text: d.innerText.slice(0, 800),
         };
       });
-      // The 2 fake logs below the latest block of the old phase, and the
-      // warp sync on: v1.0.2 had no such setting, so it is the default.
+      // The logs in the data before the upgrade (2 in upgrade A: the fake
+      // logs below the latest block of the old phase), and the warp sync on:
+      // v1.0.2 had no such setting, so it is the default.
       check(
         "sync panel (eth page)",
-        /\b2 logs\b/.test(dialogValues.text) &&
+        logsBefore > 0 &&
+          new RegExp(`\\b${logsBefore.toLocaleString("en-US")} logs\\b`).test(
+            dialogValues.text,
+          ) &&
           dialogValues.checkboxes.some(
             (c) => c.label === "Warp sync" && c.checked,
           ),
-        JSON.stringify(dialogValues),
+        JSON.stringify({ logsBefore, ...dialogValues }),
       );
       await record(page, "new-10-sync-panel");
       await page.keyboard.press("Escape");
