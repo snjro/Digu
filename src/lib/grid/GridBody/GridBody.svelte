@@ -1,3 +1,9 @@
+<script lang="ts" module>
+  // The stores change many times a second while the app syncs. Sorting each
+  // time would move the rows under the pointer.
+  export const REFRESH_SORT_FILTER_INTERVAL_MS: number = 1000;
+</script>
+
 <script lang="ts" generics="GridRow">
   import GridLoadingOverlay from "./GridLoadingOverlay.svelte";
   import { setAutoColumnWidth } from "../gridColumns";
@@ -19,6 +25,7 @@
     createGrid,
     ModuleRegistry,
     CellStyleModule,
+    ClientSideRowModelApiModule,
     ClientSideRowModelModule,
     ColumnApiModule,
     ColumnAutoSizeModule,
@@ -46,6 +53,7 @@
   import { getColorDefinitionsForGrid } from "./getColorDefs";
   import { getColumnDefs, ColIdRowSequenceNumber } from "./getColumnDefs";
   import { suppressKeyboardEventInCell } from "./suppressKeyboardEventInCell";
+  import type { Readable } from "svelte/store";
 
   interface Props {
     gridApi: GridApi<GridRow> | undefined;
@@ -55,6 +63,9 @@
     // In place of rows, for the Infinite Row Model.
     infiniteRows?: InfiniteRows<GridRow>;
     loadingText?: string;
+    // The stores that the value getters read. The rows stay the same when
+    // they change, so the grid sorts and filters again.
+    refreshSortFilterOn?: Readable<unknown>[];
   }
 
   let {
@@ -63,6 +74,7 @@
     rows,
     infiniteRows,
     loadingText,
+    refreshSortFilterOn,
   }: Props = $props();
 
   // ag-grid takes the row model only when it creates the grid.
@@ -166,9 +178,11 @@
     // Only the features the grids use. The date filter is for the ISO 8601
     // strings, which ag-grid infers as dateTimeString. The event and row APIs
     // are for the row count of the CSV dialog. The external filter is for the
-    // quick search of the Infinite Row Model.
+    // quick search of the Infinite Row Model. The API of the Client-Side Row
+    // Model is for refreshSortFilterOn.
     ModuleRegistry.registerModules([
       CellStyleModule,
+      ClientSideRowModelApiModule,
       ClientSideRowModelModule,
       ColumnApiModule,
       ColumnAutoSizeModule,
@@ -252,6 +266,39 @@
         }
       });
     }
+  });
+  // At most once an interval, and once more after the last change.
+  $effect(() => {
+    if (!gridApi || !refreshSortFilterOn || infiniteOptions) return;
+    const api: GridApi<GridRow> = gridApi;
+    const stores: Readable<unknown>[] = refreshSortFilterOn;
+    let timer: ReturnType<typeof setTimeout> | undefined = undefined;
+    const refresh = (): void => {
+      timer = undefined;
+      if (api.isDestroyed()) return;
+      const isSorted: boolean = api
+        .getColumnState()
+        .some((columnState) => columnState.sort);
+      if (!isSorted && !api.isAnyFilterPresent()) return;
+      // The filter step sorts too.
+      api.refreshClientSideRowModel("filter");
+      refreshRowSequenceNumber(api);
+    };
+    // subscribe calls back at once with the value that the grid has read.
+    let isSubscribed: boolean = false;
+    const unsubscribes: (() => void)[] = stores.map(
+      (store: Readable<unknown>) =>
+        store.subscribe(() => {
+          if (isSubscribed && timer === undefined) {
+            timer = setTimeout(refresh, REFRESH_SORT_FILTER_INTERVAL_MS);
+          }
+        }),
+    );
+    isSubscribed = true;
+    return () => {
+      clearTimeout(timer);
+      for (const unsubscribe of unsubscribes) unsubscribe();
+    };
   });
   // The loading overlay replaces any other while there is no datasource. A new
   // datasource makes ag-grid read the rows again.
