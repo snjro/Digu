@@ -175,11 +175,14 @@ function quickSearchFilter(
     return undefined;
   }
   const words: string[] = quickSearch.toUpperCase().split(" ");
+  const columnWords: string[][] = cellValues.map((values) =>
+    values.removeDigitGrouping ? words.map(values.removeDigitGrouping) : words,
+  );
   return (row) => {
     // The text of a column is made when a word first needs it, and kept for
     // the next words. null when the column has no text.
     const texts: (string | null | undefined)[] = new Array(cellValues.length);
-    return words.every((word) =>
+    return words.every((_, wordIndex) =>
       cellValues.some((values, index) => {
         let text: string | null | undefined = texts[index];
         if (text === undefined) {
@@ -187,10 +190,25 @@ function quickSearchFilter(
           text = filterText ? filterText.toUpperCase() : null;
           texts[index] = text;
         }
-        return text !== null && text.includes(word);
+        return text !== null && text.includes(columnWords[index][wordIndex]);
       }),
     );
   };
+}
+
+// The model with its texts without the digit grouping of the screen.
+function withoutDigitGrouping(
+  model: ColumnFilterModel<TextFilterModel>,
+  removeDigitGrouping: (text: string) => string,
+): ColumnFilterModel<TextFilterModel> {
+  const removeIn = (condition: TextFilterModel): TextFilterModel =>
+    condition.filter
+      ? { ...condition, filter: removeDigitGrouping(condition.filter) }
+      : condition;
+  const combined = model as ICombinedSimpleModel<TextFilterModel>;
+  return combined.operator
+    ? { ...combined, conditions: combined.conditions?.map(removeIn) }
+    : removeIn(model as TextFilterModel);
 }
 
 function rowFilters(
@@ -213,7 +231,12 @@ function rowFilters(
           )
         : columnFilter(
             textCondition(values),
-            model as ColumnFilterModel<TextFilterModel>,
+            values.removeDigitGrouping
+              ? withoutDigitGrouping(
+                  model as ColumnFilterModel<TextFilterModel>,
+                  values.removeDigitGrouping,
+                )
+              : (model as ColumnFilterModel<TextFilterModel>),
           ),
     );
   }

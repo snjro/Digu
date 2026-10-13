@@ -15,6 +15,9 @@ export type EventLogCellValues = {
   // The text the text filter and the quick search match, before ag-grid
   // changes its case. null when there is no value.
   getFilterText: (row: ConvertedEventLog) => string | null;
+  // Removes the digit grouping of the screen from a searched text, in the
+  // columns whose digits the screen groups.
+  removeDigitGrouping?: (text: string) => string;
   // The text of the cell in the CSV, before the quotes.
   getCsvText: (row: ConvertedEventLog) => string;
 };
@@ -56,12 +59,37 @@ export function getArgChildValue(
   const argValue: unknown = row.args[indexOfInputs];
   return Array.isArray(argValue) ? argValue[indexOfArgChild] : argValue;
 }
+// The values of the column are bigints.
+export function isIntegerAbiType(type: string): boolean {
+  return type.startsWith("int") || type.startsWith("uint");
+}
 // The screen groups the digits of a bigint.
 export function formatArgChildValue(argChildValue: unknown): string {
   if (typeof argChildValue === "bigint") {
     return argChildValue.toLocaleString();
   }
   return argChildValue == null ? "" : String(argChildValue);
+}
+
+// The texts between the groups of digits in formatArgChildValue, in the
+// default locale when locales is undefined.
+export function digitGroupSeparators(locales?: string): string[] {
+  const parts = new Intl.NumberFormat(locales).formatToParts(1000000000n);
+  return [
+    ...new Set(
+      parts.filter((part) => part.type === "group").map((part) => part.value),
+    ),
+  ];
+}
+function digitGroupingRemover(separators: string[]): (text: string) => string {
+  return (text) => {
+    let removed: string = text;
+    for (const separator of separators) {
+      removed = removed.replaceAll(separator, "");
+    }
+    // A text of only separators would match every value.
+    return removed || text;
+  };
 }
 
 function toFilterText(value: unknown): string | null {
@@ -107,6 +135,7 @@ function cellValuesOf(
 export function eventLogCellValues(
   targetEventAbiFragment: EventAbiFragment,
   eachArgsMaxLengths: number[],
+  separators: string[] = digitGroupSeparators(),
 ): EventLogCellValues[] {
   const datetime: EventLogCellValues = {
     colId: eventLogColIds.jsDate,
@@ -120,21 +149,24 @@ export function eventLogCellValues(
   const abiFragmentInputs: EventAbiFragment["inputs"] =
     targetEventAbiFragment.inputs;
   if (abiFragmentInputs && Array.isArray(abiFragmentInputs)) {
-    abiFragmentInputs.forEach((_, indexOfInputs) => {
+    const removeDigitGrouping = digitGroupingRemover(separators);
+    abiFragmentInputs.forEach((abiFragmentInput, indexOfInputs) => {
       for (
         let indexOfArgChild: number = 0;
         indexOfArgChild <= eachArgsMaxLengths[indexOfInputs] - 1;
         indexOfArgChild++
       ) {
         // An address column has no valueFormatter, which gives the same text.
-        args.push(
-          cellValuesOf(
-            argChildColId(indexOfInputs, indexOfArgChild),
-            "text",
-            (row) => getArgChildValue(row, indexOfInputs, indexOfArgChild),
-            formatArgChildValue,
-          ),
+        const values: EventLogCellValues = cellValuesOf(
+          argChildColId(indexOfInputs, indexOfArgChild),
+          "text",
+          (row) => getArgChildValue(row, indexOfInputs, indexOfArgChild),
+          formatArgChildValue,
         );
+        if (isIntegerAbiType(abiFragmentInput.type)) {
+          values.removeDigitGrouping = removeDigitGrouping;
+        }
+        args.push(values);
       }
     });
   }

@@ -24,6 +24,7 @@ import {
   getDatetimeText,
   getDatetimeValue,
   getTransactionHashValue,
+  isIntegerAbiType,
 } from "./eventLogCellValues";
 import { NO_DATA } from "#utils/utilsConstants.js";
 const cellClass: string = classNames("");
@@ -251,11 +252,9 @@ const argChildColumnDef = (
       headerName: headerName,
       sortable: sortable,
       editable: editable,
-      cellClass:
-        abiFragmentInput.type.startsWith("int") ||
-        abiFragmentInput.type.startsWith("uint")
-          ? "text-right"
-          : cellClass,
+      cellClass: isIntegerAbiType(abiFragmentInput.type)
+        ? "text-right"
+        : cellClass,
       valueFormatter: (valueFormatterParams: ValueFormatterParams) => {
         return valueFormatterParams.data
           ? formatArgChildValue(
