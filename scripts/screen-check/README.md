@@ -308,7 +308,10 @@ python3 scripts/screen-check/upgrade/diff_db.py <out-dir>/db-old-old-06-final.js
   `abortWatchIntervalMs` from each RPC setting and kept the rest.
   `old` also selects matic, which the new build does not have (#809): the
   upgrade must delete its RPC setting, and `removed chain` checks that the new
-  build opens on a chain of its own without a page error. `grid` opens
+  build opens on a chain of its own without a page error. On data whose chain
+  is in the new build (upgrade B), it checks that the new build keeps that
+  chain. The count of logs that `new` expects in the sync panel is the count
+  in the data before the new build opens it. `grid` opens
   the Event Logs grids on the logs of both. `probe` only opens the new build
   and logs the stack if the page stops answering.
 - The checks are records in `results-<phase>.json` (see
