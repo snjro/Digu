@@ -6,6 +6,7 @@
   import GridBody from "./GridBody/GridBody.svelte";
   import type { InfiniteRows } from "./infiniteRows";
   import type { ColumnDef } from "./types";
+  import type { Readable } from "svelte/store";
 
   interface Props {
     isFullScreen?: boolean;
@@ -19,6 +20,8 @@
     exportFilePrefix: ExportFilePrefix;
     hasMultipleTabs: boolean;
     gridApi?: GridApi<GridRow> | undefined;
+    // The stores that the value getters read. See GridBody.
+    refreshSortFilterOn?: Readable<unknown>[];
   }
 
   let {
@@ -30,6 +33,7 @@
     exportFilePrefix,
     hasMultipleTabs,
     gridApi = $bindable(),
+    refreshSortFilterOn,
   }: Props = $props();
 </script>
 
@@ -52,6 +56,7 @@
         {rows}
         {infiniteRows}
         {loadingText}
+        {refreshSortFilterOn}
       />
     </div>
   {/snippet}

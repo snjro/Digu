@@ -9,6 +9,7 @@
   import { gridRows } from "./gridRows";
   import type { EventRow } from "#lib/gridColumnDefs/rowTypes.js";
   import { getMaxParamsLength } from "../../maxParamsLength";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 
   interface Props {
     data: LoadEventsData;
@@ -23,6 +24,9 @@
   let rows: EventRow[] = $derived(gridRows(data.targetEventAbiFragments));
 
   let isFullScreen = $state(false);
+
+  // The column Num of Logs reads it.
+  const refreshSortFilterOn = [storeSyncStatus];
 </script>
 
 <PageWrapper
@@ -49,6 +53,7 @@
       )}
       hasMultipleTabs={false}
       exportFilePrefix="events"
+      {refreshSortFilterOn}
       bind:isFullScreen
     />
   {/snippet}

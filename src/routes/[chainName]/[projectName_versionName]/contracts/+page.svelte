@@ -9,6 +9,8 @@
   import { gridRows } from "./gridRows";
   import type { ContractRow } from "#lib/gridColumnDefs/rowTypes.js";
   import { getMaxParamsLength } from "./maxParamsLength";
+  import { storeSyncStatus } from "#stores/storeSyncStatus.js";
+  import { storeChainStatus } from "#stores/storeChainStatus.js";
 
   interface Props {
     data: LoadVersionData;
@@ -24,6 +26,9 @@
   let rows: ContractRow[] = $derived(gridRows(data.targetVersion.contracts));
 
   let isFullScreen = $state(false);
+
+  // The sync status columns read them.
+  const refreshSortFilterOn = [storeSyncStatus, storeChainStatus];
 </script>
 
 <PageWrapper
@@ -51,6 +56,7 @@
       )}
       hasMultipleTabs={false}
       exportFilePrefix="contracts"
+      {refreshSortFilterOn}
       bind:isFullScreen
     />
   {/snippet}
