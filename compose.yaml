@@ -18,7 +18,7 @@ services:
   # added capability) protects the host from a page that breaks Chrome. Chrome
   # opens only our builds, the public site and the data of RPCs.
   test:
-    image: ghcr.io/puppeteer/puppeteer:25.13.0
+    image: ghcr.io/puppeteer/puppeteer:25.16.0
     profiles: ["test"]
     user: "1001:1001"
     working_dir: /app
