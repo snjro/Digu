@@ -1,7 +1,7 @@
 // What the browser checks look for in the app, and how they use it
 // (scripts/screen-check, visual-compare and a11y-scan). Find an element by its
 // name (aria-label), role or attributes, not by a text that changes with a
-// state (scripts/screen-check/README.md). It imports nothing, like browser.mjs.
+// state (scripts/screen-check/README.md). It imports nothing.
 
 export const SIDEBAR = "aside[aria-label=Sidebar]";
 export const CLOSE_SIDEBAR = 'button[aria-label="Close sidebar"]';
@@ -11,7 +11,7 @@ export const RPC_INPUT = 'input[aria-label="RPC URL"]';
 export const QUICK_SEARCH = 'main input[aria-label="Quick search"]';
 // The progress in the nav, which opens the sync panel (#596).
 export const SYNC_PANEL_BUTTON = 'nav button[aria-controls="sync-panel"]';
-export const SYNC_TOGGLE = 'button[role="switch"][aria-label="Sync"]';
+const SYNC_TOGGLE = 'button[role="switch"][aria-label="Sync"]';
 // The builds before #661 have no name on the sync toggle. These are its
 // tooltips in v1.0.2, the oldest build the checks open.
 const OLD_SYNC_TOGGLE_TEXTS = ["start sync", "stop sync"];

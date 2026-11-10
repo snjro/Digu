@@ -20,14 +20,7 @@ const svelteConfig = loaded.config;
 
 export default defineConfig(
   {
-    ignores: [
-      ".svelte-kit/",
-      "build/",
-      "_build/",
-      "package/",
-      "coverage/",
-      ".claude/",
-    ],
+    ignores: [".svelte-kit/", "_build/", "coverage/", ".claude/"],
   },
   js.configs.recommended,
   ts.configs.recommended,

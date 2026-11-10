@@ -70,7 +70,7 @@ export function toSnapshotLog(contract, raw, blockTimestamp) {
 /**
  * The error of a log that toSnapshotLog does not take, with the contract and
  * the block of the log. Its text is made only when a log fails: the build
- * and the conversion check millions of logs.
+ * checks millions of logs.
  * @param {DecodingContract} contract
  * @param {{ blockNumber: string, logIndex: string }} raw
  * @param {string} text

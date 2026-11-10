@@ -1,7 +1,8 @@
 // Checks the public site after a release (read only): the version in the
 // footer, redirects, links under /Digu/, deep URLs, unknown URLs, the theme
-// switch, the ABI and CSV downloads, and console errors / CSP violations. The
-// import dialog of Ethereum is closed with "Not now" on each page.
+// switch, the grid and the ABI of a contract, and console errors / CSP
+// violations. The import dialog of Ethereum is closed with "Not now" on each
+// page.
 // Runs in the compose "test" service: node public-site-check.mjs <outDir> <version>
 import fs from "node:fs";
 import path from "node:path";

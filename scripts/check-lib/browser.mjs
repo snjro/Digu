@@ -9,7 +9,7 @@ import path from "node:path";
 // The import of the warp sync snapshot of these chains asks first (eth is
 // large), and its dialog covers the page (#604). Their snapshot requests get
 // 404, so they sync without it.
-export const BLOCKED_SNAPSHOT_CHAINS = ["eth"];
+const BLOCKED_SNAPSHOT_CHAINS = ["eth"];
 
 const TYPES = {
   ".html": "text/html",

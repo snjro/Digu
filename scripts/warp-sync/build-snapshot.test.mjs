@@ -224,7 +224,7 @@ describe("buildSnapshot", { timeout: 30_000 }, () => {
       .readdirSync(partial)
       .filter((file) => file.endsWith(".jsonl"));
     expect(jsonl.length).toBeGreaterThan(0);
-    // A line half written when it stopped, and a log after the next block.
+    // A line half written when it stopped.
     fs.appendFileSync(path.join(partial, jsonl[0]), '{"blockNumber":"0xf4');
     await build({ chunkLogs: 50 });
     expect(readManifest().chunks).toEqual(straight);

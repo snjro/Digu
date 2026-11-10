@@ -274,9 +274,8 @@ function refusalsOf(answers) {
   });
 }
 // --fake: answers like PublicNode did in October 2026.
-// Keep each chain above the end of its warp sync snapshot
-// (static/warp-sync/<chain>/), or the sync has no range to ask for after the
-// import.
+// Above the creation blocks of the contracts, so that the sync has ranges to
+// ask for.
 const FAKE_LATEST = { eth: 27_000_000 };
 function fakeAnswer(chain, p) {
   const q = (n) => "0x" + n.toString(16);

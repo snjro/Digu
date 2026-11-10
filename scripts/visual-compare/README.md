@@ -103,7 +103,7 @@ Light and dark theme of:
   logs are made with ethers from the ABI of Augur, with fixed values, so
   every run shows the same rows. Nothing is fetched from an RPC
 
-That is 51 screens for each theme, 102 in all.
+That is 50 screens for each theme, 100 in all.
 
 Each action starts from a fresh browser profile, so what it saves in the
 browser (settings, the chain) does not change the next screen.
@@ -120,7 +120,7 @@ To add a screen, edit `PAGES`, `STATES`, `MORE_STATES`, `PHONE_PAGES` or
 
 - The only event logs are the fake ones of `DATA_PAGES`. Both builds are shot
   with the `shots.mjs` of this working tree, and the ABI of Augur and Dexie
-  for them are read from this working tree too.
+  for them are read from the head (this working tree without `<head-ref>`).
 - A screenshot shows the screen after it settles. Animations and transitions
   are turned off.
 - The same build gives the same screenshots from run to run, with the Chrome
