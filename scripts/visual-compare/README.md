@@ -120,7 +120,8 @@ To add a screen, edit `PAGES`, `STATES`, `MORE_STATES`, `PHONE_PAGES` or
 
 - The only event logs are the fake ones of `DATA_PAGES`. Both builds are shot
   with the `shots.mjs` of this working tree, and the ABI of Augur and Dexie
-  for them are read from the head (this working tree without `<head-ref>`).
+  for them are read from the head: `<head-ref>` when it is given, and this
+  working tree when it is not.
 - A screenshot shows the screen after it settles. Animations and transitions
   are turned off.
 - The same build gives the same screenshots from run to run, with the Chrome

@@ -274,8 +274,8 @@ function refusalsOf(answers) {
   });
 }
 // --fake: answers like PublicNode did in October 2026.
-// Above the creation blocks of the contracts, so that the sync has ranges to
-// ask for.
+// Above the creation block of the contract that a run syncs, so that the sync
+// has ranges to ask for.
 const FAKE_LATEST = { eth: 27_000_000 };
 function fakeAnswer(chain, p) {
   const q = (n) => "0x" + n.toString(16);
