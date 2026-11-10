@@ -474,7 +474,8 @@ function fakeLogs(contract, eventName, count) {
   return { logs, fetchedBlockNumber: startBlock + 40000 };
 }
 
-// The ABI and Dexie come from this working tree, also for the base build.
+// The ABI and Dexie come from the head (the working directory), also for the
+// base build.
 const augur = JSON.parse(
   fs.readFileSync(
     "src/constants/chains/ethereum-mainnet/augur/version1/Augur.json",

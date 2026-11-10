@@ -2,15 +2,7 @@
 node_modules
 /_build
 /.svelte-kit
-/package
 # Written by scripts/warp-sync, without spaces
 /static/warp-sync
 /.claude
-.env
-.env.*
-!.env.example
-
-# Ignore files for PNPM, NPM and YARN
-pnpm-lock.yaml
 package-lock.json
-yarn.lock
