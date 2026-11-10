@@ -41,7 +41,7 @@
   } from "./syncedData";
 
   let targetChainName: ChainName = $derived(
-    $storeUserSettings.selectedChainName.toString(),
+    $storeUserSettings.selectedChainName,
   );
   let targetChain: Chain = $derived(
     getTargetChain({ chainName: targetChainName }),

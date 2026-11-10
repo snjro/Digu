@@ -28,9 +28,7 @@
     updateRpc,
   } from "./rpcInput";
 
-  let targetChainName = $derived(
-    $storeUserSettings.selectedChainName.toString(),
-  );
+  let targetChainName = $derived($storeUserSettings.selectedChainName);
   let rpc = $derived($storeRpcSettings[targetChainName].rpc);
   let baseInputElement = $state() as ReturnType<typeof BaseInput>;
   let nodeStatus: NodeStatus = $derived(

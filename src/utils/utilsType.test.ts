@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import type { KeysMatching } from "./utilsType";
 type TestType = {
   a: number;
   b: string;

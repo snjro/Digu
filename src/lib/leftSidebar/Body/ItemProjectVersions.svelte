@@ -10,9 +10,7 @@
   import { getTargetChain } from "#utils/utilsDb.js";
   import ItemProjectVersionsMember from "./ItemProjectVersionsMember.svelte";
 
-  let chainName: ChainName = $derived(
-    $storeUserSettings.selectedChainName.toString(),
-  );
+  let chainName: ChainName = $derived($storeUserSettings.selectedChainName);
 
   let rootPath: string = $derived(getChainRootUrl(basePath, chainName));
 

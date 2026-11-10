@@ -9,7 +9,7 @@ import type {
 import type { EventLogsTableQueryModel } from "./eventLogsTableQuery";
 
 // Without query, the CSV has all the rows.
-export type EventLogsTableCsvParams = {
+type EventLogsTableCsvParams = {
   request: CsvRequest;
   query?: EventLogsTableQueryModel;
 };

@@ -4,7 +4,7 @@
 // contracts of the chain, which share the provider, can come in between: far
 // fewer than 100,000 blocks with logs. A block dropped before it is read is
 // read from the DB or the RPC instead, with one more request.
-export const MAX_BLOCK_TIMESTAMPS: number = 100000;
+const MAX_BLOCK_TIMESTAMPS: number = 100000;
 // The timestamps by block number, in two maps, so that old blocks are dropped
 // without deleting them one by one: at most twice maxSize blocks.
 export class BlockTimestamps {

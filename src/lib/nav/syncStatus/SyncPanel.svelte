@@ -37,7 +37,7 @@
   const headingId: string = `${SYNC_PANEL_ID}-heading`;
 
   let targetChainName: ChainName = $derived(
-    $storeUserSettings.selectedChainName.toString(),
+    $storeUserSettings.selectedChainName,
   );
   let targetChain: Chain = $derived(
     getTargetChain({ chainName: targetChainName }),

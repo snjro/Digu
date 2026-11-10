@@ -18,8 +18,8 @@
     tooltipText="Change theme"
     tooltipXPosition="left"
     tooltipYPosition="bottom"
-    colorCategoryBg={colorSettings.gridFunctionButton}
-    colorCategoryFront={colorSettings.gridFunctionButton}
+    colorCategoryBg={colorSettings.navButton}
+    colorCategoryFront={colorSettings.navButton}
     onclick={async () => {
       await toggleThemeColor(currentThemeColor);
     }}

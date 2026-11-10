@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { dbBase } from "./dbBase"; // ファイル名を適切なものに変更してください
+import { dbBase } from "./dbBase";
 import type { SchemaDefinition } from "./dbTypes";
 import { DB_NAME } from "./constants";
 

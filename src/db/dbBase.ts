@@ -1,7 +1,7 @@
 import type { Contract } from "#constants/chains/types.js";
 import { Dexie, type Transaction } from "dexie";
 import { DB_NAME } from "./constants";
-import type { SchemaDefinition, VersionIdentifier } from "./dbTypes";
+import type { SchemaDefinition } from "./dbTypes";
 
 export abstract class dbBase extends Dexie {
   constructor(dbNameElement: string[] | string) {
@@ -10,7 +10,6 @@ export abstract class dbBase extends Dexie {
   }
   protected abstract getSchemaDefinition(
     targetContracts?: Contract[],
-    versionIdentifier?: VersionIdentifier,
   ): SchemaDefinition;
   protected abstract addInitialData(
     tx: Transaction,

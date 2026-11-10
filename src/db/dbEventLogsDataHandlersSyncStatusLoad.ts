@@ -25,7 +25,7 @@ const tableNameSyncStatus = DB_TABLE_NAMES.EventLog.syncStatus;
 //   the tabs that read at the same time only the first writes.
 // - "reset" (for an operation of this tab, with the lock exclusive): writes
 //   the cleared flags and the creation block of this build to every row.
-export type SyncStatusLoad = "release" | "reset";
+type SyncStatusLoad = "release" | "reset";
 
 type Row = { contract: Contract; row: SyncStatusContract | undefined };
 

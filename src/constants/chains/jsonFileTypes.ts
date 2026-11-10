@@ -32,7 +32,7 @@ type JsonFileAbiFragment = {
 
   readonly gas?: string;
 };
-export type JsonFileAbi = readonly JsonFileAbiFragment[];
+type JsonFileAbi = readonly JsonFileAbiFragment[];
 
 export type JsonFileContract = BaseContract & {
   readonly abi: JsonFileAbi;

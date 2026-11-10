@@ -366,7 +366,6 @@
               />
               <BaseRadio
                 radioButtonType="button"
-                border
                 size={sizeSettings.dialogBodyContent}
                 labelAndValues={exportCsvRadioProps[key].radioLabelAndValues}
                 groupName={exportCsvRadioProps[key].groupName}

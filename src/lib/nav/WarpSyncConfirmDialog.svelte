@@ -24,7 +24,7 @@
 
   let targetChain: Chain = $derived(
     getTargetChain({
-      chainName: $storeUserSettings.selectedChainName.toString(),
+      chainName: $storeUserSettings.selectedChainName,
     }),
   );
   let warpState: WarpSyncState = $derived(

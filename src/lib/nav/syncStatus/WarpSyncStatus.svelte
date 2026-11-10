@@ -20,9 +20,7 @@
   } from "#warpSync/warpSyncTexts.js";
   import classNames from "classnames";
 
-  let chainName: string = $derived(
-    $storeUserSettings.selectedChainName.toString(),
-  );
+  let chainName: string = $derived($storeUserSettings.selectedChainName);
   let targetChain: Chain = $derived(getTargetChain({ chainName }));
   let warpState: WarpSyncState = $derived(
     selectWarpSyncState($storeWarpSync, chainName),

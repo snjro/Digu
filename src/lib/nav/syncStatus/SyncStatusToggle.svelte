@@ -37,7 +37,7 @@
   let isStarting: boolean = $state(false);
 
   let targetChainName: ChainName = $derived(
-    $storeUserSettings.selectedChainName.toString(),
+    $storeUserSettings.selectedChainName,
   );
 
   let targetChain: Chain = $derived(

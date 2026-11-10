@@ -2,7 +2,7 @@ import type { ChainName } from "#constants/chains/types.js";
 import { writable } from "svelte/store";
 
 export type SyncStoppedReason = "RPC_ERRORS" | "UNEXPECTED_ERROR";
-export type StateSyncStoppedReasons = {
+type StateSyncStoppedReasons = {
   [key in ChainName]?: SyncStoppedReason;
 };
 

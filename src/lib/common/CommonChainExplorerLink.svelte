@@ -56,7 +56,7 @@
     getChainExplorer(
       getPageChainName(
         page.params.chainName,
-        $storeUserSettings.selectedChainName.toString(),
+        $storeUserSettings.selectedChainName,
       ),
     ),
   );

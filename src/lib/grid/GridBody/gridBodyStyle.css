@@ -15,8 +15,6 @@
   --ag-row-border: solid 1px var(--color-row-border);
   --ag-row-hover-color: var(--color-row-hover);
   --ag-browser-color-scheme: light;
-
-  font-size: var(--font-size);
 }
 .dark #baseGridContainer {
   --ag-browser-color-scheme: dark;
