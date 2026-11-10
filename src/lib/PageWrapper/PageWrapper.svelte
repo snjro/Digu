@@ -187,7 +187,6 @@
     {#if hasMultipleTabs && !isFullScreen && tabsDefinition}
       <BaseRadio
         radioButtonType="tab"
-        border={true}
         groupName={tabsDefinition.groupName}
         bind:selectedValue={tabsDefinition.selected}
         size={sizeSettings.tab}

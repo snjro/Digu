@@ -164,7 +164,7 @@ async function importChunk(
   }
 }
 
-export async function importWarpSyncFileInWorker(
+async function importWarpSyncFileInWorker(
   targetChain: Chain,
   target: WarpSyncTarget,
   chunk: WarpSyncManifestChunkWithFile,
@@ -211,4 +211,4 @@ export function anySignal(
 // A file has about 20,000 logs (more when the logs of one block cross it). A
 // desktop computer imports one in a few seconds with the download (#695), so
 // the limit leaves room for slower devices and networks.
-export const FILE_TIMEOUT_MS = 120_000;
+const FILE_TIMEOUT_MS = 120_000;

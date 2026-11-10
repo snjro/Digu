@@ -1,14 +1,3 @@
-<script lang="ts" module>
-  export type CommonAbiParamsTableProps = {
-    paramTypes:
-      | EventAbiFragment["inputs"]
-      | FunctionAbiFragment["inputs"]
-      | FunctionAbiFragment["outputs"];
-    dialogHeaderText: string;
-    size: BaseSize;
-  };
-</script>
-
 <script lang="ts">
   import { colorSettings } from "#lib/appearanceConfig/color/colorSettings.js";
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
@@ -20,17 +9,13 @@
     getAbiParamText,
     getComponentsFromAbiFragmentParam,
   } from "#lib/contracts/abiJson/abiText.js";
-  import type {
-    AbiFragmentParam,
-    EventAbiFragment,
-    FunctionAbiFragment,
-  } from "#constants/chains/types.js";
+  import type { AbiFragmentParam } from "#constants/chains/types.js";
   import { NO_DATA } from "#utils/utilsConstants.js";
   import AbiParamComponentsDetailsButton from "./AbiParamComponentsDetailsButton.svelte";
 
   interface Props {
     paramType: AbiFragmentParam;
-    dialogHeaderText: CommonAbiParamsTableProps["dialogHeaderText"];
+    dialogHeaderText: string;
     showInputIndexedField: boolean;
     rowIndex: number;
   }

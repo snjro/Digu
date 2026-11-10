@@ -19,9 +19,7 @@
   import { canImportNow } from "../chainControls";
   import { getWarpSyncHelperText, updateWarpSync } from "./warpSyncSetting";
 
-  let targetChainName = $derived(
-    $storeUserSettings.selectedChainName.toString(),
-  );
+  let targetChainName = $derived($storeUserSettings.selectedChainName);
   let targetChain = $derived(getTargetChain({ chainName: targetChainName }));
   let isOn: boolean = $derived($storeRpcSettings[targetChainName].warpSync);
   // Bound to the checkbox, because a change sets it before the save. After a

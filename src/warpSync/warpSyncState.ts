@@ -4,8 +4,6 @@ import { WARP_SYNC_CHAIN_NAMES } from "./warpSyncShared.mjs";
 
 // Without ethers, so that the components can import it.
 
-export { WARP_SYNC_CHAIN_NAMES };
-
 // What is left to import (see getWarpSyncPending of warpSyncImport.ts).
 export type WarpSyncPending = {
   logCount: number;
@@ -18,8 +16,8 @@ export type WarpSyncPending = {
   files: number;
 };
 // Above either of them, the user confirms before the import.
-export const CONFIRM_ABOVE_LOGS = 10_000;
-export const CONFIRM_ABOVE_BYTES = 10_000_000;
+const CONFIRM_ABOVE_LOGS = 10_000;
+const CONFIRM_ABOVE_BYTES = 10_000_000;
 export function needsConfirmation(pending: WarpSyncPending): boolean {
   return (
     pending.logCount > CONFIRM_ABOVE_LOGS || pending.bytes > CONFIRM_ABOVE_BYTES

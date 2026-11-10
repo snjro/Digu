@@ -61,8 +61,9 @@ export async function fetchEventLogsContract(
   // Doubled after each success, and halved after two errors in a row that may
   // come from a range that is too wide, or after ERRORS_TO_HALVE_ANYWAY errors
   // of any kind. After that, it is not doubled beyond the halved width until
-  // SUCCESSES_TO_RAISE_LIMIT successes in a row, so that the same error does
-  // not come each time.
+  // SUCCESSES_TO_RAISE_LIMIT successes since the halving, so that the same
+  // error does not come each time. An error that does not halve the width
+  // does not start the count again.
   let bulkUnit: number = INITIAL_BULK_UNIT;
   let maxBulkUnit: number = MAX_BULK_UNIT;
   let successCount: number = 0;

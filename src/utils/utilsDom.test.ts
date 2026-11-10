@@ -18,15 +18,6 @@ type FamilyStyle = {
   expected: VerticalViewability;
   condition: string;
 };
-// 新たな型を定義
-declare global {
-  interface Window {
-    exposedGetVerticalViewabilityInScroll: (
-      parentElement: HTMLElement | null,
-      childElement: HTMLElement,
-    ) => VerticalViewability;
-  }
-}
 let parentElement: HTMLDivElement;
 let childElement: HTMLDivElement;
 

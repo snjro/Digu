@@ -38,7 +38,7 @@
   const progressCircleSize: BaseSize = sizeSettings.navProgressCircle;
 
   let targetChainName: ChainName = $derived(
-    $storeUserSettings.selectedChainName.toString(),
+    $storeUserSettings.selectedChainName,
   );
 
   let targetChain: Chain = $derived(

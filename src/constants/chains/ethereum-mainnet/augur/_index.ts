@@ -5,5 +5,4 @@ import { version as version2 } from "./version2/_index";
 export const project: Project = {
   name: "Augur",
   versions: [version1, version2],
-  // versions: [version1],
 };

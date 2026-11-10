@@ -47,7 +47,6 @@
   let customClass: string = $derived(
     forcedClass ??
       classNames(
-        "form-select",
         "rounded-sm",
         "w-full",
         "p-1",

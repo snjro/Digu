@@ -255,7 +255,7 @@ export function stopWatchingSyncLockSignals(): void {
   chainsToReadWhenShown.clear();
 }
 
-export function waitForSyncLockRelease(chainName: ChainName): void {
+function waitForSyncLockRelease(chainName: ChainName): void {
   if (get(storeSyncLockedByOtherTab)[chainName]) return;
   storeSyncLockedByOtherTab.update((state) => ({
     ...state,

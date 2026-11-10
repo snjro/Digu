@@ -1,4 +1,4 @@
-<script lang="ts" generics>
+<script lang="ts">
   import { getFirstTabUrlHash } from "#lib/PageWrapper/tabs.js";
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import type {

@@ -11,7 +11,7 @@
   let targetChainName = $derived(
     getPageChainName(
       page.params.chainName,
-      $storeUserSettings.selectedChainName.toString(),
+      $storeUserSettings.selectedChainName,
     ),
   );
   const crumbItems = (): CrumbItem[] => {

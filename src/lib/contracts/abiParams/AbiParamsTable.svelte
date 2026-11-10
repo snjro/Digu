@@ -5,7 +5,6 @@
       | FunctionAbiFragment["inputs"]
       | FunctionAbiFragment["outputs"];
     dialogHeaderText: string;
-    size: BaseSize;
   };
 </script>
 

@@ -5,9 +5,7 @@
   import { storeUserSettings } from "#stores/storeUserSettings.js";
   import BaseItem from "./BaseItem.svelte";
 
-  let targetChainName = $derived(
-    $storeUserSettings.selectedChainName.toString(),
-  );
+  let targetChainName = $derived($storeUserSettings.selectedChainName);
 </script>
 
 <BaseItem

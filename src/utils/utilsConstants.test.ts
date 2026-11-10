@@ -36,7 +36,7 @@ const constants: Constant[] = [
   },
   {
     constName: GITHUB_REPOSITORY_URL,
-    constValue: `https://github.com/${GITHUB_OWNER_NAME}/${PROJECT_NAME}`,
+    constValue: "https://github.com/snjro/Digu",
   },
 ];
 describe("constants", () => {

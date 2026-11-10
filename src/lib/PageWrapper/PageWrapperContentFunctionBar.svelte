@@ -9,7 +9,7 @@
 </script>
 
 <script lang="ts">
-  import type { PageWrapperContentFunctionBarButtonsDefinition } from "#lib/PageWrapper//PageWrapperContentFunctionBarButtons.svelte";
+  import type { PageWrapperContentFunctionBarButtonsDefinition } from "#lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
   import PageWrapperContentFunctionBarButtons from "#lib/PageWrapper/PageWrapperContentFunctionBarButtons.svelte";
   import type { BreakPointWidthValue } from "#lib/appearanceConfig/size/sizeDefinitions.js";
   import type { BaseSize } from "#lib/base/baseSizes.js";

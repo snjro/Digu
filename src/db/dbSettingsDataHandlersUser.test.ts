@@ -71,7 +71,7 @@ describe("getDbItemUserSettings", () => {
   });
 });
 
-describe("updateDbItemRpcSettings", () => {
+describe("updateDbItemUserSettings", () => {
   const updatedUserSetting: UserSetting = {
     userSettingsId: userSettingsId,
     themeColor: "dark",

@@ -12,9 +12,7 @@
   import { getRpcInputHelperLabelProps } from "./rpcInputHelperLabel";
   import { getShownSyncStoppedReason } from "./syncStatus/syncPanel";
 
-  let targetChainName = $derived(
-    $storeUserSettings.selectedChainName.toString(),
-  );
+  let targetChainName = $derived($storeUserSettings.selectedChainName);
   let nodeStatus = $derived($storeChainStatus[targetChainName].nodeStatus);
   let rpc = $derived($storeRpcSettings[targetChainName].rpc);
   let syncStoppedReason = $derived(
