@@ -76,10 +76,10 @@
 
   let style = $derived(
     classNames(
-      `min-width:${sizes[size]};`,
-      `max-width:${sizes[size]};`,
-      `min-height:${sizes[size]};`,
-      `max-height:${sizes[size]};`,
+      `min-width:${sizes[size]}px;`,
+      `max-width:${sizes[size]}px;`,
+      `min-height:${sizes[size]}px;`,
+      `max-height:${sizes[size]}px;`,
       flipHorizontal && "transform: scale(-1,1);",
     ),
   );
