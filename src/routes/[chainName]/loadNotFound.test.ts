@@ -137,6 +137,11 @@ const loads: {
         message: `event not found: eth/Augur/version1/Augur/${eventAbiFragment.format()}`,
       },
       {
+        // getEvent of ethers would throw for a text that is not a signature
+        params: { ...validParams, eventName: "MarketCreated(" },
+        message: "event not found: eth/Augur/version1/Augur/MarketCreated(",
+      },
+      {
         params: { ...validParams, chainName: "foo" },
         message: "chain not found: foo",
       },
@@ -173,6 +178,14 @@ const loads: {
         // the selector of another name
         params: { ...validParams, functionName: `foo-${functionSelector}` },
         message: `function not found: eth/Augur/version1/Augur/foo/${functionSelector}`,
+      },
+      {
+        // getFunction of ethers would find the selector in upper case
+        params: {
+          ...validParams,
+          functionName: `disputeCrowdsourcerCreated-${functionSelector.toUpperCase().replace("0X", "0x")}`,
+        },
+        message: `function not found: eth/Augur/version1/Augur/disputeCrowdsourcerCreated/${functionSelector.toUpperCase().replace("0X", "0x")}`,
       },
       {
         params: {

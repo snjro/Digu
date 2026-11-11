@@ -108,13 +108,13 @@ export function getTargetEventAbiFragment(
     versionName: eventIdentifier.versionName,
     contractName: eventIdentifier.contractName,
   });
-  const eventAbiFragment: EventAbiFragment | null =
-    targetContract.contractInterface.getEvent(eventIdentifier.abiFragmentName);
-  // getEvent also looks up a signature and a topic hash.
-  if (
-    eventAbiFragment === null ||
-    eventAbiFragment.name !== eventIdentifier.abiFragmentName
-  ) {
+  // Not getEvent of ethers: it also looks up a signature and a topic hash.
+  const eventAbiFragment: EventAbiFragment | undefined =
+    targetContract.events.abiFragments.find(
+      (abiFragment: EventAbiFragment) =>
+        abiFragment.name === eventIdentifier.abiFragmentName,
+    );
+  if (eventAbiFragment === undefined) {
     throw new TargetNotFoundError("event", eventIdentifier);
   }
   return eventAbiFragment;
@@ -128,16 +128,14 @@ export function getTargetFunctionAbiFragment(
     versionName: functionIdentifier.versionName,
     contractName: functionIdentifier.contractName,
   });
-  const selector: string | undefined = functionIdentifier.functionSelector;
-  // getFunction also looks up a name, so only a selector is passed to it.
-  const functionAbiFragment: FunctionAbiFragment | null =
-    selector !== undefined && /^0x[0-9a-fA-F]{8}$/.test(selector)
-      ? targetContract.contractInterface.getFunction(selector)
-      : null;
-  if (
-    functionAbiFragment === null ||
-    functionAbiFragment.name !== functionIdentifier.abiFragmentName
-  ) {
+  // Not getFunction of ethers: it also looks up a name alone and a signature.
+  const functionAbiFragment: FunctionAbiFragment | undefined =
+    targetContract.functions.abiFragments.find(
+      (abiFragment: FunctionAbiFragment) =>
+        abiFragment.name === functionIdentifier.abiFragmentName &&
+        abiFragment.selector === functionIdentifier.functionSelector,
+    );
+  if (functionAbiFragment === undefined) {
     throw new TargetNotFoundError("function", functionIdentifier);
   }
   return functionAbiFragment;
