@@ -578,6 +578,15 @@ describe("warpSync", () => {
       expect(importWarpSync).toHaveBeenCalledTimes(2);
     });
 
+    test("keeps asking when the sync starts while it asks, without checking again (#847)", async () => {
+      await startWarpSync(eth);
+      expect(await statusesOf(() => importWarpSyncBeforeSync(eth))).toEqual([
+        "confirm",
+      ]);
+      expect(fetchWarpSyncManifest).toHaveBeenCalledTimes(1);
+      expect(importWarpSync).not.toHaveBeenCalled();
+    });
+
     test("stops when the user stops it, and says what is left", async () => {
       vi.spyOn(customLogger, "info").mockImplementation(() => {});
       importUntilStopped();
