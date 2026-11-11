@@ -30,7 +30,12 @@
   const abiParamTabelSize: BaseSize = sizeSettings.abiParamsTable;
 
   const tableHeaderCellProps = (): BaseTableBodyCellProps[] => {
-    let headerCellProps: BaseTableBodyCellProps[] = [
+    const indexedHeaderCellProps: BaseTableBodyCellProps = {
+      text: "Indexed",
+      align: "center",
+      textSize: abiParamTabelSize,
+    };
+    return [
       {
         text: "Name",
         align: "left",
@@ -41,21 +46,13 @@
         align: "center",
         textSize: abiParamTabelSize,
       },
-      {
-        text: "Indexed",
-        align: "center",
-        textSize: abiParamTabelSize,
-      },
+      ...(showInputIndexedField ? [indexedHeaderCellProps] : []),
       {
         text: "Components",
         align: "center",
         textSize: abiParamTabelSize,
       },
     ];
-    if (!showInputIndexedField) {
-      headerCellProps.splice(2, 1);
-    }
-    return headerCellProps;
   };
 </script>
 

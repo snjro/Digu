@@ -27,6 +27,12 @@ function cellsOfRow(index: number): string[] {
     .map((cell) => cell.textContent?.trim() ?? "");
 }
 
+function headers(): string[] {
+  return screen
+    .getAllByRole("columnheader")
+    .map((header) => header.textContent?.trim() ?? "");
+}
+
 describe("AbiParamsTable.svelte", () => {
   test("shows the name, type and indexed of each param", () => {
     render(AbiParamsTable, {
@@ -52,6 +58,23 @@ describe("AbiParamsTable.svelte", () => {
       showInputIndexedField: false,
     });
     expect(cellsOfRow(0)).toEqual(["1", "owner", "address", NO_DATA]);
+  });
+
+  test("has the Indexed header only with the indexed column", () => {
+    const paramTypes: AbiFragmentParam[] = [param({ name: "owner" })];
+    const first = render(AbiParamsTable, {
+      paramTypes,
+      dialogHeaderText: "Inputs",
+      showInputIndexedField: true,
+    });
+    expect(headers()).toEqual(["#", "Name", "Type", "Indexed", "Components"]);
+    first.unmount();
+    render(AbiParamsTable, {
+      paramTypes,
+      dialogHeaderText: "Inputs",
+      showInputIndexedField: false,
+    });
+    expect(headers()).toEqual(["#", "Name", "Type", "Components"]);
   });
 
   test("shows the standard JSON of the components of a tuple", async () => {
