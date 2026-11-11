@@ -13,8 +13,11 @@ const IMPORTED_LOGS_PER_SECOND = 16_000;
 const STORED_BYTES_PER_LOG = 300;
 
 export function formatBytes(bytes: number): string {
-  if (bytes < 1_000_000) return `${Math.max(1, Math.round(bytes / 1_000))} KB`;
-  if (bytes < 1_000_000_000) return `${Math.round(bytes / 1_000_000)} MB`;
+  // The unit is chosen after the rounding, so that 999,500 is not "1000 KB".
+  const kilobytes: number = Math.max(1, Math.round(bytes / 1_000));
+  if (kilobytes < 1_000) return `${kilobytes} KB`;
+  const megabytes: number = Math.round(bytes / 1_000_000);
+  if (megabytes < 1_000) return `${megabytes} MB`;
   return `${(bytes / 1_000_000_000).toFixed(1)} GB`;
 }
 

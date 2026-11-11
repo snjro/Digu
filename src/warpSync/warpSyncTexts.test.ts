@@ -12,7 +12,11 @@ describe("formatBytes", () => {
   test.each([
     [0, "1 KB"],
     [427_701, "428 KB"],
+    [999_499, "999 KB"],
+    [999_500, "1 MB"],
     [194_000_000, "194 MB"],
+    [999_499_999, "999 MB"],
+    [999_500_000, "1.0 GB"],
     [1_816_000_000, "1.8 GB"],
   ])("%d is %s", (bytes, text) => {
     expect(formatBytes(bytes)).toBe(text);
