@@ -26,10 +26,13 @@ const spyUpdateDbRecordSyncStatus = vi
     return Promise.resolve();
   });
 const spyGetEventLogTableName = vi.spyOn(UtlisDb, "getEventLogTableName");
-const spyGetEventLogTableRecordCount = vi.spyOn(
-  DbEventLogsDataHandlersEventLog,
-  "getEventLogTableRecordCount",
-);
+// A different count for each table: the length of its name.
+const spyGetEventLogTableRecordCount = vi
+  .spyOn(DbEventLogsDataHandlersEventLog, "getEventLogTableRecordCount")
+  .mockImplementation(
+    (_dbEventLogs, eventLogTableName: string): Promise<number> =>
+      Promise.resolve(eventLogTableName.length),
+  );
 
 const targetChain: Chain = TARGET_CHAINS[0];
 const targetProject: Project = targetChain.projects[0];
@@ -70,7 +73,17 @@ describe("initializeDBSyncStatusForContract", () => {
         isAbort: false,
         isSyncing: false,
         creationBlockNumber: targetContract.creation.blockNumber,
-        events: expect.any(Object),
+        events: Object.fromEntries(
+          targetContract.events.names.map((eventName) => [
+            eventName,
+            {
+              recordCount: UtlisDb.getEventLogTableName(
+                targetContract.name,
+                eventName,
+              ).length,
+            },
+          ]),
+        ),
       },
     );
   });

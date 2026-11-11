@@ -5,7 +5,6 @@ import { JsonRpcProvider } from "ethers";
 import { fetchEventLogsContract } from "./eventLogsContract";
 import { registerEventLogsAndBlockTimes } from "./eventLogsContractUpdateTables";
 import {
-  extractEventContracts,
   fetchAndRaiseLatestBlockNumber,
   getEthersEventLogs,
   type NodeProvider,
@@ -13,12 +12,15 @@ import {
 import { sleep } from "#utils/utilsCommon.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
-import { TARGET_CHAINS } from "#constants/chains/_index.js";
-import type { Chain, Contract } from "#constants/chains/types.js";
-import type { DbEventLogs } from "#db/dbEventLogs.js";
 import { addInitialDataOfDbChainStatus } from "#db/dbChainStatus.js";
 import { getDbRecordChainStatus } from "#db/dbChainStatusDataHandlers.js";
-import type { SyncStatusContract, SyncStatusesChain } from "#db/dbTypes.js";
+import type { SyncStatusesChain } from "#db/dbTypes.js";
+import {
+  contractInState,
+  dbEventLogs,
+  targetChain,
+  targetContract,
+} from "../testUtils/syncTarget";
 
 vi.mock("#utils/utilsEthers.js", async (importOriginal) => {
   const original =
@@ -32,25 +34,6 @@ vi.mock("#utils/utilsCommon.js", async (importOriginal) => {
 });
 vi.mock("./eventLogsContractUpdateTables");
 vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js");
-
-const targetChain: Chain = TARGET_CHAINS[0];
-const targetProject = targetChain.projects[0];
-const targetVersion = targetProject.versions[0];
-const targetContract: Contract = extractEventContracts(
-  targetVersion.contracts,
-)[0];
-const dbEventLogs = {
-  versionIdentifier: {
-    chainName: targetChain.name,
-    projectName: targetProject.name,
-    versionName: targetVersion.name,
-  },
-} as DbEventLogs;
-
-function contractInState(state: SyncStatusesChain): SyncStatusContract {
-  return state[targetChain.name].subSyncStatuses[targetProject.name]
-    .subSyncStatuses[targetVersion.name].subSyncStatuses[targetContract.name]!;
-}
 
 describe("fetchEventLogsContract with the latest block number from the RPC", () => {
   const creationBlockNumber: number = targetContract.creation.blockNumber;

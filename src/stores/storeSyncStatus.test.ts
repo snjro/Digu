@@ -1,67 +1,12 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
 import { getInitialState } from "./storeSyncStatusGetInitialState";
-import { NO_DATA } from "#utils/utilsConstants.js";
 import type {
   ContractIdentifier,
   SyncStatusContract,
   SyncStatusesChain,
 } from "#db/dbTypes.js";
-
-export const dummyChainName = "chain1";
-export const dummyProjectName = "project1";
-export const dummyVersionName = "version1";
-export const dummyContractName = "contract1";
-export const dummySyncStatusesChain: SyncStatusesChain = {
-  [dummyChainName]: {
-    name: dummyChainName,
-    isSyncTarget: false,
-    isSyncing: false,
-    isAbort: false,
-    fetchedBlockNumber: 0,
-    creationBlockNumber: 0,
-    numOfSyncTargetContract: 0,
-    syncStateText: NO_DATA,
-    subSyncStatuses: {
-      [dummyProjectName]: {
-        name: dummyProjectName,
-        isSyncTarget: false,
-        isSyncing: false,
-        isAbort: false,
-        fetchedBlockNumber: 0,
-        creationBlockNumber: 0,
-        numOfSyncTargetContract: 0,
-        syncStateText: NO_DATA,
-        subSyncStatuses: {
-          [dummyVersionName]: {
-            name: dummyVersionName,
-            isSyncTarget: false,
-            isSyncing: false,
-            isAbort: false,
-            fetchedBlockNumber: 0,
-            creationBlockNumber: 0,
-            numOfSyncTargetContract: 0,
-            syncStateText: NO_DATA,
-            subSyncStatuses: {
-              [dummyContractName]: {
-                name: dummyContractName,
-                isSyncTarget: false,
-                isSyncing: false,
-                isAbort: false,
-                fetchedBlockNumber: 0,
-                creationBlockNumber: 0,
-                numOfSyncTargetContract: 0,
-                syncStateText: NO_DATA,
-                events: { event1: { recordCount: 0 } },
-                subSyncStatuses: null,
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
+import { dummySyncStatusesChain } from "../testUtils/dummySyncStatuses";
 
 // Import a fresh store for each test, so that no test depends on the state
 // left by another test.

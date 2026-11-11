@@ -4,17 +4,6 @@ import { dbBlockTimes } from "./dbBlockTimes";
 import { DB_NAME, DB_VERSIONS } from "./constants";
 import { TARGET_CHAINS } from "#constants/chains/_index.js";
 
-vi.mock("./constants", () => ({
-  DB_NAME: {
-    secondNames: {
-      blockTimes: "mockBlockTimes",
-    },
-  },
-  DB_VERSIONS: {
-    BlockTimes: 1,
-  },
-}));
-
 vi.mock("#constants/chains/_index.js", () => ({
   TARGET_CHAINS: [{ name: "chain1" }, { name: "chain2" }],
 }));

@@ -1,25 +1,19 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { get } from "svelte/store";
 import type { Contract as EthersContract } from "ethers";
-import { TARGET_CHAINS } from "#constants/chains/_index.js";
-import type { Chain, Contract } from "#constants/chains/types.js";
+import type { Contract } from "#constants/chains/types.js";
 import {
   startAbortingInChain,
   startSyncingInChain,
   stopSyncingInChain,
   stopSyncingInContract,
 } from "#db/dbEventLogsDataHandlersSyncStatus.js";
-import type {
-  ContractIdentifier,
-  SyncStatusContract,
-  SyncStatusesChain,
-} from "#db/dbTypes.js";
+import type { ContractIdentifier, SyncStatusesChain } from "#db/dbTypes.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { storeSyncStoppedReason } from "#stores/storeSyncStoppedReason.js";
 import { customLogger } from "#utils/logger.js";
 import {
-  extractEventContracts,
   getEthersEventLogs,
   getNodeProvider,
   type NodeProvider,
@@ -28,6 +22,12 @@ import { fetchEventLogs } from "./eventLogs";
 import { TRY_COUNT } from "./eventLogsContract";
 import { requestSyncLock } from "./syncLock";
 import { getSyncRunSignal, startSyncRun, stopSync } from "./syncStop";
+import {
+  contractInState,
+  eventContracts,
+  targetChain,
+  versionIdentifier,
+} from "../testUtils/syncTarget";
 
 vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js");
 vi.mock("./eventLogsContractUpdateTables");
@@ -45,30 +45,15 @@ vi.mock("#utils/utilsEthers.js", async (importOriginal) => ({
   getEthersEventLogs: vi.fn(),
 }));
 
-const targetChain: Chain = TARGET_CHAINS[0];
-const targetProject = targetChain.projects[0];
-const targetVersion = targetProject.versions[0];
-const [contractA, contractB]: Contract[] = extractEventContracts(
-  targetVersion.contracts,
-);
+const [contractA, contractB]: Contract[] = eventContracts;
 const identifierOf = (contract: Contract): ContractIdentifier => ({
-  chainName: targetChain.name,
-  projectName: targetProject.name,
-  versionName: targetVersion.name,
+  ...versionIdentifier,
   contractName: contract.name,
 });
 // Long enough for TRY_COUNT errors in a row at the latest block, each after
 // a Block Interval and a retry wait.
 const timeToGiveUpMs: number =
   (TRY_COUNT + 3) * (targetChain.blockIntervalMs + 1000);
-
-function contractInState(
-  state: SyncStatusesChain,
-  contract: Contract,
-): SyncStatusContract {
-  return state[targetChain.name].subSyncStatuses[targetProject.name]
-    .subSyncStatuses[targetVersion.name].subSyncStatuses[contract.name]!;
-}
 
 // Starts a sync of contractA and contractB, and returns whether it has
 // ended.
