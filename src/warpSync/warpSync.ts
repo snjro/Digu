@@ -41,6 +41,17 @@ const runningImports: Map<ChainName, RunningImport> = new Map();
 const confirmedChains: Set<ChainName> = new Set();
 const heldChains: Set<ChainName> = new Set();
 
+// Nothing to import now: it is off, done, held by the user, or waiting for
+// the user's answer.
+function isImportSkipped(chainName: ChainName): boolean {
+  return (
+    !isWarpSyncOn(chainName) ||
+    isDone(chainName) ||
+    heldChains.has(chainName) ||
+    getState(chainName).status === "confirm"
+  );
+}
+
 // When a chain is opened, or the warp sync is turned on: imports the
 // snapshot while holding the sync lock. A large import waits for the user
 // ("confirm"). Skips it while this tab syncs the chain, or when another tab
@@ -53,12 +64,7 @@ function startImport(targetChain: Chain): RunningImport {
   const chainName: ChainName = targetChain.name;
   const running: RunningImport | undefined = runningImports.get(chainName);
   if (running) return running;
-  if (
-    !isWarpSyncOn(chainName) ||
-    isDone(chainName) ||
-    heldChains.has(chainName) ||
-    getState(chainName).status === "confirm"
-  ) {
+  if (isImportSkipped(chainName)) {
     const ran: Promise<boolean> = Promise.resolve(true);
     return { ran, done: ran.then(() => {}) };
   }
@@ -152,10 +158,8 @@ export async function importWarpSyncBeforeSync(
   targetChain: Chain,
 ): Promise<void> {
   const chainName: ChainName = targetChain.name;
-  if (!isWarpSyncOn(chainName) || isDone(chainName)) return;
-  if (heldChains.has(chainName)) return;
-  // Asked already: checking again would close the confirmation and open it.
-  if (getState(chainName).status === "confirm") return;
+  // In "confirm", checking again would close the confirmation and open it.
+  if (isImportSkipped(chainName)) return;
   const end: WarpSyncState | undefined = await runImport(targetChain, false);
   if (end) setWarpSyncState(chainName, end);
 }
