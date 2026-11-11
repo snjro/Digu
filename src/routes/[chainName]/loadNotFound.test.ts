@@ -12,21 +12,23 @@ import { getTargetContract } from "#utils/utilsDb.js";
 
 type Params = LoadEvent["params"];
 
+const augur = getTargetContract({
+  chainName: "eth",
+  projectName: "Augur",
+  versionName: "version1",
+  contractName: "Augur",
+});
+const functionSelector: string = augur.functions.abiFragments.find(
+  (abiFragment) => abiFragment.name === "disputeCrowdsourcerCreated",
+)!.selector;
+const eventAbiFragment = augur.contractInterface.getEvent("MarketCreated")!;
+
 const validParams = {
   chainName: "eth",
   projectName_versionName: "Augur-version1",
   contractName: "Augur",
   eventName: "MarketCreated",
-  functionName: `disputeCrowdsourcerCreated-${
-    getTargetContract({
-      chainName: "eth",
-      projectName: "Augur",
-      versionName: "version1",
-      contractName: "Augur",
-    }).functions.abiFragments.find(
-      (abiFragment) => abiFragment.name === "disputeCrowdsourcerCreated",
-    )!.selector
-  }`,
+  functionName: `disputeCrowdsourcerCreated-${functionSelector}`,
 } satisfies Params;
 
 async function expect404(load: () => unknown, message: string): Promise<void> {
@@ -68,9 +70,16 @@ const loads: {
         message: "version not found: eth/Augur/foo",
       },
       {
-        // no hyphen: the version name is undefined
+        // no hyphen: the version name is empty
         params: { ...validParams, projectName_versionName: "Augur" },
         message: "version not found: eth/Augur/",
+      },
+      {
+        params: {
+          ...validParams,
+          projectName_versionName: "Augur-version1-foo",
+        },
+        message: "version not found: eth/Augur/version1-foo",
       },
     ],
   },
@@ -118,6 +127,21 @@ const loads: {
         message: "event not found: eth/Augur/version1/Augur/foo",
       },
       {
+        // getEvent of ethers would find the event by its topic hash
+        params: { ...validParams, eventName: eventAbiFragment.topicHash },
+        message: `event not found: eth/Augur/version1/Augur/${eventAbiFragment.topicHash}`,
+      },
+      {
+        // and by its signature
+        params: { ...validParams, eventName: eventAbiFragment.format() },
+        message: `event not found: eth/Augur/version1/Augur/${eventAbiFragment.format()}`,
+      },
+      {
+        // getEvent of ethers would throw for a text that is not a signature
+        params: { ...validParams, eventName: "MarketCreated(" },
+        message: "event not found: eth/Augur/version1/Augur/MarketCreated(",
+      },
+      {
         params: { ...validParams, chainName: "foo" },
         message: "chain not found: foo",
       },
@@ -149,6 +173,26 @@ const loads: {
         params: { ...validParams, functionName: "disputeCrowdsourcerCreated" },
         message:
           "function not found: eth/Augur/version1/Augur/disputeCrowdsourcerCreated/",
+      },
+      {
+        // the selector of another name
+        params: { ...validParams, functionName: `foo-${functionSelector}` },
+        message: `function not found: eth/Augur/version1/Augur/foo/${functionSelector}`,
+      },
+      {
+        // getFunction of ethers would find the selector in upper case
+        params: {
+          ...validParams,
+          functionName: `disputeCrowdsourcerCreated-${functionSelector.toUpperCase().replace("0X", "0x")}`,
+        },
+        message: `function not found: eth/Augur/version1/Augur/disputeCrowdsourcerCreated/${functionSelector.toUpperCase().replace("0X", "0x")}`,
+      },
+      {
+        params: {
+          ...validParams,
+          projectName_versionName: "Augur-version1-foo",
+        },
+        message: "version not found: eth/Augur/version1-foo",
       },
       {
         params: { ...validParams, contractName: "foo" },
