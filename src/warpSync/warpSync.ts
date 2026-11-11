@@ -154,6 +154,8 @@ export async function importWarpSyncBeforeSync(
   const chainName: ChainName = targetChain.name;
   if (!isWarpSyncOn(chainName) || isDone(chainName)) return;
   if (heldChains.has(chainName)) return;
+  // Asked already: checking again would close the confirmation and open it.
+  if (getState(chainName).status === "confirm") return;
   const end: WarpSyncState | undefined = await runImport(targetChain, false);
   if (end) setWarpSyncState(chainName, end);
 }
