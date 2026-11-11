@@ -41,9 +41,25 @@ const versionIdentifier: VersionIdentifier = {
   versionName: targetVersion.name,
 };
 
+// A different count for each event: its place in the list of the names.
+const recordCountOf = (eventName: string): number =>
+  targetContract.events.names.indexOf(eventName) + 1;
+
 describe("initializeDBSyncStatusForContract", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    spyGetEventLogTableRecordCount.mockImplementation(
+      (_dbEventLogs, eventLogTableName: string): Promise<number> =>
+        Promise.resolve(
+          recordCountOf(
+            targetContract.events.names.find(
+              (eventName) =>
+                UtlisDb.getEventLogTableName(targetContract.name, eventName) ===
+                eventLogTableName,
+            )!,
+          ),
+        ),
+    );
   });
 
   test("should initialize DB sync status for contract", async () => {
@@ -70,7 +86,12 @@ describe("initializeDBSyncStatusForContract", () => {
         isAbort: false,
         isSyncing: false,
         creationBlockNumber: targetContract.creation.blockNumber,
-        events: expect.any(Object),
+        events: Object.fromEntries(
+          targetContract.events.names.map((eventName) => [
+            eventName,
+            { recordCount: recordCountOf(eventName) },
+          ]),
+        ),
       },
     );
   });

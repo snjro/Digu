@@ -74,8 +74,7 @@ describe("storeUserSettings", () => {
   test("should not change the shared initial data", async () => {
     const storeUserSettings = await importStoreUserSettings();
     const { initialDataUserSettings } = await import("#db/dbTypes.js");
-    // Same as `$storeUserSettings.isOpenSidebar = false` in a component,
-    // which changes the current value in place.
+    // An update that changes the current value in place.
     storeUserSettings.update((state: StateUserSettings) => {
       state.isOpenSidebar = false;
       return state;

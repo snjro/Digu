@@ -11,15 +11,13 @@ import { storeSyncStatus } from "#stores/storeSyncStatus.js";
 import { storeChainStatus } from "#stores/storeChainStatus.js";
 import { customLogger } from "#utils/logger.js";
 import { stopSyncingInContract } from "#db/dbEventLogsDataHandlersSyncStatus.js";
-import { TARGET_CHAINS } from "#constants/chains/_index.js";
-import { extractEventContracts } from "#utils/utilsEthers.js";
-import type { Chain, Contract } from "#constants/chains/types.js";
-import type { DbEventLogs } from "#db/dbEventLogs.js";
-import type {
-  ContractIdentifier,
-  SyncStatusContract,
-  SyncStatusesChain,
-} from "#db/dbTypes.js";
+import type { SyncStatusesChain } from "#db/dbTypes.js";
+import {
+  contractInState,
+  dbEventLogs,
+  targetChain,
+  targetContract,
+} from "../testUtils/syncTarget";
 
 vi.mock("#utils/utilsEthers.js", async (importOriginal) => {
   const original =
@@ -28,34 +26,6 @@ vi.mock("#utils/utilsEthers.js", async (importOriginal) => {
 });
 vi.mock("./eventLogsContractUpdateTables");
 vi.mock("#db/dbEventLogsDataHandlersSyncStatus.js");
-
-const targetChain: Chain = TARGET_CHAINS[0];
-const targetProject = targetChain.projects[0];
-const targetVersion = targetProject.versions[0];
-const targetContract: Contract = extractEventContracts(
-  targetVersion.contracts,
-)[0];
-const contractIdentifier: ContractIdentifier = {
-  chainName: targetChain.name,
-  projectName: targetProject.name,
-  versionName: targetVersion.name,
-  contractName: targetContract.name,
-};
-const dbEventLogs = {
-  versionIdentifier: {
-    chainName: targetChain.name,
-    projectName: targetProject.name,
-    versionName: targetVersion.name,
-  },
-} as DbEventLogs;
-
-function contractInState(state: SyncStatusesChain): SyncStatusContract {
-  return state[contractIdentifier.chainName].subSyncStatuses[
-    contractIdentifier.projectName
-  ].subSyncStatuses[contractIdentifier.versionName].subSyncStatuses[
-    contractIdentifier.contractName
-  ]!;
-}
 
 describe("fetchEventLogsContract", () => {
   const creationBlockNumber: number = targetContract.creation.blockNumber;

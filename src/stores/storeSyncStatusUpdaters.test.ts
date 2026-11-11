@@ -4,51 +4,18 @@ import type {
   SyncStatusContract,
   SyncStatusesChain,
 } from "#db/dbTypes.js";
-import { NO_DATA } from "#utils/utilsConstants.js";
+import {
+  dummyChainName,
+  dummyContractName,
+  dummyProjectName,
+  dummySyncStatusesChain,
+  dummyVersionName,
+} from "../testUtils/dummySyncStatuses";
 import {
   updateStoreSyncStatusSummarized,
   updateStoreSyncStatusSyncStateText,
 } from "./storeSyncStatusUpdaters";
 
-const dummyChainName = "chain1";
-const dummyProjectName = "project1";
-const dummyVersionName = "version1";
-const dummyContractName = "contract1";
-const syncStatusBase = {
-  isSyncTarget: false,
-  isSyncing: false,
-  isAbort: false,
-  fetchedBlockNumber: 0,
-  creationBlockNumber: 0,
-  numOfSyncTargetContract: 0,
-  syncStateText: NO_DATA,
-} as const;
-const dummySyncStatusesChain: SyncStatusesChain = {
-  [dummyChainName]: {
-    ...syncStatusBase,
-    name: dummyChainName,
-    subSyncStatuses: {
-      [dummyProjectName]: {
-        ...syncStatusBase,
-        name: dummyProjectName,
-        subSyncStatuses: {
-          [dummyVersionName]: {
-            ...syncStatusBase,
-            name: dummyVersionName,
-            subSyncStatuses: {
-              [dummyContractName]: {
-                ...syncStatusBase,
-                name: dummyContractName,
-                events: { event1: { recordCount: 0 } },
-                subSyncStatuses: null,
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
 const contractIdentifier: ContractIdentifier = {
   chainName: dummyChainName,
   projectName: dummyProjectName,

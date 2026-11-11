@@ -16,11 +16,11 @@ afterEach(() => {
 
 const file: WarpSyncFile = {
   formatVersion: 3,
-  chainId: 137,
+  chainId: 1,
   project: "Augur",
-  version: "turbo",
-  name: "FeePot",
-  address: "0x7E9614DF620da5351b36465a7C5D06263a2e1716",
+  version: "version2",
+  name: "Augur",
+  address: "0x23916a8F5C3846e3100e5f587FF14F3098722F5d",
   fromBlock: 100,
   toBlock: 200,
   logs: [],
@@ -33,12 +33,12 @@ async function chunkOf(
 ): Promise<WarpSyncManifestChunkWithFile> {
   return {
     project: "Augur",
-    version: "turbo",
-    name: "FeePot",
+    version: "version2",
+    name: "Augur",
     fromBlock: 100,
     toBlock: 200,
     logCount: 0,
-    file: "Augur-turbo-FeePot-200.json.gz",
+    file: "Augur-version2-Augur-200.json.gz",
     bytes: gzip.length,
     rawBytes: raw.length,
     sha256: (await getSha256(gzip))!,
@@ -49,7 +49,7 @@ async function chunkOf(
 const reply = (body: Uint8Array | string, status = 200) =>
   new Response(body as BodyInit, { status });
 const read = async (change: Partial<WarpSyncManifestChunkWithFile> = {}) =>
-  await readWarpSyncFile("https://x/a.json.gz", await chunkOf(change), 137);
+  await readWarpSyncFile("https://x/a.json.gz", await chunkOf(change), 1);
 
 describe("readWarpSyncFile", () => {
   test("decompresses the gzip file when its sha256 matches", async () => {
@@ -72,7 +72,7 @@ describe("readWarpSyncFile", () => {
     const chunk = await chunkOf({ sha256: "0".repeat(64) });
     vi.stubGlobal("crypto", {});
     fetchMock.mockResolvedValueOnce(reply(gzip));
-    expect(await readWarpSyncFile("https://x/a", chunk, 137)).toEqual(file);
+    expect(await readWarpSyncFile("https://x/a", chunk, 1)).toEqual(file);
   });
   test("throws without DecompressionStream", async () => {
     vi.stubGlobal("DecompressionStream", undefined);
@@ -81,7 +81,7 @@ describe("readWarpSyncFile", () => {
   });
   test.each([
     ["another range", { toBlock: 300 }, "does not have the range"],
-    ["another contract", { name: "AMMFactory" }, "does not have the range"],
+    ["another contract", { name: "ShareToken" }, "does not have the range"],
   ])("throws for %s than the manifest", async (_, change, message) => {
     fetchMock.mockResolvedValueOnce(reply(gzip));
     // The sha256 of the file still matches: only the range differs.
@@ -90,8 +90,8 @@ describe("readWarpSyncFile", () => {
   test("throws for another chain", async () => {
     fetchMock.mockResolvedValueOnce(reply(gzip));
     await expect(
-      readWarpSyncFile("https://x/a", await chunkOf(), 1),
-    ).rejects.toThrow("chainId 137");
+      readWarpSyncFile("https://x/a", await chunkOf(), 137),
+    ).rejects.toThrow("chainId 1.");
   });
   test("throws on an HTTP error", async () => {
     fetchMock.mockResolvedValueOnce(reply("Not Found", 404));

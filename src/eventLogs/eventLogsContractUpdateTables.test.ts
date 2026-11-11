@@ -8,9 +8,6 @@ import {
 import { addEventLogs_updateFetchedBlockNumber } from "#db/dbEventLogsDataHandlersEventLog.js";
 import { dbBlockTimes } from "#db/dbBlockTimes.js";
 import { setDbBlockTime } from "#db/dbBlockTimesDataHandlers.js";
-import { TARGET_CHAINS } from "#constants/chains/_index.js";
-import type { Chain, Contract } from "#constants/chains/types.js";
-import type { DbEventLogs } from "#db/dbEventLogs.js";
 import type {
   BlockTime,
   ConvertedEventLog,
@@ -18,29 +15,18 @@ import type {
   GroupedEventLogs,
   NamedEventLog,
 } from "#db/dbTypes.js";
-import {
-  extractEventContracts,
-  type NodeProvider,
-} from "#utils/utilsEthers.js";
+import type { NodeProvider } from "#utils/utilsEthers.js";
 import { customLogger } from "#utils/logger.js";
 import { convertTimestampSecToIso8601 } from "#utils/utilsTime.js";
+import {
+  dbEventLogs,
+  targetChain,
+  targetContract,
+} from "../testUtils/syncTarget";
 
 vi.mock("#db/dbEventLogsDataHandlersEventLog.js");
 
-const targetChain: Chain = TARGET_CHAINS[0];
-const targetProject = targetChain.projects[0];
-const targetVersion = targetProject.versions[0];
-const targetContract: Contract = extractEventContracts(
-  targetVersion.contracts,
-)[0];
 const eventName: string = targetContract.events.names[0];
-const dbEventLogs = {
-  versionIdentifier: {
-    chainName: targetChain.name,
-    projectName: targetProject.name,
-    versionName: targetVersion.name,
-  },
-} as DbEventLogs;
 
 function timestampOf(blockNumber: number): number {
   return 1_700_000_000 + blockNumber * 12;
