@@ -60,20 +60,14 @@ describe("AbiParamsTable.svelte", () => {
     expect(cellsOfRow(0)).toEqual(["1", "owner", "address", NO_DATA]);
   });
 
-  test("has the Indexed header only with the indexed column", () => {
-    const paramTypes: AbiFragmentParam[] = [param({ name: "owner" })];
-    const first = render(AbiParamsTable, {
-      paramTypes,
+  test("has the Indexed header only with the indexed column", async () => {
+    const { rerender } = render(AbiParamsTable, {
+      paramTypes: [param({ name: "owner" })],
       dialogHeaderText: "Inputs",
       showInputIndexedField: true,
     });
     expect(headers()).toEqual(["#", "Name", "Type", "Indexed", "Components"]);
-    first.unmount();
-    render(AbiParamsTable, {
-      paramTypes,
-      dialogHeaderText: "Inputs",
-      showInputIndexedField: false,
-    });
+    await rerender({ showInputIndexedField: false });
     expect(headers()).toEqual(["#", "Name", "Type", "Components"]);
   });
 

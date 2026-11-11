@@ -11,7 +11,7 @@
 <script lang="ts">
   import { sizeSettings } from "#lib/appearanceConfig/size/sizeSettings.js";
   import BaseTable from "#lib/base/BaseTable/BaseTable.svelte";
-  import type { BaseTableBodyCellProps } from "#lib/base/BaseTable/BaseTableBodyCell.svelte";
+  import type { BaseTableHeaderCellProps } from "#lib/base/BaseTable/BaseTableHeaderCell.svelte";
   import type { BaseSize } from "#lib/base/baseSizes.js";
   import type {
     EventAbiFragment,
@@ -29,35 +29,21 @@
 
   const abiParamTabelSize: BaseSize = sizeSettings.abiParamsTable;
 
-  const tableHeaderCellProps = (): BaseTableBodyCellProps[] => {
-    const indexedHeaderCellProps: BaseTableBodyCellProps = {
-      text: "Indexed",
-      align: "center",
-      textSize: abiParamTabelSize,
-    };
-    return [
-      {
-        text: "Name",
-        align: "left",
-        textSize: abiParamTabelSize,
-      },
-      {
-        text: "Type",
-        align: "center",
-        textSize: abiParamTabelSize,
-      },
-      ...(showInputIndexedField ? [indexedHeaderCellProps] : []),
-      {
-        text: "Components",
-        align: "center",
-        textSize: abiParamTabelSize,
-      },
-    ];
-  };
+  const header = (
+    text: string,
+    align: BaseTableHeaderCellProps["align"],
+  ): BaseTableHeaderCellProps => ({ text, align, textSize: abiParamTabelSize });
+
+  let tableHeaderCellProps: BaseTableHeaderCellProps[] = $derived([
+    header("Name", "left"),
+    header("Type", "center"),
+    ...(showInputIndexedField ? [header("Indexed", "center")] : []),
+    header("Components", "center"),
+  ]);
 </script>
 
 <BaseTable
-  tableHeaderCellProps={tableHeaderCellProps()}
+  {tableHeaderCellProps}
   textSize={abiParamTabelSize}
   numOfTableRows={paramTypes.length}
   scrollAreaLabel={dialogHeaderText}
