@@ -7,10 +7,10 @@ describe("getProjectVersionNameForLabelFromUrl", () => {
       "UniswapV3 v1",
     );
   });
-  test("should use only the first two parts when there are more hyphens", () => {
-    expect(getProjectVersionNameForLabelFromUrl("a-b-c")).toBe("a b");
+  test("should keep the hyphens after the first one in the version", () => {
+    expect(getProjectVersionNameForLabelFromUrl("a-b-c")).toBe("a b-c");
   });
-  test("should show undefined as the version when there is no hyphen", () => {
-    expect(getProjectVersionNameForLabelFromUrl("a")).toBe("a undefined");
+  test("should show an empty version when there is no hyphen", () => {
+    expect(getProjectVersionNameForLabelFromUrl("a")).toBe("a ");
   });
 });

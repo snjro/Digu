@@ -110,7 +110,11 @@ export function getTargetEventAbiFragment(
   });
   const eventAbiFragment: EventAbiFragment | null =
     targetContract.contractInterface.getEvent(eventIdentifier.abiFragmentName);
-  if (eventAbiFragment === null) {
+  // getEvent also looks up a signature and a topic hash.
+  if (
+    eventAbiFragment === null ||
+    eventAbiFragment.name !== eventIdentifier.abiFragmentName
+  ) {
     throw new TargetNotFoundError("event", eventIdentifier);
   }
   return eventAbiFragment;
@@ -130,7 +134,10 @@ export function getTargetFunctionAbiFragment(
     selector !== undefined && /^0x[0-9a-fA-F]{8}$/.test(selector)
       ? targetContract.contractInterface.getFunction(selector)
       : null;
-  if (functionAbiFragment === null) {
+  if (
+    functionAbiFragment === null ||
+    functionAbiFragment.name !== functionIdentifier.abiFragmentName
+  ) {
     throw new TargetNotFoundError("function", functionIdentifier);
   }
   return functionAbiFragment;

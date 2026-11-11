@@ -17,10 +17,10 @@ export function getSplitProjectVersionName(projectVersionName: string): {
   projectName: ProjectName;
   versionName: VersionName;
 } {
-  return {
-    projectName: projectVersionName.split("-")[0],
-    versionName: projectVersionName.split("-")[1],
-  };
+  // All the text after the first hyphen, so that a URL with more hyphens
+  // does not match a version.
+  const [projectName, ...rest]: string[] = projectVersionName.split("-");
+  return { projectName: projectName, versionName: rest.join("-") };
 }
 
 export function getProjectVersionNameForLabelFromUrl(
