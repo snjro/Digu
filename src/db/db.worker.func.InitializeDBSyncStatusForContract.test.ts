@@ -26,13 +26,10 @@ const spyUpdateDbRecordSyncStatus = vi
     return Promise.resolve();
   });
 const spyGetEventLogTableName = vi.spyOn(UtlisDb, "getEventLogTableName");
-// A different count for each table: the length of its name.
-const spyGetEventLogTableRecordCount = vi
-  .spyOn(DbEventLogsDataHandlersEventLog, "getEventLogTableRecordCount")
-  .mockImplementation(
-    (_dbEventLogs, eventLogTableName: string): Promise<number> =>
-      Promise.resolve(eventLogTableName.length),
-  );
+const spyGetEventLogTableRecordCount = vi.spyOn(
+  DbEventLogsDataHandlersEventLog,
+  "getEventLogTableRecordCount",
+);
 
 const targetChain: Chain = TARGET_CHAINS[0];
 const targetProject: Project = targetChain.projects[0];
@@ -44,9 +41,25 @@ const versionIdentifier: VersionIdentifier = {
   versionName: targetVersion.name,
 };
 
+// A different count for each event: its place in the list of the names.
+const recordCountOf = (eventName: string): number =>
+  targetContract.events.names.indexOf(eventName) + 1;
+
 describe("initializeDBSyncStatusForContract", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    spyGetEventLogTableRecordCount.mockImplementation(
+      (_dbEventLogs, eventLogTableName: string): Promise<number> =>
+        Promise.resolve(
+          recordCountOf(
+            targetContract.events.names.find(
+              (eventName) =>
+                UtlisDb.getEventLogTableName(targetContract.name, eventName) ===
+                eventLogTableName,
+            )!,
+          ),
+        ),
+    );
   });
 
   test("should initialize DB sync status for contract", async () => {
@@ -76,12 +89,7 @@ describe("initializeDBSyncStatusForContract", () => {
         events: Object.fromEntries(
           targetContract.events.names.map((eventName) => [
             eventName,
-            {
-              recordCount: UtlisDb.getEventLogTableName(
-                targetContract.name,
-                eventName,
-              ).length,
-            },
+            { recordCount: recordCountOf(eventName) },
           ]),
         ),
       },

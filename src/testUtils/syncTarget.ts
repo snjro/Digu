@@ -16,8 +16,8 @@ import { extractEventContracts } from "#utils/utilsEthers.js";
 // What the tests of the sync fetch: the contracts with events of the first
 // version of the first chain.
 export const targetChain: Chain = TARGET_CHAINS[0];
-export const targetProject: Project = targetChain.projects[0];
-export const targetVersion: Version = targetProject.versions[0];
+const targetProject: Project = targetChain.projects[0];
+const targetVersion: Version = targetProject.versions[0];
 export const eventContracts: Contract[] = extractEventContracts(
   targetVersion.contracts,
 );
